@@ -1,0 +1,89 @@
+{
+  "appTitle": "Weltraum Mathe Akademie",
+  
+  "welcome": "Willkommen in der Weltraum Mathe Akademie!",
+  
+  "startAdventure": "Starte dein Mathe-Abenteuer",
+  
+  "chooseGrade": "Wähle deine Klasse",
+  
+  "grade3": "3. Klasse",
+  "grade4": "4. Klasse", 
+  "grade5": "5. Klasse",
+  "grade6": "6. Klasse",
+  
+  "gameMenu": "Spiele-Menü",
+  
+  "magicTriangles": "Zauberdreiecke",
+  
+  "magicTrianglesDesc": "Löse das Geheimnis der kosmischen Dreiecke! Fülle die fehlenden Zahlen ein.",
+  
+  "bubbleMath": "Kosmische Blasen-Mathe",
+  
+  "bubbleMathDesc": "Platze die schwebenden Weltraumblasen in der richtigen mathematischen Reihenfolge!",
+  
+  "puzzleMath": "Weltraum-Puzzle-Mathe",
+  
+  "puzzleMathDesc": "Vervollständige die Raumstation, indem du Mathe-Rätsel löst und Teile zusammenfügst!",
+  
+  "level": "Level",
+  
+  "score": "Punkte",
+  
+  "lives": "Leben",
+  
+  "time": "Zeit",
+  
+  "correct": "Richtig!",
+  
+  "incorrect": "Versuch es nochmal!",
+  
+  "excellent": "Hervorragende Arbeit, Weltraum-Forscher!",
+  
+  "good": "Gut gemacht!",
+  
+  "tryAgain": "Lass uns nochmal versuchen!",
+  
+  "gameOver": "Mission Erfolgreich!",
+  
+  "nextLevel": "Nächste Mission",
+  
+  "playAgain": "Nochmal spielen",
+  
+  "backToMenu": "Zurück zur Raumstation",
+  
+  "settings": "Einstellungen",
+  
+  "sound": "Ton",
+  
+  "music": "Musik",
+  
+  "language": "Sprache",
+  
+  "progress": "Fortschritt",
+  
+  "achievements": "Erfolge",
+  
+  "mathOperations": {
+    "addition": "Addition",
+    "subtraction": "Subtraktion", 
+    "multiplication": "Multiplikation",
+    "division": "Division"
+  },
+  
+  "instructions": {
+    "magicTriangles": "Finde die fehlenden Zahlen in jedem Dreieck. Jede Seite sollte dieselbe Summe ergeben!",
+    "bubbleMath": "Platze die Blasen in der Reihenfolge von der kleinsten zur größten Antwort. Achte auf die beweglichen Blasen!",
+    "puzzleMath": "Ziehe Puzzleteile an ihre richtigen Plätze. Drehe Teile durch Antippen. Finde die passenden Mathe-Antworten!"
+  },
+  
+  "hints": {
+    "magicTriangles": "Denk daran: jede Seite des Dreiecks ergibt dieselbe Zauberzahl!",
+    "bubbleMath": "Beginne mit der kleinsten Antwort und arbeite dich nach oben!",
+    "puzzleMath": "Suche nach passenden Farben und löse zuerst die Mathe-Aufgaben!"
+  },
+  
+  "congratulations": "Herzlichen Glückwunsch, Kommandant!",
+  "missionsCompleted": "Missionen abgeschlossen: {count}",
+  "starsEarned": "Sterne erhalten: {count}"
+}
