@@ -119,7 +119,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  S.of(context).achievements,
+                  S.of(context)!.achievements,
                   style: SpaceTheme.headlineStyle.copyWith(fontSize: 32),
                 ),
                 Text(
@@ -533,7 +533,7 @@ class _AchievementCardState extends State<AchievementCard>
                           widget.achievement.description,
                           style: SpaceTheme.bodyStyle.copyWith(
                             fontSize: 12,
-                            color: widget.isUnlocked ? Colors.white90 : Colors.white50,
+                            color: widget.isUnlocked ? Colors.white : Colors.white54,
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 3,

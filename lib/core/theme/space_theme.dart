@@ -145,8 +145,8 @@ class SpaceTheme {
         ),
       ),
       
-      // Card Theme
-      cardTheme: const CardTheme(
+      // Card Theme - Fixed
+      cardTheme: const CardThemeData(
         elevation: 8,
         margin: EdgeInsets.all(8),
         shape: RoundedRectangleBorder(

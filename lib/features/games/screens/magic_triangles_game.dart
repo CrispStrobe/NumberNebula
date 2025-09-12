@@ -111,8 +111,8 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       context: context,
       barrierDismissible: false,
       builder: (context) => SpaceDialog(
-        title: S.of(context).excellent,
-        content: S.of(context).correct,
+        title: S.of(context)!.excellent,
+        content: S.of(context)!.correct,
         onNext: () {
           Navigator.of(context).pop();
           _generateTriangle();
@@ -125,8 +125,8 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     showDialog(
       context: context,
       builder: (context) => SpaceDialog(
-        title: S.of(context).tryAgain,
-        content: S.of(context).incorrect,
+        title: S.of(context)!.tryAgain,
+        content: S.of(context)!.incorrect,
         onNext: () {
           Navigator.of(context).pop();
           setState(() {
@@ -151,7 +151,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
             children: [
               // Game UI Header
               GameUI(
-                title: S.of(context).magicTriangles,
+                title: S.of(context)!.magicTriangles,
                 level: widget.level,
                 onBack: () => Navigator.of(context).pop(),
               ),
@@ -160,7 +160,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  S.of(context).instructions['magicTriangles'] ?? '',
+                  S.of(context)!.instructionsMagicTriangles,
                   style: SpaceTheme.bodyStyle,
                   textAlign: TextAlign.center,
                 ),
@@ -563,7 +563,7 @@ class SpaceDialog extends StatelessWidget {
             ElevatedButton(
               onPressed: onNext,
               style: SpaceTheme.primaryButtonStyle,
-              child: Text(S.of(context).nextLevel),
+              child: Text(S.of(context)!.nextLevel),
             ),
           ],
         ),

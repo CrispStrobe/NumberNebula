@@ -4,7 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'core/theme/space_theme.dart';
-import 'core/constants/app_constants.dart';
+import 'features/games/constants/app_constants.dart';
 import 'core/services/audio_service.dart';
 import 'core/services/progress_service.dart';
 import 'features/home/screens/home_screen.dart';
@@ -67,7 +67,7 @@ class SpaceMathApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: S.delegate.supportedLocales,
+        supportedLocales: S.supportedLocales,
         
         // Theme
         theme: SpaceTheme.lightTheme,
@@ -138,7 +138,7 @@ class AppRoutes {
         final level = args?['level'] as int? ?? 1;
         return _createRoute(PuzzleMathGame(grade: grade, level: level));
         
-      case settings:
+      case AppRoutes.settings:
         return _createRoute(const SettingsScreen());
         
       case achievements:

@@ -7,11 +7,12 @@ import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
+import '../models/math_problem.dart';
 
 class PuzzleMathGame extends StatefulWidget {
   final int grade;
   final int level;
-  
+
   const PuzzleMathGame({
     super.key,
     required this.grade,
@@ -24,64 +25,63 @@ class PuzzleMathGame extends StatefulWidget {
 
 class _PuzzleMathGameState extends State<PuzzleMathGame>
     with TickerProviderStateMixin {
-  
   late AnimationController _rotationController;
   late AnimationController _glowController;
-  
+
   List<PuzzlePiece> puzzlePieces = [];
   List<PuzzleSlot> puzzleSlots = [];
   PuzzlePiece? draggedPiece;
   bool gameCompleted = false;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _rotationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
+
     _glowController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _generatePuzzle();
   }
-  
+
   @override
   void dispose() {
     _rotationController.dispose();
     _glowController.dispose();
     super.dispose();
   }
-  
+
   void _generatePuzzle() {
     puzzlePieces.clear();
     puzzleSlots.clear();
     gameCompleted = false;
-    
+
     final difficulty = widget.grade + widget.level;
     final pieceCount = math.min(4 + (difficulty ~/ 2), 9);
     final random = math.Random();
-    
+
     // Generate math problems and their solutions
     final problems = <MathProblem>[];
     for (int i = 0; i < pieceCount; i++) {
       problems.add(_generateMathProblem(difficulty, random));
     }
-    
+
     // Create puzzle slots (stationary positions on the puzzle board)
     final gridSize = math.sqrt(pieceCount).ceil();
     final slotSize = 120.0;
     final startX = 50.0;
     final startY = 150.0;
-    
+
     for (int i = 0; i < pieceCount; i++) {
       final row = i ~/ gridSize;
       final col = i % gridSize;
-      
+
       puzzleSlots.add(PuzzleSlot(
         id: i,
         position: Offset(
@@ -95,7 +95,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
         color: _getSlotColor(i),
       ));
     }
-    
+
     // Create puzzle pieces (draggable pieces with answers)
     for (int i = 0; i < pieceCount; i++) {
       // Randomize piece positions on the right side
@@ -113,18 +113,18 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
         slotId: i, // Which slot this piece belongs to
       ));
     }
-    
+
     // Shuffle piece positions
     final shuffledPositions = puzzlePieces.map((p) => p.position).toList();
     shuffledPositions.shuffle(random);
-    
+
     for (int i = 0; i < puzzlePieces.length; i++) {
       puzzlePieces[i].position = shuffledPositions[i];
     }
-    
+
     setState(() {});
   }
-  
+
   MathProblem _generateMathProblem(int difficulty, math.Random random) {
     switch (widget.grade) {
       case 3:
@@ -138,106 +138,106 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
         return _generateGrade6Problem(random);
     }
   }
-  
+
   MathProblem _generateGrade3Problem(math.Random random) {
     final operations = ['+', '-', '×'];
     final operation = operations[random.nextInt(operations.length)];
-    
+
     switch (operation) {
       case '+':
         final a = random.nextInt(15) + 5;
         final b = random.nextInt(15) + 5;
-        return MathProblem('$a + $b', a + b);
+        return MathProblem.addition(a, b);
       case '-':
         final a = random.nextInt(20) + 10;
         final b = random.nextInt(a);
-        return MathProblem('$a - $b', a - b);
+        return MathProblem.subtraction(a, b);
       case '×':
       default:
         final a = random.nextInt(6) + 2;
         final b = random.nextInt(6) + 2;
-        return MathProblem('$a × $b', a * b);
+        return MathProblem.multiplication(a, b);
     }
   }
-  
+
   MathProblem _generateGrade4Problem(math.Random random) {
     final operations = ['+', '-', '×', '÷'];
     final operation = operations[random.nextInt(operations.length)];
-    
+
     switch (operation) {
       case '+':
         final a = random.nextInt(50) + 20;
         final b = random.nextInt(50) + 20;
-        return MathProblem('$a + $b', a + b);
+        return MathProblem.addition(a, b);
       case '-':
         final a = random.nextInt(80) + 30;
         final b = random.nextInt(a - 10) + 10;
-        return MathProblem('$a - $b', a - b);
+        return MathProblem.subtraction(a, b);
       case '×':
         final a = random.nextInt(10) + 3;
         final b = random.nextInt(10) + 3;
-        return MathProblem('$a × $b', a * b);
+        return MathProblem.multiplication(a, b);
       case '÷':
       default:
         final b = random.nextInt(10) + 3;
         final answer = random.nextInt(12) + 2;
         final a = b * answer;
-        return MathProblem('$a ÷ $b', answer);
+        return MathProblem.division(a, b);
     }
   }
-  
+
   MathProblem _generateGrade5Problem(math.Random random) {
     final operations = ['+', '-', '×', '÷'];
     final operation = operations[random.nextInt(operations.length)];
-    
+
     switch (operation) {
       case '+':
         final a = random.nextInt(150) + 50;
         final b = random.nextInt(150) + 50;
-        return MathProblem('$a + $b', a + b);
+        return MathProblem.addition(a, b);
       case '-':
         final a = random.nextInt(200) + 75;
         final b = random.nextInt(a - 25) + 25;
-        return MathProblem('$a - $b', a - b);
+        return MathProblem.subtraction(a, b);
       case '×':
         final a = random.nextInt(15) + 5;
         final b = random.nextInt(15) + 5;
-        return MathProblem('$a × $b', a * b);
+        return MathProblem.multiplication(a, b);
       case '÷':
       default:
         final b = random.nextInt(15) + 5;
         final answer = random.nextInt(20) + 3;
         final a = b * answer;
-        return MathProblem('$a ÷ $b', answer);
+        return MathProblem.division(a, b);
     }
   }
-  
+
   MathProblem _generateGrade6Problem(math.Random random) {
     final operations = ['+', '-', '×', '÷'];
     final operation = operations[random.nextInt(operations.length)];
-    
+
     switch (operation) {
       case '+':
         final a = random.nextInt(300) + 100;
         final b = random.nextInt(300) + 100;
-        return MathProblem('$a + $b', a + b);
+        return MathProblem.addition(a, b);
       case '-':
         final a = random.nextInt(500) + 150;
         final b = random.nextInt(a - 50) + 50;
-        return MathProblem('$a - $b', a - b);
+        return MathProblem.subtraction(a, b);
       case '×':
         final a = random.nextInt(25) + 8;
         final b = random.nextInt(25) + 8;
-        return MathProblem('$a × $b', a * b);
+        return MathProblem.multiplication(a, b);
       case '÷':
       default:
         final b = random.nextInt(20) + 8;
         final answer = random.nextInt(30) + 5;
         final a = b * answer;
-        return MathProblem('$a ÷ $b', answer);
+        return MathProblem.division(a, b);
     }
   }
-  
+
   Color _getSlotColor(int index) {
     final colors = [
       SpaceTheme.deepSpace,
@@ -246,7 +246,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
     ];
     return colors[index % colors.length];
   }
-  
+
   Color _getPieceColor(int index) {
     final colors = [
       SpaceTheme.planetOrange,
@@ -261,25 +261,26 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
     ];
     return colors[index % colors.length];
   }
-  
+
   void _onPieceDragStart(PuzzlePiece piece) {
     setState(() {
       draggedPiece = piece;
     });
   }
-  
+
   void _onPieceDragUpdate(PuzzlePiece piece, Offset position) {
     setState(() {
       piece.position = position;
     });
   }
-  
+
   void _onPieceDragEnd(PuzzlePiece piece) {
     // Check if piece is dropped on correct slot
-    final correctSlot = puzzleSlots.firstWhere((slot) => slot.id == piece.slotId);
-    
+    final correctSlot =
+        puzzleSlots.firstWhere((slot) => slot.id == piece.slotId);
+
     final distance = (piece.position - correctSlot.position).distance;
-    
+
     if (distance < 60 && !correctSlot.isOccupied) {
       // Snap to correct position
       setState(() {
@@ -287,19 +288,19 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
         piece.isPlaced = true;
         correctSlot.isOccupied = true;
       });
-      
+
       context.read<GameProvider>().addScore(20);
       _checkGameCompletion();
     } else {
       // Return to original area if not placed correctly
       _returnPieceToOriginalArea(piece);
     }
-    
+
     setState(() {
       draggedPiece = null;
     });
   }
-  
+
   void _returnPieceToOriginalArea(PuzzlePiece piece) {
     final random = math.Random();
     setState(() {
@@ -309,7 +310,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
       );
     });
   }
-  
+
   void _rotatePiece(PuzzlePiece piece) {
     _rotationController.forward().then((_) {
       setState(() {
@@ -321,19 +322,19 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
       _rotationController.reverse();
     });
   }
-  
+
   void _checkGameCompletion() {
     final allPlaced = puzzlePieces.every((piece) => piece.isPlaced);
     if (allPlaced) {
       setState(() {
         gameCompleted = true;
       });
-      
+
       context.read<GameProvider>().addScore(100);
       _showWinDialog();
     }
   }
-  
+
   void _showWinDialog() {
     showDialog(
       context: context,
@@ -353,12 +354,12 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
               ),
               const SizedBox(height: 16),
               Text(
-                S.of(context).excellent,
+                S.of(context)!.excellent,
                 style: SpaceTheme.headlineStyle,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 'Space Station Complete!',
                 style: SpaceTheme.bodyStyle,
                 textAlign: TextAlign.center,
@@ -373,7 +374,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
                       _generatePuzzle();
                     },
                     style: SpaceTheme.secondaryButtonStyle,
-                    child: Text(S.of(context).playAgain),
+                    child: Text(S.of(context)!.playAgain),
                   ),
                   ElevatedButton(
                     onPressed: () {
@@ -381,7 +382,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
                       Navigator.of(context).pop();
                     },
                     style: SpaceTheme.primaryButtonStyle,
-                    child: Text(S.of(context).nextLevel),
+                    child: Text(S.of(context)!.nextLevel),
                   ),
                 ],
               ),
@@ -401,40 +402,41 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
             children: [
               // Game UI Header
               GameUI(
-                title: S.of(context).puzzleMath,
+                title: S.of(context)!.puzzleMath,
                 level: widget.level,
                 onBack: () => Navigator.of(context).pop(),
               ),
-              
+
               // Instructions
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  S.of(context).instructions['puzzleMath'] ?? '',
+                  S.of(context)!.instructionsPuzzleMath,
                   style: SpaceTheme.bodyStyle,
                   textAlign: TextAlign.center,
                 ),
               ),
-              
+
               // Game Area
               Expanded(
                 child: Stack(
                   children: [
                     // Puzzle Slots
                     ...puzzleSlots.map((slot) => PuzzleSlotWidget(
-                      slot: slot,
-                      glowAnimation: _glowController,
-                    )),
-                    
+                          slot: slot,
+                          glowAnimation: _glowController,
+                        )),
+
                     // Puzzle Pieces
                     ...puzzlePieces.map((piece) => PuzzlePieceWidget(
-                      piece: piece,
-                      onDragStart: () => _onPieceDragStart(piece),
-                      onDragUpdate: (position) => _onPieceDragUpdate(piece, position),
-                      onDragEnd: () => _onPieceDragEnd(piece),
-                      onRotate: () => _rotatePiece(piece),
-                      rotationAnimation: _rotationController,
-                    )),
+                          piece: piece,
+                          onDragStart: () => _onPieceDragStart(piece),
+                          onDragUpdate: (position) =>
+                              _onPieceDragUpdate(piece, position),
+                          onDragEnd: () => _onPieceDragEnd(piece),
+                          onRotate: () => _rotatePiece(piece),
+                          rotationAnimation: _rotationController,
+                        )),
                   ],
                 ),
               ),
@@ -455,7 +457,7 @@ class PuzzlePiece {
   bool isPlaced;
   Color color;
   int slotId;
-  
+
   PuzzlePiece({
     required this.id,
     required this.position,
@@ -476,7 +478,7 @@ class PuzzleSlot {
   double size;
   bool isOccupied;
   Color color;
-  
+
   PuzzleSlot({
     required this.id,
     required this.position,
@@ -495,7 +497,7 @@ class PuzzlePieceWidget extends StatelessWidget {
   final VoidCallback onDragEnd;
   final VoidCallback onRotate;
   final AnimationController rotationAnimation;
-  
+
   const PuzzlePieceWidget({
     super.key,
     required this.piece,
@@ -547,7 +549,10 @@ class PuzzlePieceWidget extends StatelessWidget {
                 ),
                 child: Center(
                   child: Transform.rotate(
-                    angle: -piece.rotation - (rotationAnimation.value * math.pi / 2), // Keep text upright
+                    angle: -piece.rotation -
+                        (rotationAnimation.value *
+                            math.pi /
+                            2), // Keep text upright
                     child: Text(
                       piece.answer.toString(),
                       style: SpaceTheme.headlineStyle.copyWith(
@@ -569,7 +574,7 @@ class PuzzlePieceWidget extends StatelessWidget {
 class PuzzleSlotWidget extends StatelessWidget {
   final PuzzleSlot slot;
   final AnimationController glowAnimation;
-  
+
   const PuzzleSlotWidget({
     super.key,
     required this.slot,
@@ -588,21 +593,22 @@ class PuzzleSlotWidget extends StatelessWidget {
             width: slot.size,
             height: slot.size,
             decoration: BoxDecoration(
-              color: slot.isOccupied 
+              color: slot.isOccupied
                   ? SpaceTheme.correctAnswer.withOpacity(0.3)
                   : slot.color.withOpacity(0.8),
               borderRadius: BorderRadius.circular(15),
               border: Border.all(
-                color: slot.isOccupied 
+                color: slot.isOccupied
                     ? SpaceTheme.correctAnswer
                     : SpaceTheme.starYellow.withOpacity(glowAnimation.value),
                 width: 3,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: slot.isOccupied 
+                  color: slot.isOccupied
                       ? SpaceTheme.correctAnswer.withOpacity(0.3)
-                      : SpaceTheme.starYellow.withOpacity(glowAnimation.value * 0.5),
+                      : SpaceTheme.starYellow
+                          .withOpacity(glowAnimation.value * 0.5),
                   blurRadius: 10,
                   spreadRadius: 2,
                 ),
@@ -623,11 +629,4 @@ class PuzzleSlotWidget extends StatelessWidget {
       ),
     );
   }
-}
-
-class MathProblem {
-  final String expression;
-  final int answer;
-  
-  MathProblem(this.expression, this.answer);
 }

@@ -136,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        S.of(context).welcome,
+                        S.of(context)!.welcome,
                         style: SpaceTheme.headlineStyle.copyWith(fontSize: 36),
                       ),
                       
@@ -223,7 +223,7 @@ class _HomeScreenState extends State<HomeScreen>
           child: FadeTransition(
             opacity: _fadeAnimation,
             child: Text(
-              S.of(context).welcome,
+              S.of(context)!.welcome,
               style: SpaceTheme.headlineStyle,
               textAlign: TextAlign.center,
             ),
@@ -298,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               const SizedBox(width: 16),
               Text(
-                S.of(context).startAdventure,
+                S.of(context)!.startAdventure,
                 style: SpaceTheme.buttonStyle.copyWith(fontSize: 20),
               ),
             ],
@@ -333,7 +333,7 @@ class AchievementsPreview extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    S.of(context).achievements,
+                    S.of(context)!.achievements,
                     style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
                   ),
                 ],

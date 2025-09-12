@@ -158,7 +158,7 @@ class _GameMenuScreenState extends State<GameMenuScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  S.of(context).gameMenu,
+                  S.of(context)!.gameMenu,
                   style: SpaceTheme.headlineStyle.copyWith(fontSize: 32),
                 ),
                 
@@ -235,8 +235,8 @@ class _GameMenuScreenState extends State<GameMenuScreen>
   Widget _buildGameCard(int index) {
     final games = [
       GameInfo(
-        title: S.of(context).magicTriangles,
-        description: S.of(context).magicTrianglesDesc,
+        title: S.of(context)!.magicTriangles,
+        description: S.of(context)!.magicTrianglesDesc,
         icon: Icons.change_history,
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -252,8 +252,8 @@ class _GameMenuScreenState extends State<GameMenuScreen>
         },
       ),
       GameInfo(
-        title: S.of(context).bubbleMath,
-        description: S.of(context).bubbleMathDesc,
+        title: S.of(context)!.bubbleMath,
+        description: S.of(context)!.bubbleMathDesc,
         icon: Icons.bubble_chart,
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -269,8 +269,8 @@ class _GameMenuScreenState extends State<GameMenuScreen>
         },
       ),
       GameInfo(
-        title: S.of(context).puzzleMath,
-        description: S.of(context).puzzleMathDesc,
+        title: S.of(context)!.puzzleMath,
+        description: S.of(context)!.puzzleMathDesc,
         icon: Icons.extension,
         gradient: const LinearGradient(
           begin: Alignment.topLeft,

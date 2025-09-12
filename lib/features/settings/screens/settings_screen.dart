@@ -116,7 +116,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           
           Expanded(
             child: Text(
-              S.of(context).settings,
+              S.of(context)!.settings,
               style: SpaceTheme.headlineStyle.copyWith(fontSize: 32),
             ),
           ),
@@ -143,7 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               return Column(
                 children: [
                   _buildSwitchTile(
-                    title: S.of(context).sound,
+                    title: S.of(context)!.sound,
                     subtitle: 'Sound effects',
                     value: gameProvider.soundEnabled,
                     onChanged: (value) => gameProvider.setSoundEnabled(value),
@@ -151,7 +151,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
                   
                   _buildSwitchTile(
-                    title: S.of(context).music,
+                    title: S.of(context)!.music,
                     subtitle: 'Background music',
                     value: gameProvider.musicEnabled,
                     onChanged: (value) => gameProvider.setMusicEnabled(value),
@@ -201,7 +201,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     return SlideTransition(
       position: _settingAnimations[2],
       child: _buildSettingsCard(
-        title: S.of(context).language,
+        title: S.of(context)!.language,
         icon: Icons.language,
         children: [
           _buildLanguageSelector(),
@@ -214,7 +214,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     return SlideTransition(
       position: _settingAnimations[3],
       child: _buildSettingsCard(
-        title: S.of(context).progress,
+        title: S.of(context)!.progress,
         icon: Icons.analytics,
         children: [
           Consumer<GameProvider>(
