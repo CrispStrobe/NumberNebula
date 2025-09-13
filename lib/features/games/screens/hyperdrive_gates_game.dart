@@ -530,7 +530,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
                           Icon(Icons.calculate, color: SpaceTheme.starYellow, size: 24),
                           const SizedBox(width: 8),
                           Text(
-                            'SOLVE:',
+                            S.of(context)!.solve,
                             style: SpaceTheme.bodyStyle.copyWith(
                               fontSize: 14,
                               color: SpaceTheme.starYellow,
@@ -597,7 +597,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
                     border: Border.all(color: SpaceTheme.alienGreen, width: 1),
                   ),
                   child: Text(
-                    'DRAG to steer your ship up/down • FLY through CORRECT gates • AVOID wrong answers',
+                    S.of(context)!.hyperdriveGatesInstructions,
                     style: SpaceTheme.bodyStyle.copyWith(
                       fontSize: 12,
                       color: SpaceTheme.alienGreen,
@@ -691,7 +691,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'SOLVE:',
+            S.of(context)!.solve,
             style: SpaceTheme.bodyStyle.copyWith(
               fontSize: 12,
               color: SpaceTheme.starYellow,
@@ -763,7 +763,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
             ),
             const SizedBox(height: 16),
             Text(
-              'Hyperdrive Navigation Complete!',
+              S.of(context)!.hyperdriveGatesWinTitle,
               style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
               textAlign: TextAlign.center,
             ),
@@ -783,7 +783,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
                     _resetGame();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
-                  child: const Text('Fly Again'),
+                  child: Text(S.of(context)!.flyAgain),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -791,7 +791,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
                     Navigator.of(context).pop();
                   },
                   style: SpaceTheme.primaryButtonStyle,
-                  child: const Text('Mission Complete'),
+                  child: Text(S.of(context)!.missionCompleteStatus),
                 ),
               ],
             ),
@@ -817,7 +817,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
             ),
             const SizedBox(height: 16),
             Text(
-              'Navigation System Failure!',
+              S.of(context)!.hyperdriveGatesLoseTitle,
               style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
               textAlign: TextAlign.center,
             ),
@@ -837,7 +837,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
                     _resetGame();
                   },
                   style: SpaceTheme.primaryButtonStyle,
-                  child: const Text('Retry Mission'),
+                  child: Text(S.of(context)!.retryMission),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -845,7 +845,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
                     Navigator.of(context).pop();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
-                  child: const Text('Return to Base'),
+                  child: Text(S.of(context)!.returnToBase),
                 ),
               ],
             ),

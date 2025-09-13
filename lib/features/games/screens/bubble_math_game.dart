@@ -249,7 +249,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Next target: ', style: SpaceTheme.bodyStyle),
+                    Text(S.of(context)!.nextTarget, style: SpaceTheme.bodyStyle),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(

@@ -7,6 +7,20 @@ import '../../../generated/l10n.dart';
 import '../../games/providers/game_provider.dart';
 import '../../games/widgets/space_background.dart';
 
+// --- REFACTOR STEP 1: Create a helper class for UI data ---
+// This class will hold the localized text and icon for an achievement.
+class AchievementUIData {
+  final String title;
+  final String description;
+  final String icon;
+
+  AchievementUIData({
+    required this.title,
+    required this.description,
+    required this.icon,
+  });
+}
+
 class AchievementsScreen extends StatefulWidget {
   const AchievementsScreen({super.key});
 
@@ -16,32 +30,31 @@ class AchievementsScreen extends StatefulWidget {
 
 class _AchievementsScreenState extends State<AchievementsScreen>
     with TickerProviderStateMixin {
-  
   late AnimationController _slideController;
   late AnimationController _sparkleController;
   late List<Animation<Offset>> _achievementAnimations;
   late Animation<double> _sparkleAnimation;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     _sparkleController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat();
-    
+
     _sparkleAnimation = Tween<double>(
       begin: 0.0,
       end: 2 * math.pi,
     ).animate(_sparkleController);
-    
-    _achievementAnimations = List.generate(10, (index) {
+
+    _achievementAnimations = List.generate(12, (index) { // Increased list size for all achievements
       return Tween<Offset>(
         begin: Offset(1.0 + (index * 0.1), 0.0),
         end: Offset.zero,
@@ -49,20 +62,73 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         parent: _slideController,
         curve: Interval(
           index * 0.05,
-          0.5 + (index * 0.05),
+          (0.5 + (index * 0.05)).clamp(0.0, 1.0),
           curve: Curves.easeOutBack,
         ),
       ));
     });
-    
+
     _slideController.forward();
   }
-  
+
   @override
   void dispose() {
     _slideController.dispose();
     _sparkleController.dispose();
     super.dispose();
+  }
+  
+  // --- REFACTOR STEP 2: Create a list of all possible achievement IDs ---
+  // This replaces the old method that contained hardcoded text.
+  List<String> _getAllAchievementIds() {
+    return [
+      'first_century',
+      'score_master',
+      'thousand_club',
+      'level_explorer',
+      'space_commander',
+      'triangle_wizard',
+      'bubble_popper',
+      'puzzle_solver',
+      'all_rounder',
+      'speed_demon',
+      'perfectionist',
+      'mathematician',
+    ];
+  }
+
+  // --- REFACTOR STEP 3: Create a method to get UI data from an ID ---
+  // This is the core of the fix. It uses the widget's context to get localized strings.
+  AchievementUIData _getAchievementUIData(BuildContext context, String id) {
+    final s = S.of(context)!; // Helper for brevity
+    switch (id) {
+      case 'first_century':
+        return AchievementUIData(title: s.achievementFirstCenturyTitle, description: s.achievementFirstCenturyDesc, icon: '💯');
+      case 'score_master':
+        return AchievementUIData(title: s.achievementScoreMasterTitle, description: s.achievementScoreMasterDesc, icon: '⭐');
+      case 'thousand_club':
+        return AchievementUIData(title: s.achievementThousandClubTitle, description: s.achievementThousandClubDesc, icon: '🚀');
+      case 'level_explorer':
+        return AchievementUIData(title: s.achievementLevelExplorerTitle, description: s.achievementLevelExplorerDesc, icon: '🌟');
+      case 'space_commander':
+        return AchievementUIData(title: s.achievementSpaceCommanderTitle, description: s.achievementSpaceCommanderDesc, icon: '👨‍🚀');
+      case 'triangle_wizard':
+        return AchievementUIData(title: s.achievementTriangleWizardTitle, description: s.achievementTriangleWizardDesc, icon: '🔺');
+      case 'bubble_popper':
+        return AchievementUIData(title: s.achievementBubblePopperTitle, description: s.achievementBubblePopperDesc, icon: '🫧');
+      case 'puzzle_solver':
+        return AchievementUIData(title: s.achievementPuzzleSolverTitle, description: s.achievementPuzzleSolverDesc, icon: '🧩');
+      case 'all_rounder':
+        return AchievementUIData(title: s.achievementAllRounderTitle, description: s.achievementAllRounderDesc, icon: '🎯');
+      case 'speed_demon':
+        return AchievementUIData(title: s.achievementSpeedDemonTitle, description: s.achievementSpeedDemonDesc, icon: '⚡');
+      case 'perfectionist':
+        return AchievementUIData(title: s.achievementPerfectionistTitle, description: s.achievementPerfectionistDesc, icon: '💎');
+      case 'mathematician':
+        return AchievementUIData(title: s.achievementMathematicianTitle, description: s.achievementMathematicianDesc, icon: '🧮');
+      default:
+        return AchievementUIData(title: 'Unknown', description: 'Error', icon: '❓');
+    }
   }
 
   @override
@@ -83,7 +149,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       ),
     );
   }
-  
+
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -111,9 +177,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               padding: const EdgeInsets.all(12),
             ),
           ),
-          
           const SizedBox(width: 20),
-          
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,7 +187,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   style: SpaceTheme.headlineStyle.copyWith(fontSize: 32),
                 ),
                 Text(
-                  'Space Explorer Progress',
+                  S.of(context)!.spaceExplorerProgress,
                   style: SpaceTheme.bodyStyle.copyWith(
                     color: SpaceTheme.starYellow,
                     fontSize: 16,
@@ -132,7 +196,6 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               ],
             ),
           ),
-          
           AnimatedBuilder(
             animation: _sparkleAnimation,
             builder: (context, child) {
@@ -150,16 +213,17 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       ),
     );
   }
-  
+
   Widget _buildStats() {
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
-        final totalAchievements = _getAllPossibleAchievements().length;
+        // REFACTOR: Get total from our ID list
+        final totalAchievements = _getAllAchievementIds().length;
         final unlockedAchievements = gameProvider.totalAchievements;
-        final completionPercentage = totalAchievements > 0 
+        final completionPercentage = totalAchievements > 0
             ? (unlockedAchievements / totalAchievements * 100).round()
             : 0;
-        
+
         return Container(
           margin: const EdgeInsets.all(20),
           padding: const EdgeInsets.all(20),
@@ -169,37 +233,33 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               Expanded(
                 child: _buildStatItem(
                   icon: Icons.star,
-                  label: 'Unlocked',
+                  label: S.of(context)!.unlocked,
                   value: '$unlockedAchievements / $totalAchievements',
                   color: SpaceTheme.starYellow,
                 ),
               ),
-              
               Container(
                 width: 1,
                 height: 40,
                 color: Colors.white.withOpacity(0.2),
               ),
-              
               Expanded(
                 child: _buildStatItem(
                   icon: Icons.percent,
-                  label: 'Complete',
+                  label: S.of(context)!.complete,
                   value: '$completionPercentage%',
                   color: SpaceTheme.alienGreen,
                 ),
               ),
-              
               Container(
                 width: 1,
                 height: 40,
                 color: Colors.white.withOpacity(0.2),
               ),
-              
               Expanded(
                 child: _buildStatItem(
                   icon: Icons.trending_up,
-                  label: 'Progress',
+                  label: S.of(context)!.progress,
                   value: _getProgressLevel(unlockedAchievements),
                   color: SpaceTheme.cosmicPink,
                 ),
@@ -210,7 +270,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       },
     );
   }
-  
+
   Widget _buildStatItem({
     required IconData icon,
     required String label,
@@ -238,13 +298,13 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       ],
     );
   }
-  
+
   Widget _buildAchievementsList() {
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
-        final allAchievements = _getAllPossibleAchievements();
+        final allAchievementIds = _getAllAchievementIds();
         final unlockedIds = gameProvider.achievements.map((a) => a.id).toSet();
-        
+
         return GridView.builder(
           padding: const EdgeInsets.all(20),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -253,15 +313,17 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             mainAxisSpacing: 16,
             childAspectRatio: 0.8,
           ),
-          itemCount: allAchievements.length,
+          itemCount: allAchievementIds.length,
           itemBuilder: (context, index) {
-            final achievement = allAchievements[index];
-            final isUnlocked = unlockedIds.contains(achievement.id);
-            
+            final achievementId = allAchievementIds[index];
+            final isUnlocked = unlockedIds.contains(achievementId);
+            // REFACTOR: Get display data here using the context
+            final achievementUiData = _getAchievementUIData(context, achievementId);
+
             return SlideTransition(
               position: _achievementAnimations[index % _achievementAnimations.length],
               child: AchievementCard(
-                achievement: achievement,
+                uiData: achievementUiData, // Pass the UI data
                 isUnlocked: isUnlocked,
                 sparkleAnimation: _sparkleAnimation,
               ),
@@ -271,120 +333,33 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       },
     );
   }
-  
+
   int _getCrossAxisCount(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     if (width > 1200) return 4;
     if (width > 800) return 3;
     return 2;
   }
-  
+
   String _getProgressLevel(int achievementCount) {
-    if (achievementCount < 3) return 'Rookie';
-    if (achievementCount < 6) return 'Explorer';
-    if (achievementCount < 10) return 'Veteran';
-    if (achievementCount < 15) return 'Expert';
-    return 'Legend';
-  }
-  
-  List<Achievement> _getAllPossibleAchievements() {
-    return [
-      Achievement(
-        id: 'first_century',
-        title: 'First Century!',
-        description: 'Score 100 points',
-        icon: '💯',
-        isUnlocked: false,
-      ),
-      Achievement(
-        id: 'score_master',
-        title: 'Score Master',
-        description: 'Score 500 points',
-        icon: '⭐',
-        isUnlocked: false,
-      ),
-      Achievement(
-        id: 'thousand_club',
-        title: 'Thousand Club',
-        description: 'Score 1000 points',
-        icon: '🚀',
-        isUnlocked: false,
-      ),
-      Achievement(
-        id: 'level_explorer',
-        title: 'Level Explorer',
-        description: 'Reach level 5',
-        icon: '🌟',
-        isUnlocked: false,
-      ),
-      Achievement(
-        id: 'space_commander',
-        title: 'Space Commander',
-        description: 'Reach level 10',
-        icon: '👨‍🚀',
-        isUnlocked: false,
-      ),
-      Achievement(
-        id: 'triangle_wizard',
-        title: 'Triangle Wizard',
-        description: 'Complete 3 Magic Triangle levels',
-        icon: '🔺',
-        isUnlocked: false,
-      ),
-      Achievement(
-        id: 'bubble_popper',
-        title: 'Bubble Popper',
-        description: 'Complete 3 Bubble Math levels',
-        icon: '🫧',
-        isUnlocked: false,
-      ),
-      Achievement(
-        id: 'puzzle_solver',
-        title: 'Puzzle Solver',
-        description: 'Complete 3 Puzzle Math levels',
-        icon: '🧩',
-        isUnlocked: false,
-      ),
-      Achievement(
-        id: 'all_rounder',
-        title: 'All-Rounder',
-        description: 'Play all game types',
-        icon: '🎯',
-        isUnlocked: false,
-      ),
-      Achievement(
-        id: 'speed_demon',
-        title: 'Speed Demon',
-        description: 'Complete a level in under 30 seconds',
-        icon: '⚡',
-        isUnlocked: false,
-      ),
-      Achievement(
-        id: 'perfectionist',
-        title: 'Perfectionist',
-        description: 'Complete a level without mistakes',
-        icon: '💎',
-        isUnlocked: false,
-      ),
-      Achievement(
-        id: 'mathematician',
-        title: 'Young Mathematician',
-        description: 'Solve 100 math problems',
-        icon: '🧮',
-        isUnlocked: false,
-      ),
-    ];
+    final s = S.of(context)!;
+    if (achievementCount < 3) return s.rankRookie;
+    if (achievementCount < 6) return s.rankExplorer;
+    if (achievementCount < 10) return s.rankVeteran;
+    if (achievementCount < 15) return s.rankExpert;
+    return s.rankLegend;
   }
 }
 
+// --- REFACTOR STEP 4: Update AchievementCard to accept AchievementUIData ---
 class AchievementCard extends StatefulWidget {
-  final Achievement achievement;
+  final AchievementUIData uiData;
   final bool isUnlocked;
   final Animation<double> sparkleAnimation;
-  
+
   const AchievementCard({
     super.key,
-    required this.achievement,
+    required this.uiData,
     required this.isUnlocked,
     required this.sparkleAnimation,
   });
@@ -395,19 +370,18 @@ class AchievementCard extends StatefulWidget {
 
 class _AchievementCardState extends State<AchievementCard>
     with SingleTickerProviderStateMixin {
-  
   late AnimationController _hoverController;
   late Animation<double> _scaleAnimation;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _hoverController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    
+
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 1.05,
@@ -416,7 +390,7 @@ class _AchievementCardState extends State<AchievementCard>
       curve: Curves.easeOut,
     ));
   }
-  
+
   @override
   void dispose() {
     _hoverController.dispose();
@@ -473,7 +447,6 @@ class _AchievementCardState extends State<AchievementCard>
               ),
               child: Stack(
                 children: [
-                  // Sparkle effect for unlocked achievements
                   if (widget.isUnlocked)
                     Positioned.fill(
                       child: AnimatedBuilder(
@@ -487,14 +460,11 @@ class _AchievementCardState extends State<AchievementCard>
                         },
                       ),
                     ),
-                  
-                  // Content
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Icon
                         Container(
                           width: 60,
                           height: 60,
@@ -506,43 +476,38 @@ class _AchievementCardState extends State<AchievementCard>
                           ),
                           child: Center(
                             child: Text(
-                              widget.achievement.icon,
+                              widget.uiData.icon, // Use uiData
                               style: const TextStyle(fontSize: 32),
                             ),
                           ),
                         ),
-                        
                         const SizedBox(height: 12),
-                        
-                        // Title
                         Text(
-                          widget.achievement.title,
+                          widget.uiData.title, // Use uiData
                           style: SpaceTheme.titleStyle.copyWith(
                             fontSize: 16,
-                            color: widget.isUnlocked ? Colors.white : Colors.white60,
+                            color: widget.isUnlocked
+                                ? Colors.white
+                                : Colors.white60,
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        
                         const SizedBox(height: 8),
-                        
-                        // Description
                         Text(
-                          widget.achievement.description,
+                          widget.uiData.description, // Use uiData
                           style: SpaceTheme.bodyStyle.copyWith(
                             fontSize: 12,
-                            color: widget.isUnlocked ? Colors.white : Colors.white54,
+                            color: widget.isUnlocked
+                                ? Colors.white
+                                : Colors.white54,
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        
                         const Spacer(),
-                        
-                        // Status indicator
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -555,9 +520,13 @@ class _AchievementCardState extends State<AchievementCard>
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            widget.isUnlocked ? 'UNLOCKED' : 'LOCKED',
+                            widget.isUnlocked
+                                ? S.of(context)!.unlockedStatus
+                                : S.of(context)!.lockedStatus,
                             style: TextStyle(
-                              color: widget.isUnlocked ? Colors.white : Colors.white60,
+                              color: widget.isUnlocked
+                                  ? Colors.white
+                                  : Colors.white60,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -566,8 +535,6 @@ class _AchievementCardState extends State<AchievementCard>
                       ],
                     ),
                   ),
-                  
-                  // Lock overlay for locked achievements
                   if (!widget.isUnlocked)
                     Positioned.fill(
                       child: Container(
@@ -592,23 +559,24 @@ class _AchievementCardState extends State<AchievementCard>
       },
     );
   }
-  
+
   void _showAchievementDetails() {
     showDialog(
       context: context,
       builder: (context) => AchievementDialog(
-        achievement: widget.achievement,
+        uiData: widget.uiData,
       ),
     );
   }
 }
 
+// --- REFACTOR STEP 5: Update AchievementDialog ---
 class AchievementDialog extends StatelessWidget {
-  final Achievement achievement;
-  
+  final AchievementUIData uiData;
+
   const AchievementDialog({
     super.key,
-    required this.achievement,
+    required this.uiData,
   });
 
   @override
@@ -630,52 +598,44 @@ class AchievementDialog extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  achievement.icon,
+                  uiData.icon,
                   style: const TextStyle(fontSize: 40),
                 ),
               ),
             ),
-            
             const SizedBox(height: 20),
-            
             Text(
-              achievement.title,
+              uiData.title,
               style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
               textAlign: TextAlign.center,
             ),
-            
             const SizedBox(height: 12),
-            
             Text(
-              achievement.description,
+              uiData.description,
               style: SpaceTheme.bodyStyle.copyWith(fontSize: 16),
               textAlign: TextAlign.center,
             ),
-            
             const SizedBox(height: 20),
-            
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
                 color: SpaceTheme.alienGreen,
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: const Text(
-                'ACHIEVEMENT UNLOCKED!',
-                style: TextStyle(
+              child: Text( // REMOVED const
+                S.of(context)!.achievementUnlocked,
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
               ),
             ),
-            
             const SizedBox(height: 24),
-            
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: SpaceTheme.primaryButtonStyle,
-              child: const Text('Continue Exploring'),
+              child: Text(S.of(context)!.continueExploring), // REMOVED const
             ),
           ],
         ),
@@ -686,7 +646,7 @@ class AchievementDialog extends StatelessWidget {
 
 class SparklePainter extends CustomPainter {
   final double animation;
-  
+
   SparklePainter({required this.animation});
 
   @override
@@ -694,16 +654,16 @@ class SparklePainter extends CustomPainter {
     final paint = Paint()
       ..color = Colors.white.withOpacity(0.8)
       ..style = PaintingStyle.fill;
-    
-    final random = math.Random(42); // Fixed seed for consistent sparkles
-    
+
+    final random = math.Random(42);
+
     for (int i = 0; i < 8; i++) {
       final angle = (i * 2 * math.pi / 8) + animation;
       final radius = 20 + math.sin(animation + i) * 10;
-      
+
       final x = size.width / 2 + math.cos(angle) * radius;
       final y = size.height / 2 + math.sin(angle) * radius;
-      
+
       canvas.drawCircle(
         Offset(x, y),
         2 + math.sin(animation * 2 + i) * 1,

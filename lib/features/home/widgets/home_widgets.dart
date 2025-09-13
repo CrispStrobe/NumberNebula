@@ -158,7 +158,7 @@ class _AnimatedLogoState extends State<AnimatedLogo>
                 Positioned(
                   bottom: -10,
                   child: Text(
-                    S.of(context).appTitle,
+                    S.of(context)!.appTitle,
                     style: SpaceTheme.titleStyle.copyWith(
                       fontSize: 16,
                       shadows: [
@@ -203,7 +203,7 @@ class GradeSelector extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    S.of(context).chooseGrade,
+                    S.of(context)!.chooseGrade,
                     style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
                   ),
                 ],
@@ -279,13 +279,13 @@ class GradeSelector extends StatelessWidget {
   String _getGradeDescription(BuildContext context, int grade) {
     switch (grade) {
       case 3:
-        return 'Basic addition, subtraction, and simple multiplication';
+        return S.of(context)!.grade3Desc;
       case 4:
-        return 'Multi-digit arithmetic and introduction to division';
+        return S.of(context)!.grade4Desc;
       case 5:
-        return 'Complex operations and problem solving';
+        return S.of(context)!.grade5Desc;
       case 6:
-        return 'Advanced mathematics and challenging puzzles';
+        return S.of(context)!.grade6Desc;
       default:
         return '';
     }
@@ -349,7 +349,7 @@ class _StatsCardState extends State<StatsCard>
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    S.of(context).progress,
+                    S.of(context)!.progress,
                     style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
                   ),
                 ],
@@ -360,7 +360,7 @@ class _StatsCardState extends State<StatsCard>
               // Score
               _buildStatItem(
                 icon: Icons.star,
-                label: S.of(context).score,
+                label: S.of(context)!.score,
                 value: gameProvider.score.toString(),
                 color: SpaceTheme.starYellow,
               ),
@@ -370,7 +370,7 @@ class _StatsCardState extends State<StatsCard>
               // Level
               _buildStatItem(
                 icon: Icons.trending_up,
-                label: S.of(context).level,
+                label: S.of(context)!.level,
                 value: gameProvider.level.toString(),
                 color: SpaceTheme.alienGreen,
               ),
@@ -380,7 +380,7 @@ class _StatsCardState extends State<StatsCard>
               // Games played
               _buildStatItem(
                 icon: Icons.games,
-                label: 'Games Played',
+                label: S.of(context)!.gamesPlayed,
                 value: gameProvider.totalGamesPlayed.toString(),
                 color: SpaceTheme.cosmicPink,
               ),
@@ -395,7 +395,7 @@ class _StatsCardState extends State<StatsCard>
                     scale: _pulseAnimation.value,
                     child: _buildStatItem(
                       icon: Icons.emoji_events,
-                      label: S.of(context).achievements,
+                      label: S.of(context)!.achievements,
                       value: gameProvider.totalAchievements.toString(),
                       color: SpaceTheme.planetOrange,
                     ),
@@ -486,7 +486,7 @@ class SettingsButton extends StatelessWidget {
           // Navigate to settings screen
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Settings coming soon!'),
+              content: Text(S.of(context)!.settingsComingSoon),
               backgroundColor: SpaceTheme.nebulaPurple,
             ),
           );

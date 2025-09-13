@@ -1,9 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../generated/l10n.dart'; // Import S
 import '../../games/providers/game_provider.dart';
 
 class GradeSelector extends StatelessWidget {
   const GradeSelector({super.key});
+
+  // This method MUST be inside the build method or receive context
+  String _getGradeDescription(BuildContext context, int grade) {
+    final s = S.of(context)!;
+    switch (grade) {
+      case 3:
+        return s.grade3Desc;
+      case 4:
+        return s.grade4Desc;
+      case 5:
+        return s.grade5Desc;
+      case 6:
+        return s.grade6Desc;
+      default:
+        return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,17 +50,17 @@ class GradeSelector extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.school,
                     color: Color(0xFFFFD700), // starYellow
                     size: 24,
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(
-                    'Choose Your Grade',
-                    style: TextStyle(
+                    S.of(context)!.chooseYourGrade,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -50,9 +68,7 @@ class GradeSelector extends StatelessWidget {
                   ),
                 ],
               ),
-              
               const SizedBox(height: 20),
-              
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [3, 4, 5, 6].map((grade) {
@@ -109,11 +125,9 @@ class GradeSelector extends StatelessWidget {
                   );
                 }).toList(),
               ),
-              
               const SizedBox(height: 12),
-              
               Text(
-                _getGradeDescription(gameProvider.grade),
+                _getGradeDescription(context, gameProvider.grade), // Call the method here
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.white70,
@@ -125,20 +139,5 @@ class GradeSelector extends StatelessWidget {
         );
       },
     );
-  }
-  
-  String _getGradeDescription(int grade) {
-    switch (grade) {
-      case 3:
-        return 'Basic addition, subtraction, and simple multiplication';
-      case 4:
-        return 'Multi-digit arithmetic and introduction to division';
-      case 5:
-        return 'Complex operations and problem solving';
-      case 6:
-        return 'Advanced mathematics and challenging puzzles';
-      default:
-        return '';
-    }
   }
 }

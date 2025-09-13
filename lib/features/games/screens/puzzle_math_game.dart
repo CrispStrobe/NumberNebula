@@ -172,14 +172,14 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                   children: [
                     Expanded(
                       child: Text(
-                        "Rebuild the space constellation! Drag pieces to correct spots. Tap pieces to rotate them!",
+                        S.of(context)!.puzzleMathInstructions,
                         textAlign: TextAlign.center,
                         style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
                       ),
                     ),
                     Row(
                       children: [
-                        Text("Timer", style: SpaceTheme.bodyStyle.copyWith(color: Colors.white)),
+                        Text(S.of(context)!.timer, style: SpaceTheme.bodyStyle.copyWith(color: Colors.white)),
                         Switch(
                           value: gameProvider.puzzleTimerEnabled,
                           onChanged: _onToggleTimer,
@@ -309,7 +309,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
       child: Column(
         children: [
           Text(
-            "Constellation Pieces",
+            S.of(context)!.constellationPieces,
             style: SpaceTheme.titleStyle.copyWith(fontSize: 16),
           ),
           const SizedBox(height: 8),
@@ -374,7 +374,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   void _showIncorrectPlacement() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("Check the math answer or try rotating the piece!"),
+        content: Text(S.of(context)!.puzzleMathIncorrect),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
       ),
@@ -385,7 +385,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     _timer?.cancel();
     final gameProvider = context.read<GameProvider>();
     int bonus = 0;
-    String message = "Constellation restored, Space Explorer!";
+    String message = S.of(context)!.puzzleMathWin;
     if (gameProvider.puzzleTimerEnabled) {
       bonus = (_timeLeft * 2);
       message = "Constellation restored!\nTime Bonus: $bonus points!";

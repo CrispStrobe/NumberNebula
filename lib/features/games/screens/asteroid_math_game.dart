@@ -401,7 +401,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
           child: Column(
             children: [
               GameUI(
-                title: "Asteroid Math Hunter",
+                title: S.of(context)!.asteroidMathHunter,
                 level: widget.level,
                 timeLeft: timeLeft,
                 onBack: () {
@@ -529,7 +529,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
             ),
             const SizedBox(height: 16),
             Text(
-              'Asteroid Field Cleared!',
+              S.of(context)!.asteroidMathWinTitle,
               style: SpaceTheme.headlineStyle,
               textAlign: TextAlign.center,
             ),

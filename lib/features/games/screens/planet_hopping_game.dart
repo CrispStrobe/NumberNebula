@@ -462,7 +462,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
               
               Expanded(
                 child: Text(
-                  'Planet Hopping',
+                  S.of(context)!.planetHoppingTitle,
                   style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
                 ),
               ),
@@ -574,7 +574,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
             border: Border.all(color: SpaceTheme.alienGreen, width: 1),
           ),
           child: Text(
-            'TAP anywhere to jump toward that location • Use gravity to swing between planets',
+            S.of(context)!.planetHoppingInstructions,
             style: SpaceTheme.bodyStyle.copyWith(
               fontSize: 11,
               color: SpaceTheme.alienGreen,
@@ -742,7 +742,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
             ),
             const SizedBox(height: 16),
             Text(
-              'Solar System Mastered!',
+              S.of(context)!.planetHoppingWinTitle,
               style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
               textAlign: TextAlign.center,
             ),
@@ -762,7 +762,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                     _resetGame();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
-                  child: const Text('Explore Again'),
+                  child: Text(S.of(context)!.exploreAgain),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -770,7 +770,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                     Navigator.of(context).pop();
                   },
                   style: SpaceTheme.primaryButtonStyle,
-                  child: const Text('Mission Complete'),
+                  child: Text(S.of(context)!.missionCompleteStatus),
                 ),
               ],
             ),
@@ -796,7 +796,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
             ),
             const SizedBox(height: 16),
             Text(
-              'Navigation Failed!',
+              S.of(context)!.planetHoppingLoseTitle,
               style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
               textAlign: TextAlign.center,
             ),
@@ -816,7 +816,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                     _resetGame();
                   },
                   style: SpaceTheme.primaryButtonStyle,
-                  child: const Text('Retry Mission'),
+                  child: Text(S.of(context)!.retryMission),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -824,7 +824,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                     Navigator.of(context).pop();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
-                  child: const Text('Return to Base'),
+                  child: Text(S.of(context)!.returnToBase),
                 ),
               ],
             ),

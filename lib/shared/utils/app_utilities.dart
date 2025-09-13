@@ -129,8 +129,8 @@ class _SpaceLoadingScreenState extends State<SpaceLoadingScreen>
                           builder: (context, child) {
                             return Transform.rotate(
                               angle: _orbitsAnimation.value,
-                              child: CustomPaint(
-                                size: const Size(200, 200),
+                              child: const CustomPaint(
+                                size: Size(200, 200),
                                 painter: OrbitPainter(),
                               ),
                             );
@@ -167,7 +167,8 @@ class _SpaceLoadingScreenState extends State<SpaceLoadingScreen>
                   
                   // Loading Message
                   Text(
-                    widget.message ?? 'Loading Space Adventure...',
+                    // FIX: This now works because the MaterialApp provides the S delegate.
+                    widget.message ?? S.of(context)!.loadingAdventure,
                     style: SpaceTheme.titleStyle.copyWith(fontSize: 20),
                     textAlign: TextAlign.center,
                   ),
@@ -175,7 +176,7 @@ class _SpaceLoadingScreenState extends State<SpaceLoadingScreen>
                   const SizedBox(height: 20),
                   
                   // Progress Indicator
-                  SizedBox(
+                  const SizedBox(
                     width: 200,
                     child: LinearProgressIndicator(
                       backgroundColor: SpaceTheme.deepSpace,
@@ -188,7 +189,8 @@ class _SpaceLoadingScreenState extends State<SpaceLoadingScreen>
                   const SizedBox(height: 16),
                   
                   Text(
-                    'Preparing your math mission...',
+                    // FIX: This also works now.
+                    S.of(context)!.preparingMission,
                     style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
                   ),
                 ],
@@ -587,6 +589,9 @@ class LoadingStarsPainter extends CustomPainter {
 }
 
 class OrbitPainter extends CustomPainter {
+  // FIX: Add const to the constructor
+  const OrbitPainter();
+  
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()

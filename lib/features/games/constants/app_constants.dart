@@ -179,46 +179,6 @@ class MathOperations {
   }
 }
 
-// Achievement Requirements
-class AchievementRequirements {
-  static const Map<String, AchievementConfig> achievements = {
-    AppConstants.firstCenturyAchievement: AchievementConfig(
-      title: 'First Century!',
-      description: 'Score 100 points',
-      icon: '💯',
-      requirement: 100,
-      type: AchievementType.score,
-    ),
-    AppConstants.scoreMasterAchievement: AchievementConfig(
-      title: 'Score Master',
-      description: 'Score 500 points',
-      icon: '⭐',
-      requirement: 500,
-      type: AchievementType.score,
-    ),
-    AppConstants.thousandClubAchievement: AchievementConfig(
-      title: 'Thousand Club',
-      description: 'Score 1000 points',
-      icon: '🚀',
-      requirement: 1000,
-      type: AchievementType.score,
-    ),
-    AppConstants.levelExplorerAchievement: AchievementConfig(
-      title: 'Level Explorer',
-      description: 'Reach level 5',
-      icon: '🌟',
-      requirement: 5,
-      type: AchievementType.level,
-    ),
-    AppConstants.spaceCommanderAchievement: AchievementConfig(
-      title: 'Space Commander',
-      description: 'Reach level 10',
-      icon: '👨‍🚀',
-      requirement: 10,
-      type: AchievementType.level,
-    ),
-  };
-}
 
 class AchievementConfig {
   final String title;

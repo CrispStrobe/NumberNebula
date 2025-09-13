@@ -151,4 +151,473 @@ class SEn extends S {
   String starsEarned(int count) {
     return 'Stars Earned: $count';
   }
+
+  @override
+  String get audioSettings => 'Audio Settings';
+
+  @override
+  String get soundEffects => 'Sound effects';
+
+  @override
+  String get backgroundMusicDesc => 'Background music';
+
+  @override
+  String get gameplay => 'Gameplay';
+
+  @override
+  String get puzzleTimer => 'Puzzle Timer';
+
+  @override
+  String get puzzleTimerDesc => 'Enable timer in puzzle games';
+
+  @override
+  String get showHints => 'Show Hints';
+
+  @override
+  String get showHintsDesc => 'Display helpful hints during games';
+
+  @override
+  String get hapticFeedback => 'Haptic Feedback';
+
+  @override
+  String get hapticFeedbackDesc => 'Vibration on touch (if supported)';
+
+  @override
+  String get appLanguage => 'App Language';
+
+  @override
+  String get appLanguageDesc => 'Choose your preferred language';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageGerman => 'Deutsch';
+
+  @override
+  String get difficulty => 'Difficulty';
+
+  @override
+  String get currentGrade => 'Current Grade';
+
+  @override
+  String get currentLevelDesc => 'Current Level';
+
+  @override
+  String get difficultyDescGrade3 => 'Basic operations';
+
+  @override
+  String get difficultyDescGrade4 => 'Multi-digit math';
+
+  @override
+  String get difficultyDescGrade5 => 'Complex problems';
+
+  @override
+  String get difficultyDescGrade6 => 'Advanced challenges';
+
+  @override
+  String get totalScore => 'Total Score';
+
+  @override
+  String get gamesPlayed => 'Games Played';
+
+  @override
+  String get resetProgress => 'Reset Progress';
+
+  @override
+  String get about => 'About';
+
+  @override
+  String get appVersion => 'App Version';
+
+  @override
+  String get developer => 'Developer';
+
+  @override
+  String get developerName => 'Space Math Academy Team';
+
+  @override
+  String get targetAge => 'Target Age';
+
+  @override
+  String get targetAgeRange => '8-12 years (Grades 3-6)';
+
+  @override
+  String get aboutApp =>
+      'Space Math Academy helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.';
+
+  @override
+  String get languageChanged => 'Language Changed';
+
+  @override
+  String get languageChangedDesc =>
+      'The app language will change when you restart. Would you like to restart now?';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get restartNow => 'Restart Now';
+
+  @override
+  String get selectGrade => 'Select Grade';
+
+  @override
+  String gradeN(int gradeNumber) {
+    return 'Grade $gradeNumber';
+  }
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get restartToApplyChanges =>
+      'Please restart the app to apply language changes';
+
+  @override
+  String get resetProgressConfirmation =>
+      'Are you sure you want to reset all progress? This action cannot be undone.';
+
+  @override
+  String get progressResetSuccess => 'Progress reset successfully!';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get playToUnlock => 'Play to unlock!';
+
+  @override
+  String get chooseYourGrade => 'Choose Your Grade';
+
+  @override
+  String get grade3Desc =>
+      'Basic addition, subtraction, and simple multiplication';
+
+  @override
+  String get grade4Desc =>
+      'Multi-digit arithmetic and introduction to division';
+
+  @override
+  String get grade5Desc => 'Complex operations and problem solving';
+
+  @override
+  String get grade6Desc => 'Advanced mathematics and challenging puzzles';
+
+  @override
+  String get settingsComingSoon => 'Settings coming soon!';
+
+  @override
+  String get spaceExplorerProgress => 'Space Explorer Progress';
+
+  @override
+  String get unlocked => 'Unlocked';
+
+  @override
+  String get complete => 'Complete';
+
+  @override
+  String get rankRookie => 'Rookie';
+
+  @override
+  String get rankExplorer => 'Explorer';
+
+  @override
+  String get rankVeteran => 'Veteran';
+
+  @override
+  String get rankExpert => 'Expert';
+
+  @override
+  String get rankLegend => 'Legend';
+
+  @override
+  String get achievementFirstCenturyTitle => 'First Century!';
+
+  @override
+  String get achievementFirstCenturyDesc => 'Score 100 points';
+
+  @override
+  String get achievementScoreMasterTitle => 'Score Master';
+
+  @override
+  String get achievementScoreMasterDesc => 'Score 500 points';
+
+  @override
+  String get achievementThousandClubTitle => 'Thousand Club';
+
+  @override
+  String get achievementThousandClubDesc => 'Score 1000 points';
+
+  @override
+  String get achievementLevelExplorerTitle => 'Level Explorer';
+
+  @override
+  String get achievementLevelExplorerDesc => 'Reach level 5';
+
+  @override
+  String get achievementSpaceCommanderTitle => 'Space Commander';
+
+  @override
+  String get achievementSpaceCommanderDesc => 'Reach level 10';
+
+  @override
+  String get achievementTriangleWizardTitle => 'Triangle Wizard';
+
+  @override
+  String get achievementTriangleWizardDesc =>
+      'Complete 3 Magic Triangle levels';
+
+  @override
+  String get achievementBubblePopperTitle => 'Bubble Popper';
+
+  @override
+  String get achievementBubblePopperDesc => 'Complete 3 Bubble Math levels';
+
+  @override
+  String get achievementPuzzleSolverTitle => 'Puzzle Solver';
+
+  @override
+  String get achievementPuzzleSolverDesc => 'Complete 3 Puzzle Math levels';
+
+  @override
+  String get achievementAllRounderTitle => 'All-Rounder';
+
+  @override
+  String get achievementAllRounderDesc => 'Play all game types';
+
+  @override
+  String get achievementSpeedDemonTitle => 'Speed Demon';
+
+  @override
+  String get achievementSpeedDemonDesc =>
+      'Complete a level in under 30 seconds';
+
+  @override
+  String get achievementPerfectionistTitle => 'Perfectionist';
+
+  @override
+  String get achievementPerfectionistDesc =>
+      'Complete a level without mistakes';
+
+  @override
+  String get achievementMathematicianTitle => 'Young Mathematician';
+
+  @override
+  String get achievementMathematicianDesc => 'Solve 100 math problems';
+
+  @override
+  String get unlockedStatus => 'UNLOCKED';
+
+  @override
+  String get lockedStatus => 'LOCKED';
+
+  @override
+  String get achievementUnlocked => 'ACHIEVEMENT UNLOCKED!';
+
+  @override
+  String get continueExploring => 'Continue Exploring';
+
+  @override
+  String get planetHoppingObjectiveAsc => 'Visit planets in ascending order!';
+
+  @override
+  String get planetHoppingObjectiveDesc => 'Visit planets in descending order!';
+
+  @override
+  String get planetHoppingObjectiveEvenOdd =>
+      'Visit even numbers first, then odd!';
+
+  @override
+  String get planetHoppingTitle => 'Planet Hopping';
+
+  @override
+  String planetHoppingNextTarget(Object target) {
+    return 'Next: $target';
+  }
+
+  @override
+  String get planetHoppingInstructions =>
+      'TAP anywhere to jump toward that location • Use gravity to swing between planets';
+
+  @override
+  String get planetHoppingWinTitle => 'Solar System Mastered!';
+
+  @override
+  String planetHoppingWinDesc(Object bonus) {
+    return 'You successfully navigated all planets in the correct sequence!\nLives Bonus: $bonus points';
+  }
+
+  @override
+  String get exploreAgain => 'Explore Again';
+
+  @override
+  String get missionCompleteStatus => 'Mission Complete';
+
+  @override
+  String get planetHoppingLoseTitle => 'Navigation Failed!';
+
+  @override
+  String get planetHoppingLoseDesc =>
+      'You crash-landed too many times!\nStudy the planet sequence and try again.';
+
+  @override
+  String get retryMission => 'Retry Mission';
+
+  @override
+  String get returnToBase => 'Return to Base';
+
+  @override
+  String get hyperdriveGatesTitle => 'Hyperdrive Gates';
+
+  @override
+  String get solve => 'SOLVE:';
+
+  @override
+  String hyperdriveGatesObjective(Object correctAnswer) {
+    return 'Fly through gates with: $correctAnswer';
+  }
+
+  @override
+  String get hyperdriveGatesInstructions =>
+      'DRAG to steer your ship up/down • FLY through CORRECT gates • AVOID wrong answers';
+
+  @override
+  String get hyperdriveGatesWinTitle => 'Hyperdrive Navigation Complete!';
+
+  @override
+  String hyperdriveGatesWinDesc(Object targetGatesNeeded) {
+    return 'You successfully navigated through $targetGatesNeeded gates!\nYou\'re ready for deep space missions!';
+  }
+
+  @override
+  String get flyAgain => 'Fly Again';
+
+  @override
+  String get hyperdriveGatesLoseTitle => 'Navigation System Failure!';
+
+  @override
+  String get hyperdriveGatesLoseDesc =>
+      'Your ship took too much damage!\nReturn to base for repairs and try again.';
+
+  @override
+  String get noPuzzleImagesFound =>
+      'No constellation images found in assets/images/';
+
+  @override
+  String get puzzleMathInstructions =>
+      'Rebuild the space constellation! Drag pieces to correct spots. Tap pieces to rotate them!';
+
+  @override
+  String get timer => 'Timer';
+
+  @override
+  String get timesUp => 'Time\'s up, space cadet!';
+
+  @override
+  String get constellationPieces => 'Constellation Pieces';
+
+  @override
+  String get puzzleMathIncorrect =>
+      'Check the math answer or try rotating the piece!';
+
+  @override
+  String get puzzleMathWin => 'Constellation restored, Space Explorer!';
+
+  @override
+  String puzzleMathWinBonus(Object bonus) {
+    return 'Constellation restored!\nTime Bonus: $bonus points!';
+  }
+
+  @override
+  String get puzzleMathTryAnother => 'Let\'s try another constellation!';
+
+  @override
+  String get magicTrianglesGameTitle => 'Wormhole Activator';
+
+  @override
+  String get magicTrianglesInstructions =>
+      'Align the Stargate! Drag resonators to match the required Warp Frequency on each side.';
+
+  @override
+  String magicTrianglesWarpFrequency(Object warpFrequency) {
+    return 'Warp Frequency: $warpFrequency';
+  }
+
+  @override
+  String get magicTrianglesResonators => 'Available Subspace Resonators';
+
+  @override
+  String get magicTrianglesFail =>
+      'Alignment failed. The energy signature is incorrect. Try again!';
+
+  @override
+  String get calculatingCoordinates => 'Calculating wormhole coordinates...';
+
+  @override
+  String get magicTrianglesWinTitle => 'Wormhole Stabilized!';
+
+  @override
+  String magicTrianglesWinDesc(Object bonusScore) {
+    return 'Perfect alignment! The warp corridor is open.\nBonus: +$bonusScore points!';
+  }
+
+  @override
+  String get nextAnomaly => 'Next Anomaly';
+
+  @override
+  String get toTheBridge => 'To Bridge';
+
+  @override
+  String get asteroidMathHunter => 'Asteroid Math Hunter';
+
+  @override
+  String asteroidMathTarget(Object target) {
+    return 'Target asteroid: $target';
+  }
+
+  @override
+  String get asteroidMathWinTitle => 'Asteroid Field Cleared!';
+
+  @override
+  String asteroidMathWinDesc(Object timeBonus) {
+    return 'Time Bonus: $timeBonus points!\nYou are a true Space Hunter!';
+  }
+
+  @override
+  String get timesUpSpaceCadet => 'Time\'s Up, Space Cadet!';
+
+  @override
+  String get asteroidMathLoseDesc =>
+      'The asteroid field got too chaotic!\nTry again, Commander!';
+
+  @override
+  String get nextTarget => 'Next target: ';
+
+  @override
+  String get loadingAdventure => 'Loading Space Adventure...';
+
+  @override
+  String get preparingMission => 'Preparing your math mission...';
+
+  @override
+  String get initializing => 'Initializing Space Math Academy...';
+
+  @override
+  String get loadingAssets => 'Loading game assets...';
+
+  @override
+  String get loadingProgress => 'Loading saved progress...';
+
+  @override
+  String get preparingSpaceStation => 'Preparing space station...';
+
+  @override
+  String get calibratingNav => 'Calibrating navigation systems...';
+
+  @override
+  String get readyForLaunch => 'Ready for launch!';
+
+  @override
+  String get splashScreenSubtitle => 'Explore • Learn • Discover';
 }

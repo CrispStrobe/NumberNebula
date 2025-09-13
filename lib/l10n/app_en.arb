@@ -62,5 +62,200 @@
                 "type": "int"
             }
         }
-    }
+    },
+    "audioSettings": "Audio Settings",
+    "soundEffects": "Sound effects",
+    "backgroundMusicDesc": "Background music",
+    "gameplay": "Gameplay",
+    "puzzleTimer": "Puzzle Timer",
+    "puzzleTimerDesc": "Enable timer in puzzle games",
+    "showHints": "Show Hints",
+    "showHintsDesc": "Display helpful hints during games",
+    "hapticFeedback": "Haptic Feedback",
+    "hapticFeedbackDesc": "Vibration on touch (if supported)",
+    "appLanguage": "App Language",
+    "appLanguageDesc": "Choose your preferred language",
+    "languageEnglish": "English",
+    "languageGerman": "Deutsch",
+    "difficulty": "Difficulty",
+    "currentGrade": "Current Grade",
+    "currentLevelDesc": "Current Level",
+    "difficultyDescGrade3": "Basic operations",
+    "difficultyDescGrade4": "Multi-digit math",
+    "difficultyDescGrade5": "Complex problems",
+    "difficultyDescGrade6": "Advanced challenges",
+    "totalScore": "Total Score",
+    "gamesPlayed": "Games Played",
+    "resetProgress": "Reset Progress",
+    "about": "About",
+    "appVersion": "App Version",
+    "developer": "Developer",
+    "developerName": "Space Math Academy Team",
+    "targetAge": "Target Age",
+    "targetAgeRange": "8-12 years (Grades 3-6)",
+    "aboutApp": "Space Math Academy helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.",
+    "languageChanged": "Language Changed",
+    "languageChangedDesc": "The app language will change when you restart. Would you like to restart now?",
+    "later": "Later",
+    "restartNow": "Restart Now",
+    "selectGrade": "Select Grade",
+    "gradeN": "Grade {gradeNumber}",
+    "@gradeN": {
+      "placeholders": {
+        "gradeNumber": {
+          "type": "int"
+        }
+      }
+    },
+    "cancel": "Cancel",
+    "restartToApplyChanges": "Please restart the app to apply language changes",
+    "resetProgressConfirmation": "Are you sure you want to reset all progress? This action cannot be undone.",
+    "progressResetSuccess": "Progress reset successfully!",
+    "reset": "Reset",
+    "playToUnlock": "Play to unlock!",
+    "chooseYourGrade": "Choose Your Grade",
+    "grade3Desc": "Basic addition, subtraction, and simple multiplication",
+    "grade4Desc": "Multi-digit arithmetic and introduction to division",
+    "grade5Desc": "Complex operations and problem solving",
+    "grade6Desc": "Advanced mathematics and challenging puzzles",
+    "settingsComingSoon": "Settings coming soon!",
+    "spaceExplorerProgress": "Space Explorer Progress",
+    "unlocked": "Unlocked",
+    "complete": "Complete",
+    "rankRookie": "Rookie",
+    "rankExplorer": "Explorer",
+    "rankVeteran": "Veteran",
+    "rankExpert": "Expert",
+    "rankLegend": "Legend",
+    "achievementFirstCenturyTitle": "First Century!",
+    "achievementFirstCenturyDesc": "Score 100 points",
+    "achievementScoreMasterTitle": "Score Master",
+    "achievementScoreMasterDesc": "Score 500 points",
+    "achievementThousandClubTitle": "Thousand Club",
+    "achievementThousandClubDesc": "Score 1000 points",
+    "achievementLevelExplorerTitle": "Level Explorer",
+    "achievementLevelExplorerDesc": "Reach level 5",
+    "achievementSpaceCommanderTitle": "Space Commander",
+    "achievementSpaceCommanderDesc": "Reach level 10",
+    "achievementTriangleWizardTitle": "Triangle Wizard",
+    "achievementTriangleWizardDesc": "Complete 3 Magic Triangle levels",
+    "achievementBubblePopperTitle": "Bubble Popper",
+    "achievementBubblePopperDesc": "Complete 3 Bubble Math levels",
+    "achievementPuzzleSolverTitle": "Puzzle Solver",
+    "achievementPuzzleSolverDesc": "Complete 3 Puzzle Math levels",
+    "achievementAllRounderTitle": "All-Rounder",
+    "achievementAllRounderDesc": "Play all game types",
+    "achievementSpeedDemonTitle": "Speed Demon",
+    "achievementSpeedDemonDesc": "Complete a level in under 30 seconds",
+    "achievementPerfectionistTitle": "Perfectionist",
+    "achievementPerfectionistDesc": "Complete a level without mistakes",
+    "achievementMathematicianTitle": "Young Mathematician",
+    "achievementMathematicianDesc": "Solve 100 math problems",
+    "unlockedStatus": "UNLOCKED",
+    "lockedStatus": "LOCKED",
+    "achievementUnlocked": "ACHIEVEMENT UNLOCKED!",
+    "continueExploring": "Continue Exploring",
+    "planetHoppingObjectiveAsc": "Visit planets in ascending order!",
+    "planetHoppingObjectiveDesc": "Visit planets in descending order!",
+    "planetHoppingObjectiveEvenOdd": "Visit even numbers first, then odd!",
+    "planetHoppingTitle": "Planet Hopping",
+    "planetHoppingNextTarget": "Next: {target}",
+    "@planetHoppingNextTarget": {
+        "placeholders": {
+            "target": {}
+        }
+    },
+    "planetHoppingInstructions": "TAP anywhere to jump toward that location • Use gravity to swing between planets",
+    "planetHoppingWinTitle": "Solar System Mastered!",
+    "planetHoppingWinDesc": "You successfully navigated all planets in the correct sequence!\nLives Bonus: {bonus} points",
+    "@planetHoppingWinDesc": {
+        "placeholders": {
+            "bonus": {}
+        }
+    },
+    "exploreAgain": "Explore Again",
+    "missionCompleteStatus": "Mission Complete",
+    "planetHoppingLoseTitle": "Navigation Failed!",
+    "planetHoppingLoseDesc": "You crash-landed too many times!\nStudy the planet sequence and try again.",
+    "retryMission": "Retry Mission",
+    "returnToBase": "Return to Base",
+    "hyperdriveGatesTitle": "Hyperdrive Gates",
+    "solve": "SOLVE:",
+    "hyperdriveGatesObjective": "Fly through gates with: {correctAnswer}",
+    "@hyperdriveGatesObjective": {
+        "placeholders": {
+            "correctAnswer": {}
+        }
+    },
+    "hyperdriveGatesInstructions": "DRAG to steer your ship up/down • FLY through CORRECT gates • AVOID wrong answers",
+    "hyperdriveGatesWinTitle": "Hyperdrive Navigation Complete!",
+    "hyperdriveGatesWinDesc": "You successfully navigated through {targetGatesNeeded} gates!\nYou're ready for deep space missions!",
+    "@hyperdriveGatesWinDesc": {
+        "placeholders": {
+            "targetGatesNeeded": {}
+        }
+    },
+    "flyAgain": "Fly Again",
+    "hyperdriveGatesLoseTitle": "Navigation System Failure!",
+    "hyperdriveGatesLoseDesc": "Your ship took too much damage!\nReturn to base for repairs and try again.",
+    "noPuzzleImagesFound": "No constellation images found in assets/images/",
+    "puzzleMathInstructions": "Rebuild the space constellation! Drag pieces to correct spots. Tap pieces to rotate them!",
+    "timer": "Timer",
+    "timesUp": "Time's up, space cadet!",
+    "constellationPieces": "Constellation Pieces",
+    "puzzleMathIncorrect": "Check the math answer or try rotating the piece!",
+    "puzzleMathWin": "Constellation restored, Space Explorer!",
+    "puzzleMathWinBonus": "Constellation restored!\nTime Bonus: {bonus} points!",
+    "@puzzleMathWinBonus": {
+        "placeholders": {
+            "bonus": {}
+        }
+    },
+    "puzzleMathTryAnother": "Let's try another constellation!",
+    "magicTrianglesGameTitle": "Wormhole Activator",
+    "magicTrianglesInstructions": "Align the Stargate! Drag resonators to match the required Warp Frequency on each side.",
+    "magicTrianglesWarpFrequency": "Warp Frequency: {warpFrequency}",
+    "@magicTrianglesWarpFrequency": {
+        "placeholders": {
+            "warpFrequency": {}
+        }
+    },
+    "magicTrianglesResonators": "Available Subspace Resonators",
+    "magicTrianglesFail": "Alignment failed. The energy signature is incorrect. Try again!",
+    "calculatingCoordinates": "Calculating wormhole coordinates...",
+    "magicTrianglesWinTitle": "Wormhole Stabilized!",
+    "magicTrianglesWinDesc": "Perfect alignment! The warp corridor is open.\nBonus: +{bonusScore} points!",
+     "@magicTrianglesWinDesc": {
+        "placeholders": {
+            "bonusScore": {}
+        }
+    },
+    "nextAnomaly": "Next Anomaly",
+    "toTheBridge": "To Bridge",
+    "asteroidMathHunter": "Asteroid Math Hunter",
+    "asteroidMathTarget": "Target asteroid: {target}",
+    "@asteroidMathTarget": {
+        "placeholders": {
+            "target": {}
+        }
+    },
+    "asteroidMathWinTitle": "Asteroid Field Cleared!",
+    "asteroidMathWinDesc": "Time Bonus: {timeBonus} points!\nYou are a true Space Hunter!",
+     "@asteroidMathWinDesc": {
+        "placeholders": {
+            "timeBonus": {}
+        }
+    },
+    "timesUpSpaceCadet": "Time's Up, Space Cadet!",
+    "asteroidMathLoseDesc": "The asteroid field got too chaotic!\nTry again, Commander!",
+    "nextTarget": "Next target: ",
+    "loadingAdventure": "Loading Space Adventure...",
+    "preparingMission": "Preparing your math mission...",
+    "initializing": "Initializing Space Math Academy...",
+    "loadingAssets": "Loading game assets...",
+    "loadingProgress": "Loading saved progress...",
+    "preparingSpaceStation": "Preparing space station...",
+    "calibratingNav": "Calibrating navigation systems...",
+    "readyForLaunch": "Ready for launch!",
+    "splashScreenSubtitle": "Explore • Learn • Discover"
 }

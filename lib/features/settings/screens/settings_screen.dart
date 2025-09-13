@@ -232,7 +232,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     return SlideTransition(
       position: _settingAnimations[0],
       child: _buildSettingsCard(
-        title: 'Audio Settings',
+        title: S.of(context)!.audioSettings,
         icon: Icons.volume_up,
         children: [
           Consumer<GameProvider>(
@@ -241,7 +241,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 children: [
                   _buildSwitchTile(
                     title: S.of(context)!.sound,
-                    subtitle: 'Sound effects',
+                    subtitle: S.of(context)!.soundEffects,
                     value: gameProvider.soundEnabled,
                     onChanged: (value) {
                       debugPrint("[SETTINGS] 🔊 Sound setting changed to: $value");
@@ -253,7 +253,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   
                   _buildSwitchTile(
                     title: S.of(context)!.music,
-                    subtitle: 'Background music',
+                    subtitle: S.of(context)!.backgroundMusicDesc,
                     value: gameProvider.musicEnabled,
                     onChanged: (value) {
                       debugPrint("[SETTINGS] 🎵 Music setting changed to: $value");
@@ -275,7 +275,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     return SlideTransition(
       position: _settingAnimations[1],
       child: _buildSettingsCard(
-        title: 'Gameplay',
+        title: S.of(context)!.gameplay,
         icon: Icons.games,
         children: [
           Consumer<GameProvider>(
@@ -283,8 +283,8 @@ class _SettingsScreenState extends State<SettingsScreen>
               return Column(
                 children: [
                   _buildSwitchTile(
-                    title: 'Puzzle Timer',
-                    subtitle: 'Enable timer in puzzle games',
+                    title: S.of(context)!.puzzleTimer,
+                    subtitle: S.of(context)!.puzzleTimerDesc,
                     value: gameProvider.puzzleTimerEnabled,
                     onChanged: (value) {
                       debugPrint("[SETTINGS] ⏱️ Puzzle timer setting changed to: $value");
@@ -295,8 +295,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
                   
                   _buildSwitchTile(
-                    title: 'Show Hints',
-                    subtitle: 'Display helpful hints during games',
+                    title: S.of(context)!.showHints,
+                    subtitle: S.of(context)!.showHintsDesc,
                     value: true, // TODO: Add to GameProvider
                     onChanged: (value) {
                       debugPrint("[SETTINGS] 💡 Hints setting changed to: $value");
@@ -306,8 +306,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
                   
                   _buildSwitchTile(
-                    title: 'Haptic Feedback',
-                    subtitle: 'Vibration on touch (if supported)',
+                    title: S.of(context)!.hapticFeedback,
+                    subtitle: S.of(context)!.hapticFeedbackDesc,
                     value: true, // TODO: Add to GameProvider
                     onChanged: (value) {
                       debugPrint("[SETTINGS] 📳 Haptic feedback setting changed to: $value");
@@ -364,8 +364,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'App Language',
+                    Text(
+                      S.of(context)!.appLanguage,
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -373,7 +373,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                       ),
                     ),
                     Text(
-                      'Choose your preferred language',
+                      S.of(context)!.appLanguageDesc,
                       style: const TextStyle(
                         color: Colors.white60,
                         fontSize: 12,
@@ -387,9 +387,9 @@ class _SettingsScreenState extends State<SettingsScreen>
           
           const SizedBox(height: 16),
           
-          _buildLanguageOption('English', 'en'),
+          _buildLanguageOption(S.of(context)!.languageEnglish, 'en'),
           const SizedBox(height: 12),
-          _buildLanguageOption('Deutsch', 'de'),
+          _buildLanguageOption(S.of(context)!.languageGerman, 'de'),
         ],
       ),
     );
@@ -458,7 +458,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     return SlideTransition(
       position: _settingAnimations[3],
       child: _buildSettingsCard(
-        title: 'Difficulty',
+        title: S.of(context)!.difficulty,
         icon: Icons.tune,
         children: [
           Consumer<GameProvider>(
@@ -466,7 +466,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               return Column(
                 children: [
                   _buildStatRow(
-                    label: 'Current Grade',
+                    label: S.of(context)!.currentGrade,
                     value: gameProvider.grade.toString(),
                     icon: Icons.school,
                     onTap: () => _showGradeSelector(gameProvider),
@@ -475,7 +475,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   const SizedBox(height: 12),
                   
                   _buildStatRow(
-                    label: 'Current Level',
+                    label: S.of(context)!.currentLevelDesc,
                     value: gameProvider.level.toString(),
                     icon: Icons.trending_up,
                   ),
@@ -512,13 +512,13 @@ class _SettingsScreenState extends State<SettingsScreen>
               return Column(
                 children: [
                   _buildStatRow(
-                    label: 'Total Score',
+                    label: S.of(context)!.totalScore,
                     value: gameProvider.score.toString(),
                     icon: Icons.star,
                   ),
                   
                   _buildStatRow(
-                    label: 'Games Played',
+                    label: S.of(context)!.gamesPlayed,
                     value: gameProvider.totalGamesPlayed.toString(),
                     icon: Icons.games,
                   ),
@@ -536,7 +536,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     child: ElevatedButton.icon(
                       onPressed: _showResetDialog,
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Reset Progress'),
+                      label: Text(S.of(context)!.resetProgress),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: SpaceTheme.rocketRed,
                         foregroundColor: Colors.white,
@@ -557,17 +557,17 @@ class _SettingsScreenState extends State<SettingsScreen>
     return SlideTransition(
       position: _settingAnimations[5],
       child: _buildSettingsCard(
-        title: 'About',
+        title: S.of(context)!.about,
         icon: Icons.info,
         children: [
-          _buildInfoRow('App Version', '1.0.0'),
-          _buildInfoRow('Developer', 'Space Math Academy Team'),
-          _buildInfoRow('Target Age', '8-12 years (Grades 3-6)'),
+          _buildInfoRow(S.of(context)!.appVersion, '1.0.0'),
+          _buildInfoRow(S.of(context)!.developer, 'Space Math Academy Team'),
+          _buildInfoRow(S.of(context)!.targetAge, '8-12 years (Grades 3-6)'),
           
           const SizedBox(height: 16),
           
-          const Text(
-            'Space Math Academy helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.',
+          Text(
+            S.of(context)!.aboutApp,
             style: TextStyle(
               color: Colors.white70,
               fontSize: 14,
@@ -874,11 +874,11 @@ class _SettingsScreenState extends State<SettingsScreen>
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        title: const Text(
-          'Language Changed',
+        title: Text(
+          S.of(context)!.languageChanged,
           style: TextStyle(color: Colors.white),
         ),
-        content: const Text(
+        content: Text(
           'The app language will change when you restart. Would you like to restart now?',
           style: TextStyle(color: Colors.white70),
         ),
@@ -888,8 +888,8 @@ class _SettingsScreenState extends State<SettingsScreen>
               debugPrint("[SETTINGS] 🔄 User chose to restart later");
               Navigator.of(context).pop();
             },
-            child: const Text(
-              'Later',
+            child: Text(
+              S.of(context)!.later,
               style: TextStyle(color: SpaceTheme.moonSilver),
             ),
           ),
@@ -902,7 +902,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             style: ElevatedButton.styleFrom(
               backgroundColor: SpaceTheme.alienGreen,
             ),
-            child: const Text('Restart Now'),
+            child: Text(S.of(context)!.restartNow),
           ),
         ],
       ),
@@ -917,8 +917,8 @@ class _SettingsScreenState extends State<SettingsScreen>
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        title: const Text(
-          'Select Grade',
+        title: Text(
+          S.of(context)!.selectGrade,
           style: TextStyle(color: Colors.white),
         ),
         content: Column(
@@ -953,7 +953,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Grade $grade',
+                      S.of(context)!.gradeN(grade),
                       style: TextStyle(
                         color: isSelected ? SpaceTheme.starYellow : Colors.white,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -976,8 +976,8 @@ class _SettingsScreenState extends State<SettingsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'Cancel',
+            child: Text(
+              S.of(context)!.cancel,
               style: TextStyle(color: SpaceTheme.moonSilver),
             ),
           ),
@@ -1007,8 +1007,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     // This would need to be implemented with a state management solution
     // For now, we'll just show a snackbar
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Please restart the app to apply language changes'),
+      SnackBar(
+        content: Text(S.of(context)!.restartToApplyChanges),
         backgroundColor: SpaceTheme.alienGreen,
         duration: Duration(seconds: 4),
       ),
@@ -1023,19 +1023,19 @@ class _SettingsScreenState extends State<SettingsScreen>
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        title: const Text(
-          'Reset Progress',
+        title: Text(
+          S.of(context)!.resetProgress,
           style: TextStyle(color: Colors.white),
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you want to reset all progress? This action cannot be undone.',
           style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'Cancel',
+            child: Text(
+              S.of(context)!.cancel,
               style: TextStyle(color: SpaceTheme.moonSilver),
             ),
           ),
@@ -1045,8 +1045,8 @@ class _SettingsScreenState extends State<SettingsScreen>
               context.read<GameProvider>().resetGame();
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Progress reset successfully!'),
+                SnackBar(
+                  content: Text(S.of(context)!.progressResetSuccess),
                   backgroundColor: SpaceTheme.alienGreen,
                 ),
               );
@@ -1054,7 +1054,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             style: ElevatedButton.styleFrom(
               backgroundColor: SpaceTheme.rocketRed,
             ),
-            child: const Text('Reset'),
+            child: Text(S.of(context)!.reset),
           ),
         ],
       ),

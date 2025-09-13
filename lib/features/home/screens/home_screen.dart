@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import '../../achievements/screens/achievements_screen.dart'; // Re-use AchievementUIData
 import '../../games/providers/game_provider.dart';
 import '../../games/widgets/space_background.dart';
 import '../widgets/animated_logo.dart';
@@ -10,6 +11,7 @@ import '../widgets/grade_selector.dart';
 import '../widgets/stats_card.dart';
 import '../../games/screens/game_menu_screen.dart';
 import '../../settings/screens/settings_screen.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -180,57 +182,51 @@ class _HomeScreenState extends State<HomeScreen>
             flex: 3,
             child: SingleChildScrollView( // FIX: Allows this column to scroll if content is too tall
             child: Padding( // Add padding here for better spacing
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                    const SizedBox(height: 20), // Add top spacing
-                    FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: const AnimatedLogo(),
-                    ),
-                    const SizedBox(height: 24),
-                    SlideTransition(
-                    position: _slideAnimation,
-                    child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Column(
-                        children: [
-                            Text(
-                            S.of(context)!.welcome,
-                            style: SpaceTheme.headlineStyle.copyWith(fontSize: 28),
-                            textAlign: TextAlign.center,
-                            ),
-                            /* const SizedBox(height: 12),
-                            Text(
-                            'Explore the universe of mathematics!',
-                            style: SpaceTheme.bodyStyle.copyWith(fontSize: 16),
-                            textAlign: TextAlign.center,
-                            ), */
-                        ],
-                        ),
-                    ),
-                    ),
-                    const SizedBox(height: 32),
-                    SlideTransition(
-                    position: _slideAnimation,
-                    child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: const CompactGradeSelector(),
-                    ),
-                    ),
-                    const SizedBox(height: 32),
-                    SlideTransition(
-                    position: _slideAnimation,
-                    child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: _buildStartButton(),
-                    ),
-                    ),
-                    const SizedBox(height: 20), // Add bottom spacing
-                ],
-                ),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                  const SizedBox(height: 20), // Add top spacing
+                  FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: const AnimatedLogo(),
+                  ),
+                  const SizedBox(height: 24),
+                  SlideTransition(
+                  position: _slideAnimation,
+                  child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Column(
+                      children: [
+                          Text(
+                          S.of(context)!.welcome,
+                          style: SpaceTheme.headlineStyle.copyWith(fontSize: 28),
+                          textAlign: TextAlign.center,
+                          ),
+                      ],
+                      ),
+                  ),
+                  ),
+                  const SizedBox(height: 32),
+                  SlideTransition(
+                  position: _slideAnimation,
+                  child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: const CompactGradeSelector(),
+                  ),
+                  ),
+                  const SizedBox(height: 32),
+                  SlideTransition(
+                  position: _slideAnimation,
+                  child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: _buildStartButton(),
+                  ),
+                  ),
+                  const SizedBox(height: 20), // Add bottom spacing
+              ],
+              ),
             ),
             ),
         ),
@@ -243,21 +239,21 @@ class _HomeScreenState extends State<HomeScreen>
             child: Column( // Keep this column centered
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-                SlideTransition(
-                position: _slideAnimation,
-                child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: const CompactStatsCard(),
-                ),
-                ),
-                const SizedBox(height: 16),
-                SlideTransition(
-                position: _slideAnimation,
-                child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: const CompactAchievementsPreview(),
-                ),
-                ),
+              SlideTransition(
+              position: _slideAnimation,
+              child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: const CompactStatsCard(),
+              ),
+              ),
+              const SizedBox(height: 16),
+              SlideTransition(
+              position: _slideAnimation,
+              child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: const CompactAchievementsPreview(),
+              ),
+              ),
             ],
             ),
         ),
@@ -415,7 +411,7 @@ class CompactStatsCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Progress',
+                    S.of(context)!.progress,
                     style: const TextStyle(
                       fontSize: 16, // Smaller text
                       fontWeight: FontWeight.w600,
@@ -532,7 +528,7 @@ class CompactGradeSelector extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Grade ${gameProvider.grade}',
+                    S.of(context)!.gradeN(gameProvider.grade), // Use gradeN for localization
                     style: const TextStyle(
                       fontSize: 16, // Smaller text
                       fontWeight: FontWeight.w600,
@@ -609,18 +605,34 @@ class CompactGradeSelector extends StatelessWidget {
   }
 }
 
-// COMPACT Achievements Preview - Much smaller version
+
+// REFACTOR: This widget now fetches its own localized text based on IDs.
 class CompactAchievementsPreview extends StatelessWidget {
   const CompactAchievementsPreview({super.key});
+
+  // Helper method to get localized data for an achievement ID
+  AchievementUIData _getAchievementUIData(BuildContext context, String id) {
+    final s = S.of(context)!;
+    switch (id) {
+      case 'first_century':
+        return AchievementUIData(title: s.achievementFirstCenturyTitle, description: s.achievementFirstCenturyDesc, icon: '💯');
+      case 'score_master':
+        return AchievementUIData(title: s.achievementScoreMasterTitle, description: s.achievementScoreMasterDesc, icon: '⭐');
+      // Add other cases here if you want to show different achievements
+      default:
+        return AchievementUIData(title: s.achievementFirstCenturyTitle, description: s.achievementFirstCenturyDesc, icon: '💯');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
-        final achievements = gameProvider.achievements.take(2).toList(); // ONLY 2 achievements
+        // We get the simple Achievement objects (with just IDs)
+        final achievements = gameProvider.achievements.take(2).toList(); 
 
         return Container(
-          padding: const EdgeInsets.all(12), // Even smaller padding
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
@@ -652,7 +664,7 @@ class CompactAchievementsPreview extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'Achievements',
+                    S.of(context)!.achievements,
                     style: SpaceTheme.titleStyle.copyWith(fontSize: 14), // Smaller text
                   ),
                 ],
@@ -660,26 +672,28 @@ class CompactAchievementsPreview extends StatelessWidget {
               const SizedBox(height: 8),
               if (achievements.isEmpty)
                 Text(
-                  'Play to unlock!',
+                  S.of(context)!.playToUnlock,
                   style: SpaceTheme.bodyStyle.copyWith(fontSize: 11), // Smaller text
                   textAlign: TextAlign.center,
                 )
               else
                 Column(
                   children: achievements.map((achievement) {
+                    // Look up the localized text using the ID
+                    final uiData = _getAchievementUIData(context, achievement.id);
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 4), // Minimal spacing
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            achievement.icon,
+                            uiData.icon, // Use the looked-up icon
                             style: const TextStyle(fontSize: 14), // Smaller emoji
                           ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              achievement.title,
+                              uiData.title, // Use the looked-up title
                               style: SpaceTheme.bodyStyle.copyWith(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 10, // Much smaller text

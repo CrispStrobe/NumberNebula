@@ -173,7 +173,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   void _handleIncorrect() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Alignment failed. The energy signature is incorrect. Try again!'),
+        content: Text(S.of(context)!.magicTrianglesFail),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
       ),
@@ -183,14 +183,14 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   @override
   Widget build(BuildContext context) {
     if (currentPuzzle == null || _isGenerating) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircularProgressIndicator(),
               SizedBox(height: 16),
-              Text('Calculating wormhole coordinates...', style: SpaceTheme.bodyStyle),
+              Text(S.of(context)!.calculatingCoordinates, style: SpaceTheme.bodyStyle),
             ],
           ),
         ),
@@ -202,11 +202,11 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         child: SafeArea(
           child: Column(
             children: [
-              GameUI(title: "Wormhole Activator", level: widget.level, onBack: () => Navigator.of(context).pop()),
+              GameUI(title: S.of(context)!.magicTrianglesGameTitle, level: widget.level, onBack: () => Navigator.of(context).pop()),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Text(
-                  "Align the Stargate! Drag resonators to match the required Warp Frequency on each side.",
+                  S.of(context)!.magicTrianglesInstructions,
                   style: SpaceTheme.bodyStyle, textAlign: TextAlign.center,
                 ),
               ),
@@ -537,7 +537,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                 children: [
                   const Icon(Icons.rocket_launch, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  const Text('Wormhole Stabilized!', style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(S.of(context)!.magicTrianglesWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(
                     'Perfect alignment! The warp corridor is open.\nBonus: +$bonusScore points!',
@@ -553,12 +553,12 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                           _generatePuzzle();
                         },
                         style: SpaceTheme.secondaryButtonStyle,
-                        child: const Text('Next Anomaly'),
+                        child: Text(S.of(context)!.nextAnomaly),
                       ),
                       ElevatedButton(
                         onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
                         style: SpaceTheme.primaryButtonStyle,
-                        child: const Text('To Bridge'),
+                        child: Text(S.of(context)!.toTheBridge),
                       ),
                     ],
                   ),

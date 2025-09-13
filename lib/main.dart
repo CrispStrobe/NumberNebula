@@ -4,7 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'core/services/puzzle_image_service.dart'; 
+import 'core/services/puzzle_image_service.dart';
 import 'core/theme/space_theme.dart';
 import 'features/games/constants/app_constants.dart';
 import 'core/services/audio_service.dart';
@@ -25,20 +25,17 @@ import 'generated/l10n.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Force landscape orientation for iPad
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
 
-  // Initialize services
   await PuzzleImageService.instance.init();
   
   final audioService = AudioService();
   final progressService = ProgressService();
   await progressService.init();
   
-  // Initialize global error handler
   GlobalErrorHandler.init();
   
   runApp(SpaceMathApp(
@@ -81,16 +78,13 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Handle app lifecycle changes
     switch (state) {
       case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
         _saveAppState();
         break;
       case AppLifecycleState.resumed:
         _restoreAppState();
-        break;
-      case AppLifecycleState.detached:
-        _saveAppState();
         break;
       default:
         break;
@@ -99,18 +93,14 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   
   Future<void> _initializeApp() async {
     try {
-      // Load saved language preference
       await _loadLanguagePreference();
-      
-      // Additional initialization can be done here
-      
       setState(() {
         _isInitialized = true;
       });
     } catch (e) {
       setState(() {
         _initializationError = e.toString();
-        _isInitialized = true; // Still show the app, but with error handling
+        _isInitialized = true;
       });
     }
   }
@@ -121,32 +111,21 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
       final languageCode = prefs.getString('language');
       
       if (languageCode != null && S.supportedLocales.any((locale) => locale.languageCode == languageCode)) {
-        setState(() {
-          _locale = Locale(languageCode);
-        });
+        setState(() => _locale = Locale(languageCode));
       } else {
-        // Use system locale if supported, otherwise default to English
         final systemLocale = WidgetsBinding.instance.platformDispatcher.locale;
-        if (S.supportedLocales.contains(systemLocale)) {
-          setState(() {
-            _locale = systemLocale;
-          });
+        if (S.supportedLocales.any((l) => l.languageCode == systemLocale.languageCode)) {
+           setState(() => _locale = systemLocale);
         } else {
-          setState(() {
-            _locale = const Locale('en'); // Default to English
-          });
+           setState(() => _locale = const Locale('en'));
         }
       }
     } catch (e) {
-      // If there's an error loading preferences, default to English
-      setState(() {
-        _locale = const Locale('en');
-      });
+      setState(() => _locale = const Locale('en'));
     }
   }
   
   Future<void> _saveAppState() async {
-    // Save current app state when app goes to background
     try {
       final prefs = await SharedPreferences.getInstance();
       if (_locale != null) {
@@ -159,22 +138,30 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   
   Future<void> _restoreAppState() async {
     // Restore app state when app comes back to foreground
-    // This could include refreshing data, checking for updates, etc.
   }
 
   @override
   Widget build(BuildContext context) {
-    // Show loading screen while initializing
     if (!_isInitialized) {
       return MaterialApp(
+        // FIX: Add localization delegates here to make S.of(context) available
+        // during early initialization.
+        localizationsDelegates: const [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: S.supportedLocales,
         home: const SpaceLoadingScreen(
-          message: 'Initializing Space Math Academy...',
+          // Pass a non-localized string, as the locale might not be determined yet.
+          // The loading screen itself will use S.of(context) for its defaults.
+          message: 'Initializing...',
         ),
         theme: SpaceTheme.lightTheme,
       );
     }
     
-    // Show error screen if initialization failed
     if (_initializationError != null) {
       return MaterialApp(
         home: SpaceErrorScreen(
@@ -197,7 +184,6 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
         Provider<AudioService>.value(value: widget.audioService),
         Provider<ProgressService>.value(value: widget.progressService),
         ChangeNotifierProvider(create: (_) => GameProvider()),
-        // Add a provider for app-level settings
         Provider<AppSettingsManager>(
           create: (_) => AppSettingsManager(),
         ),
@@ -206,7 +192,6 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
         title: 'Space Math Academy',
         debugShowCheckedModeBanner: false,
         
-        // Internationalization
         locale: _locale,
         localizationsDelegates: const [
           S.delegate,
@@ -215,40 +200,20 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: S.supportedLocales,
-        localeResolutionCallback: (locale, supportedLocales) {
-          // Handle locale resolution
-          if (locale == null) {
-            return supportedLocales.first;
-          }
-          
-          // Check for exact match
-          for (final supportedLocale in supportedLocales) {
-            if (supportedLocale.languageCode == locale.languageCode) {
-              return supportedLocale;
-            }
-          }
-          
-          // Fallback to English
-          return const Locale('en');
-        },
         
-        // Theme
         theme: SpaceTheme.lightTheme,
         darkTheme: SpaceTheme.darkTheme,
         themeMode: ThemeMode.light,
         
-        // Routes
         initialRoute: AppRoutes.splash,
         onGenerateRoute: AppRoutes.generateRoute,
         
-        // Error handling
         builder: (context, child) {
           ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
             return SpaceErrorScreen(
               title: 'Oops! Something went wrong',
               message: 'Our space engineers are working on it!',
               onRetry: () {
-                // Restart the current route
                 Navigator.of(context).pushReplacementNamed(
                   ModalRoute.of(context)?.settings.name ?? AppRoutes.home,
                 );
@@ -476,64 +441,41 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
-  
+class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   late AnimationController _logoController;
   late AnimationController _textController;
   late AnimationController _progressController;
-  
+
   late Animation<double> _logoScale;
   late Animation<double> _textOpacity;
   late Animation<double> _progressAnimation;
-  
-  String _loadingMessage = 'Initializing...';
+
+  String _loadingMessage = 'Initializing...'; // Start with a non-localized default
   double _progress = 0.0;
   
   @override
   void initState() {
     super.initState();
     
-    _logoController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    );
-    
-    _textController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-    
-    _progressController = AnimationController(
-      duration: const Duration(milliseconds: 3000),
-      vsync: this,
-    );
-    
-    _logoScale = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _logoController,
-      curve: Curves.elasticOut,
-    ));
-    
-    _textOpacity = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _textController,
-      curve: Curves.easeIn,
-    ));
-    
-    _progressAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _progressController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _initializeApp();
+    _logoController = AnimationController(duration: const Duration(milliseconds: 2000), vsync: this);
+    _textController = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
+    _progressController = AnimationController(duration: const Duration(milliseconds: 3000), vsync: this);
+
+    _logoScale = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(CurvedAnimation(parent: _logoController, curve: Curves.elasticOut));
+    _textOpacity = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(CurvedAnimation(parent: _textController, curve: Curves.easeIn));
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(CurvedAnimation(parent: _progressController, curve: Curves.easeInOut));
+  }
+
+  // FIX: Access context-dependent resources here, not in initState.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // It's safe to call S.of(context) here for the first time.
+    // We pass the S instance to the initialization logic.
+    _initializeApp(S.of(context)!);
   }
   
   @override
@@ -544,16 +486,14 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
   
-  Future<void> _initializeApp() async {
-    // Start logo animation
+  // FIX: This method now accepts the 'S' instance so it doesn't need context.
+  Future<void> _initializeApp(S s) async {
     _logoController.forward();
-    
-    // Step 1: Initialize basic services
-    await _updateProgress(0.2, 'Loading game assets...');
+
+    await _updateProgress(0.2, s.loadingAssets);
     await Future.delayed(const Duration(milliseconds: 500));
-    
-    // Step 2: Load saved data
-    await _updateProgress(0.4, 'Loading saved progress...');
+
+    await _updateProgress(0.4, s.loadingProgress);
     try {
       if (mounted) {
         final progressService = context.read<ProgressService>();
@@ -564,35 +504,28 @@ class _SplashScreenState extends State<SplashScreen>
       debugPrint('Error loading progress: $e');
     }
     
-    // Step 3: Start text animation
     _textController.forward();
-    await _updateProgress(0.6, 'Preparing space station...');
+    await _updateProgress(0.6, s.preparingSpaceStation);
     await Future.delayed(const Duration(milliseconds: 500));
     
-    // Step 4: Final preparations
-    await _updateProgress(0.8, 'Calibrating navigation systems...');
+    await _updateProgress(0.8, s.calibratingNav);
     await Future.delayed(const Duration(milliseconds: 500));
     
-    // Step 5: Complete
-    await _updateProgress(1.0, 'Ready for launch!');
+    await _updateProgress(1.0, s.readyForLaunch);
     await Future.delayed(const Duration(milliseconds: 800));
-    
-    // Navigate to home
+
     if (mounted) {
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     }
   }
-  
+
   Future<void> _updateProgress(double progress, String message) async {
     if (mounted) {
       setState(() {
         _progress = progress;
         _loadingMessage = message;
       });
-      
-      // Animate progress bar
       _progressController.animateTo(progress);
-      
       await Future.delayed(const Duration(milliseconds: 200));
     }
   }
@@ -601,14 +534,11 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: SpaceTheme.spaceGradient,
-        ),
+        decoration: const BoxDecoration(gradient: SpaceTheme.spaceGradient),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Animated Logo
               AnimatedBuilder(
                 animation: _logoScale,
                 builder: (context, child) {
@@ -628,19 +558,12 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.rocket_launch,
-                        color: Colors.white,
-                        size: 80,
-                      ),
+                      child: const Icon(Icons.rocket_launch, color: Colors.white, size: 80),
                     ),
                   );
                 },
               ),
-              
               const SizedBox(height: 40),
-              
-              // App Title
               AnimatedBuilder(
                 animation: _textOpacity,
                 builder: (context, child) {
@@ -649,15 +572,13 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Column(
                       children: [
                         Text(
-                          'Space Math Academy',
+                          S.of(context)!.appTitle, // This is safe to call here
                           style: SpaceTheme.headlineStyle.copyWith(fontSize: 36),
                           textAlign: TextAlign.center,
                         ),
-                        
                         const SizedBox(height: 16),
-                        
                         Text(
-                          'Explore • Learn • Discover',
+                          S.of(context)!.splashScreenSubtitle, // And here
                           style: SpaceTheme.bodyStyle.copyWith(
                             fontSize: 18,
                             color: SpaceTheme.starYellow,
@@ -668,10 +589,7 @@ class _SplashScreenState extends State<SplashScreen>
                   );
                 },
               ),
-              
               const SizedBox(height: 60),
-              
-              // Loading Progress
               AnimatedBuilder(
                 animation: _textOpacity,
                 builder: (context, child) {
@@ -687,23 +605,19 @@ class _SplashScreenState extends State<SplashScreen>
                               return LinearProgressIndicator(
                                 value: _progressAnimation.value,
                                 backgroundColor: SpaceTheme.deepSpace,
-                                valueColor: AlwaysStoppedAnimation<Color>(
+                                valueColor: const AlwaysStoppedAnimation<Color>(
                                   SpaceTheme.starYellow,
                                 ),
                               );
                             },
                           ),
                         ),
-                        
                         const SizedBox(height: 16),
-                        
                         Text(
-                          _loadingMessage,
+                          _loadingMessage, // Display the current loading message
                           style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
                         ),
-                        
                         const SizedBox(height: 8),
-                        
                         Text(
                           '${(_progress * 100).toInt()}%',
                           style: SpaceTheme.bodyStyle.copyWith(

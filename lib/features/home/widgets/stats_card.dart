@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../generated/l10n.dart'; // Import S
 import '../../games/providers/game_provider.dart';
 
 class StatsCard extends StatelessWidget {
@@ -32,17 +33,17 @@ class StatsCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.analytics,
                     color: Color(0xFFFFD700), // starYellow
                     size: 24,
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(
-                    'Progress',
-                    style: TextStyle(
+                    S.of(context)!.progress,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -50,43 +51,35 @@ class StatsCard extends StatelessWidget {
                   ),
                 ],
               ),
-              
               const SizedBox(height: 20),
-              
-              // Score
               _buildStatItem(
+                context: context, // Pass context
                 icon: Icons.star,
-                label: 'Score',
+                label: S.of(context)!.score,
                 value: gameProvider.score.toString(),
                 color: const Color(0xFFFFD700), // starYellow
               ),
-              
               const SizedBox(height: 12),
-              
-              // Level
               _buildStatItem(
+                context: context,
                 icon: Icons.trending_up,
-                label: 'Level',
+                label: S.of(context)!.level,
                 value: gameProvider.level.toString(),
                 color: const Color(0xFF06FFA5), // alienGreen
               ),
-              
               const SizedBox(height: 12),
-              
-              // Games played
               _buildStatItem(
+                context: context,
                 icon: Icons.games,
-                label: 'Games Played',
+                label: S.of(context)!.gamesPlayed,
                 value: gameProvider.totalGamesPlayed.toString(),
                 color: const Color(0xFFFF69B4), // cosmicPink
               ),
-              
               const SizedBox(height: 12),
-              
-              // Achievements
               _buildStatItem(
+                context: context,
                 icon: Icons.emoji_events,
-                label: 'Achievements',
+                label: S.of(context)!.achievements,
                 value: gameProvider.totalAchievements.toString(),
                 color: const Color(0xFFFF6B35), // planetOrange
               ),
@@ -96,8 +89,9 @@ class StatsCard extends StatelessWidget {
       },
     );
   }
-  
+
   Widget _buildStatItem({
+    required BuildContext context, // Receive context here
     required IconData icon,
     required String label,
     required String value,
@@ -118,9 +112,7 @@ class StatsCard extends StatelessWidget {
             size: 20,
           ),
         ),
-        
         const SizedBox(width: 12),
-        
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
