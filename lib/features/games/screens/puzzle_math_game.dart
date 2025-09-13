@@ -1,443 +1,188 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:math' as math;
 
+import '../../../core/services/puzzle_image_service.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
-import '../providers/game_provider.dart';
-import '../widgets/space_background.dart';
-import '../widgets/game_ui.dart';
 import '../models/math_problem.dart';
+import '../providers/game_provider.dart';
+import '../widgets/game_ui.dart';
+import '../widgets/space_background.dart';
 
+// Main Game Widget
 class PuzzleMathGame extends StatefulWidget {
   final int grade;
   final int level;
 
-  const PuzzleMathGame({
-    super.key,
-    required this.grade,
-    required this.level,
-  });
+  const PuzzleMathGame({super.key, required this.grade, required this.level});
 
   @override
   State<PuzzleMathGame> createState() => _PuzzleMathGameState();
 }
 
-class _PuzzleMathGameState extends State<PuzzleMathGame>
-    with TickerProviderStateMixin {
-  late AnimationController _rotationController;
-  late AnimationController _glowController;
-
-  List<PuzzlePiece> puzzlePieces = [];
-  List<PuzzleSlot> puzzleSlots = [];
-  PuzzlePiece? draggedPiece;
-  bool gameCompleted = false;
+class _PuzzleMathGameState extends State<PuzzleMathGame> {
+  List<PuzzlePieceData> pieces = [];
+  Map<int, int> placedPieces = {}; // Map slotId -> pieceId
+  late int columns;
+  late int rows;
+  String? currentPuzzleImage;
+  Timer? _timer;
+  int _timeLeft = 120;
+  Map<String, PuzzleSide> _edgeShapes = {}; // Stores the shape of each interior edge
 
   @override
   void initState() {
     super.initState();
+    _initializeGame();
+  }
 
-    _rotationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    )..repeat(reverse: true);
-
+  void _initializeGame() {
+    final gameProvider = context.read<GameProvider>();
+    currentPuzzleImage = PuzzleImageService.instance.getImageForLevel(widget.level);
     _generatePuzzle();
+    if (gameProvider.puzzleTimerEnabled) {
+      _startTimer();
+    }
+  }
+
+  void _startTimer() {
+    _timeLeft = 120;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted && _timeLeft > 0) {
+        setState(() => _timeLeft--);
+      } else {
+        timer.cancel();
+        if (mounted) {
+          _showGameOverDialog("Time's up!");
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
-    _rotationController.dispose();
-    _glowController.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 
   void _generatePuzzle() {
-    puzzlePieces.clear();
-    puzzleSlots.clear();
-    gameCompleted = false;
-
     final difficulty = widget.grade + widget.level;
-    final pieceCount = math.min(4 + (difficulty ~/ 2), 9);
+    final pieceCount = (difficulty < 5) ? 4 : 6;
+    columns = (pieceCount == 4) ? 2 : 3;
+    rows = 2;
+
+    _generateEdgeShapes(); // Generate the interlocking shapes first
+
     final random = math.Random();
-
-    // Generate math problems and their solutions
-    final problems = <MathProblem>[];
-    for (int i = 0; i < pieceCount; i++) {
-      problems.add(_generateMathProblem(difficulty, random));
+    final problems = <MathProblem>{};
+    while (problems.length < pieceCount) {
+      problems.add(MathProblem.random(widget.grade, difficulty: difficulty));
     }
 
-    // Create puzzle slots (stationary positions on the puzzle board)
-    final gridSize = math.sqrt(pieceCount).ceil();
-    final slotSize = 120.0;
-    final startX = 50.0;
-    final startY = 150.0;
-
+    final problemList = problems.toList();
+    final pieceData = <PuzzlePieceData>[];
     for (int i = 0; i < pieceCount; i++) {
-      final row = i ~/ gridSize;
-      final col = i % gridSize;
-
-      puzzleSlots.add(PuzzleSlot(
+      pieceData.add(PuzzlePieceData(
         id: i,
-        position: Offset(
-          startX + col * (slotSize + 20),
-          startY + row * (slotSize + 20),
-        ),
-        mathProblem: problems[i].expression,
-        correctAnswer: problems[i].answer,
-        size: slotSize,
-        isOccupied: false,
-        color: _getSlotColor(i),
+        problem: problemList[i].expression,
+        answer: problemList[i].answer,
+        row: i ~/ columns,
+        col: i % columns,
       ));
     }
 
-    // Create puzzle pieces (draggable pieces with answers)
-    for (int i = 0; i < pieceCount; i++) {
-      // Randomize piece positions on the right side
-      puzzlePieces.add(PuzzlePiece(
-        id: i,
-        position: Offset(
-          600 + random.nextDouble() * 200,
-          150 + random.nextDouble() * 400,
-        ),
-        answer: problems[i].answer,
-        size: slotSize - 10, // Slightly smaller than slots
-        rotation: 0.0,
-        isPlaced: false,
-        color: _getPieceColor(i),
-        slotId: i, // Which slot this piece belongs to
-      ));
-    }
-
-    // Shuffle piece positions
-    final shuffledPositions = puzzlePieces.map((p) => p.position).toList();
-    shuffledPositions.shuffle(random);
-
-    for (int i = 0; i < puzzlePieces.length; i++) {
-      puzzlePieces[i].position = shuffledPositions[i];
-    }
-
-    setState(() {});
-  }
-
-  MathProblem _generateMathProblem(int difficulty, math.Random random) {
-    switch (widget.grade) {
-      case 3:
-        return _generateGrade3Problem(random);
-      case 4:
-        return _generateGrade4Problem(random);
-      case 5:
-        return _generateGrade5Problem(random);
-      case 6:
-      default:
-        return _generateGrade6Problem(random);
-    }
-  }
-
-  MathProblem _generateGrade3Problem(math.Random random) {
-    final operations = ['+', '-', '×'];
-    final operation = operations[random.nextInt(operations.length)];
-
-    switch (operation) {
-      case '+':
-        final a = random.nextInt(15) + 5;
-        final b = random.nextInt(15) + 5;
-        return MathProblem.addition(a, b);
-      case '-':
-        final a = random.nextInt(20) + 10;
-        final b = random.nextInt(a);
-        return MathProblem.subtraction(a, b);
-      case '×':
-      default:
-        final a = random.nextInt(6) + 2;
-        final b = random.nextInt(6) + 2;
-        return MathProblem.multiplication(a, b);
-    }
-  }
-
-  MathProblem _generateGrade4Problem(math.Random random) {
-    final operations = ['+', '-', '×', '÷'];
-    final operation = operations[random.nextInt(operations.length)];
-
-    switch (operation) {
-      case '+':
-        final a = random.nextInt(50) + 20;
-        final b = random.nextInt(50) + 20;
-        return MathProblem.addition(a, b);
-      case '-':
-        final a = random.nextInt(80) + 30;
-        final b = random.nextInt(a - 10) + 10;
-        return MathProblem.subtraction(a, b);
-      case '×':
-        final a = random.nextInt(10) + 3;
-        final b = random.nextInt(10) + 3;
-        return MathProblem.multiplication(a, b);
-      case '÷':
-      default:
-        final b = random.nextInt(10) + 3;
-        final answer = random.nextInt(12) + 2;
-        final a = b * answer;
-        return MathProblem.division(a, b);
-    }
-  }
-
-  MathProblem _generateGrade5Problem(math.Random random) {
-    final operations = ['+', '-', '×', '÷'];
-    final operation = operations[random.nextInt(operations.length)];
-
-    switch (operation) {
-      case '+':
-        final a = random.nextInt(150) + 50;
-        final b = random.nextInt(150) + 50;
-        return MathProblem.addition(a, b);
-      case '-':
-        final a = random.nextInt(200) + 75;
-        final b = random.nextInt(a - 25) + 25;
-        return MathProblem.subtraction(a, b);
-      case '×':
-        final a = random.nextInt(15) + 5;
-        final b = random.nextInt(15) + 5;
-        return MathProblem.multiplication(a, b);
-      case '÷':
-      default:
-        final b = random.nextInt(15) + 5;
-        final answer = random.nextInt(20) + 3;
-        final a = b * answer;
-        return MathProblem.division(a, b);
-    }
-  }
-
-  MathProblem _generateGrade6Problem(math.Random random) {
-    final operations = ['+', '-', '×', '÷'];
-    final operation = operations[random.nextInt(operations.length)];
-
-    switch (operation) {
-      case '+':
-        final a = random.nextInt(300) + 100;
-        final b = random.nextInt(300) + 100;
-        return MathProblem.addition(a, b);
-      case '-':
-        final a = random.nextInt(500) + 150;
-        final b = random.nextInt(a - 50) + 50;
-        return MathProblem.subtraction(a, b);
-      case '×':
-        final a = random.nextInt(25) + 8;
-        final b = random.nextInt(25) + 8;
-        return MathProblem.multiplication(a, b);
-      case '÷':
-      default:
-        final b = random.nextInt(20) + 8;
-        final answer = random.nextInt(30) + 5;
-        final a = b * answer;
-        return MathProblem.division(a, b);
-    }
-  }
-
-  Color _getSlotColor(int index) {
-    final colors = [
-      SpaceTheme.deepSpace,
-      SpaceTheme.nebulaPurple,
-      SpaceTheme.spaceBlue,
-    ];
-    return colors[index % colors.length];
-  }
-
-  Color _getPieceColor(int index) {
-    final colors = [
-      SpaceTheme.planetOrange,
-      SpaceTheme.alienGreen,
-      SpaceTheme.cosmicPink,
-      SpaceTheme.starYellow,
-      SpaceTheme.moonSilver,
-      Colors.cyan,
-      Colors.purple,
-      Colors.teal,
-      Colors.amber,
-    ];
-    return colors[index % colors.length];
-  }
-
-  void _onPieceDragStart(PuzzlePiece piece) {
     setState(() {
-      draggedPiece = piece;
+      pieces = pieceData..shuffle(random);
+      placedPieces.clear();
     });
   }
 
-  void _onPieceDragUpdate(PuzzlePiece piece, Offset position) {
-    setState(() {
-      piece.position = position;
-    });
+  void _generateEdgeShapes() {
+    _edgeShapes.clear();
+    final random = math.Random();
+    // Horizontal edges
+    for (int r = 0; r < rows; r++) {
+      for (int c = 0; c < columns - 1; c++) {
+        _edgeShapes['h-$r-$c'] = random.nextBool() ? PuzzleSide.knob : PuzzleSide.hole;
+      }
+    }
+    // Vertical edges
+    for (int r = 0; r < rows - 1; r++) {
+      for (int c = 0; c < columns; c++) {
+        _edgeShapes['v-$r-$c'] = random.nextBool() ? PuzzleSide.knob : PuzzleSide.hole;
+      }
+    }
   }
 
-  void _onPieceDragEnd(PuzzlePiece piece) {
-    // Check if piece is dropped on correct slot
-    final correctSlot =
-        puzzleSlots.firstWhere((slot) => slot.id == piece.slotId);
-
-    final distance = (piece.position - correctSlot.position).distance;
-
-    if (distance < 60 && !correctSlot.isOccupied) {
-      // Snap to correct position
-      setState(() {
-        piece.position = correctSlot.position;
-        piece.isPlaced = true;
-        correctSlot.isOccupied = true;
-      });
-
-      context.read<GameProvider>().addScore(20);
-      _checkGameCompletion();
+  void _onToggleTimer(bool isEnabled) {
+    context.read<GameProvider>().setPuzzleTimer(isEnabled);
+    if (isEnabled) {
+      _startTimer();
     } else {
-      // Return to original area if not placed correctly
-      _returnPieceToOriginalArea(piece);
+      _timer?.cancel();
+      setState(() {});
     }
-
-    setState(() {
-      draggedPiece = null;
-    });
-  }
-
-  void _returnPieceToOriginalArea(PuzzlePiece piece) {
-    final random = math.Random();
-    setState(() {
-      piece.position = Offset(
-        600 + random.nextDouble() * 200,
-        150 + random.nextDouble() * 400,
-      );
-    });
-  }
-
-  void _rotatePiece(PuzzlePiece piece) {
-    _rotationController.forward().then((_) {
-      setState(() {
-        piece.rotation += math.pi / 2;
-        if (piece.rotation >= 2 * math.pi) {
-          piece.rotation = 0;
-        }
-      });
-      _rotationController.reverse();
-    });
-  }
-
-  void _checkGameCompletion() {
-    final allPlaced = puzzlePieces.every((piece) => piece.isPlaced);
-    if (allPlaced) {
-      setState(() {
-        gameCompleted = true;
-      });
-
-      context.read<GameProvider>().addScore(100);
-      _showWinDialog();
-    }
-  }
-
-  void _showWinDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: SpaceTheme.cardDecoration,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.celebration,
-                size: 64,
-                color: SpaceTheme.starYellow,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                S.of(context)!.excellent,
-                style: SpaceTheme.headlineStyle,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Space Station Complete!',
-                style: SpaceTheme.bodyStyle,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      _generatePuzzle();
-                    },
-                    style: SpaceTheme.secondaryButtonStyle,
-                    child: Text(S.of(context)!.playAgain),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                    },
-                    style: SpaceTheme.primaryButtonStyle,
-                    child: Text(S.of(context)!.nextLevel),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final gameProvider = context.watch<GameProvider>();
+    if (currentPuzzleImage == null) {
+      return Scaffold(
+          body: Center(
+              child: Text("No puzzle images found in assets/images/",
+                  style: SpaceTheme.bodyStyle)));
+    }
+
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
           child: Column(
             children: [
-              // Game UI Header
               GameUI(
                 title: S.of(context)!.puzzleMath,
                 level: widget.level,
+                timeLeft: gameProvider.puzzleTimerEnabled ? _timeLeft : null,
                 onBack: () => Navigator.of(context).pop(),
               ),
-
-              // Instructions
               Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  S.of(context)!.instructionsPuzzleMath,
-                  style: SpaceTheme.bodyStyle,
-                  textAlign: TextAlign.center,
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        S.of(context)!.instructionsPuzzleMath,
+                        textAlign: TextAlign.center,
+                        style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Text("Timer", style: SpaceTheme.bodyStyle.copyWith(color: Colors.white)),
+                        Switch(
+                          value: gameProvider.puzzleTimerEnabled,
+                          onChanged: _onToggleTimer,
+                          activeColor: SpaceTheme.alienGreen,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-
-              // Game Area
               Expanded(
-                child: Stack(
-                  children: [
-                    // Puzzle Slots
-                    ...puzzleSlots.map((slot) => PuzzleSlotWidget(
-                          slot: slot,
-                          glowAnimation: _glowController,
-                        )),
-
-                    // Puzzle Pieces
-                    ...puzzlePieces.map((piece) => PuzzlePieceWidget(
-                          piece: piece,
-                          onDragStart: () => _onPieceDragStart(piece),
-                          onDragUpdate: (position) =>
-                              _onPieceDragUpdate(piece, position),
-                          onDragEnd: () => _onPieceDragEnd(piece),
-                          onRotate: () => _rotatePiece(piece),
-                          rotationAnimation: _rotationController,
-                        )),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: LayoutBuilder(builder: (context, constraints) {
+                    return Row(
+                      children: [
+                        Expanded(flex: 3, child: _buildPuzzleBoard(constraints)),
+                        Expanded(flex: 2, child: _buildPieceTray(constraints)),
+                      ],
+                    );
+                  }),
                 ),
               ),
             ],
@@ -446,186 +191,336 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
       ),
     );
   }
+
+  Size _calculatePieceSize(BoxConstraints constraints) {
+    final boardConstraints = BoxConstraints(
+      maxWidth: constraints.maxWidth * 0.95,
+      maxHeight: constraints.maxHeight * 0.95,
+    );
+
+    double pieceWidth = (boardConstraints.maxWidth / columns);
+    double pieceHeight = pieceWidth;
+
+    if (pieceHeight * rows > boardConstraints.maxHeight) {
+      pieceHeight = (boardConstraints.maxHeight / rows);
+      pieceWidth = pieceHeight;
+    }
+    return Size(pieceWidth, pieceHeight);
+  }
+
+  Widget _buildPuzzleBoard(BoxConstraints constraints) {
+    final pieceSize = _calculatePieceSize(constraints);
+    final boardWidth = pieceSize.width * columns;
+    final boardHeight = pieceSize.height * rows;
+
+    return Center(
+      child: SizedBox(
+        width: boardWidth,
+        height: boardHeight,
+        child: Stack(
+          children: List.generate(rows * columns, (index) {
+            final row = index ~/ columns;
+            final col = index % columns;
+            final slotData = pieces.firstWhere((p) => p.row == row && p.col == col);
+            final isPlaced = placedPieces.containsKey(slotData.id);
+
+            return Positioned(
+              left: col * pieceSize.width,
+              top: row * pieceSize.height,
+              width: pieceSize.width,
+              height: pieceSize.height,
+              child: DragTarget<int>(
+                builder: (context, candidateData, rejectedData) {
+                  return PuzzleSlotWidget(
+                    data: slotData,
+                    pieceSize: pieceSize,
+                    columns: columns,
+                    rows: rows,
+                    edgeShapes: _edgeShapes,
+                    isPieceOver: candidateData.isNotEmpty,
+                    child: isPlaced
+                        ? PuzzlePieceWidget(
+                            imagePath: currentPuzzleImage!,
+                            data: pieces.firstWhere((p) => p.id == placedPieces[slotData.id]),
+                            pieceSize: pieceSize,
+                            columns: columns,
+                            rows: rows,
+                            edgeShapes: _edgeShapes,
+                            isPlaced: true,
+                          )
+                        : null,
+                  );
+                },
+                onWillAccept: (pieceId) => !isPlaced,
+                onAccept: (pieceId) {
+                  final pieceData = pieces.firstWhere((p) => p.id == pieceId);
+                  if (pieceData.answer == slotData.answer) {
+                    setState(() => placedPieces[slotData.id] = pieceId);
+                    context.read<GameProvider>().addScore(50);
+                    if (placedPieces.length == pieces.length) {
+                      _showWinDialog();
+                    }
+                  }
+                },
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPieceTray(BoxConstraints constraints) {
+    final pieceSize = _calculatePieceSize(constraints);
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      child: GridView.builder(
+        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: pieceSize.width + 10,
+          childAspectRatio: 1.0,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+        ),
+        itemCount: pieces.length,
+        itemBuilder: (context, index) {
+          final pieceData = pieces[index];
+          if (placedPieces.values.contains(pieceData.id)) {
+            return Container();
+          }
+          return Draggable<int>(
+            data: pieceData.id,
+            feedback: PuzzlePieceWidget(
+              imagePath: currentPuzzleImage!,
+              data: pieceData,
+              pieceSize: pieceSize,
+              columns: columns,
+              rows: rows,
+              edgeShapes: _edgeShapes,
+            ),
+            childWhenDragging: Opacity(
+              opacity: 0.3,
+              child: PuzzlePieceWidget(
+                imagePath: currentPuzzleImage!,
+                data: pieceData,
+                pieceSize: pieceSize,
+                columns: columns,
+                rows: rows,
+                edgeShapes: _edgeShapes,
+              ),
+            ),
+            child: PuzzlePieceWidget(
+              imagePath: currentPuzzleImage!,
+              data: pieceData,
+              pieceSize: pieceSize,
+              columns: columns,
+              rows: rows,
+              edgeShapes: _edgeShapes,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showWinDialog() {
+    _timer?.cancel();
+    final gameProvider = context.read<GameProvider>();
+    int bonus = 0;
+    String message = "Constellation complete!";
+    if (gameProvider.puzzleTimerEnabled) {
+      bonus = (_timeLeft * 2);
+      message = "Constellation complete!\nTime Bonus: $bonus points!";
+    }
+    context.read<GameProvider>().addScore(100 + bonus);
+    
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => SpaceDialog(
+            title: S.of(context)!.excellent,
+            content: message,
+            onNext: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            }));
+  }
+
+  void _showGameOverDialog(String title) {
+     showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => SpaceDialog(
+            title: title,
+            content: "Let's try another puzzle!",
+            onNext: () {
+              Navigator.of(context).pop();
+              _initializeGame();
+            }));
+  }
 }
 
-class PuzzlePiece {
-  int id;
-  Offset position;
-  int answer;
-  double size;
-  double rotation;
-  bool isPlaced;
-  Color color;
-  int slotId;
-
-  PuzzlePiece({
-    required this.id,
-    required this.position,
-    required this.answer,
-    required this.size,
-    required this.rotation,
-    required this.isPlaced,
-    required this.color,
-    required this.slotId,
-  });
+// Data and Widgets...
+class PuzzlePieceData {
+  final int id; final String problem; final int answer; final int row; final int col;
+  PuzzlePieceData({ required this.id, required this.problem, required this.answer, required this.row, required this.col });
 }
 
-class PuzzleSlot {
-  int id;
-  Offset position;
-  String mathProblem;
-  int correctAnswer;
-  double size;
-  bool isOccupied;
-  Color color;
-
-  PuzzleSlot({
-    required this.id,
-    required this.position,
-    required this.mathProblem,
-    required this.correctAnswer,
-    required this.size,
-    required this.isOccupied,
-    required this.color,
-  });
-}
-
-class PuzzlePieceWidget extends StatelessWidget {
-  final PuzzlePiece piece;
-  final VoidCallback onDragStart;
-  final Function(Offset) onDragUpdate;
-  final VoidCallback onDragEnd;
-  final VoidCallback onRotate;
-  final AnimationController rotationAnimation;
-
-  const PuzzlePieceWidget({
-    super.key,
-    required this.piece,
-    required this.onDragStart,
-    required this.onDragUpdate,
-    required this.onDragEnd,
-    required this.onRotate,
-    required this.rotationAnimation,
-  });
+class PuzzleSlotWidget extends StatelessWidget {
+  final PuzzlePieceData data; final Size pieceSize; final int columns, rows; final bool isPieceOver; final Widget? child; final Map<String, PuzzleSide> edgeShapes;
+  const PuzzleSlotWidget({super.key, required this.data, required this.pieceSize, required this.columns, required this.rows, this.isPieceOver = false, this.child, required this.edgeShapes});
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      left: piece.position.dx - piece.size / 2,
-      top: piece.position.dy - piece.size / 2,
-      child: GestureDetector(
-        onPanStart: (_) => onDragStart(),
-        onPanUpdate: (details) => onDragUpdate(details.globalPosition),
-        onPanEnd: (_) => onDragEnd(),
-        onTap: onRotate,
-        child: AnimatedBuilder(
-          animation: rotationAnimation,
-          builder: (context, child) {
-            return Transform.rotate(
-              angle: piece.rotation + (rotationAnimation.value * math.pi / 2),
-              child: Container(
-                width: piece.size,
-                height: piece.size,
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    colors: [
-                      piece.color,
-                      piece.color.withOpacity(0.8),
-                      piece.color.withOpacity(0.6),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: piece.color.withOpacity(0.5),
-                      blurRadius: piece.isPlaced ? 5 : 15,
-                      spreadRadius: piece.isPlaced ? 1 : 3,
-                    ),
-                  ],
-                  border: Border.all(
-                    color: SpaceTheme.starYellow,
-                    width: 2,
-                  ),
-                ),
-                child: Center(
-                  child: Transform.rotate(
-                    angle: -piece.rotation -
-                        (rotationAnimation.value *
-                            math.pi /
-                            2), // Keep text upright
-                    child: Text(
-                      piece.answer.toString(),
-                      style: SpaceTheme.headlineStyle.copyWith(
-                        fontSize: 24,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
+    return ClipPath(
+      clipper: PuzzlePieceClipper(data: data, columns: columns, rows: rows, edgeShapes: edgeShapes),
+      child: child ?? AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          color: isPieceOver ? SpaceTheme.alienGreen.withOpacity(0.3) : SpaceTheme.deepSpace.withOpacity(0.5),
+        ),
+        child: Center(
+          child: Text(data.problem, style: SpaceTheme.titleStyle.copyWith(color: Colors.white.withOpacity(0.8), fontSize: pieceSize.width / 5)),
         ),
       ),
     );
   }
 }
 
-class PuzzleSlotWidget extends StatelessWidget {
-  final PuzzleSlot slot;
-  final AnimationController glowAnimation;
+class PuzzlePieceWidget extends StatelessWidget {
+  final String imagePath; final PuzzlePieceData data; final Size pieceSize; final int columns, rows; final bool isPlaced; final Map<String, PuzzleSide> edgeShapes;
+  const PuzzlePieceWidget({super.key, required this.imagePath, required this.data, required this.pieceSize, required this.columns, required this.rows, this.isPlaced = false, required this.edgeShapes });
 
-  const PuzzleSlotWidget({
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      elevation: isPlaced ? 0 : 10,
+      child: ClipPath(
+        clipper: PuzzlePieceClipper(data: data, columns: columns, rows: rows, edgeShapes: edgeShapes),
+        child: Container(
+          width: pieceSize.width,
+          height: pieceSize.height,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage(imagePath),
+              fit: BoxFit.cover,
+              alignment: FractionalOffset(
+                columns <= 1 ? 0.5 : (data.col / (columns - 1)),
+                rows <= 1 ? 0.5 : (data.row / (rows - 1)),
+              ),
+            ),
+          ),
+          child: Container(
+            color: Colors.black.withOpacity(0.3),
+            child: Center(
+              child: Text(
+                data.answer.toString(),
+                style: SpaceTheme.headlineStyle.copyWith(fontSize: pieceSize.width / 3),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// The new, robust Jigsaw Clipper
+class PuzzlePieceClipper extends CustomClipper<Path> {
+  final PuzzlePieceData data; final int columns, rows; final Map<String, PuzzleSide> edgeShapes;
+  PuzzlePieceClipper({required this.data, required this.columns, required this.rows, required this.edgeShapes});
+  
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    
+    // Get the shapes for all four sides, inverting for neighbors
+    final topShape = data.row == 0 ? PuzzleSide.flat : edgeShapes['v-${data.row - 1}-${data.col}']!.inverse;
+    final bottomShape = data.row == rows - 1 ? PuzzleSide.flat : edgeShapes['v-${data.row}-${data.col}']!;
+    final leftShape = data.col == 0 ? PuzzleSide.flat : edgeShapes['h-${data.row}-${data.col - 1}']!.inverse;
+    final rightShape = data.col == columns - 1 ? PuzzleSide.flat : edgeShapes['h-${data.row}-${data.col}']!;
+    
+    path.moveTo(0, 0);
+    _drawSide(path, 0, 0, size.width, 0, topShape);
+    _drawSide(path, size.width, 0, size.width, size.height, rightShape);
+    _drawSide(path, size.width, size.height, 0, size.height, bottomShape);
+    _drawSide(path, 0, size.height, 0, 0, leftShape);
+    
+    path.close();
+    return path;
+  }
+  
+  void _drawSide(Path path, double x1, double y1, double x2, double y2, PuzzleSide side) {
+    if (side == PuzzleSide.flat) {
+      path.lineTo(x2, y2);
+      return;
+    }
+    
+    final isHorizontal = y1 == y2;
+    final length = isHorizontal ? (x2 - x1) : (y2 - y1);
+    final knobSize = length.abs() * 0.3;
+    final knobDepth = length.abs() * 0.2 * (side == PuzzleSide.knob ? 1 : -1);
+
+    final p1 = isHorizontal ? Offset(x1 + length * 0.35, y1) : Offset(x1, y1 + length * 0.35);
+    final p2 = isHorizontal ? Offset(x1 + length * 0.65, y1) : Offset(x1, y1 + length * 0.65);
+    
+    path.lineTo(p1.dx, p1.dy);
+
+    if (isHorizontal) {
+      path.cubicTo(p1.dx, p1.dy - knobDepth, p2.dx, p2.dy - knobDepth, p2.dx, p2.dy);
+    } else {
+      path.cubicTo(p1.dx + knobDepth, p1.dy, p2.dx + knobDepth, p2.dy, p2.dx, p2.dy);
+    }
+    path.lineTo(x2, y2);
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => true;
+}
+
+enum PuzzleSide { flat, knob, hole }
+extension on PuzzleSide {
+  PuzzleSide get inverse {
+    if (this == PuzzleSide.knob) return PuzzleSide.hole;
+    if (this == PuzzleSide.hole) return PuzzleSide.knob;
+    return PuzzleSide.flat;
+  }
+}
+
+// Dialog widget
+class SpaceDialog extends StatelessWidget {
+  final String title;
+  final String content;
+  final VoidCallback onNext;
+
+  const SpaceDialog({
     super.key,
-    required this.slot,
-    required this.glowAnimation,
+    required this.title,
+    required this.content,
+    required this.onNext,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      left: slot.position.dx - slot.size / 2,
-      top: slot.position.dy - slot.size / 2,
-      child: AnimatedBuilder(
-        animation: glowAnimation,
-        builder: (context, child) {
-          return Container(
-            width: slot.size,
-            height: slot.size,
-            decoration: BoxDecoration(
-              color: slot.isOccupied
-                  ? SpaceTheme.correctAnswer.withOpacity(0.3)
-                  : slot.color.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(
-                color: slot.isOccupied
-                    ? SpaceTheme.correctAnswer
-                    : SpaceTheme.starYellow.withOpacity(glowAnimation.value),
-                width: 3,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: slot.isOccupied
-                      ? SpaceTheme.correctAnswer.withOpacity(0.3)
-                      : SpaceTheme.starYellow
-                          .withOpacity(glowAnimation.value * 0.5),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                ),
-              ],
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: SpaceTheme.cardDecoration,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(title, style: SpaceTheme.headlineStyle),
+            const SizedBox(height: 16),
+            Text(content, style: SpaceTheme.bodyStyle),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: onNext,
+              style: SpaceTheme.primaryButtonStyle,
+              child: Text(S.of(context)!.nextLevel),
             ),
-            child: Center(
-              child: Text(
-                slot.mathProblem,
-                style: SpaceTheme.titleStyle.copyWith(
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }

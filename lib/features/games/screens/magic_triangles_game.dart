@@ -9,10 +9,11 @@ import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 
+// Main Game Widget
 class MagicTrianglesGame extends StatefulWidget {
   final int grade;
   final int level;
-  
+
   const MagicTrianglesGame({
     super.key,
     required this.grade,
@@ -25,79 +26,65 @@ class MagicTrianglesGame extends StatefulWidget {
 
 class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     with TickerProviderStateMixin {
-  
   late AnimationController _glowController;
-  late AnimationController _rotationController;
   late Animation<double> _glowAnimation;
-  late Animation<double> _rotationAnimation;
-  
+
   MagicTriangle? currentTriangle;
-  List<int?> userAnswers = [null, null, null]; // For the three missing positions
-  int selectedPosition = -1;
-  bool isCompleted = false;
-  
+  List<int?> userAnswers = [];
+  int selectedAnswerIndex = -1; // Index from 0-2 for which '?' is selected
+
   @override
   void initState() {
     super.initState();
-    
     _glowController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
-    
-    _rotationController = AnimationController(
-      duration: const Duration(seconds: 10),
-      vsync: this,
-    )..repeat();
-    
-    _glowAnimation = Tween<double>(
-      begin: 0.5,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _glowController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _rotationAnimation = Tween<double>(
-      begin: 0.0,
-      end: 2 * math.pi,
-    ).animate(_rotationController);
-    
+    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
+        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
     _generateTriangle();
   }
-  
+
   @override
   void dispose() {
     _glowController.dispose();
-    _rotationController.dispose();
     super.dispose();
   }
-  
+
   void _generateTriangle() {
-    final difficulty = widget.grade + widget.level;
-    currentTriangle = MagicTriangle.generate(difficulty);
-    userAnswers = [null, null, null];
-    selectedPosition = -1;
-    isCompleted = false;
-    setState(() {});
+    setState(() {
+      final difficulty = widget.grade + widget.level;
+      currentTriangle = MagicTriangle.generate(difficulty);
+      userAnswers = List.filled(currentTriangle!.hiddenIndices.length, null);
+      selectedAnswerIndex = -1;
+    });
   }
-  
+
   void _onNumberSelected(int number) {
-    if (selectedPosition >= 0 && selectedPosition < 3) {
+    if (selectedAnswerIndex != -1 && userAnswers[selectedAnswerIndex] == null) {
       setState(() {
-        userAnswers[selectedPosition] = number;
-        selectedPosition = -1;
+        userAnswers[selectedAnswerIndex] = number;
+        selectedAnswerIndex = -1; // Deselect after filling
       });
       _checkCompletion();
     }
   }
-  
+
+  void _onSpotTapped(int answerIndex, bool isFilled) {
+    setState(() {
+      if (isFilled) {
+        userAnswers[answerIndex] = null;
+        selectedAnswerIndex = -1;
+      } else {
+        selectedAnswerIndex = answerIndex;
+      }
+    });
+  }
+
   void _checkCompletion() {
     if (userAnswers.every((answer) => answer != null)) {
       final isCorrect = currentTriangle!.checkSolution(userAnswers.cast<int>());
-      
       if (isCorrect) {
-        setState(() => isCompleted = true);
         context.read<GameProvider>().addScore(100);
         _showSuccessDialog();
       } else {
@@ -105,7 +92,194 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       }
     }
   }
-  
+
+  @override
+  Widget build(BuildContext context) {
+    if (currentTriangle == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return Scaffold(
+      body: SpaceBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              GameUI(
+                title: S.of(context)!.magicTriangles,
+                level: widget.level,
+                onBack: () => Navigator.of(context).pop(),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  S.of(context)!.instructionsMagicTriangles,
+                  style: SpaceTheme.bodyStyle,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              Expanded(
+                child: LayoutBuilder(builder: (context, constraints) {
+                  bool isWide = constraints.maxWidth > 650;
+                  return isWide ? _buildWideLayout() : _buildTallLayout();
+                }),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWideLayout() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(flex: 5, child: _buildTriangleWidget()),
+          const SizedBox(width: 24),
+          Expanded(flex: 4, child: _buildNumberPad()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTallLayout() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildTriangleWidget(),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: _buildNumberPad(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTriangleWidget() {
+    return SizedBox(
+      width: 320,
+      height: 320,
+      child: CustomPaint(
+        size: const Size(320, 320),
+        painter: MagicTrianglePainter(glow: _glowAnimation.value),
+        child: Stack(children: _buildTriangleNodes()),
+      ),
+    );
+  }
+
+  List<Widget> _buildTriangleNodes() {
+    if (currentTriangle == null) return [];
+    
+    const size = 320.0;
+    final center = const Offset(size / 2, size / 2);
+    final radius = size * 0.4;
+    final points = currentTriangle!.getPoints(center, radius);
+
+    List<Widget> nodes = [];
+    int answerIdx = 0;
+    for (int i = 0; i < 6; i++) {
+      int? value = currentTriangle!.values[i];
+      bool isHidden = currentTriangle!.hiddenIndices.contains(i);
+      int currentAnswerIndex = isHidden ? answerIdx++ : -1;
+
+      if (isHidden) {
+        value = userAnswers[currentAnswerIndex];
+      }
+
+      nodes.add(
+        Positioned(
+          left: points[i].dx - 30,
+          top: points[i].dy - 30,
+          child: GestureDetector(
+            onTap: isHidden ? () => _onSpotTapped(currentAnswerIndex, value != null) : null,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isHidden
+                    ? (selectedAnswerIndex == currentAnswerIndex
+                        ? SpaceTheme.starYellow
+                        : SpaceTheme.deepSpace)
+                    : SpaceTheme.planetOrange,
+                border: Border.all(
+                  color: SpaceTheme.starYellow.withOpacity(_glowAnimation.value),
+                  width: 3,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  isHidden ? (value?.toString() ?? '?') : value.toString(),
+                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return nodes;
+  }
+
+  Widget _buildNumberPad() {
+    final availableNumbers = currentTriangle!.getAvailableNumbers();
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'Magic Sum: ${currentTriangle!.magicSum}',
+          style: SpaceTheme.titleStyle.copyWith(
+            color: SpaceTheme.starYellow,
+            fontSize: 22,
+          ),
+        ),
+        const SizedBox(height: 20),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.2,
+          ),
+          itemCount: availableNumbers.length,
+          itemBuilder: (context, index) {
+            final number = availableNumbers[index];
+            final isUsed = userAnswers.contains(number);
+
+            return GestureDetector(
+              onTap: isUsed || selectedAnswerIndex == -1
+                  ? null
+                  : () => _onNumberSelected(number),
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 300),
+                opacity: isUsed || selectedAnswerIndex == -1 ? 0.4 : 1.0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: SpaceTheme.starGradient,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Center(
+                    child: Text(
+                      number.toString(),
+                      style: SpaceTheme.headlineStyle.copyWith(fontSize: 28),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  // --- Dialog methods (no changes needed here) ---
   void _showSuccessDialog() {
     showDialog(
       context: context,
@@ -120,7 +294,6 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       ),
     );
   }
-  
   void _showIncorrectDialog() {
     showDialog(
       context: context,
@@ -130,422 +303,176 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         onNext: () {
           Navigator.of(context).pop();
           setState(() {
-            userAnswers = [null, null, null];
-            selectedPosition = -1;
+            userAnswers = List.filled(currentTriangle!.hiddenIndices.length, null);
+            selectedAnswerIndex = -1;
           });
         },
       ),
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    if (currentTriangle == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    
-    return Scaffold(
-      body: SpaceBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Game UI Header
-              GameUI(
-                title: S.of(context)!.magicTriangles,
-                level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
-              ),
-              
-              // Instructions
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  S.of(context)!.instructionsMagicTriangles,
-                  style: SpaceTheme.bodyStyle,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              
-              // Main Game Area
-              Expanded(
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      // Triangle Display
-                      Expanded(
-                        flex: 2,
-                        child: Center(
-                          child: AnimatedBuilder(
-                            animation: _rotationAnimation,
-                            builder: (context, child) {
-                              return CustomPaint(
-                                size: const Size(400, 400),
-                                painter: MagicTrianglePainter(
-                                  triangle: currentTriangle!,
-                                  userAnswers: userAnswers,
-                                  selectedPosition: selectedPosition,
-                                  glowAnimation: _glowAnimation,
-                                  rotation: _rotationAnimation.value,
-                                  onPositionTapped: (position) {
-                                    setState(() {
-                                      selectedPosition = position;
-                                    });
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                      
-                      // Number Pad
-                      Expanded(
-                        child: _buildNumberPad(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildNumberPad() {
-    final availableNumbers = currentTriangle!.getAvailableNumbers();
-    
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          'Magic Sum: ${currentTriangle!.magicSum}',
-          style: SpaceTheme.titleStyle.copyWith(
-            color: SpaceTheme.starYellow,
-          ),
-        ),
-        const SizedBox(height: 20),
-        
-        GridView.builder(
-          shrinkWrap: true,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1,
-          ),
-          itemCount: availableNumbers.length,
-          itemBuilder: (context, index) {
-            final number = availableNumbers[index];
-            final isUsed = userAnswers.contains(number);
-            
-            return AnimatedBuilder(
-              animation: _glowAnimation,
-              builder: (context, child) {
-                return Container(
-                  decoration: BoxDecoration(
-                    gradient: isUsed 
-                        ? const LinearGradient(
-                            colors: [Colors.grey, Colors.grey],
-                          )
-                        : SpaceTheme.starGradient,
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: SpaceTheme.starYellow.withOpacity(
-                          isUsed ? 0.2 : _glowAnimation.value * 0.5,
-                        ),
-                        blurRadius: 10,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(15),
-                      onTap: isUsed ? null : () => _onNumberSelected(number),
-                      child: Center(
-                        child: Text(
-                          number.toString(),
-                          style: SpaceTheme.headlineStyle.copyWith(
-                            fontSize: 28,
-                            color: isUsed ? Colors.grey : Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ],
-    );
-  }
 }
 
+// Data Model for the puzzle
 class MagicTriangle {
-  final List<int> values; // 6 values: corners + midpoints
-  final List<bool> isVisible; // Which positions are given
+  final List<int> values;
+  final Set<int> hiddenIndices;
   final int magicSum;
-  
+
   MagicTriangle({
     required this.values,
-    required this.isVisible,
+    required this.hiddenIndices,
     required this.magicSum,
   });
-  
+
+  // FIX: Rewritten puzzle generation logic to be more robust.
   static MagicTriangle generate(int difficulty) {
-    // Generate a valid magic triangle based on difficulty
     final random = math.Random();
-    final maxNumber = 10 + (difficulty * 2);
-    
-    // Start with a base magic sum
-    final magicSum = 15 + (difficulty * 3);
-    
-    // Generate valid triangle values
-    final values = List<int>.filled(6, 0);
-    
-    // Place some initial values and solve for others
-    values[0] = random.nextInt(maxNumber) + 1; // Top corner
-    values[2] = random.nextInt(maxNumber) + 1; // Bottom right corner
-    values[4] = random.nextInt(maxNumber) + 1; // Bottom left corner
-    
-    // Calculate remaining values to satisfy magic sum
-    values[1] = magicSum - values[0] - values[2]; // Right side middle
-    values[3] = magicSum - values[2] - values[4]; // Bottom side middle
-    values[5] = magicSum - values[4] - values[0]; // Left side middle
-    
-    // Adjust if any values are invalid
-    for (int i = 0; i < values.length; i++) {
-      if (values[i] <= 0) {
-        values[i] = random.nextInt(5) + 1;
+    List<int> values;
+    int magicSum = 0;
+    bool isValid;
+    int attempts = 0;
+
+    do {
+      isValid = true;
+      values = List.filled(6, 0);
+      final numbers = <int>{};
+      while (numbers.length < 6) {
+        numbers.add(random.nextInt(10 + difficulty * 2) + 1);
       }
-    }
-    
-    // Determine which positions to hide (3 positions)
-    final isVisible = List<bool>.filled(6, true);
-    final hiddenPositions = <int>[];
-    
-    while (hiddenPositions.length < 3) {
-      final pos = random.nextInt(6);
-      if (!hiddenPositions.contains(pos)) {
-        hiddenPositions.add(pos);
-        isVisible[pos] = false;
+      values = numbers.toList()..shuffle();
+
+      final side1 = values[0] + values[1] + values[2];
+      final side2 = values[2] + values[3] + values[4];
+      final side3 = values[4] + values[5] + values[0];
+
+      if (side1 == side2 && side2 == side3) {
+        magicSum = side1;
+      } else {
+        isValid = false;
       }
+      attempts++;
+    } while (!isValid && attempts < 50000);
+
+    // Fallback to a guaranteed valid puzzle if one isn't found quickly
+    if (!isValid) {
+      return MagicTriangle(values: [8, 1, 6, 7, 2, 5], hiddenIndices: {1, 3, 5}, magicSum: 15);
     }
-    
+
+    final hiddenIndices = <int>{};
+    while (hiddenIndices.length < 3) {
+      hiddenIndices.add(random.nextInt(6));
+    }
+
     return MagicTriangle(
       values: values,
-      isVisible: isVisible,
+      hiddenIndices: hiddenIndices,
       magicSum: magicSum,
     );
   }
   
+  // FIX: Corrected point calculation for perfect alignment.
+  List<Offset> getPoints(Offset center, double radius) {
+    final corners = [
+      center + Offset(0, -radius),
+      center + Offset(radius * math.sqrt(3) / 2, radius / 2),
+      center + Offset(-radius * math.sqrt(3) / 2, radius / 2),
+    ];
+
+    return [
+      corners[0], // Top corner
+      _midpoint(corners[0], corners[1]), // Top-right middle
+      corners[1], // Bottom-right corner
+      _midpoint(corners[1], corners[2]), // Bottom middle
+      corners[2], // Bottom-left corner
+      _midpoint(corners[2], corners[0]), // Top-left middle
+    ];
+  }
+
+  Offset _midpoint(Offset p1, Offset p2) {
+    return Offset((p1.dx + p2.dx) / 2, (p1.dy + p2.dy) / 2);
+  }
+
+  // FIX: Rewritten solution check to be more robust.
   bool checkSolution(List<int> userAnswers) {
     final completeValues = List<int>.from(values);
-    int answerIndex = 0;
-    
-    for (int i = 0; i < isVisible.length; i++) {
-      if (!isVisible[i]) {
-        completeValues[i] = userAnswers[answerIndex++];
-      }
+    int i = 0;
+    final sortedHiddenIndices = hiddenIndices.toList()..sort();
+    for (int index in sortedHiddenIndices) {
+      completeValues[index] = userAnswers[i++];
     }
-    
-    // Check if all three sides sum to magic sum
+
     final side1 = completeValues[0] + completeValues[1] + completeValues[2];
     final side2 = completeValues[2] + completeValues[3] + completeValues[4];
     final side3 = completeValues[4] + completeValues[5] + completeValues[0];
-    
+
     return side1 == magicSum && side2 == magicSum && side3 == magicSum;
   }
-  
+
+  // FIX: Generate a real number pool with distractors, and sort it.
   List<int> getAvailableNumbers() {
-    // Return a range of possible numbers for the difficulty
-    final maxValue = values.reduce(math.max);
-    final range = List.generate(maxValue + 5, (i) => i + 1);
-    range.shuffle();
-    return range.take(9).toList()..sort();
+    Set<int> numberSet = {};
+    for (int index in hiddenIndices) {
+      numberSet.add(values[index]);
+    }
+    final random = math.Random();
+    // Add 3 distractor numbers
+    while (numberSet.length < hiddenIndices.length + 3) {
+      final num = random.nextInt(magicSum > 1 ? magicSum + 5 : 20) + 1;
+      if (!values.contains(num)) {
+        numberSet.add(num);
+      }
+    }
+    return numberSet.toList()..sort();
   }
 }
 
+// Custom Painter for the static triangle outline
 class MagicTrianglePainter extends CustomPainter {
-  final MagicTriangle triangle;
-  final List<int?> userAnswers;
-  final int selectedPosition;
-  final Animation<double> glowAnimation;
-  final double rotation;
-  final Function(int) onPositionTapped;
-  
-  MagicTrianglePainter({
-    required this.triangle,
-    required this.userAnswers,
-    required this.selectedPosition,
-    required this.glowAnimation,
-    required this.rotation,
-    required this.onPositionTapped,
-  }) : super(repaint: glowAnimation);
-  
+  final double glow;
+  MagicTrianglePainter({required this.glow});
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width * 0.35;
-    
-    // Draw space background effects
-    _drawSpaceEffects(canvas, size);
-    
-    // Calculate triangle points
-    final points = <Offset>[
-      // Corners
-      center + Offset(0, -radius), // Top
-      center + Offset(radius * 0.866, radius * 0.5), // Bottom right
-      center + Offset(-radius * 0.866, radius * 0.5), // Bottom left
-      // Midpoints
-      center + Offset(radius * 0.433, -radius * 0.25), // Right side
-      center + Offset(0, radius * 0.5), // Bottom side
-      center + Offset(-radius * 0.433, -radius * 0.25), // Left side
+    final radius = size.width * 0.4;
+
+    final cornerPoints = [
+      center + Offset(0, -radius),
+      center + Offset(radius * math.sqrt(3) / 2, radius / 2),
+      center + Offset(-radius * math.sqrt(3) / 2, radius / 2),
     ];
-    
-    // Draw triangle outline
-    _drawTriangleOutline(canvas, points);
-    
-    // Draw values and input fields
-    for (int i = 0; i < 6; i++) {
-      _drawPosition(canvas, points[i], i);
-    }
-  }
-  
-  void _drawSpaceEffects(Canvas canvas, Size size) {
-    // Animated cosmic background
+
     final paint = Paint()
-      ..color = SpaceTheme.nebulaPurple.withOpacity(0.3)
-      ..style = PaintingStyle.fill;
-    
-    canvas.save();
-    canvas.translate(size.width / 2, size.height / 2);
-    canvas.rotate(rotation * 0.5);
-    
-    for (int i = 0; i < 5; i++) {
-      final angle = (i * 2 * math.pi / 5);
-      final offset = Offset(
-        math.cos(angle) * 150,
-        math.sin(angle) * 150,
-      );
-      canvas.drawCircle(offset, 20, paint);
-    }
-    
-    canvas.restore();
-  }
-  
-  void _drawTriangleOutline(Canvas canvas, List<Offset> points) {
-    final paint = Paint()
-      ..color = SpaceTheme.starYellow.withOpacity(glowAnimation.value)
+      ..color = SpaceTheme.starYellow.withOpacity(glow)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
-      ..shader = SpaceTheme.starGradient.createShader(
-        Rect.fromCircle(
-          center: Offset(points[0].dx, points[0].dy),
-          radius: 200,
-        ),
-      );
-    
+      ..strokeWidth = 4;
+
     final path = Path()
-      ..moveTo(points[0].dx, points[0].dy)
-      ..lineTo(points[1].dx, points[1].dy)
-      ..lineTo(points[2].dx, points[2].dy)
+      ..moveTo(cornerPoints[0].dx, cornerPoints[0].dy)
+      ..lineTo(cornerPoints[1].dx, cornerPoints[1].dy)
+      ..lineTo(cornerPoints[2].dx, cornerPoints[2].dy)
       ..close();
-    
+
     canvas.drawPath(path, paint);
   }
-  
-  void _drawPosition(Canvas canvas, Offset position, int index) {
-    final isHidden = !triangle.isVisible[index];
-    final isSelected = selectedPosition == index;
-    
-    // Draw circle background
-    final circlePaint = Paint()
-      ..color = isSelected 
-          ? SpaceTheme.alienGreen
-          : isHidden 
-              ? SpaceTheme.deepSpace
-              : SpaceTheme.planetOrange
-      ..style = PaintingStyle.fill;
-    
-    if (isSelected) {
-      circlePaint.shader = SpaceTheme.starGradient.createShader(
-        Rect.fromCircle(center: position, radius: 30),
-      );
-    }
-    
-    canvas.drawCircle(position, 30, circlePaint);
-    
-    // Draw border
-    final borderPaint = Paint()
-      ..color = SpaceTheme.starYellow.withOpacity(glowAnimation.value)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-    
-    canvas.drawCircle(position, 30, borderPaint);
-    
-    // Draw text
-    final text = isHidden 
-        ? (userAnswers[_getAnswerIndex(index)]?.toString() ?? '?')
-        : triangle.values[index].toString();
-    
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: SpaceTheme.titleStyle.copyWith(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    );
-    
-    textPainter.layout();
-    textPainter.paint(
-      canvas,
-      position - Offset(textPainter.width / 2, textPainter.height / 2),
-    );
-  }
-  
-  int _getAnswerIndex(int position) {
-    int answerIndex = 0;
-    for (int i = 0; i < position; i++) {
-      if (!triangle.isVisible[i]) {
-        answerIndex++;
-      }
-    }
-    return answerIndex;
-  }
-  
+
   @override
-  bool shouldRepaint(MagicTrianglePainter oldDelegate) {
-    return oldDelegate.selectedPosition != selectedPosition ||
-           oldDelegate.userAnswers != userAnswers;
-  }
-  
-  @override
-  bool hitTest(Offset position) => true;
+  bool shouldRepaint(MagicTrianglePainter oldDelegate) => oldDelegate.glow != glow;
 }
 
+// Dialog widget
 class SpaceDialog extends StatelessWidget {
   final String title;
   final String content;
   final VoidCallback onNext;
-  
+
   const SpaceDialog({
     super.key,
     required this.title,
     required this.content,
     required this.onNext,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     return Dialog(

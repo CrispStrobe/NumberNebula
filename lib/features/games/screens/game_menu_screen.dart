@@ -7,8 +7,10 @@ import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../screens/magic_triangles_game.dart';
-import '../screens/bubble_math_game.dart';
+import '../screens/asteroid_math_game.dart';
 import '../screens/puzzle_math_game.dart';
+import '../screens/hyperdrive_gates_game.dart';
+import '../screens/planet_hopping_game.dart'; // New import
 
 class GameMenuScreen extends StatefulWidget {
   const GameMenuScreen({super.key});
@@ -30,7 +32,7 @@ class _GameMenuScreenState extends State<GameMenuScreen>
     super.initState();
     
     _slideController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
     
@@ -47,16 +49,16 @@ class _GameMenuScreenState extends State<GameMenuScreen>
       curve: Curves.easeInOut,
     ));
     
-    // Create staggered animations for each game card
-    _cardAnimations = List.generate(3, (index) {
+    // Create staggered animations for each game card (now 5 games)
+    _cardAnimations = List.generate(5, (index) {
       return Tween<Offset>(
         begin: Offset(0, 1.0 + (index * 0.2)),
         end: Offset.zero,
       ).animate(CurvedAnimation(
         parent: _slideController,
         curve: Interval(
-          index * 0.2,
-          0.6 + (index * 0.2),
+          index * 0.12,
+          0.4 + (index * 0.12),
           curve: Curves.elasticOut,
         ),
       ));
@@ -209,25 +211,34 @@ class _GameMenuScreenState extends State<GameMenuScreen>
   }
   
   Widget _buildLandscapeGrid() {
-    return Row(
+    return GridView.count(
+      crossAxisCount: 3,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: 0.9,
       children: [
-        Expanded(child: _buildGameCard(0)),
-        const SizedBox(width: 20),
-        Expanded(child: _buildGameCard(1)),
-        const SizedBox(width: 20),
-        Expanded(child: _buildGameCard(2)),
+        _buildGameCard(0),
+        _buildGameCard(1),
+        _buildGameCard(2),
+        _buildGameCard(3),
+        _buildGameCard(4),
       ],
     );
   }
   
   Widget _buildPortraitGrid() {
-    return Column(
+    return ListView(
       children: [
-        Expanded(child: _buildGameCard(0)),
+        _buildGameCard(0),
+        const SizedBox(height: 16),
+        _buildGameCard(1),
+        const SizedBox(height: 16),
+        _buildGameCard(2),
+        const SizedBox(height: 16),
+        _buildGameCard(3),
+        const SizedBox(height: 16),
+        _buildGameCard(4),
         const SizedBox(height: 20),
-        Expanded(child: _buildGameCard(1)),
-        const SizedBox(height: 20),
-        Expanded(child: _buildGameCard(2)),
       ],
     );
   }
@@ -235,8 +246,8 @@ class _GameMenuScreenState extends State<GameMenuScreen>
   Widget _buildGameCard(int index) {
     final games = [
       GameInfo(
-        title: S.of(context)!.magicTriangles,
-        description: S.of(context)!.magicTrianglesDesc,
+        title: "Cosmic Triangles",
+        description: "Master the magic of space triangles! Each side must equal the cosmic number.",
         icon: Icons.change_history,
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -252,9 +263,9 @@ class _GameMenuScreenState extends State<GameMenuScreen>
         },
       ),
       GameInfo(
-        title: S.of(context)!.bubbleMath,
-        description: S.of(context)!.bubbleMathDesc,
-        icon: Icons.bubble_chart,
+        title: "Asteroid Math Hunter",
+        description: "Blast asteroids in the correct order! Navigate the dangerous asteroid field.",
+        icon: Icons.circle,
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -262,15 +273,15 @@ class _GameMenuScreenState extends State<GameMenuScreen>
         ),
         onTap: () {
           final gameProvider = context.read<GameProvider>();
-          _navigateToGame(BubbleMathGame(
+          _navigateToGame(AsteroidMathGame(
             grade: gameProvider.grade,
             level: gameProvider.level,
           ));
         },
       ),
       GameInfo(
-        title: S.of(context)!.puzzleMath,
-        description: S.of(context)!.puzzleMathDesc,
+        title: "Constellation Puzzle",
+        description: "Rebuild the space constellations! Drag, rotate, and solve math to restore the cosmic images.",
         icon: Icons.extension,
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -280,6 +291,40 @@ class _GameMenuScreenState extends State<GameMenuScreen>
         onTap: () {
           final gameProvider = context.read<GameProvider>();
           _navigateToGame(PuzzleMathGame(
+            grade: gameProvider.grade,
+            level: gameProvider.level,
+          ));
+        },
+      ),
+      GameInfo(
+        title: "Hyperdrive Gates",
+        description: "Navigate through space gates! Fly through correct answers and avoid the wrong ones.",
+        icon: Icons.flight_takeoff,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
+        ),
+        onTap: () {
+          final gameProvider = context.read<GameProvider>();
+          _navigateToGame(HyperdriveGatesGame(
+            grade: gameProvider.grade,
+            level: gameProvider.level,
+          ));
+        },
+      ),
+      GameInfo( // NEW PLANET HOPPING GAME
+        title: "Planet Hopping",
+        description: "Jump between planets using gravity! Visit planets in the correct mathematical sequence.",
+        icon: Icons.public,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF667eea), Color(0xFF764ba2)], // Blue-purple gradient
+        ),
+        onTap: () {
+          final gameProvider = context.read<GameProvider>();
+          _navigateToGame(PlanetHoppingGame(
             grade: gameProvider.grade,
             level: gameProvider.level,
           ));
@@ -295,7 +340,7 @@ class _GameMenuScreenState extends State<GameMenuScreen>
         animation: _floatAnimation,
         builder: (context, child) {
           return Transform.translate(
-            offset: Offset(0, _floatAnimation.value * (index + 1) * 0.3),
+            offset: Offset(0, _floatAnimation.value * (index + 1) * 0.25),
             child: GameCard(game: game),
           );
         },
@@ -401,6 +446,7 @@ class _GameCardState extends State<GameCard>
               onTapUp: (_) => _onHover(false),
               onTapCancel: () => _onHover(false),
               child: Container(
+                height: 180, // Slightly reduced for 5 games
                 decoration: BoxDecoration(
                   gradient: widget.game.gradient,
                   borderRadius: BorderRadius.circular(25),
@@ -433,56 +479,58 @@ class _GameCardState extends State<GameCard>
                     
                     // Content
                     Padding(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(18),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           // Icon
                           Container(
-                            width: 80,
-                            height: 80,
+                            width: 55,
+                            height: 55,
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(15),
                             ),
                             child: Icon(
                               widget.game.icon,
-                              size: 40,
+                              size: 28,
                               color: Colors.white,
                             ),
                           ),
                           
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 10),
                           
                           // Title
                           Text(
                             widget.game.title,
-                            style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
+                            style: SpaceTheme.headlineStyle.copyWith(fontSize: 16),
                             textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 6),
                           
                           // Description
                           Text(
                             widget.game.description,
-                            style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+                            style: SpaceTheme.bodyStyle.copyWith(fontSize: 11),
                             textAlign: TextAlign.center,
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                           ),
                           
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 10),
                           
                           // Play button
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
+                              horizontal: 14,
+                              vertical: 6,
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(15),
                               border: Border.all(
                                 color: Colors.white.withOpacity(0.5),
                                 width: 2,
@@ -494,12 +542,12 @@ class _GameCardState extends State<GameCard>
                                 const Icon(
                                   Icons.play_arrow,
                                   color: Colors.white,
-                                  size: 20,
+                                  size: 14,
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 4),
                                 Text(
-                                  'Play',
-                                  style: SpaceTheme.buttonStyle.copyWith(fontSize: 16),
+                                  'Launch',
+                                  style: SpaceTheme.buttonStyle.copyWith(fontSize: 12),
                                 ),
                               ],
                             ),

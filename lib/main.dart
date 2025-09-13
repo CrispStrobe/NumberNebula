@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
+import 'core/services/puzzle_image_service.dart'; 
 import 'core/theme/space_theme.dart';
 import 'features/games/constants/app_constants.dart';
 import 'core/services/audio_service.dart';
@@ -11,7 +12,7 @@ import 'features/home/screens/home_screen.dart';
 import 'features/games/providers/game_provider.dart';
 import 'features/games/screens/game_menu_screen.dart';
 import 'features/games/screens/magic_triangles_game.dart';
-import 'features/games/screens/bubble_math_game.dart';
+import 'features/games/screens/asteroid_math_game.dart'; // Updated import
 import 'features/games/screens/puzzle_math_game.dart';
 import 'features/settings/screens/settings_screen.dart';
 import 'features/achievements/screens/achievements_screen.dart';
@@ -26,6 +27,8 @@ void main() async {
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
+
+  await PuzzleImageService.instance.init(); 
   
   // Initialize services
   final audioService = AudioService();
@@ -103,7 +106,7 @@ class AppRoutes {
   static const String home = '/home';
   static const String gameMenu = '/games';
   static const String magicTriangles = '/games/magic-triangles';
-  static const String bubbleGame = '/games/bubble-math';
+  static const String asteroidGame = '/games/asteroid-math'; // Updated route name
   static const String puzzleGame = '/games/puzzle-math';
   static const String settings = '/settings';
   static const String achievements = '/achievements';
@@ -128,10 +131,10 @@ class AppRoutes {
         final level = args?['level'] as int? ?? 1;
         return _createRoute(MagicTrianglesGame(grade: grade, level: level));
         
-      case bubbleGame:
+      case asteroidGame: // Updated route handling
         final grade = args?['grade'] as int? ?? 3;
         final level = args?['level'] as int? ?? 1;
-        return _createRoute(BubbleMathGame(grade: grade, level: level));
+        return _createRoute(AsteroidMathGame(grade: grade, level: level));
         
       case puzzleGame:
         final grade = args?['grade'] as int? ?? 3;

@@ -7,6 +7,7 @@ class GameProvider extends ChangeNotifier {
   int _lives = 3;
   bool _soundEnabled = true;
   bool _musicEnabled = true;
+  bool _puzzleTimerEnabled = true;
   Map<String, int> _gameProgress = {};
   List<Achievement> _achievements = [];
   
@@ -17,6 +18,7 @@ class GameProvider extends ChangeNotifier {
   int get lives => _lives;
   bool get soundEnabled => _soundEnabled;
   bool get musicEnabled => _musicEnabled;
+  bool get puzzleTimerEnabled => _puzzleTimerEnabled;
   Map<String, int> get gameProgress => _gameProgress;
   List<Achievement> get achievements => _achievements;
   
@@ -24,6 +26,11 @@ class GameProvider extends ChangeNotifier {
   void addScore(int points) {
     _score += points;
     _checkAchievements();
+    notifyListeners();
+  }
+
+  void setPuzzleTimer(bool enabled) {
+    _puzzleTimerEnabled = enabled;
     notifyListeners();
   }
   
