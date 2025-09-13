@@ -1,17 +1,15 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:ui';
 
-// NOTE: Replace these with your actual project imports
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
-import '../constants/app_constants.dart';
-import '../constants/difficulty_manager.dart';
 
 class MagicTrianglesGame extends StatefulWidget {
   final int grade;
@@ -29,31 +27,28 @@ class MagicTrianglesGame extends StatefulWidget {
 
 class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     with TickerProviderStateMixin {
-  // Core UI controllers
   late AnimationController _glowController;
   late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
-
-  // NEW Animation controllers for thematic effects
-  late AnimationController _timeController; // For ambient wormhole effect
-  late AnimationController _dropController; // For node activation effect
-  late AnimationController _warpController; // For final success sequence
+  late AnimationController _timeController;
+  late AnimationController _dropController;
+  late AnimationController _warpController;
   late Animation<double> _dropAnimation;
 
   MagicTrianglePuzzle? currentPuzzle;
   List<int?> userAnswers = [];
   List<int> numberPool = [];
-  int? _draggedNumber;
   
   bool _isGenerating = true;
-  bool _isWarping = false; // To trigger final warp animation
-  int _lastPlacedNodeIndex = -1; // To trigger drop animation on the right node
-  bool _isDraggingOver = false; // For single DragTarget visual feedback
+  bool _isWarping = false;
+  int _lastPlacedNodeIndex = -1;
+  bool _isDraggingOver = false;
 
   @override
   void initState() {
     super.initState();
+    debugPrint("🚀 [UI] MagicTrianglesGame.initState() - Starting initialization");
     
     _glowController = AnimationController(
       duration: const Duration(milliseconds: 2000), vsync: this
@@ -79,45 +74,92 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       duration: const Duration(milliseconds: 1500), vsync: this
     );
     
+    debugPrint("🚀 [UI] Animation controllers initialized, calling _generatePuzzle()");
     _generatePuzzle();
   }
 
   @override
   void dispose() {
+    debugPrint("🚀 [UI] MagicTrianglesGame.dispose() - Cleaning up controllers");
+    
+    // Stop all animations before disposing
+    _glowController.stop();
+    _successController.stop();
+    _timeController.stop();
+    _dropController.stop();
+    _warpController.stop();
+    
+    // Remove any listeners
+    _warpController.clearListeners();
+    
+    // Dispose controllers
     _glowController.dispose();
     _successController.dispose();
     _timeController.dispose();
     _dropController.dispose();
     _warpController.dispose();
+    
+    // Clear puzzle data
+    currentPuzzle = null;
+    userAnswers.clear();
+    numberPool.clear();
+    
+    debugPrint("🚀 [UI] All controllers disposed and data cleared");
     super.dispose();
   }
 
-  void _generatePuzzle() {
+  void _generatePuzzle() async {
+    debugPrint("🚀 [UI] _generatePuzzle() - Starting puzzle generation");
+    debugPrint("🚀 [UI] Current mounted state: $mounted");
+    
     setState(() {
       _isGenerating = true;
       _isWarping = false;
       _warpController.reset();
       _successController.reset();
     });
+    debugPrint("🚀 [UI] State set to generating, calling compute()");
 
-    Future(() {
-      final puzzle = MagicTrianglePuzzle.generate(
-        grade: widget.grade,
-        level: widget.level,
-      );
+    try {
+      final puzzle = await compute(MagicTrianglePuzzle.generate, {
+        'grade': widget.grade,
+        'level': widget.level,
+      });
+      
+      debugPrint("🚀 [UI] compute() completed successfully");
+      debugPrint("🚀 [UI] Puzzle details: hiddenIndices=${puzzle.hiddenIndices}, numberPool=${puzzle.numberPool}");
+      debugPrint("🚀 [UI] mounted state after compute: $mounted");
+      
       if (mounted) {
+        debugPrint("🚀 [UI] Widget still mounted, updating state");
         setState(() {
           currentPuzzle = puzzle;
           userAnswers = List.filled(currentPuzzle!.hiddenIndices.length, null);
           numberPool = List.from(currentPuzzle!.numberPool);
           _isGenerating = false;
         });
+        debugPrint("🚀 [UI] State updated successfully");
+        debugPrint("🚀 [UI] userAnswers length: ${userAnswers.length}");
+        debugPrint("🚀 [UI] numberPool length: ${numberPool.length}");
+        debugPrint("🚀 [UI] hiddenIndices: ${currentPuzzle!.hiddenIndices}");
+        debugPrint("🚀 [UI] visibleValues: ${currentPuzzle!.visibleValues}");
+      } else {
+        debugPrint("❌ [UI] Widget not mounted after compute, skipping state update");
       }
-    });
+    } catch (e, stackTrace) {
+      debugPrint("❌ [UI] Error in _generatePuzzle: $e");
+      debugPrint("❌ [UI] StackTrace: $stackTrace");
+    }
+    
+    debugPrint("🚀 [UI] _generatePuzzle() completed");
   }
   
   void _placeNumber(int number, int answerIndex, int globalNodeIndex) {
-    if (userAnswers[answerIndex] != null) return;
+    debugPrint("🎯 [UI] _placeNumber($number, $answerIndex, $globalNodeIndex)");
+    if (userAnswers[answerIndex] != null) {
+      debugPrint("🎯 [UI] Position already filled, ignoring");
+      return;
+    }
 
     setState(() {
       userAnswers[answerIndex] = number;
@@ -125,10 +167,12 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       _lastPlacedNodeIndex = globalNodeIndex;
       _dropController.forward(from: 0.0);
     });
+    debugPrint("🎯 [UI] Number placed successfully, checking completion");
     _checkIfComplete();
   }
 
   void _removeNumber(int answerIndex) {
+    debugPrint("🗑️ [UI] _removeNumber($answerIndex)");
     setState(() {
       final number = userAnswers[answerIndex];
       if (number != null) {
@@ -137,40 +181,59 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         numberPool.sort();
       }
     });
+    debugPrint("🗑️ [UI] Number removed, numberPool: $numberPool");
   }
 
   void _checkIfComplete() {
+    debugPrint("✅ [UI] _checkIfComplete() - userAnswers: $userAnswers");
     if (userAnswers.every((answer) => answer != null)) {
+      debugPrint("✅ [UI] All answers filled, checking solution");
       final result = currentPuzzle!.checkSolution(userAnswers.cast<int>());
+      debugPrint("✅ [UI] Solution check result: isValid=${result.isValid}, isPerfect=${result.isPerfect}");
       if (result.isValid && result.isPerfect) {
         _handleSuccess();
       } else {
         _handleIncorrect();
       }
+    } else {
+      debugPrint("✅ [UI] Not all answers filled yet");
     }
   }
 
   void _handleSuccess() {
+    debugPrint("🎉 [UI] _handleSuccess() - Starting success animation");
     setState(() => _isWarping = true);
     _warpController.forward();
-    
-    _warpController.addStatusListener((status) {
+
+    // Define a listener function that can be removed.
+    void listener(AnimationStatus status) {
       if (status == AnimationStatus.completed) {
-        int baseScore = 150 * widget.grade * widget.level;
+        debugPrint("🎉 [UI] Warp animation completed, calculating score");
+        
+        // IMPORTANT: Remove the listener immediately to prevent it from firing again.
+        _warpController.removeStatusListener(listener);
+
+        int baseScore = 150 * widget.grade;
         int bonusScore = (baseScore * (currentPuzzle!.circlesPerSide / 3.0)).round();
         context.read<GameProvider>().addScore(baseScore + bonusScore);
-        
         _successController.forward(from: 0.0);
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => _buildSuccessDialog(bonusScore),
-        );
+        
+        if (mounted) { // Always check if the widget is still in the tree before showing a dialog
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => _buildSuccessDialog(bonusScore),
+          );
+        }
       }
-    });
+    }
+
+    // Add the listener.
+    _warpController.addStatusListener(listener);
   }
 
   void _handleIncorrect() {
+    debugPrint("❌ [UI] _handleIncorrect() - Showing failure message");
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(S.of(context)!.magicTrianglesFail),
@@ -182,14 +245,17 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("🏗️ [UI] build() called - _isGenerating: $_isGenerating, currentPuzzle: ${currentPuzzle != null}");
+    
     if (currentPuzzle == null || _isGenerating) {
+      debugPrint("🏗️ [UI] Showing loading screen");
       return Scaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
               Text(S.of(context)!.calculatingCoordinates, style: SpaceTheme.bodyStyle),
             ],
           ),
@@ -197,6 +263,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       );
     }
 
+    debugPrint("🏗️ [UI] Building main game UI");
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
@@ -220,7 +287,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                     const Icon(Icons.hub, color: SpaceTheme.alienGreen, size: 28),
                     const SizedBox(width: 12),
                     Text(
-                      'Warp Frequency: ${currentPuzzle!.warpFrequency}',
+                      S.of(context)!.magicTrianglesWarpFrequency(currentPuzzle!.warpFrequency),
                       style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.alienGreen, fontSize: 20),
                     ),
                   ],
@@ -229,7 +296,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
+                    debugPrint("🏗️ [UI] LayoutBuilder constraints: ${constraints.maxWidth}x${constraints.maxHeight}");
                     bool isWide = constraints.maxWidth > 650;
+                    debugPrint("🏗️ [UI] Using ${isWide ? 'wide' : 'tall'} layout");
                     return isWide ? _buildWideLayout() : _buildTallLayout();
                   },
                 ),
@@ -242,6 +311,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   }
 
   Widget _buildWideLayout() {
+    debugPrint("🏗️ [UI] _buildWideLayout()");
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -256,6 +326,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   }
 
   Widget _buildTallLayout() {
+    debugPrint("🏗️ [UI] _buildTallLayout()");
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -271,18 +342,23 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     );
   }
 
-  // --- NEW: Single DragTarget Architecture --- //
   Widget _buildTriangleArea() {
+    debugPrint("🔺 [UI] _buildTriangleArea() - Starting triangle build");
     return LayoutBuilder(
       builder: (context, constraints) {
+        debugPrint("🔺 [UI] Triangle LayoutBuilder constraints: ${constraints.maxWidth}x${constraints.maxHeight}");
         final size = math.min(constraints.maxWidth, constraints.maxHeight).clamp(250.0, 400.0);
         final center = Offset(size / 2, size / 2);
         final radius = size * 0.4;
+        debugPrint("🔺 [UI] Triangle parameters: size=$size, center=$center, radius=$radius");
+        
         final nodePoints = currentPuzzle!.getCirclePositions(center, radius);
+        debugPrint("🔺 [UI] Generated ${nodePoints.length} node points");
 
         return Center(
           child: DragTarget<int>(
             builder: (context, candidateData, rejectedData) {
+              debugPrint("🔺 [UI] DragTarget builder called");
               return SizedBox(
                 width: size,
                 height: size,
@@ -308,20 +384,29 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               );
             },
             onWillAccept: (data) {
+              debugPrint("🎯 [UI] DragTarget.onWillAccept: $data");
               setState(() => _isDraggingOver = true);
               return true;
             },
-            onLeave: (data) => setState(() => _isDraggingOver = false),
+            onLeave: (data) {
+              debugPrint("🎯 [UI] DragTarget.onLeave: $data");
+              setState(() => _isDraggingOver = false);
+            },
             onAcceptWithDetails: (details) {
+              debugPrint("🎯 [UI] DragTarget.onAcceptWithDetails: ${details.data} at ${details.offset}");
               setState(() => _isDraggingOver = false);
               
-              final dropPosition = details.offset;
+              final RenderBox renderBox = context.findRenderObject() as RenderBox;
+              final localDropPosition = renderBox.globalToLocal(details.offset);
               final droppedNumber = details.data;
+              debugPrint("🎯 [UI] Local drop position: $localDropPosition");
 
-              int? closestGlobalIndex = _findClosestEmptyNode(dropPosition, nodePoints);
+              int? closestGlobalIndex = _findClosestEmptyNode(localDropPosition, nodePoints);
+              debugPrint("🎯 [UI] Closest empty node: $closestGlobalIndex");
 
               if (closestGlobalIndex != null) {
                   final answerIndex = currentPuzzle!.getAnswerIndex(closestGlobalIndex);
+                  debugPrint("🎯 [UI] Answer index: $answerIndex");
                   _placeNumber(droppedNumber, answerIndex, closestGlobalIndex);
               }
             },
@@ -332,16 +417,17 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   }
 
   int? _findClosestEmptyNode(Offset dropPosition, List<Offset> nodePoints) {
+      debugPrint("🔍 [UI] _findClosestEmptyNode at $dropPosition");
       double minDistance = double.infinity;
       int? targetNodeIndex;
       
       int answerIdx = 0;
       for (int i = 0; i < currentPuzzle!.totalCircles; i++) {
         if (currentPuzzle!.hiddenIndices.contains(i)) {
-          // Check if this hidden node is empty
           if (userAnswers[answerIdx] == null) {
             final nodeCenter = nodePoints[i];
             final distance = (dropPosition - nodeCenter).distance;
+            debugPrint("🔍 [UI] Node $i at $nodeCenter, distance: $distance");
 
             if (distance < minDistance) {
               minDistance = distance;
@@ -352,30 +438,45 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         }
       }
       
-      // Only accept drop if it's reasonably close to a node
-      if (minDistance < 50.0) { // 50.0 is a generous radius
+      debugPrint("🔍 [UI] Minimum distance: $minDistance, target: $targetNodeIndex");
+      // FIX: Increased drop radius for a more lenient feel as requested.
+      if (minDistance < 75.0) {
         return targetNodeIndex;
       }
       return null;
   }
   
   List<Widget> _buildTriangleNodes(double size, List<Offset> points) {
-    if (currentPuzzle == null) return [];
+    debugPrint("🔵 [UI] _buildTriangleNodes - size: $size, points: ${points.length}");
+    if (currentPuzzle == null) {
+      debugPrint("❌ [UI] currentPuzzle is null!");
+      return [];
+    }
     
     List<Widget> nodes = [];
     int answerIdx = 0;
     
     final nodeSize = (size * 0.20).clamp(50.0, 80.0);
+    debugPrint("🔵 [UI] Node size: $nodeSize");
     
     for (int i = 0; i < currentPuzzle!.totalCircles; i++) {
+      debugPrint("🔵 [UI] Building node $i");
       int? value;
       bool isHidden = currentPuzzle!.hiddenIndices.contains(i);
       int currentAnswerIndex = isHidden ? answerIdx++ : -1;
+      debugPrint("🔵 [UI] Node $i: isHidden=$isHidden, answerIdx=$currentAnswerIndex");
 
       if (isHidden) {
-        value = userAnswers[currentAnswerIndex];
+        if (currentAnswerIndex < userAnswers.length) {
+          value = userAnswers[currentAnswerIndex];
+          debugPrint("🔵 [UI] Hidden node $i value: $value");
+        } else {
+          debugPrint("❌ [UI] ERROR: currentAnswerIndex $currentAnswerIndex >= userAnswers.length ${userAnswers.length}");
+          value = null;
+        }
       } else {
         value = currentPuzzle!.visibleValues[i];
+        debugPrint("🔵 [UI] Visible node $i value: $value");
       }
 
       Widget node = isHidden 
@@ -391,17 +492,19 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         top: points[i].dy - nodeSize / 2,
         child: node,
       ));
+      debugPrint("🔵 [UI] Node $i positioned at (${points[i].dx - nodeSize / 2}, ${points[i].dy - nodeSize / 2})");
     }
+    debugPrint("🔵 [UI] Built ${nodes.length} triangle nodes");
     return nodes;
   }
   
-  // MODIFIED: This is no longer a DragTarget, just a visual node.
   Widget _buildDroppableNode(int? value, int answerIndex, double size) {
+    debugPrint("🎯 [UI] _buildDroppableNode - value: $value, answerIndex: $answerIndex");
     return GestureDetector(
       onTap: value != null ? () => _removeNumber(answerIndex) : null,
       child: _buildStargateNode(
         value: value,
-        isSelected: _isDraggingOver && value == null, // Highlight if empty and dragging over parent
+        isSelected: _isDraggingOver && value == null,
         isHidden: true,
         size: size,
       ),
@@ -433,20 +536,20 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
           style: SpaceTheme.headlineStyle.copyWith(
             fontSize: size * 0.4,
             color: isHidden && value == null ? Colors.transparent : Colors.white,
-            shadows: [Shadow(color: SpaceTheme.starYellow, blurRadius: 10)],
+            shadows: const [Shadow(color: SpaceTheme.starYellow, blurRadius: 10)],
           ),
           textAlign: TextAlign.center,
         ),
       ),
     );
   }
-  // --- End of New Architecture --- //
 
   Widget _buildNumberPad() {
+    debugPrint("🔢 [UI] _buildNumberPad - numberPool: $numberPool (length: ${numberPool.length})");
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('Available Subspace Resonators', style: SpaceTheme.bodyStyle),
+        Text(S.of(context)!.magicTrianglesResonators, style: SpaceTheme.bodyStyle),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(8),
@@ -455,18 +558,21 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
           child: GridView.builder(
             shrinkWrap: true,
             physics: const BouncingScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: (numberPool.length / 2).ceil().clamp(4, 6),
+            // THIS IS THE CORRECT, STABLE DELEGATE.
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4, // A fixed count is predictable for the layout engine.
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
             ),
             itemCount: numberPool.length,
             itemBuilder: (context, index) {
+              // ... (rest of the builder is fine)
+              if (index >= numberPool.length) {
+                return Container(); 
+              }
               final number = numberPool[index];
               return Draggable<int>(
                 data: number,
-                onDragStarted: () => setState(() => _draggedNumber = number),
-                onDragEnd: (_) => setState(() => _draggedNumber = null),
                 feedback: _buildDraggableFeedback(number),
                 childWhenDragging: Opacity(opacity: 0.3, child: _buildResonator(number)),
                 child: _buildResonator(number),
@@ -498,7 +604,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: SpaceTheme.starGradient,
-          boxShadow: [BoxShadow(color: SpaceTheme.starYellow, blurRadius: 20, spreadRadius: 5)],
+          boxShadow: const [BoxShadow(color: SpaceTheme.starYellow, blurRadius: 20, spreadRadius: 5)],
         ),
         child: Center(child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 22))),
       ),
@@ -540,7 +646,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                   Text(S.of(context)!.magicTrianglesWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(
-                    'Perfect alignment! The warp corridor is open.\nBonus: +$bonusScore points!',
+                    S.of(context)!.magicTrianglesWinDesc(bonusScore),
                     style: SpaceTheme.bodyStyle, textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -572,6 +678,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   }
 }
 
+// FIX: Added 'static' to generate method so it can be called by compute.
 class MagicTrianglePuzzle {
   final int circlesPerSide;
   final int totalCircles;
@@ -590,21 +697,27 @@ class MagicTrianglePuzzle {
     required this.numberPool,
   }) : totalCircles = (circlesPerSide * 3) - 3;
 
-  // Helper to map a global node index (0-11) to its answer index (0-5)
   int getAnswerIndex(int globalIndex) {
+    debugPrint("🔍 [Puzzle] getAnswerIndex($globalIndex)");
     int answerIndex = 0;
     for (int i=0; i < totalCircles; i++) {
         if (hiddenIndices.contains(i)) {
             if (i == globalIndex) {
-                return answerIndex;
+              debugPrint("🔍 [Puzzle] Found globalIndex $globalIndex at answerIndex $answerIndex");
+              return answerIndex;
             }
             answerIndex++;
         }
     }
-    return -1; // Should not happen
+    debugPrint("❌ [Puzzle] globalIndex $globalIndex not found in hiddenIndices");
+    return -1;
   }
 
-  static MagicTrianglePuzzle generate({required int grade, required int level}) {
+  static MagicTrianglePuzzle generate(Map<String, int> args) {
+    final grade = args['grade']!;
+    final level = args['level']!;
+
+    // FIX: LOGGING RESTORED
     debugPrint("\n--- Generating Triangle Puzzle ---");
     int circlesPerSide = _determineCirclesPerSide(grade, level);
     final totalCircles = (circlesPerSide * 3) - 3;
@@ -630,7 +743,7 @@ class MagicTrianglePuzzle {
 
     if (solution == null) {
       debugPrint("❌ [Wormhole] FATAL: Solver failed after multiple attempts. Defaulting to an easier puzzle.");
-      return generate(grade: 3, level: 1);
+      return generate({'grade': 3, 'level': 1});
     }
     
     debugPrint("✅ [Wormhole] Stable Alignment FOUND in ${stopwatch.elapsedMilliseconds}ms: $solution");
@@ -638,9 +751,10 @@ class MagicTrianglePuzzle {
     debugPrint("✨ [Wormhole] Required Warp Frequency: $warpFrequency");
 
     int visibleCount = _determineVisibleCount(grade, totalCircles);
-    debugPrint("[Wormhole] Hiding ${totalCircles - visibleCount} nodes.");
+    debugPrint("[Wormhole] Total circles: $totalCircles, Visible: $visibleCount, Hidden: ${totalCircles - visibleCount}");
     final allIndices = List.generate(totalCircles, (i) => i)..shuffle();
     final hiddenIndices = allIndices.sublist(0, totalCircles - visibleCount).toSet();
+    debugPrint("[Wormhole] Hidden indices: $hiddenIndices");
     
     final visibleValues = <int, int>{};
     for (int i = 0; i < totalCircles; i++) {
@@ -648,34 +762,41 @@ class MagicTrianglePuzzle {
         visibleValues[i] = solution[i];
       }
     }
+    debugPrint("[Wormhole] Visible values: $visibleValues");
 
     final hiddenNumbers = allNumbers.where((n) => !visibleValues.values.contains(n)).toList();
+    debugPrint("[Wormhole] Hidden numbers: $hiddenNumbers");
     final decoyCount = (level / 2).floor().clamp(2, 8);
     final decoyNumbers = _generateDecoyNumbers(decoyCount, allNumbers, hiddenNumbers.isNotEmpty ? hiddenNumbers.last : allNumbers.last);
     final numberPool = (hiddenNumbers + decoyNumbers)..shuffle();
     debugPrint("[Wormhole] Added $decoyCount decoy resonators: $decoyNumbers");
     debugPrint("[Wormhole] Final number pool for user: $numberPool");
 
-    return MagicTrianglePuzzle(
+    final puzzle = MagicTrianglePuzzle(
       circlesPerSide: circlesPerSide,
       warpFrequency: warpFrequency,
       hiddenIndices: hiddenIndices,
-      visibleValues: visibleValues.map((k, v) => MapEntry(k, v)),
+      visibleValues: visibleValues,
       allNumbers: allNumbers,
       numberPool: numberPool,
     );
+    
+    debugPrint("[Wormhole] ✅ Puzzle generation complete - returning puzzle");
+    return puzzle;
   }
 
   static List<int> _generateDecoyNumbers(int count, List<int> existingNumbers, int startNumber) {
+    debugPrint("[Wormhole] Generating $count decoy numbers starting from $startNumber");
     final decoys = <int>{};
     final allExisting = Set<int>.from(existingNumbers);
-    final maxRange = existingNumbers.last + count + 5;
+    final maxRange = existingNumbers.isNotEmpty ? existingNumbers.last + count + 5 : startNumber + count + 5;
     final random = math.Random();
     
     while (decoys.length < count) {
-      final num = startNumber + random.nextInt(maxRange - startNumber);
+      final num = startNumber + random.nextInt(maxRange - startNumber + 1);
       if (!allExisting.contains(num)) decoys.add(num);
     }
+    debugPrint("[Wormhole] Generated decoys: ${decoys.toList()}");
     return decoys.toList();
   }
   
@@ -685,7 +806,7 @@ class MagicTrianglePuzzle {
       if (level <= 7) return 4;
       return 5;
     }
-    if (grade >= 3) {
+    if (grade >= 4) {
       if (level <= 5) return 3;
       return 4;
     }
@@ -712,6 +833,7 @@ class MagicTrianglePuzzle {
   }
 
   SolutionResult checkSolution(List<int> userAnswers) {
+    debugPrint("✅ [Puzzle] checkSolution: $userAnswers");
     final completeArrangement = List<int>.filled(totalCircles, 0);
     int hiddenIdx = 0;
     for (int i = 0; i < totalCircles; i++) {
@@ -721,15 +843,20 @@ class MagicTrianglePuzzle {
         completeArrangement[i] = visibleValues[i]!;
       }
     }
+    debugPrint("✅ [Puzzle] Complete arrangement: $completeArrangement");
     
     final usedHidden = Set.from(userAnswers);
     final correctHidden = allNumbers.where((n) => !visibleValues.values.contains(n));
+    debugPrint("✅ [Puzzle] Used hidden: $usedHidden, Correct hidden: $correctHidden");
     if(usedHidden.length != correctHidden.length || !usedHidden.containsAll(correctHidden)) {
+        debugPrint("❌ [Puzzle] Wrong numbers used");
         return SolutionResult(isValid: false, isPerfect: false);
     }
 
     final sideSums = _calculateSideSums(completeArrangement, circlesPerSide);
+    debugPrint("✅ [Puzzle] Side sums: $sideSums, Target: $warpFrequency");
     final isPerfect = sideSums.every((sum) => sum == warpFrequency);
+    debugPrint("✅ [Puzzle] Solution result: isPerfect=$isPerfect");
     return SolutionResult(isValid: true, isPerfect: isPerfect);
   }
   
@@ -753,6 +880,7 @@ class MagicTrianglePuzzle {
   }
   
   List<Offset> getCirclePositions(Offset center, double radius) {
+    debugPrint("🔺 [Puzzle] getCirclePositions - center: $center, radius: $radius");
     final points = <Offset>[];
     final n = circlesPerSide;
 
@@ -766,6 +894,8 @@ class MagicTrianglePuzzle {
     for (int i = 0; i < n; i++) points.add(Offset.lerp(cornerPoints[0], cornerPoints[1], i / (n - 1))!);
     for (int i = 1; i < n; i++) points.add(Offset.lerp(cornerPoints[1], cornerPoints[2], i / (n - 1))!);
     for (int i = 1; i < n - 1; i++) points.add(Offset.lerp(cornerPoints[2], cornerPoints[0], i / (n - 1))!);
+    
+    debugPrint("🔺 [Puzzle] Generated ${points.length} circle positions");
     return points;
   }
 }
@@ -784,9 +914,11 @@ class _MagicTriangleSolver {
     _arrangement = List.filled(totalCircles, 0);
     _usedFlags = List.filled(numbersToUse.length, false);
     numbersToUse.shuffle();
+    debugPrint("[Solver] Initialized with $totalCircles circles, numbers: $numbersToUse");
   }
 
   List<int>? findSolution() {
+    debugPrint("[Solver] Starting backtracking algorithm");
     if (_solve(0, -1)) {
         debugPrint("[Solver] Solution found after $_iterations iterations.");
         return _arrangement;
@@ -798,23 +930,38 @@ class _MagicTriangleSolver {
 
   bool _solve(int k, int targetSum) {
     _iterations++;
-    if (_iterations > _maxIterations) return false;
-    if (k == totalCircles) return true;
+    if (_iterations > _maxIterations) {
+      debugPrint("[Solver] Max iterations reached, giving up");
+      return false;
+    }
+    
+    if (k == totalCircles) {
+      debugPrint("[Solver] All positions filled, solution found!");
+      return true;
+    }
 
     for (int i = 0; i < numbersToUse.length; i++) {
       if (!_usedFlags[i]) {
         _arrangement[k] = numbersToUse[i];
         _usedFlags[i] = true;
+        
         bool passesPruning = true;
         int nextTargetSum = targetSum;
+
         if (k == circlesPerSide - 1) {
           nextTargetSum = MagicTrianglePuzzle._calculateSideSums(_arrangement, circlesPerSide)[0];
         } else if (k == 2 * circlesPerSide - 2) {
-          if (MagicTrianglePuzzle._calculateSideSums(_arrangement, circlesPerSide)[1] != targetSum) passesPruning = false;
+          if (MagicTrianglePuzzle._calculateSideSums(_arrangement, circlesPerSide)[1] != targetSum) {
+            passesPruning = false;
+          }
         } else if (k == totalCircles - 1) {
-          if (MagicTrianglePuzzle._calculateSideSums(_arrangement, circlesPerSide)[2] != targetSum) passesPruning = false;
+          if (MagicTrianglePuzzle._calculateSideSums(_arrangement, circlesPerSide)[2] != targetSum) {
+            passesPruning = false;
+          }
         }
+        
         if (passesPruning && _solve(k + 1, nextTargetSum)) return true;
+        
         _usedFlags[i] = false;
       }
     }
@@ -833,7 +980,7 @@ class WormholePainter extends CustomPainter {
   final double time;
   final double warpActivation;
 
-  WormholePainter({
+  const WormholePainter({
     required this.glowIntensity,
     required this.time,
     required this.warpActivation,
@@ -904,4 +1051,3 @@ class WormholePainter extends CustomPainter {
       oldDelegate.time != time ||
       oldDelegate.warpActivation != warpActivation;
 }
-
