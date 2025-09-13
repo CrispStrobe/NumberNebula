@@ -12,13 +12,13 @@ class SDe extends S {
   String get appTitle => 'Weltraum Mathe Akademie';
 
   @override
-  String get welcome => 'Willkommen in der Weltraum Mathe Akademie!';
+  String get welcome => 'Entdecke das Mathe-Universum!';
 
   @override
   String get startAdventure => 'Starte dein Mathe-Abenteuer';
 
   @override
-  String get chooseGrade => 'Wähle deine Fähigkeitsstufe';
+  String get chooseGrade => 'Wähle deine Stufe';
 
   @override
   String get grade3 => '3. Klasse';

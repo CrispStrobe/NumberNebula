@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,12 +20,14 @@ class _SettingsScreenState extends State<SettingsScreen>
   
   late AnimationController _slideController;
   late List<Animation<Offset>> _settingAnimations;
-  String currentLocale = 'en';
+  String currentLocale = 'en'; // Safe default - NO CONTEXT ACCESS
   bool _isLoading = false;
+  bool _hasLoadedLocale = false; // Track if we've loaded the locale yet
   
   @override
   void initState() {
     super.initState();
+    debugPrint("[SETTINGS] 🔧 initState() starting...");
     
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 1000),
@@ -38,25 +41,106 @@ class _SettingsScreenState extends State<SettingsScreen>
       ).animate(CurvedAnimation(
         parent: _slideController,
         curve: Interval(
-          index * 0.1,
-          0.6 + (index * 0.1),
+          (index * 0.1).clamp(0.0, 0.5),
+          (0.4 + (index * 0.1)).clamp(0.1, 1.0),
           curve: Curves.easeOutCubic,
         ),
       ));
     });
     
-    _loadCurrentLocale();
+    // CRITICAL: Do NOT access context here - wait for didChangeDependencies
+    debugPrint("[SETTINGS] 🔧 initState() completed - animations ready");
     _slideController.forward();
   }
   
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    debugPrint("[SETTINGS] 🌍 didChangeDependencies() called");
+    
+    // NOW we can safely access Localizations and load settings
+    if (!_hasLoadedLocale) {
+      _loadCurrentLocaleAndSettings();
+      _hasLoadedLocale = true;
+    }
+  }
+  
+  @override
   void dispose() {
+    debugPrint("[SETTINGS] 🗑️ Disposing settings screen");
     _slideController.dispose();
     super.dispose();
   }
 
-  void _loadCurrentLocale() {
-    currentLocale = Localizations.localeOf(context).languageCode;
+  void _loadCurrentLocaleAndSettings() async {
+    debugPrint("[SETTINGS] 📱 Loading current locale and settings...");
+    
+    try {
+      // Get current locale from context (now safe)
+      final contextLocale = Localizations.localeOf(context).languageCode;
+      debugPrint("[SETTINGS] 🌍 Context locale: $contextLocale");
+      
+      // Load saved locale from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final savedLocale = prefs.getString('language');
+      debugPrint("[SETTINGS] 💾 Saved locale from SharedPreferences: $savedLocale");
+      
+      setState(() {
+        // Use saved locale if available, otherwise use context locale
+        currentLocale = savedLocale ?? contextLocale;
+      });
+      
+      debugPrint("[SETTINGS] ✅ Final locale set to: $currentLocale");
+      
+      // Load other settings
+      await _loadAllSettings();
+      
+    } catch (e, stackTrace) {
+      debugPrint("[SETTINGS] ❌ Error loading locale/settings: $e");
+      debugPrint("[SETTINGS] 📚 Stack trace: $stackTrace");
+      // Fallback to English if there's any issue
+      setState(() {
+        currentLocale = 'en';
+      });
+    }
+  }
+  
+  Future<void> _loadAllSettings() async {
+    debugPrint("[SETTINGS] 📚 Loading all application settings...");
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Log all current preference keys
+      final keys = prefs.getKeys();
+      debugPrint("[SETTINGS] 🔑 Found ${keys.length} preference keys: $keys");
+      
+      // Load each setting with logging
+      final soundEnabled = prefs.getBool('sound_enabled') ?? true;
+      final musicEnabled = prefs.getBool('music_enabled') ?? true;
+      final hintsEnabled = prefs.getBool('hints_enabled') ?? true;
+      final hapticEnabled = prefs.getBool('haptic_enabled') ?? true;
+      final puzzleTimerEnabled = prefs.getBool('puzzle_timer_enabled') ?? true;
+      
+      debugPrint("[SETTINGS] 🔊 Sound enabled: $soundEnabled");
+      debugPrint("[SETTINGS] 🎵 Music enabled: $musicEnabled");
+      debugPrint("[SETTINGS] 💡 Hints enabled: $hintsEnabled");
+      debugPrint("[SETTINGS] 📳 Haptic enabled: $hapticEnabled");
+      debugPrint("[SETTINGS] ⏱️ Puzzle timer enabled: $puzzleTimerEnabled");
+      
+      // Apply settings to GameProvider if needed
+      if (mounted) {
+        final gameProvider = context.read<GameProvider>();
+        gameProvider.setSoundEnabled(soundEnabled);
+        gameProvider.setMusicEnabled(musicEnabled);
+        gameProvider.setPuzzleTimer(puzzleTimerEnabled);
+        debugPrint("[SETTINGS] ✅ Applied settings to GameProvider");
+      }
+      
+    } catch (e, stackTrace) {
+      debugPrint("[SETTINGS] ❌ Error loading settings: $e");
+      debugPrint("[SETTINGS] 📚 Stack trace: $stackTrace");
+    }
   }
 
   @override
@@ -110,7 +194,10 @@ class _SettingsScreenState extends State<SettingsScreen>
       child: Row(
         children: [
           IconButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              debugPrint("[SETTINGS] 🔙 Back button pressed");
+              Navigator.of(context).pop();
+            },
             icon: const Icon(
               Icons.arrow_back_ios,
               color: Colors.white,
@@ -156,7 +243,11 @@ class _SettingsScreenState extends State<SettingsScreen>
                     title: S.of(context)!.sound,
                     subtitle: 'Sound effects',
                     value: gameProvider.soundEnabled,
-                    onChanged: (value) => gameProvider.setSoundEnabled(value),
+                    onChanged: (value) {
+                      debugPrint("[SETTINGS] 🔊 Sound setting changed to: $value");
+                      gameProvider.setSoundEnabled(value);
+                      _saveSetting('sound_enabled', value);
+                    },
                     icon: Icons.music_note,
                   ),
                   
@@ -164,7 +255,11 @@ class _SettingsScreenState extends State<SettingsScreen>
                     title: S.of(context)!.music,
                     subtitle: 'Background music',
                     value: gameProvider.musicEnabled,
-                    onChanged: (value) => gameProvider.setMusicEnabled(value),
+                    onChanged: (value) {
+                      debugPrint("[SETTINGS] 🎵 Music setting changed to: $value");
+                      gameProvider.setMusicEnabled(value);
+                      _saveSetting('music_enabled', value);
+                    },
                     icon: Icons.library_music,
                   ),
                 ],
@@ -191,16 +286,21 @@ class _SettingsScreenState extends State<SettingsScreen>
                     title: 'Puzzle Timer',
                     subtitle: 'Enable timer in puzzle games',
                     value: gameProvider.puzzleTimerEnabled,
-                    onChanged: (value) => gameProvider.setPuzzleTimer(value),
+                    onChanged: (value) {
+                      debugPrint("[SETTINGS] ⏱️ Puzzle timer setting changed to: $value");
+                      gameProvider.setPuzzleTimer(value);
+                      _saveSetting('puzzle_timer_enabled', value);
+                    },
                     icon: Icons.timer,
                   ),
                   
                   _buildSwitchTile(
                     title: 'Show Hints',
                     subtitle: 'Display helpful hints during games',
-                    value: true, // This could be added to GameProvider
+                    value: true, // TODO: Add to GameProvider
                     onChanged: (value) {
-                      // Implement hint toggle
+                      debugPrint("[SETTINGS] 💡 Hints setting changed to: $value");
+                      _saveSetting('hints_enabled', value);
                     },
                     icon: Icons.lightbulb,
                   ),
@@ -208,9 +308,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                   _buildSwitchTile(
                     title: 'Haptic Feedback',
                     subtitle: 'Vibration on touch (if supported)',
-                    value: true,
+                    value: true, // TODO: Add to GameProvider
                     onChanged: (value) {
-                      // Implement haptic feedback toggle
+                      debugPrint("[SETTINGS] 📳 Haptic feedback setting changed to: $value");
+                      _saveSetting('haptic_enabled', value);
                     },
                     icon: Icons.vibration,
                   ),
@@ -649,8 +750,57 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
+  // SAVE INDIVIDUAL SETTING WITH LOGGING
+  Future<void> _saveSetting(String key, dynamic value) async {
+    debugPrint("[SETTINGS] 💾 Saving setting: $key = $value");
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      if (value is bool) {
+        await prefs.setBool(key, value);
+      } else if (value is String) {
+        await prefs.setString(key, value);
+      } else if (value is int) {
+        await prefs.setInt(key, value);
+      } else if (value is double) {
+        await prefs.setDouble(key, value);
+      }
+      
+      debugPrint("[SETTINGS] ✅ Successfully saved $key");
+      
+      // Verify it was saved
+      final savedValue = _getSettingValue(prefs, key, value.runtimeType);
+      debugPrint("[SETTINGS] 🔍 Verification - $key now reads: $savedValue");
+      
+    } catch (e, stackTrace) {
+      debugPrint("[SETTINGS] ❌ Failed to save $key: $e");
+      debugPrint("[SETTINGS] 📚 Stack trace: $stackTrace");
+    }
+  }
+  
+  dynamic _getSettingValue(SharedPreferences prefs, String key, Type type) {
+    switch (type) {
+      case bool:
+        return prefs.getBool(key);
+      case String:
+        return prefs.getString(key);
+      case int:
+        return prefs.getInt(key);
+      case double:
+        return prefs.getDouble(key);
+      default:
+        return prefs.get(key);
+    }
+  }
+
   void _changeLanguage(String localeCode) async {
-    if (localeCode == currentLocale) return;
+    if (localeCode == currentLocale) {
+      debugPrint("[SETTINGS] 🌍 Language unchanged: $localeCode");
+      return;
+    }
+    
+    debugPrint("[SETTINGS] 🌍 Changing language from $currentLocale to $localeCode");
     
     setState(() {
       _isLoading = true;
@@ -658,14 +808,17 @@ class _SettingsScreenState extends State<SettingsScreen>
     });
     
     try {
-      // Save to preferences
+      // Save to preferences with extensive logging
       await _saveLanguagePreference(localeCode);
       
       // Show restart dialog
       if (mounted) {
         _showLanguageChangeDialog(localeCode);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint("[SETTINGS] ❌ Failed to change language: $e");
+      debugPrint("[SETTINGS] 📚 Stack trace: $stackTrace");
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -684,11 +837,35 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
   
   Future<void> _saveLanguagePreference(String localeCode) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('language', localeCode);
+    debugPrint("[SETTINGS] 🌍 Saving language preference: $localeCode");
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('language', localeCode);
+      
+      // Verify it was saved
+      final savedLocale = prefs.getString('language');
+      debugPrint("[SETTINGS] ✅ Language saved successfully");
+      debugPrint("[SETTINGS] 🔍 Verification - language now reads: $savedLocale");
+      
+      // Show all current preferences for debugging
+      final allKeys = prefs.getKeys();
+      debugPrint("[SETTINGS] 🗂️ All current preferences:");
+      for (final key in allKeys) {
+        final value = prefs.get(key);
+        debugPrint("[SETTINGS]   $key: $value");
+      }
+      
+    } catch (e, stackTrace) {
+      debugPrint("[SETTINGS] ❌ Failed to save language preference: $e");
+      debugPrint("[SETTINGS] 📚 Stack trace: $stackTrace");
+      rethrow;
+    }
   }
   
   void _showLanguageChangeDialog(String localeCode) {
+    debugPrint("[SETTINGS] 🔄 Showing language change dialog for: $localeCode");
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -707,7 +884,10 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              debugPrint("[SETTINGS] 🔄 User chose to restart later");
+              Navigator.of(context).pop();
+            },
             child: const Text(
               'Later',
               style: TextStyle(color: SpaceTheme.moonSilver),
@@ -715,8 +895,8 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
           ElevatedButton(
             onPressed: () {
+              debugPrint("[SETTINGS] 🔄 User chose to restart now");
               Navigator.of(context).pop();
-              // Notify the main app to restart
               _triggerAppRestart();
             },
             style: ElevatedButton.styleFrom(
@@ -747,6 +927,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             final isSelected = gameProvider.grade == grade;
             return GestureDetector(
               onTap: () {
+                debugPrint("[SETTINGS] 🎓 Grade changed to: $grade");
                 gameProvider.setGrade(grade);
                 Navigator.of(context).pop();
               },
@@ -821,6 +1002,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   void _triggerAppRestart() {
+    debugPrint("[SETTINGS] 🔄 Triggering app restart notification");
+    
     // This would need to be implemented with a state management solution
     // For now, we'll just show a snackbar
     ScaffoldMessenger.of(context).showSnackBar(
@@ -858,6 +1041,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
           ElevatedButton(
             onPressed: () {
+              debugPrint("[SETTINGS] 🗑️ Resetting all game progress");
               context.read<GameProvider>().resetGame();
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(

@@ -9,6 +9,7 @@ import '../widgets/animated_logo.dart';
 import '../widgets/grade_selector.dart';
 import '../widgets/stats_card.dart';
 import '../../games/screens/game_menu_screen.dart';
+import '../../settings/screens/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -93,6 +94,28 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  void _navigateToSettings() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const SettingsScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(1.0, 0.0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            )),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -103,164 +126,217 @@ class _HomeScreenState extends State<HomeScreen>
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20),
-            child: isLandscape ? _buildLandscapeLayout() : _buildPortraitLayout(),
+            child: Column(
+              children: [
+                // Header with settings button
+                _buildHeader(),
+                Expanded(
+                  child: isLandscape ? _buildLandscapeLayout() : _buildPortraitLayout(),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildLandscapeLayout() {
+  Widget _buildHeader() {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Left side - Logo and welcome
-        Expanded(
-          flex: 2,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: const AnimatedLogo(),
-                ),
-                const SizedBox(height: 30),
-                SlideTransition(
-                  position: _slideAnimation,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          S.of(context)!.welcome,
-                          style: SpaceTheme.headlineStyle.copyWith(fontSize: 36),
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          'Explore the universe of mathematics with fun space-themed games!',
-                          style: SpaceTheme.bodyStyle.copyWith(fontSize: 18),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        // App title or logo space
+        FadeTransition(
+          opacity: _fadeAnimation,
+          child: Text(
+            S.of(context)!.appTitle,
+            style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
           ),
         ),
-        const SizedBox(width: 40),
-        // Right side - Controls and stats
-        Expanded(
-          flex: 3,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Stats and Achievements section
-                SlideTransition(
-                  position: _slideAnimation,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: const Column(
-                      children: [
-                        StatsCard(),
-                        SizedBox(height: 20),
-                        AchievementsPreview(),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                // Grade selector
-                SlideTransition(
-                  position: _slideAnimation,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: const GradeSelector(),
-                  ),
-                ),
-                const SizedBox(height: 40),
-                // Start button
-                SlideTransition(
-                  position: _slideAnimation,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: _buildStartButton(),
-                  ),
-                ),
-              ],
-            ),
+        
+        // Settings button
+        IconButton(
+          onPressed: _navigateToSettings,
+          icon: const Icon(
+            Icons.settings,
+            color: Colors.white,
+            size: 28,
+          ),
+          style: IconButton.styleFrom(
+            backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8),
+            padding: const EdgeInsets.all(12),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildPortraitLayout() {
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+  
+  Widget _buildLandscapeLayout() {
+    return Row(
         children: [
-          const SizedBox(height: 40),
-          // Logo
-          FadeTransition(
-            opacity: _fadeAnimation,
-            child: const AnimatedLogo(),
-          ),
-          const SizedBox(height: 30),
-          // Welcome text
-          SlideTransition(
-            position: _slideAnimation,
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: Text(
-                S.of(context)!.welcome,
-                style: SpaceTheme.headlineStyle,
-                textAlign: TextAlign.center,
-              ),
+        // LEFT SIDE - Now wrapped in a SingleChildScrollView
+        Expanded(
+            flex: 3,
+            child: SingleChildScrollView( // FIX: Allows this column to scroll if content is too tall
+            child: Padding( // Add padding here for better spacing
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                    const SizedBox(height: 20), // Add top spacing
+                    FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: const AnimatedLogo(),
+                    ),
+                    const SizedBox(height: 24),
+                    SlideTransition(
+                    position: _slideAnimation,
+                    child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: Column(
+                        children: [
+                            Text(
+                            S.of(context)!.welcome,
+                            style: SpaceTheme.headlineStyle.copyWith(fontSize: 28),
+                            textAlign: TextAlign.center,
+                            ),
+                            /* const SizedBox(height: 12),
+                            Text(
+                            'Explore the universe of mathematics!',
+                            style: SpaceTheme.bodyStyle.copyWith(fontSize: 16),
+                            textAlign: TextAlign.center,
+                            ), */
+                        ],
+                        ),
+                    ),
+                    ),
+                    const SizedBox(height: 32),
+                    SlideTransition(
+                    position: _slideAnimation,
+                    child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: const CompactGradeSelector(),
+                    ),
+                    ),
+                    const SizedBox(height: 32),
+                    SlideTransition(
+                    position: _slideAnimation,
+                    child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: _buildStartButton(),
+                    ),
+                    ),
+                    const SizedBox(height: 20), // Add bottom spacing
+                ],
+                ),
             ),
-          ),
-          const SizedBox(height: 40),
-          // Stats
-          SlideTransition(
-            position: _slideAnimation,
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: const StatsCard(),
             ),
-          ),
-          const SizedBox(height: 30),
-          // Grade selector
-          SlideTransition(
-            position: _slideAnimation,
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: const GradeSelector(),
+        ),
+        
+        const SizedBox(width: 20),
+        
+        // RIGHT SIDE - Stats (remains the same)
+        Expanded(
+            flex: 2,
+            child: Column( // Keep this column centered
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+                SlideTransition(
+                position: _slideAnimation,
+                child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: const CompactStatsCard(),
+                ),
+                ),
+                const SizedBox(height: 16),
+                SlideTransition(
+                position: _slideAnimation,
+                child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: const CompactAchievementsPreview(),
+                ),
+                ),
+            ],
             ),
-          ),
-          const SizedBox(height: 40),
-          // Start button
-          SlideTransition(
-            position: _slideAnimation,
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: _buildStartButton(),
-            ),
-          ),
-          const SizedBox(height: 40),
+        ),
         ],
-      ),
     );
   }
 
+
+  Widget _buildPortraitLayout() {
+    return Column(
+        children: [
+        // Top section
+        FadeTransition(
+            opacity: _fadeAnimation,
+            child: const AnimatedLogo(),
+        ),
+        const SizedBox(height: 16),
+        SlideTransition(
+            position: _slideAnimation,
+            child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Text(
+                S.of(context)!.welcome,
+                style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
+                textAlign: TextAlign.center,
+            ),
+            ),
+        ),
+
+        // Spacer will push content apart and absorb any extra vertical space
+        const Spacer(),
+
+        // Middle section of cards
+        SlideTransition(
+            position: _slideAnimation,
+            child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: const CompactStatsCard(),
+            ),
+        ),
+        const SizedBox(height: 16),
+        SlideTransition(
+            position: _slideAnimation,
+            child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: const CompactAchievementsPreview(),
+            ),
+        ),
+        const SizedBox(height: 16),
+        SlideTransition(
+            position: _slideAnimation,
+            child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: const CompactGradeSelector(),
+            ),
+        ),
+
+        // Another Spacer to ensure the button is pushed to the bottom
+        const Spacer(),
+
+        // Bottom Button - This will now be anchored towards the bottom of the screen
+        SlideTransition(
+            position: _slideAnimation,
+            child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: _buildStartButton(),
+            ),
+        ),
+        ],
+    );
+    }
+
+
   Widget _buildStartButton() {
     return Container(
-      height: 80,
+      height: 70,
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
-        borderRadius: BorderRadius.circular(40),
+        borderRadius: BorderRadius.circular(35),
         boxShadow: [
           BoxShadow(
             color: SpaceTheme.starYellow.withOpacity(0.5),
@@ -272,10 +348,10 @@ class _HomeScreenState extends State<HomeScreen>
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(40),
+          borderRadius: BorderRadius.circular(35),
           onTap: _navigateToGameMenu,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 48.0),
+            padding: const EdgeInsets.symmetric(horizontal: 40.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -283,12 +359,12 @@ class _HomeScreenState extends State<HomeScreen>
                 const Icon(
                   Icons.rocket_launch,
                   color: Colors.white,
-                  size: 32,
+                  size: 28,
                 ),
                 const SizedBox(width: 16),
                 Text(
                   S.of(context)!.startAdventure,
-                  style: SpaceTheme.buttonStyle.copyWith(fontSize: 20),
+                  style: SpaceTheme.buttonStyle.copyWith(fontSize: 18),
                 ),
               ],
             ),
@@ -297,74 +373,320 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
-} // <--- THIS WAS THE MISSING BRACE
+}
 
-class AchievementsPreview extends StatelessWidget {
-  const AchievementsPreview({super.key});
+// COMPACT Stats Card - Smaller version
+class CompactStatsCard extends StatelessWidget {
+  const CompactStatsCard({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
-        final achievements = gameProvider.achievements.take(3).toList();
-
         return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: SpaceTheme.cardDecoration,
+          padding: const EdgeInsets.all(16), // Reduced padding
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF2A2D3E),
+                Color(0xFF1E2235),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(15), // Smaller radius
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   const Icon(
-                    Icons.emoji_events,
-                    color: SpaceTheme.starYellow,
-                    size: 24,
+                    Icons.analytics,
+                    color: Color(0xFFFFD700), // starYellow
+                    size: 20, // Smaller icon
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    S.of(context)!.achievements,
-                    style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
+                    'Progress',
+                    style: const TextStyle(
+                      fontSize: 16, // Smaller text
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              
+              const SizedBox(height: 12), // Less spacing
+              
+              // Horizontal stats row instead of column
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildCompactStatItem(
+                    icon: Icons.star,
+                    value: gameProvider.score.toString(),
+                    color: const Color(0xFFFFD700), // starYellow
+                  ),
+                  _buildCompactStatItem(
+                    icon: Icons.trending_up,
+                    value: gameProvider.level.toString(),
+                    color: const Color(0xFF06FFA5), // alienGreen
+                  ),
+                  _buildCompactStatItem(
+                    icon: Icons.emoji_events,
+                    value: gameProvider.totalAchievements.toString(),
+                    color: const Color(0xFFFF6B35), // planetOrange
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  
+  Widget _buildCompactStatItem({
+    required IconData icon,
+    required String value,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(
+            icon,
+            color: color,
+            size: 16,
+          ),
+        ),
+        
+        const SizedBox(height: 4),
+        
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            color: color,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// COMPACT Grade Selector - Smaller version  
+class CompactGradeSelector extends StatelessWidget {
+  const CompactGradeSelector({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<GameProvider>(
+      builder: (context, gameProvider, child) {
+        return Container(
+          padding: const EdgeInsets.all(16), // Reduced padding
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF2A2D3E),
+                Color(0xFF1E2235),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(15), // Smaller radius
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.school,
+                    color: Color(0xFFFFD700), // starYellow
+                    size: 20, // Smaller icon
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Grade ${gameProvider.grade}',
+                    style: const TextStyle(
+                      fontSize: 16, // Smaller text
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 12), // Less spacing
+              
+              // Compact grade selector row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [3, 4, 5, 6].map((grade) {
+                  final isSelected = gameProvider.grade == grade;
+                  
+                  return GestureDetector(
+                    onTap: () => gameProvider.setGrade(grade),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: 40, // Smaller size
+                      height: 40,
+                      decoration: BoxDecoration(
+                        gradient: isSelected
+                            ? const LinearGradient(
+                                colors: [
+                                  Color(0xFFFFD700), // starYellow
+                                  Color(0xFFFF6B35), // planetOrange
+                                ],
+                              )
+                            : const LinearGradient(
+                                colors: [
+                                  Color(0xFF1A1A2E), // deepSpace
+                                  Color(0xFF16213E), // nebulaPurple
+                                ],
+                              ),
+                        borderRadius: BorderRadius.circular(10), // Smaller radius
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFFFFD700) // starYellow
+                              : const Color(0xFFC0C0C0).withOpacity(0.3), // moonSilver
+                          width: 1, // Thinner border
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFFFFD700).withOpacity(0.5),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Center(
+                        child: Text(
+                          grade.toString(),
+                          style: TextStyle(
+                            fontSize: 18, // Smaller font
+                            fontWeight: FontWeight.bold,
+                            color: isSelected ? Colors.white : Colors.white70,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// COMPACT Achievements Preview - Much smaller version
+class CompactAchievementsPreview extends StatelessWidget {
+  const CompactAchievementsPreview({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<GameProvider>(
+      builder: (context, gameProvider, child) {
+        final achievements = gameProvider.achievements.take(2).toList(); // ONLY 2 achievements
+
+        return Container(
+          padding: const EdgeInsets.all(12), // Even smaller padding
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF2A2D3E),
+                Color(0xFF1E2235),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.emoji_events,
+                    color: SpaceTheme.starYellow,
+                    size: 18, // Smaller icon
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Achievements',
+                    style: SpaceTheme.titleStyle.copyWith(fontSize: 14), // Smaller text
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
               if (achievements.isEmpty)
                 Text(
-                  'Start playing to earn achievements!',
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+                  'Play to unlock!',
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 11), // Smaller text
+                  textAlign: TextAlign.center,
                 )
               else
                 Column(
                   children: achievements.map((achievement) {
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: 4), // Minimal spacing
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
                             achievement.icon,
-                            style: const TextStyle(fontSize: 20),
+                            style: const TextStyle(fontSize: 14), // Smaller emoji
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 4),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  achievement.title,
-                                  style: SpaceTheme.bodyStyle.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                Text(
-                                  achievement.description,
-                                  style: SpaceTheme.bodyStyle.copyWith(
-                                    fontSize: 10,
-                                    color: Colors.white70,
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              achievement.title,
+                              style: SpaceTheme.bodyStyle.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10, // Much smaller text
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ],
