@@ -18,7 +18,7 @@ class SDe extends S {
   String get startAdventure => 'Starte dein Mathe-Abenteuer';
 
   @override
-  String get chooseGrade => 'Wähle deine Klasse';
+  String get chooseGrade => 'Wähle deine Fähigkeitsstufe';
 
   @override
   String get grade3 => '3. Klasse';
@@ -33,28 +33,42 @@ class SDe extends S {
   String get grade6 => '6. Klasse';
 
   @override
-  String get gameMenu => 'Spiele-Menü';
+  String get gameMenu => 'Missionskontrolle';
 
   @override
-  String get magicTriangles => 'Zauberdreiecke';
+  String get magicTriangles => 'Sternentor';
 
   @override
   String get magicTrianglesDesc =>
-      'Löse das Geheimnis der kosmischen Dreiecke! Fülle die fehlenden Zahlen ein.';
+      'Richte die kosmischen Energieknoten aus! Jede Seite des Dreiecks muss die gleiche kosmische Frequenz ergeben, um das Wurmloch zu stabilisieren.';
 
   @override
-  String get bubbleMath => 'Kosmische Blasen-Mathe';
+  String get bubbleMath => 'Asteroidenfeld';
 
   @override
   String get bubbleMathDesc =>
-      'Platze die schwebenden Weltraumblasen in der richtigen mathematischen Reihenfolge!';
+      'Navigiere durch ein gefährliches Asteroidenfeld! Zerstöre die treibenden Weltraumfelsen in der richtigen Reihenfolge, bevor sie kollidieren.';
 
   @override
-  String get puzzleMath => 'Weltraum-Puzzle-Mathe';
+  String get puzzleMath => 'Sternbild-Puzzles';
 
   @override
   String get puzzleMathDesc =>
-      'Vervollständige die Raumstation, indem du Mathe-Rätsel löst und Teile zusammenfügst!';
+      'Rekonstruiere himmlische Sternenkarten! Löse Gleichungen, um die richtigen Koordinaten zu finden und Fragmente zu platzieren.';
+
+  @override
+  String get hyperdriveGates => 'Raumtore';
+
+  @override
+  String get hyperdriveGatesDesc =>
+      'Setze einen Kurs durch die Raumtore! Fliege durch das Tor mit der richtigen Antwort, um den Sprung auf Lichtgeschwindigkeit zu machen.';
+
+  @override
+  String get planetHopping => 'Gravitations-Schleuder';
+
+  @override
+  String get planetHoppingDesc =>
+      'Schleudere dein Schiff zwischen Planeten! Berechne die richtige Flugbahn und besuche Planeten in der korrekten mathematischen Reihenfolge.';
 
   @override
   String get level => 'Level';
@@ -63,7 +77,7 @@ class SDe extends S {
   String get score => 'Punkte';
 
   @override
-  String get lives => 'Leben';
+  String get lives => 'Hüllenintegrität';
 
   @override
   String get time => 'Zeit';
@@ -72,16 +86,16 @@ class SDe extends S {
   String get correct => 'Richtig!';
 
   @override
-  String get incorrect => 'Versuch es nochmal!';
+  String get incorrect => 'Neuberechnung...';
 
   @override
-  String get excellent => 'Hervorragende Arbeit, Weltraum-Forscher!';
+  String get excellent => 'Hervorragende Arbeit, Weltraum-Kommandant!';
 
   @override
   String get good => 'Gut gemacht!';
 
   @override
-  String get tryAgain => 'Lass uns nochmal versuchen!';
+  String get tryAgain => 'Versuchen wir es nochmal!';
 
   @override
   String get gameOver => 'Mission Erfolgreich!';
@@ -93,13 +107,13 @@ class SDe extends S {
   String get playAgain => 'Nochmal spielen';
 
   @override
-  String get backToMenu => 'Zurück zur Raumstation';
+  String get backToMenu => 'Zurück zur Missionskontrolle';
 
   @override
   String get settings => 'Einstellungen';
 
   @override
-  String get sound => 'Ton';
+  String get sound => 'Sound-Effekte';
 
   @override
   String get music => 'Musik';
@@ -108,7 +122,7 @@ class SDe extends S {
   String get language => 'Sprache';
 
   @override
-  String get progress => 'Fortschritt';
+  String get progress => 'Karrierefortschritt';
 
   @override
   String get achievements => 'Erfolge';
@@ -124,30 +138,6 @@ class SDe extends S {
 
   @override
   String get mathOperationsDivision => 'Division';
-
-  @override
-  String get instructionsMagicTriangles =>
-      'Finde die fehlenden Zahlen in jedem Dreieck. Jede Seite sollte dieselbe Summe ergeben!';
-
-  @override
-  String get instructionsBubbleMath =>
-      'Platze die Blasen in der Reihenfolge von der kleinsten zur größten Antwort. Achte auf die beweglichen Blasen!';
-
-  @override
-  String get instructionsPuzzleMath =>
-      'Ziehe Puzzleteile an ihre richtigen Plätze. Drehe Teile durch Antippen. Finde die passenden Mathe-Antworten!';
-
-  @override
-  String get hintsMagicTriangles =>
-      'Denk daran: jede Seite des Dreiecks ergibt dieselbe Zauberzahl!';
-
-  @override
-  String get hintsBubbleMath =>
-      'Beginne mit der kleinsten Antwort und arbeite dich nach oben!';
-
-  @override
-  String get hintsPuzzleMath =>
-      'Suche nach passenden Farben und löse zuerst die Mathe-Aufgaben!';
 
   @override
   String get congratulations => 'Herzlichen Glückwunsch, Kommandant!';

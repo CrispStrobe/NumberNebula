@@ -49,6 +49,13 @@ class GameProvider extends ChangeNotifier {
     _level = level;
     notifyListeners();
   }
+
+  void setDifficulty(int newGrade, int newLevel) {
+    _grade = newGrade;
+    _level = newLevel;
+    // We want to save these to SharedPreferences as well (TODO)
+    notifyListeners();
+  }
   
   // Grade management
   void setGrade(int grade) {

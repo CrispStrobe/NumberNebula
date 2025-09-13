@@ -103,22 +103,22 @@ abstract class S {
   /// **'Space Math Academy'**
   String get appTitle;
 
-  /// Welcome message
+  /// No description provided for @welcome.
   ///
   /// In en, this message translates to:
   /// **'Welcome to Space Math Academy!'**
   String get welcome;
 
-  /// Button to start the math adventure
+  /// No description provided for @startAdventure.
   ///
   /// In en, this message translates to:
   /// **'Start Your Math Adventure'**
   String get startAdventure;
 
-  /// Header for grade selection
+  /// No description provided for @chooseGrade.
   ///
   /// In en, this message translates to:
-  /// **'Choose Your Grade'**
+  /// **'Set Your Skill Level'**
   String get chooseGrade;
 
   /// No description provided for @grade3.
@@ -145,157 +145,181 @@ abstract class S {
   /// **'6th Grade'**
   String get grade6;
 
-  /// Game menu title
+  /// No description provided for @gameMenu.
   ///
   /// In en, this message translates to:
-  /// **'Game Menu'**
+  /// **'Mission Control'**
   String get gameMenu;
 
-  /// Zauberdreiecke game name
+  /// No description provided for @magicTriangles.
   ///
   /// In en, this message translates to:
-  /// **'Magic Triangles'**
+  /// **'Cosmic Triangles'**
   String get magicTriangles;
 
-  /// Description of magic triangles game
+  /// No description provided for @magicTrianglesDesc.
   ///
   /// In en, this message translates to:
-  /// **'Solve the mystery of the cosmic triangles! Fill in the missing numbers.'**
+  /// **'Align the cosmic energy nodes! Each side of the triangle must sum to the same cosmic frequency to stabilize the wormhole.'**
   String get magicTrianglesDesc;
 
-  /// Bubble math game name
+  /// No description provided for @bubbleMath.
   ///
   /// In en, this message translates to:
-  /// **'Cosmic Bubble Math'**
+  /// **'Asteroid Field Hunter'**
   String get bubbleMath;
 
-  /// Description of bubble math game
+  /// No description provided for @bubbleMathDesc.
   ///
   /// In en, this message translates to:
-  /// **'Pop the floating space bubbles in the correct mathematical order!'**
+  /// **'Navigate a dangerous asteroid field! Blast the drifting space rocks in the correct numerical sequence before they collide.'**
   String get bubbleMathDesc;
 
-  /// Puzzle math game name
+  /// No description provided for @puzzleMath.
   ///
   /// In en, this message translates to:
-  /// **'Space Puzzle Math'**
+  /// **'Constellation Puzzles'**
   String get puzzleMath;
 
-  /// Description of puzzle math game
+  /// No description provided for @puzzleMathDesc.
   ///
   /// In en, this message translates to:
-  /// **'Complete the space station by solving math puzzles and fitting pieces together!'**
+  /// **'Reconstruct celestial star charts! Solve equations to find the correct coordinates and lock star fragments into place.'**
   String get puzzleMathDesc;
 
-  /// Level indicator
+  /// No description provided for @hyperdriveGates.
+  ///
+  /// In en, this message translates to:
+  /// **'Hyperdrive Gates'**
+  String get hyperdriveGates;
+
+  /// No description provided for @hyperdriveGatesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Plot a course through quantum space gates! Fly through the gate with the correct answer to make the jump to lightspeed.'**
+  String get hyperdriveGatesDesc;
+
+  /// No description provided for @planetHopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Gravity Sling'**
+  String get planetHopping;
+
+  /// No description provided for @planetHoppingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Slingshot your ship between planets! Calculate the right trajectory and visit planets in the correct mathematical sequence.'**
+  String get planetHoppingDesc;
+
+  /// No description provided for @level.
   ///
   /// In en, this message translates to:
   /// **'Level'**
   String get level;
 
-  /// Score indicator
+  /// No description provided for @score.
   ///
   /// In en, this message translates to:
   /// **'Score'**
   String get score;
 
-  /// Lives remaining
+  /// No description provided for @lives.
   ///
   /// In en, this message translates to:
-  /// **'Lives'**
+  /// **'Hull Integrity'**
   String get lives;
 
-  /// Time indicator
+  /// No description provided for @time.
   ///
   /// In en, this message translates to:
   /// **'Time'**
   String get time;
 
-  /// Correct answer feedback
+  /// No description provided for @correct.
   ///
   /// In en, this message translates to:
   /// **'Correct!'**
   String get correct;
 
-  /// Incorrect answer feedback
+  /// No description provided for @incorrect.
   ///
   /// In en, this message translates to:
-  /// **'Try again!'**
+  /// **'Recalculating...'**
   String get incorrect;
 
-  /// Excellent performance feedback
+  /// No description provided for @excellent.
   ///
   /// In en, this message translates to:
-  /// **'Excellent work, Space Explorer!'**
+  /// **'Excellent work, Space Commander!'**
   String get excellent;
 
-  /// Good performance feedback
+  /// No description provided for @good.
   ///
   /// In en, this message translates to:
   /// **'Good job!'**
   String get good;
 
-  /// Encouragement to try again
+  /// No description provided for @tryAgain.
   ///
   /// In en, this message translates to:
   /// **'Let\'s try again!'**
   String get tryAgain;
 
-  /// Game over message
+  /// No description provided for @gameOver.
   ///
   /// In en, this message translates to:
   /// **'Mission Complete!'**
   String get gameOver;
 
-  /// Button to go to next level
+  /// No description provided for @nextLevel.
   ///
   /// In en, this message translates to:
   /// **'Next Mission'**
   String get nextLevel;
 
-  /// Button to play again
+  /// No description provided for @playAgain.
   ///
   /// In en, this message translates to:
   /// **'Play Again'**
   String get playAgain;
 
-  /// Button to return to main menu
+  /// No description provided for @backToMenu.
   ///
   /// In en, this message translates to:
-  /// **'Back to Space Station'**
+  /// **'Back to Mission Control'**
   String get backToMenu;
 
-  /// Settings menu
+  /// No description provided for @settings.
   ///
   /// In en, this message translates to:
   /// **'Settings'**
   String get settings;
 
-  /// Sound settings
+  /// No description provided for @sound.
   ///
   /// In en, this message translates to:
-  /// **'Sound'**
+  /// **'Sound FX'**
   String get sound;
 
-  /// Music settings
+  /// No description provided for @music.
   ///
   /// In en, this message translates to:
   /// **'Music'**
   String get music;
 
-  /// Language settings
+  /// No description provided for @language.
   ///
   /// In en, this message translates to:
   /// **'Language'**
   String get language;
 
-  /// Progress tracking
+  /// No description provided for @progress.
   ///
   /// In en, this message translates to:
-  /// **'Progress'**
+  /// **'Career Progress'**
   String get progress;
 
-  /// Achievements section
+  /// No description provided for @achievements.
   ///
   /// In en, this message translates to:
   /// **'Achievements'**
@@ -324,42 +348,6 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Division'**
   String get mathOperationsDivision;
-
-  /// No description provided for @instructionsMagicTriangles.
-  ///
-  /// In en, this message translates to:
-  /// **'Find the missing numbers in each triangle. Each side should add up to the same total!'**
-  String get instructionsMagicTriangles;
-
-  /// No description provided for @instructionsBubbleMath.
-  ///
-  /// In en, this message translates to:
-  /// **'Pop the bubbles in order from smallest to largest answer. Watch out for the moving bubbles!'**
-  String get instructionsBubbleMath;
-
-  /// No description provided for @instructionsPuzzleMath.
-  ///
-  /// In en, this message translates to:
-  /// **'Drag puzzle pieces to their correct spots. Rotate pieces by tapping them. Match the math answers!'**
-  String get instructionsPuzzleMath;
-
-  /// No description provided for @hintsMagicTriangles.
-  ///
-  /// In en, this message translates to:
-  /// **'Remember: each side of the triangle adds up to the magic number!'**
-  String get hintsMagicTriangles;
-
-  /// No description provided for @hintsBubbleMath.
-  ///
-  /// In en, this message translates to:
-  /// **'Start with the smallest answer and work your way up!'**
-  String get hintsBubbleMath;
-
-  /// No description provided for @hintsPuzzleMath.
-  ///
-  /// In en, this message translates to:
-  /// **'Look for matching colors and solve the math problems first!'**
-  String get hintsPuzzleMath;
 
   /// No description provided for @congratulations.
   ///

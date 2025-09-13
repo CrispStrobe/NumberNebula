@@ -11,6 +11,7 @@ import '../screens/asteroid_math_game.dart';
 import '../screens/puzzle_math_game.dart';
 import '../screens/hyperdrive_gates_game.dart';
 import '../screens/planet_hopping_game.dart'; // New import
+import '../widgets/debug_panel.dart';
 
 class GameMenuScreen extends StatefulWidget {
   const GameMenuScreen({super.key});
@@ -73,6 +74,20 @@ class _GameMenuScreenState extends State<GameMenuScreen>
     _floatController.dispose();
     super.dispose();
   }
+
+  void _showDebugPanel() {
+    showDialog(
+        context: context,
+        builder: (context) => DebugPanel(
+        onSettingsApplied: () {
+            // The GameProvider is already updated by the panel,
+            // but setState will ensure the UI on this screen refreshes
+            // to show the new Grade/Level in the header.
+            setState(() {});
+        },
+        ),
+    );
+    }
   
   void _navigateToGame(Widget gameScreen) {
     Navigator.of(context).push(
@@ -205,6 +220,21 @@ class _GameMenuScreenState extends State<GameMenuScreen>
               );
             },
           ),
+
+
+          // DEBUG BUTTON
+          const SizedBox(width: 8),
+            IconButton(
+            onPressed: _showDebugPanel,
+            icon: const Icon(Icons.bug_report),
+            color: SpaceTheme.moonSilver,
+            tooltip: 'Debug Settings',
+            style: IconButton.styleFrom(
+                backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8),
+            ),
+          ),
+
+
         ],
       ),
     );
@@ -246,8 +276,8 @@ class _GameMenuScreenState extends State<GameMenuScreen>
   Widget _buildGameCard(int index) {
     final games = [
       GameInfo(
-        title: "Cosmic Triangles",
-        description: "Master the magic of space triangles! Each side must equal the cosmic number.",
+        title: S.of(context)!.magicTriangles,
+        description: S.of(context)!.magicTrianglesDesc,
         icon: Icons.change_history,
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -263,8 +293,8 @@ class _GameMenuScreenState extends State<GameMenuScreen>
         },
       ),
       GameInfo(
-        title: "Asteroid Math Hunter",
-        description: "Blast asteroids in the correct order! Navigate the dangerous asteroid field.",
+        title: S.of(context)!.bubbleMath, 
+        description: S.of(context)!.bubbleMathDesc,
         icon: Icons.circle,
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -280,8 +310,8 @@ class _GameMenuScreenState extends State<GameMenuScreen>
         },
       ),
       GameInfo(
-        title: "Constellation Puzzle",
-        description: "Rebuild the space constellations! Drag, rotate, and solve math to restore the cosmic images.",
+        title: S.of(context)!.puzzleMath,
+        description: S.of(context)!.puzzleMathDesc,
         icon: Icons.extension,
         gradient: const LinearGradient(
           begin: Alignment.topLeft,

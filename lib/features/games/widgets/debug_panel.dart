@@ -1,69 +1,88 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:space_math_academy/core/theme/space_theme.dart';
+import 'package:space_math_academy/features/games/providers/game_provider.dart';
+
 class DebugPanel extends StatefulWidget {
-  final Function(Map<String, dynamic>) onSettingsChanged;
-  
-  const DebugPanel({super.key, required this.onSettingsChanged});
+  final Function() onSettingsApplied;
+
+  const DebugPanel({super.key, required this.onSettingsApplied});
 
   @override
   State<DebugPanel> createState() => _DebugPanelState();
 }
 
 class _DebugPanelState extends State<DebugPanel> {
-  Map<String, dynamic> settings = {
-    'objectCount': 6,
-    'numberRange': 50,
-    'timeLimit': 60,
-    'mathComplexity': 1,
-    'gameSpeed': 100.0,
-  };
+  late int _grade;
+  late int _level;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Initialize with current values from the provider
+    final gameProvider = context.read<GameProvider>();
+    _grade = gameProvider.grade;
+    _level = gameProvider.level;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Debug Settings', style: SpaceTheme.titleStyle),
-          const SizedBox(height: 16),
-          
-          _buildSlider('Object Count', 'objectCount', 3, 15),
-          _buildSlider('Number Range', 'numberRange', 10, 200),
-          _buildSlider('Time Limit', 'timeLimit', 30, 180),
-          _buildSlider('Math Complexity', 'mathComplexity', 1, 5),
-          _buildSlider('Game Speed', 'gameSpeed', 50, 300),
-          
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              widget.onSettingsChanged(settings);
-              Navigator.of(context).pop();
-            },
-            child: const Text('Apply Settings'),
-          ),
-        ],
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: SpaceTheme.deepSpace.withOpacity(0.95),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Debug Difficulty', style: SpaceTheme.headlineStyle),
+            const SizedBox(height: 24),
+            
+            // Grade Slider
+            _buildSlider('Grade', _grade.toDouble(), 3, 6, (value) {
+              setState(() => _grade = value.toInt());
+            }),
+            
+            // Level Slider
+            _buildSlider('Level', _level.toDouble(), 1, 10, (value) {
+              setState(() => _level = value.toInt());
+            }),
+            
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.check),
+              onPressed: () {
+                context.read<GameProvider>().setDifficulty(_grade, _level);
+                widget.onSettingsApplied();
+                Navigator.of(context).pop();
+              },
+              style: SpaceTheme.primaryButtonStyle,
+              label: const Text('Apply & Close'),
+            ),
+          ],
+        ),
       ),
     );
   }
-  
-  Widget _buildSlider(String label, String key, double min, double max) {
+
+  Widget _buildSlider(String label, double value, double min, double max, ValueChanged<double> onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$label: ${settings[key].toString()}'),
+        Text('$label: ${value.toInt()}', style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow)),
         Slider(
-          value: settings[key].toDouble(),
+          value: value,
           min: min,
           max: max,
           divisions: (max - min).toInt(),
-          onChanged: (value) {
-            setState(() {
-              settings[key] = key == 'gameSpeed' ? value : value.toInt();
-            });
-          },
+          label: value.toInt().toString(),
+          onChanged: onChanged,
+          activeColor: SpaceTheme.alienGreen,
+          inactiveColor: SpaceTheme.nebulaPurple,
         ),
       ],
     );

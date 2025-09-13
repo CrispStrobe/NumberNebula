@@ -18,7 +18,7 @@ class SEn extends S {
   String get startAdventure => 'Start Your Math Adventure';
 
   @override
-  String get chooseGrade => 'Choose Your Grade';
+  String get chooseGrade => 'Set Your Skill Level';
 
   @override
   String get grade3 => '3rd Grade';
@@ -33,28 +33,42 @@ class SEn extends S {
   String get grade6 => '6th Grade';
 
   @override
-  String get gameMenu => 'Game Menu';
+  String get gameMenu => 'Mission Control';
 
   @override
-  String get magicTriangles => 'Magic Triangles';
+  String get magicTriangles => 'Cosmic Triangles';
 
   @override
   String get magicTrianglesDesc =>
-      'Solve the mystery of the cosmic triangles! Fill in the missing numbers.';
+      'Align the cosmic energy nodes! Each side of the triangle must sum to the same cosmic frequency to stabilize the wormhole.';
 
   @override
-  String get bubbleMath => 'Cosmic Bubble Math';
+  String get bubbleMath => 'Asteroid Field Hunter';
 
   @override
   String get bubbleMathDesc =>
-      'Pop the floating space bubbles in the correct mathematical order!';
+      'Navigate a dangerous asteroid field! Blast the drifting space rocks in the correct numerical sequence before they collide.';
 
   @override
-  String get puzzleMath => 'Space Puzzle Math';
+  String get puzzleMath => 'Constellation Puzzles';
 
   @override
   String get puzzleMathDesc =>
-      'Complete the space station by solving math puzzles and fitting pieces together!';
+      'Reconstruct celestial star charts! Solve equations to find the correct coordinates and lock star fragments into place.';
+
+  @override
+  String get hyperdriveGates => 'Hyperdrive Gates';
+
+  @override
+  String get hyperdriveGatesDesc =>
+      'Plot a course through quantum space gates! Fly through the gate with the correct answer to make the jump to lightspeed.';
+
+  @override
+  String get planetHopping => 'Gravity Sling';
+
+  @override
+  String get planetHoppingDesc =>
+      'Slingshot your ship between planets! Calculate the right trajectory and visit planets in the correct mathematical sequence.';
 
   @override
   String get level => 'Level';
@@ -63,7 +77,7 @@ class SEn extends S {
   String get score => 'Score';
 
   @override
-  String get lives => 'Lives';
+  String get lives => 'Hull Integrity';
 
   @override
   String get time => 'Time';
@@ -72,10 +86,10 @@ class SEn extends S {
   String get correct => 'Correct!';
 
   @override
-  String get incorrect => 'Try again!';
+  String get incorrect => 'Recalculating...';
 
   @override
-  String get excellent => 'Excellent work, Space Explorer!';
+  String get excellent => 'Excellent work, Space Commander!';
 
   @override
   String get good => 'Good job!';
@@ -93,13 +107,13 @@ class SEn extends S {
   String get playAgain => 'Play Again';
 
   @override
-  String get backToMenu => 'Back to Space Station';
+  String get backToMenu => 'Back to Mission Control';
 
   @override
   String get settings => 'Settings';
 
   @override
-  String get sound => 'Sound';
+  String get sound => 'Sound FX';
 
   @override
   String get music => 'Music';
@@ -108,7 +122,7 @@ class SEn extends S {
   String get language => 'Language';
 
   @override
-  String get progress => 'Progress';
+  String get progress => 'Career Progress';
 
   @override
   String get achievements => 'Achievements';
@@ -124,30 +138,6 @@ class SEn extends S {
 
   @override
   String get mathOperationsDivision => 'Division';
-
-  @override
-  String get instructionsMagicTriangles =>
-      'Find the missing numbers in each triangle. Each side should add up to the same total!';
-
-  @override
-  String get instructionsBubbleMath =>
-      'Pop the bubbles in order from smallest to largest answer. Watch out for the moving bubbles!';
-
-  @override
-  String get instructionsPuzzleMath =>
-      'Drag puzzle pieces to their correct spots. Rotate pieces by tapping them. Match the math answers!';
-
-  @override
-  String get hintsMagicTriangles =>
-      'Remember: each side of the triangle adds up to the magic number!';
-
-  @override
-  String get hintsBubbleMath =>
-      'Start with the smallest answer and work your way up!';
-
-  @override
-  String get hintsPuzzleMath =>
-      'Look for matching colors and solve the math problems first!';
 
   @override
   String get congratulations => 'Congratulations, Commander!';

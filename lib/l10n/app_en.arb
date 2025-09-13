@@ -1,190 +1,66 @@
 {
-  "appTitle": "Space Math Academy",
-  "@appTitle": {
-    "description": "The application title"
-  },
-
-  "welcome": "Welcome to Space Math Academy!",
-  "@welcome": {
-    "description": "Welcome message"
-  },
-
-  "startAdventure": "Start Your Math Adventure",
-  "@startAdventure": {
-    "description": "Button to start the math adventure"
-  },
-
-  "chooseGrade": "Choose Your Grade",
-  "@chooseGrade": {
-    "description": "Header for grade selection"
-  },
-
-  "grade3": "3rd Grade",
-  "grade4": "4th Grade",
-  "grade5": "5th Grade",
-  "grade6": "6th Grade",
-
-  "gameMenu": "Game Menu",
-  "@gameMenu": {
-    "description": "Game menu title"
-  },
-
-  "magicTriangles": "Magic Triangles",
-  "@magicTriangles": {
-    "description": "Zauberdreiecke game name"
-  },
-
-  "magicTrianglesDesc": "Solve the mystery of the cosmic triangles! Fill in the missing numbers.",
-  "@magicTrianglesDesc": {
-    "description": "Description of magic triangles game"
-  },
-
-  "bubbleMath": "Cosmic Bubble Math",
-  "@bubbleMath": {
-    "description": "Bubble math game name"
-  },
-
-  "bubbleMathDesc": "Pop the floating space bubbles in the correct mathematical order!",
-  "@bubbleMathDesc": {
-    "description": "Description of bubble math game"
-  },
-
-  "puzzleMath": "Space Puzzle Math",
-  "@puzzleMath": {
-    "description": "Puzzle math game name"
-  },
-
-  "puzzleMathDesc": "Complete the space station by solving math puzzles and fitting pieces together!",
-  "@puzzleMathDesc": {
-    "description": "Description of puzzle math game"
-  },
-
-  "level": "Level",
-  "@level": {
-    "description": "Level indicator"
-  },
-
-  "score": "Score",
-  "@score": {
-    "description": "Score indicator"
-  },
-
-  "lives": "Lives",
-  "@lives": {
-    "description": "Lives remaining"
-  },
-
-  "time": "Time",
-  "@time": {
-    "description": "Time indicator"
-  },
-
-  "correct": "Correct!",
-  "@correct": {
-    "description": "Correct answer feedback"
-  },
-
-  "incorrect": "Try again!",
-  "@incorrect": {
-    "description": "Incorrect answer feedback"
-  },
-
-  "excellent": "Excellent work, Space Explorer!",
-  "@excellent": {
-    "description": "Excellent performance feedback"
-  },
-
-  "good": "Good job!",
-  "@good": {
-    "description": "Good performance feedback"
-  },
-
-  "tryAgain": "Let's try again!",
-  "@tryAgain": {
-    "description": "Encouragement to try again"
-  },
-
-  "gameOver": "Mission Complete!",
-  "@gameOver": {
-    "description": "Game over message"
-  },
-
-  "nextLevel": "Next Mission",
-  "@nextLevel": {
-    "description": "Button to go to next level"
-  },
-
-  "playAgain": "Play Again",
-  "@playAgain": {
-    "description": "Button to play again"
-  },
-
-  "backToMenu": "Back to Space Station",
-  "@backToMenu": {
-    "description": "Button to return to main menu"
-  },
-
-  "settings": "Settings",
-  "@settings": {
-    "description": "Settings menu"
-  },
-
-  "sound": "Sound",
-  "@sound": {
-    "description": "Sound settings"
-  },
-
-  "music": "Music",
-  "@music": {
-    "description": "Music settings"
-  },
-
-  "language": "Language",
-  "@language": {
-    "description": "Language settings"
-  },
-
-  "progress": "Progress",
-  "@progress": {
-    "description": "Progress tracking"
-  },
-
-  "achievements": "Achievements",
-  "@achievements": {
-    "description": "Achievements section"
-  },
-
-  "mathOperationsAddition": "Addition",
-  "mathOperationsSubtraction": "Subtraction",
-  "mathOperationsMultiplication": "Multiplication",
-  "mathOperationsDivision": "Division",
-
-  "instructionsMagicTriangles": "Find the missing numbers in each triangle. Each side should add up to the same total!",
-  "instructionsBubbleMath": "Pop the bubbles in order from smallest to largest answer. Watch out for the moving bubbles!",
-  "instructionsPuzzleMath": "Drag puzzle pieces to their correct spots. Rotate pieces by tapping them. Match the math answers!",
-
-  "hintsMagicTriangles": "Remember: each side of the triangle adds up to the magic number!",
-  "hintsBubbleMath": "Start with the smallest answer and work your way up!",
-  "hintsPuzzleMath": "Look for matching colors and solve the math problems first!",
-
-  "congratulations": "Congratulations, Commander!",
-  "missionsCompleted": "Missions Completed: {count}",
-  "@missionsCompleted": {
-    "description": "Number of missions completed",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
+    "appTitle": "Space Math Academy",
+    "@appTitle": {
+        "description": "The application title"
+    },
+    "welcome": "Welcome to Space Math Academy!",
+    "startAdventure": "Start Your Math Adventure",
+    "chooseGrade": "Set Your Skill Level",
+    "grade3": "3rd Grade",
+    "grade4": "4th Grade",
+    "grade5": "5th Grade",
+    "grade6": "6th Grade",
+    "gameMenu": "Mission Control",
+    "magicTriangles": "Cosmic Triangles",
+    "magicTrianglesDesc": "Align the cosmic energy nodes! Each side of the triangle must sum to the same cosmic frequency to stabilize the wormhole.",
+    "bubbleMath": "Asteroid Field Hunter",
+    "bubbleMathDesc": "Navigate a dangerous asteroid field! Blast the drifting space rocks in the correct numerical sequence before they collide.",
+    "puzzleMath": "Constellation Puzzles",
+    "puzzleMathDesc": "Reconstruct celestial star charts! Solve equations to find the correct coordinates and lock star fragments into place.",
+    "hyperdriveGates": "Hyperdrive Gates",
+    "hyperdriveGatesDesc": "Plot a course through quantum space gates! Fly through the gate with the correct answer to make the jump to lightspeed.",
+    "planetHopping": "Gravity Sling",
+    "planetHoppingDesc": "Slingshot your ship between planets! Calculate the right trajectory and visit planets in the correct mathematical sequence.",
+    "level": "Level",
+    "score": "Score",
+    "lives": "Hull Integrity",
+    "time": "Time",
+    "correct": "Correct!",
+    "incorrect": "Recalculating...",
+    "excellent": "Excellent work, Space Commander!",
+    "good": "Good job!",
+    "tryAgain": "Let's try again!",
+    "gameOver": "Mission Complete!",
+    "nextLevel": "Next Mission",
+    "playAgain": "Play Again",
+    "backToMenu": "Back to Mission Control",
+    "settings": "Settings",
+    "sound": "Sound FX",
+    "music": "Music",
+    "language": "Language",
+    "progress": "Career Progress",
+    "achievements": "Achievements",
+    "mathOperationsAddition": "Addition",
+    "mathOperationsSubtraction": "Subtraction",
+    "mathOperationsMultiplication": "Multiplication",
+    "mathOperationsDivision": "Division",
+    "congratulations": "Congratulations, Commander!",
+    "missionsCompleted": "Missions Completed: {count}",
+    "@missionsCompleted": {
+        "description": "Number of missions completed",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "starsEarned": "Stars Earned: {count}",
+    "@starsEarned": {
+        "description": "Number of stars earned",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
     }
-  },
-
-  "starsEarned": "Stars Earned: {count}",
-  "@starsEarned": {
-    "description": "Number of stars earned",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  }
 }
