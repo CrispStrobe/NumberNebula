@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -18,6 +19,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   
   late AnimationController _slideController;
   late List<Animation<Offset>> _settingAnimations;
+  String currentLocale = 'en';
+  bool _isLoading = false;
   
   @override
   void initState() {
@@ -42,6 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       ));
     });
     
+    _loadCurrentLocale();
     _slideController.forward();
   }
   
@@ -49,6 +53,10 @@ class _SettingsScreenState extends State<SettingsScreen>
   void dispose() {
     _slideController.dispose();
     super.dispose();
+  }
+
+  void _loadCurrentLocale() {
+    currentLocale = Localizations.localeOf(context).languageCode;
   }
 
   @override
@@ -69,6 +77,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                       _buildGameplaySettings(),
                       const SizedBox(height: 20),
                       _buildLanguageSettings(),
+                      const SizedBox(height: 20),
+                      _buildDifficultySettings(),
                       const SizedBox(height: 20),
                       _buildProgressSettings(),
                       const SizedBox(height: 20),
@@ -173,24 +183,40 @@ class _SettingsScreenState extends State<SettingsScreen>
         title: 'Gameplay',
         icon: Icons.games,
         children: [
-          _buildSwitchTile(
-            title: 'Show Hints',
-            subtitle: 'Display helpful hints during games',
-            value: true, // This would come from settings
-            onChanged: (value) {
-              // Implement hint toggle
+          Consumer<GameProvider>(
+            builder: (context, gameProvider, child) {
+              return Column(
+                children: [
+                  _buildSwitchTile(
+                    title: 'Puzzle Timer',
+                    subtitle: 'Enable timer in puzzle games',
+                    value: gameProvider.puzzleTimerEnabled,
+                    onChanged: (value) => gameProvider.setPuzzleTimer(value),
+                    icon: Icons.timer,
+                  ),
+                  
+                  _buildSwitchTile(
+                    title: 'Show Hints',
+                    subtitle: 'Display helpful hints during games',
+                    value: true, // This could be added to GameProvider
+                    onChanged: (value) {
+                      // Implement hint toggle
+                    },
+                    icon: Icons.lightbulb,
+                  ),
+                  
+                  _buildSwitchTile(
+                    title: 'Haptic Feedback',
+                    subtitle: 'Vibration on touch (if supported)',
+                    value: true,
+                    onChanged: (value) {
+                      // Implement haptic feedback toggle
+                    },
+                    icon: Icons.vibration,
+                  ),
+                ],
+              );
             },
-            icon: Icons.lightbulb,
-          ),
-          
-          _buildSwitchTile(
-            title: 'Haptic Feedback',
-            subtitle: 'Vibration on touch (if supported)',
-            value: true,
-            onChanged: (value) {
-              // Implement haptic feedback toggle
-            },
-            icon: Icons.vibration,
           ),
         ],
       ),
@@ -209,13 +235,130 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
     );
   }
+
+  Widget _buildLanguageSelector() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: SpaceTheme.alienGreen.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.translate,
+                color: SpaceTheme.alienGreen,
+                size: 24,
+              ),
+              
+              const SizedBox(width: 16),
+              
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'App Language',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      'Choose your preferred language',
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          _buildLanguageOption('English', 'en'),
+          const SizedBox(height: 12),
+          _buildLanguageOption('Deutsch', 'de'),
+        ],
+      ),
+    );
+  }
   
-  Widget _buildProgressSettings() {
+  Widget _buildLanguageOption(String displayName, String localeCode) {
+    final isSelected = currentLocale == localeCode;
+    
+    return GestureDetector(
+      onTap: _isLoading ? null : () => _changeLanguage(localeCode),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? SpaceTheme.alienGreen.withOpacity(0.2)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected 
+                ? SpaceTheme.alienGreen 
+                : Colors.white.withOpacity(0.3),
+            width: 2,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              color: isSelected ? SpaceTheme.alienGreen : Colors.white70,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                displayName,
+                style: TextStyle(
+                  color: isSelected ? SpaceTheme.alienGreen : Colors.white,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            if (isSelected) 
+              Icon(
+                Icons.check,
+                color: SpaceTheme.alienGreen,
+                size: 20,
+              ),
+            if (_isLoading && isSelected)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(SpaceTheme.alienGreen),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDifficultySettings() {
     return SlideTransition(
       position: _settingAnimations[3],
       child: _buildSettingsCard(
-        title: S.of(context)!.progress,
-        icon: Icons.analytics,
+        title: 'Difficulty',
+        icon: Icons.tune,
         children: [
           Consumer<GameProvider>(
             builder: (context, gameProvider, child) {
@@ -225,8 +368,48 @@ class _SettingsScreenState extends State<SettingsScreen>
                     label: 'Current Grade',
                     value: gameProvider.grade.toString(),
                     icon: Icons.school,
+                    onTap: () => _showGradeSelector(gameProvider),
                   ),
                   
+                  const SizedBox(height: 12),
+                  
+                  _buildStatRow(
+                    label: 'Current Level',
+                    value: gameProvider.level.toString(),
+                    icon: Icons.trending_up,
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  Text(
+                    _getDifficultyDescription(gameProvider.grade),
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildProgressSettings() {
+    return SlideTransition(
+      position: _settingAnimations[4],
+      child: _buildSettingsCard(
+        title: S.of(context)!.progress,
+        icon: Icons.analytics,
+        children: [
+          Consumer<GameProvider>(
+            builder: (context, gameProvider, child) {
+              return Column(
+                children: [
                   _buildStatRow(
                     label: 'Total Score',
                     value: gameProvider.score.toString(),
@@ -271,7 +454,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   
   Widget _buildAboutSection() {
     return SlideTransition(
-      position: _settingAnimations[4],
+      position: _settingAnimations[5],
       child: _buildSettingsCard(
         title: 'About',
         icon: Icons.info,
@@ -394,114 +577,52 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
   
-  Widget _buildLanguageSelector() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: SpaceTheme.alienGreen.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.translate,
-            color: SpaceTheme.alienGreen,
-            size: 24,
-          ),
-          
-          const SizedBox(width: 16),
-          
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Current Language',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
-                  Localizations.localeOf(context).languageCode == 'de' 
-                      ? 'Deutsch' 
-                      : 'English',
-                  style: const TextStyle(
-                    color: Colors.white60,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          DropdownButton<String>(
-            value: Localizations.localeOf(context).languageCode,
-            dropdownColor: SpaceTheme.deepSpace,
-            style: const TextStyle(color: Colors.white),
-            underline: Container(),
-            items: const [
-              DropdownMenuItem(
-                value: 'en',
-                child: Text('English'),
-              ),
-              DropdownMenuItem(
-                value: 'de',
-                child: Text('Deutsch'),
-              ),
-            ],
-            onChanged: (value) {
-              // Implement language change
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Language change coming soon!'),
-                  backgroundColor: SpaceTheme.nebulaPurple,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-  
   Widget _buildStatRow({
     required String label,
     required String value,
     required IconData icon,
+    VoidCallback? onTap,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: SpaceTheme.cosmicPink,
-            size: 20,
-          ),
-          
-          const SizedBox(width: 12),
-          
-          Expanded(
-            child: Text(
-              label,
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: SpaceTheme.cosmicPink,
+              size: 20,
             ),
-          ),
-          
-          Text(
-            value,
-            style: SpaceTheme.titleStyle.copyWith(
-              fontSize: 16,
-              color: SpaceTheme.starYellow,
+            
+            const SizedBox(width: 12),
+            
+            Expanded(
+              child: Text(
+                label,
+                style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+              ),
             ),
-          ),
-        ],
+            
+            Text(
+              value,
+              style: SpaceTheme.titleStyle.copyWith(
+                fontSize: 16,
+                color: SpaceTheme.starYellow,
+              ),
+            ),
+            
+            if (onTap != null)
+              const SizedBox(
+                width: 4,
+                child: Icon(
+                  Icons.chevron_right,
+                  color: Colors.white54,
+                  size: 16,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -527,12 +648,198 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
     );
   }
+
+  void _changeLanguage(String localeCode) async {
+    if (localeCode == currentLocale) return;
+    
+    setState(() {
+      _isLoading = true;
+      currentLocale = localeCode;
+    });
+    
+    try {
+      // Save to preferences
+      await _saveLanguagePreference(localeCode);
+      
+      // Show restart dialog
+      if (mounted) {
+        _showLanguageChangeDialog(localeCode);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to change language: $e'),
+            backgroundColor: SpaceTheme.rocketRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+  
+  Future<void> _saveLanguagePreference(String localeCode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language', localeCode);
+  }
+  
+  void _showLanguageChangeDialog(String localeCode) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: SpaceTheme.deepSpace,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          'Language Changed',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'The app language will change when you restart. Would you like to restart now?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text(
+              'Later',
+              style: TextStyle(color: SpaceTheme.moonSilver),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Notify the main app to restart
+              _triggerAppRestart();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: SpaceTheme.alienGreen,
+            ),
+            child: const Text('Restart Now'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showGradeSelector(GameProvider gameProvider) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: SpaceTheme.deepSpace,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          'Select Grade',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [3, 4, 5, 6].map((grade) {
+            final isSelected = gameProvider.grade == grade;
+            return GestureDetector(
+              onTap: () {
+                gameProvider.setGrade(grade);
+                Navigator.of(context).pop();
+              },
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isSelected 
+                      ? SpaceTheme.starYellow.withOpacity(0.2)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isSelected 
+                        ? SpaceTheme.starYellow 
+                        : Colors.white.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.school,
+                      color: isSelected ? SpaceTheme.starYellow : Colors.white70,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Grade $grade',
+                      style: TextStyle(
+                        color: isSelected ? SpaceTheme.starYellow : Colors.white,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      _getDifficultyDescription(grade),
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: SpaceTheme.moonSilver),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  String _getDifficultyDescription(int grade) {
+    switch (grade) {
+      case 3:
+        return 'Basic operations';
+      case 4:
+        return 'Multi-digit math';
+      case 5:
+        return 'Complex problems';
+      case 6:
+        return 'Advanced challenges';
+      default:
+        return '';
+    }
+  }
+
+  void _triggerAppRestart() {
+    // This would need to be implemented with a state management solution
+    // For now, we'll just show a snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please restart the app to apply language changes'),
+        backgroundColor: SpaceTheme.alienGreen,
+        duration: Duration(seconds: 4),
+      ),
+    );
+  }
   
   void _showResetDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: SpaceTheme.deepSpace,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
         title: const Text(
           'Reset Progress',
           style: TextStyle(color: Colors.white),

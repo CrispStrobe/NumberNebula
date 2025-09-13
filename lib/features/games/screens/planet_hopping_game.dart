@@ -4,6 +4,8 @@ import 'dart:math' as math;
 import 'dart:async';
 
 import '../constants/app_constants.dart';
+import '../constants/difficulty_manager.dart';
+
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
@@ -49,6 +51,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   // Current objective
   int nextTargetIndex = 0;
   String objectiveText = "";
+  bool showObjective = true; // FIX: Toggle objective visibility
   
   @override
   void initState() {
@@ -246,104 +249,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     nextTargetIndex = 0;
   }
   
-  void _updateGame() {
-    if (!gameActive) return;
-    
-    final dt = 0.016; // 60 FPS
-    final screenSize = MediaQuery.of(context).size;
-    
-    setState(() {
-      // Apply gravity to hopper
-      Offset totalForce = Offset.zero;
-      
-      for (final field in gravityFields) {
-        final distance = (hopper.position - field.center).distance;
-        if (distance < field.radius && distance > 5) {
-          final direction = (field.center - hopper.position) / distance;
-          final force = field.strength / (distance * distance) * 100;
-          totalForce += direction * force;
-        }
-      }
-      
-      // Update hopper physics
-      hopper.velocity += totalForce * dt;
-      hopper.velocity *= 0.98; // Air resistance
-      hopper.position += hopper.velocity * dt;
-      
-      // Keep hopper in bounds
-      hopper.position = Offset(
-        hopper.position.dx.clamp(20, screenSize.width - 20),
-        hopper.position.dy.clamp(20, screenSize.height - 100),
-      );
-      
-      // Check planet landings
-      for (final planet in planets) {
-        if (!planet.visited && _checkPlanetLanding(planet)) {
-          _landOnPlanet(planet);
-        }
-      }
-      
-      // Update particles
-      particles.removeWhere((particle) {
-        particle.update(dt);
-        return particle.life <= 0;
-      });
-      
-      // Add landing particles if hopper is moving slowly near a planet
-      if (hopper.velocity.distance < 50) {
-        final nearbyPlanet = planets.firstWhere(
-          (p) => (p.position - hopper.position).distance < p.radius + 40,
-          orElse: () => Planet(
-            position: Offset.zero,
-            radius: 0,
-            mass: 0,
-            answer: 0,
-            problem: "",
-            color: Colors.transparent,
-            visited: false,
-          ),
-        );
-        
-        if (nearbyPlanet.radius > 0) {
-          _addLandingParticles(nearbyPlanet);
-        }
-      }
-    });
-  }
-  
-  bool _checkPlanetLanding(Planet planet) {
-    final distance = (hopper.position - planet.position).distance;
-    return distance < planet.radius + 25 && hopper.velocity.distance < 100;
-  }
-  
-  void _landOnPlanet(Planet planet) {
-    planet.visited = true;
-    visitedSequence.add(planet.answer);
-    
-    // Check if correct planet in sequence
-    if (nextTargetIndex < targetSequence.length && 
-        planet.answer == targetSequence[nextTargetIndex]) {
-      // Correct planet!
-      nextTargetIndex++;
-      context.read<GameProvider>().addScore(100 * widget.grade);
-      _addSuccessParticles(planet);
-      
-      if (nextTargetIndex >= targetSequence.length) {
-        _winGame();
-      }
-    } else {
-      // Wrong planet!
-      lives--;
-      _addErrorParticles(planet);
-      
-      if (lives <= 0) {
-        _gameOver();
-      } else {
-        // Reset sequence on wrong planet
-        _resetSequence();
-      }
-    }
-  }
   
   void _resetSequence() {
     for (final planet in planets) {
@@ -441,7 +346,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         child: SafeArea(
           child: Stack(
             children: [
-              // Background stars
+              // Background stars (unchanged)
               ...backgroundStars.map((star) => Positioned(
                 left: star.position.dx,
                 top: star.position.dy,
@@ -510,17 +415,17 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                 ),
               ),
               
-              // Particles
+              // Particles (unchanged)
               ...particles.map((particle) => Positioned(
                 left: particle.position.dx,
                 top: particle.position.dy,
                 child: ParticleWidget(particle: particle),
               )).toList(),
               
-              // Game UI
+              // FIX: Repositioned and collapsible game UI
               _buildGameUI(),
               
-              // Touch control overlay
+              // FIX: Better touch control overlay
               _buildControlOverlay(),
             ],
           ),
@@ -534,9 +439,9 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       children: [
         // Header
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: SpaceTheme.deepSpace.withOpacity(0.8),
+            color: SpaceTheme.deepSpace.withOpacity(0.9),
             border: Border(
               bottom: BorderSide(
                 color: SpaceTheme.starYellow.withOpacity(0.3),
@@ -547,14 +452,18 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
           child: Row(
             children: [
               IconButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  // FIX: Proper cleanup
+                  setState(() => gameActive = false);
+                  Navigator.of(context).pop();
+                },
                 icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
               ),
               
               Expanded(
                 child: Text(
                   'Planet Hopping',
-                  style: SpaceTheme.titleStyle.copyWith(fontSize: 20),
+                  style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
                 ),
               ),
               
@@ -564,7 +473,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                   return Icon(
                     index < lives ? Icons.favorite : Icons.favorite_border,
                     color: SpaceTheme.rocketRed,
-                    size: 20,
+                    size: 18,
                   );
                 }),
               ),
@@ -573,7 +482,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
               
               // Progress
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: SpaceTheme.alienGreen.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
@@ -583,40 +492,94 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                   style: SpaceTheme.bodyStyle.copyWith(
                     color: SpaceTheme.alienGreen,
                     fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
+                ),
+              ),
+              
+              // FIX: Toggle button for objective
+              IconButton(
+                onPressed: () => setState(() => showObjective = !showObjective),
+                icon: Icon(
+                  showObjective ? Icons.visibility : Icons.visibility_off,
+                  color: Colors.white70,
+                  size: 20,
                 ),
               ),
             ],
           ),
         ),
         
-        // Objective
-        Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: SpaceTheme.deepSpace.withOpacity(0.9),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: SpaceTheme.starYellow, width: 1),
-          ),
-          child: Column(
-            children: [
-              Text(
-                objectiveText,
-                style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
-                textAlign: TextAlign.center,
-              ),
-              if (nextTargetIndex < targetSequence.length) ...[
-                const SizedBox(height: 8),
-                Text(
-                  'Next target: ${targetSequence[nextTargetIndex]}',
-                  style: SpaceTheme.titleStyle.copyWith(
-                    color: SpaceTheme.starYellow,
-                    fontSize: 16,
-                  ),
+        // FIX: Collapsible Objective
+        if (showObjective)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: SpaceTheme.deepSpace.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: SpaceTheme.starYellow, width: 1),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.gps_fixed, color: SpaceTheme.rocketRed, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        objectiveText,
+                        style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
+                if (nextTargetIndex < targetSequence.length) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: SpaceTheme.starYellow,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'Next: ${targetSequence[nextTargetIndex]}',
+                      style: SpaceTheme.titleStyle.copyWith(
+                        color: SpaceTheme.spaceBlue,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
+          ),
+        
+        const Spacer(),
+        
+        // FIX: Control instructions at bottom
+        Container(
+          margin: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.7),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: SpaceTheme.alienGreen, width: 1),
+          ),
+          child: Text(
+            'TAP anywhere to jump toward that location • Use gravity to swing between planets',
+            style: SpaceTheme.bodyStyle.copyWith(
+              fontSize: 11,
+              color: SpaceTheme.alienGreen,
+            ),
+            textAlign: TextAlign.center,
           ),
         ),
       ],
@@ -629,17 +592,136 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         onTapDown: (details) {
           if (!gameActive) return;
           
-          // Apply jump force towards tap location
+          // FIX: Much more responsive jump system
           final tapPosition = details.localPosition;
           final direction = (tapPosition - hopper.position).normalize();
           
           setState(() {
-            hopper.velocity += direction * 300; // Jump strength
+            // FIX: Stronger, more immediate jump force
+            hopper.velocity += direction * 500; // Increased from 300
           });
         },
         child: Container(color: Colors.transparent),
       ),
     );
+  }
+  
+  void _updateGame() {
+    if (!gameActive) return;
+    
+    final dt = 0.016; // 60 FPS
+    final screenSize = MediaQuery.of(context).size;
+    
+    setState(() {
+      // FIX: Enhanced gravity system
+      Offset totalForce = Offset.zero;
+      
+      for (final field in gravityFields) {
+        final distance = (hopper.position - field.center).distance;
+        if (distance < field.radius && distance > 10) { // FIX: Better minimum distance
+          final direction = (field.center - hopper.position) / distance;
+          // FIX: More realistic gravity falloff
+          final force = field.strength / (distance * distance) * 150; // Increased strength
+          totalForce += direction * force;
+        }
+      }
+      
+      // Update hopper physics
+      hopper.velocity += totalForce * dt;
+      hopper.velocity *= 0.995; // FIX: Less air resistance for more fluid movement
+      hopper.position += hopper.velocity * dt;
+      
+      // FIX: Better screen bounds with bounce
+      final bounds = Rect.fromLTWH(20, 80, screenSize.width - 40, screenSize.height - 160);
+      
+      if (hopper.position.dx < bounds.left || hopper.position.dx > bounds.right) {
+        hopper.velocity = Offset(-hopper.velocity.dx * 0.7, hopper.velocity.dy);
+        hopper.position = Offset(
+          hopper.position.dx.clamp(bounds.left, bounds.right),
+          hopper.position.dy,
+        );
+      }
+      
+      if (hopper.position.dy < bounds.top || hopper.position.dy > bounds.bottom) {
+        hopper.velocity = Offset(hopper.velocity.dx, -hopper.velocity.dy * 0.7);
+        hopper.position = Offset(
+          hopper.position.dx,
+          hopper.position.dy.clamp(bounds.top, bounds.bottom),
+        );
+      }
+      
+      // FIX: Better planet landing detection
+      for (final planet in planets) {
+        if (!planet.visited && _checkPlanetLanding(planet)) {
+          _landOnPlanet(planet);
+        }
+      }
+      
+      // Update particles (unchanged)
+      particles.removeWhere((particle) {
+        particle.update(dt);
+        return particle.life <= 0;
+      });
+      
+      // FIX: Better landing particle generation
+      if (hopper.velocity.distance < 80) { // Increased threshold
+        final nearbyPlanet = planets.firstWhere(
+          (p) => (p.position - hopper.position).distance < p.radius + 50,
+          orElse: () => Planet(
+            position: Offset.zero,
+            radius: 0,
+            mass: 0,
+            answer: 0,
+            problem: "",
+            color: Colors.transparent,
+            visited: false,
+          ),
+        );
+        
+        if (nearbyPlanet.radius > 0) {
+          _addLandingParticles(nearbyPlanet);
+        }
+      }
+    });
+  }
+  
+  bool _checkPlanetLanding(Planet planet) {
+    final distance = (hopper.position - planet.position).distance;
+    // FIX: More forgiving landing detection
+    return distance < planet.radius + 30 && hopper.velocity.distance < 120;
+  }
+  
+  void _landOnPlanet(Planet planet) {
+    planet.visited = true;
+    visitedSequence.add(planet.answer);
+    
+    // FIX: Better feedback with velocity damping
+    hopper.velocity *= 0.3; // Slow down on landing
+    
+    // Check if correct planet in sequence
+    if (nextTargetIndex < targetSequence.length && 
+        planet.answer == targetSequence[nextTargetIndex]) {
+      // Correct planet!
+      nextTargetIndex++;
+      context.read<GameProvider>().addScore(100 * widget.grade);
+      _addSuccessParticles(planet);
+      
+      if (nextTargetIndex >= targetSequence.length) {
+        _winGame();
+      }
+    } else {
+      // Wrong planet!
+      lives--;
+      _addErrorParticles(planet);
+      
+      if (lives <= 0) {
+        _gameOver();
+      } else {
+        // FIX: Give small penalty but don't reset completely
+        context.read<GameProvider>().addScore(-25 * widget.grade); // Small score penalty
+        // Don't reset sequence immediately - let them try again
+      }
+    }
   }
   
   Widget _buildWinDialog() {
@@ -781,8 +863,24 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 class SpaceHopper {
   Offset position = const Offset(100, 100);
   Offset velocity = Offset.zero;
+  double energy = 1.0; // FIX: Add energy system for jumps
   
   SpaceHopper();
+  
+  // FIX: Add method to check if can jump (energy-based)
+  bool canJump() => energy > 0.2;
+  
+  void jump(Offset direction, double force) {
+    if (canJump()) {
+      velocity += direction * force;
+      energy -= 0.1; // Consume energy
+    }
+  }
+  
+  void update(double dt) {
+    // FIX: Gradually restore energy
+    energy = (energy + dt * 0.5).clamp(0.0, 1.0);
+  }
 }
 
 class Planet {

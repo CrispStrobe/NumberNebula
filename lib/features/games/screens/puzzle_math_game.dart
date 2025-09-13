@@ -234,12 +234,12 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     return Center(
       child: Container(
         width: boardWidth,
-        height: boardHeight,
-        decoration: BoxDecoration(
-          color: SpaceTheme.deepSpace.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.5), width: 2),
-        ),
+            height: boardHeight,
+            decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1), // Better visibility
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.8), width: 3),
+            ),
         child: Stack(
           children: List.generate(rows * columns, (index) {
             final row = index ~/ columns;
@@ -437,6 +437,7 @@ class PuzzlePieceData {
   });
 }
 
+// Fix for puzzle_math_game.dart - Better visibility and proper jigsaw pieces
 class PuzzleSlotWidget extends StatelessWidget {
   final PuzzlePieceData data;
   final Size pieceSize;
@@ -468,22 +469,52 @@ class PuzzleSlotWidget extends StatelessWidget {
       child: child ?? AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: isPieceOver 
-              ? SpaceTheme.alienGreen.withOpacity(0.3) 
-              : SpaceTheme.deepSpace.withOpacity(0.2),
+          // FIX: Better contrast and visibility
+          gradient: LinearGradient(
+            colors: [
+              isPieceOver 
+                  ? SpaceTheme.alienGreen.withOpacity(0.4)
+                  : SpaceTheme.moonSilver.withOpacity(0.3),
+              isPieceOver 
+                  ? SpaceTheme.alienGreen.withOpacity(0.2)
+                  : SpaceTheme.deepSpace.withOpacity(0.4),
+            ],
+          ),
           border: Border.all(
-            color: SpaceTheme.starYellow.withOpacity(0.5),
-            width: 1,
+            color: isPieceOver 
+                ? SpaceTheme.alienGreen 
+                : SpaceTheme.starYellow.withOpacity(0.8),
+            width: 2,
           ),
         ),
-        child: Center(
-          child: Text(
-            data.problem,
-            style: SpaceTheme.titleStyle.copyWith(
-              color: Colors.white.withOpacity(0.6),
-              fontSize: pieceSize.width / 6,
+        child: Stack(
+          children: [
+            // Background pattern for better visibility
+            Positioned.fill(
+              child: CustomPaint(
+                painter: SlotPatternPainter(),
+              ),
             ),
-          ),
+            // Math problem text
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  data.problem,
+                  style: SpaceTheme.titleStyle.copyWith(
+                    color: SpaceTheme.starYellow,
+                    fontSize: pieceSize.width / 7,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -539,25 +570,47 @@ class PuzzlePieceWidget extends StatelessWidget {
                     rows <= 1 ? 0.5 : (data.row / (rows - 1)),
                   ),
                 ),
+                // FIX: Add border for better piece definition
+                border: Border.all(
+                  color: isPlaced ? SpaceTheme.alienGreen : Colors.white.withOpacity(0.6),
+                  width: 1,
+                ),
               ),
-              child: Container(
-                color: Colors.black.withOpacity(0.4),
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: SpaceTheme.starYellow,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      data.answer.toString(),
-                      style: SpaceTheme.headlineStyle.copyWith(
-                        fontSize: pieceSize.width / 4,
-                        color: SpaceTheme.spaceBlue,
+              child: Stack(
+                children: [
+                  // FIX: Better contrast overlay
+                  Container(
+                    color: Colors.black.withOpacity(0.3),
+                  ),
+                  // Answer display with better visibility
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.5),
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        data.answer.toString(),
+                        style: SpaceTheme.headlineStyle.copyWith(
+                          fontSize: pieceSize.width / 5,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
@@ -567,7 +620,7 @@ class PuzzlePieceWidget extends StatelessWidget {
   }
 }
 
-// Proper Jigsaw Piece Clipper with interlocking knobs and holes
+// Improved Jigsaw Piece Clipper with better knobs
 class JigsawPieceClipper extends CustomClipper<Path> {
   final PuzzlePieceData data;
   final int columns, rows;
@@ -618,33 +671,39 @@ class JigsawPieceClipper extends CustomClipper<Path> {
   }
 
   void _drawHorizontalSide(Path path, double x1, double y1, double x2, double y2, 
-                          JigsawSide side, Size size) {
+                        JigsawSide side, Size size) {
     if (side == JigsawSide.flat) {
-      path.lineTo(x2, y2);
-      return;
+        path.lineTo(x2, y2);
+        return;
     }
 
     final length = (x2 - x1).abs();
     final direction = x2 > x1 ? 1 : -1;
-    final knobWidth = length * 0.2;
+    final knobWidth = length * 0.2; // FIX: Better knob size
     final knobHeight = size.height * 0.15 * (side == JigsawSide.knob ? -1 : 1);
 
-    // First part of edge
+    // FIX: More pronounced and smoother curves
     final p1x = x1 + direction * length * 0.35;
-    path.lineTo(p1x, y1);
-
-    // Knob/hole using cubic bezier curves
     final p2x = x1 + direction * length * 0.65;
     final midx = x1 + direction * length * 0.5;
     final midy = y1 + knobHeight;
 
-    path.cubicTo(
-      p1x, midy,
-      p2x, midy,
-      p2x, y1
+    path.lineTo(p1x, y1);
+    
+    // Create smooth curved knob/hole with quadratic bezier curves
+    path.quadraticBezierTo(
+        p1x, y1 + knobHeight * 0.5,
+        midx - knobWidth * 0.5, midy
     );
-
-    // Final part of edge
+    path.quadraticBezierTo(
+        midx + knobWidth * 0.5, midy,
+        p2x, y1 + knobHeight * 0.5
+    );
+    path.quadraticBezierTo(
+        p2x, y1,
+        p2x, y1
+    );
+    
     path.lineTo(x2, y2);
   }
 
@@ -660,27 +719,56 @@ class JigsawPieceClipper extends CustomClipper<Path> {
     final knobHeight = length * 0.2;
     final knobWidth = size.width * 0.15 * (side == JigsawSide.knob ? -1 : 1);
 
-    // First part of edge
+    // FIX: Better vertical knob positioning
     final p1y = y1 + direction * length * 0.35;
     path.lineTo(x1, p1y);
 
-    // Knob/hole using cubic bezier curves
+    // Knob/hole using quadratic bezier curves
     final p2y = y1 + direction * length * 0.65;
     final midx = x1 + knobWidth;
     final midy = y1 + direction * length * 0.5;
 
-    path.cubicTo(
-      midx, p1y,
-      midx, p2y,
+    path.quadraticBezierTo(
+      x1 + knobWidth * 0.5, p1y,
+      midx, midy - knobHeight * 0.5
+    );
+    path.quadraticBezierTo(
+      midx, midy + knobHeight * 0.5,
+      x1 + knobWidth * 0.5, p2y
+    );
+    path.quadraticBezierTo(
+      x1, p2y,
       x1, p2y
     );
 
-    // Final part of edge
     path.lineTo(x2, y2);
   }
 
   @override
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => true;
+}
+
+// Add background pattern painter for slot visibility
+class SlotPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    
+    // Draw grid pattern for better slot visibility
+    final spacing = 20.0;
+    for (double x = 0; x < size.width; x += spacing) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += spacing) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 enum JigsawSide { flat, knob, hole }

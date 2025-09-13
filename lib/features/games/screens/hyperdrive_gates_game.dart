@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'dart:async';
 
 import '../constants/app_constants.dart';
+import '../constants/difficulty_manager.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
@@ -44,7 +45,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
   int correctGatesPassedThrough = 0;
   int targetGatesNeeded = 10;
   bool gameActive = true;
-  int lives = 3;
+  double lives = 3.0; // Changed to double to fix type error
   
   // Current math problem for gates
   MathProblem? currentProblem;
@@ -148,118 +149,152 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
     final screenSize = MediaQuery.of(context).size;
     
     setState(() {
-      // Update background stars
-      for (var star in backgroundStars) {
+        // Update background stars with parallax effect
+        for (var star in backgroundStars) {
         star.position = Offset(
-          star.position.dx - star.speed * dt,
-          star.position.dy,
+            star.position.dx - (star.speed + gameSpeed * 0.1) * dt,
+            star.position.dy,
         );
         
         if (star.position.dx < -10) {
-          star.position = Offset(
+            star.position = Offset(
             screenSize.width + 10,
             math.Random().nextDouble() * screenSize.height,
-          );
+            );
         }
-      }
-      
-      // Update spaceship physics
-      spaceship.update(dt);
-      
-      // Spawn gates
-      gateSpawnTimer += dt;
-      if (gateSpawnTimer > 2.0) { // Spawn gate every 2 seconds
+        }
+        
+        // Update spaceship physics with improved responsiveness
+        spaceship.update(dt);
+        
+        // Dynamic gate spawning based on game speed and level
+        gateSpawnTimer += dt;
+        final dynamicSpawnRate = 2.0 - (gameSpeed / 200.0).clamp(0.0, 1.5); // Faster spawning as speed increases
+        final levelSpawnModifier = 1.0 - (widget.level * 0.05).clamp(0.0, 0.5); // Higher levels spawn faster
+        final actualSpawnRate = (dynamicSpawnRate * levelSpawnModifier).clamp(0.5, 3.0);
+        
+        if (gateSpawnTimer > actualSpawnRate) {
         _spawnGate(screenSize);
         gateSpawnTimer = 0.0;
-      }
-      
-      // Update gates
-      gates.removeWhere((gate) {
+        }
+        
+        // Update gates with collision detection
+        gates.removeWhere((gate) {
+        // Update gate position
         gate.position = Offset(
-          gate.position.dx - gameSpeed * dt,
-          gate.position.dy,
+            gate.position.dx - gameSpeed * dt,
+            gate.position.dy,
         );
         
         // Check collision with spaceship
         if (_checkGateCollision(gate)) {
-          _handleGateCollision(gate);
-          return true;
+            _handleGateCollision(gate);
+            return true;
         }
         
-        return gate.position.dx < -100; // Remove off-screen gates
-      });
-      
-      // Update particles
-      particles.removeWhere((particle) {
+        // Remove off-screen gates and penalize missed correct gates
+        if (gate.position.dx < -100) {
+            if (gate.isCorrect) {
+            // Player missed a correct gate - small penalty
+            lives = (lives - 0.1).clamp(0.0, 3.0);
+            }
+            return true;
+        }
+        
+        return false;
+        });
+        
+        // Update particles with improved lifecycle management
+        particles.removeWhere((particle) {
         particle.update(dt);
         return particle.life <= 0;
-      });
-      
-      // Add thruster particles
-      if (spaceship.thrusting) {
+        });
+        
+        // Add thruster particles with intensity based on movement
+        if (spaceship.thrusting) {
         _addThrusterParticles();
-      }
-      
-      // Check win condition
-      if (correctGatesPassedThrough >= targetGatesNeeded) {
+        }
+        
+        // Add ambient space particles for atmosphere
+        if (math.Random().nextDouble() < 0.1) {
+        _addAmbientParticles(screenSize);
+        }
+        
+        // Check win condition
+        if (correctGatesPassedThrough >= targetGatesNeeded) {
         _winGame();
-      }
-      
-      // Check lose condition
-      if (lives <= 0) {
+        }
+        
+        // Check lose condition with proper double comparison
+        if (lives <= 0.0) {
         _gameOver();
-      }
+        }
     });
   }
   
   void _spawnGate(Size screenSize) {
     final random = math.Random();
-    final isCorrectGate = random.nextBool(); // 50% chance for correct gate
+    final difficulty = DifficultyManager.getDifficulty(widget.grade, widget.level);
+    
+    // Determine if this should be a correct gate (balanced probability)
+    final correctGateChance = 0.4 + (correctGatesPassedThrough / targetGatesNeeded) * 0.2;
+    final isCorrectGate = random.nextDouble() < correctGateChance;
     
     int gateAnswer;
     Color gateColor;
     bool isCorrect;
     
     if (isCorrectGate) {
-      gateAnswer = correctAnswer;
-      gateColor = SpaceTheme.alienGreen;
-      isCorrect = true;
+        gateAnswer = correctAnswer;
+        gateColor = SpaceTheme.alienGreen;
+        isCorrect = true;
     } else {
-      // Generate wrong answer
-      do {
-        gateAnswer = correctAnswer + random.nextInt(20) - 10;
-      } while (gateAnswer == correctAnswer || gateAnswer <= 0);
-      gateColor = SpaceTheme.rocketRed;
-      isCorrect = false;
+        // Generate varied wrong answers based on difficulty
+        final wrongAnswerStrategies = [
+        () => correctAnswer + random.nextInt(10) + 1, // Close but wrong
+        () => correctAnswer - random.nextInt(10) - 1, // Close but wrong (negative)
+        () => correctAnswer * 2, // Double
+        () => correctAnswer ~/ 2, // Half
+        () => random.nextInt(difficulty.numberRange['max']!) + 1, // Random in range
+        () => correctAnswer + (random.nextBool() ? 1 : -1) * (10 + random.nextInt(20)), // Moderate offset
+        ];
+        
+        do {
+        final strategy = wrongAnswerStrategies[random.nextInt(wrongAnswerStrategies.length)];
+        gateAnswer = strategy();
+        } while (gateAnswer == correctAnswer || gateAnswer <= 0);
+        
+        gateColor = SpaceTheme.rocketRed;
+        isCorrect = false;
     }
     
+    // Varied gate positioning with some randomness
+    final gateY = random.nextDouble() * (screenSize.height - 200) + 100;
+    
     gates.add(HyperdriveGate(
-      position: Offset(
-        screenSize.width + 50,
-        random.nextDouble() * (screenSize.height - 200) + 100,
-      ),
-      answer: gateAnswer,
-      problem: currentProblem!.expression,
-      isCorrect: isCorrect,
-      color: gateColor,
+        position: Offset(screenSize.width + 60, gateY),
+        answer: gateAnswer,
+        problem: currentProblem!.expression,
+        isCorrect: isCorrect,
+        color: gateColor,
     ));
-  }
+    }
   
   bool _checkGateCollision(HyperdriveGate gate) {
     final spaceshipRect = Rect.fromCenter(
-      center: spaceship.position,
-      width: 60,
-      height: 40,
+        center: spaceship.position,
+        width: 50, // Slightly smaller hitbox for better feel
+        height: 35,
     );
     
     final gateRect = Rect.fromCenter(
-      center: gate.position,
-      width: 120,
-      height: 80,
+        center: gate.position,
+        width: 100, // Slightly smaller gate hitbox
+        height: 70,
     );
     
     return spaceshipRect.overlaps(gateRect);
-  }
+    }
   
   void _handleGateCollision(HyperdriveGate gate) {
     if (gate.isCorrect) {
@@ -284,7 +319,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
       }
     } else {
       // Wrong gate - lose life and damage effect
-      lives--;
+      lives -= 1.0; // Properly subtract from double
       _addDamageEffect();
       
       // Add explosion particles
@@ -305,17 +340,42 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
   
   void _addThrusterParticles() {
     final random = math.Random();
+    final particleCount = (spaceship.thrustIntensity * 3 + 1).round();
+    
+    for (int i = 0; i < particleCount; i++) {
+        particles.add(ParticleEffect(
+        position: Offset(
+            spaceship.position.dx - 35 + random.nextDouble() * 10,
+            spaceship.position.dy + (random.nextDouble() - 0.5) * 25,
+        ),
+        velocity: Offset(
+            -120 - random.nextDouble() * 80,
+            (random.nextDouble() - 0.5) * 30,
+        ),
+        color: Color.lerp(
+            SpaceTheme.planetOrange,
+            SpaceTheme.starYellow,
+            random.nextDouble(),
+        )!,
+        life: 0.3 + random.nextDouble() * 0.3,
+        size: 1.5 + random.nextDouble() * 1.5,
+        ));
+    }
+    }
+
+  void _addAmbientParticles(Size screenSize) {
+    final random = math.Random();
     particles.add(ParticleEffect(
-      position: Offset(
-        spaceship.position.dx - 30,
-        spaceship.position.dy + (random.nextDouble() - 0.5) * 20,
-      ),
-      velocity: Offset(-150 - random.nextDouble() * 50, 0),
-      color: SpaceTheme.planetOrange,
-      life: 0.5,
-      size: 2.0,
+        position: Offset(
+        screenSize.width + 10,
+        random.nextDouble() * screenSize.height,
+        ),
+        velocity: Offset(-gameSpeed * 0.3, 0),
+        color: Colors.white.withOpacity(0.3 + random.nextDouble() * 0.4),
+        life: 2.0 + random.nextDouble() * 3.0,
+        size: 0.5 + random.nextDouble() * 1.5,
     ));
-  }
+    }
   
   void _addBoostEffect() {
     spaceship.boost();
@@ -366,7 +426,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
         child: SafeArea(
           child: Stack(
             children: [
-              // Background stars
+              // Background stars (unchanged)
               ...backgroundStars.map((star) => Positioned(
                 left: star.position.dx,
                 top: star.position.dy,
@@ -380,19 +440,124 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
                 ),
               )).toList(),
               
-              // Game UI Header
+              // Game UI Header (with back button fix)
               Positioned(
                 top: 0,
                 left: 0,
                 right: 0,
-                child: _buildGameHeader(),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: SpaceTheme.deepSpace.withOpacity(0.8),
+                    border: Border(
+                      bottom: BorderSide(
+                        color: SpaceTheme.starYellow.withOpacity(0.3),
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          // FIX: Proper cleanup on back
+                          setState(() => gameActive = false);
+                          _gameTimer.cancel();
+                          Navigator.of(context).pop();
+                        },
+                        icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                      ),
+                      
+                      const SizedBox(width: 10),
+                      
+                      Expanded(
+                        child: Text(
+                          'Hyperdrive Gates',
+                          style: SpaceTheme.titleStyle.copyWith(fontSize: 20),
+                        ),
+                      ),
+                      
+                      // Lives display
+                      Row(
+                        children: List.generate(3, (index) {
+                          return Icon(
+                            index < lives.floor() ? Icons.favorite : Icons.favorite_border,
+                            color: SpaceTheme.rocketRed,
+                            size: 20,
+                          );
+                        }),
+                      ),
+                      
+                      const SizedBox(width: 20),
+                      
+                      // Progress
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: SpaceTheme.alienGreen.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$correctGatesPassedThrough/$targetGatesNeeded',
+                          style: SpaceTheme.bodyStyle.copyWith(
+                            color: SpaceTheme.alienGreen,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               
               // Current Problem Display
               Positioned(
                 top: 80,
                 left: 20,
-                child: _buildProblemDisplay(),
+                right: 20, // FIX: Add right constraint
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: SpaceTheme.deepSpace.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: SpaceTheme.starYellow, width: 2),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.calculate, color: SpaceTheme.starYellow, size: 24),
+                          const SizedBox(width: 8),
+                          Text(
+                            'SOLVE:',
+                            style: SpaceTheme.bodyStyle.copyWith(
+                              fontSize: 14,
+                              color: SpaceTheme.starYellow,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      if (currentProblem != null) ...[
+                        Text(
+                          currentProblem!.expression,
+                          style: SpaceTheme.titleStyle.copyWith(fontSize: 24),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Fly through gates with: ${correctAnswer}',
+                          style: SpaceTheme.bodyStyle.copyWith(
+                            fontSize: 16, 
+                            color: SpaceTheme.alienGreen,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
               
               // Gates
@@ -419,7 +584,30 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
                 child: ParticleWidget(particle: particle),
               )).toList(),
               
-              // Touch control overlay
+              // FIX: Better control instructions
+              Positioned(
+                bottom: 20,
+                left: 20,
+                right: 20,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.7),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: SpaceTheme.alienGreen, width: 1),
+                  ),
+                  child: Text(
+                    'DRAG to steer your ship up/down • FLY through CORRECT gates • AVOID wrong answers',
+                    style: SpaceTheme.bodyStyle.copyWith(
+                      fontSize: 12,
+                      color: SpaceTheme.alienGreen,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              
+              // FIX: Improved touch control overlay
               _buildControlOverlay(),
             ],
           ),
@@ -460,7 +648,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
           Row(
             children: List.generate(3, (index) {
               return Icon(
-                index < lives ? Icons.favorite : Icons.favorite_border,
+                index < lives.floor() ? Icons.favorite : Icons.favorite_border,
                 color: SpaceTheme.rocketRed,
                 size: 20,
               );
@@ -524,12 +712,21 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
   
   Widget _buildControlOverlay() {
     return Positioned.fill(
+      top: 140, // FIX: Start below UI elements
       child: GestureDetector(
+        onPanStart: (details) {
+          if (!gameActive) return;
+          setState(() {
+            spaceship.thrusting = true;
+            spaceship.targetY = details.localPosition.dy + 140; // FIX: Account for UI offset
+          });
+        },
         onPanUpdate: (details) {
           if (!gameActive) return;
           
           setState(() {
-            spaceship.targetY = details.localPosition.dy;
+            // FIX: Smooth continuous steering
+            spaceship.targetY = (details.localPosition.dy + 140).clamp(160.0, MediaQuery.of(context).size.height - 40.0);
             spaceship.thrusting = true;
           });
         },
@@ -538,6 +735,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
             spaceship.thrusting = false;
           });
         },
+        // FIX: Add tap control for quick navigation
         onTap: () {
           if (!gameActive) return;
           setState(() {
@@ -660,7 +858,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
   void _resetGame() {
     setState(() {
       gameActive = true;
-      lives = 3;
+      lives = 3.0;
       correctGatesPassedThrough = 0;
       gates.clear();
       particles.clear();
@@ -680,28 +878,41 @@ class Spaceship {
   bool thrusting = false;
   double boostTime = 0;
   double damageTime = 0;
+  double thrustIntensity = 0;
   
   void update(double dt) {
-    // Smooth movement towards target
+    // FIX: Much more responsive movement
     final diff = targetY - position.dy;
-    velocityY += diff * 5 * dt;
-    velocityY *= 0.8; // Damping
+    final maxAcceleration = 1200.0; // Increased responsiveness
+    final acceleration = (diff * 12.0).clamp(-maxAcceleration, maxAcceleration);
     
+    velocityY += acceleration * dt;
+    velocityY *= 0.88; // Better damping
+    
+    // FIX: Keep ship on screen with better bounds
+    final screenHeight = 600.0; // Approximate screen height
     position = Offset(
       position.dx,
-      (position.dy + velocityY * dt).clamp(20, 600),
+      (position.dy + velocityY * dt).clamp(160.0, screenHeight - 40.0),
     );
     
+    // Update thrust intensity for particle effects
+    thrustIntensity = thrusting ? (diff.abs() > 50 ? 1.0 : 0.5) : thrustIntensity * 0.92;
+    
+    // Update effect timers
     if (boostTime > 0) boostTime -= dt;
     if (damageTime > 0) damageTime -= dt;
   }
   
   void boost() {
-    boostTime = 0.5;
+    boostTime = 0.3;
+    velocityY *= 1.1;
   }
   
   void damage() {
-    damageTime = 0.5;
+    damageTime = 0.4;
+    // Add slight knockback
+    velocityY += (math.Random().nextDouble() - 0.5) * 100;
   }
 }
 
@@ -804,26 +1015,66 @@ class HyperdriveGateWidget extends StatelessWidget {
       width: 120,
       height: 80,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: gate.color, width: 3),
-        color: gate.color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: gate.color, width: 4),
+        gradient: LinearGradient(
+          colors: [
+            gate.color.withOpacity(0.1),
+            gate.color.withOpacity(0.3),
+            gate.color.withOpacity(0.1),
+          ],
+          stops: [0.0, 0.5, 1.0],
+        ),
         boxShadow: [
           BoxShadow(
-            color: gate.color.withOpacity(0.5),
-            blurRadius: 10,
-            spreadRadius: 2,
+            color: gate.color.withOpacity(0.6),
+            blurRadius: 15,
+            spreadRadius: 3,
           ),
         ],
       ),
-      child: Center(
-        child: Text(
-          gate.answer.toString(),
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: gate.color,
+      child: Stack(
+        children: [
+          // Energy field effect
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                gradient: RadialGradient(
+                  colors: [
+                    gate.color.withOpacity(0.3),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
+          // Answer display
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: gate.color, width: 2),
+              ),
+              child: Text(
+                gate.answer.toString(),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: gate.color,
+                  shadows: [
+                    Shadow(
+                      color: Colors.white,
+                      blurRadius: 2,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
