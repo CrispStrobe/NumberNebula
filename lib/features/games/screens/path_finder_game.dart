@@ -409,39 +409,33 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    // The Scaffold now has a simple black background. The overlay is gone.
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF020024), Color(0xFF090979), Color(0xFF001a2e)],
-          )
-        ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Transform.translate(
-                offset: screenShakeOffset,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    ..._buildBackground(),
-                    ..._buildVisualPaths(),
-                    ..._buildParticles(),
-                    _buildShip(),
-                  ],
-                ),
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Transform.translate(
+              offset: screenShakeOffset,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  ..._buildBackground(),
+                  ..._buildVisualPaths(),
+                  ..._buildParticles(),
+                  _buildShip(),
+                ],
               ),
-              IgnorePointer(
+            ),
+            IgnorePointer(
                 child: Container(
-                  color: feedbackColor.withOpacity(feedbackColor.opacity * (1 - _feedbackController.value)),
+                    // The opacity is now directly tied to the animation's progress
+                    color: feedbackColor.withOpacity(feedbackColor.opacity * _feedbackController.value),
                 ),
-              ),
-              if (choosingPath) ..._buildTappableAreas(),
-              _buildUI(),
-            ],
-          ),
+            ),
+            if (choosingPath) ..._buildTappableAreas(),
+            _buildUI(),
+          ],
         ),
       ),
     );
@@ -524,9 +518,9 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   }
 
   Widget _buildHeader() {
-    return Container( // Removed ClipRRect and BackdropFilter
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Colors.black.withOpacity(0.5), // Still a semi-transparent background
+      color: Colors.black.withOpacity(0.5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

@@ -10,11 +10,19 @@ import '../../../generated/l10n.dart'; // Import for localization
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart'; // Import to save score
 
-// --- GAME CONFIGURATION ---
-// You can easily tweak this value to change the starting speed of the game.
-const double BASE_GAME_SPEED = 120.0; 
+// --- AWESOME GAME CONFIGURATION ---
+const double BASE_GAME_SPEED = 160.0;
 const int INITIAL_LIVES = 5;
 const int TARGET_GATES_TO_WIN = 15;
+
+// A const list of awesome color palettes for the gates.
+const List<List<Color>> gateColorPalettes = [
+  [Color(0xfff94144), Color(0xfff3722c)], // Red-Orange
+  [Color(0xfff9c74f), Color(0xff90be6d)], // Yellow-Green
+  [Color(0xff43aa8b), Color(0xff4d908e)], // Teal-Cyan
+  [Color(0xff577590), Color(0xff277da1)], // Blue-Navy
+  [Color(0xffa726c3), Color(0xff6a0dad)], // Purple-Violet
+];
 
 // --- UTILITY CLASSES ---
 
@@ -46,6 +54,8 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   // --- Animation & Timers ---
   late AnimationController _gameController;
   late AnimationController _thrusterController;
+  late AnimationController _screenShakeController;
+  late AnimationController _problemGlowController;
   final FocusNode _focusNode = FocusNode();
 
   // --- Game State ---
@@ -57,12 +67,17 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   double gameSpeed = BASE_GAME_SPEED;
   Timer? _speedIncreaseTimer;
   int comboCounter = 0;
+  
+  bool _choiceMadeForCurrentSet = false;
+  double _temporarySpeedBoost = 0.0;
+
 
   // --- Core Gameplay State ---
   MathProblem? currentProblem;
   List<GameObject> gameObjects = [];
-  List<Effect> effects = []; // Combines particles and floating scores
+  List<Effect> effects = [];
   List<Offset> laneCenters = [];
+  Offset screenShakeOffset = Offset.zero;
 
   // --- Player & Background ---
   late Spaceship spaceship;
@@ -76,6 +91,12 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
 
     _thrusterController = AnimationController(vsync: this, duration: const Duration(milliseconds: 150))
       ..repeat(reverse: true);
+      
+    _screenShakeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 400))
+        ..addListener(() => setState(() {}));
+        
+    _problemGlowController = AnimationController(vsync: this, duration: const Duration(seconds: 2))
+        ..repeat(reverse: true);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_focusNode);
@@ -97,6 +118,8 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   void dispose() {
     _gameController.dispose();
     _thrusterController.dispose();
+    _screenShakeController.dispose();
+    _problemGlowController.dispose();
     _speedIncreaseTimer?.cancel();
     _focusNode.dispose();
     super.dispose();
@@ -107,8 +130,9 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       lives = INITIAL_LIVES;
       gatesCleared = 0;
       comboCounter = 0;
+      _temporarySpeedBoost = 0.0;
       targetGatesForLevel = TARGET_GATES_TO_WIN + widget.level;
-      gameSpeed = BASE_GAME_SPEED + (widget.grade * 10.0) + (widget.level * 4.0);
+      gameSpeed = BASE_GAME_SPEED + (widget.grade * 15.0) + (widget.level * 5.0);
       spaceship.reset(screenSize);
       gameObjects.clear();
       effects.clear();
@@ -119,9 +143,9 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     _spawnNextGateSet(screenSize);
 
     _speedIncreaseTimer?.cancel();
-    _speedIncreaseTimer = Timer.periodic(const Duration(seconds: 12), (timer) {
+    _speedIncreaseTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       if (gameActive) {
-        setState(() => gameSpeed += 10);
+        setState(() => gameSpeed += 12);
       }
     });
 
@@ -132,35 +156,41 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     backgroundStars = List.generate(3, (_) => []);
     final random = math.Random();
     for (int layer = 0; layer < 3; layer++) {
-      for (int i = 0; i < 70; i++) {
+      for (int i = 0; i < 80; i++) {
         backgroundStars[layer].add(Star(
           position: Offset(random.nextDouble() * screenSize.width, random.nextDouble() * screenSize.height),
-          size: (random.nextDouble() * 1.5 + 0.5) * (layer + 1),
-          speed: (random.nextDouble() * 20 + 10) * (layer + 1),
-          brightness: random.nextDouble() * 0.5 + 0.5,
+          size: (random.nextDouble() * 1.8 + 0.5) * (layer + 1),
+          speed: (random.nextDouble() * 25 + 15) * (layer + 1),
+          brightness: random.nextDouble() * 0.6 + 0.4,
         ));
       }
     }
   }
 
   void _spawnNextGateSet(Size screenSize) {
+    _choiceMadeForCurrentSet = false;
     currentProblem = MathProblem.random(widget.grade);
     final random = math.Random();
     
-    final numPaths = random.nextInt(2) + 2;
-    
+    // 🔧 FIXED: Create a new, modifiable list from the const list before shuffling.
+    final mutablePalettes = List.of(gateColorPalettes);
+    mutablePalettes.shuffle();
+    final colors = mutablePalettes.first;
+
+    final numPaths = random.nextInt(2) + 2; 
     final answers = currentProblem!.generateMultipleChoiceOptions(optionsCount: numPaths);
     
     laneCenters.clear();
     
     if (numPaths == 2) {
-      _spawnTwoGates(screenSize, answers);
+      _spawnTwoGates(screenSize, answers, colors);
     } else {
-      _spawnThreeGates(screenSize, answers);
+      _spawnThreeGates(screenSize, answers, colors);
     }
   }
 
-  void _spawnTwoGates(Size screenSize, List<int> answers) {
+  void _spawnTwoGates(Size screenSize, List<int> answers, List<Color> colors) {
+      final random = math.Random();
       final gateHeight = screenSize.height * 0.4;
       final verticalGap = screenSize.height * 0.2;
       final topGateY = (screenSize.height / 2) - (verticalGap / 2) - (gateHeight / 2);
@@ -168,24 +198,30 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
 
       laneCenters.add(Offset(spaceship.position.dx, topGateY));
       laneCenters.add(Offset(spaceship.position.dx, bottomGateY));
+      
+      // 🔧 FIXED: Create a mutable copy of the color list before shuffling.
+      final shuffledColors = List.of(colors)..shuffle();
 
       for(int i = 0; i < answers.length; i++) {
         final yPos = i == 0 ? topGateY : bottomGateY;
         gameObjects.add(Gate(
-          position: Offset(screenSize.width + 100, yPos),
+          position: Offset(screenSize.width + 150, yPos),
           answer: answers[i],
           isCorrect: answers[i] == currentProblem!.answer,
-          size: Size(120, gateHeight),
+          size: Size(130, gateHeight),
+          color: shuffledColors[i],
         ));
       }
       
-      for (int i=0; i < 5; i++) {
-        final yPos = (screenSize.height / 2) + (i - 2) * 25.0;
-        gameObjects.add(Asteroid(position: Offset(screenSize.width + 100, yPos), sizeValue: 20.0));
+      for (int i=0; i < 8; i++) {
+        final yPos = (screenSize.height / 2) + (random.nextDouble() - 0.5) * 60;
+        final xOffset = 100 + random.nextDouble() * 80;
+        gameObjects.add(Asteroid(position: Offset(screenSize.width + xOffset, yPos), sizeValue: 20.0 + random.nextDouble() * 5));
       }
   }
 
-  void _spawnThreeGates(Size screenSize, List<int> answers) {
+  void _spawnThreeGates(Size screenSize, List<int> answers, List<Color> colors) {
+      final random = math.Random();
       final gateHeight = screenSize.height * 0.25;
       final topGateY = screenSize.height * 0.25;
       final middleGateY = screenSize.height * 0.5;
@@ -196,34 +232,58 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       laneCenters.add(Offset(spaceship.position.dx, bottomGateY));
 
       final yPositions = [topGateY, middleGateY, bottomGateY];
+      // This line creates a new list via .toList(), so it's safe to shuffle.
+      final shuffledColors = (gateColorPalettes.expand((p) => p).toList()..shuffle());
+
       for(int i = 0; i < answers.length; i++) {
         gameObjects.add(Gate(
-          position: Offset(screenSize.width + 100, yPositions[i]),
+          position: Offset(screenSize.width + 150, yPositions[i]),
           answer: answers[i],
           isCorrect: answers[i] == currentProblem!.answer,
-          size: Size(120, gateHeight),
+          size: Size(130, gateHeight),
+          color: shuffledColors[i],
         ));
       }
 
       final barrierY1 = (topGateY + middleGateY) / 2;
       final barrierY2 = (middleGateY + bottomGateY) / 2;
-      for (int i=0; i < 4; i++) {
-        gameObjects.add(Asteroid(position: Offset(screenSize.width + 100, barrierY1 + (i-1.5)*20), sizeValue: 15.0));
-        gameObjects.add(Asteroid(position: Offset(screenSize.width + 100, barrierY2 + (i-1.5)*20), sizeValue: 15.0));
+      for (int i=0; i < 6; i++) {
+        gameObjects.add(Asteroid(position: Offset(screenSize.width + 100 + random.nextDouble() * 80, barrierY1 + (random.nextDouble() - 0.5) * 50), sizeValue: 15.0));
+        gameObjects.add(Asteroid(position: Offset(screenSize.width + 100 + random.nextDouble() * 80, barrierY2 + (random.nextDouble() - 0.5) * 50), sizeValue: 15.0));
       }
   }
 
   void _updateGame() {
     if (!gameActive) return;
 
-    final dt = 0.016;
+    final dt = 0.016; 
     final screenSize = MediaQuery.of(context).size;
     final random = math.Random();
+
+    if (_screenShakeController.isAnimating) {
+        final progress = 1 - _screenShakeController.value;
+        screenShakeOffset = Offset(
+            (random.nextDouble() - 0.5) * 12 * progress,
+            (random.nextDouble() - 0.5) * 12 * progress
+        );
+    } else {
+        screenShakeOffset = Offset.zero;
+    }
+    
+    if (_temporarySpeedBoost > 1.0) {
+        setState(() {
+            _temporarySpeedBoost *= 0.95; 
+        });
+    } else {
+        _temporarySpeedBoost = 0.0;
+    }
+
+    final effectiveGameSpeed = gameSpeed + _temporarySpeedBoost;
 
     setState(() {
       for (var layer in backgroundStars) {
         for (var star in layer) {
-          star.position = Offset(star.position.dx - (star.speed + gameSpeed * 0.05) * dt, star.position.dy);
+          star.position = Offset(star.position.dx - (star.speed + effectiveGameSpeed * 0.08) * dt, star.position.dy);
           if (star.position.dx < -10) {
             star.position = Offset(screenSize.width + 10, random.nextDouble() * screenSize.height);
           }
@@ -235,26 +295,28 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
 
       bool shouldSpawnNext = false;
       gameObjects.removeWhere((obj) {
-        obj.update(dt, gameSpeed);
+        obj.update(dt, effectiveGameSpeed);
 
-        if (obj is Gate) {
-          if (obj.collisionRect.overlaps(spaceship.collisionRect)) {
-            _handleGateCollision(obj);
-            shouldSpawnNext = true;
-            return true;
-          }
-        } else if (obj is Asteroid) {
-            if (obj.collisionRect.overlaps(spaceship.collisionRect)) {
-              _handleObstacleCollision();
-              return true;
+        if (obj.position.dx > spaceship.position.dx - 50 && obj.position.dx < spaceship.position.dx + 50) {
+            if (obj is Gate) {
+              if (obj.collisionRect.overlaps(spaceship.collisionRect)) {
+                _handleGateCollision(obj);
+                shouldSpawnNext = true;
+                return true;
+              }
+            } else if (obj is Asteroid) {
+                if (obj.collisionRect.overlaps(spaceship.collisionRect)) {
+                  _handleObstacleCollision(obj);
+                  return true;
+                }
             }
         }
 
-        if (obj is Gate && obj.position.dx < spaceship.position.dx - 100) {
+        if (obj is Gate && obj.position.dx < spaceship.position.dx - 150) {
             shouldSpawnNext = true;
         }
 
-        return obj.position.dx < -150;
+        return obj.position.dx < -200;
       });
       
       if (shouldSpawnNext) {
@@ -281,6 +343,16 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       
       effects.add(FloatingScore(position: gate.position, text: '+$scoreToAdd'));
       _addGateEntryWarpEffect();
+      
+      if (comboCounter > 1 && comboCounter % 4 == 0) {
+        setState(() => gameSpeed += 8);
+        effects.add(FloatingScore(
+          position: Offset(MediaQuery.of(context).size.width / 2, 160),
+          text: S.of(context)!.fast.toUpperCase(),
+          color: Colors.purpleAccent,
+          fontSize: 32,
+        ));
+      }
     } else {
       lives--;
       comboCounter = 0;
@@ -288,14 +360,19 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     }
   }
 
-  void _handleObstacleCollision() {
+  void _handleObstacleCollision(Asteroid asteroid) {
       lives--;
       comboCounter = 0;
       _addDamageEffect();
+      for (int i = 0; i < 15; i++) {
+        effects.add(ParticleEffect.explosionParticle(asteroid.position));
+      }
   }
   
   void _addGateEntryWarpEffect() {
-      for (int i=0; i < 30; i++) {
+      final screenSize = MediaQuery.of(context).size;
+      effects.add(WarpLinesEffect(screenSize: screenSize));
+      for (int i=0; i < 40; i++) {
           effects.add(ParticleEffect.successParticle(spaceship.position));
       }
   }
@@ -303,6 +380,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   void _addDamageEffect() {
     if (spaceship.isInvincible) return;
     spaceship.damage();
+    _screenShakeController.forward(from: 0.0);
     for (int i = 0; i < 25; i++) {
         effects.add(ParticleEffect.explosionParticle(spaceship.position));
     }
@@ -310,6 +388,88 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   
   void _addThrusterEffects() {
       effects.add(ParticleEffect.thrusterParticle(spaceship.position));
+  }
+
+  void _triggerEarlyBirdBoost(Gate targetGate) {
+      final screenSize = MediaQuery.of(context).size;
+      double bonusMultiplier = ((targetGate.position.dx - spaceship.position.dx) / (screenSize.width - spaceship.position.dx)).clamp(0.0, 1.0);
+      
+      if (bonusMultiplier < 0.1) return;
+
+      final int bonusPoints = (40 * bonusMultiplier).toInt() + 10;
+      context.read<GameProvider>().addScore(bonusPoints);
+      
+      setState(() {
+        _temporarySpeedBoost = 150.0 * bonusMultiplier;
+      });
+
+      effects.add(FloatingScore(
+          position: Offset(targetGate.position.dx, targetGate.position.dy - 50),
+          text: '+${bonusPoints} FAST!',
+          color: Colors.amber,
+          fontSize: 28,
+      ));
+  }
+
+  void _processPlayerInput(double targetY) {
+    if (_choiceMadeForCurrentSet) return;
+    
+    final gates = gameObjects.whereType<Gate>();
+    if (gates.isEmpty) return;
+    
+    Gate targetGate = gates.reduce((a, b) => (a.position.dy - targetY).abs() < (b.position.dy - targetY).abs() ? a : b);
+
+    if (targetGate.isCorrect) {
+      _triggerEarlyBirdBoost(targetGate);
+    }
+    
+    setState(() {
+      _choiceMadeForCurrentSet = true;
+    });
+    spaceship.moveTo(targetY);
+  }
+  
+  void _handleKeyboard(KeyEvent event) {
+      if (event is KeyDownEvent && laneCenters.isNotEmpty) {
+          int currentLane = -1;
+          double minDistance = double.infinity;
+          for (int i=0; i < laneCenters.length; i++) {
+              final dist = (spaceship.targetY - laneCenters[i].dy).abs();
+              if (dist < minDistance) {
+                  minDistance = dist;
+                  currentLane = i;
+              }
+          }
+          
+          double? targetY;
+          if (event.logicalKey == LogicalKeyboardKey.keyW || event.logicalKey == LogicalKeyboardKey.arrowUp) {
+              if (currentLane > 0) targetY = laneCenters[currentLane - 1].dy;
+          } else if (event.logicalKey == LogicalKeyboardKey.keyS || event.logicalKey == LogicalKeyboardKey.arrowDown) {
+              if (currentLane < laneCenters.length - 1) targetY = laneCenters[currentLane + 1].dy;
+          } else if (event.logicalKey == LogicalKeyboardKey.space && laneCenters.length == 3) {
+              targetY = laneCenters[1].dy;
+          }
+
+          if (targetY != null) {
+            _processPlayerInput(targetY);
+          }
+      }
+  }
+
+  void _handleScreenInteraction(Offset localPosition) {
+    if (!gameActive || laneCenters.isEmpty) return;
+
+    double closestY = laneCenters.first.dy;
+    double minDistance = (localPosition.dy - closestY).abs();
+
+    for (final lane in laneCenters) {
+        final dist = (localPosition.dy - lane.dy).abs();
+        if (dist < minDistance) {
+            minDistance = dist;
+            closestY = lane.dy;
+        }
+    }
+    _processPlayerInput(closestY);
   }
   
   void _winGame() {
@@ -332,39 +492,6 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     _initializeGame(screenSize);
   }
 
-  void _handleKeyboard(KeyEvent event) {
-      if (event is KeyDownEvent && laneCenters.isNotEmpty) {
-          if (event.logicalKey == LogicalKeyboardKey.keyW || event.logicalKey == LogicalKeyboardKey.arrowUp) {
-              spaceship.moveTo(laneCenters.first.dy);
-          } else if (event.logicalKey == LogicalKeyboardKey.keyS || event.logicalKey == LogicalKeyboardKey.arrowDown) {
-              spaceship.moveTo(laneCenters.last.dy);
-          } else if (event.logicalKey == LogicalKeyboardKey.space && laneCenters.length == 3) {
-              spaceship.moveTo(laneCenters[1].dy);
-          }
-      }
-  }
-
-  void _handleScreenInteraction(Offset localPosition) {
-    if (!gameActive || laneCenters.isEmpty) return;
-    final screenSize = MediaQuery.of(context).size;
-
-    if (laneCenters.length == 2) {
-      if (localPosition.dy < screenSize.height / 2) {
-        spaceship.moveTo(laneCenters.first.dy);
-      } else {
-        spaceship.moveTo(laneCenters.last.dy);
-      }
-    } else if (laneCenters.length == 3) {
-      if (localPosition.dy < screenSize.height / 3) {
-        spaceship.moveTo(laneCenters[0].dy);
-      } else if (localPosition.dy < screenSize.height * 2 / 3) {
-        spaceship.moveTo(laneCenters[1].dy);
-      } else {
-        spaceship.moveTo(laneCenters[2].dy);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (!gameInitialized) {
@@ -378,22 +505,32 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
         child: GestureDetector(
           onTapDown: (details) => _handleScreenInteraction(details.localPosition),
           onVerticalDragUpdate: (details) => _handleScreenInteraction(details.localPosition),
-          child: Container(
-            color: const Color(0xFF000510),
-            child: Stack(
-              children: [
-                ..._buildBackground(),
-                ...gameObjects.map((obj) => obj.build()),
-                ...effects.map((e) => e.build()),
-                Positioned(
-                  left: spaceship.position.dx - spaceship.sizeValue,
-                  top: spaceship.position.dy - spaceship.sizeValue,
-                  child: SpaceshipWidget(spaceship: spaceship, thrusterAnimation: _thrusterController),
-                ),
-                _buildGameHeader(),
-                _buildProblemDisplay(),
-                if (comboCounter > 1) _buildComboDisplay(),
-              ],
+          child: Transform.translate(
+            offset: screenShakeOffset,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.center,
+                  radius: 1.0,
+                  colors: [Color(0xFF0A0A2A), Color(0xFF000510)],
+                )
+              ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ..._buildBackground(),
+                  ...gameObjects.map((obj) => obj.build()),
+                  ...effects.map((e) => e.build()),
+                  Positioned(
+                    left: spaceship.position.dx - spaceship.sizeValue,
+                    top: spaceship.position.dy - spaceship.sizeValue,
+                    child: SpaceshipWidget(spaceship: spaceship, thrusterAnimation: _thrusterController),
+                  ),
+                  _buildGameHeader(),
+                  _buildProblemDisplay(),
+                  if (comboCounter > 1) _buildComboDisplay(),
+                ],
+              ),
             ),
           ),
         ),
@@ -408,7 +545,13 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       child: Container(
         width: star.size,
         height: star.size,
-        decoration: BoxDecoration(color: Colors.white.withOpacity(star.brightness), shape: BoxShape.circle),
+        decoration: BoxDecoration(
+            color: Colors.white.withOpacity(star.brightness), 
+            shape: BoxShape.circle,
+            boxShadow: [
+                BoxShadow(color: Colors.white.withOpacity(star.brightness * 0.5), blurRadius: star.size * 2)
+            ]
+        ),
       ),
     ))).toList();
   }
@@ -421,7 +564,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       child: SafeArea(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: Colors.black.withOpacity(0.4),
+          color: Colors.black.withOpacity(0.5),
           child: Row(
             children: [
               IconButton(
@@ -434,14 +577,15 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
               Expanded(
                 child: Text(
                   titleText, 
-                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 1.2),
                   textAlign: TextAlign.center,
                 ),
               ),
               Row(
                 children: List.generate(INITIAL_LIVES, (index) => Icon(
                   index < lives ? Icons.favorite : Icons.favorite_border,
-                  color: Colors.redAccent, size: 28,
+                  color: Colors.redAccent.shade100, size: 30,
+                  shadows: [Shadow(color: Colors.redAccent.shade100, blurRadius: index < lives ? 6 : 0)],
                 )),
               ),
             ],
@@ -454,37 +598,42 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   Widget _buildProblemDisplay() {
     if (currentProblem == null) return const SizedBox.shrink();
     final l10n = S.of(context)!;
-    return Positioned(
-      top: 80, left: 20, right: 20,
-      child: Center(
-        child: IgnorePointer(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.7),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.yellow.withOpacity(0.8), width: 2),
-            ),
-            child: RichText(
-              text: TextSpan(
-                style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
-                children: [
-                  TextSpan(text: '${l10n.solve} ', style: const TextStyle(color: Colors.yellow)),
-                  TextSpan(text: currentProblem!.expression),
-                ]
+    return AnimatedBuilder(
+        animation: _problemGlowController,
+        builder: (context, child) {
+            final glow = _problemGlowController.value * 0.5 + 0.5;
+            return Positioned(
+              top: 80, left: 20, right: 20,
+              child: Center(
+                child: IgnorePointer(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.75),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.yellow.withOpacity(glow), width: 2.5),
+                      boxShadow: [
+                        BoxShadow(color: Colors.yellow.withOpacity(glow * 0.6), blurRadius: 18, spreadRadius: 3),
+                      ]
+                    ),
+                    child: RichText(
+                      text: TextSpan(
+                        style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
+                        children: [
+                          TextSpan(text: '${l10n.solve} ', style: TextStyle(color: Colors.yellow.shade300)),
+                          TextSpan(text: currentProblem!.expression, style: const TextStyle(color: Colors.white)),
+                        ]
+                      ),
+                    )
+                  ),
+                ),
               ),
-            )
-          ),
-        ),
-      ),
+            );
+        },
     );
   }
   
   Widget _buildComboDisplay() {
-    // FIX: Using a fallback string because the 'combo' key is not in the provided .arb files.
-    // If you add a "combo" key to your intl_en.arb and intl_de.arb, you can replace this.
-    // Example: "combo": "Combo",
-    // Then you could use: final comboText = S.of(context)!.combo;
     const comboText = 'COMBO';
 
     return Positioned(
@@ -495,12 +644,12 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
         child: Text(
           '$comboText x$comboCounter',
           style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
+            fontSize: 36,
+            fontWeight: FontWeight.w900,
             color: Colors.orangeAccent,
             shadows: [
-              Shadow(blurRadius: 15, color: Colors.orangeAccent.withOpacity(0.8)),
-              const Shadow(blurRadius: 5, color: Colors.white, offset: Offset(0,0)),
+              Shadow(blurRadius: 20, color: Colors.orangeAccent.withOpacity(0.9)),
+              const Shadow(blurRadius: 8, color: Colors.white, offset: Offset(0,0)),
             ]
           ),
         ),
@@ -512,17 +661,17 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     final l10n = S.of(context)!;
     return AlertDialog(
       backgroundColor: const Color(0xFF1A1A3E),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0), side: BorderSide(color: isWin ? Colors.greenAccent : Colors.redAccent, width: 2)),
-      title: Text(isWin ? l10n.hyperdriveGatesWinTitle : l10n.hyperdriveGatesLoseTitle, style: const TextStyle(color: Colors.white)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0), side: BorderSide(color: isWin ? Colors.cyanAccent : Colors.redAccent, width: 3)),
+      title: Text(isWin ? l10n.hyperdriveGatesWinTitle : l10n.hyperdriveGatesLoseTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       content: Text(
         isWin ? l10n.hyperdriveGatesWinDesc(targetGatesForLevel) : l10n.hyperdriveGatesLoseDesc,
-        style: const TextStyle(color: Colors.white70),
+        style: const TextStyle(color: Colors.white70, fontSize: 16),
         textAlign: TextAlign.center,
       ),
       actions: <Widget>[
-        TextButton(child: Text(l10n.flyAgain), onPressed: _resetGame),
+        TextButton(child: Text(l10n.flyAgain, style: const TextStyle(color: Colors.white, fontSize: 16)), onPressed: _resetGame),
         TextButton(
-          child: Text(l10n.backToMenu),
+          child: Text(l10n.backToMenu, style: const TextStyle(color: Colors.white, fontSize: 16)),
           onPressed: () {
             Navigator.of(context).pop();
             Navigator.of(context).pop();
@@ -561,7 +710,7 @@ class Spaceship {
       : position = initialPosition,
         targetY = initialPosition.dy;
   
-  Rect get collisionRect => Rect.fromCenter(center: position, width: sizeValue * 1.5, height: sizeValue * 1.5);
+  Rect get collisionRect => Rect.fromCenter(center: position, width: sizeValue * 1.2, height: sizeValue * 1.2);
   bool get isInvincible => damageCooldown > 0;
 
   void reset(Size screenSize) {
@@ -576,7 +725,7 @@ class Spaceship {
     if ((position.dy - targetY).abs() > 1.0) {
       position = Offset(
         position.dx,
-        ui.lerpDouble(position.dy, targetY, 0.15)!,
+        ui.lerpDouble(position.dy, targetY, 0.25)!,
       );
       isMoving = true;
     } else {
@@ -597,12 +746,13 @@ class Spaceship {
 class Gate extends GameObject {
   final int answer;
   final bool isCorrect;
+  final Color color;
   Size size;
 
-  Gate({required Offset position, required this.answer, required this.isCorrect, required this.size})
+  Gate({required Offset position, required this.answer, required this.isCorrect, required this.size, required this.color})
       : super(position: position);
   
-  Rect get collisionRect => Rect.fromCenter(center: position, width: size.width, height: size.height);
+  Rect get collisionRect => Rect.fromCenter(center: position, width: size.width * 0.8, height: size.height * 0.8);
 
   @override
   void update(double dt, double gameSpeed) {
@@ -611,7 +761,8 @@ class Gate extends GameObject {
 
   @override
   Widget build() {
-    final color = isCorrect ? Colors.cyanAccent : Colors.redAccent;
+    final gradient = [color.withOpacity(0.1), color.withOpacity(0.4)];
+
     return Positioned(
       left: position.dx - size.width / 2,
       top: position.dy - size.height / 2,
@@ -620,16 +771,20 @@ class Gate extends GameObject {
         height: size.height,
         decoration: BoxDecoration(
           border: Border.all(color: color, width: 4),
-          borderRadius: BorderRadius.circular(15),
-          color: color.withOpacity(0.1),
-          boxShadow: [BoxShadow(color: color, blurRadius: 20, spreadRadius: 2)],
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+              colors: gradient,
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight
+          ),
+          boxShadow: [BoxShadow(color: color, blurRadius: 25, spreadRadius: 4)],
         ),
         child: Center(
           child: Text(
             answer.toString(),
             style: TextStyle(
-              color: Colors.white, fontSize: 48, fontWeight: FontWeight.bold,
-              shadows: [Shadow(color: color, blurRadius: 10)]
+              color: Colors.white, fontSize: 52, fontWeight: FontWeight.bold,
+              shadows: [Shadow(color: color, blurRadius: 15)]
             ),
           ),
         ),
@@ -642,17 +797,39 @@ class Asteroid extends GameObject {
   double rotation;
   final double rotationSpeed;
   final double sizeValue;
+  final Path shape;
 
   Asteroid({required Offset position, required this.sizeValue})
       : rotation = math.Random().nextDouble() * math.pi * 2,
-        rotationSpeed = (math.Random().nextDouble() - 0.5) * 2.0,
+        rotationSpeed = (math.Random().nextDouble() - 0.5) * 2.5,
+        shape = _createAsteroidShape(sizeValue),
         super(position: position);
   
-  Rect get collisionRect => Rect.fromCenter(center: position, width: sizeValue * 1.8, height: sizeValue * 1.8);
+  static Path _createAsteroidShape(double size) {
+    final random = math.Random();
+    final path = Path();
+    final points = random.nextInt(4) + 5;
+    final angleStep = (math.pi * 2) / points;
+    
+    path.moveTo(
+        size + math.cos(0) * (size + (random.nextDouble() - 0.5) * size * 0.4),
+        size + math.sin(0) * (size + (random.nextDouble() - 0.5) * size * 0.4)
+    );
+
+    for (int i = 1; i <= points; i++) {
+        final angle = angleStep * i;
+        final radius = size + (random.nextDouble() - 0.5) * size * 0.4;
+        path.lineTo(size + math.cos(angle) * radius, size + math.sin(angle) * radius);
+    }
+    path.close();
+    return path;
+  }
+
+  Rect get collisionRect => Rect.fromCenter(center: position, width: sizeValue * 1.5, height: sizeValue * 1.5);
 
   @override
   void update(double dt, double gameSpeed) {
-    position = Offset(position.dx - gameSpeed * dt, position.dy);
+    position = Offset(position.dx - gameSpeed * 0.9 * dt, position.dy);
     rotation += rotationSpeed * dt;
   }
 
@@ -663,10 +840,37 @@ class Asteroid extends GameObject {
       top: position.dy - sizeValue,
       child: Transform.rotate(
         angle: rotation,
-        child: Icon(Icons.stop_circle, color: const Color(0xFF8B4513), size: sizeValue * 2),
+        child: CustomPaint(
+            size: Size(sizeValue * 2, sizeValue * 2),
+            painter: AsteroidPainter(shape: shape),
+        )
       ),
     );
   }
+}
+
+class AsteroidPainter extends CustomPainter {
+    final Path shape;
+    final Paint fillPaint = Paint()
+        ..shader = ui.Gradient.linear(
+            const Offset(0, 0), const Offset(40, 40),
+            [const Color(0xFF6E5B4B), const Color(0xFF4A3C31)]
+        );
+    final Paint borderPaint = Paint()
+        ..color = const Color(0xFF3B2F26)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.0;
+        
+    AsteroidPainter({required this.shape});
+
+    @override
+    void paint(Canvas canvas, Size size) {
+        canvas.drawPath(shape, fillPaint);
+        canvas.drawPath(shape, borderPaint);
+    }
+    
+    @override
+    bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class ParticleEffect extends Effect {
@@ -685,35 +889,37 @@ class ParticleEffect extends Effect {
     factory ParticleEffect.thrusterParticle(Offset shipPosition) {
         final random = math.Random();
         return ParticleEffect(
-            position: Offset(shipPosition.dx - 25, shipPosition.dy + (random.nextDouble() - 0.5) * 20),
-            velocity: Offset(-300 - random.nextDouble() * 100, (random.nextDouble() - 0.5) * 50),
+            position: Offset(shipPosition.dx - 35, shipPosition.dy + (random.nextDouble() - 0.5) * 20),
+            velocity: Offset(-400 - random.nextDouble() * 150, (random.nextDouble() - 0.5) * 60),
             color: Color.lerp(Colors.orangeAccent, Colors.white, random.nextDouble())!,
             life: 0.3 + random.nextDouble() * 0.2,
-            size: 1.5 + random.nextDouble() * 2.0,
+            size: 2.0 + random.nextDouble() * 2.5,
         );
     }
 
     factory ParticleEffect.explosionParticle(Offset position) {
         final random = math.Random();
+        final angle = random.nextDouble() * math.pi * 2;
+        final speed = 100 + random.nextDouble() * 350;
         return ParticleEffect(
             position: position,
-            velocity: Offset((random.nextDouble() - 0.5) * 400, (random.nextDouble() - 0.5) * 400),
+            velocity: Offset(math.cos(angle) * speed, math.sin(angle) * speed),
             color: Color.lerp(Colors.orange, Colors.red, random.nextDouble())!,
-            life: 0.5 + random.nextDouble() * 0.4,
-            size: 2.0 + random.nextDouble() * 3.0,
+            life: 0.6 + random.nextDouble() * 0.5,
+            size: 2.5 + random.nextDouble() * 3.5,
         );
     }
 
     factory ParticleEffect.successParticle(Offset position) {
         final random = math.Random();
-        final angle = (random.nextDouble() - 0.5) * 0.5;
-        final speed = 400 + random.nextDouble() * 200;
+        final angle = (random.nextDouble() - 0.5) * 0.6;
+        final speed = 500 + random.nextDouble() * 300;
         return ParticleEffect(
             position: position,
             velocity: Offset(math.cos(angle) * speed, math.sin(angle) * speed),
             color: Color.lerp(Colors.cyanAccent, Colors.white, random.nextDouble())!,
-            life: 0.5 + random.nextDouble() * 0.4,
-            size: 2.0 + random.nextDouble() * 3.0,
+            life: 0.6 + random.nextDouble() * 0.5,
+            size: 2.5 + random.nextDouble() * 3.0,
         );
     }
     
@@ -721,7 +927,7 @@ class ParticleEffect extends Effect {
     void update(double dt) {
         position += velocity * dt;
         life -= dt;
-        velocity *= 0.96;
+        velocity *= 0.95;
     }
     
     @override
@@ -732,7 +938,7 @@ class ParticleEffect extends Effect {
             child: Container(
                 width: size, height: size,
                 decoration: BoxDecoration(color: color.withOpacity(opacity), shape: BoxShape.circle, boxShadow: [
-                  BoxShadow(color: color.withOpacity(opacity * 0.5), blurRadius: size * 1.5)
+                  BoxShadow(color: color.withOpacity(opacity * 0.6), blurRadius: size * 2)
                 ]),
             ),
         );
@@ -742,21 +948,24 @@ class ParticleEffect extends Effect {
 class FloatingScore extends Effect {
   Offset position;
   final String text;
+  final Color color;
+  final double fontSize;
   double _progress = 0.0;
   final double _duration = 1.5;
   
   @override
   bool get isComplete => _progress >= 1.0;
   
-  FloatingScore({required this.position, required this.text});
+  FloatingScore({required this.position, required this.text, this.color = Colors.greenAccent, this.fontSize = 24});
   
   @override
   void update(double dt) => _progress += dt / _duration;
 
   @override
   Widget build() {
-    final currentPosition = position - Offset(0, 60 * _progress);
-    final opacity = (1.0 - _progress).clamp(0.0, 1.0);
+    final clampedProgress = _progress.clamp(0.0, 1.0);
+    final currentPosition = position - Offset(0, 80 * Curves.easeOut.transform(clampedProgress));
+    final opacity = (1.0 - clampedProgress).clamp(0.0, 1.0);
     
     return Positioned(
       left: currentPosition.dx,
@@ -764,15 +973,66 @@ class FloatingScore extends Effect {
       child: Text(
         text,
         style: TextStyle(
-          color: Colors.greenAccent.withOpacity(opacity),
-          fontSize: 24,
+          color: color.withOpacity(opacity),
+          fontSize: fontSize,
           fontWeight: FontWeight.bold,
-          shadows: [Shadow(blurRadius: 4, color: Colors.black.withOpacity(opacity * 0.7))],
+          shadows: [Shadow(blurRadius: 5, color: Colors.black.withOpacity(opacity * 0.8))],
         ),
       ),
     );
   }
 }
+
+class WarpLinesEffect extends Effect {
+    final Size screenSize;
+    double progress = 0.0;
+    
+    WarpLinesEffect({required this.screenSize});
+    
+    @override
+    bool get isComplete => progress >= 1.0;
+    
+    @override
+    void update(double dt) => progress += dt / 0.5;
+    
+    @override
+    Widget build() => CustomPaint(
+        size: screenSize,
+        painter: WarpLinesPainter(progress: progress),
+    );
+}
+
+class WarpLinesPainter extends CustomPainter {
+    final double progress;
+    final Paint linePaint = Paint()..strokeWidth = 2.5;
+    final int lineCount = 40;
+
+    WarpLinesPainter({required this.progress});
+    
+    @override
+    void paint(Canvas canvas, Size size) {
+        final clampedProgress = progress.clamp(0.0, 1.0);
+        final center = Offset(size.width * 0.2, size.height / 2);
+        final random = math.Random(1);
+        final opacity = (1.0 - Curves.easeIn.transform(clampedProgress)).clamp(0.0, 1.0);
+
+        for (int i=0; i < lineCount; i++) {
+            final angle = random.nextDouble() * math.pi * 2;
+            final startRadius = size.width * 0.8 * Curves.easeOut.transform(clampedProgress);
+            final endRadius = startRadius + (200 + random.nextDouble() * 200);
+
+            final startPoint = center + Offset(math.cos(angle), math.sin(angle)) * startRadius;
+            final endPoint = center + Offset(math.cos(angle), math.sin(angle)) * endRadius;
+            
+            linePaint.color = Colors.cyanAccent.withOpacity(opacity * (random.nextDouble() * 0.5 + 0.5));
+            canvas.drawLine(startPoint, endPoint, linePaint);
+        }
+    }
+    
+    @override
+    bool shouldRepaint(WarpLinesPainter oldDelegate) => oldDelegate.progress != progress;
+}
+
 
 class SpaceshipWidget extends StatelessWidget {
     final Spaceship spaceship;
@@ -785,12 +1045,12 @@ class SpaceshipWidget extends StatelessWidget {
       return AnimatedBuilder(
         animation: thrusterAnimation,
         builder: (context, child) {
-          final isDamaged = spaceship.isInvincible && (spaceship.damageCooldown * 10).floor() % 2 == 0;
+          final isDamaged = spaceship.isInvincible && (spaceship.damageCooldown * 12).floor() % 2 == 0;
           return Opacity(
             opacity: isDamaged ? 0.3 : 1.0,
             child: SizedBox(
-              width: spaceship.sizeValue * 2,
-              height: spaceship.sizeValue * 2,
+              width: spaceship.sizeValue * 2.5,
+              height: spaceship.sizeValue * 2.5,
               child: CustomPaint(
                 painter: SpaceshipPainter(
                   thrusting: spaceship.isMoving,
@@ -812,29 +1072,40 @@ class SpaceshipPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.grey.shade300..style = PaintingStyle.fill;
+    final bodyPaint = Paint()
+      ..shader = ui.Gradient.linear(
+          Offset(size.width * 0.5, 0),
+          Offset(size.width * 0.5, size.height),
+          [Colors.grey.shade300, Colors.grey.shade600],
+      )
+      ..style = PaintingStyle.fill;
     
-    final path = Path()
+    final bodyPath = Path()
       ..moveTo(size.width, size.height * 0.5)
-      ..lineTo(size.width * 0.2, size.height * 0.1)
-      ..lineTo(0, size.height * 0.3)
-      ..lineTo(0, size.height * 0.7)
-      ..lineTo(size.width * 0.2, size.height * 0.9)
+      ..cubicTo(size.width * 0.8, size.height * 0.3, size.width * 0.3, size.height * 0.1, 0, size.height * 0.2)
+      ..lineTo(0, size.height * 0.8)
+      ..cubicTo(size.width * 0.3, size.height * 0.9, size.width * 0.8, size.height * 0.7, size.width, size.height * 0.5)
       ..close();
-    canvas.drawPath(path, paint);
+    canvas.drawPath(bodyPath, bodyPaint);
     
-    final cockpitPaint = Paint()..color = Colors.lightBlue.shade200;
-    canvas.drawOval(Rect.fromCenter(center: Offset(size.width*0.6, size.height*0.5), width: size.width * 0.4, height: size.height*0.5), cockpitPaint);
+    final cockpitPaint = Paint()
+      ..shader = ui.Gradient.radial(
+          Offset(size.width * 0.7, size.height * 0.5), size.width * 0.2,
+          [Colors.lightBlue.shade100, Colors.lightBlue.shade400],
+      );
+    canvas.drawOval(Rect.fromCenter(center: Offset(size.width * 0.7, size.height * 0.5), width: size.width * 0.4, height: size.height * 0.4), cockpitPaint);
 
     if (thrusting) {
-      final thrusterPaint = Paint()..color = Color.lerp(Colors.orangeAccent, Colors.white, thrusterFlicker)!..style = PaintingStyle.fill;
-      final flameLength = -15 - thrusterFlicker * 5;
-      final flamePath = Path()
-        ..moveTo(0, size.height * 0.3)
-        ..lineTo(flameLength, size.height * 0.5)
-        ..lineTo(0, size.height * 0.7)
-        ..close();
-      canvas.drawPath(flamePath, thrusterPaint);
+        final length = 25 + thrusterFlicker * 10;
+        final flameRect = Rect.fromCenter(center: Offset(-length/2, size.height/2), width: length, height: size.height * 0.5);
+        final flamePaint = Paint()
+            ..shader = ui.Gradient.radial(
+                Offset(0, size.height / 2),
+                size.height * 0.3,
+                [Colors.white, Colors.orangeAccent.withOpacity(0.8), Colors.transparent],
+                [0.0, 0.4, 1.0]
+            );
+        canvas.drawOval(flameRect, flamePaint);
     }
   }
 
@@ -843,4 +1114,3 @@ class SpaceshipPainter extends CustomPainter {
     return oldDelegate.thrusting != thrusting || oldDelegate.thrusterFlicker != thrusterFlicker;
   }
 }
-
