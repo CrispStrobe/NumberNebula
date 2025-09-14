@@ -453,6 +453,20 @@ class SDe extends S {
   }
 
   @override
+  String planetHoppingWinDescBonus(int bonus) {
+    return 'Du hast erfolgreich alle Planeten in der richtigen Reihenfolge navigiert!\nLebens-Bonus: $bonus Punkte';
+  }
+
+  @override
+  String get planetHoppingLoseDescCrash =>
+      'Du bist zu oft abgestürzt!\nStudiere die Planetenreihenfolge und versuche es erneut.';
+
+  @override
+  String planetHoppingNextTargetValue(int value) {
+    return 'Nächster: $value';
+  }
+
+  @override
   String get exploreAgain => 'Erneut erkunden';
 
   @override

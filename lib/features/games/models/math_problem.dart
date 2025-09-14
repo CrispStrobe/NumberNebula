@@ -1,3 +1,5 @@
+// lib/features/games/models/math_problem.dart:
+
 import 'dart:math' as math;
 import '../constants/app_constants.dart';
 

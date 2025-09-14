@@ -212,49 +212,56 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
 
   Size _calculatePieceSize(BoxConstraints constraints) {
     final boardConstraints = BoxConstraints(
-      maxWidth: constraints.maxWidth * 0.95,
-      maxHeight: constraints.maxHeight * 0.95,
+        maxWidth: constraints.maxWidth * 0.95,
+        maxHeight: constraints.maxHeight * 0.95,
     );
 
-    double pieceWidth = (boardConstraints.maxWidth / columns);
+    // Account for knob extensions when calculating piece size
+    final knobBuffer = 0.3; // 30% extra space for knobs
+    double pieceWidth = (boardConstraints.maxWidth / columns) / (1 + knobBuffer);
     double pieceHeight = pieceWidth;
 
-    if (pieceHeight * rows > boardConstraints.maxHeight) {
-      pieceHeight = (boardConstraints.maxHeight / rows);
-      pieceWidth = pieceHeight;
+    if (pieceHeight * rows > boardConstraints.maxHeight / (1 + knobBuffer)) {
+        pieceHeight = (boardConstraints.maxHeight / rows) / (1 + knobBuffer);
+        pieceWidth = pieceHeight;
     }
+    
     return Size(pieceWidth, pieceHeight);
-  }
+    }
 
   Widget _buildPuzzleBoard(BoxConstraints constraints) {
     final pieceSize = _calculatePieceSize(constraints);
-    final boardWidth = pieceSize.width * columns;
-    final boardHeight = pieceSize.height * rows;
+    final knobBuffer = pieceSize.width * 0.15; // Space for knob extensions
+    
+    final boardWidth = (pieceSize.width * columns) + (knobBuffer * 2);
+    final boardHeight = (pieceSize.height * rows) + (knobBuffer * 2);
 
     return Center(
-      child: Container(
+        child: Container(
         width: boardWidth,
-            height: boardHeight,
-            decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1), // Better visibility
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.8), width: 3),
-            ),
+        height: boardHeight,
+        decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.8), width: 3),
+        ),
         child: Stack(
-          children: List.generate(rows * columns, (index) {
+            clipBehavior: Clip.none, // Allow knobs to extend beyond bounds
+            children: List.generate(rows * columns, (index) {
             final row = index ~/ columns;
             final col = index % columns;
             final slotData = pieces.firstWhere((p) => p.row == row && p.col == col);
             final isPlaced = placedPieces.containsKey(slotData.id);
 
             return Positioned(
-              left: col * pieceSize.width,
-              top: row * pieceSize.height,
-              width: pieceSize.width,
-              height: pieceSize.height,
-              child: DragTarget<int>(
+                // Add knob buffer to positioning
+                left: (col * pieceSize.width) + knobBuffer,
+                top: (row * pieceSize.height) + knobBuffer,
+                width: pieceSize.width,
+                height: pieceSize.height,
+                child: DragTarget<int>(
                 builder: (context, candidateData, rejectedData) {
-                  return PuzzleSlotWidget(
+                    return PuzzleSlotWidget(
                     data: slotData,
                     pieceSize: pieceSize,
                     columns: columns,
@@ -271,31 +278,30 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                             edgeShapes: _edgeShapes,
                             isPlaced: true,
                             onRotate: () {}, // Can't rotate placed pieces
-                          )
+                            )
                         : null,
-                  );
+                    );
                 },
                 onWillAccept: (pieceId) => !isPlaced,
                 onAccept: (pieceId) {
-                  final pieceData = pieces.firstWhere((p) => p.id == pieceId);
-                  if (pieceData.answer == slotData.answer && pieceData.rotation == 0) {
+                    final pieceData = pieces.firstWhere((p) => p.id == pieceId);
+                    if (pieceData.answer == slotData.answer && pieceData.rotation == 0) {
                     setState(() => placedPieces[slotData.id] = pieceId);
                     context.read<GameProvider>().addScore(50);
                     if (placedPieces.length == pieces.length) {
-                      _showWinDialog();
+                        _showWinDialog();
                     }
-                  } else {
-                    // Wrong piece or wrong rotation
+                    } else {
                     _showIncorrectPlacement();
-                  }
+                    }
                 },
-              ),
+                ),
             );
-          }),
+            }),
         ),
-      ),
+        ),
     );
-  }
+    }
 
   Widget _buildPieceTray(BoxConstraints constraints) {
     final pieceSize = _calculatePieceSize(constraints);
@@ -544,6 +550,14 @@ class PuzzlePieceWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate the actual image dimensions that will be displayed
+    final displayWidth = pieceSize.width * columns;
+    final displayHeight = pieceSize.height * rows;
+    
+    // Calculate the position of this piece within the full image
+    final pieceLeft = -(data.col * pieceSize.width);
+    final pieceTop = -(data.row * pieceSize.height);
+
     return GestureDetector(
       onTap: onRotate != null && !isPlaced ? onRotate : null,
       child: Transform.rotate(
@@ -551,38 +565,39 @@ class PuzzlePieceWidget extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           elevation: isPlaced ? 0 : 8,
-          child: ClipPath(
-            clipper: JigsawPieceClipper(
-              data: data,
-              columns: columns,
-              rows: rows,
-              edgeShapes: edgeShapes,
-            ),
-            child: Container(
-              width: pieceSize.width,
-              height: pieceSize.height,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(imagePath),
-                  fit: BoxFit.cover,
-                  alignment: FractionalOffset(
-                    columns <= 1 ? 0.5 : (data.col / (columns - 1)),
-                    rows <= 1 ? 0.5 : (data.row / (rows - 1)),
-                  ),
-                ),
-                // FIX: Add border for better piece definition
-                border: Border.all(
-                  color: isPlaced ? SpaceTheme.alienGreen : Colors.white.withOpacity(0.6),
-                  width: 1,
-                ),
+          child: Container(
+            width: pieceSize.width,
+            height: pieceSize.height,
+            child: ClipPath(
+              clipper: JigsawPieceClipper(
+                data: data,
+                columns: columns,
+                rows: rows,
+                edgeShapes: edgeShapes,
               ),
               child: Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  // FIX: Better contrast overlay
+                  // Positioned image showing only the relevant portion
+                  Positioned(
+                    left: pieceLeft,
+                    top: pieceTop,
+                    width: displayWidth,
+                    height: displayHeight,
+                    child: Image.asset(
+                      imagePath,
+                      width: displayWidth,
+                      height: displayHeight,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  // Dark overlay for better text visibility
                   Container(
+                    width: pieceSize.width,
+                    height: pieceSize.height,
                     color: Colors.black.withOpacity(0.3),
                   ),
-                  // Answer display with better visibility
+                  // Answer display
                   Center(
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -602,7 +617,7 @@ class PuzzlePieceWidget extends StatelessWidget {
                       ),
                       child: Text(
                         data.answer.toString(),
-                        style: SpaceTheme.headlineStyle.copyWith(
+                        style: TextStyle(
                           fontSize: pieceSize.width / 5,
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -636,8 +651,8 @@ class JigsawPieceClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-
-    // Get the shapes for all four sides
+    
+    // Get edge shapes for this piece
     final topShape = data.row == 0 
         ? JigsawSide.flat 
         : edgeShapes['v-${data.row - 1}-${data.col}']!.inverse;
@@ -651,97 +666,105 @@ class JigsawPieceClipper extends CustomClipper<Path> {
         ? JigsawSide.flat 
         : edgeShapes['h-${data.row}-${data.col}']!;
 
-    // Start from top-left corner
+    // Start from top-left, accounting for potential knob extension
+    final knobSize = math.min(size.width, size.height) * 0.15;
+    
     path.moveTo(0, 0);
-
-    // Draw top edge
-    _drawHorizontalSide(path, 0, 0, size.width, 0, topShape, size);
-
-    // Draw right edge
-    _drawVerticalSide(path, size.width, 0, size.width, size.height, rightShape, size);
-
-    // Draw bottom edge
-    _drawHorizontalSide(path, size.width, size.height, 0, size.height, bottomShape.inverse, size);
-
-    // Draw left edge
-    _drawVerticalSide(path, 0, size.height, 0, 0, leftShape.inverse, size);
-
+    
+    // Top edge
+    if (topShape == JigsawSide.flat) {
+      path.lineTo(size.width, 0);
+    } else {
+      _drawTopEdge(path, size, topShape, knobSize);
+    }
+    
+    // Right edge  
+    if (rightShape == JigsawSide.flat) {
+      path.lineTo(size.width, size.height);
+    } else {
+      _drawRightEdge(path, size, rightShape, knobSize);
+    }
+    
+    // Bottom edge
+    if (bottomShape == JigsawSide.flat) {
+      path.lineTo(0, size.height);
+    } else {
+      _drawBottomEdge(path, size, bottomShape, knobSize);
+    }
+    
+    // Left edge
+    if (leftShape == JigsawSide.flat) {
+      path.lineTo(0, 0);
+    } else {
+      _drawLeftEdge(path, size, leftShape, knobSize);
+    }
+    
     path.close();
     return path;
   }
 
-  void _drawHorizontalSide(Path path, double x1, double y1, double x2, double y2, 
-                        JigsawSide side, Size size) {
-    if (side == JigsawSide.flat) {
-        path.lineTo(x2, y2);
-        return;
-    }
-
-    final length = (x2 - x1).abs();
-    final direction = x2 > x1 ? 1 : -1;
-    final knobWidth = length * 0.2; // FIX: Better knob size
-    final knobHeight = size.height * 0.15 * (side == JigsawSide.knob ? -1 : 1);
-
-    // FIX: More pronounced and smoother curves
-    final p1x = x1 + direction * length * 0.35;
-    final p2x = x1 + direction * length * 0.65;
-    final midx = x1 + direction * length * 0.5;
-    final midy = y1 + knobHeight;
-
-    path.lineTo(p1x, y1);
+  void _drawTopEdge(Path path, Size size, JigsawSide shape, double knobSize) {
+    final centerX = size.width * 0.5;
+    final knobExtension = shape == JigsawSide.knob ? -knobSize : knobSize;
     
-    // Create smooth curved knob/hole with quadratic bezier curves
+    path.lineTo(centerX - knobSize * 0.5, 0);
     path.quadraticBezierTo(
-        p1x, y1 + knobHeight * 0.5,
-        midx - knobWidth * 0.5, midy
+      centerX - knobSize * 0.3, knobExtension * 0.5,
+      centerX, knobExtension,
     );
     path.quadraticBezierTo(
-        midx + knobWidth * 0.5, midy,
-        p2x, y1 + knobHeight * 0.5
+      centerX + knobSize * 0.3, knobExtension * 0.5,
+      centerX + knobSize * 0.5, 0,
     );
-    path.quadraticBezierTo(
-        p2x, y1,
-        p2x, y1
-    );
-    
-    path.lineTo(x2, y2);
+    path.lineTo(size.width, 0);
   }
 
-  void _drawVerticalSide(Path path, double x1, double y1, double x2, double y2, 
-                        JigsawSide side, Size size) {
-    if (side == JigsawSide.flat) {
-      path.lineTo(x2, y2);
-      return;
-    }
-
-    final length = (y2 - y1).abs();
-    final direction = y2 > y1 ? 1 : -1;
-    final knobHeight = length * 0.2;
-    final knobWidth = size.width * 0.15 * (side == JigsawSide.knob ? -1 : 1);
-
-    // FIX: Better vertical knob positioning
-    final p1y = y1 + direction * length * 0.35;
-    path.lineTo(x1, p1y);
-
-    // Knob/hole using quadratic bezier curves
-    final p2y = y1 + direction * length * 0.65;
-    final midx = x1 + knobWidth;
-    final midy = y1 + direction * length * 0.5;
-
+  void _drawRightEdge(Path path, Size size, JigsawSide shape, double knobSize) {
+    final centerY = size.height * 0.5;
+    final knobExtension = shape == JigsawSide.knob ? knobSize : -knobSize;
+    
+    path.lineTo(size.width, centerY - knobSize * 0.5);
     path.quadraticBezierTo(
-      x1 + knobWidth * 0.5, p1y,
-      midx, midy - knobHeight * 0.5
+      size.width + knobExtension * 0.5, centerY - knobSize * 0.3,
+      size.width + knobExtension, centerY,
     );
     path.quadraticBezierTo(
-      midx, midy + knobHeight * 0.5,
-      x1 + knobWidth * 0.5, p2y
+      size.width + knobExtension * 0.5, centerY + knobSize * 0.3,
+      size.width, centerY + knobSize * 0.5,
+    );
+    path.lineTo(size.width, size.height);
+  }
+
+  void _drawBottomEdge(Path path, Size size, JigsawSide shape, double knobSize) {
+    final centerX = size.width * 0.5;
+    final knobExtension = shape == JigsawSide.knob ? knobSize : -knobSize;
+    
+    path.lineTo(centerX + knobSize * 0.5, size.height);
+    path.quadraticBezierTo(
+      centerX + knobSize * 0.3, size.height + knobExtension * 0.5,
+      centerX, size.height + knobExtension,
     );
     path.quadraticBezierTo(
-      x1, p2y,
-      x1, p2y
+      centerX - knobSize * 0.3, size.height + knobExtension * 0.5,
+      centerX - knobSize * 0.5, size.height,
     );
+    path.lineTo(0, size.height);
+  }
 
-    path.lineTo(x2, y2);
+  void _drawLeftEdge(Path path, Size size, JigsawSide shape, double knobSize) {
+    final centerY = size.height * 0.5;
+    final knobExtension = shape == JigsawSide.knob ? -knobSize : knobSize;
+    
+    path.lineTo(0, centerY + knobSize * 0.5);
+    path.quadraticBezierTo(
+      knobExtension * 0.5, centerY + knobSize * 0.3,
+      knobExtension, centerY,
+    );
+    path.quadraticBezierTo(
+      knobExtension * 0.5, centerY - knobSize * 0.3,
+      0, centerY - knobSize * 0.5,
+    );
+    path.lineTo(0, 0);
   }
 
   @override

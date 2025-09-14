@@ -168,9 +168,23 @@
     "planetHoppingInstructions": "TAP anywhere to jump toward that location • Use gravity to swing between planets",
     "planetHoppingWinTitle": "Solar System Mastered!",
     "planetHoppingWinDesc": "You successfully navigated all planets in the correct sequence!\nLives Bonus: {bonus} points",
-    "@planetHoppingWinDesc": {
+    "planetHoppingWinDescBonus": "You successfully navigated all planets in the correct sequence!\nLives Bonus: {bonus} points",
+    "@planetHoppingWinDescBonus": {
+        "description": "Win message with bonus points.",
         "placeholders": {
-            "bonus": {}
+            "bonus": {
+                "type": "int"
+            }
+        }
+    },
+    "planetHoppingLoseDescCrash": "You crash-landed too many times!\nStudy the planet sequence and try again.",
+    "planetHoppingNextTargetValue": "Next: {value}",
+    "@planetHoppingNextTargetValue": {
+        "description": "Displays the next numerical target in the sequence.",
+        "placeholders": {
+            "value": {
+                "type": "int"
+            }
         }
     },
     "exploreAgain": "Explore Again",
@@ -232,7 +246,7 @@
     },
     "nextAnomaly": "Next Anomaly",
     "toTheBridge": "To Bridge",
-    "asteroidMathHunter": "Asteroid Math Hunter",
+    "asteroidMathHunter": "Asteroid Hunter",
     "asteroidMathTarget": "Target asteroid: {target}",
     "@asteroidMathTarget": {
         "placeholders": {

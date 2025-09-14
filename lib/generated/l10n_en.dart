@@ -449,6 +449,20 @@ class SEn extends S {
   }
 
   @override
+  String planetHoppingWinDescBonus(int bonus) {
+    return 'You successfully navigated all planets in the correct sequence!\nLives Bonus: $bonus points';
+  }
+
+  @override
+  String get planetHoppingLoseDescCrash =>
+      'You crash-landed too many times!\nStudy the planet sequence and try again.';
+
+  @override
+  String planetHoppingNextTargetValue(int value) {
+    return 'Next: $value';
+  }
+
+  @override
   String get exploreAgain => 'Explore Again';
 
   @override
@@ -569,7 +583,7 @@ class SEn extends S {
   String get toTheBridge => 'To Bridge';
 
   @override
-  String get asteroidMathHunter => 'Asteroid Math Hunter';
+  String get asteroidMathHunter => 'Asteroid Hunter';
 
   @override
   String asteroidMathTarget(Object target) {

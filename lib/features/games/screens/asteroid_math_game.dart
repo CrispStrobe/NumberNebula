@@ -1,11 +1,16 @@
+// Using existing l10n strings:
+// - asteroidMathHunter: "Asteroid Hunter"
+// - nextTarget: "Next target: "
+// - asteroidMathWinTitle: "Asteroid Field Cleared!"
+// - timesUpSpaceCadet: "Time's Up, Space Cadet!"
+// - asteroidMathWinDesc: "Time Bonus: {timeBonus} points!\nYou are a true Space Hunter!"
+// - asteroidMathLoseDesc: "The asteroid field got too chaotic!\nTry again, Commander!"
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
-import 'package:audioplayers/audioplayers.dart';
 
-// --- Placeholder Imports (replace with your actual files) ---
-// These are mocked up below so the code is runnable.
 import '../constants/app_constants.dart';
 import '../constants/difficulty_manager.dart';
 import '../../../core/theme/space_theme.dart';
@@ -14,8 +19,6 @@ import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
-// --- End Placeholder Imports ---
-
 
 class AsteroidMathGame extends StatefulWidget {
   final int grade;
@@ -38,6 +41,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   late AnimationController _explosionController;
   late AnimationController _laserController;
   late AnimationController _screenShakeController;
+  late AnimationController _spaceshipController;
 
   // Game State
   List<Asteroid> asteroids = [];
@@ -51,12 +55,12 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   bool showHint = false;
   DifficultyConfig? currentDifficulty;
 
+  // Spaceship position for laser start point
+  Offset spaceshipPosition = const Offset(50, 0); // Will be updated in build
+
   // Timers
   late Timer _gameTimer;
   Timer? _hintTimer;
-  
-  // Audio
-  final AudioPlayer _sfxPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -73,9 +77,8 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
         AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
     _screenShakeController =
         AnimationController(duration: const Duration(milliseconds: 400), vsync: this);
-    
-    // Set sound volume
-    _sfxPlayer.setVolume(0.7);
+    _spaceshipController =
+        AnimationController(duration: const Duration(seconds: 2), vsync: this)..repeat();
 
     // Initialize difficulty based on grade and level
     currentDifficulty = DifficultyManager.getDifficulty(widget.grade, widget.level);
@@ -95,16 +98,10 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     _explosionController.dispose();
     _laserController.dispose();
     _screenShakeController.dispose();
+    _spaceshipController.dispose();
     _gameTimer.cancel();
     _hintTimer?.cancel();
-    _sfxPlayer.dispose();
     super.dispose();
-  }
-
-  void _playSound(String soundAsset) {
-    // NOTE: Make sure you have these assets in the path specified in your pubspec.yaml
-    // Example: assets/audio/laser.wav
-    _sfxPlayer.play(AssetSource(soundAsset));
   }
 
   void _resetGame() {
@@ -126,7 +123,6 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
 
   void _startHintTimer() {
     _hintTimer?.cancel();
-    // Hint appears faster on easier levels
     final hintDelay = currentDifficulty?.showHints == true ? 5 : 10;
     _hintTimer = Timer(Duration(seconds: hintDelay), () {
       if (mounted && gameActive) {
@@ -144,50 +140,63 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     final usedAnswers = <int>{};
 
     int asteroidCount = difficulty.objectCount;
+    final problems = <MathProblem>[];
     
-    for (int i = 0; i < asteroidCount; i++) {
-      MathProblem problem;
+    // Generate math problems using your library
+    int attempts = 0;
+    while (problems.length < asteroidCount && attempts < 100) {
+      attempts++;
       
-      // FIX: Greatly increased the probability of generating a math problem
-      // instead of just a number, based on difficulty settings.
-      if (random.nextDouble() < difficulty.equationProbability) {
-        do {
-          problem = MathProblem.random(
-            widget.grade, 
-            difficulty: (difficulty.difficultyMultiplier * 2).round().clamp(1, 5),
-          );
-        } while (usedAnswers.contains(problem.answer));
-      } else {
-  int plainNumber;
-    do {
+      final problem = MathProblem.random(
+        widget.grade, 
+        difficulty: (difficulty.difficultyMultiplier * 2).round().clamp(1, 5),
+      );
+      
+      // Ensure we don't have duplicate answers and answers are in reasonable range
+      if (!usedAnswers.contains(problem.answer) && problem.answer > 0 && problem.answer < 1000) {
+        problems.add(problem);
+        usedAnswers.add(problem.answer);
+      }
+    }
+    
+    // If we need more problems, fill with simple numbers
+    while (problems.length < asteroidCount) {
+      int plainNumber;
+      do {
         final range = difficulty.numberRange;
         plainNumber = random.nextInt(range['max']! - range['min']!) + range['min']!;
-    } while (usedAnswers.contains(plainNumber));
+      } while (usedAnswers.contains(plainNumber));
 
-    problem = MathProblem(
+      final simpleProblem = MathProblem(
         expression: plainNumber.toString(),
         answer: plainNumber,
-        operation: MathOperation.addition, // Assuming a default enum value
+        operation: MathOperation.addition,
         operandA: plainNumber,
         operandB: 0,
         difficulty: 1,
-    );
-    }
-
-      usedAnswers.add(problem.answer);
+      );
       
-      final asteroidSize = (70.0 + random.nextDouble() * 30) * difficulty.visualComplexity;
-      final asteroidSpeed = (30.0 + (difficulty.gameSpeed * 20));
+      problems.add(simpleProblem);
+      usedAnswers.add(plainNumber);
+    }
+    
+    // Create asteroids from problems
+    for (int i = 0; i < problems.length; i++) {
+      final problem = problems[i];
+      final asteroidSize = (60.0 + random.nextDouble() * 40) * difficulty.visualComplexity;
+      final asteroidSpeed = (8.0 + (difficulty.gameSpeed * 6));
 
       Offset position;
-      int attempts = 0;
+      int positionAttempts = 0;
       do {
         position = Offset(
           random.nextDouble() * (screenSize.width - asteroidSize),
           random.nextDouble() * (screenSize.height - asteroidSize - 220) + 100,
         );
-        attempts++;
-      } while (attempts < 10 && _isPositionTooClose(position, asteroidSize));
+        positionAttempts++;
+      } while (positionAttempts < 10 && _isPositionTooClose(position, asteroidSize));
+
+      final asteroidType = AsteroidType.values[random.nextInt(AsteroidType.values.length)];
 
       asteroids.add(Asteroid(
         id: i,
@@ -199,13 +208,15 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
           (random.nextDouble() - 0.5) * asteroidSpeed,
         ),
         size: asteroidSize,
-        rotationSpeed: (random.nextDouble() - 0.5) * 2 * difficulty.animationSpeed,
+        rotationSpeed: (random.nextDouble() - 0.5) * 1.5 * difficulty.animationSpeed,
         rotation: random.nextDouble() * 2 * math.pi,
+        type: asteroidType,
+        hue: random.nextDouble() * 360,
       ));
     }
     
     targetOrder.addAll(usedAnswers);
-    targetOrder.sort(); // The game objective is to destroy them in ascending order
+    targetOrder.sort();
     setState(() {});
   }
 
@@ -221,7 +232,10 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   void _updateGame() {
     if (!mounted || !gameActive) return;
     final screenSize = MediaQuery.of(context).size;
-    final double deltaTime = 0.016; // Assumes ~60 FPS
+    final double deltaTime = 0.016;
+
+    // Update spaceship position
+    spaceshipPosition = Offset(50, screenSize.height - 90);
 
     setState(() {
       // Update asteroids
@@ -229,17 +243,17 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
         asteroid.position += asteroid.velocity * deltaTime;
         asteroid.rotation += asteroid.rotationSpeed * deltaTime;
 
-        // Wall bouncing logic
+        // Smooth wall bouncing with damping
         final margin = asteroid.size / 2;
         if (asteroid.position.dx <= margin || asteroid.position.dx >= screenSize.width - margin) {
-          asteroid.velocity = Offset(-asteroid.velocity.dx * 0.85, asteroid.velocity.dy);
+          asteroid.velocity = Offset(-asteroid.velocity.dx * 0.8, asteroid.velocity.dy);
           asteroid.position = Offset(
             asteroid.position.dx.clamp(margin, screenSize.width - margin),
             asteroid.position.dy
           );
         }
         if (asteroid.position.dy <= margin + 90 || asteroid.position.dy >= screenSize.height - margin - 90) {
-          asteroid.velocity = Offset(asteroid.velocity.dx, -asteroid.velocity.dy * 0.85);
+          asteroid.velocity = Offset(asteroid.velocity.dx, -asteroid.velocity.dy * 0.8);
           asteroid.position = Offset(
             asteroid.position.dx,
             asteroid.position.dy.clamp(margin + 90, screenSize.height - margin - 90)
@@ -247,12 +261,11 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
         }
       }
 
-      // Update and remove finished animations
+      // Update animations
       explosions.removeWhere((e) => e.isComplete);
       laserBeams.removeWhere((l) => l.isComplete);
       floatingScores.removeWhere((s) => s.isComplete);
       
-      // Update animation progress
       for(var e in explosions) { e.update(deltaTime); }
       for(var l in laserBeams) { l.update(deltaTime); }
       for(var s in floatingScores) { s.update(deltaTime); }
@@ -276,15 +289,13 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   void _onAsteroidTapped(Asteroid asteroid) {
     if (!gameActive || currentTargetIndex >= targetOrder.length) return;
 
-    // Reset hint timer on any interaction
     setState(() => showHint = false);
     _startHintTimer();
 
     final expectedAnswer = targetOrder[currentTargetIndex];
 
     if (asteroid.answer == expectedAnswer) {
-      // --- Correct Asteroid! ---
-      _playSound('audio/correct_explosion.mp3');
+      // Correct!
       _triggerScreenShake();
       
       final scoreToAdd = (15 * widget.grade * currentDifficulty!.difficultyMultiplier).round();
@@ -306,8 +317,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
         _endGame(isWin: true);
       }
     } else {
-      // --- Wrong Asteroid! ---
-      _playSound('audio/wrong_hit.wav');
+      // Wrong!
       setState(() {
         explosions.add(ParticleExplosion(position: asteroid.position, isCorrect: false));
       });
@@ -320,13 +330,11 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
 
   void _createLaserEffect(Asteroid asteroid) {
     setState(() {
-      final screenSize = MediaQuery.of(context).size;
       laserBeams.add(LaserBeam(
-        startPosition: Offset(60, screenSize.height - 50),
+        startPosition: spaceshipPosition,
         endPosition: asteroid.position
       ));
     });
-     _playSound('audio/laser_fire.wav');
   }
 
   void _endGame({required bool isWin}) {
@@ -338,13 +346,11 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     if (isWin) {
       final timeBonus = timeLeft * (5 + widget.grade);
       context.read<GameProvider>().addScore(timeBonus);
-      _playSound('audio/win_jingle.mp3');
       showDialog(
         context: context, barrierDismissible: false,
         builder: (context) => _buildGameEndDialog(isWin: true, timeBonus: timeBonus),
       );
     } else {
-      _playSound('audio/lose_jingle.mp3');
       showDialog(
         context: context, barrierDismissible: false,
         builder: (context) => _buildGameEndDialog(isWin: false),
@@ -352,7 +358,6 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     }
   }
   
-  // Combines the build method for both win/loss dialogs
   Widget _buildGameEndDialog({required bool isWin, int? timeBonus}) {
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -369,15 +374,15 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
             ),
             const SizedBox(height: 16),
             Text(
-              isWin ? "Mission Accomplished!" : "Time's Up!",
+              isWin ? S.of(context)!.asteroidMathWinTitle : S.of(context)!.timesUpSpaceCadet,
               style: SpaceTheme.headlineStyle,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             Text(
               isWin
-                  ? 'Time Bonus: $timeBonus points!\nYou are a true Math Hunter!'
-                  : 'The asteroid field overwhelmed the ship!\nTry again, Commander!',
+                  ? S.of(context)!.asteroidMathWinDesc(timeBonus ?? 0)
+                  : S.of(context)!.asteroidMathLoseDesc,
               style: SpaceTheme.bodyStyle,
               textAlign: TextAlign.center,
             ),
@@ -395,8 +400,8 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop(); // Close dialog
-                    Navigator.of(context).pop(); // Go back to level select
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
                   child: Text(isWin ? S.of(context)!.nextLevel : S.of(context)!.backToMenu),
@@ -411,7 +416,9 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
 
   @override
   Widget build(BuildContext context) {
-    // Screen shake calculation
+    final screenSize = MediaQuery.of(context).size;
+    spaceshipPosition = Offset(50, screenSize.height - 90);
+
     final screenOffset = _screenShakeController.isAnimating
         ? Offset(
             math.sin(_screenShakeController.value * math.pi * 4) * 8,
@@ -421,12 +428,12 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     return Scaffold(
       body: Transform.translate(
         offset: screenOffset,
-        child: SpaceBackground( // AWESOME: Now with an animated starfield!
+        child: SpaceBackground(
           child: SafeArea(
             child: Column(
               children: [
                 GameUI(
-                  title: "Asteroid Hunter",
+                  title: S.of(context)!.asteroidMathHunter,
                   level: widget.level,
                   timeLeft: timeLeft,
                   onBack: () {
@@ -439,7 +446,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      // Game Objects drawn with CustomPainters for performance
+                      // Game Objects
                       CustomPaint(
                         painter: GameObjectsPainter(
                           asteroids: asteroids,
@@ -454,7 +461,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
                         size: Size.infinite,
                       ),
 
-                      // Interaction Layer (invisible GestureDetector for each asteroid)
+                      // Interaction Layer
                       ...asteroids.map((asteroid) => Positioned(
                             left: asteroid.position.dx - asteroid.size / 2,
                             top: asteroid.position.dy - asteroid.size / 2,
@@ -468,11 +475,16 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
                             ),
                           )),
                           
-                      // AWESOME: Player's spaceship
+                      // Custom-drawn spaceship with thrusters
                       Positioned(
-                        left: 10,
+                        left: spaceshipPosition.dx - 40,
                         bottom: 10,
-                        child: SpaceshipWidget(),
+                        child: CustomPaint(
+                          painter: SpaceshipPainter(
+                            thrusterAnimation: _spaceshipController.value,
+                          ),
+                          size: const Size(80, 80),
+                        ),
                       )
                     ],
                   ),
@@ -486,7 +498,6 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   }
 
   Widget _buildTargetDisplay() {
-    // FIX: Target display now correctly tied to the 'showHint' flag.
     final bool shouldShow = showHint && gameActive && currentTargetIndex < targetOrder.length;
 
     return AnimatedOpacity(
@@ -499,13 +510,20 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
           color: SpaceTheme.deepSpace.withOpacity(0.85),
           borderRadius: BorderRadius.circular(30),
           border: Border.all(color: SpaceTheme.starYellow, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: SpaceTheme.starYellow.withOpacity(0.3),
+              blurRadius: 10,
+              spreadRadius: 2,
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.gps_fixed, color: SpaceTheme.rocketRed, size: 22),
             const SizedBox(width: 10),
-            Text('Next Target: ', style: SpaceTheme.bodyStyle.copyWith(fontSize: 18)),
+            Text(S.of(context)!.nextTarget, style: SpaceTheme.bodyStyle.copyWith(fontSize: 18)),
             Text(
               shouldShow ? targetOrder[currentTargetIndex].toString() : '',
               style: SpaceTheme.titleStyle
@@ -519,15 +537,62 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
 }
 
 // ================================================================
-// AWESOME NEW & ENHANCED WIDGETS AND PAINTERS
+// ENHANCED VISUAL COMPONENTS
 // ================================================================
 
-class SpaceshipWidget extends StatelessWidget {
+class SpaceshipPainter extends CustomPainter {
+  final double thrusterAnimation;
+
+  SpaceshipPainter({required this.thrusterAnimation});
+
   @override
-  Widget build(BuildContext context) {
-    // Replace 'assets/images/spaceship.png' with your own image asset
-    return Image.asset('assets/images/spaceship.png', width: 100, height: 100);
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+    final center = Offset(size.width / 2, size.height / 2);
+
+    // Main ship body (triangular)
+    paint.color = Colors.grey.shade300;
+    final shipPath = Path()
+      ..moveTo(center.dx, center.dy - 25)
+      ..lineTo(center.dx - 15, center.dy + 20)
+      ..lineTo(center.dx + 15, center.dy + 20)
+      ..close();
+    canvas.drawPath(shipPath, paint);
+
+    // Ship details
+    paint.color = Colors.blue.shade400;
+    canvas.drawCircle(Offset(center.dx, center.dy - 5), 8, paint);
+
+    // Animated thrusters
+    final thrusterIntensity = 0.5 + 0.5 * math.sin(thrusterAnimation * math.pi * 8).abs();
+    paint.color = Colors.orange.withOpacity(0.7 * thrusterIntensity);
+    final thrusterSize = 12.0 + 8.0 * thrusterIntensity;
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(center.dx - 8, center.dy + 25),
+        width: 6,
+        height: thrusterSize,
+      ),
+      paint,
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(center.dx + 8, center.dy + 25),
+        width: 6,
+        height: thrusterSize,
+      ),
+      paint,
+    );
+
+    // Wing details
+    paint.color = Colors.red.shade400;
+    canvas.drawRect(Rect.fromLTWH(center.dx - 18, center.dy + 10, 6, 8), paint);
+    canvas.drawRect(Rect.fromLTWH(center.dx + 12, center.dy + 10, 6, 8), paint);
   }
+
+  @override
+  bool shouldRepaint(covariant SpaceshipPainter oldDelegate) => 
+      thrusterAnimation != oldDelegate.thrusterAnimation;
 }
 
 class GameObjectsPainter extends CustomPainter {
@@ -549,20 +614,19 @@ class GameObjectsPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Draw Lasers
     for (final laser in laserBeams) {
       laser.draw(canvas);
     }
-    // Draw Asteroids
+    
     for (final asteroid in asteroids) {
       final bool isTarget = targetAnswer == asteroid.answer;
       asteroid.draw(canvas, isHintActive: showHint && isTarget);
     }
-    // Draw Explosions
+    
     for (final explosion in explosions) {
       explosion.draw(canvas);
     }
-    // Draw Floating Scores
+    
     for (final score in floatingScores) {
       score.draw(canvas);
     }
@@ -573,8 +637,10 @@ class GameObjectsPainter extends CustomPainter {
 }
 
 // ================================================================
-// DATA MODELS FOR GAME OBJECTS
+// ENHANCED DATA MODELS
 // ================================================================
+
+enum AsteroidType { rocky, icy, metallic, crystalline, volcanic }
 
 class Asteroid {
   final int id;
@@ -585,6 +651,8 @@ class Asteroid {
   double size;
   double rotationSpeed;
   double rotation;
+  final AsteroidType type;
+  final double hue;
 
   Asteroid({
     required this.id,
@@ -595,6 +663,8 @@ class Asteroid {
     required this.size,
     required this.rotationSpeed,
     required this.rotation,
+    required this.type,
+    required this.hue,
   });
 
   void draw(Canvas canvas, {required bool isHintActive}) {
@@ -604,36 +674,145 @@ class Asteroid {
 
     final rect = Rect.fromCenter(center: Offset.zero, width: size, height: size);
     
-    // Main asteroid body
-    final Paint asteroidPaint = Paint()..color = Colors.grey.shade700;
-    canvas.drawOval(rect, asteroidPaint);
+    final Paint asteroidPaint = Paint();
+    
+    switch (type) {
+      case AsteroidType.rocky:
+        asteroidPaint.color = HSVColor.fromAHSV(1.0, hue, 0.3, 0.5).toColor();
+        _drawRockyAsteroid(canvas, rect, asteroidPaint);
+        break;
+      case AsteroidType.icy:
+        asteroidPaint.color = HSVColor.fromAHSV(1.0, 200 + hue * 0.1, 0.6, 0.8).toColor();
+        _drawIcyAsteroid(canvas, rect, asteroidPaint);
+        break;
+      case AsteroidType.metallic:
+        asteroidPaint.color = HSVColor.fromAHSV(1.0, 30 + hue * 0.1, 0.4, 0.7).toColor();
+        _drawMetallicAsteroid(canvas, rect, asteroidPaint);
+        break;
+      case AsteroidType.crystalline:
+        asteroidPaint.color = HSVColor.fromAHSV(1.0, 280 + hue * 0.1, 0.7, 0.9).toColor();
+        _drawCrystallineAsteroid(canvas, rect, asteroidPaint);
+        break;
+      case AsteroidType.volcanic:
+        asteroidPaint.color = HSVColor.fromAHSV(1.0, 10 + hue * 0.1, 0.8, 0.6).toColor();
+        _drawVolcanicAsteroid(canvas, rect, asteroidPaint);
+        break;
+    }
 
-    // Craters
-    final Paint craterPaint = Paint()..color = Colors.black.withOpacity(0.3);
-    canvas.drawCircle(Offset(-size * 0.2, size * 0.15), size * 0.15, craterPaint);
-    canvas.drawCircle(Offset(size * 0.25, -size * 0.2), size * 0.1, craterPaint);
-
-    // FIX: Hint is now a pulsating glow instead of a static border
+    // Pulsating hint glow with particles
     if (isHintActive) {
+      final time = DateTime.now().millisecondsSinceEpoch / 1000.0;
+      final pulseIntensity = (0.5 + 0.5 * math.sin(time * 4)).clamp(0.0, 1.0);
+      
       final glowPaint = Paint()
-        ..color = SpaceTheme.starYellow.withOpacity(0.8)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
-      canvas.drawOval(rect.inflate(6), glowPaint);
+        ..color = SpaceTheme.starYellow.withOpacity(0.6 * pulseIntensity)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 15 * pulseIntensity);
+      canvas.drawOval(rect.inflate(8), glowPaint);
+      
+      // Hint particles
+      for (int i = 0; i < 8; i++) {
+        final angle = (time + i * 0.785) * 2;
+        final radius = size * 0.7;
+        final sparklePos = Offset(
+          math.cos(angle) * radius,
+          math.sin(angle) * radius,
+        );
+        final sparklePaint = Paint()
+          ..color = SpaceTheme.starYellow.withOpacity(0.8 * pulseIntensity);
+        canvas.drawCircle(sparklePos, 3 * pulseIntensity, sparklePaint);
+      }
     }
 
     canvas.restore();
     
-    // Draw the math problem text (not rotated)
+    // Draw math problem text
     final textStyle = TextStyle(
       color: Colors.white,
-      fontSize: size * 0.22,
+      fontSize: size * 0.2,
       fontWeight: FontWeight.bold,
-      shadows: const [Shadow(blurRadius: 2, color: Colors.black)],
+      shadows: const [
+        Shadow(blurRadius: 3, color: Colors.black, offset: Offset(1, 1)),
+      ],
     );
     final textSpan = TextSpan(text: mathProblem, style: textStyle);
     final textPainter = TextPainter(text: textSpan, textAlign: TextAlign.center, textDirection: TextDirection.ltr);
     textPainter.layout();
     textPainter.paint(canvas, position - Offset(textPainter.width / 2, textPainter.height / 2));
+  }
+
+  void _drawRockyAsteroid(Canvas canvas, Rect rect, Paint paint) {
+    canvas.drawOval(rect, paint);
+    
+    final craterPaint = Paint()..color = Colors.black.withOpacity(0.4);
+    canvas.drawCircle(Offset(-size * 0.2, size * 0.15), size * 0.12, craterPaint);
+    canvas.drawCircle(Offset(size * 0.25, -size * 0.2), size * 0.08, craterPaint);
+    canvas.drawCircle(Offset(-size * 0.1, -size * 0.25), size * 0.06, craterPaint);
+  }
+
+  void _drawIcyAsteroid(Canvas canvas, Rect rect, Paint paint) {
+    canvas.drawOval(rect, paint);
+    
+    final crystalPaint = Paint()..color = Colors.white.withOpacity(0.6);
+    for (int i = 0; i < 5; i++) {
+      final angle = i * 1.256;
+      final x = math.cos(angle) * size * 0.2;
+      final y = math.sin(angle) * size * 0.2;
+      canvas.drawCircle(Offset(x, y), size * 0.05, crystalPaint);
+    }
+  }
+
+  void _drawMetallicAsteroid(Canvas canvas, Rect rect, Paint paint) {
+    canvas.drawOval(rect, paint);
+    
+    final shinePaint = Paint()
+      ..color = Colors.white.withOpacity(0.5)
+      ..strokeWidth = 2;
+    canvas.drawLine(
+      Offset(-size * 0.3, -size * 0.2),
+      Offset(size * 0.1, size * 0.1),
+      shinePaint,
+    );
+    canvas.drawLine(
+      Offset(size * 0.2, -size * 0.3),
+      Offset(-size * 0.1, size * 0.2),
+      shinePaint,
+    );
+  }
+
+  void _drawCrystallineAsteroid(Canvas canvas, Rect rect, Paint paint) {
+    final path = Path();
+    final vertices = 6;
+    for (int i = 0; i < vertices; i++) {
+      final angle = i * 2 * math.pi / vertices;
+      final radius = size * 0.5 * (0.8 + 0.4 * math.sin(i * 1.7));
+      final x = math.cos(angle) * radius;
+      final y = math.sin(angle) * radius;
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    path.close();
+    canvas.drawPath(path, paint);
+    
+    final glowPaint = Paint()
+      ..color = Colors.white.withOpacity(0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawPath(path, glowPaint);
+  }
+
+  void _drawVolcanicAsteroid(Canvas canvas, Rect rect, Paint paint) {
+    canvas.drawOval(rect, paint);
+    
+    final lavaPaint = Paint()..color = Colors.orange.withOpacity(0.7);
+    canvas.drawCircle(Offset(-size * 0.15, size * 0.1), size * 0.08, lavaPaint);
+    canvas.drawCircle(Offset(size * 0.2, -size * 0.15), size * 0.06, lavaPaint);
+    
+    final glowPaint = Paint()
+      ..color = Colors.red.withOpacity(0.2)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+    canvas.drawOval(rect, glowPaint);
   }
 }
 
@@ -642,23 +821,28 @@ class ParticleExplosion {
   final bool isCorrect;
   List<Particle> particles = [];
   double _progress = 0.0;
-  final double _duration = 0.8; // seconds
+  final double _duration = 1.2;
 
   bool get isComplete => _progress >= 1.0;
 
   ParticleExplosion({required this.position, required this.isCorrect}) {
     final random = math.Random();
-    final count = isCorrect ? 40 : 15;
-    final baseColor = isCorrect ? SpaceTheme.starYellow : SpaceTheme.rocketRed;
+    final count = isCorrect ? 60 : 25;
+    final baseColors = isCorrect 
+        ? [SpaceTheme.starYellow, Colors.orange, Colors.white]
+        : [SpaceTheme.rocketRed, Colors.orange, Colors.yellow];
 
     for (int i = 0; i < count; i++) {
-      final speed = random.nextDouble() * (isCorrect ? 150 : 80) + 20;
+      final speed = random.nextDouble() * (isCorrect ? 200 : 100) + 30;
       final angle = random.nextDouble() * 2 * math.pi;
       final velocity = Offset(math.cos(angle) * speed, math.sin(angle) * speed);
+      final color = baseColors[random.nextInt(baseColors.length)];
+      
       particles.add(Particle(
-        color: baseColor.withOpacity(0.5 + random.nextDouble() * 0.5),
+        color: color.withOpacity(0.6 + random.nextDouble() * 0.4),
         velocity: velocity,
-        size: random.nextDouble() * 4 + 2,
+        size: random.nextDouble() * 6 + 2,
+        type: ParticleType.values[random.nextInt(ParticleType.values.length)],
       ));
     }
   }
@@ -668,71 +852,153 @@ class ParticleExplosion {
   void draw(Canvas canvas) {
     final paint = Paint();
     for (final p in particles) {
-      final currentPos = position + p.velocity * _progress;
-      paint.color = p.color.withOpacity(1.0 - _progress);
-      canvas.drawCircle(currentPos, p.size * (1.0 - _progress), paint);
+      final currentPos = position + p.velocity * _progress - Offset(0, 50 * _progress * _progress);
+      final opacity = ((1.0 - _progress) * (1.0 - _progress)).clamp(0.0, 1.0);
+      paint.color = p.color.withOpacity(opacity);
+      
+      switch (p.type) {
+        case ParticleType.circle:
+          canvas.drawCircle(currentPos, p.size * (1.2 - _progress), paint);
+          break;
+        case ParticleType.star:
+          _drawStar(canvas, currentPos, p.size * (1.2 - _progress), paint);
+          break;
+        case ParticleType.diamond:
+          _drawDiamond(canvas, currentPos, p.size * (1.2 - _progress), paint);
+          break;
+      }
     }
   }
+
+  void _drawStar(Canvas canvas, Offset center, double size, Paint paint) {
+    final path = Path();
+    for (int i = 0; i < 5; i++) {
+      final angle = i * 2 * math.pi / 5 - math.pi / 2;
+      final outerRadius = size;
+      final innerRadius = size * 0.4;
+      
+      if (i == 0) {
+        path.moveTo(
+          center.dx + math.cos(angle) * outerRadius,
+          center.dy + math.sin(angle) * outerRadius,
+        );
+      } else {
+        path.lineTo(
+          center.dx + math.cos(angle) * outerRadius,
+          center.dy + math.sin(angle) * outerRadius,
+        );
+      }
+      
+      final innerAngle = angle + math.pi / 5;
+      path.lineTo(
+        center.dx + math.cos(innerAngle) * innerRadius,
+        center.dy + math.sin(innerAngle) * innerRadius,
+      );
+    }
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  void _drawDiamond(Canvas canvas, Offset center, double size, Paint paint) {
+    final path = Path()
+      ..moveTo(center.dx, center.dy - size)
+      ..lineTo(center.dx + size, center.dy)
+      ..lineTo(center.dx, center.dy + size)
+      ..lineTo(center.dx - size, center.dy)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
 }
+
+enum ParticleType { circle, star, diamond }
 
 class Particle {
   Color color;
   Offset velocity;
   double size;
-  Particle({required this.color, required this.velocity, required this.size});
+  ParticleType type;
+  
+  Particle({
+    required this.color, 
+    required this.velocity, 
+    required this.size,
+    required this.type,
+  });
 }
 
 class LaserBeam {
-    final Offset startPosition;
-    final Offset endPosition;
-    double _progress = 0.0;
-    final double _duration = 0.2; // seconds
+  final Offset startPosition;
+  final Offset endPosition;
+  double _progress = 0.0;
+  final double _duration = 0.3;
 
-    bool get isComplete => _progress >= 1.0;
+  bool get isComplete => _progress >= 1.0;
 
-    LaserBeam({required this.startPosition, required this.endPosition});
+  LaserBeam({required this.startPosition, required this.endPosition});
+  
+  void update(double dt) => _progress += dt / _duration;
+
+  void draw(Canvas canvas) {
+    // FIX: Ensure opacity is always between 0.0 and 1.0
+    final opacity = (math.sin(_progress * math.pi).abs()).clamp(0.0, 1.0);
     
-    void update(double dt) => _progress += dt / _duration;
+    final glowPaint = Paint()
+      ..strokeWidth = 20.0
+      ..color = SpaceTheme.alienGreen.withOpacity(0.3 * opacity)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12)
+      ..strokeCap = StrokeCap.round;
+    
+    final middlePaint = Paint()
+      ..strokeWidth = 8.0
+      ..color = SpaceTheme.alienGreen.withOpacity(0.8 * opacity)
+      ..strokeCap = StrokeCap.round;
+    
+    final corePaint = Paint()
+      ..strokeWidth = 3.0
+      ..color = Colors.white.withOpacity(opacity)
+      ..strokeCap = StrokeCap.round;
 
-    void draw(Canvas canvas) {
-      final paint = Paint()
-        ..strokeWidth = 4.0
-        ..color = SpaceTheme.alienGreen.withOpacity(1.0 - _progress)
-        ..strokeCap = StrokeCap.round;
-      
-      final glowPaint = Paint()
-        ..strokeWidth = 12.0
-        ..color = SpaceTheme.alienGreen.withOpacity(0.5 * (1.0 - _progress))
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-
-      canvas.drawLine(startPosition, endPosition, glowPaint);
-      canvas.drawLine(startPosition, endPosition, paint);
-    }
+    canvas.drawLine(startPosition, endPosition, glowPaint);
+    canvas.drawLine(startPosition, endPosition, middlePaint);
+    canvas.drawLine(startPosition, endPosition, corePaint);
+  }
 }
 
 class FloatingScore {
-    Offset position;
-    final String text;
-    final Color color;
-    double _progress = 0.0;
-    final double _duration = 1.2; // seconds
-    
-    bool get isComplete => _progress >= 1.0;
-    
-    FloatingScore({required this.position, required this.text, required this.color});
-    
-    void update(double dt) => _progress += dt / _duration;
+  Offset position;
+  final String text;
+  final Color color;
+  double _progress = 0.0;
+  final double _duration = 1.5;
+  
+  bool get isComplete => _progress >= 1.0;
+  
+  FloatingScore({required this.position, required this.text, required this.color});
+  
+  void update(double dt) => _progress += dt / _duration;
 
-    void draw(Canvas canvas) {
-        final currentPosition = position - Offset(0, 40 * _progress);
-        final textStyle = TextStyle(
-          color: color.withOpacity(1.0 - _progress),
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        );
-        final textSpan = TextSpan(text: text, style: textStyle);
-        final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr);
-        textPainter.layout();
-        textPainter.paint(canvas, currentPosition - Offset(textPainter.width/2, 0));
-    }
+  void draw(Canvas canvas) {
+    final currentPosition = position - Offset(0, 60 * _progress);
+    final scale = 1.0 + 0.5 * math.sin(_progress * math.pi).abs();
+    // FIX: Ensure opacity is always between 0.0 and 1.0
+    final opacity = (math.sin(_progress * math.pi).abs()).clamp(0.0, 1.0);
+    
+    final textStyle = TextStyle(
+      color: color.withOpacity(opacity),
+      fontSize: 28 * scale,
+      fontWeight: FontWeight.bold,
+      shadows: [
+        Shadow(
+          blurRadius: 4,
+          color: Colors.black.withOpacity(opacity * 0.5),
+          offset: const Offset(2, 2),
+        ),
+      ],
+    );
+    
+    final textSpan = TextSpan(text: text, style: textStyle);
+    final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr);
+    textPainter.layout();
+    textPainter.paint(canvas, currentPosition - Offset(textPainter.width / 2, 0));
+  }
 }

@@ -925,6 +925,24 @@ abstract class S {
   /// **'You successfully navigated all planets in the correct sequence!\nLives Bonus: {bonus} points'**
   String planetHoppingWinDesc(Object bonus);
 
+  /// Win message with bonus points.
+  ///
+  /// In en, this message translates to:
+  /// **'You successfully navigated all planets in the correct sequence!\nLives Bonus: {bonus} points'**
+  String planetHoppingWinDescBonus(int bonus);
+
+  /// No description provided for @planetHoppingLoseDescCrash.
+  ///
+  /// In en, this message translates to:
+  /// **'You crash-landed too many times!\nStudy the planet sequence and try again.'**
+  String get planetHoppingLoseDescCrash;
+
+  /// Displays the next numerical target in the sequence.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {value}'**
+  String planetHoppingNextTargetValue(int value);
+
   /// No description provided for @exploreAgain.
   ///
   /// In en, this message translates to:
@@ -1132,7 +1150,7 @@ abstract class S {
   /// No description provided for @asteroidMathHunter.
   ///
   /// In en, this message translates to:
-  /// **'Asteroid Math Hunter'**
+  /// **'Asteroid Hunter'**
   String get asteroidMathHunter;
 
   /// No description provided for @asteroidMathTarget.

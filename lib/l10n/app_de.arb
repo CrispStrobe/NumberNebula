@@ -137,6 +137,25 @@
     "planetHoppingInstructions": "TIPPE irgendwohin, um dorthin zu springen • Nutze die Schwerkraft, um zwischen Planeten zu schwingen",
     "planetHoppingWinTitle": "Sonnensystem gemeistert!",
     "planetHoppingWinDesc": "Du hast erfolgreich alle Planeten in der richtigen Reihenfolge navigiert!\nLebens-Bonus: {bonus} Punkte",
+    "planetHoppingWinDescBonus": "Du hast erfolgreich alle Planeten in der richtigen Reihenfolge navigiert!\nLebens-Bonus: {bonus} Punkte",
+    "@planetHoppingWinDescBonus": {
+        "description": "Win message with bonus points.",
+        "placeholders": {
+            "bonus": {
+                "type": "int"
+            }
+        }
+    },
+    "planetHoppingLoseDescCrash": "Du bist zu oft abgestürzt!\nStudiere die Planetenreihenfolge und versuche es erneut.",
+    "planetHoppingNextTargetValue": "Nächster: {value}",
+    "@planetHoppingNextTargetValue": {
+        "description": "Displays the next numerical target in the sequence.",
+        "placeholders": {
+            "value": {
+                "type": "int"
+            }
+        }
+    },
     "exploreAgain": "Erneut erkunden",
     "missionCompleteStatus": "Mission erfolgreich",
     "planetHoppingLoseTitle": "Navigation fehlgeschlagen!",
