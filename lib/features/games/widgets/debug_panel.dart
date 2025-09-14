@@ -43,13 +43,13 @@ class _DebugPanelState extends State<DebugPanel> {
             const SizedBox(height: 24),
             
             // Grade Slider
-            _buildSlider('Grade', _grade.toDouble(), 3, 6, (value) {
-              setState(() => _grade = value.toInt());
+            _buildSlider('Skill Level', _grade.toDouble(), 1, 4, (value) {
+                setState(() => _grade = value.toInt());
             }),
             
             // Level Slider
-            _buildSlider('Level', _level.toDouble(), 1, 10, (value) {
-              setState(() => _level = value.toInt());
+            _buildSlider('Game Level', _level.toDouble(), 1, 20, (value) {
+                setState(() => _level = value.toInt());
             }),
             
             const SizedBox(height: 24),

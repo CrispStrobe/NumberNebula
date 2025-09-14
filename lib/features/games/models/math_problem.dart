@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import '../constants/app_constants.dart';
 import '../../../core/services/sri_service.dart'; // Import SRI Service
+import '../constants/difficulty_manager.dart';
 
 class MathProblem {
   final String expression;
@@ -54,12 +55,13 @@ class MathProblem {
       }
     }
 
-    // 2. If no reviews are due, generate a new random problem, avoiding mastered ones
+    // 2. If no reviews are due, generate a new problem using centralized difficulty settings
+    final difficultyConfig = DifficultyManager.getDifficulty(grade, level);
     MathProblem newProblem;
     int attempts = 0;
+
     do {
-      // **FIX**: Call the new private static method `_generateRandom`
-      newProblem = _generateRandom(grade, difficulty: level); 
+      newProblem = _generateFromConfig(difficultyConfig); // **UPDATE**: Call new helper
       attempts++;
       if (attempts > 20) {
         debugPrint('[SRI] Could not find a non-mastered problem after 20 attempts. Serving a random one.');
@@ -69,6 +71,40 @@ class MathProblem {
 
     debugPrint('[SRI] Generated new non-mastered problem: ${newProblem.expression}');
     return newProblem;
+  }
+
+  // **NEW**: A private static helper that generates a problem based on a DifficultyConfig
+  static MathProblem _generateFromConfig(DifficultyConfig config) {
+    final random = math.Random();
+    final operations = config.operationTypes;
+    final range = config.numberRange;
+    final min = range['min']!;
+    final max = range['max']!;
+    
+    final operation = operations[random.nextInt(operations.length)];
+
+    int a, b;
+
+    switch (operation) {
+      case MathOperation.addition:
+        a = random.nextInt(max - min + 1) + min;
+        b = random.nextInt(max - min + 1) + min;
+        return MathProblem.addition(a, b, difficulty: config.grade);
+      case MathOperation.subtraction:
+        a = random.nextInt(max - (min + 1) + 1) + (min + 1);
+        b = random.nextInt(a - min + 1) + min;
+        return MathProblem.subtraction(a, b, difficulty: config.grade);
+      case MathOperation.multiplication:
+        final maxFactor = math.min(12, 3 + config.grade * 2);
+        a = random.nextInt(maxFactor - 1) + 2;
+        b = random.nextInt(maxFactor - 1) + 2;
+        return MathProblem.multiplication(a, b, difficulty: config.grade);
+      case MathOperation.division:
+        final maxDivisor = math.min(12, 4 + config.grade);
+        final divisor = random.nextInt(maxDivisor - 1) + 2;
+        final quotient = random.nextInt(12) + 2;
+        return MathProblem.division(divisor * quotient, divisor, difficulty: config.grade);
+    }
   }
 
   // **FIX**: Changed this from a private factory to a private static method

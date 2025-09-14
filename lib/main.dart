@@ -24,6 +24,8 @@ import 'features/achievements/screens/achievements_screen.dart';
 import 'shared/utils/app_utilities.dart';
 import 'generated/l10n.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -208,6 +210,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
       ],
       child: MaterialApp(
         title: 'Space Math Academy',
+        navigatorKey: navigatorKey, 
         debugShowCheckedModeBanner: false,
         
         locale: _locale,
@@ -232,9 +235,12 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
               title: 'Oops! Something went wrong',
               message: 'Our space engineers are working on it!',
               onRetry: () {
-                Navigator.of(context).pushReplacementNamed(
-                  ModalRoute.of(context)?.settings.name ?? AppRoutes.home,
-                );
+                final currentContext = navigatorKey.currentContext;
+                if (currentContext != null) {
+                  Navigator.of(currentContext).pushReplacementNamed(
+                    ModalRoute.of(currentContext)?.settings.name ?? AppRoutes.home,
+                  );
+                }
               },
             );
           };

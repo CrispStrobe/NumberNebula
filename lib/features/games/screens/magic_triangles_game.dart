@@ -134,7 +134,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         debugPrint("🚀 [UI] Widget still mounted, updating state");
         setState(() {
           currentPuzzle = puzzle;
-          userAnswers = List.filled(currentPuzzle!.hiddenIndices.length, null);
+          userAnswers = List.generate(currentPuzzle!.hiddenIndices.length, (_) => null, growable: true);
           numberPool = List.from(currentPuzzle!.numberPool);
           _isGenerating = false;
         });
