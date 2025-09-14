@@ -47,6 +47,9 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   // --- UI State ---
   bool _showInstructions = true;
   bool _showNextTargetHint = false;
+  // FIX 1: Add state variables for game area dimensions
+  double _gameWidth = 0.0;
+  double _gameHeight = 0.0;
 
   @override
   void initState() {
@@ -105,13 +108,19 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         startPlanet.position.dy - startPlanet.radius - 30,
       );
     }
+    // FIX 2: Start the hopper in a non-moving ("landed") state. It will only
+    // move after the first tap calls `takeOff()`.
+    hopper.isLanded = true;
+    hopper.velocity = Offset.zero;
   }
 
   void _startHintTimer() {
     _hintTimer?.cancel();
-    _hintTimer = Timer(const Duration(seconds: 7), () {
+    // EDUCATIONAL FIX: Increase hint delay so students have to think first
+    // Only show hint after 12 seconds instead of 7
+    _hintTimer = Timer(const Duration(seconds: 12), () {
       if (mounted && gameActive) {
-        debugPrint("[UI] 💡 Hint timer fired, showing next target.");
+        debugPrint("[UI] 💡 Hint timer fired after student had time to calculate.");
         setState(() => _showNextTargetHint = true);
       }
     });
@@ -135,11 +144,16 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     final difficulty = widget.grade + widget.level;
     final planetCount = (5 + (difficulty / 4)).clamp(5, 8).toInt();
 
-    // FIX: Ensure unique problems/answers are generated for each planet
+    // Generate unique problems/answers for each planet
     final problems = <MathProblem>[];
     final usedAnswers = <int>{};
-    int attempts = 0; // Safety break to prevent infinite loops
+    int attempts = 0;
     debugPrint("[Gameplay] Generating $planetCount unique planets...");
+    
+    // For early levels (grade 3, levels 1-2), mix in some number-only planets
+    final isBeginnerLevel = widget.grade <= 3 && widget.level <= 2;
+    final numberOnlyCount = isBeginnerLevel ? (planetCount ~/ 2) : 0;
+    
     while (problems.length < planetCount && attempts < 200) {
       attempts++;
       final problem = MathProblem.random(widget.grade, difficulty: widget.level);
@@ -152,27 +166,48 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       }
     }
 
-    final center = const Offset(400, 300);
-    final baseRadius = 250.0;
-
+    // Better planet positioning - more scattered and varied
+    const screenWidth = 800.0;  
+    const screenHeight = 600.0; 
+    const margin = 100.0;
+    
+    // Define multiple zones for more interesting distribution
+    final zones = [
+      Rect.fromLTWH(margin, margin, 200, 150),                           // Top-left
+      Rect.fromLTWH(screenWidth - 300, margin, 200, 150),               // Top-right  
+      Rect.fromLTWH(margin, screenHeight - 250, 200, 150),              // Bottom-left
+      Rect.fromLTWH(screenWidth - 300, screenHeight - 250, 200, 150),   // Bottom-right
+      Rect.fromLTWH(300, 200, 200, 200),                                // Center
+      Rect.fromLTWH(150, 300, 150, 150),                                // Mid-left
+      Rect.fromLTWH(500, 300, 150, 150),                                // Mid-right
+    ];
+    
     for (int i = 0; i < problems.length; i++) {
-      final planetRadius = 40.0 + random.nextDouble() * 25;
+      final planetRadius = (32.0 + random.nextDouble() * 16).clamp(30.0, 45.0);
       final mass = (planetRadius * planetRadius * 0.1).clamp(50.0, 200.0);
-      final angle = (i * 2 * math.pi / planetCount) + random.nextDouble() * 0.5;
-      final distance = baseRadius + random.nextDouble() * 100 - 50;
+      
+      // Select a zone and place planet randomly within it
+      final zone = zones[i % zones.length];
+      final planetX = zone.left + random.nextDouble() * (zone.width - planetRadius * 2) + planetRadius;
+      final planetY = zone.top + random.nextDouble() * (zone.height - planetRadius * 2) + planetRadius;
+      
+      // For beginners, some planets show just numbers instead of math problems
+      final showNumberOnly = isBeginnerLevel && i < numberOnlyCount;
+      final displayText = showNumberOnly ? problems[i].answer.toString() : problems[i].expression;
 
       final planet = Planet(
         id: i,
-        position: Offset(center.dx + math.cos(angle) * distance,
-            center.dy + math.sin(angle) * distance),
+        position: Offset(planetX, planetY),
         radius: planetRadius,
         mass: mass,
         answer: problems[i].answer,
-        problem: problems[i].expression,
+        problem: displayText, // Use either number or expression
         color: _getPlanetColor(i),
         visited: false,
       );
       planets.add(planet);
+      
+      debugPrint("[Gameplay] 🪐 Planet ${i} at (${planetX.toInt()}, ${planetY.toInt()}) shows: $displayText = ${problems[i].answer}");
     }
   }
 
@@ -206,7 +241,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         Timer(const Duration(milliseconds: 500), () => _lastLandedPlanetId = null);
 
     final bool isCorrect = nextTargetIndex < targetSequence.length &&
-        planet.answer == targetSequence[nextTargetIndex];
+                          planet.answer == targetSequence[nextTargetIndex];
 
     if (isCorrect) {
       debugPrint("[Gameplay] ✅ CORRECT landing!");
@@ -215,9 +250,12 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       nextTargetIndex++;
       context.read<GameProvider>().addScore(100 * widget.grade);
       _addSuccessParticles(planet);
-      if (nextTargetIndex >= targetSequence.length) _winGame();
+      
+      if (nextTargetIndex >= targetSequence.length) {
+        _winGame();
+      }
     } else {
-      debugPrint("[Gameplay] ❌ WRONG landing!");
+      debugPrint("[Gameplay] ❌ WRONG landing! Expected index $nextTargetIndex, got ${planet.answer}");
       lives--;
       _addErrorParticles(planet);
 
@@ -233,6 +271,8 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     final dt = 0.016;
 
     if (hopper.isLanded) {
+      // Because the hopper now starts as "landed", this return statement
+      // prevents any movement until the first tap.
       setState(() {});
       return;
     }
@@ -253,6 +293,28 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     hopper.velocity += totalForce * dt;
     hopper.velocity *= 0.998;
     hopper.position += hopper.velocity * dt;
+
+    // FIX 1: Keep spaceship within the playing field boundaries
+    if (_gameWidth > 0 && _gameHeight > 0) {
+      const double bounceDamping = 0.5;
+      const double margin = 15; // Approx. hopper radius
+
+      if (hopper.position.dx < margin) {
+        hopper.position = Offset(margin, hopper.position.dy);
+        hopper.velocity = Offset(-hopper.velocity.dx * bounceDamping, hopper.velocity.dy);
+      } else if (hopper.position.dx > _gameWidth - margin) {
+        hopper.position = Offset(_gameWidth - margin, hopper.position.dy);
+        hopper.velocity = Offset(-hopper.velocity.dx * bounceDamping, hopper.velocity.dy);
+      }
+
+      if (hopper.position.dy < margin) {
+        hopper.position = Offset(hopper.position.dx, margin);
+        hopper.velocity = Offset(hopper.velocity.dx, -hopper.velocity.dy * bounceDamping);
+      } else if (hopper.position.dy > _gameHeight - margin) {
+        hopper.position = Offset(hopper.position.dx, _gameHeight - margin);
+        hopper.velocity = Offset(hopper.velocity.dx, -hopper.velocity.dy * bounceDamping);
+      }
+    }
     
     particles.removeWhere((p) => p.update(dt));
 
@@ -285,18 +347,25 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
             colors: [Color(0xFF000510), Color(0xFF1A1A3E), Color(0xFF000510)],
           ),
         ),
-        // FIX: Use a Column to separate the UI from the game area, preventing taps on UI from being blocked.
         child: SafeArea(
           child: Column(
             children: [
-              _buildGameUI(), // Header is now separate and always on top.
+              _buildGameUI(),
               Expanded( // Game area takes the remaining space.
-                child: Stack(
-                  children: [
-                    ..._buildBackgroundElements(),
-                    _buildHintDisplay(),
-                    _buildControlOverlay(), // Control overlay only covers this Expanded area.
-                  ],
+                // FIX 1: Use LayoutBuilder to get the game area's dimensions
+                // for boundary checking.
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    _gameWidth = constraints.maxWidth;
+                    _gameHeight = constraints.maxHeight;
+                    return Stack(
+                      children: [
+                        ..._buildBackgroundElements(),
+                        _buildHintDisplay(),
+                        _buildControlOverlay(),
+                      ],
+                    );
+                  },
                 ),
               ),
             ],
@@ -350,10 +419,12 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   Widget _buildHintDisplay() {
-    final bool shouldShow =
-        _showNextTargetHint && gameActive && nextTargetIndex < targetSequence.length;
+    final bool shouldShow = _showNextTargetHint && 
+                           gameActive && 
+                           nextTargetIndex < targetSequence.length;
+                           
     return Positioned(
-      top: 10, // Adjusted position to be clear of the header
+      top: 10,
       left: 0,
       right: 0,
       child: Center(
@@ -367,7 +438,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: SpaceTheme.starYellow, width: 1.5)),
             child: Text(
-                S.of(context)!.planetHoppingNextTargetValue(targetSequence[nextTargetIndex]),
+                shouldShow ? 'Next target: ${targetSequence[nextTargetIndex]}' : '',
                 style: SpaceTheme.titleStyle
                     .copyWith(color: SpaceTheme.starYellow, fontSize: 16)),
           ),
@@ -382,6 +453,8 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         onTapDown: (details) {
           if (!gameActive) return;
           final tapPosition = details.localPosition;
+          // This call will set hopper.isLanded to false, starting the physics
+          // in the _updateGame loop.
           hopper.takeOff(tapPosition);
           setState(() {});
         },
@@ -409,6 +482,8 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
               animation: _planetController,
               builder: (context, child) => PlanetWidget(
                   planet: entry.value,
+                  // The isTarget logic is now only used for the hint timer,
+                  // not for visually highlighting the planet.
                   isTarget: nextTargetIndex < targetSequence.length &&
                       entry.value.answer == targetSequence[nextTargetIndex],
                   rotationAnimation:
@@ -716,21 +791,17 @@ class PlanetWidget extends StatelessWidget {
               0.7,
               1.0
             ]),
+            // FIX 3: Remove yellow highlight for the next target planet.
+            // The border now only indicates if a planet has been visited.
             border: Border.all(
-                color: isTarget
-                    ? SpaceTheme.starYellow
-                    : (planet.visited ? SpaceTheme.alienGreen : Colors.transparent),
-                width: isTarget ? 3 : (planet.visited ? 2 : 0)),
+                color: planet.visited ? SpaceTheme.alienGreen : Colors.transparent,
+                width: planet.visited ? 2 : 0),
             boxShadow: [
               BoxShadow(
                   color: planet.color.withOpacity(0.4),
                   blurRadius: 10,
                   spreadRadius: 2),
-              if (isTarget)
-                BoxShadow(
-                    color: SpaceTheme.starYellow.withOpacity(0.6),
-                    blurRadius: 15,
-                    spreadRadius: 3)
+              // The conditional shadow for the target planet is also removed.
             ]),
         child: Stack(children: [
           Positioned.fill(child: CustomPaint(painter: PlanetSurfacePainter(planet.color))),

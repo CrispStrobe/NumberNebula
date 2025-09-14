@@ -3,6 +3,7 @@
     "welcome": "Entdecke das Mathe-Universum!",
     "startAdventure": "Starte dein Mathe-Abenteuer",
     "chooseGrade": "Wähle deine Stufe",
+    "fast": "SCHNELL",
     "grade3": "3. Klasse",
     "grade4": "4. Klasse",
     "grade5": "5. Klasse",
@@ -205,5 +206,42 @@
     "preparingSpaceStation": "Bereite Raumstation vor...",
     "calibratingNav": "Kalibriere Navigationssysteme...",
     "readyForLaunch": "Bereit zum Start!",
-    "splashScreenSubtitle": "Erkunden • Lernen • Entdecken"
+    "splashScreenSubtitle": "Erkunden • Lernen • Entdecken",
+        "pathFinderTitle": "PfadFinder",
+    "pathFinderDesc": "Navigiere durch Quanten-Raumkorridore! Berechne die richtige Flugbahn durch gefährliche kosmische Phänomene, um sicher anzukommen.",
+    "pathFinderSolve": "LÖSE:",
+    "pathFinderChoosePath": "Wähle den Pfad für: {expression}",
+    "@pathFinderChoosePath": {
+        "description": "Fordert Spieler auf, den korrekten Pfad zu wählen",
+        "placeholders": {
+            "expression": {
+                "type": "String",
+                "description": "Der zu lösende mathematische Ausdruck"
+            }
+        }
+    },
+    "pathFinderInstructions": "TIPPE auf Weltraumrouten • BERECHNE Matheaufgaben • NAVIGIERE durch kosmische Gefahren",
+    "pathFinderWinTitle": "Quanten-Navigation abgeschlossen!",
+    "pathFinderWinDesc": "Du hast erfolgreich {targetProblems} Quantenkorridore navigiert!\nGesamtpunktzahl: {totalScore} Punkte!",
+    "@pathFinderWinDesc": {
+        "description": "Siegesnachricht mit gelösten Problemen und Punktzahl",
+        "placeholders": {
+            "targetProblems": {
+                "type": "int",
+                "description": "Anzahl der zu lösenden Probleme"
+            },
+            "totalScore": {
+                "type": "int",
+                "description": "Erreichte Gesamtpunktzahl"
+            }
+        }
+    },
+    "pathFinderLoseTitle": "Navigationssysteme offline!",
+    "pathFinderLoseDesc": "Dein Schiff hat zu viel Schaden durch kosmische Gefahren erlitten!\nKalibriere deine Navigationssysteme neu und versuche es erneut, Kommandant!",
+    "pathFinderFailureWormhole": "Wurmloch-Kollaps!",
+    "pathFinderFailureNebula": "Nebel-Interferenz!",
+    "pathFinderFailureAsteroidBelt": "Asteroidenkollision!",
+    "pathFinderFailureClearSpace": "Navigationsfehler!",
+    "pathFinderFailureIonStorm": "Ionensturm-Schäden!",
+    "pathFinderFailureQuantumTunnel": "Quanten-Instabilität!"
 }

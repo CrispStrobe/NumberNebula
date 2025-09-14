@@ -21,6 +21,9 @@ class SEn extends S {
   String get chooseGrade => 'Set Your Skill Level';
 
   @override
+  String get fast => 'FAST';
+
+  @override
   String get grade3 => '3rd Grade';
 
   @override
@@ -634,4 +637,56 @@ class SEn extends S {
 
   @override
   String get splashScreenSubtitle => 'Explore • Learn • Discover';
+
+  @override
+  String get pathFinderTitle => 'PathFinder';
+
+  @override
+  String get pathFinderDesc =>
+      'Navigate quantum space corridors! Calculate the right trajectory through dangerous cosmic phenomena to reach your destination safely.';
+
+  @override
+  String get pathFinderSolve => 'SOLVE:';
+
+  @override
+  String pathFinderChoosePath(String expression) {
+    return 'Choose the path for: $expression';
+  }
+
+  @override
+  String get pathFinderInstructions =>
+      'TAP on space routes • CALCULATE math problems • NAVIGATE through cosmic hazards';
+
+  @override
+  String get pathFinderWinTitle => 'Quantum Navigation Complete!';
+
+  @override
+  String pathFinderWinDesc(int targetProblems, int totalScore) {
+    return 'You successfully navigated through $targetProblems quantum corridors!\nTotal Score: $totalScore points!';
+  }
+
+  @override
+  String get pathFinderLoseTitle => 'Navigation Systems Offline!';
+
+  @override
+  String get pathFinderLoseDesc =>
+      'Your ship sustained too much damage from cosmic hazards!\nRecalibrate your navigation systems and try again, Commander!';
+
+  @override
+  String get pathFinderFailureWormhole => 'Wormhole collapse!';
+
+  @override
+  String get pathFinderFailureNebula => 'Nebula interference!';
+
+  @override
+  String get pathFinderFailureAsteroidBelt => 'Asteroid collision!';
+
+  @override
+  String get pathFinderFailureClearSpace => 'Navigation error!';
+
+  @override
+  String get pathFinderFailureIonStorm => 'Ion storm damage!';
+
+  @override
+  String get pathFinderFailureQuantumTunnel => 'Quantum instability!';
 }

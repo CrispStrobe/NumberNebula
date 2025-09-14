@@ -6,6 +6,7 @@
     "welcome": "Welcome to Space Math Academy!",
     "startAdventure": "Start Your Math Adventure",
     "chooseGrade": "Set Your Skill Level",
+    "fast": "FAST",
     "grade3": "3rd Grade",
     "grade4": "4th Grade",
     "grade5": "5th Grade",
@@ -271,5 +272,42 @@
     "preparingSpaceStation": "Preparing space station...",
     "calibratingNav": "Calibrating navigation systems...",
     "readyForLaunch": "Ready for launch!",
-    "splashScreenSubtitle": "Explore • Learn • Discover"
+    "splashScreenSubtitle": "Explore • Learn • Discover",
+    "pathFinderTitle": "PathFinder",
+    "pathFinderDesc": "Navigate quantum space corridors! Calculate the right trajectory through dangerous cosmic phenomena to reach your destination safely.",
+    "pathFinderSolve": "SOLVE:",
+    "pathFinderChoosePath": "Choose the path for: {expression}",
+    "@pathFinderChoosePath": {
+        "description": "Prompts player to choose the correct path",
+        "placeholders": {
+            "expression": {
+                "type": "String",
+                "description": "The math expression to solve"
+            }
+        }
+    },
+    "pathFinderInstructions": "TAP on space routes • CALCULATE math problems • NAVIGATE through cosmic hazards",
+    "pathFinderWinTitle": "Quantum Navigation Complete!",
+    "pathFinderWinDesc": "You successfully navigated through {targetProblems} quantum corridors!\nTotal Score: {totalScore} points!",
+    "@pathFinderWinDesc": {
+        "description": "Victory message showing problems solved and score",
+        "placeholders": {
+            "targetProblems": {
+                "type": "int",
+                "description": "Number of problems that needed to be solved"
+            },
+            "totalScore": {
+                "type": "int", 
+                "description": "Total points earned"
+            }
+        }
+    },
+    "pathFinderLoseTitle": "Navigation Systems Offline!",
+    "pathFinderLoseDesc": "Your ship sustained too much damage from cosmic hazards!\nRecalibrate your navigation systems and try again, Commander!",
+    "pathFinderFailureWormhole": "Wormhole collapse!",
+    "pathFinderFailureNebula": "Nebula interference!",
+    "pathFinderFailureAsteroidBelt": "Asteroid collision!",
+    "pathFinderFailureClearSpace": "Navigation error!",
+    "pathFinderFailureIonStorm": "Ion storm damage!",
+    "pathFinderFailureQuantumTunnel": "Quantum instability!"    
 }

@@ -989,13 +989,13 @@ class _SettingsScreenState extends State<SettingsScreen>
   String _getDifficultyDescription(int grade) {
     switch (grade) {
       case 3:
-        return 'Basic operations';
+        return S.of(context)!.difficultyDescGrade3;
       case 4:
-        return 'Multi-digit math';
+        return S.of(context)!.difficultyDescGrade4;
       case 5:
-        return 'Complex problems';
+        return S.of(context)!.difficultyDescGrade5;
       case 6:
-        return 'Advanced challenges';
+        return S.of(context)!.difficultyDescGrade6;
       default:
         return '';
     }

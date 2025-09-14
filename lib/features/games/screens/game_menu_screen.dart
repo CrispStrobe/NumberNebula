@@ -10,6 +10,7 @@ import '../screens/magic_triangles_game.dart';
 import '../screens/asteroid_math_game.dart';
 import '../screens/puzzle_math_game.dart';
 import '../screens/hyperdrive_gates_game.dart';
+import '../screens/path_finder_game.dart';
 import '../screens/planet_hopping_game.dart';
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
@@ -352,57 +353,56 @@ class _GameMenuScreenState extends State<GameMenuScreen>
   
   Widget _buildGameCard(int index) {
     final gameProvider = context.read<GameProvider>();
+    // define ORDER AND INTEGRATION
     final games = [
-      // Game 1
-      GameInfo(
+        // 1. Cosmic Triangles
+        GameInfo(
         title: S.of(context)!.magicTriangles,
         description: S.of(context)!.magicTrianglesDesc,
         icon: Icons.change_history,
         gradient: const LinearGradient(colors: [SpaceTheme.nebulaPurple, SpaceTheme.cosmicPink]),
         onTap: () => _navigateToGame(MagicTrianglesGame(grade: gameProvider.grade, level: gameProvider.level)),
-      ),
-      // Game 2
-      GameInfo(
-        title: S.of(context)!.bubbleMath,
+        ),
+        // 2. Asteroid Field Hunter
+        GameInfo(
+        title: S.of(context)!.bubbleMath, // Note: l10n key is bubbleMath
         description: S.of(context)!.bubbleMathDesc,
         icon: Icons.bubble_chart,
         gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.starYellow]),
         onTap: () => _navigateToGame(AsteroidMathGame(grade: gameProvider.grade, level: gameProvider.level)),
-      ),
-      // Game 3
-      GameInfo(
+        ),
+        // 3. Constellation Puzzles
+        GameInfo(
         title: S.of(context)!.puzzleMath,
         description: S.of(context)!.puzzleMathDesc,
         icon: Icons.extension,
         gradient: const LinearGradient(colors: [SpaceTheme.planetOrange, SpaceTheme.rocketRed]),
         onTap: () => _navigateToGame(PuzzleMathGame(grade: gameProvider.grade, level: gameProvider.level)),
-      ),
-      // Game 4
-      GameInfo(
+        ),
+        // 4. Hyperdrive Gates
+        GameInfo(
         title: S.of(context)!.hyperdriveGates,
         description: S.of(context)!.hyperdriveGatesDesc,
         icon: Icons.rocket_launch,
         gradient: const LinearGradient(colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)]),
         onTap: () => _navigateToGame(HyperdriveGatesGame(grade: gameProvider.grade, level: gameProvider.level)),
-      ),
-      // Game 5
-      GameInfo(
+        ),
+        // 5. PathFinder (NEW)
+        GameInfo(
+        title: S.of(context)!.pathFinderTitle,
+        description: S.of(context)!.pathFinderDesc,
+        icon: Icons.map, // Example icon
+        gradient: const LinearGradient(colors: [Colors.teal, Colors.cyan]),
+        onTap: () => _navigateToGame(PathFinderGame(grade: gameProvider.grade, level: gameProvider.level)),
+        ),
+        // 6. Gravity Sling
+        GameInfo(
         title: S.of(context)!.planetHopping,
         description: S.of(context)!.planetHoppingDesc,
         icon: Icons.public,
         gradient: const LinearGradient(colors: [Color(0xFF667eea), Color(0xFF764ba2)]),
         onTap: () => _navigateToGame(PlanetHoppingGame(grade: gameProvider.grade, level: gameProvider.level)),
-      ),
-      // Game 6 (Placeholder)
-      GameInfo(
-        title: "Galaxy Fractions", // Placeholder
-        description: "Divide and conquer the galaxy by solving fraction problems!",
-        icon: Icons.pie_chart,
-        gradient: const LinearGradient(colors: [Colors.teal, Colors.cyan]),
-        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text("Coming soon!", style: SpaceTheme.bodyStyle), backgroundColor: SpaceTheme.nebulaPurple),
         ),
-      ),
     ];
 
     final game = games[index];

@@ -21,6 +21,9 @@ class SDe extends S {
   String get chooseGrade => 'Wähle deine Stufe';
 
   @override
+  String get fast => 'SCHNELL';
+
+  @override
   String get grade3 => '3. Klasse';
 
   @override
@@ -640,4 +643,56 @@ class SDe extends S {
 
   @override
   String get splashScreenSubtitle => 'Erkunden • Lernen • Entdecken';
+
+  @override
+  String get pathFinderTitle => 'PfadFinder';
+
+  @override
+  String get pathFinderDesc =>
+      'Navigiere durch Quanten-Raumkorridore! Berechne die richtige Flugbahn durch gefährliche kosmische Phänomene, um sicher anzukommen.';
+
+  @override
+  String get pathFinderSolve => 'LÖSE:';
+
+  @override
+  String pathFinderChoosePath(String expression) {
+    return 'Wähle den Pfad für: $expression';
+  }
+
+  @override
+  String get pathFinderInstructions =>
+      'TIPPE auf Weltraumrouten • BERECHNE Matheaufgaben • NAVIGIERE durch kosmische Gefahren';
+
+  @override
+  String get pathFinderWinTitle => 'Quanten-Navigation abgeschlossen!';
+
+  @override
+  String pathFinderWinDesc(int targetProblems, int totalScore) {
+    return 'Du hast erfolgreich $targetProblems Quantenkorridore navigiert!\nGesamtpunktzahl: $totalScore Punkte!';
+  }
+
+  @override
+  String get pathFinderLoseTitle => 'Navigationssysteme offline!';
+
+  @override
+  String get pathFinderLoseDesc =>
+      'Dein Schiff hat zu viel Schaden durch kosmische Gefahren erlitten!\nKalibriere deine Navigationssysteme neu und versuche es erneut, Kommandant!';
+
+  @override
+  String get pathFinderFailureWormhole => 'Wurmloch-Kollaps!';
+
+  @override
+  String get pathFinderFailureNebula => 'Nebel-Interferenz!';
+
+  @override
+  String get pathFinderFailureAsteroidBelt => 'Asteroidenkollision!';
+
+  @override
+  String get pathFinderFailureClearSpace => 'Navigationsfehler!';
+
+  @override
+  String get pathFinderFailureIonStorm => 'Ionensturm-Schäden!';
+
+  @override
+  String get pathFinderFailureQuantumTunnel => 'Quanten-Instabilität!';
 }

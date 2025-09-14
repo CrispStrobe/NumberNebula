@@ -121,6 +121,12 @@ abstract class S {
   /// **'Set Your Skill Level'**
   String get chooseGrade;
 
+  /// No description provided for @fast.
+  ///
+  /// In en, this message translates to:
+  /// **'FAST'**
+  String get fast;
+
   /// No description provided for @grade3.
   ///
   /// In en, this message translates to:
@@ -1242,6 +1248,96 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Explore • Learn • Discover'**
   String get splashScreenSubtitle;
+
+  /// No description provided for @pathFinderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PathFinder'**
+  String get pathFinderTitle;
+
+  /// No description provided for @pathFinderDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate quantum space corridors! Calculate the right trajectory through dangerous cosmic phenomena to reach your destination safely.'**
+  String get pathFinderDesc;
+
+  /// No description provided for @pathFinderSolve.
+  ///
+  /// In en, this message translates to:
+  /// **'SOLVE:'**
+  String get pathFinderSolve;
+
+  /// Prompts player to choose the correct path
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the path for: {expression}'**
+  String pathFinderChoosePath(String expression);
+
+  /// No description provided for @pathFinderInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'TAP on space routes • CALCULATE math problems • NAVIGATE through cosmic hazards'**
+  String get pathFinderInstructions;
+
+  /// No description provided for @pathFinderWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantum Navigation Complete!'**
+  String get pathFinderWinTitle;
+
+  /// Victory message showing problems solved and score
+  ///
+  /// In en, this message translates to:
+  /// **'You successfully navigated through {targetProblems} quantum corridors!\nTotal Score: {totalScore} points!'**
+  String pathFinderWinDesc(int targetProblems, int totalScore);
+
+  /// No description provided for @pathFinderLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation Systems Offline!'**
+  String get pathFinderLoseTitle;
+
+  /// No description provided for @pathFinderLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your ship sustained too much damage from cosmic hazards!\nRecalibrate your navigation systems and try again, Commander!'**
+  String get pathFinderLoseDesc;
+
+  /// No description provided for @pathFinderFailureWormhole.
+  ///
+  /// In en, this message translates to:
+  /// **'Wormhole collapse!'**
+  String get pathFinderFailureWormhole;
+
+  /// No description provided for @pathFinderFailureNebula.
+  ///
+  /// In en, this message translates to:
+  /// **'Nebula interference!'**
+  String get pathFinderFailureNebula;
+
+  /// No description provided for @pathFinderFailureAsteroidBelt.
+  ///
+  /// In en, this message translates to:
+  /// **'Asteroid collision!'**
+  String get pathFinderFailureAsteroidBelt;
+
+  /// No description provided for @pathFinderFailureClearSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation error!'**
+  String get pathFinderFailureClearSpace;
+
+  /// No description provided for @pathFinderFailureIonStorm.
+  ///
+  /// In en, this message translates to:
+  /// **'Ion storm damage!'**
+  String get pathFinderFailureIonStorm;
+
+  /// No description provided for @pathFinderFailureQuantumTunnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantum instability!'**
+  String get pathFinderFailureQuantumTunnel;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
