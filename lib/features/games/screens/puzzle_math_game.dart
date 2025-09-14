@@ -212,8 +212,8 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
 
   Size _calculatePieceSize(BoxConstraints constraints) {
     final boardConstraints = BoxConstraints(
-        maxWidth: constraints.maxWidth * 0.6, // Make pieces smaller to accommodate knobs
-        maxHeight: constraints.maxHeight * 0.85,
+        maxWidth: constraints.maxWidth * 0.5, // Reduced to make room for knobs
+        maxHeight: constraints.maxHeight * 0.8,
     );
 
     double pieceWidth = (boardConstraints.maxWidth / columns);
@@ -225,15 +225,15 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     }
     
     return Size(pieceWidth, pieceHeight);
-    }
+  }
 
   Widget _buildPuzzleBoard(BoxConstraints constraints) {
   final pieceSize = _calculatePieceSize(constraints);
   final bumpSize = math.min(pieceSize.width, pieceSize.height) / 4;
   
-  // Board size needs to account for knob extensions  
-  final boardWidth = (pieceSize.width * columns) + (bumpSize * 2);
-  final boardHeight = (pieceSize.height * rows) + (bumpSize * 2);
+  // Calculate board size - just the core grid, no extra padding
+  final boardWidth = pieceSize.width * columns;
+  final boardHeight = pieceSize.height * rows;
 
   return Center(
     child: Container(
@@ -251,19 +251,43 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
           ),
         ],
       ),
-      child: Padding(
-        padding: EdgeInsets.all(bumpSize),
-        child: Stack(
-          clipBehavior: Clip.none, // CRITICAL: Allow knobs to extend beyond bounds
-          children: List.generate(rows * columns, (index) {
+      child: Stack(
+        clipBehavior: Clip.none, // Allow knobs to extend outside
+        children: [
+          // Grid lines for debugging
+          ...List.generate(rows + 1, (i) => Positioned(
+            left: 0,
+            top: i * pieceSize.height,
+            child: Container(
+              width: boardWidth,
+              height: 2,
+              color: SpaceTheme.starYellow.withOpacity(0.5),
+            ),
+          )),
+          ...List.generate(columns + 1, (i) => Positioned(
+            left: i * pieceSize.width,
+            top: 0,
+            child: Container(
+              width: 2,
+              height: boardHeight,
+              color: SpaceTheme.starYellow.withOpacity(0.5),
+            ),
+          )),
+          // Puzzle slots - positioned so their CENTERS align with grid
+          ...List.generate(rows * columns, (index) {
             final row = index ~/ columns;
             final col = index % columns;
             final slotData = pieces.firstWhere((p) => p.row == row && p.col == col);
             final isPlaced = placedPieces.containsKey(slotData.id);
 
+            // Position the slot so its CENTER is at the grid intersection
+            // Since slots are extended by bumpSize on all sides, we offset by -bumpSize
+            final slotLeft = (col * pieceSize.width) - bumpSize;
+            final slotTop = (row * pieceSize.height) - bumpSize;
+
             return Positioned(
-              left: (col * pieceSize.width),
-              top: (row * pieceSize.height),
+              left: slotLeft,
+              top: slotTop,
               child: DragTarget<int>(
                 builder: (context, candidateData, rejectedData) {
                   return PuzzleSlotWidget(
@@ -273,7 +297,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                     rows: rows,
                     edgeShapes: _edgeShapes,
                     isPieceOver: candidateData.isNotEmpty,
-                    imagePath: currentPuzzleImage, // Pass image for background
+                    imagePath: currentPuzzleImage,
                     child: isPlaced
                         ? PuzzlePieceWidget(
                             imagePath: currentPuzzleImage!,
@@ -304,7 +328,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
               ),
             );
           }),
-        ),
+        ],
       ),
     ),
   );
@@ -312,6 +336,12 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
 
   Widget _buildPieceTray(BoxConstraints constraints) {
     final pieceSize = _calculatePieceSize(constraints);
+    
+    // Make tray pieces smaller to fit nicely
+    final trayPieceSize = Size(pieceSize.width * 0.5, pieceSize.height * 0.5);
+    final trayBumpSize = math.min(trayPieceSize.width, trayPieceSize.height) / 4;
+    final extendedTraySize = trayPieceSize.width + (trayBumpSize * 2);
+    
     return Container(
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
@@ -329,10 +359,10 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
           Expanded(
             child: GridView.builder(
               gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: pieceSize.width * 0.8,
+                maxCrossAxisExtent: extendedTraySize + 15, // Account for knob extensions
                 childAspectRatio: 1.0,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
               ),
               itemCount: pieces.length,
               itemBuilder: (context, index) {
@@ -340,40 +370,42 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                 if (placedPieces.values.contains(pieceData.id)) {
                   return Container(); // Piece already placed
                 }
-                return Draggable<int>(
-                  data: pieceData.id,
-                  feedback: Material(
-                    color: Colors.transparent,
+                return Center(
+                  child: Draggable<int>(
+                    data: pieceData.id,
+                    feedback: Material(
+                      color: Colors.transparent,
+                      child: PuzzlePieceWidget(
+                        imagePath: currentPuzzleImage!,
+                        data: pieceData,
+                        pieceSize: trayPieceSize,
+                        columns: columns,
+                        rows: rows,
+                        edgeShapes: _edgeShapes,
+                        onRotate: () => _rotatePiece(pieceData.id),
+                      ),
+                    ),
+                    childWhenDragging: Opacity(
+                      opacity: 0.3,
+                      child: PuzzlePieceWidget(
+                        imagePath: currentPuzzleImage!,
+                        data: pieceData,
+                        pieceSize: trayPieceSize,
+                        columns: columns,
+                        rows: rows,
+                        edgeShapes: _edgeShapes,
+                        onRotate: () => _rotatePiece(pieceData.id),
+                      ),
+                    ),
                     child: PuzzlePieceWidget(
                       imagePath: currentPuzzleImage!,
                       data: pieceData,
-                      pieceSize: Size(pieceSize.width * 0.8, pieceSize.height * 0.8),
+                      pieceSize: trayPieceSize,
                       columns: columns,
                       rows: rows,
                       edgeShapes: _edgeShapes,
                       onRotate: () => _rotatePiece(pieceData.id),
                     ),
-                  ),
-                  childWhenDragging: Opacity(
-                    opacity: 0.3,
-                    child: PuzzlePieceWidget(
-                      imagePath: currentPuzzleImage!,
-                      data: pieceData,
-                      pieceSize: Size(pieceSize.width * 0.8, pieceSize.height * 0.8),
-                      columns: columns,
-                      rows: rows,
-                      edgeShapes: _edgeShapes,
-                      onRotate: () => _rotatePiece(pieceData.id),
-                    ),
-                  ),
-                  child: PuzzlePieceWidget(
-                    imagePath: currentPuzzleImage!,
-                    data: pieceData,
-                    pieceSize: Size(pieceSize.width * 0.8, pieceSize.height * 0.8),
-                    columns: columns,
-                    rows: rows,
-                    edgeShapes: _edgeShapes,
-                    onRotate: () => _rotatePiece(pieceData.id),
                   ),
                 );
               },
@@ -450,7 +482,7 @@ class PuzzlePieceData {
   });
 }
 
-// Fix for puzzle_math_game.dart - Better visibility and proper jigsaw pieces
+// Fixed visibility and proper jigsaw pieces
 class PuzzleSlotWidget extends StatelessWidget {
   final PuzzlePieceData data;
   final String? imagePath;
@@ -535,48 +567,6 @@ class PuzzleSlotWidget extends StatelessWidget {
       ),
     );
   }
-}
-
-class ImageSegmentPainter extends CustomPainter {
-  final String imagePath;
-  final PuzzlePieceData pieceData;
-  final Size pieceSize;
-  final int columns, rows;
-  final double opacity;
-
-  ImageSegmentPainter({
-    required this.imagePath,
-    required this.pieceData,
-    required this.pieceSize,
-    required this.columns,
-    required this.rows,
-    required this.opacity,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // This will be handled by the background image in the widget
-    // Just provide a subtle pattern for now
-    final paint = Paint()
-      ..color = SpaceTheme.moonSilver.withOpacity(0.1)
-      ..style = PaintingStyle.fill;
-    
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
-    
-    // Add subtle dots pattern
-    final dotPaint = Paint()
-      ..color = Colors.white.withOpacity(0.05)
-      ..style = PaintingStyle.fill;
-    
-    for (double x = 10; x < size.width; x += 20) {
-      for (double y = 10; y < size.height; y += 20) {
-        canvas.drawCircle(Offset(x, y), 1, dotPaint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class PuzzlePieceWidget extends StatelessWidget {
@@ -723,7 +713,7 @@ class JigsawPieceClipper extends CustomClipper<Path> {
         ? JigsawSide.flat 
         : edgeShapes['h-${data.row}-${data.col}']!;
 
-    final bumpSize = math.min(size.width, size.height) / 4; // Much bigger knobs!
+    final bumpSize = math.min(size.width, size.height) / 4;
     
     path.moveTo(0, 0);
     
@@ -731,22 +721,19 @@ class JigsawPieceClipper extends CustomClipper<Path> {
     if (topShape == JigsawSide.flat) {
       path.lineTo(size.width, 0);
     } else {
-      // Draw to start of knob/hole
       path.lineTo(size.width / 3, 0);
       
       if (topShape == JigsawSide.knob) {
-        // Create protruding knob (goes UP from the piece)
         path.cubicTo(
-          size.width / 6, -bumpSize,           // Control point 1 - pulls curve up and left
-          size.width / 6 * 5, -bumpSize,      // Control point 2 - pulls curve up and right  
-          size.width / 3 * 2, 0               // End point - back to edge
+          size.width / 6, -bumpSize,
+          size.width / 6 * 5, -bumpSize,
+          size.width / 3 * 2, 0
         );
       } else {
-        // Create inward hole (curves INTO the piece)
         path.cubicTo(
-          size.width / 6, bumpSize,            // Control point 1 - pulls curve down and left
-          size.width / 6 * 5, bumpSize,       // Control point 2 - pulls curve down and right
-          size.width / 3 * 2, 0               // End point - back to edge
+          size.width / 6, bumpSize,
+          size.width / 6 * 5, bumpSize,
+          size.width / 3 * 2, 0
         );
       }
       
@@ -760,14 +747,12 @@ class JigsawPieceClipper extends CustomClipper<Path> {
       path.lineTo(size.width, size.height / 3);
       
       if (rightShape == JigsawSide.knob) {
-        // Knob protrudes RIGHT from the piece
         path.cubicTo(
           size.width + bumpSize, size.height / 6,
           size.width + bumpSize, size.height / 6 * 5,
           size.width, size.height / 3 * 2
         );
       } else {
-        // Hole curves LEFT into the piece  
         path.cubicTo(
           size.width - bumpSize, size.height / 6,
           size.width - bumpSize, size.height / 6 * 5,
@@ -785,14 +770,12 @@ class JigsawPieceClipper extends CustomClipper<Path> {
       path.lineTo(size.width / 3 * 2, size.height);
       
       if (bottomShape == JigsawSide.knob) {
-        // Knob protrudes DOWN from the piece
         path.cubicTo(
           size.width / 6 * 5, size.height + bumpSize,
           size.width / 6, size.height + bumpSize,
           size.width / 3, size.height
         );
       } else {
-        // Hole curves UP into the piece
         path.cubicTo(
           size.width / 6 * 5, size.height - bumpSize,
           size.width / 6, size.height - bumpSize,  
@@ -810,14 +793,12 @@ class JigsawPieceClipper extends CustomClipper<Path> {
       path.lineTo(0, size.height / 3 * 2);
       
       if (leftShape == JigsawSide.knob) {
-        // Knob protrudes LEFT from the piece
         path.cubicTo(
           -bumpSize, size.height / 6 * 5,
           -bumpSize, size.height / 6,
           0, size.height / 3
         );
       } else {
-        // Hole curves RIGHT into the piece
         path.cubicTo(
           bumpSize, size.height / 6 * 5,
           bumpSize, size.height / 6,
@@ -833,29 +814,6 @@ class JigsawPieceClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => true;
-}
-
-// Add background pattern painter for slot visibility
-class SlotPatternPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    
-    // Draw grid pattern for better slot visibility
-    final spacing = 20.0;
-    for (double x = 0; x < size.width; x += spacing) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += spacing) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 enum JigsawSide { flat, knob, hole }
