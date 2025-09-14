@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer'; // Import the developer log
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -39,6 +40,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   void _initializeGame() {
+    log("--- INITIALIZING NEW GAME ---", name: "PuzzleMath");
     final gameProvider = context.read<GameProvider>();
     currentPuzzleImage = PuzzleImageService.instance.getImageForLevel(widget.level);
     _generatePuzzle();
@@ -50,12 +52,14 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   void _startTimer() {
     _timeLeft = 120;
     _timer?.cancel();
+    log("Starting timer. Duration: $_timeLeft seconds.", name: "PuzzleMath");
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted && _timeLeft > 0) {
         setState(() => _timeLeft--);
       } else {
         timer.cancel();
         if (mounted) {
+          log("Timer finished.", name: "PuzzleMath");
           _showGameOverDialog("Time's up, space cadet!");
         }
       }
@@ -65,6 +69,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   @override
   void dispose() {
     _timer?.cancel();
+    log("Disposing PuzzleMathGame widget.", name: "PuzzleMath");
     super.dispose();
   }
 
@@ -80,6 +85,8 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     } else {
       columns = 3; rows = 4;
     }
+    log("Generating puzzle with grade $difficulty. Grid: $columns x $rows", name: "PuzzleMath");
+
 
     final pieceCount = columns * rows;
     _generateEdgeShapes(); // Generate the interlocking shapes first
@@ -102,6 +109,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         rotation: 0, // Initial rotation
       ));
     }
+    log("Generated ${pieceData.length} pieces with math problems.", name: "PuzzleMath");
 
     setState(() {
       pieces = pieceData..shuffle(random);
@@ -126,10 +134,12 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         _edgeShapes['v-$r-$c'] = random.nextBool() ? JigsawSide.knob : JigsawSide.hole;
       }
     }
+    log("Generated ${_edgeShapes.length} unique edge shapes.", name: "PuzzleMath");
   }
 
   void _onToggleTimer(bool isEnabled) {
     context.read<GameProvider>().setPuzzleTimer(isEnabled);
+    log("Timer toggled: ${isEnabled ? 'ON' : 'OFF'}", name: "PuzzleMath");
     if (isEnabled) {
       _startTimer();
     } else {
@@ -142,6 +152,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     setState(() {
       final piece = pieces.firstWhere((p) => p.id == pieceId);
       piece.rotation = (piece.rotation + 90) % 360;
+      log("Rotated piece ID $pieceId to ${piece.rotation} degrees.", name: "PuzzleMath.Interaction");
     });
   }
 
@@ -163,6 +174,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
               GameUI(
                 title: S.of(context)!.puzzleMath,
                 level: widget.level,
+                // score: gameProvider.score,
                 timeLeft: gameProvider.puzzleTimerEnabled ? _timeLeft : null,
                 onBack: () => Navigator.of(context).pop(),
               ),
@@ -194,6 +206,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: LayoutBuilder(builder: (context, constraints) {
+                    log("LayoutBuilder constraints: MaxW=${constraints.maxWidth}, MaxH=${constraints.maxHeight}", name: "PuzzleMath.Layout");
                     return Row(
                       children: [
                         Expanded(flex: 3, child: _buildPuzzleBoard(constraints)),
@@ -211,9 +224,10 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   Size _calculatePieceSize(BoxConstraints constraints) {
+    // ✅ FIX: Increased board constraint width from 0.5 to 0.9 for a larger puzzle area.
     final boardConstraints = BoxConstraints(
-        maxWidth: constraints.maxWidth * 0.5, // Reduced to make room for knobs
-        maxHeight: constraints.maxHeight * 0.8,
+        maxWidth: constraints.maxWidth * 0.9, 
+        maxHeight: constraints.maxHeight * 0.9,
     );
 
     double pieceWidth = (boardConstraints.maxWidth / columns);
@@ -224,64 +238,39 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         pieceWidth = pieceHeight;
     }
     
+    log("Calculated piece size: W=${pieceWidth.toStringAsFixed(2)}, H=${pieceHeight.toStringAsFixed(2)}", name: "PuzzleMath.Layout");
     return Size(pieceWidth, pieceHeight);
   }
 
   Widget _buildPuzzleBoard(BoxConstraints constraints) {
-  final pieceSize = _calculatePieceSize(constraints);
-  final bumpSize = math.min(pieceSize.width, pieceSize.height) / 4;
+    final pieceSize = _calculatePieceSize(constraints);
+    final bumpSize = math.min(pieceSize.width, pieceSize.height) / 4;
   
-  // Calculate board size - just the core grid, no extra padding
-  final boardWidth = pieceSize.width * columns;
-  final boardHeight = pieceSize.height * rows;
+    final boardWidth = pieceSize.width * columns;
+    final boardHeight = pieceSize.height * rows;
+    log("Building puzzle board: W=${boardWidth.toStringAsFixed(2)}, H=${boardHeight.toStringAsFixed(2)}", name: "PuzzleMath.Layout");
 
-  return Center(
-    child: Container(
-      width: boardWidth,
-      height: boardHeight,
-      decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.8), width: 3),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Stack(
-        clipBehavior: Clip.none, // Allow knobs to extend outside
-        children: [
-          // Grid lines for debugging
-          ...List.generate(rows + 1, (i) => Positioned(
-            left: 0,
-            top: i * pieceSize.height,
-            child: Container(
-              width: boardWidth,
-              height: 2,
-              color: SpaceTheme.starYellow.withOpacity(0.5),
-            ),
-          )),
-          ...List.generate(columns + 1, (i) => Positioned(
-            left: i * pieceSize.width,
-            top: 0,
-            child: Container(
-              width: 2,
-              height: boardHeight,
-              color: SpaceTheme.starYellow.withOpacity(0.5),
-            ),
-          )),
-          // Puzzle slots - positioned so their CENTERS align with grid
-          ...List.generate(rows * columns, (index) {
+    return Center(
+      child: Container(
+        width: boardWidth,
+        height: boardHeight,
+        decoration: BoxDecoration(
+          color: SpaceTheme.deepSpace.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.8), width: 3),
+        ),
+        child: Stack(
+          clipBehavior: Clip.none, 
+          children: List.generate(rows * columns, (index) {
             final row = index ~/ columns;
             final col = index % columns;
+            // Find the original piece that belongs in this slot by its row/col
             final slotData = pieces.firstWhere((p) => p.row == row && p.col == col);
             final isPlaced = placedPieces.containsKey(slotData.id);
 
-            // Position the slot so its CENTER is at the grid intersection
-            // Since slots are extended by bumpSize on all sides, we offset by -bumpSize
+            // ✅ FIX: This positioning is correct. The error was in the clipper.
+            // A piece's widget is larger than its core (due to knobs), so we
+            // offset it by -bumpSize to align the *core* of the piece with the grid.
             final slotLeft = (col * pieceSize.width) - bumpSize;
             final slotTop = (row * pieceSize.height) - bumpSize;
 
@@ -297,7 +286,6 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                     rows: rows,
                     edgeShapes: _edgeShapes,
                     isPieceOver: candidateData.isNotEmpty,
-                    imagePath: currentPuzzleImage,
                     child: isPlaced
                         ? PuzzlePieceWidget(
                             imagePath: currentPuzzleImage!,
@@ -312,33 +300,40 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                         : null,
                   );
                 },
-                onWillAccept: (pieceId) => !isPlaced,
+                onWillAccept: (pieceId) {
+                  final willAccept = !isPlaced;
+                  log("Piece ID $pieceId hovering over slot ${slotData.id} (${slotData.problem}). Will Accept: $willAccept", name: "PuzzleMath.DragDrop");
+                  return willAccept;
+                },
                 onAccept: (pieceId) {
                   final pieceData = pieces.firstWhere((p) => p.id == pieceId);
+                  log("Attempting to place piece ID $pieceId (Answer: ${pieceData.answer}, Rot: ${pieceData.rotation}) into slot ${slotData.id} (Answer: ${slotData.answer})", name: "PuzzleMath.DragDrop");
+                  
                   if (pieceData.answer == slotData.answer && pieceData.rotation == 0) {
+                    log("SUCCESS: Correct placement.", name: "PuzzleMath.DragDrop");
                     setState(() => placedPieces[slotData.id] = pieceId);
                     context.read<GameProvider>().addScore(50);
                     if (placedPieces.length == pieces.length) {
                       _showWinDialog();
                     }
                   } else {
+                    log("FAILURE: Incorrect placement. Reason: ${pieceData.answer != slotData.answer ? 'Wrong Answer' : 'Wrong Rotation'}", name: "PuzzleMath.DragDrop");
                     _showIncorrectPlacement();
                   }
                 },
               ),
             );
           }),
-        ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildPieceTray(BoxConstraints constraints) {
     final pieceSize = _calculatePieceSize(constraints);
     
     // Make tray pieces smaller to fit nicely
-    final trayPieceSize = Size(pieceSize.width * 0.5, pieceSize.height * 0.5);
+    final trayPieceSize = Size(pieceSize.width * 0.7, pieceSize.height * 0.7);
     final trayBumpSize = math.min(trayPieceSize.width, trayPieceSize.height) / 4;
     final extendedTraySize = trayPieceSize.width + (trayBumpSize * 2);
     
@@ -359,7 +354,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
           Expanded(
             child: GridView.builder(
               gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: extendedTraySize + 15, // Account for knob extensions
+                maxCrossAxisExtent: extendedTraySize + 20,
                 childAspectRatio: 1.0,
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
@@ -427,6 +422,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   void _showWinDialog() {
+    log("--- PUZZLE COMPLETE ---", name: "PuzzleMath");
     _timer?.cancel();
     final gameProvider = context.read<GameProvider>();
     int bonus = 0;
@@ -436,6 +432,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
       message = "Constellation restored!\nTime Bonus: $bonus points!";
     }
     context.read<GameProvider>().addScore(100 + bonus);
+    log("Awarding win bonus. Base: 100, Time Bonus: $bonus", name: "PuzzleMath");
     
     showDialog(
         context: context,
@@ -463,14 +460,14 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 }
 
-// Enhanced Data Model
+// Data Model
 class PuzzlePieceData {
   final int id;
   final String problem;
   final int answer;
   final int row;
   final int col;
-  int rotation; // 0, 90, 180, 270
+  int rotation; 
 
   PuzzlePieceData({
     required this.id,
@@ -482,10 +479,9 @@ class PuzzlePieceData {
   });
 }
 
-// Fixed visibility and proper jigsaw pieces
+// Puzzle Slot Widget
 class PuzzleSlotWidget extends StatelessWidget {
   final PuzzlePieceData data;
-  final String? imagePath;
   final Size pieceSize;
   final int columns, rows;
   final bool isPieceOver;
@@ -501,7 +497,6 @@ class PuzzleSlotWidget extends StatelessWidget {
     this.isPieceOver = false,
     this.child,
     required this.edgeShapes,
-    this.imagePath,
   });
 
   @override
@@ -510,7 +505,7 @@ class PuzzleSlotWidget extends StatelessWidget {
     final extendedWidth = pieceSize.width + (bumpSize * 2);
     final extendedHeight = pieceSize.height + (bumpSize * 2);
     
-    return Container(
+    return SizedBox(
       width: extendedWidth,
       height: extendedHeight,
       child: ClipPath(
@@ -519,6 +514,7 @@ class PuzzleSlotWidget extends StatelessWidget {
           columns: columns,
           rows: rows,
           edgeShapes: edgeShapes,
+          bumpSize: bumpSize,
         ),
         child: child ?? AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -533,35 +529,24 @@ class PuzzleSlotWidget extends StatelessWidget {
                     : SpaceTheme.deepSpace.withOpacity(0.4),
               ],
             ),
-            border: Border.all(
-              color: isPieceOver 
-                  ? SpaceTheme.alienGreen 
-                  : SpaceTheme.starYellow.withOpacity(0.8),
-              width: 2,
-            ),
           ),
-          child: Stack(
-            children: [
-              // Math problem text
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    data.problem,
-                    style: SpaceTheme.titleStyle.copyWith(
-                      color: SpaceTheme.starYellow,
-                      fontSize: pieceSize.width / 7,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(6),
               ),
-            ],
+              child: Text(
+                data.problem,
+                style: SpaceTheme.titleStyle.copyWith(
+                  color: SpaceTheme.starYellow,
+                  fontSize: pieceSize.width / 5,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
           ),
         ),
       ),
@@ -569,6 +554,7 @@ class PuzzleSlotWidget extends StatelessWidget {
   }
 }
 
+// Puzzle Piece Widget
 class PuzzlePieceWidget extends StatelessWidget {
   final String imagePath;
   final PuzzlePieceData data;
@@ -592,15 +578,12 @@ class PuzzlePieceWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate total image display size
     final totalWidth = pieceSize.width * columns;
     final totalHeight = pieceSize.height * rows;
     
-    // Calculate this piece's offset within the full image
     final offsetX = -(data.col * pieceSize.width);
     final offsetY = -(data.row * pieceSize.height);
     
-    // Calculate extended size to accommodate knobs
     final bumpSize = math.min(pieceSize.width, pieceSize.height) / 4;
     final extendedWidth = pieceSize.width + (bumpSize * 2);
     final extendedHeight = pieceSize.height + (bumpSize * 2);
@@ -612,7 +595,7 @@ class PuzzlePieceWidget extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           elevation: isPlaced ? 0 : 8,
-          child: Container(
+          child: SizedBox(
             width: extendedWidth,
             height: extendedHeight,
             child: ClipPath(
@@ -621,30 +604,26 @@ class PuzzlePieceWidget extends StatelessWidget {
                 columns: columns,
                 rows: rows,
                 edgeShapes: edgeShapes,
+                bumpSize: bumpSize,
               ),
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  // Position the full image, offset to show correct segment
                   Positioned(
                     left: offsetX - bumpSize,
                     top: offsetY - bumpSize,  
-                    width: totalWidth + (bumpSize * 2),
-                    height: totalHeight + (bumpSize * 2),
+                    width: totalWidth,
+                    height: totalHeight,
                     child: Image.asset(
                       imagePath,
-                      width: totalWidth + (bumpSize * 2),
-                      height: totalHeight + (bumpSize * 2),
                       fit: BoxFit.cover,
                     ),
                   ),
-                  // Dark overlay for text visibility
                   Container(
                     width: extendedWidth,
                     height: extendedHeight,
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withOpacity(0.4),
                   ),
-                  // Answer text
                   Center(
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -653,19 +632,11 @@ class PuzzlePieceWidget extends StatelessWidget {
                           colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange],
                         ),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white, width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.5),
-                            blurRadius: 4,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
                       ),
                       child: Text(
                         data.answer.toString(),
                         style: TextStyle(
-                          fontSize: pieceSize.width / 5,
+                          fontSize: pieceSize.width / 4,
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
@@ -682,140 +653,133 @@ class PuzzlePieceWidget extends StatelessWidget {
   }
 }
 
-// Improved Jigsaw Piece Clipper with better knobs
+// ✅ FIX: Heavily refactored JigsawPieceClipper
 class JigsawPieceClipper extends CustomClipper<Path> {
   final PuzzlePieceData data;
   final int columns, rows;
   final Map<String, JigsawSide> edgeShapes;
+  final double bumpSize; // It now requires bumpSize
 
   JigsawPieceClipper({
     required this.data,
     required this.columns,
     required this.rows,
     required this.edgeShapes,
+    required this.bumpSize, // Added to constructor
   });
 
   @override
   Path getClip(Size size) {
+    // The `size` passed to the clipper is the extended size (core + 2*bumpSize).
+    // We derive the core size from it.
     final path = Path();
-    
-    // Get edge shapes for this piece
-    final topShape = data.row == 0 
-        ? JigsawSide.flat 
+    final double coreWidth = size.width - (bumpSize * 2);
+    final double coreHeight = size.height - (bumpSize * 2);
+
+    // Get edge shapes for this piece (this logic is correct)
+    final topShape = data.row == 0
+        ? JigsawSide.flat
         : edgeShapes['v-${data.row - 1}-${data.col}']!.inverse;
-    final bottomShape = data.row == rows - 1 
-        ? JigsawSide.flat 
+    final bottomShape = data.row == rows - 1
+        ? JigsawSide.flat
         : edgeShapes['v-${data.row}-${data.col}']!;
-    final leftShape = data.col == 0 
-        ? JigsawSide.flat 
+    final leftShape = data.col == 0
+        ? JigsawSide.flat
         : edgeShapes['h-${data.row}-${data.col - 1}']!.inverse;
-    final rightShape = data.col == columns - 1 
-        ? JigsawSide.flat 
+    final rightShape = data.col == columns - 1
+        ? JigsawSide.flat
         : edgeShapes['h-${data.row}-${data.col}']!;
-
-    final bumpSize = math.min(size.width, size.height) / 4;
     
-    path.moveTo(0, 0);
+    // Start path at the top-left of the *core* rectangle
+    path.moveTo(bumpSize, bumpSize);
+
+    // --- TOP EDGE ---
+    _createEdgePath(path, JigsawEdge.top, topShape, coreWidth, coreHeight);
     
-    // TOP EDGE
-    if (topShape == JigsawSide.flat) {
-      path.lineTo(size.width, 0);
-    } else {
-      path.lineTo(size.width / 3, 0);
-      
-      if (topShape == JigsawSide.knob) {
-        path.cubicTo(
-          size.width / 6, -bumpSize,
-          size.width / 6 * 5, -bumpSize,
-          size.width / 3 * 2, 0
-        );
-      } else {
-        path.cubicTo(
-          size.width / 6, bumpSize,
-          size.width / 6 * 5, bumpSize,
-          size.width / 3 * 2, 0
-        );
-      }
-      
-      path.lineTo(size.width, 0);
-    }
+    // --- RIGHT EDGE ---
+    _createEdgePath(path, JigsawEdge.right, rightShape, coreWidth, coreHeight);
 
-    // RIGHT EDGE  
-    if (rightShape == JigsawSide.flat) {
-      path.lineTo(size.width, size.height);
-    } else {
-      path.lineTo(size.width, size.height / 3);
-      
-      if (rightShape == JigsawSide.knob) {
-        path.cubicTo(
-          size.width + bumpSize, size.height / 6,
-          size.width + bumpSize, size.height / 6 * 5,
-          size.width, size.height / 3 * 2
-        );
-      } else {
-        path.cubicTo(
-          size.width - bumpSize, size.height / 6,
-          size.width - bumpSize, size.height / 6 * 5,
-          size.width, size.height / 3 * 2
-        );
-      }
-      
-      path.lineTo(size.width, size.height);
-    }
+    // --- BOTTOM EDGE ---
+    _createEdgePath(path, JigsawEdge.bottom, bottomShape, coreWidth, coreHeight);
+    
+    // --- LEFT EDGE ---
+    _createEdgePath(path, JigsawEdge.left, leftShape, coreWidth, coreHeight);
 
-    // BOTTOM EDGE
-    if (bottomShape == JigsawSide.flat) {
-      path.lineTo(0, size.height);
-    } else {
-      path.lineTo(size.width / 3 * 2, size.height);
-      
-      if (bottomShape == JigsawSide.knob) {
-        path.cubicTo(
-          size.width / 6 * 5, size.height + bumpSize,
-          size.width / 6, size.height + bumpSize,
-          size.width / 3, size.height
-        );
-      } else {
-        path.cubicTo(
-          size.width / 6 * 5, size.height - bumpSize,
-          size.width / 6, size.height - bumpSize,  
-          size.width / 3, size.height
-        );
-      }
-      
-      path.lineTo(0, size.height);
-    }
-
-    // LEFT EDGE
-    if (leftShape == JigsawSide.flat) {
-      path.close();
-    } else {
-      path.lineTo(0, size.height / 3 * 2);
-      
-      if (leftShape == JigsawSide.knob) {
-        path.cubicTo(
-          -bumpSize, size.height / 6 * 5,
-          -bumpSize, size.height / 6,
-          0, size.height / 3
-        );
-      } else {
-        path.cubicTo(
-          bumpSize, size.height / 6 * 5,
-          bumpSize, size.height / 6,
-          0, size.height / 3
-        );
-      }
-      
-      path.close();
-    }
-
+    path.close();
     return path;
   }
 
+  void _createEdgePath(Path path, JigsawEdge edge, JigsawSide shape, double w, double h) {
+    // This helper function draws one edge of the puzzle piece.
+    // All coordinates are offset by `bumpSize` to draw the core in the center.
+    switch (edge) {
+      case JigsawEdge.top:
+        if (shape == JigsawSide.flat) {
+          path.lineTo(bumpSize + w, bumpSize);
+        } else {
+          path.lineTo(bumpSize + w * 0.35, bumpSize);
+          double ySign = (shape == JigsawSide.knob) ? -1 : 1;
+          path.cubicTo(
+              bumpSize + w * 0.30, bumpSize + (bumpSize * ySign),
+              bumpSize + w * 0.70, bumpSize + (bumpSize * ySign),
+              bumpSize + w * 0.65, bumpSize
+          );
+          path.lineTo(bumpSize + w, bumpSize);
+        }
+        break;
+      case JigsawEdge.right:
+        if (shape == JigsawSide.flat) {
+          path.lineTo(bumpSize + w, bumpSize + h);
+        } else {
+          path.lineTo(bumpSize + w, bumpSize + h * 0.35);
+          double xSign = (shape == JigsawSide.knob) ? 1 : -1;
+          path.cubicTo(
+              bumpSize + w + (bumpSize * xSign), bumpSize + h * 0.30,
+              bumpSize + w + (bumpSize * xSign), bumpSize + h * 0.70,
+              bumpSize + w, bumpSize + h * 0.65
+          );
+          path.lineTo(bumpSize + w, bumpSize + h);
+        }
+        break;
+      case JigsawEdge.bottom:
+        if (shape == JigsawSide.flat) {
+          path.lineTo(bumpSize, bumpSize + h);
+        } else {
+          path.lineTo(bumpSize + w * 0.65, bumpSize + h);
+          double ySign = (shape == JigsawSide.knob) ? 1 : -1;
+           path.cubicTo(
+              bumpSize + w * 0.70, bumpSize + h + (bumpSize * ySign),
+              bumpSize + w * 0.30, bumpSize + h + (bumpSize * ySign),
+              bumpSize + w * 0.35, bumpSize + h
+          );
+          path.lineTo(bumpSize, bumpSize + h);
+        }
+        break;
+      case JigsawEdge.left:
+         if (shape == JigsawSide.flat) {
+          path.lineTo(bumpSize, bumpSize);
+        } else {
+          path.lineTo(bumpSize, bumpSize + h * 0.65);
+          double xSign = (shape == JigsawSide.knob) ? -1 : 1;
+           path.cubicTo(
+              bumpSize + (bumpSize * xSign), bumpSize + h * 0.70,
+              bumpSize + (bumpSize * xSign), bumpSize + h * 0.30,
+              bumpSize, bumpSize + h * 0.35
+          );
+          path.lineTo(bumpSize, bumpSize);
+        }
+        break;
+    }
+  }
+
   @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => true;
+  bool shouldReclip(covariant JigsawPieceClipper oldClipper) => 
+      oldClipper.data != data || 
+      oldClipper.bumpSize != bumpSize ||
+      oldClipper.edgeShapes != edgeShapes;
 }
 
+enum JigsawEdge { top, right, bottom, left }
 enum JigsawSide { flat, knob, hole }
 
 extension on JigsawSide {
