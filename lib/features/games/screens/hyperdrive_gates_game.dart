@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui; // Needed for lerpDouble
 
+import '../../../generated/l10n.dart'; // Import for localization
 import '../models/math_problem.dart'; // Using your existing MathProblem model
 
 // --- GAME CONFIGURATION ---
@@ -135,8 +136,6 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     }
   }
 
-  // --- MAJOR GAMEPLAY LOGIC ---
-
   void _spawnNextGatePair(Size screenSize) {
     currentProblem = MathProblem.random(widget.grade);
     final answers = currentProblem!.generateMultipleChoiceOptions(optionsCount: 2);
@@ -165,7 +164,6 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
         size: Size(120, gateHeight),
       ));
 
-      // Add decorative asteroids to create the "path"
       for (int i=0; i < 5; i++) {
         final yPos = (screenSize.height / 2) + (i - 2) * 25.0;
         gameObjects.add(Asteroid(
@@ -176,17 +174,14 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     });
   }
 
-  // --- UPDATE & RENDER LOOP ---
-
   void _updateGame() {
     if (!gameActive) return;
 
-    final dt = 0.016; // Assuming 60 FPS
+    final dt = 0.016;
     final screenSize = MediaQuery.of(context).size;
     final random = math.Random();
 
     setState(() {
-      // Update background stars
       for (var layer in backgroundStars) {
         for (var star in layer) {
           star.position = Offset(star.position.dx - (star.speed + gameSpeed * 0.05) * dt, star.position.dy);
@@ -196,11 +191,9 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
         }
       }
 
-      // Update spaceship using the new direct movement
       spaceship.update(dt, screenSize);
       if (spaceship.isMoving) _addThrusterParticles();
 
-      // Update game objects and check for collisions
       bool shouldSpawnNext = false;
       gameObjects.removeWhere((obj) {
         obj.update(dt, gameSpeed);
@@ -214,16 +207,15 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
           if (collisionRect.overlaps(spaceship.collisionRect)) {
             _handleGateCollision(obj);
             shouldSpawnNext = true;
-            return true; // Remove the gate
+            return true;
           }
         } else if (obj is Asteroid) {
             if (obj.collisionRect.overlaps(spaceship.collisionRect)) {
               _handleObstacleCollision();
-              return true; // Remove the asteroid
+              return true;
             }
         }
 
-        // If the last gate has passed the ship, it's a miss
         if (obj is Gate && obj.position.dx < spaceship.position.dx - 100) {
             shouldSpawnNext = true;
         }
@@ -258,7 +250,6 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       _addDamageEffect();
   }
   
-  // --- VISUAL EFFECTS ---
   void _addSuccessEffect() {
       for (int i=0; i < 20; i++) {
           particles.add(ParticleEffect.successParticle(spaceship.position));
@@ -277,8 +268,6 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       particles.add(ParticleEffect.thrusterParticle(spaceship.position));
   }
   
-  // --- GAME STATE MANAGEMENT ---
-  
   void _winGame() {
     if (!gameActive) return;
     setState(() => gameActive = false);
@@ -294,13 +283,11 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   }
   
   void _resetGame() {
-    Navigator.of(context).pop(); // Close dialog
+    Navigator.of(context).pop();
     final screenSize = MediaQuery.of(context).size;
     _initializeGame(screenSize);
   }
 
-  // --- INPUT HANDLING ---
-  
   void _handleKeyboard(KeyEvent event) {
       final double moveAmount = MediaQuery.of(context).size.height / 50;
       if (event is KeyDownEvent) {
@@ -312,7 +299,6 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       }
   }
 
-  // --- WIDGET BUILD ---
   @override
   Widget build(BuildContext context) {
     if (!gameInitialized) {
@@ -362,6 +348,8 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   }
   
   Widget _buildGameHeader() {
+    // CORRECTED: Assert non-null with '!'
+    final l10n = S.of(context)!;
     return Positioned(
       top: 0, left: 0, right: 0,
       child: SafeArea(
@@ -371,7 +359,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Gates: $gatesCleared / $targetGatesForLevel', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('${l10n.hyperdriveGatesTitle}: $gatesCleared / $targetGatesForLevel', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               Row(
                 children: List.generate(INITIAL_LIVES, (index) => Icon(
                   index < lives ? Icons.favorite : Icons.favorite_border,
@@ -387,6 +375,8 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   
   Widget _buildProblemDisplay() {
     if (currentProblem == null) return const SizedBox.shrink();
+    // CORRECTED: Assert non-null with '!'
+    final l10n = S.of(context)!;
     return Positioned(
       top: 80, left: 20, right: 20,
       child: Center(
@@ -397,22 +387,36 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.yellow.withOpacity(0.8), width: 2),
           ),
-          child: Text(currentProblem!.expression, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+              children: [
+                TextSpan(text: '${l10n.solve} ', style: const TextStyle(color: Colors.yellow)),
+                TextSpan(text: currentProblem!.expression),
+              ]
+            ),
+          )
         ),
       ),
     );
   }
 
   Widget _buildEndGameDialog({required bool isWin}) {
+    // CORRECTED: Assert non-null with '!'
+    final l10n = S.of(context)!;
     return AlertDialog(
       backgroundColor: const Color(0xFF1A1A3E),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0), side: BorderSide(color: isWin ? Colors.greenAccent : Colors.redAccent, width: 2)),
-      title: Text(isWin ? 'Mission Complete!' : 'Game Over!', style: const TextStyle(color: Colors.white)),
-      content: Text(isWin ? 'Your piloting skills are superb!' : 'Your ship was lost in the cosmos.', style: const TextStyle(color: Colors.white70)),
+      title: Text(isWin ? l10n.hyperdriveGatesWinTitle : l10n.hyperdriveGatesLoseTitle, style: const TextStyle(color: Colors.white)),
+      content: Text(
+        isWin ? l10n.hyperdriveGatesWinDesc(targetGatesForLevel) : l10n.hyperdriveGatesLoseDesc,
+        style: const TextStyle(color: Colors.white70),
+        textAlign: TextAlign.center,
+      ),
       actions: <Widget>[
-        TextButton(child: const Text('Fly Again'), onPressed: _resetGame),
+        TextButton(child: Text(l10n.flyAgain), onPressed: _resetGame),
         TextButton(
-          child: const Text('Return to Hangar'),
+          child: Text(l10n.backToMenu),
           onPressed: () {
             Navigator.of(context).pop();
             Navigator.of(context).pop();
@@ -434,7 +438,6 @@ abstract class GameObject {
   Widget build();
 }
 
-// --- NEW RESPONSIVE SPACESHIP ---
 class Spaceship {
   Offset position;
   double sizeValue = 30.0;
@@ -458,12 +461,10 @@ class Spaceship {
   void update(double dt, Size screenSize) {
     if (damageCooldown > 0) damageCooldown -= dt;
     
-    // THE NEW MOVEMENT LOGIC: Smoothly interpolates to the target Y position
-    // This provides tight, responsive control without drifting.
     if ((position.dy - targetY).abs() > 1.0) {
       position = Offset(
         position.dx,
-        ui.lerpDouble(position.dy, targetY, 0.15)!, // The 0.15 controls how fast it follows
+        ui.lerpDouble(position.dy, targetY, 0.15)!,
       );
       isMoving = true;
     } else {
@@ -481,7 +482,7 @@ class Spaceship {
   
   void damage() {
     if (isInvincible) return;
-    damageCooldown = 1.5; // 1.5 seconds of invincibility after getting hit
+    damageCooldown = 1.5;
   }
 }
 
@@ -558,8 +559,6 @@ class Asteroid extends GameObject {
   }
 }
 
-
-// --- VISUAL EFFECTS ---
 class ParticleEffect {
     Offset position;
     Offset velocity;
@@ -624,7 +623,6 @@ class ParticleEffect {
     }
 }
 
-// --- CUSTOM WIDGETS ---
 class SpaceshipWidget extends StatelessWidget {
     final Spaceship spaceship;
     final AnimationController thrusterAnimation;
