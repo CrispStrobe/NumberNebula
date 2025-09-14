@@ -19,6 +19,7 @@ import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
+import '../../../core/services/sri_service.dart'; // Import SRI Service
 
 class AsteroidMathGame extends StatefulWidget {
   final int grade;
@@ -141,16 +142,16 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
 
     int asteroidCount = difficulty.objectCount;
     final problems = <MathProblem>[];
+
+    final sriService = context.read<SriService>(); // Get the SRI service
     
     // Generate math problems using your library
     int attempts = 0;
     while (problems.length < asteroidCount && attempts < 100) {
       attempts++;
       
-      final problem = MathProblem.random(
-        widget.grade, 
-        difficulty: (difficulty.difficultyMultiplier * 2).round().clamp(1, 5),
-      );
+      // Use the smart generator
+      final problem = MathProblem.generateProblem(widget.grade, widget.level, sriService);
       
       // Ensure we don't have duplicate answers and answers are in reasonable range
       if (!usedAnswers.contains(problem.answer) && problem.answer > 0 && problem.answer < 1000) {
@@ -200,8 +201,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
 
       asteroids.add(Asteroid(
         id: i,
-        mathProblem: problem.expression,
-        answer: problem.answer,
+        problem: problem, // Corrected
         position: position,
         velocity: Offset(
           (random.nextDouble() - 0.5) * asteroidSpeed,
@@ -289,12 +289,18 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   void _onAsteroidTapped(Asteroid asteroid) {
     if (!gameActive || currentTargetIndex >= targetOrder.length) return;
 
+    // Get the SRI service and record the result
+    final sriService = context.read<SriService>();
+    final expectedAnswer = targetOrder[currentTargetIndex];
+    final bool isCorrect = asteroid.answer == expectedAnswer;
+
+    // Record the response in the SRI system
+    sriService.recordResponse(asteroid.problem, isCorrect);
+
     setState(() => showHint = false);
     _startHintTimer();
 
-    final expectedAnswer = targetOrder[currentTargetIndex];
-
-    if (asteroid.answer == expectedAnswer) {
+    if (isCorrect) {
       // Correct!
       _triggerScreenShake();
       
@@ -644,8 +650,7 @@ enum AsteroidType { rocky, icy, metallic, crystalline, volcanic }
 
 class Asteroid {
   final int id;
-  String mathProblem;
-  int answer;
+  final MathProblem problem;
   Offset position;
   Offset velocity;
   double size;
@@ -656,8 +661,7 @@ class Asteroid {
 
   Asteroid({
     required this.id,
-    required this.mathProblem,
-    required this.answer,
+    required this.problem,
     required this.position,
     required this.velocity,
     required this.size,
@@ -666,6 +670,10 @@ class Asteroid {
     required this.type,
     required this.hue,
   });
+
+  // Update getters to pull from the problem object
+  String get mathProblem => problem.expression;
+  int get answer => problem.answer;
 
   void draw(Canvas canvas, {required bool isHintActive}) {
     canvas.save();

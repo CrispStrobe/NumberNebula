@@ -11,6 +11,7 @@ import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/game_ui.dart';
 import '../widgets/space_background.dart';
+import '../../../core/services/sri_service.dart';
 
 // Main Game Widget
 class PuzzleMathGame extends StatefulWidget {
@@ -42,6 +43,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   void _initializeGame() {
     log("--- INITIALIZING NEW GAME ---", name: "PuzzleMath");
     final gameProvider = context.read<GameProvider>();
+    
     currentPuzzleImage = PuzzleImageService.instance.getImageForLevel(widget.level);
     _generatePuzzle();
     if (gameProvider.puzzleTimerEnabled) {
@@ -74,26 +76,26 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   void _generatePuzzle() {
+    final gameProvider = context.read<GameProvider>();
+    final sriService = context.read<SriService>();
     final difficulty = widget.grade;
-    if (difficulty <= 3) {
+    if (difficulty <= 1) { // Adjusted for 1-4 levels
       columns = 2; rows = 2;
-    } else if (difficulty == 4) {
+    } else if (difficulty == 2) {
       columns = 2; rows = 3;
-    } else if (difficulty == 5) {
+    } else if (difficulty == 3) {
       columns = 3; rows = 3;
     } else {
       columns = 3; rows = 4;
     }
     log("Generating puzzle with grade $difficulty. Grid: $columns x $rows", name: "PuzzleMath");
 
-
     final pieceCount = columns * rows;
     _generateEdgeShapes(); 
 
-    final random = math.Random();
     final problems = <MathProblem>{};
     while (problems.length < pieceCount) {
-      problems.add(MathProblem.random(widget.grade, difficulty: difficulty));
+      problems.add(MathProblem.generateProblem(widget.grade, widget.level, sriService));
     }
 
     final problemList = problems.toList();
@@ -101,8 +103,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     for (int i = 0; i < pieceCount; i++) {
       pieceData.add(PuzzlePieceData(
         id: i,
-        problem: problemList[i].expression,
-        answer: problemList[i].answer,
+        problem: problemList[i],
         row: i ~/ columns,
         col: i % columns,
         rotation: 0, 
@@ -111,7 +112,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     log("Generated ${pieceData.length} pieces with math problems.", name: "PuzzleMath");
 
     setState(() {
-      pieces = pieceData..shuffle(random);
+      pieces = pieceData..shuffle(math.Random());
       placedPieces.clear();
     });
   }
@@ -307,9 +308,17 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                 },
                 onAccept: (pieceId) {
                   final pieceData = pieces.firstWhere((p) => p.id == pieceId);
+                  final slotData = pieces.firstWhere((p) => p.row == (index ~/ columns) && p.col == (index % columns));
+
+                  final isCorrect = pieceData.answer == slotData.answer && pieceData.rotation == 0;
+        
                   log("Attempting to place piece ID $pieceId (Answer: ${pieceData.answer}, Rot: ${pieceData.rotation}) into slot ${slotData.id} (Answer: ${slotData.answer})", name: "PuzzleMath.DragDrop");
                   
-                  if (pieceData.answer == slotData.answer && pieceData.rotation == 0) {
+                  // Get the SRI service and record the player's response
+                  final sriService = context.read<SriService>();
+                  sriService.recordResponse(pieceData.problem, isCorrect);
+                
+                  if (isCorrect) {
                     log("SUCCESS: Correct placement.", name: "PuzzleMath.DragDrop");
                     setState(() => placedPieces[slotData.id] = pieceId);
                     context.read<GameProvider>().addScore(50);
@@ -461,8 +470,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
 
 class PuzzlePieceData {
   final int id;
-  final String problem;
-  final int answer;
+  final MathProblem problem;
   final int row;
   final int col;
   int rotation; 
@@ -470,11 +478,15 @@ class PuzzlePieceData {
   PuzzlePieceData({
     required this.id,
     required this.problem,
-    required this.answer,
     required this.row,
     required this.col,
     this.rotation = 0,
   });
+
+  // Getters for math problem data
+  String get problemExpression => problem.expression;
+  int get answer => problem.answer;
+
 }
 
 class PuzzleSlotWidget extends StatelessWidget {
@@ -540,7 +552,7 @@ class PuzzleSlotWidget extends StatelessWidget {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  data.problem,
+                  data.problemExpression,
                   style: SpaceTheme.titleStyle.copyWith(
                     color: SpaceTheme.starYellow,
                     fontWeight: FontWeight.bold,
@@ -650,7 +662,7 @@ class PuzzlePieceWidget extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                // ✅ MODIFIED: Wrapped Text in a FittedBox for adaptive sizing
+                // Wrap Text in a FittedBox for adaptive sizing
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(

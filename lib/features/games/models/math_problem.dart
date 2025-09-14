@@ -1,7 +1,9 @@
 // lib/features/games/models/math_problem.dart:
 
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import '../constants/app_constants.dart';
+import '../../../core/services/sri_service.dart'; // Import SRI Service
 
 class MathProblem {
   final String expression;
@@ -10,6 +12,19 @@ class MathProblem {
   final int operandA;
   final int operandB;
   final int difficulty;
+
+  String get id {
+    switch (operation) {
+      case MathOperation.addition:
+        return 'ADD_${math.min(operandA, operandB)}_${math.max(operandA, operandB)}';
+      case MathOperation.subtraction:
+        return 'SUB_${operandA}_${operandB}';
+      case MathOperation.multiplication:
+        return 'MUL_${math.min(operandA, operandB)}_${math.max(operandA, operandB)}';
+      case MathOperation.division:
+        return 'DIV_${operandA}_${operandB}';
+    }
+  }
   
   MathProblem({
     required this.expression,
@@ -19,6 +34,65 @@ class MathProblem {
     required this.operandB,
     required this.difficulty,
   });
+
+  static MathProblem generateProblem(int grade, int level, SriService sriService) {
+    // 1. Prioritize problems that are due for review
+    final problemsToReview = sriService.getProblemsForReview(limit: 1);
+    if (problemsToReview.isNotEmpty) {
+      final problemId = problemsToReview.first;
+      debugPrint('[SRI] Found problem to review: $problemId');
+      final parts = problemId.split('_');
+      final type = parts[0];
+      final operandA = int.parse(parts[1]);
+      final operandB = int.parse(parts[2]);
+
+      switch (type) {
+        case 'ADD': return MathProblem.addition(operandA, operandB);
+        case 'SUB': return MathProblem.subtraction(operandA, operandB);
+        case 'MUL': return MathProblem.multiplication(operandA, operandB);
+        case 'DIV': return MathProblem.division(operandA, operandB);
+      }
+    }
+
+    // 2. If no reviews are due, generate a new random problem, avoiding mastered ones
+    MathProblem newProblem;
+    int attempts = 0;
+    do {
+      // **FIX**: Call the new private static method `_generateRandom`
+      newProblem = _generateRandom(grade, difficulty: level); 
+      attempts++;
+      if (attempts > 20) {
+        debugPrint('[SRI] Could not find a non-mastered problem after 20 attempts. Serving a random one.');
+        break;
+      }
+    } while (sriService.isProblemMastered(newProblem.id));
+
+    debugPrint('[SRI] Generated new non-mastered problem: ${newProblem.expression}');
+    return newProblem;
+  }
+
+  // **FIX**: Changed this from a private factory to a private static method
+  static MathProblem _generateRandom(int grade, {int? difficulty}) {
+    final random = math.Random();
+    final actualDifficulty = difficulty ?? (grade - 2);
+    final operations = MathOperations.getOperationsForGrade(grade);
+    final ranges = MathOperations.getNumberRangesForGrade(grade);
+    
+    final operation = operations[random.nextInt(operations.length)];
+    
+    switch (operation) {
+      case AppConstants.additionSymbol:
+        return _generateAddition(random, ranges, actualDifficulty);
+      case AppConstants.subtractionSymbol:
+        return _generateSubtraction(random, ranges, actualDifficulty);
+      case AppConstants.multiplicationSymbol:
+        return _generateMultiplication(random, ranges, actualDifficulty);
+      case AppConstants.divisionSymbol:
+        return _generateDivision(random, ranges, actualDifficulty);
+      default:
+        return _generateAddition(random, ranges, actualDifficulty);
+    }
+  }
   
   // Factory constructors for different problem types
   factory MathProblem.addition(int a, int b, {int difficulty = 1}) {

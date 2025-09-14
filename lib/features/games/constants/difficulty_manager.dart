@@ -1,88 +1,86 @@
+// lib/features/games/constants/difficulty_manager.dart
+
+import 'package:flutter/foundation.dart';
+
 import '../constants/app_constants.dart';
+import '../../../core/services/sri_service.dart'; // Import SRI Service
 
 class DifficultyManager {
   static DifficultyConfig getDifficulty(int grade, int level) {
-    final baseGrade = grade.clamp(3, 6);
-    final effectiveLevel = level.clamp(1, 20);
+    final baseLevel = grade.clamp(1, 4);
+    final effectiveGameLevel = level.clamp(1, 20);
     
     // Progressive scaling within grade
-    final gradeMultiplier = (baseGrade - 2) * 0.3; // 0.3, 0.6, 0.9, 1.2
-    final levelMultiplier = (effectiveLevel - 1) * 0.05; // 0 to 0.95
-    final totalDifficulty = 1.0 + gradeMultiplier + levelMultiplier;
+    final levelMultiplier = baseLevel * 0.4; // 0.4, 0.8, 1.2, 1.6
+    final gameLevelMultiplier = (effectiveGameLevel - 1) * 0.05; // 0 to 0.95
+    final totalDifficulty = 1.0 + levelMultiplier + gameLevelMultiplier;
+
     
     return DifficultyConfig(
-      grade: baseGrade,
-      level: effectiveLevel,
+      grade: baseLevel, // Still called 'grade' internally for simplicity
+      level: effectiveGameLevel,
       difficultyMultiplier: totalDifficulty,
-      
-      // Math complexity
-      numberRange: _calculateNumberRange(baseGrade, effectiveLevel),
-      operationTypes: _getOperationTypes(baseGrade, effectiveLevel),
-      equationProbability: _calculateEquationProbability(baseGrade, effectiveLevel),
-      
-      // Game mechanics
-      objectCount: _calculateObjectCount(baseGrade, effectiveLevel),
-      timeLimit: _calculateTimeLimit(baseGrade, effectiveLevel),
-      gameSpeed: _calculateGameSpeed(baseGrade, effectiveLevel),
-      
-      // Visual complexity
-      showHints: effectiveLevel <= 3,
-      animationSpeed: 1.0 + (levelMultiplier * 0.5),
+      numberRange: _calculateNumberRange(baseLevel, effectiveGameLevel),
+      operationTypes: _getOperationTypes(baseLevel, effectiveGameLevel),
+      equationProbability: _calculateEquationProbability(baseLevel, effectiveGameLevel),
+      objectCount: _calculateObjectCount(baseLevel, effectiveGameLevel),
+      timeLimit: _calculateTimeLimit(baseLevel, effectiveGameLevel),
+      gameSpeed: _calculateGameSpeed(baseLevel, effectiveGameLevel),
+      showHints: effectiveGameLevel <= 3,
+      animationSpeed: 1.0 + (gameLevelMultiplier * 0.5),
       visualComplexity: totalDifficulty,
     );
   }
-  
-  static Map<String, int> _calculateNumberRange(int grade, int level) {
-    final baseMax = [0, 0, 0, 15, 25, 40, 80][grade]; // Index 3-6
-    final levelBonus = (level - 1) * 3;
-    final maxNumber = baseMax + levelBonus;
-    
-    return {
-      'min': level <= 5 ? 1 : 2,
-      'max': maxNumber,
-    };
+
+  // NEW: Adaptive difficulty based on SRI data
+  static DifficultyConfig getAdaptiveDifficulty(int skillLevel, int gameLevel, SriService sriService) {
+      // Start with the base difficulty
+      DifficultyConfig config = getDifficulty(skillLevel, gameLevel);
+
+      // TODO: Implement your SRI-based adjustments here.
+      // Example: If player struggles with multiplication, increase its probability.
+      // Example: If player masters numbers up to 50, increase the max number range.
+      
+      debugPrint("[ADAPTIVE_DIFFICULTY] 🧠 Using SRI to adjust problem generation (feature to be expanded).");
+      
+      return config;
   }
   
-  static List<MathOperation> _getOperationTypes(int grade, int level) {
-    final operations = <MathOperation>[];
-    
-    operations.add(MathOperation.addition);
-    
-    if (grade >= 3 || level >= 3) {
-      operations.add(MathOperation.subtraction);
-    }
-    
-    if (grade >= 4 || level >= 5) {
-      operations.add(MathOperation.multiplication);
-    }
-    
-    if (grade >= 5 || level >= 8) {
-      operations.add(MathOperation.division);
-    }
-    
+  static Map<String, int> _calculateNumberRange(int skillLevel, int level) {
+    final baseMax = [0, 15, 25, 40, 80][skillLevel]; // Index 1-4
+    final levelBonus = (level - 1) * 3;
+    final maxNumber = baseMax + levelBonus;
+    return {'min': level <= 5 ? 1 : 2, 'max': maxNumber,};
+  }
+  
+  static List<MathOperation> _getOperationTypes(int skillLevel, int level) {
+    final operations = <MathOperation>[MathOperation.addition];
+    if (skillLevel >= 1 || level >= 3) operations.add(MathOperation.subtraction);
+    if (skillLevel >= 2 || level >= 5) operations.add(MathOperation.multiplication);
+    if (skillLevel >= 3 || level >= 8) operations.add(MathOperation.division);
     return operations;
   }
   
-  static double _calculateEquationProbability(int grade, int level) {
-    final baseProbability = 0.2 + (grade - 3) * 0.15;
+  static double _calculateEquationProbability(int skillLevel, int level) {
+    final baseProbability = 0.2 + (skillLevel - 1) * 0.15;
     final levelBonus = (level - 1) * 0.03;
     return (baseProbability + levelBonus).clamp(0.1, 0.8);
   }
-  
-  static int _calculateObjectCount(int grade, int level) {
-    final baseCount = 3 + grade;
+
+  static int _calculateObjectCount(int skillLevel, int level) {
+    final baseCount = 4 + skillLevel;
     final levelBonus = (level - 1) ~/ 2;
     return (baseCount + levelBonus).clamp(4, 15);
   }
-  
-  static int _calculateTimeLimit(int grade, int level) {
-    final baseTime = 120 - (grade - 3) * 15; // 120, 105, 90, 75
+
+  static int _calculateTimeLimit(int skillLevel, int level) {
+    final baseTime = 120 - (skillLevel - 1) * 15; // 120, 105, 90, 75
     final levelPenalty = (level - 1) * 2;
     return (baseTime - levelPenalty).clamp(45, 180);
   }
-  
-  static double _calculateGameSpeed(int grade, int level) {
-    final baseSpeed = 60.0 + (grade - 3) * 20.0;
+
+  static double _calculateGameSpeed(int skillLevel, int level) {
+    final baseSpeed = 60.0 + (skillLevel - 1) * 20.0;
     final levelBonus = (level - 1) * 3.0;
     return baseSpeed + levelBonus;
   }

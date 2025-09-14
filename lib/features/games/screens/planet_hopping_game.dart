@@ -9,6 +9,7 @@ import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
+import '../../../core/services/sri_service.dart';
 
 class PlanetHoppingGame extends StatefulWidget {
   final int grade;
@@ -97,7 +98,8 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   void _initializeGame() {
     debugPrint("[Gameplay] ✨ Initializing new game board.");
     _generateBackgroundStars();
-    _generatePlanets();
+    final sriService = context.read<SriService>();
+    _generatePlanets(sriService); // Pass sriService to the generator
     _generateTargetSequence();
     _startHintTimer();
 
@@ -138,7 +140,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     }
   }
 
-  void _generatePlanets() {
+  void _generatePlanets(SriService sriService) {
     planets.clear();
     final random = math.Random();
     final difficulty = widget.grade + widget.level;
@@ -156,7 +158,8 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     
     while (problems.length < planetCount && attempts < 200) {
       attempts++;
-      final problem = MathProblem.random(widget.grade, difficulty: widget.level);
+      final problem = MathProblem.generateProblem(widget.grade, widget.level, sriService);
+      
       if (!usedAnswers.contains(problem.answer)) {
         problems.add(problem);
         usedAnswers.add(problem.answer);
@@ -165,6 +168,8 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         debugPrint("[Gameplay] ⚠️ Skipped duplicate answer: ${problem.answer}");
       }
     }
+
+    final problemList = problems.toList();
 
     // Better planet positioning - more scattered and varied
     const screenWidth = 800.0;  
@@ -200,12 +205,12 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         position: Offset(planetX, planetY),
         radius: planetRadius,
         mass: mass,
-        answer: problems[i].answer,
-        problem: displayText, // Use either number or expression
+        problem: problemList[i],
         color: _getPlanetColor(i),
         visited: false,
       );
       planets.add(planet);
+      // _generateTargetSequence();
       
       debugPrint("[Gameplay] 🪐 Planet ${i} at (${planetX.toInt()}, ${planetY.toInt()}) shows: $displayText = ${problems[i].answer}");
     }
@@ -231,6 +236,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   void _landOnPlanet(Planet planet) {
+    
     debugPrint("[Gameplay] 💥 Landing attempt on Planet ${planet.id} (${planet.answer})");
     setState(() => _showNextTargetHint = false);
     _startHintTimer();
@@ -240,8 +246,12 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     _reLandingCooldown =
         Timer(const Duration(milliseconds: 500), () => _lastLandedPlanetId = null);
 
+    final sriService = context.read<SriService>();
     final bool isCorrect = nextTargetIndex < targetSequence.length &&
                           planet.answer == targetSequence[nextTargetIndex];
+
+    // Record the player's response
+    sriService.recordResponse(planet.problem, isCorrect);
 
     if (isCorrect) {
       debugPrint("[Gameplay] ✅ CORRECT landing!");
@@ -696,8 +706,7 @@ class Planet {
   final int id;
   Offset position;
   double radius, mass;
-  int answer;
-  String problem;
+  final MathProblem problem;
   Color color;
   bool visited;
 
@@ -706,10 +715,12 @@ class Planet {
       required this.position,
       required this.radius,
       required this.mass,
-      required this.answer,
       required this.problem,
       required this.color,
       required this.visited});
+
+  int get answer => problem.answer;
+  String get problemExpression => problem.expression;
 }
 
 class ParticleEffect {
@@ -811,7 +822,7 @@ class PlanetWidget extends StatelessWidget {
               decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.7),
                   borderRadius: BorderRadius.circular(8)),
-              child: Text(planet.problem,
+              child: Text(planet.problemExpression,
                   style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

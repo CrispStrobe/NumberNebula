@@ -1,3 +1,4 @@
+// lib/features/games/providers/game_provider.dart
 import 'package:flutter/foundation.dart';
 
 // The Achievement data class. It should be at the top-level, NOT inside another class.
@@ -31,22 +32,26 @@ class Achievement {
 class GameProvider extends ChangeNotifier {
   int _score = 0;
   int _level = 1;
-  int _grade = 3;
+  int _grade = 1;
   int _lives = 3;
   bool _soundEnabled = true;
   bool _musicEnabled = true;
   bool _puzzleTimerEnabled = true;
+  bool _useAdaptiveDifficulty = false;
   Map<String, int> _gameProgress = {};
   List<Achievement> _achievements = [];
 
   // Getters
   int get score => _score;
   int get level => _level;
-  int get grade => _grade;
+  int get grade => _grade; // Internally, we'll still call this 'grade'
   int get lives => _lives;
   bool get soundEnabled => _soundEnabled;
   bool get musicEnabled => _musicEnabled;
   bool get puzzleTimerEnabled => _puzzleTimerEnabled;
+  
+  bool get useAdaptiveDifficulty => _useAdaptiveDifficulty;
+
   Map<String, int> get gameProgress => _gameProgress;
   List<Achievement> get achievements => _achievements;
 
@@ -84,10 +89,16 @@ class GameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Grade management
+  // Grade/Skill Level management
   void setGrade(int grade) {
-    _grade = grade;
+    _grade = grade.clamp(1, 4); // UPDATED: Clamp to 1-4
     _level = 1; // Reset level when changing grade
+    notifyListeners();
+  }
+
+  // Setter for adaptive difficulty
+  void setUseAdaptiveDifficulty(bool value) {
+    _useAdaptiveDifficulty = value;
     notifyListeners();
   }
 
@@ -230,17 +241,21 @@ class GameProvider extends ChangeNotifier {
       'musicEnabled': _musicEnabled,
       'gameProgress': _gameProgress,
       'achievements': _achievements.map((a) => a.toJson()).toList(),
+      // NEW: Save the adaptive setting
+      'useAdaptiveDifficulty': _useAdaptiveDifficulty,
     };
   }
 
   void fromJson(Map<String, dynamic> json) {
     _score = json['score'] ?? 0;
     _level = json['level'] ?? 1;
-    _grade = json['grade'] ?? 3;
+    _grade = json['grade'] ?? 1; // UPDATED: Default is 1
     _lives = json['lives'] ?? 3;
     _soundEnabled = json['soundEnabled'] ?? true;
     _musicEnabled = json['musicEnabled'] ?? true;
     _gameProgress = Map<String, int>.from(json['gameProgress'] ?? {});
+    // NEW: Load the adaptive setting
+    _useAdaptiveDifficulty = json['useAdaptiveDifficulty'] ?? false;
 
     if (json['achievements'] != null) {
       _achievements = (json['achievements'] as List)

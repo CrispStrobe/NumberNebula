@@ -12,7 +12,7 @@ import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
-
+import '../../../core/services/sri_service.dart'; 
 
 // A few top-level constants for easier tweaking
 const int kNumStars = 150;
@@ -134,8 +134,10 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   void _startNewChallenge() {
     if (!mounted || !gameActive) return;
 
+    final sriService = context.read<SriService>();
+
     setState(() {
-      currentProblem = MathProblem.random(widget.grade);
+      currentProblem = MathProblem.generateProblem(widget.grade, widget.level, sriService);
       availablePaths.clear();
       pathFollowProgress = 0.0;
       selectedPath = null;
@@ -202,6 +204,9 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
 
   void _selectPath(SpacePath path) {
     if (!choosingPath || followingPath) return;
+
+    final sriService = context.read<SriService>();
+    sriService.recordResponse(currentProblem!, path.isCorrect);
 
     HapticFeedback.lightImpact();
 

@@ -24,16 +24,16 @@ class SEn extends S {
   String get fast => 'FAST';
 
   @override
-  String get grade3 => '3rd Grade';
+  String get grade3 => 'Level 1';
 
   @override
-  String get grade4 => '4th Grade';
+  String get grade4 => 'Level 2';
 
   @override
-  String get grade5 => '5th Grade';
+  String get grade5 => 'Level 3';
 
   @override
-  String get grade6 => '6th Grade';
+  String get grade6 => 'Level 4';
 
   @override
   String get gameMenu => 'Mission Control';
@@ -201,7 +201,7 @@ class SEn extends S {
   String get difficulty => 'Difficulty';
 
   @override
-  String get currentGrade => 'Current Grade';
+  String get currentGrade => 'Current Skill';
 
   @override
   String get currentLevelDesc => 'Current Level';
@@ -263,11 +263,11 @@ class SEn extends S {
   String get restartNow => 'Restart Now';
 
   @override
-  String get selectGrade => 'Select Grade';
+  String get selectGrade => 'Select Skill Level';
 
   @override
   String gradeN(int gradeNumber) {
-    return 'Grade $gradeNumber';
+    return 'Skill Level $gradeNumber';
   }
 
   @override
@@ -291,7 +291,7 @@ class SEn extends S {
   String get playToUnlock => 'Play to unlock!';
 
   @override
-  String get chooseYourGrade => 'Choose Your Grade';
+  String get chooseYourGrade => 'Choose Your Skill Level';
 
   @override
   String get grade3Desc =>
@@ -302,10 +302,20 @@ class SEn extends S {
       'Multi-digit arithmetic and introduction to division';
 
   @override
-  String get grade5Desc => 'Complex operations and problem solving';
+  String get grade5Desc => 'Complex operations, fractions, and decimals';
 
   @override
-  String get grade6Desc => 'Advanced mathematics and challenging puzzles';
+  String get grade6Desc =>
+      'Advanced math, logic puzzles, and multi-step problems';
+
+  @override
+  String get adaptiveDifficulty => 'Adaptive Difficulty';
+
+  @override
+  String get adaptiveDifficultyDesc => 'Adjusts problems based on your skill';
+
+  @override
+  String get adjustProblems => 'Adjusts problems based on your skill';
 
   @override
   String get settingsComingSoon => 'Settings coming soon!';

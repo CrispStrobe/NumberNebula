@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/services/puzzle_image_service.dart';
+import 'core/services/sri_service.dart';
+
 import 'core/theme/space_theme.dart';
 import 'features/games/constants/app_constants.dart';
 import 'core/services/audio_service.dart';
@@ -34,24 +36,28 @@ void main() async {
   
   final audioService = AudioService();
   final progressService = ProgressService();
-  await progressService.init();
+  // await progressService.init();
+  final sriService = SriService(); // Create an instance of SriService
   
   GlobalErrorHandler.init();
   
   runApp(SpaceMathApp(
     audioService: audioService,
     progressService: progressService,
+    sriService: sriService,
   ));
 }
 
 class SpaceMathApp extends StatefulWidget {
   final AudioService audioService;
   final ProgressService progressService;
+  final SriService sriService;
   
   const SpaceMathApp({
     super.key,
     required this.audioService,
     required this.progressService,
+    required this.sriService,
   });
 
   @override
@@ -62,10 +68,13 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   Locale? _locale;
   bool _isInitialized = false;
   String? _initializationError;
+  // Hold a reference to GameProvider to use in lifecycle methods
+  late GameProvider _gameProvider;
   
   @override
   void initState() {
     super.initState();
+    _gameProvider = GameProvider(); // Initialize the provider
     WidgetsBinding.instance.addObserver(this);
     _initializeApp();
   }
@@ -78,6 +87,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
     switch (state) {
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
@@ -94,6 +104,9 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   Future<void> _initializeApp() async {
     try {
       await _loadLanguagePreference();
+      // Load game progress and SRI data into the provider instance
+      await widget.progressService.loadProgress(_gameProvider);
+      await widget.sriService.loadSriData();
       setState(() {
         _isInitialized = true;
       });
@@ -126,13 +139,17 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   }
   
   Future<void> _saveAppState() async {
+    // This saves all necessary data
+    await widget.progressService.saveProgress(_gameProvider);
+    await widget.sriService.saveSriData();
+    // Also save language preference
     try {
       final prefs = await SharedPreferences.getInstance();
       if (_locale != null) {
         await prefs.setString('language', _locale!.languageCode);
       }
     } catch (e) {
-      debugPrint('Error saving app state: $e');
+      debugPrint('Error saving language state: $e');
     }
   }
   
@@ -183,6 +200,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
       providers: [
         Provider<AudioService>.value(value: widget.audioService),
         Provider<ProgressService>.value(value: widget.progressService),
+        ChangeNotifierProvider<SriService>.value(value: widget.sriService), // Provide SriService
         ChangeNotifierProvider(create: (_) => GameProvider()),
         Provider<AppSettingsManager>(
           create: (_) => AppSettingsManager(),

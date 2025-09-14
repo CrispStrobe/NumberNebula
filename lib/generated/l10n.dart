@@ -130,25 +130,25 @@ abstract class S {
   /// No description provided for @grade3.
   ///
   /// In en, this message translates to:
-  /// **'3rd Grade'**
+  /// **'Level 1'**
   String get grade3;
 
   /// No description provided for @grade4.
   ///
   /// In en, this message translates to:
-  /// **'4th Grade'**
+  /// **'Level 2'**
   String get grade4;
 
   /// No description provided for @grade5.
   ///
   /// In en, this message translates to:
-  /// **'5th Grade'**
+  /// **'Level 3'**
   String get grade5;
 
   /// No description provided for @grade6.
   ///
   /// In en, this message translates to:
-  /// **'6th Grade'**
+  /// **'Level 4'**
   String get grade6;
 
   /// No description provided for @gameMenu.
@@ -466,7 +466,7 @@ abstract class S {
   /// No description provided for @currentGrade.
   ///
   /// In en, this message translates to:
-  /// **'Current Grade'**
+  /// **'Current Skill'**
   String get currentGrade;
 
   /// No description provided for @currentLevelDesc.
@@ -586,13 +586,13 @@ abstract class S {
   /// No description provided for @selectGrade.
   ///
   /// In en, this message translates to:
-  /// **'Select Grade'**
+  /// **'Select Skill Level'**
   String get selectGrade;
 
   /// No description provided for @gradeN.
   ///
   /// In en, this message translates to:
-  /// **'Grade {gradeNumber}'**
+  /// **'Skill Level {gradeNumber}'**
   String gradeN(int gradeNumber);
 
   /// No description provided for @cancel.
@@ -634,7 +634,7 @@ abstract class S {
   /// No description provided for @chooseYourGrade.
   ///
   /// In en, this message translates to:
-  /// **'Choose Your Grade'**
+  /// **'Choose Your Skill Level'**
   String get chooseYourGrade;
 
   /// No description provided for @grade3Desc.
@@ -652,14 +652,32 @@ abstract class S {
   /// No description provided for @grade5Desc.
   ///
   /// In en, this message translates to:
-  /// **'Complex operations and problem solving'**
+  /// **'Complex operations, fractions, and decimals'**
   String get grade5Desc;
 
   /// No description provided for @grade6Desc.
   ///
   /// In en, this message translates to:
-  /// **'Advanced mathematics and challenging puzzles'**
+  /// **'Advanced math, logic puzzles, and multi-step problems'**
   String get grade6Desc;
+
+  /// No description provided for @adaptiveDifficulty.
+  ///
+  /// In en, this message translates to:
+  /// **'Adaptive Difficulty'**
+  String get adaptiveDifficulty;
+
+  /// No description provided for @adaptiveDifficultyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjusts problems based on your skill'**
+  String get adaptiveDifficultyDesc;
+
+  /// No description provided for @adjustProblems.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjusts problems based on your skill'**
+  String get adjustProblems;
 
   /// No description provided for @settingsComingSoon.
   ///

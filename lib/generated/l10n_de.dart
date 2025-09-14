@@ -24,16 +24,16 @@ class SDe extends S {
   String get fast => 'SCHNELL';
 
   @override
-  String get grade3 => '3. Klasse';
+  String get grade3 => 'Stufe 1';
 
   @override
-  String get grade4 => '4. Klasse';
+  String get grade4 => 'Stufe 2';
 
   @override
-  String get grade5 => '5. Klasse';
+  String get grade5 => 'Stufe 3';
 
   @override
-  String get grade6 => '6. Klasse';
+  String get grade6 => 'Stufe 4';
 
   @override
   String get gameMenu => 'Missionskontrolle';
@@ -202,7 +202,7 @@ class SDe extends S {
   String get difficulty => 'Schwierigkeit';
 
   @override
-  String get currentGrade => 'Aktuelle Klasse';
+  String get currentGrade => 'Aktuelle Stufe';
 
   @override
   String get currentLevelDesc => 'Aktuelles Level';
@@ -264,11 +264,11 @@ class SDe extends S {
   String get restartNow => 'Jetzt neu starten';
 
   @override
-  String get selectGrade => 'Klasse auswählen';
+  String get selectGrade => 'Stufe auswählen';
 
   @override
   String gradeN(int gradeNumber) {
-    return 'Klasse $gradeNumber';
+    return 'Stufe $gradeNumber';
   }
 
   @override
@@ -292,7 +292,7 @@ class SDe extends S {
   String get playToUnlock => 'Spielen zum Freischalten!';
 
   @override
-  String get chooseYourGrade => 'Wähle deine Klassenstufe';
+  String get chooseYourGrade => 'Wähle deine Stufe';
 
   @override
   String get grade3Desc =>
@@ -303,11 +303,20 @@ class SDe extends S {
       'Mehrstellige Arithmetik und Einführung in die Division';
 
   @override
-  String get grade5Desc => 'Komplexe Operationen und Problemlösung';
+  String get grade5Desc => 'Komplexe Operationen, Brüche und Dezimalzahlen';
 
   @override
   String get grade6Desc =>
       'Fortgeschrittene Mathematik und anspruchsvolle Rätsel';
+
+  @override
+  String get adaptiveDifficulty => 'Angepasste Schwierigkeit';
+
+  @override
+  String get adaptiveDifficultyDesc => 'Passt Aufgaben an dein Können an';
+
+  @override
+  String get adjustProblems => 'Passe die Aufgaben an deine Fähigkeiten an';
 
   @override
   String get settingsComingSoon => 'Einstellungen bald verfügbar!';

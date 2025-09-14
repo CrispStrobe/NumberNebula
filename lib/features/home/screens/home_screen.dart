@@ -543,14 +543,14 @@ class CompactGradeSelector extends StatelessWidget {
               // Compact grade selector row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [3, 4, 5, 6].map((grade) {
-                  final isSelected = gameProvider.grade == grade;
+                children: [1, 2, 3, 4].map((level) {
+                  final isSelected = gameProvider.grade == level;
                   
                   return GestureDetector(
-                    onTap: () => gameProvider.setGrade(grade),
+                    onTap: () => gameProvider.setGrade(level),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
-                      width: 40, // Smaller size
+                      width: 40,
                       height: 40,
                       decoration: BoxDecoration(
                         gradient: isSelected
@@ -585,7 +585,7 @@ class CompactGradeSelector extends StatelessWidget {
                       ),
                       child: Center(
                         child: Text(
-                          grade.toString(),
+                          level.toString(),
                           style: TextStyle(
                             fontSize: 18, // Smaller font
                             fontWeight: FontWeight.bold,

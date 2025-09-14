@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../../generated/l10n.dart'; // Import for localization
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart'; // Import to save score
+import '../../../core/services/sri_service.dart'; 
 
 // --- AWESOME GAME CONFIGURATION ---
 const double BASE_GAME_SPEED = 160.0;
@@ -169,7 +170,9 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
 
   void _spawnNextGateSet(Size screenSize) {
     _choiceMadeForCurrentSet = false;
-    currentProblem = MathProblem.random(widget.grade);
+    final sriService = context.read<SriService>();
+    currentProblem = MathProblem.generateProblem(widget.grade, widget.level, sriService);
+    
     final random = math.Random();
     
     // 🔧 FIXED: Create a new, modifiable list from the const list before shuffling.
@@ -333,6 +336,8 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   }
 
   void _handleGateCollision(Gate gate) {
+    final sriService = context.read<SriService>();
+    sriService.recordResponse(currentProblem!, gate.isCorrect);
     if (gate.isCorrect) {
       gatesCleared++;
       comboCounter++;

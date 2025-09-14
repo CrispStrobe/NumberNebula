@@ -282,6 +282,18 @@ class _SettingsScreenState extends State<SettingsScreen>
             builder: (context, gameProvider, child) {
               return Column(
                 children: [
+                  // NEW: Add Adaptive Difficulty Toggle
+                  _buildSwitchTile(
+                    title: S.of(context)!.adaptiveDifficulty, // 'Adaptive Difficulty', // TODO: Add to l10n
+                    subtitle: S.of(context)!.adjustProblems, // 'Adjusts problems based on your skill', // TODO: Add to l10n
+                    value: gameProvider.useAdaptiveDifficulty,
+                    onChanged: (value) {
+                      debugPrint("[SETTINGS] 🧠 Adaptive difficulty changed to: $value");
+                      gameProvider.setUseAdaptiveDifficulty(value);
+                      _saveSetting('use_adaptive_difficulty', value);
+                    },
+                    icon: Icons.auto_awesome,
+                  ),
                   _buildSwitchTile(
                     title: S.of(context)!.puzzleTimer,
                     subtitle: S.of(context)!.puzzleTimerDesc,
@@ -923,7 +935,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [3, 4, 5, 6].map((grade) {
+          children: [1, 2, 3, 4].map((grade) { 
             final isSelected = gameProvider.grade == grade;
             return GestureDetector(
               onTap: () {
@@ -988,13 +1000,13 @@ class _SettingsScreenState extends State<SettingsScreen>
   
   String _getDifficultyDescription(int grade) {
     switch (grade) {
-      case 3:
+      case 1:
         return S.of(context)!.difficultyDescGrade3;
-      case 4:
+      case 2:
         return S.of(context)!.difficultyDescGrade4;
-      case 5:
+      case 3:
         return S.of(context)!.difficultyDescGrade5;
-      case 6:
+      case 4:
         return S.of(context)!.difficultyDescGrade6;
       default:
         return '';

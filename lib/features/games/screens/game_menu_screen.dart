@@ -387,7 +387,7 @@ class _GameMenuScreenState extends State<GameMenuScreen>
         gradient: const LinearGradient(colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)]),
         onTap: () => _navigateToGame(HyperdriveGatesGame(grade: gameProvider.grade, level: gameProvider.level)),
         ),
-        // 5. PathFinder (NEW)
+        // 5. PathFinder
         GameInfo(
         title: S.of(context)!.pathFinderTitle,
         description: S.of(context)!.pathFinderDesc,
