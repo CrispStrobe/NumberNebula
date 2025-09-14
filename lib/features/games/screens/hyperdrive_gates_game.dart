@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Needed for keyboard input
-import 'package:provider/provider.dart';
-import 'dart:math' as math;
+import 'package:flutter/services.dart';
 import 'dart:async';
-import 'dart:ui' as ui; // Needed for ImageFilter
+import 'dart:math' as math;
+import 'dart:ui' as ui; // Needed for lerpDouble
 
-import '../constants/app_constants.dart';
-import '../constants/difficulty_manager.dart';
-import '../../../core/theme/space_theme.dart';
-import '../../../generated/l10n.dart';
-import '../models/math_problem.dart';
-import '../providers/game_provider.dart';
-import '../widgets/space_background.dart';
-import '../widgets/game_ui.dart';
+import '../models/math_problem.dart'; // Using your existing MathProblem model
 
-// --- GAME CONFIGURATION CONSTANTS ---
-const int ASTEROID_SPAWN_CHANCE = 250;
-const int POWERUP_SPAWN_CHANCE = 400;
+// --- GAME CONFIGURATION ---
+const int INITIAL_LIVES = 5;
+const int TARGET_GATES_TO_WIN = 15;
+const double BASE_GAME_SPEED = 200.0;
+
+// --- UTILITY CLASSES ---
+
+class Star {
+  Offset position;
+  double size;
+  double speed;
+  double brightness;
+  Star({required this.position, required this.size, required this.speed, required this.brightness});
+}
+
+// --- MAIN GAME WIDGET ---
 
 class HyperdriveGatesGame extends StatefulWidget {
   final int grade;
@@ -32,75 +37,38 @@ class HyperdriveGatesGame extends StatefulWidget {
   State<HyperdriveGatesGame> createState() => _HyperdriveGatesGameState();
 }
 
-class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
-    with TickerProviderStateMixin {
+class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerProviderStateMixin {
   // --- Animation & Timers ---
   late AnimationController _gameController;
   late AnimationController _thrusterController;
-  late AnimationController _backgroundController;
-  late AnimationController _screenShakeController;
-  late Timer _gameTimer;
   final FocusNode _focusNode = FocusNode();
 
   // --- Game State ---
+  bool gameActive = false;
+  bool gameInitialized = false;
+  int lives = INITIAL_LIVES;
+  int gatesCleared = 0;
+  late int targetGatesForLevel;
+  double gameSpeed = BASE_GAME_SPEED;
+  Timer? _speedIncreaseTimer;
+
+  // --- Core Gameplay State ---
+  MathProblem? currentProblem;
   List<GameObject> gameObjects = [];
   List<ParticleEffect> particles = [];
+
+  // --- Player & Background ---
+  late Spaceship spaceship;
   List<List<Star>> backgroundStars = [[], [], []];
-  Spaceship spaceship = Spaceship();
-
-  double gameSpeed = 100.0;
-  double gateSpawnTimer = 0.0;
-  int correctGatesPassedThrough = 0;
-  int targetGatesNeeded = 10;
-  bool gameActive = true;
-  double lives = 3.0;
-
-  // --- Awesome Features State ---
-  int comboCounter = 0;
-  Timer? _comboTimer;
-  PowerUpType? activePowerUp;
-  Timer? _powerUpTimer;
-  Offset screenShakeOffset = Offset.zero;
-
-  // --- Math Problem ---
-  MathProblem? currentProblem;
-  int correctAnswer = 0;
 
   @override
   void initState() {
     super.initState();
-    _gameController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 1))
-          ..repeat();
+    _gameController = AnimationController(vsync: this, duration: const Duration(seconds: 1))
+      ..addListener(_updateGame);
 
-    _thrusterController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 150))
+    _thrusterController = AnimationController(vsync: this, duration: const Duration(milliseconds: 150))
       ..repeat(reverse: true);
-
-    _backgroundController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 60))
-          ..repeat();
-
-    _screenShakeController =
-        AnimationController(vsync: this, duration: const Duration(milliseconds: 400))
-          ..addListener(() {
-            if (_screenShakeController.isAnimating) {
-              setState(() {
-                final progress = _screenShakeController.value;
-                final shakeAmount = 10 * math.sin(progress * math.pi * 4);
-                screenShakeOffset = Offset(
-                    (math.Random().nextDouble() - 0.5) * shakeAmount,
-                    (math.Random().nextDouble() - 0.5) * shakeAmount);
-              });
-            } else {
-              setState(() {
-                screenShakeOffset = Offset.zero;
-              });
-            }
-          });
-
-    _initializeGame();
-    _gameController.addListener(_updateGame);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_focusNode);
@@ -108,60 +76,57 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!gameInitialized) {
+      final screenSize = MediaQuery.of(context).size;
+      spaceship = Spaceship(initialPosition: Offset(150, screenSize.height / 2));
+      _initializeGame(screenSize);
+      gameInitialized = true;
+    }
+  }
+
+  @override
   void dispose() {
     _gameController.dispose();
     _thrusterController.dispose();
-    _backgroundController.dispose();
-    _screenShakeController.dispose();
-    _gameTimer.cancel();
-    _comboTimer?.cancel();
-    _powerUpTimer?.cancel();
+    _speedIncreaseTimer?.cancel();
     _focusNode.dispose();
     super.dispose();
   }
 
-  void _initializeGame() {
-    switch (widget.grade) {
-      case 3:
-        targetGatesNeeded = 8;
-        gameSpeed = 90.0;
-        break;
-      case 4:
-        targetGatesNeeded = 10;
-        gameSpeed = 110.0;
-        break;
-      case 5:
-        targetGatesNeeded = 12;
-        gameSpeed = 130.0;
-        break;
-      case 6:
-      default:
-        targetGatesNeeded = 15;
-        gameSpeed = 150.0;
-        break;
-    }
-    _generateBackgroundStars();
-    _generateNewProblem();
+  void _initializeGame(Size screenSize) {
+    setState(() {
+      lives = INITIAL_LIVES;
+      gatesCleared = 0;
+      targetGatesForLevel = TARGET_GATES_TO_WIN + widget.level;
+      gameSpeed = BASE_GAME_SPEED + (widget.grade * 15.0) + (widget.level * 5.0);
+      spaceship.reset(screenSize);
+      gameObjects.clear();
+      particles.clear();
+      gameActive = true;
+    });
 
-    _gameTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    _generateBackgroundStars(screenSize);
+    _spawnNextGatePair(screenSize);
+
+    _speedIncreaseTimer?.cancel();
+    _speedIncreaseTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       if (gameActive) {
-        setState(() {
-          gameSpeed += 15;
-        });
+        setState(() => gameSpeed += 15);
       }
     });
+
+    _gameController.repeat();
   }
 
-  void _generateBackgroundStars() {
+  void _generateBackgroundStars(Size screenSize) {
+    backgroundStars = List.generate(3, (_) => []);
+    final random = math.Random();
     for (int layer = 0; layer < 3; layer++) {
-      backgroundStars[layer].clear();
-      final random = math.Random();
       for (int i = 0; i < 70; i++) {
         backgroundStars[layer].add(Star(
-          position: Offset(
-            random.nextDouble() * 2000,
-            random.nextDouble() * 1000,
-          ),
+          position: Offset(random.nextDouble() * screenSize.width, random.nextDouble() * screenSize.height),
           size: (random.nextDouble() * 1.5 + 0.5) * (layer + 1),
           speed: (random.nextDouble() * 20 + 10) * (layer + 1),
           brightness: random.nextDouble() * 0.5 + 0.5,
@@ -170,354 +135,212 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
     }
   }
 
-  void _generateNewProblem() {
-    final r = math.Random();
-    final problemType = r.nextInt(3); // 0: +, 1: -, 2: *
+  // --- MAJOR GAMEPLAY LOGIC ---
 
-    if (problemType == 0) { // Addition
-        int a = r.nextInt(20) + (widget.grade * 5);
-        int b = r.nextInt(15) + (widget.grade * 3);
-        correctAnswer = a + b;
-        currentProblem = MathProblem(expression: '$a + $b', answer: correctAnswer);
-    } else if (problemType == 1) { // Subtraction
-        int a = r.nextInt(25) + (widget.grade * 6);
-        int b = r.nextInt(a - 1) + 1; // Ensure b is smaller than a and > 0
-        correctAnswer = a - b;
-        currentProblem = MathProblem(expression: '$a - $b', answer: correctAnswer);
-    } else { // Multiplication (for higher grades)
-        int a = r.nextInt(8) + (widget.grade - 2);
-        int b = r.nextInt(8) + 2;
-        correctAnswer = a * b;
-        currentProblem = MathProblem(expression: '$a × $b', answer: correctAnswer);
-    }
+  void _spawnNextGatePair(Size screenSize) {
+    currentProblem = MathProblem.random(widget.grade);
+    final answers = currentProblem!.generateMultipleChoiceOptions(optionsCount: 2);
+    final correctAns = currentProblem!.answer;
+    final incorrectAns = answers.firstWhere((a) => a != correctAns);
+
+    final random = math.Random();
+    final bool correctIsTop = random.nextBool();
+    
+    final gateHeight = screenSize.height * 0.4;
+    final verticalGap = screenSize.height * 0.2;
+    final topGateY = (screenSize.height / 2) - (verticalGap / 2) - (gateHeight / 2);
+    final bottomGateY = (screenSize.height / 2) + (verticalGap / 2) + (gateHeight / 2);
+
+    setState(() {
+      gameObjects.add(Gate(
+        position: Offset(screenSize.width + 100, correctIsTop ? topGateY : bottomGateY),
+        answer: correctAns,
+        isCorrect: true,
+        size: Size(120, gateHeight),
+      ));
+      gameObjects.add(Gate(
+        position: Offset(screenSize.width + 100, correctIsTop ? bottomGateY : topGateY),
+        answer: incorrectAns,
+        isCorrect: false,
+        size: Size(120, gateHeight),
+      ));
+
+      // Add decorative asteroids to create the "path"
+      for (int i=0; i < 5; i++) {
+        final yPos = (screenSize.height / 2) + (i - 2) * 25.0;
+        gameObjects.add(Asteroid(
+          position: Offset(screenSize.width + 100, yPos),
+          sizeValue: 20.0
+        ));
+      }
+    });
   }
+
+  // --- UPDATE & RENDER LOOP ---
 
   void _updateGame() {
     if (!gameActive) return;
 
-    final dt = 0.016; // 60 FPS
+    final dt = 0.016; // Assuming 60 FPS
     final screenSize = MediaQuery.of(context).size;
     final random = math.Random();
 
-    final effectiveGameSpeed = activePowerUp == PowerUpType.slowMo ? gameSpeed * 0.5 : gameSpeed;
-
     setState(() {
-      for (int i = 0; i < backgroundStars.length; i++) {
-        for (var star in backgroundStars[i]) {
-          star.position = Offset(
-            star.position.dx - (star.speed + effectiveGameSpeed * 0.1 * (i + 1)) * dt,
-            star.position.dy,
-          );
+      // Update background stars
+      for (var layer in backgroundStars) {
+        for (var star in layer) {
+          star.position = Offset(star.position.dx - (star.speed + gameSpeed * 0.05) * dt, star.position.dy);
           if (star.position.dx < -10) {
-            star.position =
-                Offset(screenSize.width + 10, random.nextDouble() * screenSize.height);
+            star.position = Offset(screenSize.width + 10, random.nextDouble() * screenSize.height);
           }
         }
       }
 
+      // Update spaceship using the new direct movement
       spaceship.update(dt, screenSize);
-      _spawnObjects(dt, screenSize, effectiveGameSpeed);
+      if (spaceship.isMoving) _addThrusterParticles();
 
+      // Update game objects and check for collisions
+      bool shouldSpawnNext = false;
       gameObjects.removeWhere((obj) {
-        obj.update(dt, effectiveGameSpeed);
-        if (_checkCollision(obj)) {
-          _handleCollision(obj);
-          return true;
-        }
-        if (obj.position.dx < -100) {
-          if (obj is HyperdriveGate && obj.isCorrect) {
-            lives = (lives - 0.25).clamp(0.0, 3.0);
-            _resetCombo();
+        obj.update(dt, gameSpeed);
+
+        if (obj is Gate) {
+          final collisionRect = Rect.fromCenter(
+            center: obj.position,
+            width: obj.size.width,
+            height: obj.size.height,
+          );
+          if (collisionRect.overlaps(spaceship.collisionRect)) {
+            _handleGateCollision(obj);
+            shouldSpawnNext = true;
+            return true; // Remove the gate
           }
-          return true;
+        } else if (obj is Asteroid) {
+            if (obj.collisionRect.overlaps(spaceship.collisionRect)) {
+              _handleObstacleCollision();
+              return true; // Remove the asteroid
+            }
         }
-        return false;
+
+        // If the last gate has passed the ship, it's a miss
+        if (obj is Gate && obj.position.dx < spaceship.position.dx - 100) {
+            shouldSpawnNext = true;
+        }
+
+        return obj.position.dx < -150;
       });
+      
+      if (shouldSpawnNext) {
+          gameObjects.removeWhere((obj) => obj is Gate || obj is Asteroid);
+          _spawnNextGatePair(screenSize);
+      }
 
       particles.removeWhere((p) => p.update(dt));
-      _addThrusterParticles();
       
-      if (correctGatesPassedThrough >= targetGatesNeeded) _winGame();
-      if (lives <= 0.0) _gameOver();
+      if (lives <= 0) _gameOver();
+      if (gatesCleared >= targetGatesForLevel) _winGame();
     });
   }
 
-  void _spawnObjects(double dt, Size screenSize, double currentSpeed) {
-    gateSpawnTimer += dt;
-    final dynamicSpawnRate = 2.5 - (currentSpeed / 200.0).clamp(0.0, 1.8);
-    if (gateSpawnTimer > dynamicSpawnRate) {
-      _spawnGate(screenSize);
-      gateSpawnTimer = 0.0;
+  void _handleGateCollision(Gate gate) {
+    if (gate.isCorrect) {
+      gatesCleared++;
+      _addSuccessEffect();
+    } else {
+      lives--;
+      _addDamageEffect();
     }
-    if (math.Random().nextInt(ASTEROID_SPAWN_CHANCE) == 0) _spawnAsteroid(screenSize);
-    if (math.Random().nextInt(POWERUP_SPAWN_CHANCE) == 0) _spawnPowerUp(screenSize);
+  }
+
+  void _handleObstacleCollision() {
+      lives--;
+      _addDamageEffect();
   }
   
-  // Replace the entire _spawnGate method
-  void _spawnGate(Size screenSize) {
-    final random = math.Random();
-    final gateY = random.nextDouble() * (screenSize.height - 250) + 150;
-
-    // Decide which scenario to spawn
-    if (random.nextDouble() < 0.4) { // 40% chance for an Enemy encounter
-        final isEnemyAbove = random.nextBool();
-        final yOffset = 100.0; // Distance between gate and enemy
-
-        // Spawn the CORRECT gate
-        gameObjects.add(HyperdriveGate(
-        position: Offset(screenSize.width + 60, isEnemyAbove ? gateY + yOffset : gateY - yOffset),
-        answer: correctAnswer,
-        isCorrect: true,
-        ));
-
-        // Spawn the ENEMY with an incorrect answer
-        int enemyAnswer;
-        do {
-        enemyAnswer = correctAnswer + (random.nextBool() ? 1 : -1) * (random.nextInt(10) + 1);
-        } while (enemyAnswer == correctAnswer || enemyAnswer <= 0);
-
-        gameObjects.add(Enemy(
-        position: Offset(screenSize.width + 60, isEnemyAbove ? gateY - yOffset : gateY + yOffset),
-        incorrectAnswer: enemyAnswer,
-        ));
-
-    } else { // 60% chance for the classic two-gate setup
-        // This logic creates two gates, one correct and one incorrect
-        int incorrectAnswer;
-        do {
-        incorrectAnswer = correctAnswer + (random.nextBool() ? 1 : -1) * (random.nextInt(10) + 1);
-        } while (incorrectAnswer == correctAnswer || incorrectAnswer <= 0);
-        
-        final yOffset = 120.0 + random.nextDouble() * 50;
-        final isCorrectGateTop = random.nextBool();
-
-        // Spawn Correct Gate
-        gameObjects.add(HyperdriveGate(
-        position: Offset(screenSize.width + 60, isCorrectGateTop ? gateY - yOffset : gateY + yOffset),
-        answer: correctAnswer,
-        isCorrect: true,
-        ));
-        
-        // Spawn Incorrect Gate
-        gameObjects.add(HyperdriveGate(
-        position: Offset(screenSize.width + 60, isCorrectGateTop ? gateY + yOffset : gateY - yOffset),
-        answer: incorrectAnswer,
-        isCorrect: false,
-        ));
-    }
-    }
-  
-  void _spawnAsteroid(Size screenSize) {
-    final random = math.Random();
-    final yPos = random.nextDouble() * (screenSize.height - 150) + 100;
-    final size = random.nextDouble() * 30 + 20;
-    final rotationSpeed = (random.nextDouble() - 0.5) * 2.0;
-    
-    gameObjects.add(Asteroid(
-        position: Offset(screenSize.width + size, yPos),
-        size: size,
-        rotationSpeed: rotationSpeed,
-    ));
-  }
-
-  void _spawnPowerUp(Size screenSize) {
-    final random = math.Random();
-    final yPos = random.nextDouble() * (screenSize.height - 200) + 120;
-    final type = PowerUpType.values[random.nextInt(PowerUpType.values.length)];
-
-    gameObjects.add(PowerUp(
-        position: Offset(screenSize.width + 30, yPos),
-        type: type,
-    ));
-  }
-
-  bool _checkCollision(GameObject obj) {
-    return (spaceship.position - obj.position).distance < (spaceship.size + obj.size) * 0.7;
-  }
-
-  void _handleCollision(GameObject obj) {
-    if (obj is HyperdriveGate) {
-      if (obj.isCorrect) {
-        correctGatesPassedThrough++;
-        _incrementCombo();
-        // final scoreToAdd = (50 * widget.grade) * (1 + comboCounter * 0.1);
-        // context.read<GameProvider>().addScore(scoreToAdd.toInt());
-        _addBoostEffect();
-        _generateNewProblem();
-      } else {
-        if (activePowerUp == PowerUpType.shield) {
-            _endPowerUp();
-        } else {
-            lives -= 1.0;
-            _addDamageEffect();
-            _resetCombo();
-        }
+  // --- VISUAL EFFECTS ---
+  void _addSuccessEffect() {
+      for (int i=0; i < 20; i++) {
+          particles.add(ParticleEffect.successParticle(spaceship.position));
       }
-    } else if (obj is Asteroid) {
-        if (activePowerUp == PowerUpType.shield) {
-            _endPowerUp();
-        } else {
-            lives -= 0.5;
-            _addDamageEffect();
-            _resetCombo();
-        }
-    } else if (obj is Enemy) {
-        if (activePowerUp == PowerUpType.shield) {
-            _endPowerUp();
-        } else {
-            lives -= 1.0; // Hitting an enemy is a big mistake!
-            _addDamageEffect();
-            _resetCombo();
-        }
-    } else if (obj is PowerUp) {
-        _activatePowerUp(obj.type);
-    }
   }
 
-  void _incrementCombo() {
-      comboCounter++;
-      _comboTimer?.cancel();
-      _comboTimer = Timer(const Duration(seconds: 4), _resetCombo);
-  }
-
-  void _resetCombo() {
-      setState(() {
-        comboCounter = 0;
-      });
-      _comboTimer?.cancel();
-  }
-  
-  void _activatePowerUp(PowerUpType type) {
-      setState(() => activePowerUp = type);
-      _powerUpTimer?.cancel();
-      _powerUpTimer = Timer(const Duration(seconds: 8), _endPowerUp);
-  }
-
-  void _endPowerUp() {
-      setState(() => activePowerUp = null);
-      _powerUpTimer?.cancel();
-  }
-
-  void _triggerScreenShake() {
-      _screenShakeController.forward(from: 0.0);
-  }
-  
-  void _addBoostEffect() {
-    spaceship.boost();
-    for (int i = 0; i < 30; i++) {
-        particles.add(ParticleEffect.boostParticle(spaceship.position));
-    }
-  }
-  
   void _addDamageEffect() {
+    if (spaceship.isInvincible) return;
     spaceship.damage();
-    _triggerScreenShake();
     for (int i = 0; i < 25; i++) {
         particles.add(ParticleEffect.explosionParticle(spaceship.position));
     }
   }
   
   void _addThrusterParticles() {
-      if (!spaceship.thrusting) return;
-      final particleCount = spaceship.isBoosting ? 6 : 2;
-      for (int i = 0; i < particleCount; i++) {
-          particles.add(ParticleEffect.thrusterParticle(
-            spaceship.position,
-            isBoosting: spaceship.isBoosting
-          ));
-      }
+      particles.add(ParticleEffect.thrusterParticle(spaceship.position));
   }
+  
+  // --- GAME STATE MANAGEMENT ---
   
   void _winGame() {
     if (!gameActive) return;
-    gameActive = false;
-    // context.read<GameProvider>().addScore(500);
+    setState(() => gameActive = false);
+    _gameController.stop();
     showDialog(context: context, barrierDismissible: false, builder: (ctx) => _buildEndGameDialog(isWin: true));
   }
 
   void _gameOver() {
     if (!gameActive) return;
-    gameActive = false;
+    setState(() => gameActive = false);
+    _gameController.stop();
     showDialog(context: context, barrierDismissible: false, builder: (ctx) => _buildEndGameDialog(isWin: false));
   }
   
   void _resetGame() {
-    setState(() {
-      gameActive = true;
-      lives = 3.0;
-      correctGatesPassedThrough = 0;
-      gameObjects.clear();
-      particles.clear();
-      spaceship = Spaceship();
-      gateSpawnTimer = 0.0;
-      _resetCombo();
-      _endPowerUp();
-    });
-    _initializeGame();
+    Navigator.of(context).pop(); // Close dialog
+    final screenSize = MediaQuery.of(context).size;
+    _initializeGame(screenSize);
   }
+
+  // --- INPUT HANDLING ---
   
   void _handleKeyboard(KeyEvent event) {
-      final isShiftPressed = event.logicalKey == LogicalKeyboardKey.shiftLeft || event.logicalKey == LogicalKeyboardKey.shiftRight;
-      
+      final double moveAmount = MediaQuery.of(context).size.height / 50;
       if (event is KeyDownEvent) {
           if (event.logicalKey == LogicalKeyboardKey.keyW || event.logicalKey == LogicalKeyboardKey.arrowUp) {
-              spaceship.verticalInput = -1.0;
-              spaceship.thrusting = true;
+              spaceship.moveBy(-moveAmount);
           } else if (event.logicalKey == LogicalKeyboardKey.keyS || event.logicalKey == LogicalKeyboardKey.arrowDown) {
-              spaceship.verticalInput = 1.0;
-              spaceship.thrusting = true;
-          } else if (isShiftPressed) {
-              spaceship.isBoosting = true;
-          }
-      } else if (event is KeyUpEvent) {
-          if ([LogicalKeyboardKey.keyW, LogicalKeyboardKey.arrowUp, LogicalKeyboardKey.keyS, LogicalKeyboardKey.arrowDown].contains(event.logicalKey)) {
-              spaceship.verticalInput = 0.0;
-              spaceship.thrusting = false;
-          } else if (isShiftPressed) {
-              spaceship.isBoosting = false;
+              spaceship.moveBy(moveAmount);
           }
       }
   }
-  
+
+  // --- WIDGET BUILD ---
   @override
   Widget build(BuildContext context) {
+    if (!gameInitialized) {
+        return const Scaffold(backgroundColor: Color(0xFF000510), body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       body: KeyboardListener(
+        autofocus: true,
         focusNode: _focusNode,
         onKeyEvent: _handleKeyboard,
-        child: Container(
-          decoration: const BoxDecoration(color: Color(0xFF000510)),
-          child: SafeArea(
+        child: GestureDetector(
+          onVerticalDragUpdate: (details) {
+            if (gameActive) spaceship.moveTo(details.localPosition.dy);
+          },
+          child: Container(
+            decoration: const BoxDecoration(color: Color(0xFF000510)),
             child: Stack(
               children: [
-                Transform.translate(
-                  offset: screenShakeOffset,
-                  child: Stack(
-                    children: [
-                      ..._buildBackground(),
-                      ...gameObjects.map((obj) => obj.build()),
-                      ...particles.map((p) => p.build()),
-                      Positioned(
-                        left: spaceship.position.dx - spaceship.size,
-                        top: spaceship.position.dy - spaceship.size,
-                        child: SpaceshipWidget(
-                          spaceship: spaceship,
-                          thrusterAnimation: _thrusterController,
-                          activePowerUp: activePowerUp,
-                        ),
-                      ),
-                    ],
-                  ),
+                ..._buildBackground(),
+                ...gameObjects.map((obj) => obj.build()),
+                ...particles.map((p) => p.build()),
+                Positioned(
+                  left: spaceship.position.dx - spaceship.sizeValue,
+                  top: spaceship.position.dy - spaceship.sizeValue,
+                  child: SpaceshipWidget(spaceship: spaceship, thrusterAnimation: _thrusterController),
                 ),
-                
                 _buildGameHeader(),
-                Positioned(top: 80, left: 20, right: 20, child: _buildProblemDisplay()),
-                if (comboCounter > 1) _buildComboDisplay(),
-                if (activePowerUp != null) _buildPowerUpDisplay(),
-
-                Positioned(bottom: 20, left: 20, right: 20, child: _buildInstructions()),
-                _buildControlOverlay(),
-                _buildBoostButton(),
+                _buildProblemDisplay(),
               ],
             ),
           ),
@@ -527,152 +350,33 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
   }
 
   List<Widget> _buildBackground() {
-    // FIXED: Explicitly defined the type <Widget> and (Star star)
-    // to resolve type inference errors.
     return backgroundStars.expand<Widget>((layer) => layer.map<Widget>((Star star) => Positioned(
       left: star.position.dx,
       top: star.position.dy,
       child: Container(
         width: star.size,
         height: star.size,
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(star.brightness),
-          shape: BoxShape.circle,
-          boxShadow: [
-              BoxShadow(color: Colors.white.withOpacity(0.5), blurRadius: star.size * 2)
-          ]
-        ),
+        decoration: BoxDecoration(color: Colors.white.withOpacity(star.brightness), shape: BoxShape.circle),
       ),
     ))).toList();
   }
   
   Widget _buildGameHeader() {
     return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        color: Colors.black.withOpacity(0.5),
-        child: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-              onPressed: () {
-                    print("Back button pressed!"); // For debugging
-                    Navigator.of(context).pop();
-                },
-            ),
-            Expanded(child: _buildBoostMeter()),
-            const SizedBox(width: 16),
-            Text(
-              '$correctGatesPassedThrough/$targetGatesNeeded ',
-              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const Icon(Icons.engineering, color: Colors.amber),
-            const SizedBox(width: 16),
-            Row(
-              children: List.generate(3, (index) => Icon(
-                index < lives.floor() ? Icons.favorite : Icons.favorite_border,
-                color: Colors.redAccent,
-              )),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildProblemDisplay() {
-    if (currentProblem == null) return const SizedBox.shrink();
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.yellow.withOpacity(0.8), width: 2),
-      ),
-      child: Column(
-        children: [
-          Text(
-            currentProblem!.expression,
-            style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            "TARGET: $correctAnswer",
-            style: const TextStyle(fontSize: 18, color: Colors.greenAccent, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBoostMeter() {
-    final fuelPercentage = spaceship.boostFuel / Spaceship.maxBoostFuel;
-    return Row(
-      children: [
-        Icon(
-          Icons.local_fire_department,
-          color: fuelPercentage > 0.1 ? Colors.orangeAccent : Colors.grey,
-          size: 20
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(5),
-            child: LinearProgressIndicator(
-              value: fuelPercentage,
-              backgroundColor: Colors.grey.shade800,
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.orangeAccent),
-              minHeight: 10,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-  
-  Widget _buildComboDisplay() {
-    return Positioned(
-      top: 180,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Text(
-          'COMBO x$comboCounter',
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.orange,
-            shadows: [Shadow(blurRadius: 10, color: Colors.orange)]
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPowerUpDisplay() {
-    return Positioned(
-      bottom: 80,
-      left: 0,
-      right: 0,
-      child: Center(
+      top: 0, left: 0, right: 0,
+      child: SafeArea(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: activePowerUp!.color.withOpacity(0.8),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white, width: 2)
-          ),
+          color: Colors.black.withOpacity(0.4),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(activePowerUp!.icon, color: Colors.white),
-              const SizedBox(width: 8),
-              Text(
-                activePowerUp!.displayName,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              Text('Gates: $gatesCleared / $targetGatesForLevel', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              Row(
+                children: List.generate(INITIAL_LIVES, (index) => Icon(
+                  index < lives ? Icons.favorite : Icons.favorite_border,
+                  color: Colors.redAccent, size: 28,
+                )),
               ),
             ],
           ),
@@ -680,46 +384,20 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
       ),
     );
   }
-
-  Widget _buildInstructions() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: const Text(
-        'Use W/S or Arrows | Drag to Move | Hold Shift or Boost Button',
-        textAlign: TextAlign.center,
-        style: TextStyle(color: Colors.white70, fontSize: 12),
-      ),
-    );
-  }
-
-  Widget _buildControlOverlay() {
-    return Listener(
-      onPointerDown: (details) => spaceship.thrusting = true,
-      onPointerMove: (details) {
-        if (!gameActive) return;
-        spaceship.targetY = details.localPosition.dy;
-        spaceship.thrusting = true;
-      },
-      onPointerUp: (details) => spaceship.thrusting = false,
-      child: Container(color: Colors.transparent),
-    );
-  }
   
-  Widget _buildBoostButton() {
+  Widget _buildProblemDisplay() {
+    if (currentProblem == null) return const SizedBox.shrink();
     return Positioned(
-      bottom: 60,
-      right: 20,
-      child: Listener(
-        onPointerDown: (_) => setState(() => spaceship.isBoosting = true),
-        onPointerUp: (_) => setState(() => spaceship.isBoosting = false),
-        child: CircleAvatar(
-          radius: 35,
-          backgroundColor: spaceship.isBoosting ? Colors.orange.withOpacity(0.8) : Colors.white.withOpacity(0.3),
-          child: const Icon(Icons.local_fire_department, size: 40, color: Colors.white),
+      top: 80, left: 20, right: 20,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.7),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.yellow.withOpacity(0.8), width: 2),
+          ),
+          child: Text(currentProblem!.expression, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
         ),
       ),
     );
@@ -728,31 +406,13 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
   Widget _buildEndGameDialog({required bool isWin}) {
     return AlertDialog(
       backgroundColor: const Color(0xFF1A1A3E),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-        side: const BorderSide(color: Colors.yellow, width: 2),
-      ),
-      title: Row(
-        children: [
-          Icon(isWin ? Icons.check_circle : Icons.cancel, color: isWin ? Colors.greenAccent : Colors.redAccent, size: 30),
-          const SizedBox(width: 10),
-          Text(isWin ? 'Mission Complete!' : 'Game Over', style: const TextStyle(color: Colors.white)),
-        ],
-      ),
-      content: Text(
-        isWin ? 'You successfully navigated the gates!' : 'Your ship took too much damage. Try again!',
-        style: const TextStyle(color: Colors.white70),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0), side: BorderSide(color: isWin ? Colors.greenAccent : Colors.redAccent, width: 2)),
+      title: Text(isWin ? 'Mission Complete!' : 'Game Over!', style: const TextStyle(color: Colors.white)),
+      content: Text(isWin ? 'Your piloting skills are superb!' : 'Your ship was lost in the cosmos.', style: const TextStyle(color: Colors.white70)),
       actions: <Widget>[
+        TextButton(child: const Text('Fly Again'), onPressed: _resetGame),
         TextButton(
-          child: const Text('Fly Again'),
-          onPressed: () {
-            Navigator.of(context).pop();
-            _resetGame();
-          },
-        ),
-        TextButton(
-          child: const Text('Return to Base'),
+          child: const Text('Return to Hangar'),
           onPressed: () {
             Navigator.of(context).pop();
             Navigator.of(context).pop();
@@ -764,102 +424,74 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame>
 }
 
 // =======================================================
-// --- GAME OBJECT AND WIDGET DEFINITIONS ---
+// --- GAME OBJECTS & WIDGETS ---
 // =======================================================
-
-class Star {
-  Offset position;
-  double size;
-  double speed;
-  double brightness;
-  Star({required this.position, required this.size, required this.speed, required this.brightness});
-}
-
-class MathProblem {
-  final String expression;
-  final int answer;
-  MathProblem({required this.expression, required this.answer});
-}
 
 abstract class GameObject {
   Offset position;
-  double size;
-  GameObject({required this.position, required this.size});
+  GameObject({required this.position});
   void update(double dt, double gameSpeed);
   Widget build();
 }
 
+// --- NEW RESPONSIVE SPACESHIP ---
 class Spaceship {
-  Offset position = const Offset(100, 300);
-  double size = 30.0;
-  double targetY = 300;
-  double velocityY = 0;
-  bool thrusting = false;
-  double verticalInput = 0.0;
-  bool isBoosting = false;
-  double boostFuel = maxBoostFuel;
-  static const double maxBoostFuel = 100.0;
-  static const double boostCostPerSecond = 35.0;
-  static const double fuelRegenPerSecond = 15.0;
-  double boostTime = 0;
-  double damageTime = 0;
-  double angle = 0;
+  Offset position;
+  double sizeValue = 30.0;
+  double targetY;
+  bool isMoving = false;
+  double damageCooldown = 0.0;
+
+  Spaceship({required Offset initialPosition}) 
+      : position = initialPosition,
+        targetY = initialPosition.dy;
+  
+  Rect get collisionRect => Rect.fromCenter(center: position, width: sizeValue * 1.5, height: sizeValue * 1.5);
+  bool get isInvincible => damageCooldown > 0;
+
+  void reset(Size screenSize) {
+      position = Offset(150, screenSize.height / 2);
+      targetY = position.dy;
+      damageCooldown = 0.0;
+  }
 
   void update(double dt, Size screenSize) {
-    // --- Boost Fuel Logic (Unchanged) ---
-    if (isBoosting && boostFuel > 0) {
-        boostFuel -= boostCostPerSecond * dt;
-    } else {
-        isBoosting = false;
-        if (boostFuel < maxBoostFuel) {
-        boostFuel += fuelRegenPerSecond * dt;
-        }
-    }
-    boostFuel = boostFuel.clamp(0.0, maxBoostFuel);
-
-    // --- MOVEMENT LOGIC ---
-    // Greatly increase the difference between normal and boost speeds
-    final double maxSpeed = isBoosting ? 800.0 : 400.0;
-    final double keyboardAccel = isBoosting ? 2500.0 : 800.0;
-    final double touchAccelMultiplier = isBoosting ? 20.0 : 10.0;
+    if (damageCooldown > 0) damageCooldown -= dt;
     
-    // Apply movement input
-    if (verticalInput != 0.0) { // Keyboard input
-        velocityY += verticalInput * keyboardAccel * dt;
-    } else { // Touch/Mouse input
-        final diff = targetY - position.dy;
-        final touchAccel = (diff * touchAccelMultiplier).clamp(-1500.0, 1500.0);
-        velocityY += touchAccel * dt;
-    }
-
-    // Clamp velocity to the new max speed
-    velocityY = velocityY.clamp(-maxSpeed, maxSpeed);
-    
-    // Reduce damping while boosting so you can feel the speed
-    velocityY *= isBoosting ? 0.97 : 0.92;
-    
-    position = Offset(
+    // THE NEW MOVEMENT LOGIC: Smoothly interpolates to the target Y position
+    // This provides tight, responsive control without drifting.
+    if ((position.dy - targetY).abs() > 1.0) {
+      position = Offset(
         position.dx,
-        (position.dy + velocityY * dt).clamp(size, screenSize.height - size),
-    );
-    
-    angle = (velocityY / 200.0).clamp(-0.4, 0.4);
-
-    if (boostTime > 0) boostTime -= dt;
-    if (damageTime > 0) damageTime -= dt;
+        ui.lerpDouble(position.dy, targetY, 0.15)!, // The 0.15 controls how fast it follows
+      );
+      isMoving = true;
+    } else {
+      isMoving = false;
     }
+  }
+
+  void moveTo(double y) {
+    targetY = y.clamp(sizeValue, ui.window.physicalSize.height / ui.window.devicePixelRatio - sizeValue);
+  }
+
+  void moveBy(double amount) {
+    moveTo(targetY + amount);
+  }
   
-  void boost() => boostTime = 0.3;
-  void damage() => damageTime = 0.5;
+  void damage() {
+    if (isInvincible) return;
+    damageCooldown = 1.5; // 1.5 seconds of invincibility after getting hit
+  }
 }
 
-class HyperdriveGate extends GameObject {
+class Gate extends GameObject {
   final int answer;
   final bool isCorrect;
-  final Color color = Colors.cyan; // All gates are the same color for now
+  Size size;
 
-  HyperdriveGate({required Offset position, required this.answer, required this.isCorrect})
-      : super(position: position, size: 50.0);
+  Gate({required Offset position, required this.answer, required this.isCorrect, required this.size})
+      : super(position: position);
 
   @override
   void update(double dt, double gameSpeed) {
@@ -868,42 +500,26 @@ class HyperdriveGate extends GameObject {
 
   @override
   Widget build() {
+    final color = isCorrect ? Colors.cyanAccent : Colors.redAccent;
     return Positioned(
-      left: position.dx - 60,
-      top: position.dy - 40,
-      child: HyperdriveGateWidget(gate: this),
-    );
-  }
-}
-
-class Asteroid extends GameObject {
-  double rotation;
-  final double rotationSpeed;
-
-  Asteroid({required Offset position, required double size, required this.rotationSpeed})
-      : rotation = math.Random().nextDouble() * math.pi * 2,
-        super(position: position, size: size);
-
-  @override
-  void update(double dt, double gameSpeed) {
-    position = Offset(position.dx - gameSpeed * 0.7 * dt, position.dy);
-    rotation += rotationSpeed * dt;
-  }
-
-  @override
-  Widget build() {
-    return Positioned(
-      left: position.dx - size,
-      top: position.dy - size,
-      child: Transform.rotate(
-        angle: rotation,
-        child: Container(
-          width: size * 2,
-          height: size * 2,
-          decoration: BoxDecoration(
-            color: Colors.brown.shade700,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.brown.shade900, width: 3),
+      left: position.dx - size.width / 2,
+      top: position.dy - size.height / 2,
+      child: Container(
+        width: size.width,
+        height: size.height,
+        decoration: BoxDecoration(
+          border: Border.all(color: color, width: 4),
+          borderRadius: BorderRadius.circular(15),
+          color: color.withOpacity(0.1),
+          boxShadow: [BoxShadow(color: color, blurRadius: 20, spreadRadius: 2)],
+        ),
+        child: Center(
+          child: Text(
+            answer.toString(),
+            style: TextStyle(
+              color: Colors.white, fontSize: 48, fontWeight: FontWeight.bold,
+              shadows: [Shadow(color: color, blurRadius: 10)]
+            ),
           ),
         ),
       ),
@@ -911,66 +527,39 @@ class Asteroid extends GameObject {
   }
 }
 
-enum PowerUpType { shield, slowMo }
+class Asteroid extends GameObject {
+  double rotation;
+  final double rotationSpeed;
+  final double sizeValue;
 
-extension PowerUpInfo on PowerUpType {
-  String get displayName {
-    switch(this) {
-      case PowerUpType.shield: return "SHIELD ACTIVE";
-      case PowerUpType.slowMo: return "TIME WARP";
-    }
-  }
-  IconData get icon {
-    switch(this) {
-      case PowerUpType.shield: return Icons.shield;
-      case PowerUpType.slowMo: return Icons.hourglass_empty;
-    }
-  }
-  Color get color {
-    switch(this) {
-      case PowerUpType.shield: return Colors.blueAccent;
-      case PowerUpType.slowMo: return Colors.purpleAccent;
-    }
-  }
-}
-
-class PowerUp extends GameObject {
-  final PowerUpType type;
-  double _animation = 0.0;
-
-  PowerUp({required Offset position, required this.type})
-      : super(position: position, size: 25.0);
+  Asteroid({required Offset position, required this.sizeValue})
+      : rotation = math.Random().nextDouble() * math.pi * 2,
+        rotationSpeed = (math.Random().nextDouble() - 0.5) * 2.0,
+        super(position: position);
+  
+  Rect get collisionRect => Rect.fromCenter(center: position, width: sizeValue * 1.8, height: sizeValue * 1.8);
 
   @override
   void update(double dt, double gameSpeed) {
-    position = Offset(position.dx - gameSpeed * 0.8 * dt, position.dy);
-    _animation += dt * 4;
+    position = Offset(position.dx - gameSpeed * dt, position.dy);
+    rotation += rotationSpeed * dt;
   }
 
   @override
   Widget build() {
-    final glowSize = size * (1.5 + math.sin(_animation) * 0.5);
     return Positioned(
-      left: position.dx - size,
-      top: position.dy - size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: glowSize,
-            height: glowSize,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: type.color, blurRadius: 20, spreadRadius: 5)]
-            ),
-          ),
-          Icon(type.icon, color: Colors.white, size: size * 1.5),
-        ],
+      left: position.dx - sizeValue,
+      top: position.dy - sizeValue,
+      child: Transform.rotate(
+        angle: rotation,
+        child: Icon(Icons.stop_circle, color: const Color(0xFF8B4513), size: sizeValue * 2),
       ),
     );
   }
 }
 
+
+// --- VISUAL EFFECTS ---
 class ParticleEffect {
     Offset position;
     Offset velocity;
@@ -979,19 +568,16 @@ class ParticleEffect {
     double maxLife;
     double size;
 
-    ParticleEffect({
-        required this.position, required this.velocity, required this.color,
-        required this.life, required this.size,
-    }) : maxLife = life;
+    ParticleEffect({required this.position, required this.velocity, required this.color, required this.life, required this.size}) : maxLife = life;
     
-    factory ParticleEffect.thrusterParticle(Offset shipPosition, {bool isBoosting = false}) {
+    factory ParticleEffect.thrusterParticle(Offset shipPosition) {
         final random = math.Random();
         return ParticleEffect(
             position: Offset(shipPosition.dx - 25, shipPosition.dy + (random.nextDouble() - 0.5) * 20),
-            velocity: Offset((isBoosting ? -400 : -200) - random.nextDouble() * 100, (random.nextDouble() - 0.5) * 40),
-            color: Color.lerp(isBoosting ? Colors.cyanAccent : Colors.orangeAccent, Colors.white, random.nextDouble())!,
-            life: (isBoosting ? 0.6 : 0.4) + random.nextDouble() * 0.3,
-            size: (isBoosting ? 2.5 : 1.5) + random.nextDouble() * 2.0,
+            velocity: Offset(-300 - random.nextDouble() * 100, (random.nextDouble() - 0.5) * 50),
+            color: Color.lerp(Colors.orangeAccent, Colors.white, random.nextDouble())!,
+            life: 0.3 + random.nextDouble() * 0.2,
+            size: 1.5 + random.nextDouble() * 2.0,
         );
     }
 
@@ -1006,13 +592,15 @@ class ParticleEffect {
         );
     }
 
-    factory ParticleEffect.boostParticle(Offset position) {
+    factory ParticleEffect.successParticle(Offset position) {
         final random = math.Random();
+        final angle = random.nextDouble() * math.pi * 2;
+        final speed = 100 + random.nextDouble() * 150;
         return ParticleEffect(
             position: position,
-            velocity: Offset(-400 - random.nextDouble() * 200, (random.nextDouble() - 0.5) * 50),
-            color: Color.lerp(Colors.cyanAccent, Colors.white, random.nextDouble())!,
-            life: 0.6 + random.nextDouble() * 0.4,
+            velocity: Offset(math.cos(angle) * speed, math.sin(angle) * speed),
+            color: Color.lerp(Colors.cyanAccent, Colors.greenAccent, random.nextDouble())!,
+            life: 0.6 + random.nextDouble() * 0.5,
             size: 2.0 + random.nextDouble() * 2.0,
         );
     }
@@ -1027,63 +615,39 @@ class ParticleEffect {
     Widget build() {
         final opacity = (life / maxLife).clamp(0.0, 1.0);
         return Positioned(
-            left: position.dx,
-            top: position.dy,
+            left: position.dx, top: position.dy,
             child: Container(
-                width: size,
-                height: size,
-                decoration: BoxDecoration(
-                    color: color.withOpacity(opacity),
-                    shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: color.withOpacity(opacity * 0.5), blurRadius: size * 2)]
-                ),
+                width: size, height: size,
+                decoration: BoxDecoration(color: color.withOpacity(opacity), shape: BoxShape.circle),
             ),
         );
     }
 }
 
+// --- CUSTOM WIDGETS ---
 class SpaceshipWidget extends StatelessWidget {
     final Spaceship spaceship;
     final AnimationController thrusterAnimation;
-    final PowerUpType? activePowerUp;
   
-    const SpaceshipWidget({
-      super.key, required this.spaceship, required this.thrusterAnimation, this.activePowerUp,
-    });
+    const SpaceshipWidget({super.key, required this.spaceship, required this.thrusterAnimation});
 
     @override
     Widget build(BuildContext context) {
       return AnimatedBuilder(
         animation: thrusterAnimation,
         builder: (context, child) {
-          return Transform.rotate(
-            angle: spaceship.angle,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                if (activePowerUp == PowerUpType.shield)
-                  Container(
-                    width: spaceship.size * 2.5,
-                    height: spaceship.size * 2.5,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.blueAccent.withOpacity(0.3),
-                      border: Border.all(color: Colors.cyanAccent, width: 2),
-                    ),
-                  ),
-                SizedBox(
-                  width: spaceship.size * 2,
-                  height: spaceship.size * 2,
-                  child: CustomPaint(
-                    painter: SpaceshipPainter(
-                      thrusting: spaceship.thrusting,
-                      thrusterFlicker: thrusterAnimation.value,
-                      damaged: spaceship.damageTime > 0,
-                      isBoosting: spaceship.isBoosting,
-                    ),
-                  ),
+          final isDamaged = spaceship.isInvincible && (spaceship.damageCooldown * 10).floor() % 2 == 0;
+          return Opacity(
+            opacity: isDamaged ? 0.3 : 1.0,
+            child: SizedBox(
+              width: spaceship.sizeValue * 2,
+              height: spaceship.sizeValue * 2,
+              child: CustomPaint(
+                painter: SpaceshipPainter(
+                  thrusting: spaceship.isMoving,
+                  thrusterFlicker: thrusterAnimation.value,
                 ),
-              ],
+              ),
             ),
           );
         },
@@ -1094,19 +658,12 @@ class SpaceshipWidget extends StatelessWidget {
 class SpaceshipPainter extends CustomPainter {
   final bool thrusting;
   final double thrusterFlicker;
-  final bool damaged;
-  final bool isBoosting;
 
-  SpaceshipPainter({
-    required this.thrusting, required this.thrusterFlicker,
-    required this.damaged, required this.isBoosting,
-  });
+  SpaceshipPainter({required this.thrusting, required this.thrusterFlicker});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = damaged ? Colors.redAccent.shade100 : Colors.grey.shade300
-      ..style = PaintingStyle.fill;
+    final paint = Paint()..color = Colors.grey.shade300..style = PaintingStyle.fill;
     
     final path = Path()
       ..moveTo(size.width, size.height * 0.5)
@@ -1121,100 +678,20 @@ class SpaceshipPainter extends CustomPainter {
     canvas.drawOval(Rect.fromCenter(center: Offset(size.width*0.6, size.height*0.5), width: size.width * 0.4, height: size.height*0.5), cockpitPaint);
 
     if (thrusting) {
-      final thrusterPaint = Paint()
-        ..color = Color.lerp(isBoosting ? Colors.cyanAccent : Colors.orangeAccent, Colors.white, thrusterFlicker)!
-        ..style = PaintingStyle.fill;
-      
-      final flameLength = isBoosting ? -25 - thrusterFlicker * 10 : -15 - thrusterFlicker * 5;
+      final thrusterPaint = Paint()..color = Color.lerp(Colors.orangeAccent, Colors.white, thrusterFlicker)!..style = PaintingStyle.fill;
+      final flameLength = -15 - thrusterFlicker * 5;
       final flamePath = Path()
         ..moveTo(0, size.height * 0.3)
         ..lineTo(flameLength, size.height * 0.5)
         ..lineTo(0, size.height * 0.7)
         ..close();
-      
       canvas.drawPath(flamePath, thrusterPaint);
     }
   }
 
   @override
   bool shouldRepaint(SpaceshipPainter oldDelegate) {
-    return oldDelegate.thrusting != thrusting ||
-        oldDelegate.thrusterFlicker != thrusterFlicker ||
-        oldDelegate.damaged != damaged ||
-        oldDelegate.isBoosting != isBoosting;
+    return oldDelegate.thrusting != thrusting || oldDelegate.thrusterFlicker != thrusterFlicker;
   }
 }
 
-class HyperdriveGateWidget extends StatelessWidget {
-  final HyperdriveGate gate;
-  const HyperdriveGateWidget({super.key, required this.gate});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 120,
-      height: 80,
-      decoration: BoxDecoration(
-        border: Border.all(color: gate.color, width: 3),
-        borderRadius: BorderRadius.circular(10),
-        color: gate.color.withOpacity(0.1),
-        boxShadow: [BoxShadow(color: gate.color, blurRadius: 15, spreadRadius: 3)],
-      ),
-      child: Center(
-        child: Text(
-          gate.answer.toString(),
-          style: TextStyle(
-            color: gate.color, fontSize: 24, fontWeight: FontWeight.bold,
-            shadows: const [Shadow(color: Colors.white, blurRadius: 8)]
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Add this class definition with your other game objects
-class Enemy extends GameObject {
-  final int incorrectAnswer;
-  double hoverAnimation = 0.0;
-
-  Enemy({required Offset position, required this.incorrectAnswer})
-      : super(position: position, size: 45.0);
-
-  @override
-  void update(double dt, double gameSpeed) {
-    position = Offset(position.dx - gameSpeed * dt, position.dy);
-    hoverAnimation += dt * 2;
-  }
-
-  @override
-  Widget build() {
-    // A simple placeholder widget for the enemy. You can make this a CustomPainter or an Image.
-    return Positioned(
-      left: position.dx - size,
-      top: position.dy - size + (math.sin(hoverAnimation) * 8), // Hover effect
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Simple pirate ship body
-          const Icon(Icons.rocket_launch, color: Colors.purpleAccent, size: 60),
-          // Display the incorrect answer on the enemy
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.7),
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: Text(
-              incorrectAnswer.toString(),
-              style: const TextStyle(
-                  color: Colors.redAccent,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
