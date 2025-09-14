@@ -170,13 +170,20 @@ class _GameMenuScreenState extends State<GameMenuScreen>
           child: Column(
             children: [
               _buildHeader(),
-              // FIX: Ensure the grid area is scrollable
+              // This version enforces fit
               Expanded(
-                child: SingleChildScrollView(
+                child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   child: isLandscape ? _buildLandscapeGrid() : _buildPortraitGrid(),
                 ),
               ),
+              // This version ensures the grid area is scrollable
+              /* Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: isLandscape ? _buildLandscapeGrid() : _buildPortraitGrid(),
+                ),
+              ), */
             ],
           ),
         ),
@@ -314,31 +321,29 @@ class _GameMenuScreenState extends State<GameMenuScreen>
     );
   }
   
+  // FIX: Make cards wider than they are tall to fit two rows without scrolling.
   Widget _buildLandscapeGrid() {
     return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+      // The parent Expanded widget will handle sizing, no scrolling needed.
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 20,
         mainAxisSpacing: 20,
-        childAspectRatio: 1.1, // Adjusted for better fit
+        childAspectRatio: 1.25, // Value > 1.0 makes items wider than they are tall.
       ),
       itemCount: _gameCount,
       itemBuilder: (context, index) => _buildGameCard(index),
     );
   }
 
-  // FIX: Use a 2-column GridView for portrait mode for a better look
+  // FIX: Make portrait cards slightly more square to ensure they fit well.
   Widget _buildPortraitGrid() {
     return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 20,
         mainAxisSpacing: 20,
-        childAspectRatio: 0.9, // Taller cards for portrait
+        childAspectRatio: 0.85, // Taller cards are fine in portrait mode.
       ),
       itemCount: _gameCount,
       itemBuilder: (context, index) => _buildGameCard(index),
@@ -514,7 +519,6 @@ class _GameCardState extends State<GameCard>
             child: GestureDetector(
               onTap: widget.game.onTap,
               child: Container(
-                // FIX: Removed fixed height to allow GridView to control size
                 decoration: BoxDecoration(
                   gradient: widget.game.gradient,
                   borderRadius: BorderRadius.circular(25),
@@ -532,30 +536,32 @@ class _GameCardState extends State<GameCard>
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  // FIX: Reduced vertical padding for a more compact layout.
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround, // Better spacing
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        // FIX: Smaller icon container.
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(widget.game.icon, size: 28, color: Colors.white),
+                        child: Icon(widget.game.icon, size: 24, color: Colors.white),
                       ),
                       Text(
                         widget.game.title,
-                        style: SpaceTheme.headlineStyle.copyWith(fontSize: 16),
+                        style: SpaceTheme.headlineStyle.copyWith(fontSize: 15),
                         textAlign: TextAlign.center,
-                        maxLines: 2,
+                        maxLines: 1, // FIX: Title on a single line.
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         widget.game.description,
-                        style: SpaceTheme.bodyStyle.copyWith(fontSize: 11),
+                        style: SpaceTheme.bodyStyle.copyWith(fontSize: 10),
                         textAlign: TextAlign.center,
-                        maxLines: 3, // Allow more space for description
+                        maxLines: 2, // FIX: Description limited to 2 lines.
                         overflow: TextOverflow.ellipsis,
                       ),
                       Container(

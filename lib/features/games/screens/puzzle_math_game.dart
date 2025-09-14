@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:developer'; // Import the developer log
+import 'dart:developer';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -74,7 +74,6 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   void _generatePuzzle() {
-    // Difficulty based on grade: 3rd grade = 2x2, 4th = 2x3, 5th = 3x3, 6th = 3x4
     final difficulty = widget.grade;
     if (difficulty <= 3) {
       columns = 2; rows = 2;
@@ -89,7 +88,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
 
 
     final pieceCount = columns * rows;
-    _generateEdgeShapes(); // Generate the interlocking shapes first
+    _generateEdgeShapes(); 
 
     final random = math.Random();
     final problems = <MathProblem>{};
@@ -106,7 +105,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         answer: problemList[i].answer,
         row: i ~/ columns,
         col: i % columns,
-        rotation: 0, // Initial rotation
+        rotation: 0, 
       ));
     }
     log("Generated ${pieceData.length} pieces with math problems.", name: "PuzzleMath");
@@ -121,14 +120,12 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     _edgeShapes.clear();
     final random = math.Random();
     
-    // Horizontal edges (between columns)
     for (int r = 0; r < rows; r++) {
       for (int c = 0; c < columns - 1; c++) {
         _edgeShapes['h-$r-$c'] = random.nextBool() ? JigsawSide.knob : JigsawSide.hole;
       }
     }
     
-    // Vertical edges (between rows)
     for (int r = 0; r < rows - 1; r++) {
       for (int c = 0; c < columns; c++) {
         _edgeShapes['v-$r-$c'] = random.nextBool() ? JigsawSide.knob : JigsawSide.hole;
@@ -156,14 +153,22 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     });
   }
 
+  // ✅ NEW: Function to remove a piece from the board
+  void _removePiece(int slotId) {
+    setState(() {
+      final pieceId = placedPieces[slotId];
+      placedPieces.remove(slotId);
+      log("Removed piece ID $pieceId from slot ID $slotId.", name: "PuzzleMath.Interaction");
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final gameProvider = context.watch<GameProvider>();
     if (currentPuzzleImage == null) {
-      return Scaffold(
+      return const Scaffold(
           body: Center(
-              child: Text("No constellation images found in assets/images/",
-                  style: SpaceTheme.bodyStyle)));
+              child: Text("No constellation images found in assets/images/")));
     }
 
     return Scaffold(
@@ -174,7 +179,6 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
               GameUI(
                 title: S.of(context)!.puzzleMath,
                 level: widget.level,
-                // score: gameProvider.score,
                 timeLeft: gameProvider.puzzleTimerEnabled ? _timeLeft : null,
                 onBack: () => Navigator.of(context).pop(),
               ),
@@ -224,7 +228,6 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   Size _calculatePieceSize(BoxConstraints constraints) {
-    // ✅ FIX: Increased board constraint width from 0.5 to 0.9 for a larger puzzle area.
     final boardConstraints = BoxConstraints(
         maxWidth: constraints.maxWidth * 0.9, 
         maxHeight: constraints.maxHeight * 0.9,
@@ -264,13 +267,9 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
           children: List.generate(rows * columns, (index) {
             final row = index ~/ columns;
             final col = index % columns;
-            // Find the original piece that belongs in this slot by its row/col
             final slotData = pieces.firstWhere((p) => p.row == row && p.col == col);
             final isPlaced = placedPieces.containsKey(slotData.id);
 
-            // ✅ FIX: This positioning is correct. The error was in the clipper.
-            // A piece's widget is larger than its core (due to knobs), so we
-            // offset it by -bumpSize to align the *core* of the piece with the grid.
             final slotLeft = (col * pieceSize.width) - bumpSize;
             final slotTop = (row * pieceSize.height) - bumpSize;
 
@@ -295,7 +294,8 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                             rows: rows,
                             edgeShapes: _edgeShapes,
                             isPlaced: true,
-                            onRotate: () {},
+                            // ✅ MODIFIED: Pass the remove function to the placed piece
+                            onRemove: () => _removePiece(slotData.id),
                           )
                         : null,
                   );
@@ -332,7 +332,6 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   Widget _buildPieceTray(BoxConstraints constraints) {
     final pieceSize = _calculatePieceSize(constraints);
     
-    // Make tray pieces smaller to fit nicely
     final trayPieceSize = Size(pieceSize.width * 0.7, pieceSize.height * 0.7);
     final trayBumpSize = math.min(trayPieceSize.width, trayPieceSize.height) / 4;
     final extendedTraySize = trayPieceSize.width + (trayBumpSize * 2);
@@ -363,7 +362,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
               itemBuilder: (context, index) {
                 final pieceData = pieces[index];
                 if (placedPieces.values.contains(pieceData.id)) {
-                  return Container(); // Piece already placed
+                  return Container(); 
                 }
                 return Center(
                   child: Draggable<int>(
@@ -460,7 +459,6 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 }
 
-// Data Model
 class PuzzlePieceData {
   final int id;
   final String problem;
@@ -479,7 +477,6 @@ class PuzzlePieceData {
   });
 }
 
-// Puzzle Slot Widget
 class PuzzleSlotWidget extends StatelessWidget {
   final PuzzlePieceData data;
   final Size pieceSize;
@@ -532,19 +529,24 @@ class PuzzleSlotWidget extends StatelessWidget {
           ),
           child: Center(
             child: Container(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(8),
+              width: pieceSize.width * 0.8,
+              height: pieceSize.height * 0.5,
               decoration: BoxDecoration(
                 color: Colors.black.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: Text(
-                data.problem,
-                style: SpaceTheme.titleStyle.copyWith(
-                  color: SpaceTheme.starYellow,
-                  fontSize: pieceSize.width / 5,
-                  fontWeight: FontWeight.bold,
+              // ✅ MODIFIED: Wrapped Text in a FittedBox for adaptive sizing
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  data.problem,
+                  style: SpaceTheme.titleStyle.copyWith(
+                    color: SpaceTheme.starYellow,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
           ),
@@ -554,7 +556,6 @@ class PuzzleSlotWidget extends StatelessWidget {
   }
 }
 
-// Puzzle Piece Widget
 class PuzzlePieceWidget extends StatelessWidget {
   final String imagePath;
   final PuzzlePieceData data;
@@ -563,6 +564,8 @@ class PuzzlePieceWidget extends StatelessWidget {
   final bool isPlaced;
   final Map<String, JigsawSide> edgeShapes;
   final VoidCallback? onRotate;
+  // ✅ NEW: Callback for removing a placed piece
+  final VoidCallback? onRemove;
 
   const PuzzlePieceWidget({
     super.key,
@@ -574,6 +577,7 @@ class PuzzlePieceWidget extends StatelessWidget {
     this.isPlaced = false,
     required this.edgeShapes,
     this.onRotate,
+    this.onRemove, // ✅ NEW
   });
 
   @override
@@ -588,95 +592,104 @@ class PuzzlePieceWidget extends StatelessWidget {
     final extendedWidth = pieceSize.width + (bumpSize * 2);
     final extendedHeight = pieceSize.height + (bumpSize * 2);
 
+    // ✅ MODIFIED: Restructured with a Stack to separate rotating and non-rotating parts
     return GestureDetector(
-      onTap: onRotate != null && !isPlaced ? onRotate : null,
-      child: Transform.rotate(
-        angle: data.rotation * math.pi / 180,
-        child: Material(
-          color: Colors.transparent,
-          elevation: isPlaced ? 0 : 8,
-          child: SizedBox(
-            width: extendedWidth,
-            height: extendedHeight,
-            child: ClipPath(
-              clipper: JigsawPieceClipper(
-                data: data,
-                columns: columns,
-                rows: rows,
-                edgeShapes: edgeShapes,
-                bumpSize: bumpSize,
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned(
-                    left: offsetX - bumpSize,
-                    top: offsetY - bumpSize,  
-                    width: totalWidth,
-                    height: totalHeight,
-                    child: Image.asset(
-                      imagePath,
-                      fit: BoxFit.cover,
-                    ),
+      // Decide action based on whether the piece is in the tray or on the board
+      onTap: isPlaced ? onRemove : onRotate,
+      child: SizedBox(
+        width: extendedWidth,
+        height: extendedHeight,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // --- LAYER 1: The ROTATING part (Shape + Image) ---
+            Transform.rotate(
+              angle: data.rotation * math.pi / 180,
+              child: Material(
+                color: Colors.transparent,
+                elevation: isPlaced ? 0 : 8,
+                child: ClipPath(
+                  clipper: JigsawPieceClipper(
+                    data: data,
+                    columns: columns,
+                    rows: rows,
+                    edgeShapes: edgeShapes,
+                    bumpSize: bumpSize,
                   ),
-                  Container(
-                    width: extendedWidth,
-                    height: extendedHeight,
-                    color: Colors.black.withOpacity(0.4),
-                  ),
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange],
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        data.answer.toString(),
-                        style: TextStyle(
-                          fontSize: pieceSize.width / 4,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned(
+                        left: offsetX - bumpSize,
+                        top: offsetY - bumpSize,
+                        width: totalWidth,
+                        height: totalHeight,
+                        child: Image.asset(
+                          imagePath,
+                          fit: BoxFit.cover,
                         ),
                       ),
-                    ),
+                      Container(
+                        color: Colors.black.withOpacity(0.4),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+            // --- LAYER 2: The NON-ROTATING part (Number) ---
+            // This is outside the Transform.rotate, so it always stays upright.
+            if (!isPlaced)
+              Container(
+                width: pieceSize.width * 0.6,
+                height: pieceSize.width * 0.4,
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                // ✅ MODIFIED: Wrapped Text in a FittedBox for adaptive sizing
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    data.answer.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
   }
 }
 
-// ✅ FIX: Heavily refactored JigsawPieceClipper
+// JigsawPieceClipper (No changes needed here, the previous fix was correct)
 class JigsawPieceClipper extends CustomClipper<Path> {
   final PuzzlePieceData data;
   final int columns, rows;
   final Map<String, JigsawSide> edgeShapes;
-  final double bumpSize; // It now requires bumpSize
+  final double bumpSize; 
 
   JigsawPieceClipper({
     required this.data,
     required this.columns,
     required this.rows,
     required this.edgeShapes,
-    required this.bumpSize, // Added to constructor
+    required this.bumpSize, 
   });
 
   @override
   Path getClip(Size size) {
-    // The `size` passed to the clipper is the extended size (core + 2*bumpSize).
-    // We derive the core size from it.
     final path = Path();
     final double coreWidth = size.width - (bumpSize * 2);
     final double coreHeight = size.height - (bumpSize * 2);
 
-    // Get edge shapes for this piece (this logic is correct)
     final topShape = data.row == 0
         ? JigsawSide.flat
         : edgeShapes['v-${data.row - 1}-${data.col}']!.inverse;
@@ -690,19 +703,11 @@ class JigsawPieceClipper extends CustomClipper<Path> {
         ? JigsawSide.flat
         : edgeShapes['h-${data.row}-${data.col}']!;
     
-    // Start path at the top-left of the *core* rectangle
     path.moveTo(bumpSize, bumpSize);
 
-    // --- TOP EDGE ---
     _createEdgePath(path, JigsawEdge.top, topShape, coreWidth, coreHeight);
-    
-    // --- RIGHT EDGE ---
     _createEdgePath(path, JigsawEdge.right, rightShape, coreWidth, coreHeight);
-
-    // --- BOTTOM EDGE ---
     _createEdgePath(path, JigsawEdge.bottom, bottomShape, coreWidth, coreHeight);
-    
-    // --- LEFT EDGE ---
     _createEdgePath(path, JigsawEdge.left, leftShape, coreWidth, coreHeight);
 
     path.close();
@@ -710,8 +715,6 @@ class JigsawPieceClipper extends CustomClipper<Path> {
   }
 
   void _createEdgePath(Path path, JigsawEdge edge, JigsawSide shape, double w, double h) {
-    // This helper function draws one edge of the puzzle piece.
-    // All coordinates are offset by `bumpSize` to draw the core in the center.
     switch (edge) {
       case JigsawEdge.top:
         if (shape == JigsawSide.flat) {
