@@ -11,6 +11,7 @@ import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../constants/app_constants.dart';
+import '../../../core/services/sri_service.dart';
 
 class CodebreakerGame extends StatefulWidget {
   final int grade;
@@ -41,9 +42,10 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   
   bool _isGenerating = true;
   String _lastDroppedPosition = '';
+  DifficultyConfig? currentDifficulty;
 
-  bool _isDragging = false; // we must avoid a classic Flutter drag-and-drop issue where the widget tree rebuilds during dragging, causing the DragTargets to lose their hover state.
-  int? _draggingNumber; // also to prevent unnecessary rebuilds during dragging
+  bool _isDragging = false;
+  int? _draggingNumber;
 
   @override
   void initState() {
@@ -69,8 +71,15 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     );
     _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
     
-    debugPrint("🚀 [CODEBREAKER UI] Animation controllers initialized, starting puzzle generation");
-    _generatePuzzle();
+    // Initialize difficulty from the framework
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final gameProvider = context.read<GameProvider>();
+        currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level);
+        debugPrint("🚀 [CODEBREAKER UI] Difficulty initialized: ${currentDifficulty?.grade}");
+        _generatePuzzle();
+      }
+    });
   }
 
   @override
@@ -93,6 +102,8 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   }
 
   void _generatePuzzle() async {
+    if (currentDifficulty == null) return;
+    
     debugPrint("🎯 [CODEBREAKER UI] Starting puzzle generation process");
     
     setState(() {
@@ -106,6 +117,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
       final puzzleArgs = {
         'grade': widget.grade,
         'level': widget.level,
+        'difficulty': currentDifficulty!,
         'useCustomSettings': gameProvider.useCustomProblemSettings,
         'customOps': gameProvider.customOperations.toList(),
         'customMin': gameProvider.customRangeMin,
@@ -195,7 +207,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     debugPrint("🎮 [PLACE] User solution after: $userSolution");
     debugPrint("🎮 [PLACE] Number pool after: $numberPool");
     debugPrint("🎮 [PLACE] === PLACEMENT COMPLETE ===");
-    _debugCurrentState(); // debug details
+    _debugCurrentState();
     _checkSolution();
   }
 
@@ -263,6 +275,18 @@ class _CodebreakerGameState extends State<CodebreakerGame>
       final isValid = puzzle!.validateSolution(userSolution);
       debugPrint("✅ [CODEBREAKER UI] Solution validation result: $isValid");
       
+      // Record the response with SRI service
+      final sriService = context.read<SriService>();
+      final dummyProblem = MathProblem(
+        expression: "codebreaker_${widget.level}",
+        answer: 1,
+        operation: MathOperation.addition,
+        operandA: 1,
+        operandB: 0,
+        difficulty: widget.grade,
+      );
+      sriService.recordResponse(dummyProblem, isValid);
+      
       if (isValid) {
         _handleSuccess();
       } else {
@@ -311,7 +335,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     debugPrint("❌ [CODEBREAKER UI] Incorrect solution - showing error message");
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(S.of(context)?.codebreakerError ?? "Incorrect solution! Try again."),
+        content: Text(S.of(context)!.codebreakerError),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
       ),
@@ -321,16 +345,18 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     @override
     Widget build(BuildContext context) {
     if (puzzle == null || _isGenerating) {
-        return const Scaffold(
-        body: Center(
+        return Scaffold(
+        body: SpaceBackground(
+          child: Center(
             child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text("Receiving Transmission...", style: SpaceTheme.bodyStyle),
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(S.of(context)!.loadingAdventure, style: SpaceTheme.bodyStyle),
             ],
             ),
+          ),
         ),
         );
     }
@@ -341,14 +367,14 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             child: Column(
             children: [
                 GameUI(
-                title: "Codebreaker",
+                title: S.of(context)!.codebreaker,
                 level: widget.level, 
                 onBack: () => Navigator.of(context).pop()
                 ),
-                const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
-                    "Drag numbers to solve the symbol equations!",
+                    S.of(context)!.codebreakerInstructions,
                     style: SpaceTheme.bodyStyle, 
                     textAlign: TextAlign.center,
                 ),
@@ -406,43 +432,12 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     );
   }
 
-  Widget _buildTallLayout() {
-    return LayoutBuilder(
-        builder: (context, constraints) {
-        final screenHeight = constraints.maxHeight;
-        final equationHeight = screenHeight * 0.6; // 60% for equations
-        final numberPadHeight = screenHeight * 0.35; // 35% for number pad
-        
-        return Column(
-            children: [
-            SizedBox(
-                height: equationHeight,
-                child: SingleChildScrollView(
-                child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: _buildEquationDisplay(),
-                ),
-                ),
-            ),
-            SizedBox(
-                height: numberPadHeight,
-                child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: _buildNumberPad(),
-                ),
-            ),
-            ],
-        );
-        },
-    );
-    }
-
   Widget _buildEquationDisplay() {
     return AnimatedBuilder(
         animation: _glowAnimation,
         builder: (context, child) {
         return Container(
-            padding: const EdgeInsets.all(16), // Reduced from 20
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
             gradient: RadialGradient(
                 colors: [
@@ -458,7 +453,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             ),
             child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min, // Add this
+            mainAxisSize: MainAxisSize.min,
             children: puzzle!.equations.asMap().entries.map((entry) {
                 final index = entry.key;
                 final equation = entry.value;
@@ -477,12 +472,12 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   Widget _buildSingleEquation(PuzzleEquation equation, int equationIndex) {
     return Container(
         margin: const EdgeInsets.symmetric(vertical: 2),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), // More padding for easier drops
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: SpaceTheme.cardDecoration.copyWith(
         border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
         ),
         child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Better spacing
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
             _buildTermWidget(equation.term1, 'eq${equationIndex}_term1'),
             Padding(
@@ -609,14 +604,14 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         // Wrap the ENTIRE column (cell + emoji) in DragTarget if it should accept drops
         if (shouldAcceptDrops) {
             return Container(
-                width: cellSize + 40, // Much larger hit area
+                width: cellSize + 40,
                 height: cellSize + 40,
                 child: DragTarget<int>(
                 builder: (context, candidateData, rejectedData) {
                     final isHovering = candidateData.isNotEmpty;
                     
                     return Container(
-                    padding: const EdgeInsets.all(8), // Extra padding for hit area
+                    padding: const EdgeInsets.all(8),
                     child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -647,7 +642,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                     );
                 },
                 onWillAcceptWithDetails: (details) {
-                    return true; // Always accept if we're building this DragTarget
+                    return true;
                 },
                 onAcceptWithDetails: (details) {
                     debugPrint("🎯 [DROPPED] ✅ ${details.data} → $positionId");
@@ -691,7 +686,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-            const Text("Select Numbers", style: SpaceTheme.bodyStyle),
+            Text(S.of(context)!.codebreakerSelectNumbers, style: SpaceTheme.bodyStyle),
             const SizedBox(height: 8),
             Expanded(
                 child: Container(
@@ -701,7 +696,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                 ),
                 child: GridView.builder(
                     shrinkWrap: true,
-                    physics: _isDragging ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(), // Prevent scrolling during drag
+                    physics: _isDragging ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: crossAxisCount,
                     crossAxisSpacing: 8,
@@ -746,52 +741,6 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         );
         },
     );
-    }
-
-  // method to help debug which positions should accept drops
-    void _debugPrintDragTargets() {
-    debugPrint("🎯 [DEBUG] === CURRENT DRAG TARGET STATUS ===");
-    for (int i = 0; i < puzzle!.equations.length; i++) {
-        final eq = puzzle!.equations[i];
-        for (int j = 0; j < 3; j++) {
-        String posId = '';
-        String symbol = '';
-        bool isHidden = false;
-        bool hasValue = false;
-        
-        switch (j) {
-            case 0:
-            if (eq.term1 is String) {
-                posId = 'eq${i}_term1';
-                symbol = eq.term1 as String;
-                isHidden = puzzle!.hiddenSymbols.contains(symbol);
-                hasValue = userSolution.containsKey(posId);
-            }
-            break;
-            case 1:
-            if (eq.term2 is String) {
-                posId = 'eq${i}_term2';
-                symbol = eq.term2 as String;
-                isHidden = puzzle!.hiddenSymbols.contains(symbol);
-                hasValue = userSolution.containsKey(posId);
-            }
-            break;
-            case 2:
-            if (eq.result is String) {
-                posId = 'eq${i}_result';
-                symbol = eq.result as String;
-                isHidden = puzzle!.hiddenSymbols.contains(symbol);
-                hasValue = userSolution.containsKey(posId);
-            }
-            break;
-        }
-        
-        if (posId.isNotEmpty) {
-            debugPrint("🎯 [DEBUG] $posId: symbol=$symbol, hidden=$isHidden, hasValue=$hasValue, shouldAcceptDrops=${isHidden && !hasValue}");
-        }
-        }
-    }
-    debugPrint("🎯 [DEBUG] === END DRAG TARGET STATUS ===");
     }
 
   Widget _buildNumberTile(int number) {
@@ -840,9 +789,9 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                 children: [
                   const Icon(Icons.emoji_events, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  const Text("Puzzle Solved!", style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(S.of(context)!.codebreakerWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
-                  Text("You earned a bonus of $bonusScore points!", style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  Text(S.of(context)!.codebreakerWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -850,12 +799,12 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                       ElevatedButton(
                         onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
                         style: SpaceTheme.secondaryButtonStyle,
-                        child: const Text("Next Puzzle"),
+                        child: Text(S.of(context)!.playAgain),
                       ),
                       ElevatedButton(
                         onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
                         style: SpaceTheme.primaryButtonStyle,
-                        child: const Text("Main Menu"),
+                        child: Text(S.of(context)!.backToMenu),
                       ),
                     ],
                   ),
@@ -870,11 +819,10 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 }
 
 //##############################################################################
-// ADVANCED PUZZLE GENERATION SYSTEM (Based on Python version)
+// ADVANCED PUZZLE GENERATION SYSTEM (Preserved original logic)
 //##############################################################################
 
 /// Represents a single equation with term1 op term2 = result
-/// Each term can be either a String (symbol) or int (number)
 class PuzzleEquation {
   final dynamic term1; // String or int
   final String op;
@@ -893,13 +841,12 @@ class PuzzleEquation {
     return "$term1 $op $term2 = $result";
   }
 
-  /// Returns all symbols (String values) present in this equation
   List<String> getSymbols() {
     final symbols = <String>[];
     if (term1 is String) symbols.add(term1 as String);
     if (term2 is String) symbols.add(term2 as String);
     if (result is String) symbols.add(result as String);
-    return symbols.toSet().toList(); // Remove duplicates
+    return symbols.toSet().toList();
   }
 }
 
@@ -1042,9 +989,9 @@ class PuzzleSolver {
   }
 }
 
-/// Advanced puzzle generator that creates sophisticated symbol-based math puzzles
+/// Advanced puzzle generator using the framework's difficulty settings
 class AdvancedPuzzleGenerator {
-  final int difficulty;
+  final DifficultyConfig difficulty;
   final bool verbose;
   final math.Random _random = math.Random();
   
@@ -1053,7 +1000,6 @@ class AdvancedPuzzleGenerator {
   Map<String, int> solution = {};
   final PuzzleSolver solver = PuzzleSolver(verbose: true);
 
-  // Pool of available space-themed symbols
   static const List<String> availableSymbols = [
     'nebula', 'star', 'galaxy', 'planet', 'rocket', 'satellite', 'comet', 
     'asteroid', 'sun', 'moon', 'supernova', 'blackhole', 'spaceship', 'alien', 'meteor'
@@ -1061,34 +1007,31 @@ class AdvancedPuzzleGenerator {
 
   AdvancedPuzzleGenerator({required this.difficulty, this.verbose = false}) {
     params = _getParams();
-    if (verbose) debugPrint("🏗️ [GENERATOR] Initialized with difficulty $difficulty, params: $params");
+    if (verbose) debugPrint("🏗️ [GENERATOR] Initialized with difficulty ${difficulty.grade}, params: $params");
   }
 
   Map<String, dynamic> _getParams() {
-    switch (difficulty) {
-        case 1:
-        return {
-            'numSymbols': 4,        // Need at least 4 symbols
-            'valueRange': [2, 12], 
-            'operators': ['+', '-'],
-            'numEquations': 4       // Need 4 equations for 4 symbols
-        };
-        case 2:
-        return {
-            'numSymbols': 5,
-            'valueRange': [3, 20],
-            'operators': ['+', '-', '*'],
-            'numEquations': 5
-        };
-        default:
-        return {
-            'numSymbols': 5,
-            'valueRange': [2, 25],
-            'operators': ['+', '-', '*'],
-            'numEquations': 5
-        };
-    }
-    }
+    final grade = difficulty.grade;
+    final operationTypes = difficulty.operationTypes;
+    final numberRange = difficulty.numberRange;
+    
+    // Convert the framework operations to our string format
+    final operatorStrings = operationTypes.map((op) {
+      switch (op) {
+        case MathOperation.addition: return '+';
+        case MathOperation.subtraction: return '-';
+        case MathOperation.multiplication: return '*';
+        case MathOperation.division: return '/';
+      }
+    }).toList();
+    
+    return {
+      'numSymbols': math.min(4 + grade, 6),
+      'valueRange': [numberRange['min']!, numberRange['max']!],
+      'operators': operatorStrings,
+      'numEquations': math.min(4 + grade, 6)
+    };
+  }
 
   void _generateSolutionKey() {
     final numSymbols = params['numSymbols'] as int;
@@ -1158,7 +1101,6 @@ class AdvancedPuzzleGenerator {
     final eqStrings = <String>{};
     final valueToSymbol = <int, String>{};
     
-    // Build reverse lookup map
     for (final entry in solution.entries) {
         valueToSymbol[entry.value] = entry.key;
     }
@@ -1172,16 +1114,13 @@ class AdvancedPuzzleGenerator {
             final v1 = solution[s1]!;
             final v2 = solution[s2]!;
             
-            // Skip invalid operations
             if ((op == '-' && v1 == v2) || (op == '/' && v1 == v2)) continue;
             if (op == '-' && v1 < v2) continue;
             if (op == '/' && (v2 == 0 || v1 % v2 != 0)) continue;
             
             final resVal = _calculateInt(v1, v2, op);
-            // bias towards symbol=symbol results
-            // This ensures more symbol-to-symbol relationships
             final result = valueToSymbol[resVal] ?? (resVal <= params['valueRange'][1] ? resVal : null);
-            if (result == null) continue; // Skip if result is too large
+            if (result == null) continue;
 
             
             final eq = PuzzleEquation(term1: s1, op: op, term2: s2, result: result);
@@ -1196,17 +1135,17 @@ class AdvancedPuzzleGenerator {
         }
     }
     
-    // Template 2: number op number = symbol (CRITICAL for interesting puzzles!)
+    // Template 2: number op number = symbol
     for (final sRes in symbols) {
     final vRes = solution[sRes]!;
     
-    for (int i = 0; i < 8; i++) { // More attempts for variety
+    for (int i = 0; i < 8; i++) {
         final op = operators[_random.nextInt(operators.length)];
         int? n1, n2;
         
         switch (op) {
         case '+':
-            if (vRes <= 2) continue; // Need at least 3 to split meaningfully
+            if (vRes <= 2) continue;
             final maxSplit = vRes - 1;
             n1 = _random.nextInt(maxSplit) + 1;
             n2 = vRes - n1;
@@ -1215,17 +1154,16 @@ class AdvancedPuzzleGenerator {
             final valueRange = params['valueRange'] as List<int>;
             final maxVal = valueRange[1];
             final rangeSize = maxVal - vRes;
-            if (rangeSize <= 0) continue; // Skip if no room for subtraction
+            if (rangeSize <= 0) continue;
             n1 = _random.nextInt(rangeSize) + vRes + 1;
             n2 = n1 - vRes;
             break;
         case '*':
-            // Find factors of vRes
             final factors = <int>[];
             for (int f = 2; f <= math.sqrt(vRes).floor(); f++) {
             if (vRes % f == 0) factors.add(f);
             }
-            if (factors.isEmpty) continue; // Skip if no factors found
+            if (factors.isEmpty) continue;
             n1 = factors[_random.nextInt(factors.length)];
             n2 = vRes ~/ n1;
             break;
@@ -1259,7 +1197,6 @@ class AdvancedPuzzleGenerator {
     final puzzle = <PuzzleEquation>[];
     final knownSymbols = <String>{};
     
-    // Find entry points (equations with 1 or fewer symbols)
     final entryPoints = pool.where((eq) => eq.getSymbols().length <= 1).toList();
     if (entryPoints.isEmpty) {
       if (verbose) debugPrint("🏗️ [GENERATOR] No entry points found");
@@ -1273,7 +1210,6 @@ class AdvancedPuzzleGenerator {
     
     if (verbose) debugPrint("🏗️ [GENERATOR] Starting with: $firstEq, known symbols: $knownSymbols");
     
-    // Build the connected graph
     final numSymbols = params['numSymbols'] as int;
     while (knownSymbols.length < numSymbols) {
       PuzzleEquation? nextLink;
@@ -1283,7 +1219,6 @@ class AdvancedPuzzleGenerator {
         final newSymbols = eqSyms.difference(knownSymbols);
         final connectingSymbols = eqSyms.intersection(knownSymbols);
         
-        // Must introduce exactly one new symbol AND connect to known symbols
         if (newSymbols.length == 1 && connectingSymbols.isNotEmpty) {
           nextLink = eq;
           break;
@@ -1301,7 +1236,6 @@ class AdvancedPuzzleGenerator {
       }
     }
     
-    // Add filler equations if needed
     final numEquations = params['numEquations'] as int;
     while (puzzle.length < numEquations) {
       PuzzleEquation? filler;
@@ -1342,12 +1276,12 @@ class AdvancedPuzzleGenerator {
 
 /// Main puzzle data structure
 class AdvancedCodebreakerPuzzle {
-  final Map<String, int> knownSymbolValues; // Visible symbol values
+  final Map<String, int> knownSymbolValues;
   final List<PuzzleEquation> equations;
   final Set<String> hiddenSymbols;
   final List<int> numberPool;
   final List<String> hiddenPositions;
-  final Map<String, int> _fullSolution; // Complete solution for validation
+  final Map<String, int> _fullSolution;
 
   AdvancedCodebreakerPuzzle({
     required this.knownSymbolValues,
@@ -1363,51 +1297,45 @@ class AdvancedCodebreakerPuzzle {
     
     final grade = args['grade'] as int;
     final level = args['level'] as int;
+    final difficultyConfig = args['difficulty'] as DifficultyConfig;
     
-    // Create difficulty based on grade
-    final difficulty = math.min(grade, 3);
-    debugPrint("🎯 [PUZZLE FACTORY] Mapped grade $grade to difficulty $difficulty");
+    debugPrint("🎯 [PUZZLE FACTORY] Using difficulty config: ${difficultyConfig.grade}");
     
-    final generator = AdvancedPuzzleGenerator(difficulty: difficulty, verbose: true);
+    final generator = AdvancedPuzzleGenerator(difficulty: difficultyConfig, verbose: true);
     final puzzleEquations = generator.generate();
     
     debugPrint("🎯 [PUZZLE FACTORY] Generated ${puzzleEquations.length} equations");
     
-    // Determine which symbols to hide (more challenging = fewer visible)
     final allSymbols = generator.symbols;
-    final visibleCount = 1; // Always show only 1 symbol, regardless of difficulty
+    final visibleCount = 1;
 
     allSymbols.shuffle();
     final visibleSymbols = allSymbols.take(visibleCount).toList();
-
     final hiddenSymbols = allSymbols.toSet().difference(visibleSymbols.toSet());
     
     debugPrint("🎯 [PUZZLE FACTORY] Visible symbols: $visibleSymbols");
     debugPrint("🎯 [PUZZLE FACTORY] Hidden symbols: $hiddenSymbols");
     
-    // Create known symbol values map
     final knownValues = <String, int>{};
     for (final symbol in visibleSymbols) {
       knownValues[symbol] = generator.solution[symbol]!;
     }
     
-    // Generate number pool
     final correctNumbers = hiddenSymbols.map((s) => generator.solution[s]!).toSet();
     final decoys = <int>{};
-    final maxVal = (generator.params['valueRange'] as List<int>)[1];
+    final numberRange = difficultyConfig.numberRange;
+    final maxVal = numberRange['max']!;
 
     debugPrint("🎯 [PUZZLE FACTORY] Correct numbers needed: ${correctNumbers.join(', ')}");
 
-    // Add numbers close to correct ones as decoys
     for (final correct in correctNumbers) {
     for (int i = 1; i <= 2; i++) {
         if (correct - i > 0) decoys.add(correct - i);
         if (correct + i <= maxVal) decoys.add(correct + i);
     }
     }
-    decoys.removeAll(correctNumbers); // Remove any decoys that match correct numbers
+    decoys.removeAll(correctNumbers);
 
-    // Add random decoys if needed to reach total of 8 numbers
     final random = math.Random();
     final targetPoolSize = 8;
     final requiredDecoys = targetPoolSize - correctNumbers.length;
@@ -1419,10 +1347,9 @@ class AdvancedCodebreakerPuzzle {
     }
     }
 
-    // CRITICAL FIX: Always include ALL correct numbers
     final numberPool = <int>[];
-    numberPool.addAll(correctNumbers); // Add ALL correct numbers first
-    numberPool.addAll(decoys.take(targetPoolSize - correctNumbers.length)); // Then add decoys to fill
+    numberPool.addAll(correctNumbers);
+    numberPool.addAll(decoys.take(targetPoolSize - correctNumbers.length));
 
     numberPool.shuffle();
     final finalPool = numberPool;
@@ -1430,7 +1357,6 @@ class AdvancedCodebreakerPuzzle {
     debugPrint("🎯 [PUZZLE FACTORY] Final number pool: ${finalPool.join(', ')}");
     debugPrint("🎯 [PUZZLE FACTORY] Verifying all correct numbers included: ${correctNumbers.every((n) => finalPool.contains(n))}");
     
-    // Build hidden positions list
     final hiddenPositions = <String>[];
     for (int i = 0; i < puzzleEquations.length; i++) {
       final eq = puzzleEquations[i];
@@ -1480,7 +1406,6 @@ class AdvancedCodebreakerPuzzle {
       completeValues[symbol] = userValue;
     }
     
-    // Check if all values match
     for (final symbol in _fullSolution.keys) {
       if (completeValues[symbol] != _fullSolution[symbol]) {
         debugPrint("✅ [VALIDATION] ❌ Missing or incorrect value for symbol $symbol");
@@ -1494,8 +1419,8 @@ class AdvancedCodebreakerPuzzle {
 
   String getSymbolFromPosition(String positionId) {
     final parts = positionId.split('_');
-    final eqIndex = int.parse(parts[0].substring(2)); // Remove 'eq' prefix
-    final termType = parts[1]; // 'term1', 'term2', or 'result'
+    final eqIndex = int.parse(parts[0].substring(2));
+    final termType = parts[1];
     
     final equation = equations[eqIndex];
     
