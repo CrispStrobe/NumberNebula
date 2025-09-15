@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import '../../../generated/l10n.dart'; // Import for localization
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart'; // Import to save score
-import '../../../core/services/sri_service.dart'; 
+import '../../../core/services/sri_service.dart';
 
 // --- AWESOME GAME CONFIGURATION ---
 const double BASE_GAME_SPEED = 160.0;
@@ -69,7 +69,6 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   Timer? _speedIncreaseTimer;
   int comboCounter = 0;
   
-  bool _choiceMadeForCurrentSet = false;
   double _temporarySpeedBoost = 0.0;
 
 
@@ -169,7 +168,6 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   }
 
   void _spawnNextGateSet(Size screenSize) {
-    _choiceMadeForCurrentSet = false;
     final sriService = context.read<SriService>();
     final gameProvider = context.read<GameProvider>();
     currentProblem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
@@ -397,7 +395,8 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       effects.add(ParticleEffect.thrusterParticle(spaceship.position));
   }
 
-  void _triggerEarlyBirdBoost(Gate targetGate) {
+  // 🔧 FIXED: Renamed function and increased boost multiplier.
+  void _triggerDecisionBoost(Gate targetGate) {
       final screenSize = MediaQuery.of(context).size;
       double bonusMultiplier = ((targetGate.position.dx - spaceship.position.dx) / (screenSize.width - spaceship.position.dx)).clamp(0.0, 1.0);
       
@@ -407,32 +406,31 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       context.read<GameProvider>().addScore(bonusPoints);
       
       setState(() {
-        _temporarySpeedBoost = 150.0 * bonusMultiplier;
+        // 🔧 FIXED: Significantly increased the speed boost value.
+        _temporarySpeedBoost = 350.0 * bonusMultiplier;
       });
 
       effects.add(FloatingScore(
           position: Offset(targetGate.position.dx, targetGate.position.dy - 50),
-          text: '+${bonusPoints} FAST!',
+          // 🔧 FIXED: Changed floating text to "BOOST!".
+          text: '+${bonusPoints} BOOST!',
           color: Colors.amber,
           fontSize: 28,
       ));
   }
 
   void _processPlayerInput(double targetY) {
-    if (_choiceMadeForCurrentSet) return;
-    
+    // 🔧 FIXED: Removed the _choiceMadeForCurrentSet flag to allow changing decisions.
     final gates = gameObjects.whereType<Gate>();
     if (gates.isEmpty) return;
     
     Gate targetGate = gates.reduce((a, b) => (a.position.dy - targetY).abs() < (b.position.dy - targetY).abs() ? a : b);
 
     if (targetGate.isCorrect) {
-      _triggerEarlyBirdBoost(targetGate);
+      // 🔧 FIXED: Call the updated boost function.
+      _triggerDecisionBoost(targetGate);
     }
     
-    setState(() {
-      _choiceMadeForCurrentSet = true;
-    });
     spaceship.moveTo(targetY);
   }
   

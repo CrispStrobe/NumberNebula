@@ -48,7 +48,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   // --- UI State ---
   bool _showInstructions = true;
   bool _showNextTargetHint = false;
-  // FIX 1: Add state variables for game area dimensions
   double _gameWidth = 0.0;
   double _gameHeight = 0.0;
 
@@ -98,8 +97,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   void _initializeGame() {
     debugPrint("[Gameplay] ✨ Initializing new game board.");
     _generateBackgroundStars();
-    final sriService = context.read<SriService>();
-    _generatePlanets(sriService); // Pass sriService to the generator
+    _generatePlanets();
     _generateTargetSequence();
     _startHintTimer();
 
@@ -110,16 +108,12 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         startPlanet.position.dy - startPlanet.radius - 30,
       );
     }
-    // FIX 2: Start the hopper in a non-moving ("landed") state. It will only
-    // move after the first tap calls `takeOff()`.
     hopper.isLanded = true;
     hopper.velocity = Offset.zero;
   }
 
   void _startHintTimer() {
     _hintTimer?.cancel();
-    // EDUCATIONAL FIX: Increase hint delay so students have to think first
-    // Only show hint after 12 seconds instead of 7
     _hintTimer = Timer(const Duration(seconds: 12), () {
       if (mounted && gameActive) {
         debugPrint("[UI] 💡 Hint timer fired after student had time to calculate.");
@@ -140,38 +134,80 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     }
   }
 
-  void _generatePlanets(SriService sriService) {
+  void _generatePlanets() {
     planets.clear();
     final random = math.Random();
-    final gameProvider = context.read<GameProvider>(); // Get the provider
-    
     final difficulty = widget.grade + widget.level;
     final planetCount = (5 + (difficulty / 4)).clamp(5, 8).toInt();
 
     // Generate unique problems/answers for each planet
     final problems = <MathProblem>[];
     final usedAnswers = <int>{};
-    int attempts = 0;
     debugPrint("[Gameplay] Generating $planetCount unique planets...");
     
-    // For early levels (grade 3, levels 1-2), mix in some number-only planets
-    final isBeginnerLevel = widget.grade <= 3 && widget.level <= 2;
-    final numberOnlyCount = isBeginnerLevel ? (planetCount ~/ 2) : 0;
+    // Get SRI problems once at the beginning to avoid repeated calls
+    final sriService = context.read<SriService>();
+    List<String> reviewProblems = [];
+    try {
+      reviewProblems = sriService.getProblemsForReview(limit: planetCount);
+      // Remove duplicates from SRI problems immediately
+      reviewProblems = reviewProblems.toSet().toList();
+      debugPrint("[SRI] Found ${reviewProblems.length} unique problems for review: $reviewProblems");
+    } catch (e) {
+      debugPrint("[SRI] Error getting review problems: $e");
+      reviewProblems = [];
+    }
     
-    while (problems.length < planetCount && attempts < 200) {
+    // Convert SRI problems to MathProblems first, filtering out duplicates
+    final sriMathProblems = <MathProblem>[];
+    final processedSriIds = <String>{};
+    
+    for (final sriId in reviewProblems) {
+      if (processedSriIds.contains(sriId)) {
+        debugPrint("[SRI] ⚠️ Skipped already processed SRI ID: $sriId");
+        continue;
+      }
+      
+      final problem = _createProblemFromSriId(sriId);
+      if (!usedAnswers.contains(problem.answer)) {
+        sriMathProblems.add(problem);
+        usedAnswers.add(problem.answer);
+        processedSriIds.add(sriId);
+        debugPrint("[SRI] ✅ Added review problem: ${problem.expression} = ${problem.answer}");
+        
+        // Stop if we have enough SRI problems
+        if (sriMathProblems.length >= planetCount ~/ 2) break;
+      } else {
+        debugPrint("[SRI] ⚠️ Skipped SRI duplicate answer: ${problem.answer}");
+      }
+    }
+    
+    // Add the SRI problems to our final list
+    problems.addAll(sriMathProblems);
+    
+    // Generate remaining random problems to fill the required count
+    int attempts = 0;
+    while (problems.length < planetCount && attempts < 100) {
       attempts++;
-      final problem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
+      final problem = MathProblem.random(widget.grade, difficulty: widget.level);
       
       if (!usedAnswers.contains(problem.answer)) {
         problems.add(problem);
         usedAnswers.add(problem.answer);
-        debugPrint("[Gameplay] ✅ Generated unique planet #${problems.length}: ${problem.expression} = ${problem.answer}");
+        debugPrint("[Random] ✅ Generated new problem: ${problem.expression} = ${problem.answer}");
       } else {
-        debugPrint("[Gameplay] ⚠️ Skipped duplicate answer: ${problem.answer}");
+        debugPrint("[Random] ⚠️ Skipped duplicate answer: ${problem.answer}");
       }
     }
-
-    final problemList = problems.toList();
+    
+    // Safety check: ensure we have at least some planets
+    if (problems.isEmpty) {
+      debugPrint("[Gameplay] ⚠️ No problems generated, creating fallback planets");
+      for (int i = 0; i < 3; i++) {
+        final problem = MathProblem.random(widget.grade, difficulty: widget.level);
+        problems.add(problem);
+      }
+    }
 
     // Better planet positioning - more scattered and varied
     const screenWidth = 800.0;  
@@ -197,24 +233,45 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       final zone = zones[i % zones.length];
       final planetX = zone.left + random.nextDouble() * (zone.width - planetRadius * 2) + planetRadius;
       final planetY = zone.top + random.nextDouble() * (zone.height - planetRadius * 2) + planetRadius;
-      
-      // For beginners, some planets show just numbers instead of math problems
-      final showNumberOnly = isBeginnerLevel && i < numberOnlyCount;
-      final displayText = showNumberOnly ? problems[i].answer.toString() : problems[i].expression;
 
       final planet = Planet(
         id: i,
         position: Offset(planetX, planetY),
         radius: planetRadius,
         mass: mass,
-        problem: problemList[i],
+        problem: problems[i],
         color: _getPlanetColor(i),
         visited: false,
       );
       planets.add(planet);
-      // _generateTargetSequence();
       
-      debugPrint("[Gameplay] 🪐 Planet ${i} at (${planetX.toInt()}, ${planetY.toInt()}) shows: $displayText = ${problems[i].answer}");
+      debugPrint("[Gameplay] 🪐 Planet ${i} at (${planetX.toInt()}, ${planetY.toInt()}) shows: ${problems[i].expression} = ${problems[i].answer}");
+    }
+  }
+
+  // Helper method to recreate MathProblem from SRI ID
+  MathProblem _createProblemFromSriId(String sriId) {
+    final parts = sriId.split('_');
+    if (parts.length != 3) {
+      // Fallback to random problem if SRI ID format is unexpected
+      return MathProblem.random(widget.grade, difficulty: widget.level);
+    }
+    
+    final operation = parts[0];
+    final operandA = int.tryParse(parts[1]) ?? 1;
+    final operandB = int.tryParse(parts[2]) ?? 1;
+    
+    switch (operation) {
+      case 'ADD':
+        return MathProblem.addition(operandA, operandB, difficulty: widget.level);
+      case 'SUB':
+        return MathProblem.subtraction(operandA, operandB, difficulty: widget.level);
+      case 'MUL':
+        return MathProblem.multiplication(operandA, operandB, difficulty: widget.level);
+      case 'DIV':
+        return MathProblem.division(operandA, operandB, difficulty: widget.level);
+      default:
+        return MathProblem.random(widget.grade, difficulty: widget.level);
     }
   }
 
@@ -238,7 +295,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   void _landOnPlanet(Planet planet) {
-    
     debugPrint("[Gameplay] 💥 Landing attempt on Planet ${planet.id} (${planet.answer})");
     setState(() => _showNextTargetHint = false);
     _startHintTimer();
@@ -283,8 +339,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     final dt = 0.016;
 
     if (hopper.isLanded) {
-      // Because the hopper now starts as "landed", this return statement
-      // prevents any movement until the first tap.
       setState(() {});
       return;
     }
@@ -306,7 +360,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     hopper.velocity *= 0.998;
     hopper.position += hopper.velocity * dt;
 
-    // FIX 1: Keep spaceship within the playing field boundaries
+    // Keep spaceship within the playing field boundaries
     if (_gameWidth > 0 && _gameHeight > 0) {
       const double bounceDamping = 0.5;
       const double margin = 15; // Approx. hopper radius
@@ -350,7 +404,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -364,9 +417,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
           child: Column(
             children: [
               _buildGameUI(),
-              Expanded( // Game area takes the remaining space.
-                // FIX 1: Use LayoutBuilder to get the game area's dimensions
-                // for boundary checking.
+              Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     _gameWidth = constraints.maxWidth;
@@ -432,6 +483,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   Widget _buildHintDisplay() {
+    // FIX: Add bounds check to prevent range error
     final bool shouldShow = _showNextTargetHint && 
                            gameActive && 
                            nextTargetIndex < targetSequence.length;
@@ -466,8 +518,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         onTapDown: (details) {
           if (!gameActive) return;
           final tapPosition = details.localPosition;
-          // This call will set hopper.isLanded to false, starting the physics
-          // in the _updateGame loop.
           hopper.takeOff(tapPosition);
           setState(() {});
         },
@@ -495,8 +545,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
               animation: _planetController,
               builder: (context, child) => PlanetWidget(
                   planet: entry.value,
-                  // The isTarget logic is now only used for the hint timer,
-                  // not for visually highlighting the planet.
                   isTarget: nextTargetIndex < targetSequence.length &&
                       entry.value.answer == targetSequence[nextTargetIndex],
                   rotationAnimation:
@@ -805,8 +853,6 @@ class PlanetWidget extends StatelessWidget {
               0.7,
               1.0
             ]),
-            // FIX 3: Remove yellow highlight for the next target planet.
-            // The border now only indicates if a planet has been visited.
             border: Border.all(
                 color: planet.visited ? SpaceTheme.alienGreen : Colors.transparent,
                 width: planet.visited ? 2 : 0),
@@ -815,7 +861,6 @@ class PlanetWidget extends StatelessWidget {
                   color: planet.color.withOpacity(0.4),
                   blurRadius: 10,
                   spreadRadius: 2),
-              // The conditional shadow for the target planet is also removed.
             ]),
         child: Stack(children: [
           Positioned.fill(child: CustomPaint(painter: PlanetSurfacePainter(planet.color))),

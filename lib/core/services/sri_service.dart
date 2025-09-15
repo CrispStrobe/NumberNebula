@@ -47,10 +47,29 @@ class SriProblemData {
 class SriService with ChangeNotifier {
   Map<String, SriProblemData> _sriDatabase = {};
   static const _sriStorageKey = 'sri_database';
+  
+  // FIX: Add session tracking to prevent returning same problems repeatedly
+  final Set<String> _alreadyReturnedThisSession = {};
+  DateTime? _sessionStartTime;
 
   // Verbose logging for SRI operations
   void _log(String message) {
     debugPrint('[SRI_SERVICE] 🧠 $message');
+  }
+
+  // FIX: Reset session tracking when needed
+  void resetSession() {
+    _alreadyReturnedThisSession.clear();
+    _sessionStartTime = DateTime.now();
+    _log('Session reset. Clearing returned problems cache.');
+  }
+
+  // FIX: Auto-reset session if it's been more than 10 minutes
+  void _checkSessionExpiry() {
+    if (_sessionStartTime == null || 
+        DateTime.now().difference(_sessionStartTime!).inMinutes > 10) {
+      resetSession();
+    }
   }
 
   // Generate a unique, consistent ID for any math problem
@@ -103,6 +122,9 @@ class SriService with ChangeNotifier {
       _log('❌ Error loading SRI data: $e. Using an empty database.');
       _sriDatabase = {};
     }
+    
+    // Reset session on load
+    resetSession();
     notifyListeners();
   }
 
@@ -171,22 +193,83 @@ class SriService with ChangeNotifier {
     saveSriData();
   }
 
-  // Get a list of problems that are due for review
-  List<String> getProblemsForReview({int limit = 5}) {
-      final now = DateTime.now();
-      final reviewable = _sriDatabase.values
-          .where((data) => data.nextReviewDate.isBefore(now))
-          .toList();
+  // FIX: Enhanced getProblemsForReview with session tracking and exclusion support
+  List<String> getProblemsForReview({
+    int limit = 5, 
+    Set<String>? excludeIds,
+    bool resetSessionFirst = false
+  }) {
+    // Auto-reset session if expired or explicitly requested
+    if (resetSessionFirst) {
+      resetSession();
+    } else {
+      _checkSessionExpiry();
+    }
 
-      // Sort by the most difficult (lowest easiness factor) and longest overdue
-      reviewable.sort((a, b) {
-          int efComparison = a.easinessFactor.compareTo(b.easinessFactor);
-          if (efComparison != 0) return efComparison;
-          return a.nextReviewDate.compareTo(b.nextReviewDate);
-      });
-      
-      final problemIds = reviewable.map((data) => data.problemId).take(limit).toList();
-      _log('Found ${problemIds.length} problems due for review.');
-      return problemIds;
+    final now = DateTime.now();
+    final allExcluded = <String>{
+      ..._alreadyReturnedThisSession,
+      ...?excludeIds,
+    };
+
+    final reviewable = _sriDatabase.values
+        .where((data) => 
+            data.nextReviewDate.isBefore(now) && 
+            !allExcluded.contains(data.problemId) &&
+            !isProblemMastered(data.problemId))
+        .toList();
+
+    // Sort by the most difficult (lowest easiness factor) and longest overdue
+    reviewable.sort((a, b) {
+        int efComparison = a.easinessFactor.compareTo(b.easinessFactor);
+        if (efComparison != 0) return efComparison;
+        return a.nextReviewDate.compareTo(b.nextReviewDate);
+    });
+    
+    final problemIds = reviewable.map((data) => data.problemId).take(limit).toList();
+    
+    // Track returned problems to avoid duplicates
+    _alreadyReturnedThisSession.addAll(problemIds);
+    
+    _log('Found ${problemIds.length} NEW problems due for review (excluding ${allExcluded.length} already returned/excluded).');
+    if (problemIds.isNotEmpty) {
+      _log('Returning: ${problemIds.join(", ")}');
+    }
+    
+    return problemIds;
+  }
+
+  // FIX: Convenience method to get available review count without returning problems
+  int getAvailableReviewCount({Set<String>? excludeIds}) {
+    _checkSessionExpiry();
+    
+    final now = DateTime.now();
+    final allExcluded = <String>{
+      ..._alreadyReturnedThisSession,
+      ...?excludeIds,
+    };
+
+    return _sriDatabase.values
+        .where((data) => 
+            data.nextReviewDate.isBefore(now) && 
+            !allExcluded.contains(data.problemId) &&
+            !isProblemMastered(data.problemId))
+        .length;
+  }
+
+  // FIX: Method to clear session and get fresh problems (useful for new games)
+  List<String> getFreshProblemsForReview({int limit = 5, Set<String>? excludeIds}) {
+    return getProblemsForReview(
+      limit: limit, 
+      excludeIds: excludeIds, 
+      resetSessionFirst: true
+    );
+  }
+
+  // Debug method to see current session state
+  void debugPrintSessionState() {
+    _log('SESSION DEBUG: ${_alreadyReturnedThisSession.length} problems returned this session');
+    _log('Returned problems: ${_alreadyReturnedThisSession.join(", ")}');
+    _log('Available for review: ${getAvailableReviewCount()}');
   }
 }
