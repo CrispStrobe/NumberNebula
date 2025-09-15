@@ -123,12 +123,20 @@ class _SettingsScreenState extends State<SettingsScreen>
       final hintsEnabled = prefs.getBool('hints_enabled') ?? true;
       final hapticEnabled = prefs.getBool('haptic_enabled') ?? true;
       final puzzleTimerEnabled = prefs.getBool('puzzle_timer_enabled') ?? true;
+
+      final useCustomSettings = prefs.getBool('use_custom_settings') ?? false;
+      final customOps = prefs.getStringList('custom_math_ops')?.toSet() ?? {'addition', 'subtraction'};
+      final customMin = prefs.getInt('custom_range_min') ?? 1;
+      final customMax = prefs.getInt('custom_range_max') ?? 20;
       
       debugPrint("[SETTINGS] 🔊 Sound enabled: $soundEnabled");
       debugPrint("[SETTINGS] 🎵 Music enabled: $musicEnabled");
       debugPrint("[SETTINGS] 💡 Hints enabled: $hintsEnabled");
       debugPrint("[SETTINGS] 📳 Haptic enabled: $hapticEnabled");
       debugPrint("[SETTINGS] ⏱️ Puzzle timer enabled: $puzzleTimerEnabled");
+      debugPrint("[SETTINGS] 🔧 Use Custom Settings: $useCustomSettings");
+      debugPrint("[SETTINGS] 🔧 Custom Operations: $customOps");
+      debugPrint("[SETTINGS] 🔧 Custom Range: $customMin - $customMax");
       
       // Apply settings to GameProvider if needed
       if (mounted) {
@@ -136,6 +144,11 @@ class _SettingsScreenState extends State<SettingsScreen>
         gameProvider.setSoundEnabled(soundEnabled);
         gameProvider.setMusicEnabled(musicEnabled);
         gameProvider.setPuzzleTimer(puzzleTimerEnabled);
+        
+        gameProvider.setUseCustomSettings(useCustomSettings);
+        gameProvider.setCustomOperations(customOps);
+        gameProvider.setCustomRange(min: customMin, max: customMax);
+        
         debugPrint("[SETTINGS] ✅ Applied settings to GameProvider");
       }
       
@@ -398,20 +411,24 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   // --- Helper for operation checkboxes ---
   Widget _buildOperationCheckboxes(bool isEnabled) {
+    // --- Get the localization S instance ---
+    final s = S.of(context)!;
+
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
         return Wrap(
           spacing: 8.0,
           runSpacing: 4.0,
           children: [
+            // --- Pass the localized strings from 's' ---
             _buildOperationChip(
-              context.read<S>().mathOperationsAddition, 'addition', gameProvider, isEnabled),
+              s.mathOperationsAddition, 'addition', gameProvider, isEnabled),
             _buildOperationChip(
-              context.read<S>().mathOperationsSubtraction, 'subtraction', gameProvider, isEnabled),
+              s.mathOperationsSubtraction, 'subtraction', gameProvider, isEnabled),
             _buildOperationChip(
-              context.read<S>().mathOperationsMultiplication, 'multiplication', gameProvider, isEnabled),
+              s.mathOperationsMultiplication, 'multiplication', gameProvider, isEnabled),
             _buildOperationChip(
-              context.read<S>().mathOperationsDivision, 'division', gameProvider, isEnabled),
+              s.mathOperationsDivision, 'division', gameProvider, isEnabled),
           ],
         );
       },
@@ -934,6 +951,8 @@ class _SettingsScreenState extends State<SettingsScreen>
         await prefs.setInt(key, value);
       } else if (value is double) {
         await prefs.setDouble(key, value);
+      } else if (value is List<String>) {
+        await prefs.setStringList(key, value);
       }
       
       debugPrint("[SETTINGS] ✅ Successfully saved $key");
@@ -958,6 +977,8 @@ class _SettingsScreenState extends State<SettingsScreen>
         return prefs.getInt(key);
       case double:
         return prefs.getDouble(key);
+      case const (List<String>):
+        return prefs.getStringList(key);
       default:
         return prefs.get(key);
     }

@@ -972,18 +972,20 @@ class NumberWallPuzzle {
   static bool _validateOperationConstraints(List<int> wall, int height, WallOperation operation) {
     int cellIndex = 0;
     
-    for (int row = height - 1; row >= 1; row--) { // Start from second-to-last row
-      final cellsInRow = height - row + 1;
-      
-      for (int col = 0; col < cellsInRow; col++) {
-        final currentCell = cellIndex;
-        final leftChild = cellIndex + cellsInRow;
-        final rightChild = leftChild + 1;
+    for (int row = 0; row < height - 1; row++) {
+        final cellsInRow = row + 1;
+        final rowStartIndex = row * (row + 1) ~/ 2;
+        final belowRowStartIndex = (row + 1) * (row + 2) ~/ 2;
         
-        if (rightChild < wall.length) {
-          final leftValue = wall[leftChild];
-          final rightValue = wall[rightChild];
-          final currentValue = wall[currentCell];
+        for (int col = 0; col < cellsInRow; col++) {
+            final currentCell = rowStartIndex + col;
+            final leftChild = belowRowStartIndex + col;
+            final rightChild = leftChild + 1;
+            
+            if (rightChild < wall.length) {
+            final leftValue = wall[leftChild];
+            final rightValue = wall[rightChild];
+            final currentValue = wall[currentCell];
           
           bool isValid = false;
           
@@ -1020,8 +1022,8 @@ class NumberWallPuzzle {
     
     debugPrint("✅ [NumberWall] Validation passed");
     return true;
-  }
-}
+  } // _validateOperationConstraints
+} // class
 
 class _NumberWallGenerator {
   final int wallHeight;
@@ -1227,24 +1229,24 @@ class _NumberWallGenerator {
     // Initialize wall with zeros
     for (int i = 0; i < totalCells; i++) wall.add(0);
     
-    // Fill bottom row
-    final bottomRowStart = totalCells - wallHeight;
+    // Fill bottom row (last row has wallHeight cells)
+    final bottomRowStart = (wallHeight - 1) * wallHeight ~/ 2;
     for (int i = 0; i < wallHeight; i++) {
-      wall[bottomRowStart + i] = baseRow[i];
+        wall[bottomRowStart + i] = baseRow[i];
     }
     
     // Build upward
     for (int row = wallHeight - 2; row >= 0; row--) {
-      final cellsInRow = row + 1;
-      final rowStartIndex = (row * (2 * wallHeight - row - 1)) ~/ 2;
-      final belowRowStartIndex = ((row + 1) * (2 * wallHeight - row - 2)) ~/ 2;
-      
-      for (int col = 0; col < cellsInRow; col++) {
-        final leftChild = belowRowStartIndex + col;
-        final rightChild = leftChild + 1;
-        wall[rowStartIndex + col] = operation(wall[leftChild], wall[rightChild]);
-      }
-    }
+        final cellsInRow = row + 1;
+        final rowStartIndex = row * (row + 1) ~/ 2;
+        final belowRowStartIndex = (row + 1) * (row + 2) ~/ 2;
+        
+        for (int col = 0; col < cellsInRow; col++) {
+            final leftChild = belowRowStartIndex + col;
+            final rightChild = leftChild + 1;
+            wall[rowStartIndex + col] = operation(wall[leftChild], wall[rightChild]);
+        }
+        }
     
     return wall;
   }

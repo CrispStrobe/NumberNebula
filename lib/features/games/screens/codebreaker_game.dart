@@ -146,7 +146,10 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
   // Current Puzzle State
   CodebreakerPuzzle? currentPuzzle;
-  Map<SpaceSymbol, int?> userSolution = {};
+
+  Map<String, int> userSolution = {}; // Change from selectedNumbers to this
+  List<String> hiddenPositions = []; // Track order of hidden elements
+
   Map<int, int> selectedNumbers = {}; // position -> number
   bool solvingPuzzle = false;
   
@@ -195,130 +198,206 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     if (!mounted || !gameActive) return;
 
     setState(() {
-      currentPuzzle = _createAlienCodePuzzle();
-      userSolution.clear();
-      selectedNumbers.clear();
-      solvingPuzzle = true;
+        currentPuzzle = _createAlienCodePuzzle();
+        userSolution.clear();
+        hiddenPositions.clear();
+        solvingPuzzle = true;
+        
+        // Build the ordered list of hidden positions
+        _buildHiddenPositionsList();
     });
 
     _addTransmissionEffect();
-  }
+    }
+
+  // Build ordered list of hidden positions
+
+  void _buildHiddenPositionsList() {
+    if (currentPuzzle == null) return;
+    
+    int counter = 0;
+    
+    // First add hidden results in equation order
+    for (int i = 0; i < currentPuzzle!.equations.length; i++) {
+        if (currentPuzzle!.equations[i].resultHidden) {
+        hiddenPositions.add('result_$i');
+        }
+    }
+    
+    // Then add hidden symbols (one entry per symbol, not per occurrence)
+    final hiddenSymbols = <SpaceSymbol>{};
+    for (var equation in currentPuzzle!.equations) {
+        for (var term in equation.leftSide) {
+        if (term.isHidden) {
+            hiddenSymbols.add(term.symbol);
+        }
+        }
+    }
+    
+    for (var symbol in hiddenSymbols) {
+        hiddenPositions.add('symbol_${symbol.name}');
+    }
+    }
 
   CodebreakerPuzzle _createAlienCodePuzzle() {
     final random = math.Random();
-    final difficulty = widget.grade;
+    final maxValue = 8 + (widget.grade * 2); // Reasonable max values
     
-    // Determine complexity based on grade
-    final numSymbols = math.min(4, 2 + (difficulty ~/ 2));
-    final maxValue = 5 + (difficulty * 3);
-    final numEquations = math.min(4, 2 + (difficulty ~/ 3));
-
-    // Select random symbols
+    // Choose 2-3 symbols based on grade
+    final symbolCount = math.min(3, 2 + (widget.grade ~/ 3));
     final allSymbols = SpaceSymbol.values.toList()..shuffle();
-    final symbols = allSymbols.take(numSymbols).toList();
-
-    // Generate solution values
-    final solution = <SpaceSymbol, int>{};
+    final symbols = allSymbols.take(symbolCount).toList();
+    
+    // Assign fixed values to symbols (these won't change)
+    final symbolValues = <SpaceSymbol, int>{};
     for (var symbol in symbols) {
-      solution[symbol] = 1 + random.nextInt(maxValue);
+        symbolValues[symbol] = 2 + random.nextInt(maxValue - 1); // 2 to maxValue
     }
-
-    // Create equations
+    
+    // Create simple equations with clear hidden values
     final equations = <AlienEquation>[];
     final hiddenValues = <int>{};
-
-    for (int i = 0; i < numEquations; i++) {
-      final terms = <EquationTerm>[];
-      int result = 0;
-
-      // Add 1-3 terms per equation
-      final numTerms = 1 + random.nextInt(math.min(3, symbols.length));
-      final equationSymbols = symbols.toList()..shuffle();
-
-      for (int j = 0; j < numTerms; j++) {
-        final symbol = equationSymbols[j];
-        final coefficient = 1 + random.nextInt(2); // 1 or 2
-        terms.add(EquationTerm(symbol: symbol, coefficient: coefficient));
-        result += solution[symbol]! * coefficient;
-      }
-
-      // Decide what to hide - sometimes the result, sometimes symbol values
-      final hideResult = random.nextBool() && i > 0; // Don't hide first result
-      
-      if (hideResult) {
-        hiddenValues.add(result);
-        equations.add(AlienEquation(
-          leftSide: terms,
-          result: result,
-          resultHidden: true,
-        ));
-      } else {
-        equations.add(AlienEquation(
-          leftSide: terms,
-          result: result,
-          resultHidden: false,
-        ));
-      }
-    }
-
-    // Also hide some symbol values for user to guess
-    final symbolsToHide = symbols.take(1 + random.nextInt(symbols.length)).toList();
-    for (var symbol in symbolsToHide) {
-      hiddenValues.add(solution[symbol]!);
-    }
-
-    // Generate available numbers (correct ones + distractors)
-    final availableNumbers = <int>[];
-    availableNumbers.addAll(hiddenValues);
-
-    // Add distractors
-    for (var value in hiddenValues) {
-      // Add numbers close to the correct ones
-      for (int offset in [-2, -1, 1, 2]) {
-        final distractor = value + offset;
-        if (distractor > 0 && distractor <= maxValue * 2) {
-          availableNumbers.add(distractor);
-        }
-      }
-    }
-
-    // Ensure we have enough copies of numbers that appear multiple times
-    final numberCounts = <int, int>{};
-    for (var num in hiddenValues) {
-      numberCounts[num] = (numberCounts[num] ?? 0) + 1;
-    }
-
-    final finalNumbers = <int>[];
-    for (var entry in numberCounts.entries) {
-      for (int i = 0; i < entry.value; i++) {
-        finalNumbers.add(entry.key);
-      }
-    }
-
-    // Add remaining distractors
-    availableNumbers.removeWhere((n) => hiddenValues.contains(n));
-    finalNumbers.addAll(availableNumbers.take(8).toList());
-    finalNumbers.shuffle();
-
-    return CodebreakerPuzzle(
-      equations: equations,
-      solution: solution,
-      hiddenValues: hiddenValues,
-      availableNumbers: finalNumbers,
-    );
-  }
-
-  void _selectNumber(int number, int position) {
-    if (!solvingPuzzle) return;
-
-    HapticFeedback.lightImpact();
     
-    setState(() {
-      selectedNumbers[position] = number;
-    });
+    // Equation 1: Single symbol = value (sometimes hide the result)
+    final firstSymbol = symbols[0];
+    final firstValue = symbolValues[firstSymbol]!;
+    final hideFirstResult = random.nextBool() && widget.grade > 1;
+    
+    equations.add(AlienEquation(
+        leftSide: [EquationTerm(symbol: firstSymbol)],
+        result: firstValue,
+        resultHidden: hideFirstResult,
+    ));
+    
+    if (hideFirstResult) {
+        hiddenValues.add(firstValue);
+    }
+    
+    // Equation 2: Two symbols = sum (sometimes hide the result)
+    if (symbols.length > 1) {
+        final sum = symbolValues[symbols[0]]! + symbolValues[symbols[1]]!;
+        final hideSecondResult = random.nextBool();
+        
+        equations.add(AlienEquation(
+        leftSide: [
+            EquationTerm(symbol: symbols[0]),
+            EquationTerm(symbol: symbols[1]),
+        ],
+        result: sum,
+        resultHidden: hideSecondResult,
+        ));
+        
+        if (hideSecondResult) {
+        hiddenValues.add(sum);
+        }
+    }
+    
+    // Equation 3: Three symbols if available (for higher grades)
+    if (symbols.length > 2 && widget.grade > 2) {
+        final sum = symbolValues[symbols[0]]! + symbolValues[symbols[1]]! + symbolValues[symbols[2]]!;
+        final hideThirdResult = random.nextBool();
+        
+        equations.add(AlienEquation(
+        leftSide: [
+            EquationTerm(symbol: symbols[0]),
+            EquationTerm(symbol: symbols[1]),
+            EquationTerm(symbol: symbols[2]),
+        ],
+        result: sum,
+        resultHidden: hideThirdResult,
+        ));
+        
+        if (hideThirdResult) {
+        hiddenValues.add(sum);
+        }
+    }
+    
+    // IMPORTANT: Only hide 1-2 symbol values, not all of them
+    final symbolsToHide = symbols.take(1 + random.nextInt(math.min(2, symbols.length))).toList();
+    for (var symbol in symbolsToHide) {
+        hiddenValues.add(symbolValues[symbol]!);
+        
+        // Mark equations to show this symbol as hidden
+        for (var equation in equations) {
+        for (int i = 0; i < equation.leftSide.length; i++) {
+            if (equation.leftSide[i].symbol == symbol) {
+            equation.leftSide[i] = EquationTerm(
+                symbol: symbol,
+                coefficient: equation.leftSide[i].coefficient,
+                isHidden: true,
+            );
+            }
+        }
+        }
+    }
+    
+    // Generate available numbers - ALWAYS include correct answers
+    final availableNumbers = <int>[];
+    
+    // Add all correct answers
+    availableNumbers.addAll(hiddenValues);
+    
+    // Count how many times each number is needed
+    final neededCounts = <int, int>{};
+    for (var num in hiddenValues) {
+        neededCounts[num] = (neededCounts[num] ?? 0) + 1;
+    }
+    
+    // Ensure we have enough copies of each correct number
+    final finalNumbers = <int>[];
+    for (var entry in neededCounts.entries) {
+        for (int i = 0; i < entry.value; i++) {
+        finalNumbers.add(entry.key);
+        }
+    }
+    
+    // Add distractors (close to correct answers but not exact)
+    final distractors = <int>{};
+    for (var value in hiddenValues.toSet()) {
+        for (int offset in [-3, -2, -1, 1, 2, 3]) {
+        final distractor = value + offset;
+        if (distractor > 0 && distractor <= maxValue * 2 && !hiddenValues.contains(distractor)) {
+            distractors.add(distractor);
+        }
+        }
+    }
+    
+    finalNumbers.addAll(distractors.take(6)); // Add 6 distractors
+    finalNumbers.shuffle();
+    
+    return CodebreakerPuzzle(
+        equations: equations,
+        solution: symbolValues,
+        hiddenValues: hiddenValues,
+        availableNumbers: finalNumbers,
+    );
+    }
 
-    _checkSolution();
-  }
+  void _selectNumber(int number) {
+    if (!solvingPuzzle || currentPuzzle == null) return;
+
+    // Find first unfilled position
+    for (var positionId in hiddenPositions) {
+        if (!userSolution.containsKey(positionId)) {
+        HapticFeedback.lightImpact();
+        setState(() {
+            userSolution[positionId] = number;
+        });
+        
+        // Check if puzzle is complete
+        if (userSolution.length == hiddenPositions.length) {
+            _checkSolution();
+        }
+        return;
+        }
+    }
+    }
+
+  void _clearSelection(String positionId) {
+    setState(() {
+        userSolution.remove(positionId);
+    });
+    }
 
   void _checkSolution() {
     if (currentPuzzle == null) return;
