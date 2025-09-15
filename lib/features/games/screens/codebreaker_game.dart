@@ -396,8 +396,13 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
   Widget _buildConstrainedTallLayout(BoxConstraints constraints) {
     final availableHeight = constraints.maxHeight;
-    final equationHeight = availableHeight * 0.6; // 60% for equations
-    final numberPadHeight = availableHeight * 0.4; // 40% for numbers
+    // Adjust ratios based on number of equations to prevent overflow
+    final numEquations = puzzle?.equations.length ?? 4;
+    final equationRatio = numEquations > 4 ? 0.65 : 0.6; // More space for more equations
+    final numberPadRatio = 1.0 - equationRatio;
+    
+    final equationHeight = availableHeight * equationRatio;
+    final numberPadHeight = availableHeight * numberPadRatio;
     
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -502,10 +507,14 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     }
 
   Widget _buildTermWidget(dynamic term, String positionId) {
-    const cellSize = 50.0;
-    const fontSize = 16.0;
+    // Dynamic sizing based on number of equations to prevent overflow
+    final numEquations = puzzle?.equations.length ?? 4;
+    final cellSize = numEquations > 5 ? 42.0 : (numEquations > 4 ? 46.0 : 50.0);
+    final fontSize = numEquations > 5 ? 14.0 : (numEquations > 4 ? 15.0 : 16.0);
+    final symbolSize = numEquations > 5 ? 22.0 : (numEquations > 4 ? 24.0 : 26.0);
     
     if (term is int) {
+        // Numbers: Show as symbol with number overlay
         return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -517,15 +526,25 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                 gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
                 border: Border.all(color: SpaceTheme.alienGreen, width: 2),
             ),
-            child: Center(
-                child: Text(
-                term.toString(),
-                style: SpaceTheme.headlineStyle.copyWith(fontSize: fontSize),
+            child: Stack(
+                children: [
+                // Background symbol
+                Center(
+                    child: Text(
+                    "🔢",
+                    style: TextStyle(fontSize: symbolSize * 0.7, color: SpaceTheme.alienGreen.withOpacity(0.3)),
+                    ),
                 ),
+                // Number overlay
+                Center(
+                    child: Text(
+                    term.toString(),
+                    style: SpaceTheme.headlineStyle.copyWith(fontSize: fontSize),
+                    ),
+                ),
+                ],
             ),
             ),
-            const SizedBox(height: 1),
-            const Text("🔢", style: TextStyle(fontSize: 14)),
         ],
         );
     } else {
@@ -538,7 +557,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         Widget cellContent;
         
         if (hasUserValue) {
-        // Show filled value
+        // Hidden symbol with user number overlay - symbol shines through
         cellContent = Container(
             width: cellSize, 
             height: cellSize,
@@ -547,15 +566,45 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             gradient: const LinearGradient(colors: [SpaceTheme.nebulaPurple, SpaceTheme.deepSpace]),
             border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
             ),
-            child: Center(
-            child: Text(
-                userSolution[positionId].toString(),
-                style: SpaceTheme.headlineStyle.copyWith(fontSize: fontSize),
-            ),
+            child: Stack(
+            children: [
+                // Background symbol (visible but muted)
+                Center(
+                child: Text(
+                    _getSymbolIcon(symbol),
+                    style: TextStyle(fontSize: symbolSize * 0.8, color: SpaceTheme.nebulaPurple.withOpacity(0.6)),
+                ),
+                ),
+                // Semi-transparent number overlay
+                Center(
+                child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                    decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.4), // Much more transparent
+                    borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: Text(
+                    userSolution[positionId].toString(),
+                    style: SpaceTheme.headlineStyle.copyWith(
+                        fontSize: fontSize, 
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                        const Shadow(
+                            blurRadius: 2,
+                            color: Colors.black,
+                            offset: Offset(1, 1),
+                        ),
+                        ],
+                    ),
+                    ),
+                ),
+                ),
+            ],
             ),
         );
         } else if (!isHidden) {
-        // Visible symbol value
+        // Visible symbol with known value overlay - symbol shines through
         final value = puzzle!.knownSymbolValues[symbol]!;
         cellContent = Container(
             width: cellSize, 
@@ -565,15 +614,45 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
             border: Border.all(color: SpaceTheme.alienGreen, width: 2),
             ),
-            child: Center(
-            child: Text(
-                value.toString(),
-                style: SpaceTheme.headlineStyle.copyWith(fontSize: fontSize),
-            ),
+            child: Stack(
+            children: [
+                // Background symbol (visible but muted)
+                Center(
+                child: Text(
+                    _getSymbolIcon(symbol),
+                    style: TextStyle(fontSize: symbolSize * 0.8, color: SpaceTheme.alienGreen.withOpacity(0.6)),
+                ),
+                ),
+                // Semi-transparent value overlay
+                Center(
+                child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                    decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.4), // Much more transparent
+                    borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: Text(
+                    value.toString(),
+                    style: SpaceTheme.headlineStyle.copyWith(
+                        fontSize: fontSize, 
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                        const Shadow(
+                            blurRadius: 2,
+                            color: Colors.black,
+                            offset: Offset(1, 1),
+                        ),
+                        ],
+                    ),
+                    ),
+                ),
+                ),
+            ],
             ),
         );
         } else {
-        // Empty drop target
+        // Empty hidden symbol - show symbol prominently waiting for number
         cellContent = Container(
             width: cellSize, 
             height: cellSize,
@@ -582,8 +661,11 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             gradient: const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
             border: Border.all(color: SpaceTheme.alienGreen, width: 2),
             ),
-            child: const Center(
-            child: Icon(Icons.help_outline, color: SpaceTheme.alienGreen, size: 20),
+            child: Center(
+            child: Text(
+                _getSymbolIcon(symbol),
+                style: TextStyle(fontSize: symbolSize, color: SpaceTheme.alienGreen.withOpacity(0.8)),
+            ),
             ),
         );
         }
@@ -592,56 +674,56 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         cellContent = ScaleTransition(scale: _dropAnimation, child: cellContent);
         }
         
-        Widget fullWidget = Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-            cellContent,
-            const SizedBox(height: 2),
-            Text(_getSymbolIcon(symbol), style: const TextStyle(fontSize: 16)),
-        ],
-        );
-        
-        // Wrap the ENTIRE column (cell + emoji) in DragTarget if it should accept drops
+        // Wrap in DragTarget if it should accept drops
         if (shouldAcceptDrops) {
             return Container(
-                width: cellSize + 40,
-                height: cellSize + 40,
+                width: cellSize + 32, // Larger hit area for better detection
+                height: cellSize + 32,
                 child: DragTarget<int>(
                 builder: (context, candidateData, rejectedData) {
                     final isHovering = candidateData.isNotEmpty;
                     
                     return Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                        Container(
-                            width: cellSize, 
-                            height: cellSize,
-                            decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            gradient: isHovering 
-                                ? const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
-                                : const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
-                            border: Border.all(
-                                color: isHovering ? SpaceTheme.starYellow : SpaceTheme.alienGreen, 
-                                width: isHovering ? 3 : 2
-                            ),
-                            ),
-                            child: GestureDetector(
-                            onTap: hasUserValue ? () => _removeNumber(positionId) : null,
-                            child: const Center(
-                                child: Icon(Icons.help_outline, color: SpaceTheme.alienGreen, size: 20),
+                    padding: const EdgeInsets.all(16), // More padding for easier targeting
+                    child: Container(
+                        width: cellSize, 
+                        height: cellSize,
+                        decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        gradient: isHovering 
+                            ? const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
+                            : const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
+                        border: Border.all(
+                            color: isHovering ? SpaceTheme.starYellow : SpaceTheme.alienGreen, 
+                            width: isHovering ? 3 : 2
+                        ),
+                        boxShadow: isHovering ? [
+                            BoxShadow(
+                            color: SpaceTheme.starYellow.withOpacity(0.6),
+                            blurRadius: 12,
+                            spreadRadius: 3,
+                            )
+                        ] : null,
+                        ),
+                        child: GestureDetector(
+                        onTap: hasUserValue ? () => _removeNumber(positionId) : null,
+                        child: Center(
+                            child: Text(
+                            _getSymbolIcon(symbol),
+                            style: TextStyle(
+                                fontSize: symbolSize, 
+                                color: isHovering 
+                                ? SpaceTheme.starYellow 
+                                : SpaceTheme.alienGreen.withOpacity(0.9)
                             ),
                             ),
                         ),
-                        const SizedBox(height: 1),
-                        Text(_getSymbolIcon(symbol), style: const TextStyle(fontSize: 16)),
-                        ],
+                        ),
                     ),
                     );
                 },
                 onWillAcceptWithDetails: (details) {
+                    debugPrint("🎯 [DRAG TARGET] Will accept ${details.data} at $positionId");
                     return true;
                 },
                 onAcceptWithDetails: (details) {
@@ -652,7 +734,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             );
             }
         
-        return fullWidget;
+        return cellContent;
     }
     }
 
