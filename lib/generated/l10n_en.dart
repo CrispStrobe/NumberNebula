@@ -824,8 +824,8 @@ class SEn extends S {
   String get codebreakerLoseTitle => 'Transmission Lost';
 
   @override
-  String codebreakerWinDesc(int targetPuzzles, int totalScore) {
-    return 'Excellent work, Agent! You successfully decoded $targetPuzzles alien transmissions and earned $totalScore points. The galaxy is safer thanks to your cryptographic skills!';
+  String codebreakerWinDesc(int totalScore) {
+    return 'Excellent work, Agent! You earned $totalScore points. The galaxy is safer thanks to your cryptographic skills!';
   }
 
   @override

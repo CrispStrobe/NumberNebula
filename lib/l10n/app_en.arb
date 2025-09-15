@@ -357,12 +357,9 @@
     "codebreakerInstructions": "Decode the alien symbols by solving the equations. Tap numbers to fill in the missing values.",
     "codebreakerWinTitle": "Mission Complete!",
     "codebreakerLoseTitle": "Transmission Lost",
-    "codebreakerWinDesc": "Excellent work, Agent! You successfully decoded {targetPuzzles} alien transmissions and earned {totalScore} points. The galaxy is safer thanks to your cryptographic skills!",
+    "codebreakerWinDesc": "Excellent work, Agent! You earned {totalScore} points. The galaxy is safer thanks to your cryptographic skills!",
     "@codebreakerWinDesc": {
         "placeholders": {
-            "targetPuzzles": {
-                "type": "int"
-            },
             "totalScore": {
                 "type": "int"
             }

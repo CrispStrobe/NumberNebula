@@ -829,8 +829,8 @@ class SDe extends S {
   String get codebreakerLoseTitle => 'Übertragung verloren';
 
   @override
-  String codebreakerWinDesc(int targetPuzzles, int totalScore) {
-    return 'Ausgezeichnete Arbeit, Kadett! Du hast $targetPuzzles Alien-Übertragungen erfolgreich entschlüsselt und $totalScore Punkte verdient. Die Galaxie ist dank deiner kryptografischen Fähigkeiten sicherer!';
+  String codebreakerWinDesc(int totalScore) {
+    return 'Ausgezeichnete Arbeit, Kadett! Du hast $totalScore Punkte verdient. Die Galaxie ist dank deiner kryptografischen Fähigkeiten sicherer!';
   }
 
   @override

@@ -52,6 +52,7 @@ void main() async {
 
   await PuzzleImageService.instance.init();
   purchaseService.init(gameProvider);
+  await debugProvider.init();
   GlobalErrorHandler.init();
   
   runApp(

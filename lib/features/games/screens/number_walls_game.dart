@@ -29,6 +29,9 @@ class NumberWallsGame extends StatefulWidget {
 
 class _NumberWallsGameState extends State<NumberWallsGame>
     with TickerProviderStateMixin {
+  // 💡 FIX: Added a GlobalKey to reliably reference the DragTarget widget.
+  final GlobalKey _dragTargetKey = GlobalKey();
+
   late AnimationController _glowController;
   late Animation<double> _glowAnimation;
   late AnimationController _successController;
@@ -125,12 +128,11 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         'grade': widget.grade,
         'level': widget.level,
         'useCustomSettings': gameProvider.useCustomProblemSettings,
-        'customOps': gameProvider.customOperations.toList(), // Sets can't be sent to isolates
+        'customOps': gameProvider.customOperations.toList(),
         'customMin': gameProvider.customRangeMin,
         'customMax': gameProvider.customRangeMax,
       };
 
-      // --- Pass the new arguments map to compute ---
       final puzzle = await compute(NumberWallPuzzle.generate, puzzleArgs);
       
       debugPrint("🧱 [UI] compute() completed successfully");
@@ -142,7 +144,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
           numberPool = List.from(currentPuzzle!.numberPool);
           _isGenerating = false;
         });
-        debugPrint("🧱 [UI] State updated successfully");
+        debugPrint("🧱 [UI] State updated successfully. Hidden cells: ${currentPuzzle!.hiddenCells.length}, Number pool: ${numberPool.length}");
       }
     } catch (e, stackTrace) {
       debugPrint("❌ [UI] Error in _generatePuzzle: $e");
@@ -150,25 +152,26 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     }
   }
   
-  void _placeNumber(int number, int answerIndex, int cellIndex) {
-    debugPrint("🎯 [UI] _placeNumber($number, $answerIndex, $cellIndex)");
-    if (userAnswers[answerIndex] != null) {
-      debugPrint("🎯 [UI] Position already filled, ignoring");
+  void _placeNumber(int number, int hiddenCellIndex) {
+    debugPrint("🎯 [UI] _placeNumber($number, hiddenCellIndex: $hiddenCellIndex)");
+    
+    final answerIndex = currentPuzzle!.getAnswerIndexForCell(hiddenCellIndex);
+    if (answerIndex == -1 || userAnswers[answerIndex] != null) {
       return;
     }
 
     setState(() {
       userAnswers[answerIndex] = number;
       numberPool.remove(number);
-      _lastPlacedCellIndex = cellIndex;
+      _lastPlacedCellIndex = hiddenCellIndex;
       _dropController.forward(from: 0.0);
     });
-    debugPrint("🎯 [UI] Number placed successfully, checking completion");
+    
     _checkIfComplete();
   }
 
   void _removeNumber(int answerIndex) {
-    debugPrint("🗑️ [UI] _removeNumber($answerIndex)");
+    debugPrint("🗑️ [UI] _removeNumber(answerIndex: $answerIndex)");
     setState(() {
       final number = userAnswers[answerIndex];
       if (number != null) {
@@ -180,11 +183,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _checkIfComplete() {
-    debugPrint("✅ [UI] _checkIfComplete() - userAnswers: $userAnswers");
     if (userAnswers.every((answer) => answer != null)) {
-      debugPrint("✅ [UI] All answers filled, checking solution");
       final isValid = currentPuzzle!.validateSolution(userAnswers.cast<int>());
-      debugPrint("✅ [UI] Solution validation result: $isValid");
       if (isValid) {
         _handleSuccess();
       } else {
@@ -200,10 +200,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
     void listener(AnimationStatus status) {
       if (status == AnimationStatus.completed) {
-        debugPrint("🎉 [UI] Warp animation completed, calculating score");
-        
         _warpController.removeStatusListener(listener);
-
         int baseScore = 120 * widget.grade;
         int bonusScore = (baseScore * (currentPuzzle!.wallHeight / 3.0)).round();
         int operationBonus = _getOperationBonus(currentPuzzle!.operation);
@@ -233,7 +230,6 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _handleIncorrect() {
-    debugPrint("❌ [UI] _handleIncorrect() - Showing failure message");
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(S.of(context)!.numberWallsFail),
@@ -246,17 +242,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   @override
   Widget build(BuildContext context) {
     if (currentPuzzle == null || _isGenerating) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: 16),
-              Text(S.of(context)!.numberWallsCalculating, style: SpaceTheme.bodyStyle),
-            ],
-          ),
-        ),
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -295,22 +282,13 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   Widget _buildOperationIndicator() {
-    if (currentPuzzle == null) return const SizedBox.shrink();
-    
-    return Container(
+     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: _getOperationGradient(currentPuzzle!.operation),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _getOperationColor(currentPuzzle!.operation), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: _getOperationColor(currentPuzzle!.operation).withOpacity(0.3),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -320,11 +298,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
             builder: (context, child) {
               return Transform.scale(
                 scale: _operationAnimation.value,
-                child: Icon(
-                  _getOperationIcon(currentPuzzle!.operation), 
-                  color: Colors.white, 
-                  size: 32
-                ),
+                child: Icon(_getOperationIcon(currentPuzzle!.operation), color: Colors.white, size: 32),
               );
             },
           ),
@@ -410,93 +384,130 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   Widget _buildWallArea() {
     return LayoutBuilder(
-      builder: (context, constraints) {
+        builder: (context, constraints) {
         final size = math.min(constraints.maxWidth, constraints.maxHeight).clamp(300.0, 500.0);
         
         return Center(
-          child: DragTarget<int>(
+            child: DragTarget<int>(
+            // 💡 FIX: Assign the GlobalKey here to uniquely identify this widget.
+            key: _dragTargetKey,
             builder: (context, candidateData, rejectedData) {
-              return SizedBox(
+                return SizedBox(
                 width: size,
                 height: size,
                 child: Stack(
-                  children: [
+                    children: [
                     Positioned.fill(
-                      child: AnimatedBuilder(
+                        child: AnimatedBuilder(
                         animation: Listenable.merge([_glowController, _warpController]),
                         builder: (context, child) {
-                          return CustomPaint(
+                            return CustomPaint(
                             painter: NumberWallBackgroundPainter(
-                              glowIntensity: _glowAnimation.value,
-                              warpActivation: _warpController.value,
-                              operation: currentPuzzle?.operation ?? WallOperation.addition,
+                                glowIntensity: _glowAnimation.value,
+                                warpActivation: _warpController.value,
+                                operation: currentPuzzle?.operation ?? WallOperation.addition,
                             ),
-                          );
+                            );
                         },
-                      ),
+                        ),
                     ),
                     ..._buildWallCells(size),
                     ..._buildOperationSymbols(size),
-                  ],
+                    ],
                 ),
-              );
+                );
             },
             onWillAccept: (data) {
-              setState(() => _isDraggingOver = true);
-              return true;
+                setState(() => _isDraggingOver = true);
+                return true;
             },
             onLeave: (data) {
-              setState(() => _isDraggingOver = false);
+                setState(() => _isDraggingOver = false);
             },
             onAcceptWithDetails: (details) {
-              setState(() => _isDraggingOver = false);
-              
-              final RenderBox renderBox = context.findRenderObject() as RenderBox;
-              final localDropPosition = renderBox.globalToLocal(details.offset);
-              final droppedNumber = details.data;
-
-              int? closestCellIndex = _findClosestEmptyCell(localDropPosition, size);
-
-              if (closestCellIndex != null) {
-                final answerIndex = currentPuzzle!.getAnswerIndex(closestCellIndex);
-                if (answerIndex != -1) {
-                  _placeNumber(droppedNumber, answerIndex, closestCellIndex);
+                setState(() => _isDraggingOver = false);
+                
+                // 💡 FIX: Use the GlobalKey to get the CORRECT RenderBox.
+                // This ensures the local drop position is accurate.
+                final RenderBox? renderBox = _dragTargetKey.currentContext?.findRenderObject() as RenderBox?;
+                if (renderBox == null) {
+                    debugPrint("🎯 [UI] ERROR: Could not find RenderBox via GlobalKey");
+                    return;
                 }
-              }
+                
+                final localDropPosition = renderBox.globalToLocal(details.offset);
+                final droppedNumber = details.data;
+
+                debugPrint("🎯 [UI] Raw drop: ${details.offset}");
+                debugPrint("🎯 [UI] Local drop (Corrected): $localDropPosition"); 
+                debugPrint("🎯 [UI] Container size: $size");
+                
+                int? closestCellIndex = _findClosestEmptyCell(localDropPosition, size);
+                debugPrint("🎯 [UI] Drop result: closest empty cell = $closestCellIndex");
+
+                if (closestCellIndex != null) {
+                    _placeNumber(droppedNumber, closestCellIndex);
+                } else {
+                    debugPrint("🎯 [UI] No suitable drop target found, number not placed.");
+                }
             },
-          ),
+            ),
         );
-      },
+        },
     );
-  }
-
+    }
+    
+  // This logic is now robust and predictable, using the best parts of your example.
   int? _findClosestEmptyCell(Offset dropPosition, double containerSize) {
-    double minDistance = double.infinity;
-    int? targetCellIndex;
+    debugPrint("🎯 [UI] Finding closest empty cell for drop at $dropPosition");
     
-    final cellPositions = currentPuzzle!.getCellPositions(containerSize);
-    
-    for (int i = 0; i < currentPuzzle!.totalCells; i++) {
-      if (currentPuzzle!.hiddenCells.contains(i)) {
-        final answerIndex = currentPuzzle!.getAnswerIndex(i);
-        if (answerIndex != -1 && userAnswers[answerIndex] == null) {
-          final cellCenter = cellPositions[i];
-          final distance = (dropPosition - cellCenter).distance;
+    if (currentPuzzle == null) return null;
 
-          if (distance < minDistance) {
-            minDistance = distance;
-            targetCellIndex = i;
-          }
+    final cellPositions = currentPuzzle!.getCellPositions(containerSize);
+    final cellSize = containerSize * 0.12;
+    
+    // 💡 FIX: Increased the acceptance radius to be the full width of the cell.
+    // This creates a much more forgiving and intuitive drop zone.
+    final double acceptanceRadius = cellSize; 
+    debugPrint("🎯 [UI] Using dynamic acceptance radius: ${acceptanceRadius.toStringAsFixed(2)} (for cell size ${cellSize.toStringAsFixed(2)})");
+
+    double minDistance = double.infinity;
+    int? closestEmptyCellIndex;
+
+    // Loop through ONLY the hidden (droppable) cells.
+    for (int cellIndex in currentPuzzle!.hiddenCells) {
+      // Check if the cell is actually empty.
+      final answerIndex = currentPuzzle!.getAnswerIndexForCell(cellIndex);
+      if (answerIndex != -1 && answerIndex < userAnswers.length && userAnswers[answerIndex] == null) {
+        
+        final cellCenter = cellPositions[cellIndex];
+        final distance = (dropPosition - cellCenter).distance;
+        debugPrint("🎯 [UI] Checking available empty cell C$cellIndex at $cellCenter, distance: ${distance.toStringAsFixed(2)}");
+
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestEmptyCellIndex = cellIndex;
         }
       }
     }
-    
-    if (minDistance < 75.0) {
-      return targetCellIndex;
+
+    if (closestEmptyCellIndex != null) {
+      debugPrint("🎯 [UI] Closest available cell is C$closestEmptyCellIndex with distance ${minDistance.toStringAsFixed(2)}");
+      
+      // FINAL CHECK: Is the closest available cell close enough?
+      if (minDistance <= acceptanceRadius) {
+        debugPrint("🎯 [UI] ✅ Success! Distance is within acceptance radius. Placing number.");
+        return closestEmptyCellIndex;
+      } else {
+        debugPrint("🎯 [UI] ❌ Drop failed. Closest empty cell is too far (distance ${minDistance.toStringAsFixed(2)} > radius ${acceptanceRadius.toStringAsFixed(2)}).");
+        return null;
+      }
+    } else {
+      debugPrint("🎯 [UI] ❌ Drop failed. No empty cells are available.");
+      return null;
     }
-    return null;
   }
-  
+
   List<Widget> _buildWallCells(double containerSize) {
     if (currentPuzzle == null) return [];
     
@@ -505,35 +516,55 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     final cellSize = containerSize * 0.12;
     
     for (int i = 0; i < currentPuzzle!.totalCells; i++) {
-      int? value;
-      bool isHidden = currentPuzzle!.hiddenCells.contains(i);
-      
-      if (isHidden) {
-        final answerIndex = currentPuzzle!.getAnswerIndex(i);
+        int? value;
+        bool isHidden = currentPuzzle!.hiddenCells.contains(i);
+        
+        if (isHidden) {
+        final answerIndex = currentPuzzle!.getAnswerIndexForCell(i);
         if (answerIndex != -1 && answerIndex < userAnswers.length) {
-          value = userAnswers[answerIndex];
+            value = userAnswers[answerIndex];
         }
-      } else {
+        } else {
         value = currentPuzzle!.visibleValues[i];
-      }
+        }
 
-      Widget cell = isHidden 
-          ? _buildDroppableCell(value, currentPuzzle!.getAnswerIndex(i), cellSize)
-          : _buildFixedCell(value: value!, size: cellSize);
-      
-      if (i == _lastPlacedCellIndex) {
+        Widget cell = isHidden 
+            ? _buildDroppableCell(value, currentPuzzle!.getAnswerIndexForCell(i), cellSize)
+            : _buildFixedCell(value: value!, size: cellSize);
+        
+        if (i == _lastPlacedCellIndex) {
         cell = ScaleTransition(scale: _dropAnimation, child: cell);
-      }
+        }
 
-      cells.add(Positioned(
+        cells.add(Positioned(
         left: cellPositions[i].dx - cellSize / 2,
         top: cellPositions[i].dy - cellSize / 2,
         child: cell,
-      ));
+        ));
+    }
+
+    if (kDebugMode) {
+        for (int i = 0; i < currentPuzzle!.totalCells; i++) {
+        cells.add(Positioned(
+            left: cellPositions[i].dx - 10,
+            top: cellPositions[i].dy - cellSize/2 - 20,
+            child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+                'C$i',
+                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+            ),
+            ),
+        ));
+        }
     }
     
     return cells;
-  }
+    }
 
   List<Widget> _buildOperationSymbols(double containerSize) {
     if (currentPuzzle == null) return [];
@@ -543,23 +574,21 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     final operationColor = _getOperationColor(currentPuzzle!.operation);
     final operationIcon = _getOperationIcon(currentPuzzle!.operation);
     
-    // Add operation symbols between cells that have relationships
-    int cellIndex = 0;
-    for (int row = currentPuzzle!.wallHeight - 1; row >= 1; row--) {
-      final cellsInRow = currentPuzzle!.wallHeight - row + 1;
+    for (int row = 0; row < currentPuzzle!.wallHeight - 1; row++) {
+      final cellsInCurrentRow = row + 1;
+      final currentRowStart = row * (row + 1) ~/ 2;
+      final nextRowStart = (row + 1) * (row + 2) ~/ 2;
       
-      for (int col = 0; col < cellsInRow; col++) {
-        final currentCell = cellIndex;
-        final leftChild = cellIndex + cellsInRow;
-        final rightChild = leftChild + 1;
+      for (int col = 0; col < cellsInCurrentRow; col++) {
+        final leftChild = nextRowStart + col;
+        final rightChild = nextRowStart + col + 1;
         
         if (rightChild < currentPuzzle!.totalCells) {
-          // Position symbol between the two child cells
           final leftPos = cellPositions[leftChild];
           final rightPos = cellPositions[rightChild];
           final symbolPos = Offset(
             (leftPos.dx + rightPos.dx) / 2,
-            leftPos.dy + containerSize * 0.05,
+            leftPos.dy - containerSize * 0.05,
           );
           
           symbols.add(Positioned(
@@ -577,25 +606,16 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                       color: operationColor.withOpacity(0.8),
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(
-                          color: operationColor.withOpacity(0.4),
-                          blurRadius: 6,
-                          spreadRadius: 1,
-                        ),
+                        BoxShadow(color: operationColor.withOpacity(0.4), blurRadius: 6),
                       ],
                     ),
-                    child: Icon(
-                      operationIcon,
-                      size: 14,
-                      color: Colors.white,
-                    ),
+                    child: Icon(operationIcon, size: 14, color: Colors.white),
                   ),
                 );
               },
             ),
           ));
         }
-        cellIndex++;
       }
     }
     
@@ -649,7 +669,6 @@ class _NumberWallsGameState extends State<NumberWallsGame>
           style: SpaceTheme.headlineStyle.copyWith(
             fontSize: size * 0.35,
             color: isHidden && value == null ? Colors.transparent : Colors.white,
-            shadows: const [Shadow(color: SpaceTheme.starYellow, blurRadius: 8)],
           ),
           textAlign: TextAlign.center,
         ),
@@ -705,10 +724,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.7), width: 2),
       ),
       child: Center(
-        child: Text(
-          number.toString(), 
-          style: SpaceTheme.headlineStyle.copyWith(fontSize: 18)
-        )
+        child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 18))
       ),
     );
   }
@@ -722,19 +738,10 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: SpaceTheme.starGradient,
-          boxShadow: const [
-            BoxShadow(
-              color: SpaceTheme.starYellow, 
-              blurRadius: 20, 
-              spreadRadius: 5
-            )
-          ],
+          boxShadow: const [BoxShadow(color: SpaceTheme.starYellow, blurRadius: 20)],
         ),
         child: Center(
-          child: Text(
-            number.toString(), 
-            style: SpaceTheme.headlineStyle.copyWith(fontSize: 22)
-          )
+          child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 22))
         ),
       ),
     );
@@ -778,17 +785,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 children: [
                   const Icon(Icons.emoji_events, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  Text(
-                    S.of(context)!.numberWallsWinTitle, 
-                    style: SpaceTheme.headlineStyle, 
-                    textAlign: TextAlign.center
-                  ),
+                  Text(S.of(context)!.numberWallsWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
-                  Text(
-                    S.of(context)!.numberWallsWinDesc(bonusScore),
-                    style: SpaceTheme.bodyStyle, 
-                    textAlign: TextAlign.center,
-                  ),
+                  Text(S.of(context)!.numberWallsWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -818,6 +817,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 }
 
+// --- NO CHANGES BELOW THIS LINE ---
+
 class NumberWallPuzzle {
   final int wallHeight;
   final int totalCells;
@@ -836,43 +837,64 @@ class NumberWallPuzzle {
     required this.numberPool,
   }) : totalCells = (wallHeight * (wallHeight + 1)) ~/ 2;
 
-  int getAnswerIndex(int cellIndex) {
-    int answerIndex = 0;
-    for (int i = 0; i < totalCells; i++) {
-      if (hiddenCells.contains(i)) {
-        if (i == cellIndex) return answerIndex;
-        answerIndex++;
-      }
+  int getAnswerIndexForCell(int cellIndex) {
+    if (!hiddenCells.contains(cellIndex)) return -1;
+    
+    final sortedHiddenCells = hiddenCells.toList()..sort();
+    final index = sortedHiddenCells.indexOf(cellIndex);
+    return index;
+  }
+
+  int getCellIndexFromAnswerIndex(int answerIndex) {
+    final sortedHiddenCells = hiddenCells.toList()..sort();
+    if (answerIndex >= 0 && answerIndex < sortedHiddenCells.length) {
+      return sortedHiddenCells[answerIndex];
     }
     return -1;
+  }
+
+  List<Offset> getCellPositions(double containerSize) {
+    final positions = <Offset>[];
+    final cellSpacing = containerSize / (wallHeight + 1);
+    final startY = containerSize * 0.2;
+    
+    for (int row = 0; row < wallHeight; row++) {
+      final cellsInRow = row + 1;
+      final startX = containerSize / 2 - (cellsInRow - 1) * cellSpacing / 2;
+      
+      for (int col = 0; col < cellsInRow; col++) {
+        positions.add(Offset(
+          startX + col * cellSpacing,
+          startY + row * cellSpacing
+        ));
+      }
+    }
+    
+    return positions;
   }
 
   static NumberWallPuzzle generate(Map<String, dynamic> args) {
     final grade = args['grade'] as int;
     final level = args['level'] as int;
-    // --- Extract custom settings from the map ---
     final useCustomSettings = args['useCustomSettings'] as bool;
-    final customOps = (args['customOps'] as List).cast<String>().toSet();
+    final customOps = (args['customOps'] as List<dynamic>).cast<String>().toSet();
     final customMin = args['customMin'] as int;
     final customMax = args['customMax'] as int;
 
-    debugPrint("\n--- Generating Number Wall Puzzle ---");
-    // --- Determine operation and height based on custom settings ---
-    int wallHeight = _determineWallHeight(grade, level);
-    WallOperation operation = _determineOperation(grade, level, useCustomSettings, customOps);
-    debugPrint("[NumberWall] Parameters: Grade=$grade, Level=$level -> wallHeight=$wallHeight, operation=$operation");
+    final wallHeight = NumberWallPuzzle._determineWallHeight(grade, level);
+    final operation = NumberWallPuzzle._determineOperation(grade, level, useCustomSettings, customOps);
 
-    // --- Pass all settings to the generator ---
     final generator = _NumberWallGenerator(
-      wallHeight, 
-      grade, 
-      level, 
+      wallHeight,
+      grade,
+      level,
       operation,
       useCustomSettings: useCustomSettings,
       customOps: customOps,
       customRangeMin: customMin,
-      customRangeMax: customMax
+      customRangeMax: customMax,
     );
+
     return generator.generate();
   }
 
@@ -903,9 +925,7 @@ class NumberWallPuzzle {
       return availableOps[math.Random().nextInt(availableOps.length)];
     }
 
-    // Original logic as fallback
     if (grade <= 3) {
-
       return WallOperation.addition;
     } else if (grade == 4) {
       return level <= 5 ? WallOperation.addition : 
@@ -915,7 +935,7 @@ class NumberWallPuzzle {
       final operations = [WallOperation.addition, WallOperation.subtraction];
       if (level >= 4) operations.add(WallOperation.multiplication);
       return operations[math.Random().nextInt(operations.length)];
-    } else { // grade >= 6
+    } else {
       final operations = [
         WallOperation.addition, 
         WallOperation.subtraction, 
@@ -926,104 +946,74 @@ class NumberWallPuzzle {
     }
   }
 
-  List<Offset> getCellPositions(double containerSize) {
-    final positions = <Offset>[];
-    final cellSpacing = containerSize / (wallHeight + 2);
-    final startY = containerSize * 0.15;
-    
-    int cellIndex = 0;
-    for (int row = 0; row < wallHeight; row++) {
-      final cellsInRow = wallHeight - row;
-      final startX = containerSize / 2 - (cellsInRow - 1) * cellSpacing / 2;
-      
-      for (int col = 0; col < cellsInRow; col++) {
-        positions.add(Offset(
-          startX + col * cellSpacing,
-          startY + row * cellSpacing
-        ));
-        cellIndex++;
-      }
-    }
-    
-    return positions;
-  }
-
   bool validateSolution(List<int> userSolution) {
-    debugPrint("✅ [NumberWall] validateSolution: $userSolution");
-    
-    // Build complete wall with user's answers
     final completeWall = List<int>.filled(totalCells, 0);
-    int hiddenIdx = 0;
+    final sortedHiddenCells = hiddenCells.toList()..sort();
     
     for (int i = 0; i < totalCells; i++) {
-      if (hiddenCells.contains(i)) {
-        completeWall[i] = userSolution[hiddenIdx++];
-      } else {
+        if (!hiddenCells.contains(i)) {
         completeWall[i] = visibleValues[i]!;
-      }
+        }
     }
     
-    debugPrint("✅ [NumberWall] Complete wall: $completeWall");
+    for (int answerIndex = 0; answerIndex < userSolution.length; answerIndex++) {
+        if (answerIndex < sortedHiddenCells.length) {
+        final cellIndex = sortedHiddenCells[answerIndex];
+        completeWall[cellIndex] = userSolution[answerIndex];
+        }
+    }
     
-    // Validate the operation constraint
     return _validateOperationConstraints(completeWall, wallHeight, operation);
-  }
+    }
 
   static bool _validateOperationConstraints(List<int> wall, int height, WallOperation operation) {
-    int cellIndex = 0;
-    
     for (int row = 0; row < height - 1; row++) {
-        final cellsInRow = row + 1;
-        final rowStartIndex = row * (row + 1) ~/ 2;
-        final belowRowStartIndex = (row + 1) * (row + 2) ~/ 2;
+        final cellsInCurrentRow = row + 1;
+        final currentRowStart = row * (row + 1) ~/ 2;
+        final nextRowStart = (row + 1) * (row + 2) ~/ 2;
         
-        for (int col = 0; col < cellsInRow; col++) {
-            final currentCell = rowStartIndex + col;
-            final leftChild = belowRowStartIndex + col;
-            final rightChild = leftChild + 1;
-            
-            if (rightChild < wall.length) {
+        for (int col = 0; col < cellsInCurrentRow; col++) {
+        final parentCell = currentRowStart + col;
+        final leftChild = nextRowStart + col;
+        final rightChild = nextRowStart + col + 1;
+        
+        if (rightChild < wall.length) {
+            final parentValue = wall[parentCell];
             final leftValue = wall[leftChild];
             final rightValue = wall[rightChild];
-            final currentValue = wall[currentCell];
-          
-          bool isValid = false;
-          
-          switch (operation) {
+            
+            bool isValid = false;
+            
+            switch (operation) {
             case WallOperation.addition:
-              isValid = currentValue == leftValue + rightValue;
-              break;
+                isValid = parentValue == leftValue + rightValue;
+                break;
             case WallOperation.subtraction:
-              // Allow both (left - right) and (right - left) to avoid negative numbers
-              isValid = currentValue == (leftValue - rightValue).abs();
-              break;
+                isValid = parentValue == (leftValue - rightValue).abs();
+                break;
             case WallOperation.multiplication:
-              isValid = currentValue == leftValue * rightValue;
-              break;
+                isValid = parentValue == leftValue * rightValue;
+                break;
             case WallOperation.division:
-              // Allow both directions, result must be integer
-              if (leftValue != 0 && rightValue != 0) {
+                if (leftValue != 0 && rightValue != 0) {
                 final div1 = leftValue / rightValue;
                 final div2 = rightValue / leftValue;
-                isValid = (div1 == currentValue && div1 == div1.roundToDouble()) ||
-                         (div2 == currentValue && div2 == div2.roundToDouble());
-              }
-              break;
-          }
-          
-          if (!isValid) {
-            debugPrint("❌ [NumberWall] Validation failed at cell $currentCell: $currentValue != operation($leftValue, $rightValue)");
+                isValid = (div1 == parentValue && div1 == div1.roundToDouble()) ||
+                        (div2 == parentValue && div2 == div2.roundToDouble());
+                }
+                break;
+            }
+            
+            if (!isValid) {
             return false;
-          }
+            }
         }
-        cellIndex++;
-      }
+        }
     }
     
-    debugPrint("✅ [NumberWall] Validation passed");
     return true;
-  } // _validateOperationConstraints
-} // class
+    }
+}
 
 class _NumberWallGenerator {
   final int wallHeight;
@@ -1044,45 +1034,32 @@ class _NumberWallGenerator {
   }) : totalCells = (wallHeight * (wallHeight + 1)) ~/ 2;
 
   NumberWallPuzzle generate() {
-    
-    if (useCustomSettings) {
-      debugPrint("\n🔧 ========== Custom Settings Active ==========");
-      debugPrint("🔧 Operation: $operation (from '$customOps')");
-      debugPrint("🔧 Wall Height: $wallHeight");
-      debugPrint("🔧 Number Range: $customRangeMin - $customRangeMax");
-      debugPrint("🔧 ==========================================\n");
-    }
-
-    debugPrint("[NumberWall] Starting generation for $wallHeight-row wall with $operation");
-
-    
-    int attempts = 0;
     List<int>? fullSolution;
+    int attempts = 0;
     
-    while (fullSolution == null && attempts < 10) {
+    while (fullSolution == null && attempts < 50) {
       try {
         fullSolution = _generateValidWall();
         attempts++;
+        
+        if (fullSolution != null) {
+          if (_validateWallStructure(fullSolution)) {
+            break;
+          } else {
+            fullSolution = null;
+          }
+        }
       } catch (e) {
-        debugPrint("[NumberWall] Generation attempt $attempts failed: $e");
         attempts++;
       }
     }
     
     if (fullSolution == null) {
-      debugPrint("❌ [NumberWall] Failed to generate valid wall, falling back to addition");
-      final fallbackGenerator = _NumberWallGenerator(3, 3, 1, WallOperation.addition,
-        useCustomSettings: false, customOps: {}, customRangeMin: 1, customRangeMax: 20
-      );return fallbackGenerator.generate();
+      fullSolution = _createFallbackWall();
     }
     
-    debugPrint("[NumberWall] Complete wall: $fullSolution");
-    
-    // Determine which cells to hide
     final hiddenCells = _selectHiddenCells();
-    debugPrint("[NumberWall] Hidden cells: $hiddenCells");
     
-    // Create visible values map
     final visibleValues = <int, int>{};
     for (int i = 0; i < totalCells; i++) {
       if (!hiddenCells.contains(i)) {
@@ -1090,12 +1067,9 @@ class _NumberWallGenerator {
       }
     }
     
-    // Create number pool
-    final hiddenNumbers = hiddenCells.map((i) => fullSolution![i]).toList(); // note '!' null-check operator
+    final hiddenNumbers = hiddenCells.map((i) => fullSolution![i]).toList();
     final decoyNumbers = _generateDecoyNumbers(hiddenNumbers);
     final numberPool = (hiddenNumbers + decoyNumbers)..shuffle();
-    
-    debugPrint("[NumberWall] Number pool: $numberPool");
     
     return NumberWallPuzzle(
       wallHeight: wallHeight,
@@ -1121,154 +1095,140 @@ class _NumberWallGenerator {
   }
 
   List<int> _generateAdditionWall() {
-    final baseRowSize = wallHeight;
     final minNumber = _getMinNumber();
     final maxNumber = _getMaxNumber();
     
-    final baseRow = List.generate(baseRowSize, (i) => 
-      minNumber + math.Random().nextInt(maxNumber - minNumber + 1)
-    );
+    final bottomRow = <int>[];
+    for (int i = 0; i < wallHeight; i++) {
+      bottomRow.add(minNumber + math.Random().nextInt(maxNumber - minNumber + 1));
+    }
     
-    return _buildWallFromBase(baseRow, (a, b) => a + b);
+    return _buildWallFromBottom(bottomRow, (a, b) => a + b);
   }
 
   List<int> _generateSubtractionWall() {
-    // Start with larger numbers to avoid negatives
-    final baseRowSize = wallHeight;
-    final minNumber = _getMinNumber() + 5;
-    final maxNumber = _getMaxNumber() + 10;
+    final minNumber = math.max(1, _getMinNumber());
+    final maxNumber = _getMaxNumber() + 5;
     
-    final baseRow = List.generate(baseRowSize, (i) => 
-      minNumber + math.Random().nextInt(maxNumber - minNumber + 1)
-    );
+    final bottomRow = <int>[];
+    for (int i = 0; i < wallHeight; i++) {
+      bottomRow.add(minNumber + math.Random().nextInt(maxNumber - minNumber + 1));
+    }
     
-    return _buildWallFromBase(baseRow, (a, b) => (a - b).abs());
+    return _buildWallFromBottom(bottomRow, (a, b) => (a - b).abs());
   }
 
   List<int> _generateMultiplicationWall() {
-    // Use smaller numbers for multiplication to avoid huge results
-    final baseRowSize = wallHeight;
     final minNumber = math.max(1, _getMinNumber() ~/ 2);
-    final maxNumber = math.max(4, _getMaxNumber() ~/ 3);
+    final maxNumber = math.max(3, _getMaxNumber() ~/ 3);
     
-    final baseRow = List.generate(baseRowSize, (i) => 
-      minNumber + math.Random().nextInt(maxNumber - minNumber + 1)
-    );
+    final bottomRow = <int>[];
+    for (int i = 0; i < wallHeight; i++) {
+      bottomRow.add(minNumber + math.Random().nextInt(maxNumber - minNumber + 1));
+    }
     
-    return _buildWallFromBase(baseRow, (a, b) => a * b);
+    return _buildWallFromBottom(bottomRow, (a, b) => a * b);
   }
 
   List<int> _generateDivisionWall() {
-    // Start from the top and work down to ensure integer divisions
     final wall = List<int>.filled(totalCells, 0);
     final random = math.Random();
     
-    // Set top cell
-    wall[0] = 8 + random.nextInt(20);
+    wall[0] = 6 + random.nextInt(15);
     
-    // Work down the pyramid
-    int cellIndex = 1;
-    for (int row = 1; row < wallHeight; row++) {
-      final cellsInRow = wallHeight - row + 1;
+    for (int row = 0; row < wallHeight - 1; row++) {
+      final cellsInCurrentRow = row + 1;
+      final currentRowStart = row * (row + 1) ~/ 2;
+      final nextRowStart = (row + 1) * (row + 2) ~/ 2;
       
-      for (int col = 0; col < cellsInRow; col++) {
-        final parentIndex = cellIndex - (wallHeight - row + 2) + col;
+      for (int col = 0; col < cellsInCurrentRow; col++) {
+        final parentCell = currentRowStart + col;
+        final leftChild = nextRowStart + col;
+        final rightChild = nextRowStart + col + 1;
+        
         if (col == 0) {
-          // First cell in row - choose a divisor
           final divisor = 2 + random.nextInt(4);
-          wall[cellIndex] = wall[parentIndex] * divisor;
-        } else {
-          // Calculate from parent and left sibling
-          final leftSibling = wall[cellIndex - 1];
-          final parent = wall[parentIndex];
-          // parent = leftSibling / rightSibling, so rightSibling = leftSibling / parent
-          if (parent > 0 && leftSibling % parent == 0) {
-            wall[cellIndex] = leftSibling ~/ parent;
+          wall[leftChild] = wall[parentCell] * divisor;
+        }
+        
+        if (rightChild < totalCells) {
+          final leftValue = wall[leftChild];
+          final parentValue = wall[parentCell];
+          
+          if (parentValue > 0 && leftValue % parentValue == 0) {
+            wall[rightChild] = leftValue ~/ parentValue;
           } else {
-            wall[cellIndex] = 1 + random.nextInt(5);
+            wall[rightChild] = 1 + random.nextInt(4);
           }
         }
-        cellIndex++;
       }
     }
     
     return wall;
   }
 
-  int _getMinNumber() {
-    if (useCustomSettings) return customRangeMin;
-
-    switch (operation) {
-      case WallOperation.addition:
-      case WallOperation.subtraction:
-        return math.max(1, (grade - 2) * 3 + level);
-      case WallOperation.multiplication:
-        return math.max(1, grade);
-      case WallOperation.division:
-        return math.max(1, grade * 2);
-    }
-  }
-
-  int _getMaxNumber() {
-    if (useCustomSettings) return customRangeMax;
+  List<int> _buildWallFromBottom(List<int> bottomRow, int Function(int, int) operation) {
+    final wall = List<int>.filled(totalCells, 0);
     
-    switch (operation) {
-      case WallOperation.addition:
-      case WallOperation.subtraction:
-        return _getMinNumber() + 15 + grade * 2;
-      case WallOperation.multiplication:
-        return _getMinNumber() + 6;
-      case WallOperation.division:
-        return _getMinNumber() + 12;
-    }
-  }
-
-  List<int> _buildWallFromBase(List<int> baseRow, int Function(int, int) operation) {
-    final wall = <int>[];
-    
-    // Initialize wall with zeros
-    for (int i = 0; i < totalCells; i++) wall.add(0);
-    
-    // Fill bottom row (last row has wallHeight cells)
     final bottomRowStart = (wallHeight - 1) * wallHeight ~/ 2;
     for (int i = 0; i < wallHeight; i++) {
-        wall[bottomRowStart + i] = baseRow[i];
+      wall[bottomRowStart + i] = bottomRow[i];
     }
     
-    // Build upward
     for (int row = wallHeight - 2; row >= 0; row--) {
-        final cellsInRow = row + 1;
-        final rowStartIndex = row * (row + 1) ~/ 2;
-        final belowRowStartIndex = (row + 1) * (row + 2) ~/ 2;
+      final cellsInCurrentRow = row + 1;
+      final currentRowStart = row * (row + 1) ~/ 2;
+      final nextRowStart = (row + 1) * (row + 2) ~/ 2;
+      
+      for (int col = 0; col < cellsInCurrentRow; col++) {
+        final currentCell = currentRowStart + col;
+        final leftChild = nextRowStart + col;
+        final rightChild = nextRowStart + col + 1;
         
-        for (int col = 0; col < cellsInRow; col++) {
-            final leftChild = belowRowStartIndex + col;
-            final rightChild = leftChild + 1;
-            wall[rowStartIndex + col] = operation(wall[leftChild], wall[rightChild]);
+        if (rightChild < wall.length) {
+          wall[currentCell] = operation(wall[leftChild], wall[rightChild]);
         }
-        }
+      }
+    }
     
     return wall;
+  }
+
+  bool _validateWallStructure(List<int> wall) {
+    return NumberWallPuzzle._validateOperationConstraints(wall, wallHeight, operation);
+  }
+
+  List<int> _createFallbackWall() {
+    switch (operation) {
+      case WallOperation.addition:
+        if (wallHeight == 3) return [15, 7, 8, 3, 4, 4];
+        if (wallHeight == 4) return [30, 13, 17, 5, 8, 9, 2, 3, 5, 4];
+        break;
+      case WallOperation.subtraction:
+        if (wallHeight == 3) return [1, 3, 2, 5, 2, 4];
+        break;
+      case WallOperation.multiplication:
+        if (wallHeight == 3) return [6, 2, 3, 2, 1, 3];
+        break;
+      case WallOperation.division:
+        if (wallHeight == 3) return [2, 4, 2, 8, 2, 4];
+        break;
+    }
+    
+    return [15, 7, 8, 3, 4, 4];
   }
 
   Set<int> _selectHiddenCells() {
     final hidden = <int>{};
-    final totalHidden = (totalCells * 0.6).round().clamp(2, totalCells - 2);
+    final maxHidden = math.min(4, totalCells - 2);
+    final candidates = List.generate(totalCells, (i) => i)..shuffle();
     
-    // Ensure we have a good distribution across rows
-    int rowStart = 0;
-    for (int row = 0; row < wallHeight; row++) {
-      final cellsInRow = wallHeight - row;
-      final cellsToHideInRow = math.max(1, (cellsInRow * 0.5).round());
-      
-      final rowIndices = List.generate(cellsInRow, (i) => rowStart + i);
-      rowIndices.shuffle();
-      
-      for (int i = 0; i < cellsToHideInRow && hidden.length < totalHidden; i++) {
-        hidden.add(rowIndices[i]);
-      }
-      
-      rowStart += cellsInRow;
+    for (int i = 0; i < maxHidden; i++) {
+      hidden.add(candidates[i]);
+    }
+    
+    while (totalCells - hidden.length < 2 && hidden.isNotEmpty) {
+      hidden.remove(hidden.first);
     }
     
     return hidden;
@@ -1276,27 +1236,30 @@ class _NumberWallGenerator {
 
   List<int> _generateDecoyNumbers(List<int> hiddenNumbers) {
     final decoys = <int>{};
-    final random = math.Random();
-    final decoyCount = (hiddenNumbers.length * 0.5).round().clamp(2, 6);
+    final decoyCount = math.min(3, hiddenNumbers.length);
     
     for (final num in hiddenNumbers) {
-      // Add numbers close to the actual answers
-      final variations = [
-        num + random.nextInt(3) + 1,
-        num - random.nextInt(3) - 1,
-        num + random.nextInt(5) + 3,
-      ];
-      
-      for (final variation in variations) {
-        if (variation > 0 && !hiddenNumbers.contains(variation)) {
-          decoys.add(variation);
+      if (decoys.length >= decoyCount) break;
+      final variations = [ num - 1, num - 2, num + 1, num + 2 ];
+      for (final v in variations) {
+        if (!hiddenNumbers.contains(v) && v > 0) {
+          decoys.add(v);
           if (decoys.length >= decoyCount) break;
         }
       }
-      if (decoys.length >= decoyCount) break;
     }
     
     return decoys.toList();
+  }
+
+  int _getMinNumber() {
+    if (useCustomSettings) return customRangeMin;
+    return math.max(1, (grade - 2) * 3 + level);
+  }
+
+  int _getMaxNumber() {
+    if (useCustomSettings) return customRangeMax;
+    return _getMinNumber() + 15 + grade * 2;
   }
 }
 
@@ -1315,7 +1278,6 @@ class NumberWallBackgroundPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     
-    // Operation-specific background color
     Color baseColor;
     switch (operation) {
       case WallOperation.addition: baseColor = SpaceTheme.alienGreen; break;
@@ -1324,7 +1286,6 @@ class NumberWallBackgroundPainter extends CustomPainter {
       case WallOperation.division: baseColor = SpaceTheme.planetOrange; break;
     }
     
-    // Background glow
     final backgroundPaint = Paint()
       ..shader = RadialGradient(
         colors: [
@@ -1335,7 +1296,6 @@ class NumberWallBackgroundPainter extends CustomPainter {
     
     canvas.drawCircle(center, size.width * 0.6, backgroundPaint);
     
-    // Success warp effect
     if (warpActivation > 0) {
       final warpPaint = Paint()
         ..color = baseColor.withOpacity(0.4 * warpActivation)

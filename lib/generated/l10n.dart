@@ -1582,8 +1582,8 @@ abstract class S {
   /// No description provided for @codebreakerWinDesc.
   ///
   /// In en, this message translates to:
-  /// **'Excellent work, Agent! You successfully decoded {targetPuzzles} alien transmissions and earned {totalScore} points. The galaxy is safer thanks to your cryptographic skills!'**
-  String codebreakerWinDesc(int targetPuzzles, int totalScore);
+  /// **'Excellent work, Agent! You earned {totalScore} points. The galaxy is safer thanks to your cryptographic skills!'**
+  String codebreakerWinDesc(int totalScore);
 
   /// No description provided for @codebreakerLoseDesc.
   ///
