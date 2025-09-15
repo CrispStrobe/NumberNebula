@@ -543,7 +543,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         ));
     }
 
-    if (kDebugMode) {
+    if (false) { // kDebugMode
         for (int i = 0; i < currentPuzzle!.totalCells; i++) {
         cells.add(Positioned(
             left: cellPositions[i].dx - 10,

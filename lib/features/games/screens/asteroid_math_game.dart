@@ -1,11 +1,3 @@
-// Using existing l10n strings:
-// - asteroidMathHunter: "Asteroid Hunter"
-// - nextTarget: "Next target: "
-// - asteroidMathWinTitle: "Asteroid Field Cleared!"
-// - timesUpSpaceCadet: "Time's Up, Space Cadet!"
-// - asteroidMathWinDesc: "Time Bonus: {timeBonus} points!\nYou are a true Space Hunter!"
-// - asteroidMathLoseDesc: "The asteroid field got too chaotic!\nTry again, Commander!"
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
