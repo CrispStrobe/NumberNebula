@@ -429,6 +429,11 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     );
   }
 
+  void _resetGame() {
+    Navigator.of(context).pop(); // Close the dialog first
+    _initializeGame(); // Re-run the setup logic
+  }
+
   void _showWinDialog() {
     log("--- PUZZLE COMPLETE ---", name: "PuzzleMath");
     _timer?.cancel();
@@ -437,21 +442,48 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     String message = S.of(context)!.puzzleMathWin;
     if (gameProvider.puzzleTimerEnabled) {
       bonus = (_timeLeft * 2);
-      message = "Constellation restored!\nTime Bonus: $bonus points!";
+      // Using S.of(context) for localization
+      message = S.of(context)!.puzzleMathWinBonus(bonus);
     }
-    context.read<GameProvider>().addScore(100 + bonus);
+    gameProvider.addScore(100 + bonus);
     log("Awarding win bonus. Base: 100, Time Bonus: $bonus", name: "PuzzleMath");
-    
+
+    // MODIFIED: Replaced the custom SpaceDialog with a standard AlertDialog
+    // to allow for multiple actions (Play Again / Back to Menu).
     showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => SpaceDialog(
-            title: S.of(context)!.excellent,
-            content: message,
-            onNext: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            }));
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A3E).withOpacity(0.95),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.greenAccent, width: 2),
+        ),
+        title: Row(children: [
+          const Icon(Icons.star, color: Colors.yellow, size: 30),
+          const SizedBox(width: 10),
+          Text(S.of(context)!.excellent, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        ]),
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            child: Text(S.of(context)!.playAgain, style: const TextStyle(color: Colors.cyanAccent)),
+            // Calls the new reset method
+            onPressed: _resetGame,
+          ),
+          TextButton(
+            child: Text(S.of(context)!.backToMenu, style: const TextStyle(color: Colors.white)),
+            onPressed: () {
+              Navigator.pop(ctx); // Close dialog
+              Navigator.pop(context); // Close game screen
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   void _showGameOverDialog(String title) {
