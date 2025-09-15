@@ -4,12 +4,15 @@ import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:ui';
 
+import '../constants/app_constants.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
+import '../../../core/services/sri_service.dart';
+import '../models/math_problem.dart';
 
 enum WallOperation { addition, subtraction, multiplication, division }
 
@@ -184,14 +187,28 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   void _checkIfComplete() {
     if (userAnswers.every((answer) => answer != null)) {
-      final isValid = currentPuzzle!.validateSolution(userAnswers.cast<int>());
-      if (isValid) {
+        final isValid = currentPuzzle!.validateSolution(userAnswers.cast<int>());
+
+        // --- START record ---
+        final sriService = context.read<SriService>();
+        final dummyProblem = MathProblem(
+        expression: "numberwall_${widget.level}_${currentPuzzle!.operation.name}",
+        answer: 1, // 1 for correct, 0 for incorrect
+        operation: MathOperation.addition, // Placeholder
+        operandA: 1,
+        operandB: 0,
+        difficulty: widget.grade,
+        );
+        sriService.recordResponse(dummyProblem, isValid);
+        // --- END record ---
+
+        if (isValid) {
         _handleSuccess();
-      } else {
+        } else {
         _handleIncorrect();
-      }
+        }
     }
-  }
+    }
 
   void _handleSuccess() {
     debugPrint("🎉 [UI] _handleSuccess() - Starting success animation");
@@ -794,12 +811,12 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
-                          _generatePuzzle();
+                            Navigator.of(context).pop(); // Close the dialog
+                            Navigator.of(context).pop(); // Close the game screen
                         },
-                        style: SpaceTheme.secondaryButtonStyle,
-                        child: Text(S.of(context)!.numberWallsNextWall),
-                      ),
+                        style: SpaceTheme.primaryButtonStyle,
+                        child: Text(S.of(context)!.toTheBridge),
+                        ),
                       ElevatedButton(
                         onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
                         style: SpaceTheme.primaryButtonStyle,

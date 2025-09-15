@@ -36,6 +36,8 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   late AnimationController _warpController;
   late Animation<double> _dropAnimation;
 
+  final GlobalKey _triangleAreaKey = GlobalKey();
+
   MagicTrianglePuzzle? currentPuzzle;
   List<int?> userAnswers = [];
   List<int> numberPool = [];
@@ -357,6 +359,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
         return Center(
           child: DragTarget<int>(
+            key: _triangleAreaKey, // Add the GlobalKey here
             builder: (context, candidateData, rejectedData) {
               debugPrint("🔺 [UI] DragTarget builder called");
               return SizedBox(
@@ -396,18 +399,28 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               debugPrint("🎯 [UI] DragTarget.onAcceptWithDetails: ${details.data} at ${details.offset}");
               setState(() => _isDraggingOver = false);
               
-              final RenderBox renderBox = context.findRenderObject() as RenderBox;
+              // Use the GlobalKey for more reliable coordinate transformation
+              final RenderBox? renderBox = _triangleAreaKey.currentContext?.findRenderObject() as RenderBox?;
+              if (renderBox == null) {
+                debugPrint("❌ [UI] Could not find triangle area render box");
+                return;
+              }
+              
               final localDropPosition = renderBox.globalToLocal(details.offset);
               final droppedNumber = details.data;
+              debugPrint("🎯 [UI] Global drop position: ${details.offset}");
               debugPrint("🎯 [UI] Local drop position: $localDropPosition");
+              debugPrint("🎯 [UI] Triangle size: $size, center: $center");
 
-              int? closestGlobalIndex = _findClosestEmptyNode(localDropPosition, nodePoints);
+              int? closestGlobalIndex = _findClosestEmptyNode(localDropPosition, nodePoints, size);
               debugPrint("🎯 [UI] Closest empty node: $closestGlobalIndex");
 
               if (closestGlobalIndex != null) {
                   final answerIndex = currentPuzzle!.getAnswerIndex(closestGlobalIndex);
                   debugPrint("🎯 [UI] Answer index: $answerIndex");
                   _placeNumber(droppedNumber, answerIndex, closestGlobalIndex);
+              } else {
+                  debugPrint("🎯 [UI] No valid drop target found");
               }
             },
           ),
@@ -416,8 +429,10 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     );
   }
 
-  int? _findClosestEmptyNode(Offset dropPosition, List<Offset> nodePoints) {
+  int? _findClosestEmptyNode(Offset dropPosition, List<Offset> nodePoints, double triangleSize) {
       debugPrint("🔍 [UI] _findClosestEmptyNode at $dropPosition");
+      debugPrint("🔍 [UI] Triangle size: $triangleSize");
+      
       double minDistance = double.infinity;
       int? targetNodeIndex;
       
@@ -427,22 +442,31 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
           if (userAnswers[answerIdx] == null) {
             final nodeCenter = nodePoints[i];
             final distance = (dropPosition - nodeCenter).distance;
-            debugPrint("🔍 [UI] Node $i at $nodeCenter, distance: $distance");
+            debugPrint("🔍 [UI] Node $i at $nodeCenter, distance: $distance, isEmpty: ${userAnswers[answerIdx] == null}");
 
             if (distance < minDistance) {
               minDistance = distance;
               targetNodeIndex = i;
             }
+          } else {
+            debugPrint("🔍 [UI] Node $i already filled with: ${userAnswers[answerIdx]}");
           }
           answerIdx++;
         }
       }
       
       debugPrint("🔍 [UI] Minimum distance: $minDistance, target: $targetNodeIndex");
-      // FIX: Increased drop radius for a more lenient feel as requested.
-      if (minDistance < 75.0) {
+      
+      // Adaptive drop radius based on triangle size
+      final dropRadius = (triangleSize * 0.15).clamp(60.0, 120.0);
+      debugPrint("🔍 [UI] Using drop radius: $dropRadius");
+      
+      if (minDistance < dropRadius) {
+        debugPrint("✅ [UI] Drop accepted for node $targetNodeIndex");
         return targetNodeIndex;
       }
+      
+      debugPrint("❌ [UI] Drop rejected - distance $minDistance > radius $dropRadius");
       return null;
   }
   
@@ -460,7 +484,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     debugPrint("🔵 [UI] Node size: $nodeSize");
     
     for (int i = 0; i < currentPuzzle!.totalCircles; i++) {
-      debugPrint("🔵 [UI] Building node $i");
+      debugPrint("🔵 [UI] Building node $i at position ${points[i]}");
       int? value;
       bool isHidden = currentPuzzle!.hiddenIndices.contains(i);
       int currentAnswerIndex = isHidden ? answerIdx++ : -1;
@@ -487,11 +511,13 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         node = ScaleTransition(scale: _dropAnimation, child: node);
       }
 
-      nodes.add(Positioned(
+      final nodePosition = Positioned(
         left: points[i].dx - nodeSize / 2,
         top: points[i].dy - nodeSize / 2,
         child: node,
-      ));
+      );
+      
+      nodes.add(nodePosition);
       debugPrint("🔵 [UI] Node $i positioned at (${points[i].dx - nodeSize / 2}, ${points[i].dy - nodeSize / 2})");
     }
     debugPrint("🔵 [UI] Built ${nodes.length} triangle nodes");

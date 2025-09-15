@@ -676,15 +676,15 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         
         // Wrap in DragTarget if it should accept drops
         if (shouldAcceptDrops) {
-            return Container(
-                width: cellSize + 32, // Larger hit area for better detection
-                height: cellSize + 32,
+            return SizedBox(
+                width: cellSize + 24, 
+                height: cellSize + 24,
                 child: DragTarget<int>(
                 builder: (context, candidateData, rejectedData) {
                     final isHovering = candidateData.isNotEmpty;
                     
-                    return Container(
-                    padding: const EdgeInsets.all(16), // More padding for easier targeting
+                    return Padding(
+                    padding: const EdgeInsets.all(12),
                     child: Container(
                         width: cellSize, 
                         height: cellSize,
@@ -700,8 +700,8 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                         boxShadow: isHovering ? [
                             BoxShadow(
                             color: SpaceTheme.starYellow.withOpacity(0.6),
-                            blurRadius: 12,
-                            spreadRadius: 3,
+                            blurRadius: 8,
+                            spreadRadius: 2,
                             )
                         ] : null,
                         ),
@@ -723,8 +723,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                     );
                 },
                 onWillAcceptWithDetails: (details) {
-                    debugPrint("🎯 [DRAG TARGET] Will accept ${details.data} at $positionId");
-                    return true;
+                    return true; // Always accept - the _isDragging check was wrong!
                 },
                 onAcceptWithDetails: (details) {
                     debugPrint("🎯 [DROPPED] ✅ ${details.data} → $positionId");
@@ -884,7 +883,10 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                         child: Text(S.of(context)!.playAgain),
                       ),
                       ElevatedButton(
-                        onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                        onPressed: () {
+                            Navigator.of(context).pop(); // Close the dialog
+                            Navigator.of(context).pop(); // Close the game screen
+                        },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.backToMenu),
                       ),
