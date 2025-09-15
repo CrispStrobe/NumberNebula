@@ -811,14 +811,17 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                            Navigator.of(context).pop(); // Close the dialog
-                            Navigator.of(context).pop(); // Close the game screen
+                          Navigator.of(context).pop();
+                          _generatePuzzle();
                         },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.toTheBridge),
                         ),
                       ElevatedButton(
-                        onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                        onPressed: () {
+                            Navigator.of(context).pop(); // Close the dialog
+                            Navigator.of(context).pop(); // Close the game screen
+                        },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.toTheBridge),
                       ),
