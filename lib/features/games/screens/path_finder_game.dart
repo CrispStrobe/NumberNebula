@@ -135,9 +135,10 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     if (!mounted || !gameActive) return;
 
     final sriService = context.read<SriService>();
+    final gameProvider = context.read<GameProvider>();
 
     setState(() {
-      currentProblem = MathProblem.generateProblem(widget.grade, widget.level, sriService);
+      currentProblem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
       availablePaths.clear();
       pathFollowProgress = 0.0;
       selectedPath = null;

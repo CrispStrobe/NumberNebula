@@ -4,27 +4,43 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// --- CORE SERVICES ---
+import 'core/services/audio_service.dart';
+import 'core/services/debug_provider.dart'; // FIX: Added this import
+import 'core/services/progress_service.dart';
+import 'core/services/purchase_service.dart';
 import 'core/services/puzzle_image_service.dart';
 import 'core/services/sri_service.dart';
-
 import 'core/theme/space_theme.dart';
-import 'features/games/constants/app_constants.dart';
-import 'core/services/audio_service.dart';
-import 'core/services/progress_service.dart';
-import 'features/home/screens/home_screen.dart';
+
+// --- PROVIDERS & MODELS ---
 import 'features/games/providers/game_provider.dart';
+
+// --- SCREENS ---
+import 'features/home/screens/home_screen.dart';
 import 'features/games/screens/game_menu_screen.dart';
+import 'features/settings/screens/settings_screen.dart';
+import 'features/achievements/screens/achievements_screen.dart';
 import 'features/games/screens/magic_triangles_game.dart';
 import 'features/games/screens/asteroid_math_game.dart';
 import 'features/games/screens/puzzle_math_game.dart';
 import 'features/games/screens/hyperdrive_gates_game.dart';
 import 'features/games/screens/planet_hopping_game.dart';
-import 'features/settings/screens/settings_screen.dart';
-import 'features/achievements/screens/achievements_screen.dart';
+import 'features/games/screens/number_walls_game.dart';
+import 'features/games/screens/codebreaker_game.dart';
+
+// --- UTILS & GENERATED ---
 import 'shared/utils/app_utilities.dart';
 import 'generated/l10n.dart';
 
+// --- GLOBAL INSTANCES & NAVIGATOR KEY ---
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+final GameProvider gameProvider = GameProvider();
+final SriService sriService = SriService();
+final PurchaseService purchaseService = PurchaseService();
+final DebugProvider debugProvider = DebugProvider();
+final ProgressService progressService = ProgressService();
+final AudioService audioService = AudioService();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,32 +51,30 @@ void main() async {
   ]);
 
   await PuzzleImageService.instance.init();
-  
-  final audioService = AudioService();
-  final progressService = ProgressService();
-  // await progressService.init();
-  final sriService = SriService(); // Create an instance of SriService
-  
+  purchaseService.init(gameProvider);
   GlobalErrorHandler.init();
   
-  runApp(SpaceMathApp(
-    audioService: audioService,
-    progressService: progressService,
-    sriService: sriService,
-  ));
+  runApp(
+    // --- 3. PROVIDE THE GLOBAL INSTANCES TO THE WIDGET TREE ---
+    // We use the `.value` constructor for existing ChangeNotifier instances.
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: gameProvider),
+        ChangeNotifierProvider.value(value: sriService),
+        ChangeNotifierProvider.value(value: purchaseService),
+        ChangeNotifierProvider.value(value: debugProvider),
+        // Services that don't change state can be provided directly.
+        Provider.value(value: progressService),
+        Provider.value(value: audioService),
+      ],
+      child: const SpaceMathApp(),
+    ),
+  );
 }
 
 class SpaceMathApp extends StatefulWidget {
-  final AudioService audioService;
-  final ProgressService progressService;
-  final SriService sriService;
-  
-  const SpaceMathApp({
-    super.key,
-    required this.audioService,
-    required this.progressService,
-    required this.sriService,
-  });
+  // FIX: This widget no longer needs constructor parameters
+  const SpaceMathApp({super.key});
 
   @override
   State<SpaceMathApp> createState() => _SpaceMathAppState();
@@ -71,12 +85,12 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   bool _isInitialized = false;
   String? _initializationError;
   // Hold a reference to GameProvider to use in lifecycle methods
-  late GameProvider _gameProvider;
+  // late GameProvider _gameProvider; // it's now a global instance that is provided.
   
   @override
   void initState() {
     super.initState();
-    _gameProvider = GameProvider(); // Initialize the provider
+    // _gameProvider = GameProvider(); // Initialize the provider
     WidgetsBinding.instance.addObserver(this);
     _initializeApp();
   }
@@ -84,9 +98,15 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    purchaseService.dispose(); // Dispose the purchase service
     super.dispose();
   }
-  
+
+  // --- 4. SIMPLIFIED LIFECYCLE MANAGEMENT ---
+  // The state no longer needs its own provider instances.
+  // It can access the global ones via `context.read<T>()` or the
+  // global variables directly.
+  /* 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
@@ -101,18 +121,24 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
       default:
         break;
     }
+  } */
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      _saveAppState();
+    }
   }
   
   Future<void> _initializeApp() async {
     try {
       await _loadLanguagePreference();
-      // Load game progress and SRI data into the provider instance
-      await widget.progressService.loadProgress(_gameProvider);
-      await widget.sriService.loadSriData();
-      setState(() {
-        _isInitialized = true;
-      });
-    } catch (e) {
+      // Load data into the *global* provider instances
+      await progressService.loadProgress(gameProvider);
+      await sriService.loadSriData();
+      setState(() => _isInitialized = true);
+    } catch (e, s) {
+      debugPrint('Initialization Error: $e\n$s');
       setState(() {
         _initializationError = e.toString();
         _isInitialized = true;
@@ -142,8 +168,8 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   
   Future<void> _saveAppState() async {
     // This saves all necessary data
-    await widget.progressService.saveProgress(_gameProvider);
-    await widget.sriService.saveSriData();
+    await progressService.saveProgress(gameProvider);
+    await sriService.saveSriData();
     // Also save language preference
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -163,20 +189,9 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   Widget build(BuildContext context) {
     if (!_isInitialized) {
       return MaterialApp(
-        // FIX: Add localization delegates here to make S.of(context) available
-        // during early initialization.
-        localizationsDelegates: const [
-          S.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
+        localizationsDelegates: S.localizationsDelegates,
         supportedLocales: S.supportedLocales,
-        home: const SpaceLoadingScreen(
-          // Pass a non-localized string, as the locale might not be determined yet.
-          // The loading screen itself will use S.of(context) for its defaults.
-          message: 'Initializing...',
-        ),
+        home: const SpaceLoadingScreen(message: 'Initializing...'),
         theme: SpaceTheme.lightTheme,
       );
     }
@@ -198,56 +213,35 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
       );
     }
 
-    return MultiProvider(
-      providers: [
-        Provider<AudioService>.value(value: widget.audioService),
-        Provider<ProgressService>.value(value: widget.progressService),
-        ChangeNotifierProvider<SriService>.value(value: widget.sriService), // Provide SriService
-        ChangeNotifierProvider(create: (_) => GameProvider()),
-        Provider<AppSettingsManager>(
-          create: (_) => AppSettingsManager(),
-        ),
-      ],
-      child: MaterialApp(
-        title: 'Space Math Academy',
-        navigatorKey: navigatorKey, 
-        debugShowCheckedModeBanner: false,
-        
-        locale: _locale,
-        localizationsDelegates: const [
-          S.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: S.supportedLocales,
-        
-        theme: SpaceTheme.lightTheme,
-        darkTheme: SpaceTheme.darkTheme,
-        themeMode: ThemeMode.light,
-        
-        initialRoute: AppRoutes.splash,
-        onGenerateRoute: AppRoutes.generateRoute,
-        
-        builder: (context, child) {
-          ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
-            return SpaceErrorScreen(
-              title: 'Oops! Something went wrong',
-              message: 'Our space engineers are working on it!',
-              onRetry: () {
-                final currentContext = navigatorKey.currentContext;
-                if (currentContext != null) {
-                  Navigator.of(currentContext).pushReplacementNamed(
-                    ModalRoute.of(currentContext)?.settings.name ?? AppRoutes.home,
-                  );
-                }
-              },
-            );
-          };
-          
-          return child ?? const SizedBox.shrink();
-        },
-      ),
+    return MaterialApp(
+      title: 'Space Math Academy',
+      navigatorKey: navigatorKey, 
+      debugShowCheckedModeBanner: false,
+      locale: _locale,
+      localizationsDelegates: S.localizationsDelegates,
+      supportedLocales: S.supportedLocales,
+      theme: SpaceTheme.lightTheme,
+      darkTheme: SpaceTheme.darkTheme,
+      themeMode: ThemeMode.light,
+      initialRoute: AppRoutes.splash,
+      onGenerateRoute: AppRoutes.generateRoute,
+      builder: (context, child) {
+        ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+          return SpaceErrorScreen(
+            title: 'Oops! Something went wrong',
+            message: 'Our space engineers are working on it!',
+            onRetry: () {
+              final currentContext = navigatorKey.currentContext;
+              if (currentContext != null) {
+                Navigator.of(currentContext).pushReplacementNamed(
+                  ModalRoute.of(currentContext)?.settings.name ?? AppRoutes.home,
+                );
+              }
+            },
+          );
+        };
+        return child ?? const SizedBox.shrink();
+      },
     );
   }
 }
@@ -330,6 +324,8 @@ class AppRoutes {
   static const String puzzleGame = '/games/puzzle-math';
   static const String hyperdriveGates = '/games/hyperdrive-gates';
   static const String planetHopping = '/games/planet-hopping';
+  static const String numberWalls = '/games/number-walls';
+  static const String codebreaker = '/games/codebreaker';
   static const String settings = '/settings';
   static const String achievements = '/achievements';
   static const String loading = '/loading';
@@ -340,64 +336,74 @@ class AppRoutes {
     
     switch (settings.name) {
         case splash:
-        return _createRoute(const SplashScreen());
-        
+            return _createRoute(const SplashScreen());
+            
         case home:
-        return _createRoute(const HomeScreen());
-        
+            return _createRoute(const HomeScreen());
+            
         case gameMenu:
-        return _createRoute(const GameMenuScreen());
-        
+            return _createRoute(const GameMenuScreen());
+            
         case magicTriangles:
-        final grade = args?['grade'] as int? ?? 3;
-        final level = args?['level'] as int? ?? 1;
-        return _createRoute(MagicTrianglesGame(grade: grade, level: level));
-        
+            final grade = args?['grade'] as int? ?? 3;
+            final level = args?['level'] as int? ?? 1;
+            return _createRoute(MagicTrianglesGame(grade: grade, level: level));
+            
         case asteroidGame:
-        final grade = args?['grade'] as int? ?? 3;
-        final level = args?['level'] as int? ?? 1;
-        return _createRoute(AsteroidMathGame(grade: grade, level: level));
-        
+            final grade = args?['grade'] as int? ?? 3;
+            final level = args?['level'] as int? ?? 1;
+            return _createRoute(AsteroidMathGame(grade: grade, level: level));
+            
         case puzzleGame:
-        final grade = args?['grade'] as int? ?? 3;
-        final level = args?['level'] as int? ?? 1;
-        return _createRoute(PuzzleMathGame(grade: grade, level: level));
-        
+            final grade = args?['grade'] as int? ?? 3;
+            final level = args?['level'] as int? ?? 1;
+            return _createRoute(PuzzleMathGame(grade: grade, level: level));
+            
         case hyperdriveGates:
-        final grade = args?['grade'] as int? ?? 3;
-        final level = args?['level'] as int? ?? 1;
-        return _createRoute(HyperdriveGatesGame(grade: grade, level: level));
-        
+            final grade = args?['grade'] as int? ?? 3;
+            final level = args?['level'] as int? ?? 1;
+            return _createRoute(HyperdriveGatesGame(grade: grade, level: level));
+            
         case planetHopping:
-        final grade = args?['grade'] as int? ?? 3;
-        final level = args?['level'] as int? ?? 1;
-        return _createRoute(PlanetHoppingGame(grade: grade, level: level));
+            final grade = args?['grade'] as int? ?? 3;
+            final level = args?['level'] as int? ?? 1;
+            return _createRoute(PlanetHoppingGame(grade: grade, level: level));
+
+        case numberWalls:
+            final grade = args?['grade'] as int? ?? 3;
+            final level = args?['level'] as int? ?? 1;
+            return _createRoute(NumberWallsGame(grade: grade, level: level));
+
+        case codebreaker:
+            final grade = args?['grade'] as int? ?? 3;
+            final level = args?['level'] as int? ?? 1;
+            return _createRoute(CodebreakerGame(grade: grade, level: level));
         
-        case AppRoutes.settings:  // FIX: Use AppRoutes.settings instead of settings
-        return _createRoute(const SettingsScreen());
+        case AppRoutes.settings: // FIX: Use AppRoutes.settings instead of settings
+            return _createRoute(const SettingsScreen());
         
         case AppRoutes.achievements:  // FIX: Use AppRoutes.achievements 
         return _createRoute(const AchievementsScreen());
         
         case loading:
-        final message = args?['message'] as String?;
-        return _createRoute(SpaceLoadingScreen(message: message));
-        
+            final message = args?['message'] as String?;
+            return _createRoute(SpaceLoadingScreen(message: message));
+            
         case error:
-        final title = args?['title'] as String? ?? 'Error';
-        final message = args?['message'] as String? ?? 'Something went wrong';
-        return _createRoute(SpaceErrorScreen(title: title, message: message));
-        
+            final title = args?['title'] as String? ?? 'Error';
+            final message = args?['message'] as String? ?? 'Something went wrong';
+            return _createRoute(SpaceErrorScreen(title: title, message: message));
+            
         default:
-        return _createRoute(
-            SpaceErrorScreen(
-            title: 'Route Not Found',
-            message: 'The requested page could not be found.',
-            onBack: () {
-                // Navigate back to home - this would need context
-            },
-            ),
-        );
+            return _createRoute(
+                SpaceErrorScreen(
+                title: 'Route Not Found',
+                message: 'The requested page could not be found.',
+                onBack: () {
+                    // Navigate back to home - this would need context
+                },
+                ),
+            );
     }
     }
   

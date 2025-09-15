@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:space_math_academy/core/services/debug_provider.dart'; // Import the provider
+
+import 'dart:async'; // FIX: Add this import for Timer functionality
+import 'package:flutter/material.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -11,13 +15,20 @@ import '../widgets/grade_selector.dart';
 import '../widgets/stats_card.dart';
 import '../../games/screens/game_menu_screen.dart';
 import '../../settings/screens/settings_screen.dart';
-
+import '../../games/widgets/debug_panel.dart'; // FIX: Added missing import
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
+
+  void _showDebugPanel(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (context) => DebugPanel(),
+    );
+  }
 }
 
 class _HomeScreenState extends State<HomeScreen>
@@ -26,6 +37,10 @@ class _HomeScreenState extends State<HomeScreen>
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+
+  // STATE VARIABLES
+  int _debugTapCount = 0;
+  Timer? _debugResetTimer;
 
   @override
   void initState() {
@@ -68,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen>
   void dispose() {
     _fadeController.dispose();
     _slideController.dispose();
+    _debugResetTimer?.cancel();
     super.dispose();
   }
 
@@ -145,31 +161,62 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildHeader() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // App title or logo space
-        FadeTransition(
-          opacity: _fadeAnimation,
-          child: Text(
-            S.of(context)!.appTitle,
-            style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
-          ),
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+        // App title with hidden debug gesture
+        GestureDetector(
+            onTap: () {
+            // Cancel any existing reset timer
+            _debugResetTimer?.cancel();
+
+            setState(() {
+                _debugTapCount++;
+            });
+
+            // If 7 taps are reached, enable debug mode
+            if (_debugTapCount >= 7) {
+                context.read<DebugProvider>().enableDebugMenu();
+                ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('Debug Mode Enabled! 🕵️'),
+                    backgroundColor: SpaceTheme.alienGreen,
+                ),
+                );
+                setState(() {
+                _debugTapCount = 0; // Reset after success
+                });
+            } else {
+                // Start a timer to reset the count if the user stops tapping
+                _debugResetTimer = Timer(const Duration(seconds: 2), () {
+                setState(() {
+                    _debugTapCount = 0;
+                });
+                });
+            }
+            },
+            child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Text(
+                S.of(context)!.appTitle,
+                style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
+            ),
+            ),
         ),
         
         // Settings button
         IconButton(
-          onPressed: _navigateToSettings,
-          icon: const Icon(
+            onPressed: _navigateToSettings,
+            icon: const Icon(
             Icons.settings,
             color: Colors.white,
             size: 28,
-          ),
-          style: IconButton.styleFrom(
+            ),
+            style: IconButton.styleFrom(
             backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8),
             padding: const EdgeInsets.all(12),
-          ),
+            ),
         ),
-      ],
+        ],
     );
   }
 

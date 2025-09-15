@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:space_math_academy/core/services/debug_provider.dart';
 import 'package:space_math_academy/core/theme/space_theme.dart';
 import 'package:space_math_academy/features/games/providers/game_provider.dart';
+import 'package:space_math_academy/generated/l10n.dart';
 
 class DebugPanel extends StatefulWidget {
-  final Function() onSettingsApplied;
-
-  const DebugPanel({super.key, required this.onSettingsApplied});
+  // FIX: Removed the onSettingsApplied parameter, making the constructor const.
+  const DebugPanel({super.key});
 
   @override
   State<DebugPanel> createState() => _DebugPanelState();
@@ -19,7 +20,6 @@ class _DebugPanelState extends State<DebugPanel> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Initialize with current values from the provider
     final gameProvider = context.read<GameProvider>();
     _grade = gameProvider.grade;
     _level = gameProvider.level;
@@ -27,6 +27,9 @@ class _DebugPanelState extends State<DebugPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final debugProvider = context.watch<DebugProvider>();
+    final s = S.of(context)!;
+
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
@@ -39,33 +42,46 @@ class _DebugPanelState extends State<DebugPanel> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Debug Difficulty', style: SpaceTheme.headlineStyle),
+            Text(s.debugPanelTitle, style: SpaceTheme.headlineStyle),
             const SizedBox(height: 24),
-            
-            // Grade Slider
+            _buildSwitch(s.debugForceUnlock, debugProvider.isPaidUnlockedForced, (value) {
+              context.read<DebugProvider>().setPaidUnlock(value);
+            }),
+            const Divider(color: SpaceTheme.nebulaPurple, height: 32),
             _buildSlider('Skill Level', _grade.toDouble(), 1, 4, (value) {
-                setState(() => _grade = value.toInt());
+              setState(() => _grade = value.toInt());
             }),
-            
-            // Level Slider
             _buildSlider('Game Level', _level.toDouble(), 1, 20, (value) {
-                setState(() => _level = value.toInt());
+              setState(() => _level = value.toInt());
             }),
-            
             const SizedBox(height: 24),
             ElevatedButton.icon(
               icon: const Icon(Icons.check),
               onPressed: () {
                 context.read<GameProvider>().setDifficulty(_grade, _level);
-                widget.onSettingsApplied();
+                // FIX: Removed the call to the non-existent onSettingsApplied()
                 Navigator.of(context).pop();
               },
               style: SpaceTheme.primaryButtonStyle,
-              label: const Text('Apply & Close'),
+              label: Text(s.debugApplyAndClose),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSwitch(String label, bool value, ValueChanged<bool> onChanged) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow)),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: SpaceTheme.alienGreen,
+        ),
+      ],
     );
   }
 

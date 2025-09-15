@@ -43,6 +43,8 @@ dependencies:
   # Development
   flutter_launcher_icons: ^0.13.1
 
+  in_app_purchase: ^3.1.13 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

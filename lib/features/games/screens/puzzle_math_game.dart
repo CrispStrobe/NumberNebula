@@ -95,7 +95,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
 
     final problems = <MathProblem>{};
     while (problems.length < pieceCount) {
-      problems.add(MathProblem.generateProblem(widget.grade, widget.level, sriService));
+      problems.add(MathProblem.generateProblem(gameProvider, widget.level, sriService));
     }
 
     final problemList = problems.toList();

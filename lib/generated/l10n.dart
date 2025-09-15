@@ -559,6 +559,90 @@ abstract class S {
   /// **'Space Math Academy helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.'**
   String get aboutApp;
 
+  /// No description provided for @debugPanelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug Panel'**
+  String get debugPanelTitle;
+
+  /// No description provided for @debugForceUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Force Full Unlock'**
+  String get debugForceUnlock;
+
+  /// No description provided for @debugApplyAndClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply & Close'**
+  String get debugApplyAndClose;
+
+  /// No description provided for @parentalGateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Parental Gate'**
+  String get parentalGateTitle;
+
+  /// No description provided for @parentalGateChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'To continue, please solve this problem:'**
+  String get parentalGateChallenge;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @pleaseTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Please try again.'**
+  String get pleaseTryAgain;
+
+  /// No description provided for @purchaseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Full Access'**
+  String get purchaseTitle;
+
+  /// No description provided for @purchaseDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock all 8 games, all 4 skill levels, and all future updates with a single purchase!'**
+  String get purchaseDescription;
+
+  /// No description provided for @purchaseButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Now!'**
+  String get purchaseButton;
+
+  /// No description provided for @contactingStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Contacting Mission Control...'**
+  String get contactingStore;
+
+  /// No description provided for @purchaseError.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred. Please check your connection and try again.'**
+  String get purchaseError;
+
+  /// No description provided for @restorePurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Purchases'**
+  String get restorePurchases;
+
+  /// No description provided for @storeUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The store is currently unavailable. Please check your connection and that you are signed in to your account.'**
+  String get storeUnavailable;
+
   /// No description provided for @languageChanged.
   ///
   /// In en, this message translates to:
@@ -1356,6 +1440,204 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Quantum instability!'**
   String get pathFinderFailureQuantumTunnel;
+
+  /// No description provided for @numberWalls.
+  ///
+  /// In en, this message translates to:
+  /// **'Number Walls'**
+  String get numberWalls;
+
+  /// No description provided for @numberWallsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Build cosmic calculation pyramids! Stabilize the quantum structure!'**
+  String get numberWallsDesc;
+
+  /// No description provided for @numberWallsGameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantum Pyramid Builder'**
+  String get numberWallsGameTitle;
+
+  /// No description provided for @numberWallsInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Build the number wall! Drag numbers to complete the structure.'**
+  String get numberWallsInstructions;
+
+  /// No description provided for @numberWallsCalculating.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculating pyramid coordinates...'**
+  String get numberWallsCalculating;
+
+  /// No description provided for @numberWallsBricks.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Building Blocks'**
+  String get numberWallsBricks;
+
+  /// No description provided for @numberWallsFail.
+  ///
+  /// In en, this message translates to:
+  /// **'Structural integrity compromised! The mathematical foundation is unstable. Try again!'**
+  String get numberWallsFail;
+
+  /// No description provided for @numberWallsWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pyramid Stabilized!'**
+  String get numberWallsWinTitle;
+
+  /// No description provided for @numberWallsWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect mathematical alignment! The quantum structure is stable.\nBonus: +{bonusScore} points!'**
+  String numberWallsWinDesc(int bonusScore);
+
+  /// No description provided for @numberWallsNextWall.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Pyramid'**
+  String get numberWallsNextWall;
+
+  /// No description provided for @numberWallsAddition.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantum Addition Matrix'**
+  String get numberWallsAddition;
+
+  /// No description provided for @numberWallsSubtraction.
+  ///
+  /// In en, this message translates to:
+  /// **'Stellar Subtraction Grid'**
+  String get numberWallsSubtraction;
+
+  /// No description provided for @numberWallsMultiplication.
+  ///
+  /// In en, this message translates to:
+  /// **'Cosmic Multiplication Array'**
+  String get numberWallsMultiplication;
+
+  /// No description provided for @numberWallsDivision.
+  ///
+  /// In en, this message translates to:
+  /// **'Galactic Division Network'**
+  String get numberWallsDivision;
+
+  /// No description provided for @codebreaker.
+  ///
+  /// In en, this message translates to:
+  /// **'Codebreaker'**
+  String get codebreaker;
+
+  /// No description provided for @codebreakerDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Intercept and decode alien transmissions! Solve complex equation systems to reveal their secrets.'**
+  String get codebreakerDesc;
+
+  /// No description provided for @codebreakerSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Code cracked!'**
+  String get codebreakerSuccess;
+
+  /// No description provided for @codebreakerError.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmission corrupted'**
+  String get codebreakerError;
+
+  /// No description provided for @codebreakerTransmissionReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Alien transmission intercepted'**
+  String get codebreakerTransmissionReceived;
+
+  /// No description provided for @codebreakerSelectNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Select numbers to decode the transmission'**
+  String get codebreakerSelectNumbers;
+
+  /// No description provided for @codebreakerInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Decode the alien symbols by solving the equations. Tap numbers to fill in the missing values.'**
+  String get codebreakerInstructions;
+
+  /// No description provided for @codebreakerWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission Complete!'**
+  String get codebreakerWinTitle;
+
+  /// No description provided for @codebreakerLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmission Lost'**
+  String get codebreakerLoseTitle;
+
+  /// No description provided for @codebreakerWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent work, Agent! You successfully decoded {targetPuzzles} alien transmissions and earned {totalScore} points. The galaxy is safer thanks to your cryptographic skills!'**
+  String codebreakerWinDesc(int targetPuzzles, int totalScore);
+
+  /// No description provided for @codebreakerLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The alien codes proved too complex to crack in time. Don\'t worry - even the best codebreakers need practice!'**
+  String get codebreakerLoseDesc;
+
+  /// No description provided for @problemCustomization.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem Customization'**
+  String get problemCustomization;
+
+  /// No description provided for @problemCustomizationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize the math operations and number ranges used in games.'**
+  String get problemCustomizationDesc;
+
+  /// No description provided for @problemCustomizationUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'This feature requires the full version.'**
+  String get problemCustomizationUnlock;
+
+  /// No description provided for @enableCustomSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Custom Settings'**
+  String get enableCustomSettings;
+
+  /// No description provided for @allowedOperations.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed Operations'**
+  String get allowedOperations;
+
+  /// No description provided for @numberRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Number Range'**
+  String get numberRange;
+
+  /// No description provided for @minValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Min Value'**
+  String get minValue;
+
+  /// No description provided for @maxValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Max Value'**
+  String get maxValue;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

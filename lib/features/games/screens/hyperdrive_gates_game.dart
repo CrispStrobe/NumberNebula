@@ -171,7 +171,8 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   void _spawnNextGateSet(Size screenSize) {
     _choiceMadeForCurrentSet = false;
     final sriService = context.read<SriService>();
-    currentProblem = MathProblem.generateProblem(widget.grade, widget.level, sriService);
+    final gameProvider = context.read<GameProvider>();
+    currentProblem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
     
     final random = math.Random();
     
@@ -338,6 +339,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   void _handleGateCollision(Gate gate) {
     final sriService = context.read<SriService>();
     sriService.recordResponse(currentProblem!, gate.isCorrect);
+
     if (gate.isCorrect) {
       gatesCleared++;
       comboCounter++;

@@ -250,6 +250,51 @@ class SEn extends S {
       'Space Math Academy helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.';
 
   @override
+  String get debugPanelTitle => 'Debug Panel';
+
+  @override
+  String get debugForceUnlock => 'Force Full Unlock';
+
+  @override
+  String get debugApplyAndClose => 'Apply & Close';
+
+  @override
+  String get parentalGateTitle => 'Parental Gate';
+
+  @override
+  String get parentalGateChallenge => 'To continue, please solve this problem:';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get pleaseTryAgain => 'Please try again.';
+
+  @override
+  String get purchaseTitle => 'Unlock Full Access';
+
+  @override
+  String get purchaseDescription =>
+      'Unlock all 8 games, all 4 skill levels, and all future updates with a single purchase!';
+
+  @override
+  String get purchaseButton => 'Unlock Now!';
+
+  @override
+  String get contactingStore => 'Contacting Mission Control...';
+
+  @override
+  String get purchaseError =>
+      'An error occurred. Please check your connection and try again.';
+
+  @override
+  String get restorePurchases => 'Restore Purchases';
+
+  @override
+  String get storeUnavailable =>
+      'The store is currently unavailable. Please check your connection and that you are signed in to your account.';
+
+  @override
   String get languageChanged => 'Language Changed';
 
   @override
@@ -699,4 +744,117 @@ class SEn extends S {
 
   @override
   String get pathFinderFailureQuantumTunnel => 'Quantum instability!';
+
+  @override
+  String get numberWalls => 'Number Walls';
+
+  @override
+  String get numberWallsDesc =>
+      'Build cosmic calculation pyramids! Stabilize the quantum structure!';
+
+  @override
+  String get numberWallsGameTitle => 'Quantum Pyramid Builder';
+
+  @override
+  String get numberWallsInstructions =>
+      'Build the number wall! Drag numbers to complete the structure.';
+
+  @override
+  String get numberWallsCalculating => 'Calculating pyramid coordinates...';
+
+  @override
+  String get numberWallsBricks => 'Available Building Blocks';
+
+  @override
+  String get numberWallsFail =>
+      'Structural integrity compromised! The mathematical foundation is unstable. Try again!';
+
+  @override
+  String get numberWallsWinTitle => 'Pyramid Stabilized!';
+
+  @override
+  String numberWallsWinDesc(int bonusScore) {
+    return 'Perfect mathematical alignment! The quantum structure is stable.\nBonus: +$bonusScore points!';
+  }
+
+  @override
+  String get numberWallsNextWall => 'Next Pyramid';
+
+  @override
+  String get numberWallsAddition => 'Quantum Addition Matrix';
+
+  @override
+  String get numberWallsSubtraction => 'Stellar Subtraction Grid';
+
+  @override
+  String get numberWallsMultiplication => 'Cosmic Multiplication Array';
+
+  @override
+  String get numberWallsDivision => 'Galactic Division Network';
+
+  @override
+  String get codebreaker => 'Codebreaker';
+
+  @override
+  String get codebreakerDesc =>
+      'Intercept and decode alien transmissions! Solve complex equation systems to reveal their secrets.';
+
+  @override
+  String get codebreakerSuccess => 'Code cracked!';
+
+  @override
+  String get codebreakerError => 'Transmission corrupted';
+
+  @override
+  String get codebreakerTransmissionReceived =>
+      'Alien transmission intercepted';
+
+  @override
+  String get codebreakerSelectNumbers =>
+      'Select numbers to decode the transmission';
+
+  @override
+  String get codebreakerInstructions =>
+      'Decode the alien symbols by solving the equations. Tap numbers to fill in the missing values.';
+
+  @override
+  String get codebreakerWinTitle => 'Mission Complete!';
+
+  @override
+  String get codebreakerLoseTitle => 'Transmission Lost';
+
+  @override
+  String codebreakerWinDesc(int targetPuzzles, int totalScore) {
+    return 'Excellent work, Agent! You successfully decoded $targetPuzzles alien transmissions and earned $totalScore points. The galaxy is safer thanks to your cryptographic skills!';
+  }
+
+  @override
+  String get codebreakerLoseDesc =>
+      'The alien codes proved too complex to crack in time. Don\'t worry - even the best codebreakers need practice!';
+
+  @override
+  String get problemCustomization => 'Problem Customization';
+
+  @override
+  String get problemCustomizationDesc =>
+      'Customize the math operations and number ranges used in games.';
+
+  @override
+  String get problemCustomizationUnlock =>
+      'This feature requires the full version.';
+
+  @override
+  String get enableCustomSettings => 'Enable Custom Settings';
+
+  @override
+  String get allowedOperations => 'Allowed Operations';
+
+  @override
+  String get numberRange => 'Number Range';
+
+  @override
+  String get minValue => 'Min Value';
+
+  @override
+  String get maxValue => 'Max Value';
 }

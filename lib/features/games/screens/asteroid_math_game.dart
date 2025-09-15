@@ -81,12 +81,13 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     _spaceshipController =
         AnimationController(duration: const Duration(seconds: 2), vsync: this)..repeat();
 
-    // Initialize difficulty based on grade and level
-    currentDifficulty = DifficultyManager.getDifficulty(widget.grade, widget.level);
-
     // Start the game after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        // --- Initialize difficulty using the provider from context ---
+        final gameProvider = context.read<GameProvider>();
+        currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level);
+
         _resetGame();
         _gameLoopController.addListener(_updateGame);
       }
@@ -144,6 +145,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     final problems = <MathProblem>[];
 
     final sriService = context.read<SriService>(); // Get the SRI service
+    final gameProvider = context.read<GameProvider>();
     
     // Generate math problems using your library
     int attempts = 0;
@@ -151,7 +153,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       attempts++;
       
       // Use the smart generator
-      final problem = MathProblem.generateProblem(widget.grade, widget.level, sriService);
+      final problem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
       
       // Ensure we don't have duplicate answers and answers are in reasonable range
       if (!usedAnswers.contains(problem.answer) && problem.answer > 0 && problem.answer < 1000) {

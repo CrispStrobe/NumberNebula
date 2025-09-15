@@ -2,9 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math' as math;
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import '../../games/constants/app_constants.dart';
 import '../../games/providers/game_provider.dart';
 import '../../games/widgets/space_background.dart';
 
@@ -33,8 +35,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
-    _settingAnimations = List.generate(6, (index) {
+
+    _settingAnimations = List.generate(7, (index) { // how many settings do we have => how large the card...
       return Tween<Offset>(
         begin: const Offset(-1.0, 0.0),
         end: Offset.zero,
@@ -159,6 +161,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                       _buildAudioSettings(),
                       const SizedBox(height: 20),
                       _buildGameplaySettings(),
+                      const SizedBox(height: 20),
+                      _buildProblemCustomizationSettings(),
                       const SizedBox(height: 20),
                       _buildLanguageSettings(),
                       const SizedBox(height: 20),
@@ -335,10 +339,162 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
     );
   }
+
+  // --- Method to build the entire problem customization card ---
+  Widget _buildProblemCustomizationSettings() {
+    return SlideTransition(
+      position: _settingAnimations[2], // Adjust animation index if needed
+      child: Consumer<GameProvider>(
+        builder: (context, gameProvider, child) {
+          final isUnlocked = gameProvider.isFullVersionUnlocked;
+          final bool isCustomEnabled = isUnlocked && gameProvider.useCustomProblemSettings;
+
+          return _buildSettingsCard(
+            title: S.of(context)!.problemCustomization,
+            icon: Icons.calculate,
+            children: [
+              Text(
+                S.of(context)!.problemCustomizationDesc,
+                style: SpaceTheme.bodyStyle.copyWith(fontSize: 14, color: Colors.white70),
+              ),
+              const SizedBox(height: 16),
+              _buildSwitchTile(
+                title: S.of(context)!.enableCustomSettings,
+                subtitle: isUnlocked ? '' : S.of(context)!.problemCustomizationUnlock,
+                value: gameProvider.useCustomProblemSettings,
+                onChanged: isUnlocked
+                    ? (value) {
+                        gameProvider.setUseCustomSettings(value);
+                        _saveSetting('use_custom_settings', value);
+                      }
+                    : (value) {}, // Empty function to disable
+                icon: Icons.toggle_on,
+                isLocked: !isUnlocked,
+              ),
+              const Divider(color: SpaceTheme.nebulaPurple, height: 24),
+
+              // Allowed Operations Section
+              Text(
+                S.of(context)!.allowedOperations,
+                style: SpaceTheme.titleStyle.copyWith(fontSize: 16, color: isCustomEnabled ? Colors.white : Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              _buildOperationCheckboxes(isCustomEnabled),
+              
+              const SizedBox(height: 16),
+              // Number Range Section
+              Text(
+                S.of(context)!.numberRange,
+                style: SpaceTheme.titleStyle.copyWith(fontSize: 16, color: isCustomEnabled ? Colors.white : Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              _buildRangeSliders(isCustomEnabled),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  // --- Helper for operation checkboxes ---
+  Widget _buildOperationCheckboxes(bool isEnabled) {
+    return Consumer<GameProvider>(
+      builder: (context, gameProvider, child) {
+        return Wrap(
+          spacing: 8.0,
+          runSpacing: 4.0,
+          children: [
+            _buildOperationChip(
+              context.read<S>().mathOperationsAddition, 'addition', gameProvider, isEnabled),
+            _buildOperationChip(
+              context.read<S>().mathOperationsSubtraction, 'subtraction', gameProvider, isEnabled),
+            _buildOperationChip(
+              context.read<S>().mathOperationsMultiplication, 'multiplication', gameProvider, isEnabled),
+            _buildOperationChip(
+              context.read<S>().mathOperationsDivision, 'division', gameProvider, isEnabled),
+          ],
+        );
+      },
+    );
+  }
+
+  // --- Helper for a single operation chip ---
+  Widget _buildOperationChip(String label, String opKey, GameProvider provider, bool isEnabled) {
+    final bool isSelected = provider.customOperations.contains(opKey);
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: isEnabled
+          ? (selected) {
+              final currentOps = Set<String>.from(provider.customOperations);
+              if (selected) {
+                currentOps.add(opKey);
+              } else if (currentOps.length > 1) { // Prevent unselecting the last one
+                currentOps.remove(opKey);
+              }
+              provider.setCustomOperations(currentOps);
+              _saveSetting('custom_math_ops', currentOps.toList());
+            }
+          : null,
+      backgroundColor: SpaceTheme.deepSpace,
+      selectedColor: SpaceTheme.alienGreen,
+      labelStyle: TextStyle(color: isEnabled ? Colors.white : Colors.grey),
+      shape: StadiumBorder(side: BorderSide(color: isEnabled ? SpaceTheme.alienGreen : Colors.grey)),
+    );
+  }
+
+  // --- Helper for range sliders ---
+  Widget _buildRangeSliders(bool isEnabled) {
+    return Consumer<GameProvider>(
+      builder: (context, gameProvider, child) { 
+        return Column(
+          children: [
+            Row(
+              children: [
+                Expanded(child: Text(S.of(context)!.minValue, style: SpaceTheme.bodyStyle.copyWith(color: isEnabled ? Colors.white70 : Colors.grey))),
+                Text(gameProvider.customRangeMin.toString(), style: SpaceTheme.titleStyle.copyWith(color: isEnabled ? SpaceTheme.starYellow : Colors.grey)),
+              ],
+            ),
+            Slider(
+              value: gameProvider.customRangeMin.toDouble(),
+              min: 1,
+              max: 99,
+              divisions: 98,
+              onChanged: isEnabled ? (value) {
+                gameProvider.setCustomRange(min: value.toInt(), max: math.max(value.toInt(), gameProvider.customRangeMax));
+              } : null,
+              onChangeEnd: (value) {
+                _saveSetting('custom_range_min', value.toInt());
+                _saveSetting('custom_range_max', math.max(value.toInt(), gameProvider.customRangeMax));
+              },
+            ),
+            Row(
+              children: [
+                Expanded(child: Text(S.of(context)!.maxValue, style: SpaceTheme.bodyStyle.copyWith(color: isEnabled ? Colors.white70 : Colors.grey))),
+                Text(gameProvider.customRangeMax.toString(), style: SpaceTheme.titleStyle.copyWith(color: isEnabled ? SpaceTheme.starYellow : Colors.grey)),
+              ],
+            ),
+            Slider(
+              value: gameProvider.customRangeMax.toDouble(),
+              min: gameProvider.customRangeMin.toDouble(),
+              max: 200,
+              divisions: (200 - gameProvider.customRangeMin).toInt(),
+              onChanged: isEnabled ? (value) {
+                gameProvider.setCustomRange(min: gameProvider.customRangeMin, max: value.toInt());
+              } : null,
+              onChangeEnd: (value) {
+                 _saveSetting('custom_range_max', value.toInt());
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
   
   Widget _buildLanguageSettings() {
     return SlideTransition(
-      position: _settingAnimations[2],
+      position: _settingAnimations[3], // Adjust animation index
       child: _buildSettingsCard(
         title: S.of(context)!.language,
         icon: Icons.language,
@@ -643,6 +799,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     required bool value,
     required ValueChanged<bool> onChanged,
     required IconData icon,
+    bool isLocked = false,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -680,7 +837,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           
           Switch(
             value: value,
-            onChanged: onChanged,
+            onChanged: isLocked ? null : onChanged, // Disable if locked
             activeColor: SpaceTheme.alienGreen,
             inactiveThumbColor: SpaceTheme.moonSilver,
             inactiveTrackColor: SpaceTheme.deepSpace,

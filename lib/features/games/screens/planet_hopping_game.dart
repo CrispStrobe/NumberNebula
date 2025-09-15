@@ -1,5 +1,5 @@
 // lib/features/games/screens/planet_hopping_game.dart
-
+import '../../../generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
@@ -143,6 +143,8 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   void _generatePlanets(SriService sriService) {
     planets.clear();
     final random = math.Random();
+    final gameProvider = context.read<GameProvider>(); // Get the provider
+    
     final difficulty = widget.grade + widget.level;
     final planetCount = (5 + (difficulty / 4)).clamp(5, 8).toInt();
 
@@ -158,7 +160,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     
     while (problems.length < planetCount && attempts < 200) {
       attempts++;
-      final problem = MathProblem.generateProblem(widget.grade, widget.level, sriService);
+      final problem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
       
       if (!usedAnswers.contains(problem.answer)) {
         problems.add(problem);
@@ -348,6 +350,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(

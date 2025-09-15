@@ -2,19 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
+import '../../../core/services/debug_provider.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
-import '../screens/magic_triangles_game.dart';
-import '../screens/asteroid_math_game.dart';
-import '../screens/puzzle_math_game.dart';
-import '../screens/hyperdrive_gates_game.dart';
-import '../screens/path_finder_game.dart';
-import '../screens/planet_hopping_game.dart';
+import 'magic_triangles_game.dart';
+import 'asteroid_math_game.dart';
+import 'puzzle_math_game.dart';
+import 'hyperdrive_gates_game.dart';
+import 'path_finder_game.dart';
+import 'planet_hopping_game.dart';
+import 'number_walls_game.dart';
+import 'codebreaker_game.dart';
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../achievements/screens/achievements_screen.dart';
+import '../../../shared/widgets/purchase_dialog.dart'; // For the purchase flow
+import '../../../shared/widgets/parental_gate.dart';  // For the parental gate
 
 class GameMenuScreen extends StatefulWidget {
   const GameMenuScreen({super.key});
@@ -23,45 +28,27 @@ class GameMenuScreen extends StatefulWidget {
   State<GameMenuScreen> createState() => _GameMenuScreenState();
 }
 
-class _GameMenuScreenState extends State<GameMenuScreen>
-    with TickerProviderStateMixin {
-  
+class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStateMixin {
   late AnimationController _slideController;
   late AnimationController _floatController;
   late List<Animation<Offset>> _cardAnimations;
   late Animation<double> _floatAnimation;
 
-  // Define the number of games
-  static const int _gameCount = 6;
-  
+  static const int _gameCount = 8;
+
   @override
   void initState() {
     super.initState();
-    
     _slideController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-    
-    _floatController = AnimationController(
-      duration: const Duration(seconds: 3),
-      vsync: this,
-    )..repeat(reverse: true);
-    
-    _floatAnimation = Tween<double>(
-      begin: -10.0,
-      end: 10.0,
-    ).animate(CurvedAnimation(
-      parent: _floatController,
-      curve: Curves.easeInOut,
-    ));
-    
-    // Create staggered animations for each game card (now 5 games)
+        duration: const Duration(milliseconds: 1500), vsync: this);
+    _floatController =
+        AnimationController(duration: const Duration(seconds: 3), vsync: this)
+          ..repeat(reverse: true);
+    _floatAnimation = Tween<double>(begin: -10.0, end: 10.0)
+        .animate(CurvedAnimation(parent: _floatController, curve: Curves.easeInOut));
     _cardAnimations = List.generate(_gameCount, (index) {
-      return Tween<Offset>(
-        begin: const Offset(0, 1.5),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(
+      return Tween<Offset>(begin: const Offset(0, 1.5), end: Offset.zero)
+          .animate(CurvedAnimation(
         parent: _slideController,
         curve: Interval(
           (index * 0.1).clamp(0.0, 1.0),
@@ -70,10 +57,9 @@ class _GameMenuScreenState extends State<GameMenuScreen>
         ),
       ));
     });
-    
     _slideController.forward();
   }
-  
+
   @override
   void dispose() {
     _slideController.dispose();
@@ -83,79 +69,35 @@ class _GameMenuScreenState extends State<GameMenuScreen>
 
   void _showDebugPanel() {
     showDialog(
-        context: context,
-        builder: (context) => DebugPanel(
-        onSettingsApplied: () {
-            setState(() {});
-        },
-        ),
+      context: context,
+      builder: (context) => DebugPanel(),
     );
   }
 
   void _navigateToSettings() {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const SettingsScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(1.0, 0.0),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeInOut,
-            )),
-            child: child,
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 500),
-      ),
-    );
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
   }
 
   void _navigateToAchievements() {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const AchievementsScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return ScaleTransition(
-            scale: Tween<double>(
-              begin: 0.0,
-              end: 1.0,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.elasticOut,
-            )),
-            child: child,
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 800),
-      ),
-    );
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AchievementsScreen()));
   }
-  
+
   void _navigateToGame(Widget gameScreen) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => gameScreen,
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return ScaleTransition(
-            scale: Tween<double>(
-              begin: 0.0,
-              end: 1.0,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.elasticOut,
-            )),
-            child: FadeTransition(
-              opacity: animation,
-              child: child,
-            ),
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => gameScreen));
+  }
+
+  void _showPurchaseFlow(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => ParentalGateDialog(
+        onSuccess: () {
+          Navigator.of(context).pop(); // Close the gate dialog
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => const PurchaseDialog(),
           );
         },
-        transitionDuration: const Duration(milliseconds: 800),
       ),
     );
   }
@@ -164,89 +106,65 @@ class _GameMenuScreenState extends State<GameMenuScreen>
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isLandscape = screenSize.width > screenSize.height;
-
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
           child: Column(
             children: [
               _buildHeader(),
-              // This version enforces fit
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  child: isLandscape ? _buildLandscapeGrid() : _buildPortraitGrid(),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child:
+                      isLandscape ? _buildLandscapeGrid() : _buildPortraitGrid(),
                 ),
               ),
-              // This version ensures the grid area is scrollable
-              /* Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  child: isLandscape ? _buildLandscapeGrid() : _buildPortraitGrid(),
-                ),
-              ), */
             ],
           ),
         ),
       ),
     );
   }
-  
+
   Widget _buildHeader() {
+    final debugProvider = context.watch<DebugProvider>();
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF1E2235),
-            Colors.transparent,
-          ],
+          colors: [Color(0xFF1E2235), Colors.transparent],
         ),
       ),
       child: Row(
         children: [
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(
-              Icons.arrow_back_ios,
-              color: Colors.white,
-              size: 28,
-            ),
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 28),
             style: IconButton.styleFrom(
               backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8),
               padding: const EdgeInsets.all(12),
             ),
           ),
-          
           const SizedBox(width: 20),
-          
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  S.of(context)!.gameMenu,
-                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 32),
-                ),
-                
+                Text(S.of(context)!.gameMenu, style: SpaceTheme.headlineStyle.copyWith(fontSize: 32)),
                 Consumer<GameProvider>(
                   builder: (context, gameProvider, child) {
                     return Text(
-                      'Grade ${gameProvider.grade} • Level ${gameProvider.level}',
-                      style: SpaceTheme.bodyStyle.copyWith(
-                        color: SpaceTheme.starYellow,
-                        fontSize: 16,
-                      ),
+                      '${S.of(context)!.gradeN(gameProvider.grade)} • ${S.of(context)!.level} ${gameProvider.level}',
+                      style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 16),
                     );
                   },
                 ),
               ],
             ),
           ),
-          
-          // Quick stats
           Consumer<GameProvider>(
             builder: (context, gameProvider, child) {
               return Container(
@@ -262,152 +180,130 @@ class _GameMenuScreenState extends State<GameMenuScreen>
                     const SizedBox(width: 8),
                     Text(
                       gameProvider.score.toString(),
-                      style: SpaceTheme.titleStyle.copyWith(
-                        color: SpaceTheme.starYellow,
-                        fontSize: 18,
-                      ),
+                      style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 18),
                     ),
                   ],
                 ),
               );
             },
           ),
-
           const SizedBox(width: 8),
-          
-          // Navigation buttons row
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Achievements button
               IconButton(
                 onPressed: _navigateToAchievements,
                 icon: const Icon(Icons.emoji_events),
                 color: SpaceTheme.starYellow,
                 tooltip: S.of(context)!.achievements,
-                style: IconButton.styleFrom(
-                  backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8),
-                ),
+                style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
               ),
-              
               const SizedBox(width: 4),
-              
-              // Settings button
               IconButton(
                 onPressed: _navigateToSettings,
                 icon: const Icon(Icons.settings),
                 color: SpaceTheme.moonSilver,
                 tooltip: S.of(context)!.settings,
-                style: IconButton.styleFrom(
-                  backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8),
-                ),
+                style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
               ),
-              
-              const SizedBox(width: 4),
-              
-              // DEBUG BUTTON
-              IconButton(
-                onPressed: _showDebugPanel,
-                icon: const Icon(Icons.bug_report),
-                color: SpaceTheme.moonSilver,
-                tooltip: 'Debug Settings',
-                style: IconButton.styleFrom(
-                  backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8),
+              if (debugProvider.isDebugMenuEnabled) ...[
+                const SizedBox(width: 4),
+                IconButton(
+                  onPressed: _showDebugPanel,
+                  icon: const Icon(Icons.bug_report),
+                  color: debugProvider.isPaidUnlockedForced
+                      ? SpaceTheme.alienGreen
+                      : SpaceTheme.moonSilver,
+                  tooltip: S.of(context)!.debugPanelTitle,
+                  style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
                 ),
-              ),
+              ]
             ],
           ),
         ],
       ),
     );
   }
-  
-  // FIX: Make cards wider than they are tall to fit two rows without scrolling.
+
   Widget _buildLandscapeGrid() {
     return GridView.builder(
-      // The parent Expanded widget will handle sizing, no scrolling needed.
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 20,
-        mainAxisSpacing: 20,
-        childAspectRatio: 1.25, // Value > 1.0 makes items wider than they are tall.
-      ),
+          crossAxisCount: 3, crossAxisSpacing: 20, mainAxisSpacing: 20, childAspectRatio: 1.25),
       itemCount: _gameCount,
       itemBuilder: (context, index) => _buildGameCard(index),
     );
   }
 
-  // FIX: Make portrait cards slightly more square to ensure they fit well.
   Widget _buildPortraitGrid() {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 20,
-        mainAxisSpacing: 20,
-        childAspectRatio: 0.85, // Taller cards are fine in portrait mode.
-      ),
+          crossAxisCount: 2, crossAxisSpacing: 20, mainAxisSpacing: 20, childAspectRatio: 0.85),
       itemCount: _gameCount,
       itemBuilder: (context, index) => _buildGameCard(index),
     );
   }
-  
+
   Widget _buildGameCard(int index) {
     final gameProvider = context.read<GameProvider>();
-    // define ORDER AND INTEGRATION
+    final debugProvider = context.read<DebugProvider>();
+    final s = S.of(context)!;
+
     final games = [
-        // 1. Cosmic Triangles
-        GameInfo(
-        title: S.of(context)!.magicTriangles,
-        description: S.of(context)!.magicTrianglesDesc,
-        icon: Icons.change_history,
-        gradient: const LinearGradient(colors: [SpaceTheme.nebulaPurple, SpaceTheme.cosmicPink]),
-        onTap: () => _navigateToGame(MagicTrianglesGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        // 2. Asteroid Field Hunter
-        GameInfo(
-        title: S.of(context)!.bubbleMath, // Note: l10n key is bubbleMath
-        description: S.of(context)!.bubbleMathDesc,
-        icon: Icons.bubble_chart,
-        gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.starYellow]),
-        onTap: () => _navigateToGame(AsteroidMathGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        // 3. Constellation Puzzles
-        GameInfo(
-        title: S.of(context)!.puzzleMath,
-        description: S.of(context)!.puzzleMathDesc,
-        icon: Icons.extension,
-        gradient: const LinearGradient(colors: [SpaceTheme.planetOrange, SpaceTheme.rocketRed]),
-        onTap: () => _navigateToGame(PuzzleMathGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        // 4. Hyperdrive Gates
-        GameInfo(
-        title: S.of(context)!.hyperdriveGates,
-        description: S.of(context)!.hyperdriveGatesDesc,
-        icon: Icons.rocket_launch,
-        gradient: const LinearGradient(colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)]),
-        onTap: () => _navigateToGame(HyperdriveGatesGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        // 5. PathFinder
-        GameInfo(
-        title: S.of(context)!.pathFinderTitle,
-        description: S.of(context)!.pathFinderDesc,
-        icon: Icons.map, // Example icon
-        gradient: const LinearGradient(colors: [Colors.teal, Colors.cyan]),
-        onTap: () => _navigateToGame(PathFinderGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        // 6. Gravity Sling
-        GameInfo(
-        title: S.of(context)!.planetHopping,
-        description: S.of(context)!.planetHoppingDesc,
-        icon: Icons.public,
-        gradient: const LinearGradient(colors: [Color(0xFF667eea), Color(0xFF764ba2)]),
-        onTap: () => _navigateToGame(PlanetHoppingGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
+      GameInfo(
+          title: s.magicTriangles,
+          description: s.magicTrianglesDesc,
+          icon: Icons.change_history,
+          gradient: const LinearGradient(colors: [SpaceTheme.nebulaPurple, SpaceTheme.cosmicPink]),
+          onTap: () => _navigateToGame(MagicTrianglesGame(grade: gameProvider.grade, level: gameProvider.level))),
+      GameInfo(
+          title: s.bubbleMath,
+          description: s.bubbleMathDesc,
+          icon: Icons.bubble_chart,
+          gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.starYellow]),
+          onTap: () => _navigateToGame(AsteroidMathGame(grade: gameProvider.grade, level: gameProvider.level))),
+      GameInfo(
+          title: s.puzzleMath,
+          description: s.puzzleMathDesc,
+          icon: Icons.extension,
+          gradient: const LinearGradient(colors: [SpaceTheme.planetOrange, SpaceTheme.rocketRed]),
+          onTap: () => _navigateToGame(PuzzleMathGame(grade: gameProvider.grade, level: gameProvider.level))),
+      GameInfo(
+          title: s.hyperdriveGates,
+          description: s.hyperdriveGatesDesc,
+          icon: Icons.rocket_launch,
+          gradient: const LinearGradient(colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)]),
+          onTap: () => _navigateToGame(HyperdriveGatesGame(grade: gameProvider.grade, level: gameProvider.level))),
+      GameInfo(
+          title: s.pathFinderTitle,
+          description: s.pathFinderDesc,
+          icon: Icons.map,
+          gradient: const LinearGradient(colors: [Colors.teal, Colors.cyan]),
+          onTap: () => _navigateToGame(PathFinderGame(grade: gameProvider.grade, level: gameProvider.level))),
+      GameInfo(
+          title: s.planetHopping,
+          description: s.planetHoppingDesc,
+          icon: Icons.public,
+          gradient: const LinearGradient(colors: [Color(0xFF667eea), Color(0xFF764ba2)]),
+          onTap: () => _navigateToGame(PlanetHoppingGame(grade: gameProvider.grade, level: gameProvider.level))),
+      GameInfo(
+          title: s.numberWalls,
+          description: s.numberWallsDesc,
+          icon: Icons.view_module,
+          gradient: const LinearGradient(colors: [Color(0xFFf97794), Color(0xFF623aa2)]),
+          onTap: () => _navigateToGame(NumberWallsGame(grade: gameProvider.grade, level: gameProvider.level))),
+      GameInfo(
+          title: s.codebreaker,
+          description: s.codebreakerDesc,
+          icon: Icons.vpn_key,
+          gradient: const LinearGradient(colors: [Color(0xFF00c6ff), Color(0xFF0072ff)]),
+          onTap: () => _navigateToGame(CodebreakerGame(grade: gameProvider.grade, level: gameProvider.level))),
     ];
 
     final game = games[index];
-    
-    // Ensure animation list is long enough
+    final bool isPremiumContent = index > 1; // First 2 games are free
+    final bool isUnlocked = gameProvider.isFullVersionUnlocked || debugProvider.isPaidUnlockedForced;
+    final bool isLocked = isPremiumContent && !isUnlocked;
+
     if (index >= _cardAnimations.length) return const SizedBox.shrink();
 
     return SlideTransition(
@@ -417,7 +313,21 @@ class _GameMenuScreenState extends State<GameMenuScreen>
         builder: (context, child) {
           return Transform.translate(
             offset: Offset(0, _floatAnimation.value * (index % 3 + 1) * 0.3),
-            child: GameCard(game: game),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                GameCard(
+                  game: game,
+                  onTap: isLocked ? () => _showPurchaseFlow(context) : game.onTap,
+                ),
+                if (isLocked)
+                  Container(
+                    decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(25)),
+                  ),
+                if (isLocked)
+                  Icon(Icons.lock, color: SpaceTheme.starYellow, size: 50, shadows: [Shadow(color: Colors.black.withOpacity(0.7), blurRadius: 10)]),
+              ],
+            ),
           );
         },
       ),
@@ -425,80 +335,45 @@ class _GameMenuScreenState extends State<GameMenuScreen>
   }
 }
 
+// These classes MUST be at the top-level, NOT inside the State class.
 class GameInfo {
   final String title;
   final String description;
   final IconData icon;
   final Gradient gradient;
   final VoidCallback onTap;
-  
-  GameInfo({
-    required this.title,
-    required this.description,
-    required this.icon,
-    required this.gradient,
-    required this.onTap,
-  });
+  GameInfo({required this.title, required this.description, required this.icon, required this.gradient, required this.onTap});
 }
 
 class GameCard extends StatefulWidget {
   final GameInfo game;
-  
-  const GameCard({
-    super.key,
-    required this.game,
-  });
+  final VoidCallback onTap;
+  const GameCard({super.key, required this.game, required this.onTap});
 
   @override
   State<GameCard> createState() => _GameCardState();
 }
 
-class _GameCardState extends State<GameCard>
-    with SingleTickerProviderStateMixin {
-  
+class _GameCardState extends State<GameCard> with SingleTickerProviderStateMixin {
   late AnimationController _hoverController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _glowAnimation;
-  
-  bool _isHovered = false;
-  
+
   @override
   void initState() {
     super.initState();
-    
-    _hoverController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.05,
-    ).animate(CurvedAnimation(
-      parent: _hoverController,
-      curve: Curves.easeOut,
-    ));
-    
-    _glowAnimation = Tween<double>(
-      begin: 0.3,
-      end: 0.8,
-    ).animate(CurvedAnimation(
-      parent: _hoverController,
-      curve: Curves.easeOut,
-    ));
+    _hoverController = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(CurvedAnimation(parent: _hoverController, curve: Curves.easeOut));
+    _glowAnimation = Tween<double>(begin: 0.3, end: 0.8).animate(CurvedAnimation(parent: _hoverController, curve: Curves.easeOut));
   }
-  
+
   @override
   void dispose() {
     _hoverController.dispose();
     super.dispose();
   }
-  
+
   void _onHover(bool isHovered) {
-    setState(() {
-      _isHovered = isHovered;
-    });
-    
     if (isHovered) {
       _hoverController.forward();
     } else {
@@ -517,68 +392,37 @@ class _GameCardState extends State<GameCard>
             onEnter: (_) => _onHover(true),
             onExit: (_) => _onHover(false),
             child: GestureDetector(
-              onTap: widget.game.onTap,
+              onTap: widget.onTap,
               child: Container(
                 decoration: BoxDecoration(
                   gradient: widget.game.gradient,
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    ),
-                    BoxShadow(
-                      color: widget.game.gradient.colors.first.withOpacity(_glowAnimation.value),
-                      blurRadius: 25,
-                      spreadRadius: 2,
-                    ),
+                    BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8)),
+                    BoxShadow(color: widget.game.gradient.colors.first.withOpacity(_glowAnimation.value), blurRadius: 25, spreadRadius: 2),
                   ],
                 ),
                 child: Padding(
-                  // FIX: Reduced vertical padding for a more compact layout.
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Container(
-                        // FIX: Smaller icon container.
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
+                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
                         child: Icon(widget.game.icon, size: 24, color: Colors.white),
                       ),
-                      Text(
-                        widget.game.title,
-                        style: SpaceTheme.headlineStyle.copyWith(fontSize: 15),
-                        textAlign: TextAlign.center,
-                        maxLines: 1, // FIX: Title on a single line.
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        widget.game.description,
-                        style: SpaceTheme.bodyStyle.copyWith(fontSize: 10),
-                        textAlign: TextAlign.center,
-                        maxLines: 2, // FIX: Description limited to 2 lines.
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      Text(widget.game.title, style: SpaceTheme.headlineStyle.copyWith(fontSize: 15), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(widget.game.description, style: SpaceTheme.bodyStyle.copyWith(fontSize: 10), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(Icons.play_arrow, color: Colors.white, size: 14),
                             const SizedBox(width: 4),
-                            Text(
-                              'Launch',
-                              style: SpaceTheme.buttonStyle.copyWith(fontSize: 12),
-                            ),
+                            Text('Launch', style: SpaceTheme.buttonStyle.copyWith(fontSize: 12)),
                           ],
                         ),
                       ),
@@ -591,33 +435,5 @@ class _GameCardState extends State<GameCard>
         );
       },
     );
-  }
-}
-
-class StarPatternPainter extends CustomPainter {
-  final Color color;
-  
-  StarPatternPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-    
-    final random = math.Random(42); // Fixed seed for consistent pattern
-    
-    for (int i = 0; i < 20; i++) {
-      final x = random.nextDouble() * size.width;
-      final y = random.nextDouble() * size.height;
-      final starSize = random.nextDouble() * 3 + 1;
-      
-      canvas.drawCircle(Offset(x, y), starSize, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(StarPatternPainter oldDelegate) {
-    return oldDelegate.color != color;
   }
 }

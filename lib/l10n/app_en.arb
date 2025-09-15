@@ -95,6 +95,20 @@
     "targetAge": "Target Age",
     "targetAgeRange": "8-12 years (Grades 3-6)",
     "aboutApp": "Space Math Academy helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.",
+    "debugPanelTitle": "Debug Panel",
+    "debugForceUnlock": "Force Full Unlock",
+    "debugApplyAndClose": "Apply & Close",
+    "parentalGateTitle": "Parental Gate",
+    "parentalGateChallenge": "To continue, please solve this problem:",
+    "confirm": "Confirm",
+    "pleaseTryAgain": "Please try again.",
+    "purchaseTitle": "Unlock Full Access",
+    "purchaseDescription": "Unlock all 8 games, all 4 skill levels, and all future updates with a single purchase!",
+    "purchaseButton": "Unlock Now!",
+    "contactingStore": "Contacting Mission Control...",
+    "purchaseError": "An error occurred. Please check your connection and try again.",
+    "restorePurchases": "Restore Purchases",
+    "storeUnavailable": "The store is currently unavailable. Please check your connection and that you are signed in to your account.",
     "languageChanged": "Language Changed",
     "languageChangedDesc": "The app language will change when you restart. Would you like to restart now?",
     "later": "Later",
@@ -102,11 +116,11 @@
     "selectGrade": "Select Skill Level",
     "gradeN": "Skill Level {gradeNumber}",
     "@gradeN": {
-      "placeholders": {
-        "gradeNumber": {
-          "type": "int"
+        "placeholders": {
+            "gradeNumber": {
+                "type": "int"
+            }
         }
-      }
     },
     "cancel": "Cancel",
     "restartToApplyChanges": "Please restart the app to apply language changes",
@@ -243,7 +257,7 @@
     "calculatingCoordinates": "Calculating wormhole coordinates...",
     "magicTrianglesWinTitle": "Wormhole Stabilized!",
     "magicTrianglesWinDesc": "Perfect alignment! The warp corridor is open.\nBonus: +{bonusScore} points!",
-     "@magicTrianglesWinDesc": {
+    "@magicTrianglesWinDesc": {
         "placeholders": {
             "bonusScore": {}
         }
@@ -259,7 +273,7 @@
     },
     "asteroidMathWinTitle": "Asteroid Field Cleared!",
     "asteroidMathWinDesc": "Time Bonus: {timeBonus} points!\nYou are a true Space Hunter!",
-     "@asteroidMathWinDesc": {
+    "@asteroidMathWinDesc": {
         "placeholders": {
             "timeBonus": {}
         }
@@ -300,7 +314,7 @@
                 "description": "Number of problems that needed to be solved"
             },
             "totalScore": {
-                "type": "int", 
+                "type": "int",
                 "description": "Total points earned"
             }
         }
@@ -312,5 +326,55 @@
     "pathFinderFailureAsteroidBelt": "Asteroid collision!",
     "pathFinderFailureClearSpace": "Navigation error!",
     "pathFinderFailureIonStorm": "Ion storm damage!",
-    "pathFinderFailureQuantumTunnel": "Quantum instability!"    
+    "pathFinderFailureQuantumTunnel": "Quantum instability!",
+    "numberWalls": "Number Walls",
+    "numberWallsDesc": "Build cosmic calculation pyramids! Stabilize the quantum structure!",
+    "numberWallsGameTitle": "Quantum Pyramid Builder",
+    "numberWallsInstructions": "Build the number wall! Drag numbers to complete the structure.",
+    "numberWallsCalculating": "Calculating pyramid coordinates...",
+    "numberWallsBricks": "Available Building Blocks",
+    "numberWallsFail": "Structural integrity compromised! The mathematical foundation is unstable. Try again!",
+    "numberWallsWinTitle": "Pyramid Stabilized!",
+    "numberWallsWinDesc": "Perfect mathematical alignment! The quantum structure is stable.\nBonus: +{bonusScore} points!",
+    "@numberWallsWinDesc": {
+        "placeholders": {
+            "bonusScore": {
+                "type": "int"
+            }
+        }
+    },
+    "numberWallsNextWall": "Next Pyramid",
+    "numberWallsAddition": "Quantum Addition Matrix",
+    "numberWallsSubtraction": "Stellar Subtraction Grid",
+    "numberWallsMultiplication": "Cosmic Multiplication Array",
+    "numberWallsDivision": "Galactic Division Network",
+    "codebreaker": "Codebreaker",
+    "codebreakerDesc": "Intercept and decode alien transmissions! Solve complex equation systems to reveal their secrets.",
+    "codebreakerSuccess": "Code cracked!",
+    "codebreakerError": "Transmission corrupted",
+    "codebreakerTransmissionReceived": "Alien transmission intercepted",
+    "codebreakerSelectNumbers": "Select numbers to decode the transmission",
+    "codebreakerInstructions": "Decode the alien symbols by solving the equations. Tap numbers to fill in the missing values.",
+    "codebreakerWinTitle": "Mission Complete!",
+    "codebreakerLoseTitle": "Transmission Lost",
+    "codebreakerWinDesc": "Excellent work, Agent! You successfully decoded {targetPuzzles} alien transmissions and earned {totalScore} points. The galaxy is safer thanks to your cryptographic skills!",
+    "@codebreakerWinDesc": {
+        "placeholders": {
+            "targetPuzzles": {
+                "type": "int"
+            },
+            "totalScore": {
+                "type": "int"
+            }
+        }
+    },
+    "codebreakerLoseDesc": "The alien codes proved too complex to crack in time. Don't worry - even the best codebreakers need practice!",
+    "problemCustomization": "Problem Customization",
+    "problemCustomizationDesc": "Customize the math operations and number ranges used in games.",
+    "problemCustomizationUnlock": "This feature requires the full version.",
+    "enableCustomSettings": "Enable Custom Settings",
+    "allowedOperations": "Allowed Operations",
+    "numberRange": "Number Range",
+    "minValue": "Min Value",
+    "maxValue": "Max Value"
 }

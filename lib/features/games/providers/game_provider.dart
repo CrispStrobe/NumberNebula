@@ -40,6 +40,23 @@ class GameProvider extends ChangeNotifier {
   bool _useAdaptiveDifficulty = false;
   Map<String, int> _gameProgress = {};
   List<Achievement> _achievements = [];
+  bool _isFullVersionUnlocked = false;
+
+  bool _useCustomProblemSettings = false;
+  Set<String> _customOperations = {'addition', 'subtraction'}; // Default to basic ops
+  int _customRangeMin = 1;
+  int _customRangeMax = 20;
+
+  // Getter
+  bool get isFullVersionUnlocked => _isFullVersionUnlocked;
+
+  // Setter - This will be called by your purchase service on success
+  void unlockFullVersion() {
+    _isFullVersionUnlocked = true;
+    notifyListeners();
+    // We don't save here directly; we let the app lifecycle handle it
+    // to batch save operations.
+  }
 
   // Getters
   int get score => _score;
@@ -54,6 +71,30 @@ class GameProvider extends ChangeNotifier {
 
   Map<String, int> get gameProgress => _gameProgress;
   List<Achievement> get achievements => _achievements;
+
+  bool get useCustomProblemSettings => _useCustomProblemSettings;
+  Set<String> get customOperations => _customOperations;
+  int get customRangeMin => _customRangeMin;
+  int get customRangeMax => _customRangeMax;
+
+  // --- Setters for Custom Settings ---
+  void setUseCustomSettings(bool value) {
+    _useCustomProblemSettings = value;
+    notifyListeners();
+  }
+
+  void setCustomOperations(Set<String> operations) {
+    _customOperations = operations;
+    notifyListeners();
+  }
+
+  void setCustomRange({required int min, required int max}) {
+    if (min <= max) {
+      _customRangeMin = min;
+      _customRangeMax = max;
+      notifyListeners();
+    }
+  }
 
   // Score management
   void addScore(int points) {
@@ -164,6 +205,8 @@ class GameProvider extends ChangeNotifier {
     if (getGameProgress('magic_triangles') >= 3 && !hasAchievement('triangle_wizard')) { newAchievements.add(Achievement(id: 'triangle_wizard')); }
     if (getGameProgress('bubble_math') >= 3 && !hasAchievement('bubble_popper')) { newAchievements.add(Achievement(id: 'bubble_popper')); }
     if (getGameProgress('puzzle_math') >= 3 && !hasAchievement('puzzle_solver')) { newAchievements.add(Achievement(id: 'puzzle_solver')); }
+    if (getGameProgress('number_walls') >= 3 && !hasAchievement('number_walls_pro')) { newAchievements.add(Achievement(id: 'number_walls_pro')); }
+    if (getGameProgress('codebreaker') >= 3 && !hasAchievement('codebreaker_pro')) { newAchievements.add(Achievement(id: 'codebreaker_pro')); }
 
     final gamesCompleted = _gameProgress.values.where((level) => level >= 1).length;
     if (gamesCompleted >= 3 && !hasAchievement('all_rounder')) {
@@ -241,21 +284,31 @@ class GameProvider extends ChangeNotifier {
       'musicEnabled': _musicEnabled,
       'gameProgress': _gameProgress,
       'achievements': _achievements.map((a) => a.toJson()).toList(),
-      // NEW: Save the adaptive setting
       'useAdaptiveDifficulty': _useAdaptiveDifficulty,
+      
+      'useCustomProblemSettings': _useCustomProblemSettings,
+      'customOperations': _customOperations.toList(), // Convert set to list for JSON
+      'customRangeMin': _customRangeMin,
+      'customRangeMax': _customRangeMax,
     };
   }
 
   void fromJson(Map<String, dynamic> json) {
     _score = json['score'] ?? 0;
     _level = json['level'] ?? 1;
-    _grade = json['grade'] ?? 1; // UPDATED: Default is 1
+    _grade = json['grade'] ?? 1; // Default is 1
     _lives = json['lives'] ?? 3;
     _soundEnabled = json['soundEnabled'] ?? true;
     _musicEnabled = json['musicEnabled'] ?? true;
     _gameProgress = Map<String, int>.from(json['gameProgress'] ?? {});
-    // NEW: Load the adaptive setting
     _useAdaptiveDifficulty = json['useAdaptiveDifficulty'] ?? false;
+    _isFullVersionUnlocked = json['isFullVersionUnlocked'] ?? false;
+
+    // --- Load custom settings ---
+    _useCustomProblemSettings = json['useCustomProblemSettings'] ?? false;
+    _customOperations = Set<String>.from(json['customOperations'] ?? {'addition', 'subtraction'});
+    _customRangeMin = json['customRangeMin'] ?? 1;
+    _customRangeMax = json['customRangeMax'] ?? 20;
 
     if (json['achievements'] != null) {
       _achievements = (json['achievements'] as List)

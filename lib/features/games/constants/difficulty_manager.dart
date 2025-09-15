@@ -4,17 +4,45 @@ import 'package:flutter/foundation.dart';
 
 import '../constants/app_constants.dart';
 import '../../../core/services/sri_service.dart'; // Import SRI Service
+import '../providers/game_provider.dart';
 
 class DifficultyManager {
-  static DifficultyConfig getDifficulty(int grade, int level) {
+  static DifficultyConfig getDifficulty(GameProvider gameProvider, int level) {
+    final grade = gameProvider.grade;
     final baseLevel = grade.clamp(1, 4);
     final effectiveGameLevel = level.clamp(1, 20);
+
+    // --- NEW: Check for and apply custom settings ---
+    if (gameProvider.useCustomProblemSettings && gameProvider.customOperations.isNotEmpty) {
+      debugPrint("[DifficultyManager] 🔧 Using custom problem settings override.");
+      final customOps = gameProvider.customOperations.map((opString) {
+        return MathOperation.values.firstWhere((e) => e.toString() == 'MathOperation.$opString');
+      }).toList();
+
+      return DifficultyConfig(
+        grade: baseLevel,
+        level: effectiveGameLevel,
+        difficultyMultiplier: 1.5, // A fixed multiplier for custom mode
+        numberRange: {
+          'min': gameProvider.customRangeMin,
+          'max': gameProvider.customRangeMax,
+        },
+        operationTypes: customOps,
+        equationProbability: 0.5, // Fixed probability for custom mode
+        objectCount: 8,
+        timeLimit: 120,
+        gameSpeed: 150,
+        showHints: true,
+        animationSpeed: 1.0,
+        visualComplexity: 1.5,
+      );
+    }
     
-    // Progressive scaling within grade
+    // --- Fallback to original logic if custom settings are off ---
     final levelMultiplier = baseLevel * 0.4; // 0.4, 0.8, 1.2, 1.6
+    
     final gameLevelMultiplier = (effectiveGameLevel - 1) * 0.05; // 0 to 0.95
     final totalDifficulty = 1.0 + levelMultiplier + gameLevelMultiplier;
-
     
     return DifficultyConfig(
       grade: baseLevel, // Still called 'grade' internally for simplicity
@@ -30,20 +58,6 @@ class DifficultyManager {
       animationSpeed: 1.0 + (gameLevelMultiplier * 0.5),
       visualComplexity: totalDifficulty,
     );
-  }
-
-  // NEW: Adaptive difficulty based on SRI data
-  static DifficultyConfig getAdaptiveDifficulty(int skillLevel, int gameLevel, SriService sriService) {
-      // Start with the base difficulty
-      DifficultyConfig config = getDifficulty(skillLevel, gameLevel);
-
-      // TODO: Implement your SRI-based adjustments here.
-      // Example: If player struggles with multiplication, increase its probability.
-      // Example: If player masters numbers up to 50, increase the max number range.
-      
-      debugPrint("[ADAPTIVE_DIFFICULTY] 🧠 Using SRI to adjust problem generation (feature to be expanded).");
-      
-      return config;
   }
   
   static Map<String, int> _calculateNumberRange(int skillLevel, int level) {

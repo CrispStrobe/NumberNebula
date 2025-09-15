@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import '../constants/app_constants.dart';
 import '../../../core/services/sri_service.dart'; // Import SRI Service
+import '../providers/game_provider.dart'; 
 import '../constants/difficulty_manager.dart';
 
 class MathProblem {
@@ -36,7 +37,7 @@ class MathProblem {
     required this.difficulty,
   });
 
-  static MathProblem generateProblem(int grade, int level, SriService sriService) {
+  static MathProblem generateProblem(GameProvider gameProvider, int level, SriService sriService) {
     // 1. Prioritize problems that are due for review
     final problemsToReview = sriService.getProblemsForReview(limit: 1);
     if (problemsToReview.isNotEmpty) {
@@ -56,7 +57,7 @@ class MathProblem {
     }
 
     // 2. If no reviews are due, generate a new problem using centralized difficulty settings
-    final difficultyConfig = DifficultyManager.getDifficulty(grade, level);
+    final difficultyConfig = DifficultyManager.getDifficulty(gameProvider, level);
     MathProblem newProblem;
     int attempts = 0;
 

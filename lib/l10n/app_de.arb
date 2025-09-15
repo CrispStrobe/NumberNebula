@@ -79,6 +79,20 @@
     "targetAge": "Zielalter",
     "targetAgeRange": "8-12 Jahre (Klasse 3-6)",
     "aboutApp": "Die Space Math Academy hilft Grundschülern, Mathematik durch fesselnde Weltraum-Spiele zu lernen. Perfekt für iPads und für junge Lernende konzipiert.",
+    "debugPanelTitle": "Debug-Panel",
+    "debugForceUnlock": "Vollversion erzwingen",
+    "debugApplyAndClose": "Anwenden & Schließen",
+    "parentalGateTitle": "Kindersicherung",
+    "parentalGateChallenge": "Um fortzufahren, bitte diese Aufgabe lösen:",
+    "confirm": "Bestätigen",
+    "pleaseTryAgain": "Bitte versuche es erneut.",
+    "purchaseTitle": "Vollzugriff freischalten",
+    "purchaseDescription": "Schalte alle 8 Spiele, alle 4 Schwierigkeitsstufen und zukünftige Updates mit einem einzigen Kauf frei!",
+    "purchaseButton": "Jetzt freischalten!",
+    "contactingStore": "Verbinde mit Missionskontrolle...",
+    "purchaseError": "Ein Fehler ist aufgetreten. Bitte prüfe deine Verbindung und versuche es erneut.",
+    "restorePurchases": "Käufe wiederherstellen",
+    "storeUnavailable": "Der Store ist derzeit nicht verfügbar. Bitte prüfe deine Verbindung und ob du mit deinem Konto angemeldet bist.",
     "languageChanged": "Sprache geändert",
     "languageChangedDesc": "Die App-Sprache wird nach einem Neustart geändert. Möchtest du jetzt neu starten?",
     "later": "Später",
@@ -210,7 +224,7 @@
     "calibratingNav": "Kalibriere Navigationssysteme...",
     "readyForLaunch": "Bereit zum Start!",
     "splashScreenSubtitle": "Erkunden • Lernen • Entdecken",
-        "pathFinderTitle": "PfadFinder",
+    "pathFinderTitle": "PfadFinder",
     "pathFinderDesc": "Navigiere durch Quanten-Raumkorridore! Berechne die richtige Flugbahn durch gefährliche kosmische Phänomene, um sicher anzukommen.",
     "pathFinderSolve": "LÖSE:",
     "pathFinderChoosePath": "Wähle den Pfad für: {expression}",
@@ -246,5 +260,55 @@
     "pathFinderFailureAsteroidBelt": "Asteroidenkollision!",
     "pathFinderFailureClearSpace": "Navigationsfehler!",
     "pathFinderFailureIonStorm": "Ionensturm-Schäden!",
-    "pathFinderFailureQuantumTunnel": "Quanten-Instabilität!"
+    "pathFinderFailureQuantumTunnel": "Quanten-Instabilität!",
+    "numberWalls": "Zahlenmauern",
+    "numberWallsDesc": "Baue kosmische Rechenpyramiden! Stabilisiere die Quantenstruktur!",
+    "numberWallsGameTitle": "Quanten-Pyramiden-Baumeister",
+    "numberWallsInstructions": "Baue die Zahlenmauer! Ziehe Zahlen, um die Struktur zu vervollständigen.",
+    "numberWallsCalculating": "Berechne Pyramiden-Koordinaten...",
+    "numberWallsBricks": "Verfügbare Bausteine",
+    "numberWallsFail": "Strukturelle Integrität gefährdet! Das mathematische Fundament ist instabil. Versuche es erneut!",
+    "numberWallsWinTitle": "Pyramide stabilisiert!",
+    "numberWallsWinDesc": "Perfekte mathematische Ausrichtung! Die Quantenstruktur ist stabil.\nBonus: +{bonusScore} Punkte!",
+    "@numberWallsWinDesc": {
+        "placeholders": {
+            "bonusScore": {
+                "type": "int"
+            }
+        }
+    },
+    "numberWallsNextWall": "Nächste Pyramide",
+    "numberWallsAddition": "Quanten-Additions-Matrix",
+    "numberWallsSubtraction": "Stern-Subtraktions-Gitter",
+    "numberWallsMultiplication": "Kosmisches Multiplikations-Array",
+    "numberWallsDivision": "Galaktisches Divisions-Netzwerk",
+    "codebreaker": "Codeknacker",
+    "codebreakerDesc": "Fange außerirdische Übertragungen ab und entschlüssle sie! Löse komplexe Gleichungssysteme, um ihre Geheimnisse zu lüften.",
+    "codebreakerSuccess": "Code geknackt!",
+    "codebreakerError": "Übertragung fehlerhaft",
+    "codebreakerTransmissionReceived": "Alien-Übertragung abgefangen",
+    "codebreakerSelectNumbers": "Wähle Zahlen aus, um die Übertragung zu entschlüsseln",
+    "codebreakerInstructions": "Entschlüssle die Alien-Symbole, indem du die Gleichungen löst. Tippe auf Zahlen, um die fehlenden Werte einzusetzen.",
+    "codebreakerWinTitle": "Mission abgeschlossen!",
+    "codebreakerLoseTitle": "Übertragung verloren",
+    "codebreakerWinDesc": "Ausgezeichnete Arbeit, Kadett! Du hast {targetPuzzles} Alien-Übertragungen erfolgreich entschlüsselt und {totalScore} Punkte verdient. Die Galaxie ist dank deiner kryptografischen Fähigkeiten sicherer!",
+    "@codebreakerWinDesc": {
+        "placeholders": {
+            "targetPuzzles": {
+                "type": "int"
+            },
+            "totalScore": {
+                "type": "int"
+            }
+        }
+    },
+    "codebreakerLoseDesc": "Die Alien-Codes waren zu komplex, um sie rechtzeitig zu knacken. Keine Sorge – selbst die besten Codeknacker brauchen Übung!",
+    "problemCustomization": "Aufgaben-Anpassung",
+    "problemCustomizationDesc": "Passe die Rechenarten und Zahlenbereiche in den Spielen an.",
+    "problemCustomizationUnlock": "Diese Funktion erfordert die Vollversion.",
+    "enableCustomSettings": "Eigene Einstellungen aktivieren",
+    "allowedOperations": "Erlaubte Rechenarten",
+    "numberRange": "Zahlenbereich",
+    "minValue": "Min. Wert",
+    "maxValue": "Max. Wert"
 }

@@ -307,17 +307,17 @@ class SpaceErrorScreen extends StatelessWidget {
 // Custom Dialog for Space Theme
 class SpaceDialog extends StatelessWidget {
   final String title;
-  final String content;
+  final String? content;
   final List<Widget>? actions;
   final Widget? customContent;
   
   const SpaceDialog({
     super.key,
     required this.title,
-    required this.content,
+    this.content,
     this.actions,
     this.customContent,
-  });
+   }) : assert(content != null || customContent != null, 'Either content or customContent must be provided.');
 
   @override
   Widget build(BuildContext context) {
@@ -330,28 +330,22 @@ class SpaceDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Title
             Text(
               title,
               style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
               textAlign: TextAlign.center,
             ),
-            
             const SizedBox(height: 16),
-            
-            // Content
+            // This logic correctly handles showing customContent or default text content.
             if (customContent != null)
               customContent!
             else
               Text(
-                content,
+                content ?? '', // Use content, with a fallback for safety
                 style: SpaceTheme.bodyStyle,
                 textAlign: TextAlign.center,
               ),
-            
             const SizedBox(height: 24),
-            
-            // Actions
             if (actions != null && actions!.isNotEmpty)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -591,7 +585,7 @@ class LoadingStarsPainter extends CustomPainter {
 class OrbitPainter extends CustomPainter {
   // FIX: Add const to the constructor
   const OrbitPainter();
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()

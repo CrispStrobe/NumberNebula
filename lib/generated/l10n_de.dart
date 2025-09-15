@@ -251,6 +251,52 @@ class SDe extends S {
       'Die Space Math Academy hilft Grundschülern, Mathematik durch fesselnde Weltraum-Spiele zu lernen. Perfekt für iPads und für junge Lernende konzipiert.';
 
   @override
+  String get debugPanelTitle => 'Debug-Panel';
+
+  @override
+  String get debugForceUnlock => 'Vollversion erzwingen';
+
+  @override
+  String get debugApplyAndClose => 'Anwenden & Schließen';
+
+  @override
+  String get parentalGateTitle => 'Kindersicherung';
+
+  @override
+  String get parentalGateChallenge =>
+      'Um fortzufahren, bitte diese Aufgabe lösen:';
+
+  @override
+  String get confirm => 'Bestätigen';
+
+  @override
+  String get pleaseTryAgain => 'Bitte versuche es erneut.';
+
+  @override
+  String get purchaseTitle => 'Vollzugriff freischalten';
+
+  @override
+  String get purchaseDescription =>
+      'Schalte alle 8 Spiele, alle 4 Schwierigkeitsstufen und zukünftige Updates mit einem einzigen Kauf frei!';
+
+  @override
+  String get purchaseButton => 'Jetzt freischalten!';
+
+  @override
+  String get contactingStore => 'Verbinde mit Missionskontrolle...';
+
+  @override
+  String get purchaseError =>
+      'Ein Fehler ist aufgetreten. Bitte prüfe deine Verbindung und versuche es erneut.';
+
+  @override
+  String get restorePurchases => 'Käufe wiederherstellen';
+
+  @override
+  String get storeUnavailable =>
+      'Der Store ist derzeit nicht verfügbar. Bitte prüfe deine Verbindung und ob du mit deinem Konto angemeldet bist.';
+
+  @override
   String get languageChanged => 'Sprache geändert';
 
   @override
@@ -704,4 +750,116 @@ class SDe extends S {
 
   @override
   String get pathFinderFailureQuantumTunnel => 'Quanten-Instabilität!';
+
+  @override
+  String get numberWalls => 'Zahlenmauern';
+
+  @override
+  String get numberWallsDesc =>
+      'Baue kosmische Rechenpyramiden! Stabilisiere die Quantenstruktur!';
+
+  @override
+  String get numberWallsGameTitle => 'Quanten-Pyramiden-Baumeister';
+
+  @override
+  String get numberWallsInstructions =>
+      'Baue die Zahlenmauer! Ziehe Zahlen, um die Struktur zu vervollständigen.';
+
+  @override
+  String get numberWallsCalculating => 'Berechne Pyramiden-Koordinaten...';
+
+  @override
+  String get numberWallsBricks => 'Verfügbare Bausteine';
+
+  @override
+  String get numberWallsFail =>
+      'Strukturelle Integrität gefährdet! Das mathematische Fundament ist instabil. Versuche es erneut!';
+
+  @override
+  String get numberWallsWinTitle => 'Pyramide stabilisiert!';
+
+  @override
+  String numberWallsWinDesc(int bonusScore) {
+    return 'Perfekte mathematische Ausrichtung! Die Quantenstruktur ist stabil.\nBonus: +$bonusScore Punkte!';
+  }
+
+  @override
+  String get numberWallsNextWall => 'Nächste Pyramide';
+
+  @override
+  String get numberWallsAddition => 'Quanten-Additions-Matrix';
+
+  @override
+  String get numberWallsSubtraction => 'Stern-Subtraktions-Gitter';
+
+  @override
+  String get numberWallsMultiplication => 'Kosmisches Multiplikations-Array';
+
+  @override
+  String get numberWallsDivision => 'Galaktisches Divisions-Netzwerk';
+
+  @override
+  String get codebreaker => 'Codeknacker';
+
+  @override
+  String get codebreakerDesc =>
+      'Fange außerirdische Übertragungen ab und entschlüssle sie! Löse komplexe Gleichungssysteme, um ihre Geheimnisse zu lüften.';
+
+  @override
+  String get codebreakerSuccess => 'Code geknackt!';
+
+  @override
+  String get codebreakerError => 'Übertragung fehlerhaft';
+
+  @override
+  String get codebreakerTransmissionReceived => 'Alien-Übertragung abgefangen';
+
+  @override
+  String get codebreakerSelectNumbers =>
+      'Wähle Zahlen aus, um die Übertragung zu entschlüsseln';
+
+  @override
+  String get codebreakerInstructions =>
+      'Entschlüssle die Alien-Symbole, indem du die Gleichungen löst. Tippe auf Zahlen, um die fehlenden Werte einzusetzen.';
+
+  @override
+  String get codebreakerWinTitle => 'Mission abgeschlossen!';
+
+  @override
+  String get codebreakerLoseTitle => 'Übertragung verloren';
+
+  @override
+  String codebreakerWinDesc(int targetPuzzles, int totalScore) {
+    return 'Ausgezeichnete Arbeit, Kadett! Du hast $targetPuzzles Alien-Übertragungen erfolgreich entschlüsselt und $totalScore Punkte verdient. Die Galaxie ist dank deiner kryptografischen Fähigkeiten sicherer!';
+  }
+
+  @override
+  String get codebreakerLoseDesc =>
+      'Die Alien-Codes waren zu komplex, um sie rechtzeitig zu knacken. Keine Sorge – selbst die besten Codeknacker brauchen Übung!';
+
+  @override
+  String get problemCustomization => 'Aufgaben-Anpassung';
+
+  @override
+  String get problemCustomizationDesc =>
+      'Passe die Rechenarten und Zahlenbereiche in den Spielen an.';
+
+  @override
+  String get problemCustomizationUnlock =>
+      'Diese Funktion erfordert die Vollversion.';
+
+  @override
+  String get enableCustomSettings => 'Eigene Einstellungen aktivieren';
+
+  @override
+  String get allowedOperations => 'Erlaubte Rechenarten';
+
+  @override
+  String get numberRange => 'Zahlenbereich';
+
+  @override
+  String get minValue => 'Min. Wert';
+
+  @override
+  String get maxValue => 'Max. Wert';
 }
