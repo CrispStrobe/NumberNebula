@@ -1,3 +1,4 @@
+// lib/features/games/screens/game_menu_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
@@ -15,11 +16,13 @@ import 'path_finder_game.dart';
 import 'planet_hopping_game.dart';
 import 'number_walls_game.dart';
 import 'codebreaker_game.dart';
+import 'spatial_blocks_game.dart'; // NEW: Import new game
+import 'blocks_counter_game.dart'; // NEW: Import new game
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../achievements/screens/achievements_screen.dart';
-import '../../../shared/widgets/purchase_dialog.dart'; // For the purchase flow
-import '../../../shared/widgets/parental_gate.dart';  // For the parental gate
+import '../../../shared/widgets/purchase_dialog.dart';
+import '../../../shared/widgets/parental_gate.dart';
 
 class GameMenuScreen extends StatefulWidget {
   const GameMenuScreen({super.key});
@@ -34,7 +37,8 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   late List<Animation<Offset>> _cardAnimations;
   late Animation<double> _floatAnimation;
 
-  static const int _gameCount = 8;
+  // NEW: Update game count
+  static const int _gameCount = 10;
 
   @override
   void initState() {
@@ -126,7 +130,8 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
       ),
     );
   }
-
+  
+  // Header remains the same... (Code omitted for brevity)
   Widget _buildHeader() {
     final debugProvider = context.watch<DebugProvider>();
     return Container(
@@ -225,10 +230,14 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
     );
   }
 
+
   Widget _buildLandscapeGrid() {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3, crossAxisSpacing: 20, mainAxisSpacing: 20, childAspectRatio: 1.25),
+          crossAxisCount: 4, // Adjust for more games
+          crossAxisSpacing: 20,
+          mainAxisSpacing: 20,
+          childAspectRatio: 1.1),
       itemCount: _gameCount,
       itemBuilder: (context, index) => _buildGameCard(index),
     );
@@ -237,7 +246,10 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   Widget _buildPortraitGrid() {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, crossAxisSpacing: 20, mainAxisSpacing: 20, childAspectRatio: 0.85),
+          crossAxisCount: 2,
+          crossAxisSpacing: 20,
+          mainAxisSpacing: 20,
+          childAspectRatio: 0.85),
       itemCount: _gameCount,
       itemBuilder: (context, index) => _buildGameCard(index),
     );
@@ -249,55 +261,71 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
     final s = S.of(context)!;
 
     final games = [
-      GameInfo(
-          title: s.magicTriangles,
-          description: s.magicTrianglesDesc,
-          icon: Icons.change_history,
-          gradient: const LinearGradient(colors: [SpaceTheme.nebulaPurple, SpaceTheme.cosmicPink]),
-          onTap: () => _navigateToGame(MagicTrianglesGame(grade: gameProvider.grade, level: gameProvider.level))),
-      GameInfo(
-          title: s.bubbleMath,
-          description: s.bubbleMathDesc,
-          icon: Icons.bubble_chart,
-          gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.starYellow]),
-          onTap: () => _navigateToGame(AsteroidMathGame(grade: gameProvider.grade, level: gameProvider.level))),
-      GameInfo(
-          title: s.puzzleMath,
-          description: s.puzzleMathDesc,
-          icon: Icons.extension,
-          gradient: const LinearGradient(colors: [SpaceTheme.planetOrange, SpaceTheme.rocketRed]),
-          onTap: () => _navigateToGame(PuzzleMathGame(grade: gameProvider.grade, level: gameProvider.level))),
-      GameInfo(
-          title: s.hyperdriveGates,
-          description: s.hyperdriveGatesDesc,
-          icon: Icons.rocket_launch,
-          gradient: const LinearGradient(colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)]),
-          onTap: () => _navigateToGame(HyperdriveGatesGame(grade: gameProvider.grade, level: gameProvider.level))),
-      GameInfo(
-          title: s.pathFinderTitle,
-          description: s.pathFinderDesc,
-          icon: Icons.map,
-          gradient: const LinearGradient(colors: [Colors.teal, Colors.cyan]),
-          onTap: () => _navigateToGame(PathFinderGame(grade: gameProvider.grade, level: gameProvider.level))),
-      GameInfo(
-          title: s.planetHopping,
-          description: s.planetHoppingDesc,
-          icon: Icons.public,
-          gradient: const LinearGradient(colors: [Color(0xFF667eea), Color(0xFF764ba2)]),
-          onTap: () => _navigateToGame(PlanetHoppingGame(grade: gameProvider.grade, level: gameProvider.level))),
-      GameInfo(
-          title: s.numberWalls,
-          description: s.numberWallsDesc,
-          icon: Icons.view_module,
-          gradient: const LinearGradient(colors: [Color(0xFFf97794), Color(0xFF623aa2)]),
-          onTap: () => _navigateToGame(NumberWallsGame(grade: gameProvider.grade, level: gameProvider.level))),
-      GameInfo(
-          title: s.codebreaker,
-          description: s.codebreakerDesc,
-          icon: Icons.vpn_key,
-          gradient: const LinearGradient(colors: [Color(0xFF00c6ff), Color(0xFF0072ff)]),
-          onTap: () => _navigateToGame(CodebreakerGame(grade: gameProvider.grade, level: gameProvider.level))),
+        GameInfo(
+            title: s.magicTriangles,
+            description: s.magicTrianglesDesc,
+            icon: Icons.change_history,
+            gradient: const LinearGradient(colors: [SpaceTheme.nebulaPurple, SpaceTheme.cosmicPink]),
+            onTap: () => _navigateToGame(MagicTrianglesGame(grade: gameProvider.grade, level: gameProvider.level))),
+        GameInfo(
+            title: s.bubbleMath,
+            description: s.bubbleMathDesc,
+            icon: Icons.bubble_chart,
+            gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.starYellow]),
+            onTap: () => _navigateToGame(AsteroidMathGame(grade: gameProvider.grade, level: gameProvider.level))),
+        GameInfo(
+            title: s.puzzleMath,
+            description: s.puzzleMathDesc,
+            icon: Icons.extension,
+            gradient: const LinearGradient(colors: [SpaceTheme.planetOrange, SpaceTheme.rocketRed]),
+            onTap: () => _navigateToGame(PuzzleMathGame(grade: gameProvider.grade, level: gameProvider.level))),
+        GameInfo(
+            title: s.hyperdriveGates,
+            description: s.hyperdriveGatesDesc,
+            icon: Icons.rocket_launch,
+            gradient: const LinearGradient(colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)]),
+            onTap: () => _navigateToGame(HyperdriveGatesGame(grade: gameProvider.grade, level: gameProvider.level))),
+        GameInfo(
+            title: s.pathFinderTitle,
+            description: s.pathFinderDesc,
+            icon: Icons.map,
+            gradient: const LinearGradient(colors: [Colors.teal, Colors.cyan]),
+            onTap: () => _navigateToGame(PathFinderGame(grade: gameProvider.grade, level: gameProvider.level))),
+        GameInfo(
+            title: s.planetHopping,
+            description: s.planetHoppingDesc,
+            icon: Icons.public,
+            gradient: const LinearGradient(colors: [Color(0xFF667eea), Color(0xFF764ba2)]),
+            onTap: () => _navigateToGame(PlanetHoppingGame(grade: gameProvider.grade, level: gameProvider.level))),
+        GameInfo(
+            title: s.numberWalls,
+            description: s.numberWallsDesc,
+            icon: Icons.view_module,
+            gradient: const LinearGradient(colors: [Color(0xFFf97794), Color(0xFF623aa2)]),
+            onTap: () => _navigateToGame(NumberWallsGame(grade: gameProvider.grade, level: gameProvider.level))),
+        GameInfo(
+            title: s.codebreaker,
+            description: s.codebreakerDesc,
+            icon: Icons.vpn_key,
+            gradient: const LinearGradient(colors: [Color(0xFF00c6ff), Color(0xFF0072ff)]),
+            onTap: () => _navigateToGame(CodebreakerGame(grade: gameProvider.grade, level: gameProvider.level))),
+        // NEW: Add Spatial Blocks game
+        GameInfo(
+            title: s.spatialBlocksGameTitle,
+            description: s.spatialBlocksInstructions,
+            icon: Icons.grid_view_sharp,
+            gradient: const LinearGradient(colors: [Color(0xFFf5af19), Color(0xFFf12711)]),
+            onTap: () => _navigateToGame(SpatialBlocksGame(grade: gameProvider.grade, level: gameProvider.level))),
+        // NEW: Add Block Counter game
+        GameInfo(
+            title: s.blockCounterGameTitle,
+            description: s.blockCounterInstructions,
+            icon: Icons.view_in_ar,
+            gradient: const LinearGradient(colors: [Color(0xFF00F260), Color(0xFF0575E6)]),
+            onTap: () => _navigateToGame(BlockCounterGame(grade: gameProvider.grade, level: gameProvider.level))),
     ];
+
+    if (index >= games.length) return const SizedBox.shrink(); // Safety check
 
     final game = games[index];
     final bool isPremiumContent = index > 1; // First 2 games are free
@@ -335,7 +363,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   }
 }
 
-// These classes MUST be at the top-level, NOT inside the State class.
+// GameInfo and GameCard classes remain the same... (Code omitted for brevity)
 class GameInfo {
   final String title;
   final String description;

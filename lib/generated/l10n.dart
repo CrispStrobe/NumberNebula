@@ -1638,6 +1638,180 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Max Value'**
   String get maxValue;
+
+  /// No description provided for @spatialBlocksGameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spatial Blocks'**
+  String get spatialBlocksGameTitle;
+
+  /// No description provided for @spatialBlocksInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Match the target pattern by placing blocks'**
+  String get spatialBlocksInstructions;
+
+  /// No description provided for @spatialBlocksFail.
+  ///
+  /// In en, this message translates to:
+  /// **'Pattern doesn\'t match! Try again.'**
+  String get spatialBlocksFail;
+
+  /// No description provided for @spatialBlocksDifficulty.
+  ///
+  /// In en, this message translates to:
+  /// **'Complexity Level: {level}'**
+  String spatialBlocksDifficulty(int level);
+
+  /// No description provided for @spatialBlocksTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Pattern'**
+  String get spatialBlocksTarget;
+
+  /// No description provided for @spatialBlocksWorkspace.
+  ///
+  /// In en, this message translates to:
+  /// **'Workspace'**
+  String get spatialBlocksWorkspace;
+
+  /// No description provided for @spatialBlocksPieces.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Pieces'**
+  String get spatialBlocksPieces;
+
+  /// No description provided for @spatialBlocksWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pattern Matched!'**
+  String get spatialBlocksWinTitle;
+
+  /// No description provided for @spatialBlocksWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus points: {bonus}'**
+  String spatialBlocksWinDesc(int bonus);
+
+  /// No description provided for @blockCounterGameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'3D Block Counter'**
+  String get blockCounterGameTitle;
+
+  /// No description provided for @blockCounterInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate and count all blocks including hidden ones'**
+  String get blockCounterInstructions;
+
+  /// No description provided for @blockCounterFail.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect count! Try again.'**
+  String get blockCounterFail;
+
+  /// No description provided for @blockCounterComplexity.
+  ///
+  /// In en, this message translates to:
+  /// **'Complexity: {level}'**
+  String blockCounterComplexity(int level);
+
+  /// No description provided for @blockCounterQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'How many blocks are in this structure?'**
+  String get blockCounterQuestion;
+
+  /// No description provided for @blockCounterSelectAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Your Answer'**
+  String get blockCounterSelectAnswer;
+
+  /// No description provided for @blockCounterShowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Hidden'**
+  String get blockCounterShowHint;
+
+  /// No description provided for @blockCounterHideHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Hint'**
+  String get blockCounterHideHint;
+
+  /// No description provided for @blockCounterRotateInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to rotate • Pinch to zoom'**
+  String get blockCounterRotateInstructions;
+
+  /// No description provided for @blockCounterHintShowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden blocks are highlighted in yellow'**
+  String get blockCounterHintShowing;
+
+  /// No description provided for @blockCounterHintHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Some blocks may be hidden behind others'**
+  String get blockCounterHintHidden;
+
+  /// No description provided for @blockCounterWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect Count!'**
+  String get blockCounterWinTitle;
+
+  /// No description provided for @blockCounterWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct! There were {count} blocks total.'**
+  String blockCounterWinDesc(int count);
+
+  /// No description provided for @blockCounterBonusPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus points: {bonus}'**
+  String blockCounterBonusPoints(int bonus);
+
+  /// No description provided for @blockCounterDifficultyVeryEasy.
+  ///
+  /// In en, this message translates to:
+  /// **'Very easy'**
+  String get blockCounterDifficultyVeryEasy;
+
+  /// No description provided for @blockCounterDifficultyEasy.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get blockCounterDifficultyEasy;
+
+  /// No description provided for @blockCounterDifficultyMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Middle'**
+  String get blockCounterDifficultyMedium;
+
+  /// No description provided for @blockCounterDifficultyHard.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard'**
+  String get blockCounterDifficultyHard;
+
+  /// No description provided for @blockCounterNextPuzzle.
+  ///
+  /// In en, this message translates to:
+  /// **'Next mission'**
+  String get blockCounterNextPuzzle;
+
+  /// No description provided for @blockCounterBackToMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to base'**
+  String get blockCounterBackToMenu;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

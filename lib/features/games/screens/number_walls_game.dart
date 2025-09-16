@@ -172,23 +172,33 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     if (userAnswers.every((answer) => answer != null)) {
       final isValid = currentPuzzle!.validateSolution(userAnswers.cast<int>());
 
-      // Record response in SRI system
+      // Record response in SRI system with proper problem identification
       final sriService = context.read<SriService>();
-      final dummyProblem = MathProblem(
-        expression: "numberwall_${widget.level}_${currentPuzzle!.operation.name}",
+      final wallProblem = MathProblem(
+        expression: "numberwall_${currentPuzzle!.operation.name}_grade${widget.grade}_level${widget.level}_height${currentPuzzle!.wallHeight}",
         answer: isValid ? 1 : 0,
-        operation: MathOperation.addition,
-        operandA: 1,
-        operandB: 0,
+        operation: _convertWallOperationToMathOperation(currentPuzzle!.operation),
+        operandA: currentPuzzle!.wallHeight,
+        operandB: widget.level,
         difficulty: widget.grade,
       );
-      sriService.recordResponse(dummyProblem, isValid);
+      sriService.recordResponse(wallProblem, isValid);
+      debugPrint("🧱 SRI: Recorded ${currentPuzzle!.operation.name} wall (Grade ${widget.grade}, Level ${widget.level}) as ${isValid ? 'correct' : 'incorrect'}");
 
       if (isValid) {
         _handleSuccess();
       } else {
         _handleIncorrect();
       }
+    }
+  }
+
+  MathOperation _convertWallOperationToMathOperation(WallOperation wallOp) {
+    switch (wallOp) {
+      case WallOperation.addition: return MathOperation.addition;
+      case WallOperation.subtraction: return MathOperation.subtraction;
+      case WallOperation.multiplication: return MathOperation.multiplication;
+      case WallOperation.division: return MathOperation.division;
     }
   }
 
@@ -454,7 +464,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
           child: DragTarget<int>(
             key: _dragTargetKey,
             builder: (context, candidateData, rejectedData) {
-              return SizedBox(
+              return Container(
                 width: size,
                 height: size,
                 child: Stack(
@@ -489,16 +499,39 @@ class _NumberWallsGameState extends State<NumberWallsGame>
             onAcceptWithDetails: (details) {
               setState(() => _isDraggingOver = false);
               
+              // Enhanced positioning with multiple fallbacks
               final RenderBox? renderBox = _dragTargetKey.currentContext?.findRenderObject() as RenderBox?;
-              if (renderBox == null) return;
+              if (renderBox == null) {
+                debugPrint("🎯 ERROR: Could not find RenderBox via GlobalKey");
+                return;
+              }
               
+              // Get the local position within the drag target
               final localDropPosition = renderBox.globalToLocal(details.offset);
               final droppedNumber = details.data;
 
+              debugPrint("🎯 Drop Details:");
+              debugPrint("  - Global position: ${details.offset}");
+              debugPrint("  - Local position: $localDropPosition");
+              debugPrint("  - Container size: $size");
+              debugPrint("  - Dropped number: $droppedNumber");
+
               int? closestCellIndex = _findClosestEmptyCell(localDropPosition, size);
+              debugPrint("  - Closest empty cell: $closestCellIndex");
 
               if (closestCellIndex != null) {
                 _placeNumber(droppedNumber, closestCellIndex);
+                debugPrint("🎯 ✅ Successfully placed $droppedNumber in cell $closestCellIndex");
+              } else {
+                debugPrint("🎯 ❌ No suitable drop target found");
+                // Provide visual feedback for failed drop
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Drop closer to an empty cell"),
+                    duration: Duration(milliseconds: 1500),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
               }
             },
           ),
@@ -508,21 +541,34 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
     
   int? _findClosestEmptyCell(Offset dropPosition, double containerSize) {
-    if (currentPuzzle == null) return null;
+    debugPrint("🎯 Finding closest empty cell for drop at $dropPosition");
+    
+    if (currentPuzzle == null) {
+      debugPrint("🎯 ❌ No current puzzle available");
+      return null;
+    }
 
     final cellPositions = currentPuzzle!.getCellPositions(containerSize);
     final cellSize = containerSize * 0.12;
-    final double acceptanceRadius = cellSize;
+    
+    // Increased acceptance radius for better usability
+    final double acceptanceRadius = cellSize * 1.2; // 20% larger than cell size
+    debugPrint("🎯 Cell size: ${cellSize.toStringAsFixed(2)}, Acceptance radius: ${acceptanceRadius.toStringAsFixed(2)}");
 
     double minDistance = double.infinity;
     int? closestEmptyCellIndex;
-
+    
+    // Debug: Show all cell positions
+    debugPrint("🎯 Available empty cells:");
     for (int cellIndex in currentPuzzle!.hiddenCells) {
       final answerIndex = currentPuzzle!.getAnswerIndexForCell(cellIndex);
-      if (answerIndex != -1 && answerIndex < userAnswers.length && userAnswers[answerIndex] == null) {
-        final cellCenter = cellPositions[cellIndex];
-        final distance = (dropPosition - cellCenter).distance;
-
+      final isEmpty = answerIndex != -1 && answerIndex < userAnswers.length && userAnswers[answerIndex] == null;
+      final cellCenter = cellPositions[cellIndex];
+      final distance = (dropPosition - cellCenter).distance;
+      
+      debugPrint("  Cell C$cellIndex: ${cellCenter.dx.toStringAsFixed(1)}, ${cellCenter.dy.toStringAsFixed(1)} - Distance: ${distance.toStringAsFixed(1)} - Empty: $isEmpty");
+      
+      if (isEmpty) {
         if (distance < minDistance) {
           minDistance = distance;
           closestEmptyCellIndex = cellIndex;
@@ -530,10 +576,20 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       }
     }
 
-    if (closestEmptyCellIndex != null && minDistance <= acceptanceRadius) {
-      return closestEmptyCellIndex;
+    if (closestEmptyCellIndex != null) {
+      debugPrint("🎯 Closest empty cell: C$closestEmptyCellIndex at distance ${minDistance.toStringAsFixed(2)}");
+      
+      if (minDistance <= acceptanceRadius) {
+        debugPrint("🎯 ✅ Distance within acceptance radius - will place number");
+        return closestEmptyCellIndex;
+      } else {
+        debugPrint("🎯 ❌ Distance ${minDistance.toStringAsFixed(2)} exceeds radius ${acceptanceRadius.toStringAsFixed(2)}");
+        return null;
+      }
+    } else {
+      debugPrint("🎯 ❌ No empty cells available");
+      return null;
     }
-    return null;
   }
 
   List<Widget> _buildWallCells(double containerSize) {
@@ -808,16 +864,16 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
-                          _generatePuzzle();
+                          Navigator.of(context).pop(); // Close dialog
+                          _generatePuzzle(); // Generate new puzzle
                         },
                         style: SpaceTheme.primaryButtonStyle,
-                        child: Text(S.of(context)!.toTheBridge),
+                        child: Text(S.of(context)!.numberWallsNextWall ?? "Next Wall"),
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
+                          Navigator.of(context).pop(); // Close dialog
+                          Navigator.of(context).pop(); // Return to game selection
                         },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.toTheBridge),

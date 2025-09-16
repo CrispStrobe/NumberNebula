@@ -349,7 +349,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     return LayoutBuilder(
       builder: (context, constraints) {
         debugPrint("🔺 [UI] Triangle LayoutBuilder constraints: ${constraints.maxWidth}x${constraints.maxHeight}");
-        final size = math.min(constraints.maxWidth, constraints.maxHeight).clamp(250.0, 400.0);
+        final size = math.min(constraints.maxWidth, constraints.maxHeight).clamp(250.0, 450.0);
         final center = Offset(size / 2, size / 2);
         final radius = size * 0.4;
         debugPrint("🔺 [UI] Triangle parameters: size=$size, center=$center, radius=$radius");
@@ -359,7 +359,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
         return Center(
           child: DragTarget<int>(
-            key: _triangleAreaKey, // Add the GlobalKey here
+            key: _triangleAreaKey,
             builder: (context, candidateData, rejectedData) {
               debugPrint("🔺 [UI] DragTarget builder called");
               return SizedBox(
@@ -399,7 +399,6 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               debugPrint("🎯 [UI] DragTarget.onAcceptWithDetails: ${details.data} at ${details.offset}");
               setState(() => _isDraggingOver = false);
               
-              // Use the GlobalKey for more reliable coordinate transformation
               final RenderBox? renderBox = _triangleAreaKey.currentContext?.findRenderObject() as RenderBox?;
               if (renderBox == null) {
                 debugPrint("❌ [UI] Could not find triangle area render box");
@@ -457,7 +456,6 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       
       debugPrint("🔍 [UI] Minimum distance: $minDistance, target: $targetNodeIndex");
       
-      // Adaptive drop radius based on triangle size
       final dropRadius = (triangleSize * 0.15).clamp(60.0, 120.0);
       debugPrint("🔍 [UI] Using drop radius: $dropRadius");
       
@@ -480,7 +478,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     List<Widget> nodes = [];
     int answerIdx = 0;
     
-    final nodeSize = (size * 0.20).clamp(50.0, 80.0);
+    final nodeSize = (size * 0.18).clamp(45.0, 75.0);
     debugPrint("🔵 [UI] Node size: $nodeSize");
     
     for (int i = 0; i < currentPuzzle!.totalCircles; i++) {
@@ -560,7 +558,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         child: Text(
           isHidden ? (value?.toString() ?? '') : value.toString(),
           style: SpaceTheme.headlineStyle.copyWith(
-            fontSize: size * 0.4,
+            fontSize: size * 0.35,
             color: isHidden && value == null ? Colors.transparent : Colors.white,
             shadows: const [Shadow(color: SpaceTheme.starYellow, blurRadius: 10)],
           ),
@@ -584,15 +582,13 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
           child: GridView.builder(
             shrinkWrap: true,
             physics: const BouncingScrollPhysics(),
-            // THIS IS THE CORRECT, STABLE DELEGATE.
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4, // A fixed count is predictable for the layout engine.
+              crossAxisCount: 4,
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
             ),
             itemCount: numberPool.length,
             itemBuilder: (context, index) {
-              // ... (rest of the builder is fine)
               if (index >= numberPool.length) {
                 return Container(); 
               }
@@ -707,7 +703,6 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   }
 }
 
-// FIX: Added 'static' to generate method so it can be called by compute.
 class MagicTrianglePuzzle {
   final int circlesPerSide;
   final int totalCircles;
@@ -743,11 +738,10 @@ class MagicTrianglePuzzle {
   }
 
   static MagicTrianglePuzzle generate(Map<String, int> args) {
-    final grade = args['grade']!;
-    final level = args['level']!;
+    final grade = args['grade']!; // 1-4 (school years 3-6)
+    final level = args['level']!; // 1-20
 
-    // FIX: LOGGING RESTORED
-    debugPrint("\n--- Generating Triangle Puzzle ---");
+    debugPrint("\n--- Generating Enhanced Triangle Puzzle ---");
     int circlesPerSide = _determineCirclesPerSide(grade, level);
     final totalCircles = (circlesPerSide * 3) - 3;
     debugPrint("[Wormhole] Parameters: Grade=$grade, Level=$level -> circlesPerSide=$circlesPerSide");
@@ -757,11 +751,11 @@ class MagicTrianglePuzzle {
     List<int> allNumbers = []; 
     
     int attempts = 0;
-    while (solution == null && attempts < 10) {
+    while (solution == null && attempts < 15) {
       if (attempts > 0) debugPrint("... Retrying puzzle generation (attempt ${attempts + 1}) ...");
-      final startNumber = math.max(1, level + grade - 2 + attempts * 5);
-      allNumbers = List.generate(totalCircles, (i) => startNumber + i);
-      debugPrint("[Wormhole] Core resonator values: $allNumbers");
+      
+      allNumbers = _generateNumberSet(grade, level, totalCircles, attempts);
+      debugPrint("[Wormhole] Enhanced resonator values: $allNumbers");
 
       debugPrint("[Wormhole] Backtracking for a stable alignment...");
       final solver = _MagicTriangleSolver(circlesPerSide, allNumbers);
@@ -772,14 +766,14 @@ class MagicTrianglePuzzle {
 
     if (solution == null) {
       debugPrint("❌ [Wormhole] FATAL: Solver failed after multiple attempts. Defaulting to an easier puzzle.");
-      return generate({'grade': 3, 'level': 1});
+      return generate({'grade': 1, 'level': 1});
     }
     
     debugPrint("✅ [Wormhole] Stable Alignment FOUND in ${stopwatch.elapsedMilliseconds}ms: $solution");
     final warpFrequency = _calculateSideSums(solution, circlesPerSide)[0];
     debugPrint("✨ [Wormhole] Required Warp Frequency: $warpFrequency");
 
-    int visibleCount = _determineVisibleCount(grade, totalCircles);
+    int visibleCount = _determineVisibleCount(grade, level, totalCircles);
     debugPrint("[Wormhole] Total circles: $totalCircles, Visible: $visibleCount, Hidden: ${totalCircles - visibleCount}");
     final allIndices = List.generate(totalCircles, (i) => i)..shuffle();
     final hiddenIndices = allIndices.sublist(0, totalCircles - visibleCount).toSet();
@@ -795,10 +789,11 @@ class MagicTrianglePuzzle {
 
     final hiddenNumbers = allNumbers.where((n) => !visibleValues.values.contains(n)).toList();
     debugPrint("[Wormhole] Hidden numbers: $hiddenNumbers");
-    final decoyCount = (level / 2).floor().clamp(2, 8);
-    final decoyNumbers = _generateDecoyNumbers(decoyCount, allNumbers, hiddenNumbers.isNotEmpty ? hiddenNumbers.last : allNumbers.last);
+    
+    final decoyCount = _calculateDecoyCount(grade, level, hiddenNumbers.length);
+    final decoyNumbers = _generateEnhancedDecoys(grade, level, decoyCount, allNumbers, hiddenNumbers);
     final numberPool = (hiddenNumbers + decoyNumbers)..shuffle();
-    debugPrint("[Wormhole] Added $decoyCount decoy resonators: $decoyNumbers");
+    debugPrint("[Wormhole] Added $decoyCount enhanced decoy resonators: $decoyNumbers");
     debugPrint("[Wormhole] Final number pool for user: $numberPool");
 
     final puzzle = MagicTrianglePuzzle(
@@ -810,57 +805,191 @@ class MagicTrianglePuzzle {
       numberPool: numberPool,
     );
     
-    debugPrint("[Wormhole] ✅ Puzzle generation complete - returning puzzle");
+    debugPrint("[Wormhole] ✅ Enhanced puzzle generation complete - returning puzzle");
     return puzzle;
   }
 
-  static List<int> _generateDecoyNumbers(int count, List<int> existingNumbers, int startNumber) {
-    debugPrint("[Wormhole] Generating $count decoy numbers starting from $startNumber");
-    final decoys = <int>{};
-    final allExisting = Set<int>.from(existingNumbers);
-    final maxRange = existingNumbers.isNotEmpty ? existingNumbers.last + count + 5 : startNumber + count + 5;
-    final random = math.Random();
-    
-    while (decoys.length < count) {
-      final num = startNumber + random.nextInt(maxRange - startNumber + 1);
-      if (!allExisting.contains(num)) decoys.add(num);
-    }
-    debugPrint("[Wormhole] Generated decoys: ${decoys.toList()}");
-    return decoys.toList();
-  }
-  
+  // Proper scaling for grades 1-4 and levels 1-20
   static int _determineCirclesPerSide(int grade, int level) {
-    if (grade >= 6) {
-      if (level <= 3) return 3;
-      if (level <= 7) return 4;
-      return 5;
-    }
-    if (grade >= 4) {
-      if (level <= 5) return 3;
-      return 4;
-    }
-    return 3;
+    final totalDifficulty = grade + (level / 5.0); // Grades 1-4, Levels 1-20
+    
+    debugPrint("[Difficulty] Grade=$grade, Level=$level, TotalDifficulty=$totalDifficulty");
+    
+    if (totalDifficulty <= 2.0) return 3;  // Grade 1, Level 1-5
+    if (totalDifficulty <= 3.5) return 4;  // Grade 1-2, Level 6-20 or Grade 3, Level 1-2
+    if (totalDifficulty <= 5.0) return 5;  // Grade 3-4, Level 3-10
+    if (totalDifficulty <= 6.5) return 6;  // Grade 4, Level 11-20
+    return 7; // Grade 4, Level 15-20 only
   }
 
-  static int _determineVisibleCount(int grade, int totalCircles) {
-    final double baseVisibility = 0.75;
-    final double reductionPerGrade = 0.08;
+  // Visibility reduction based on proper 1-4 grade system
+  static int _determineVisibleCount(int grade, int level, int totalCircles) {
+    final difficulty = grade + (level / 5.0);
     
-    double visibilityRatio = baseVisibility - ((grade - 3) * reductionPerGrade);
-    visibilityRatio = visibilityRatio.clamp(0.30, 1.0);
-
-    final int minVisible = math.max(3, (totalCircles / 3).ceil());
-    final int maxVisible = totalCircles - 3;
+    // Start with 80% visibility and reduce based on difficulty
+    double visibilityRatio = 0.80 - (difficulty * 0.06); // More gradual than before
+    
+    // Additional level-based reduction
+    visibilityRatio -= (level - 1) * 0.01;
+    
+    // Clamp to reasonable bounds for grades 1-4
+    visibilityRatio = visibilityRatio.clamp(0.25, 0.80); // Min 25% visible
+    
+    final int minVisible = math.max(3, (totalCircles / 5).ceil());
+    final int maxVisible = (totalCircles * 0.75).floor();
     
     final calculatedVisible = (totalCircles * visibilityRatio).round();
     
-    debugPrint("[Wormhole Difficulty] Grade $grade, Total Circles $totalCircles");
-    debugPrint("[Wormhole Difficulty] Visibility Ratio: ${visibilityRatio.toStringAsFixed(2)} -> Calculated: $calculatedVisible nodes");
-    debugPrint("[Wormhole Difficulty] Clamping between Min: $minVisible and Max: $maxVisible");
+    debugPrint("[Enhanced Difficulty] Grade $grade, Level $level, Total Circles $totalCircles");
+    debugPrint("[Enhanced Difficulty] Visibility Ratio: ${visibilityRatio.toStringAsFixed(2)} -> Calculated: $calculatedVisible nodes");
+    debugPrint("[Enhanced Difficulty] Clamping between Min: $minVisible and Max: $maxVisible");
 
     return calculatedVisible.clamp(minVisible, maxVisible);
   }
 
+  // Number generation suitable for grades 1-4
+  static List<int> _generateNumberSet(int grade, int level, int totalCircles, int attempt) {
+    final random = math.Random();
+    final difficulty = grade + (level / 5.0);
+    
+    if (difficulty < 2.5) {
+      // Easy: Sequential numbers (Grade 1, early levels)
+      final baseStart = math.max(1, level + attempt * 2);
+      return List.generate(totalCircles, (i) => baseStart + i);
+    } else if (difficulty < 4.0) {
+      // Medium: Sequential with small gaps (Grade 2-3)
+      final baseStart = math.max(1, level + grade + attempt * 3);
+      final numbers = <int>[];
+      int current = baseStart;
+      for (int i = 0; i < totalCircles; i++) {
+        numbers.add(current);
+        current += (random.nextBool() && i > 1) ? random.nextInt(2) + 1 : 1;
+      }
+      return numbers;
+    } else if (difficulty < 5.5) {
+      // Hard: Larger ranges (Grade 3-4, higher levels)
+      final baseStart = level * 2 + grade * 3 + attempt * 4;
+      final range = 10 + level;
+      final numbers = <int>[];
+      final used = <int>{};
+      
+      while (numbers.length < totalCircles) {
+        final num = baseStart + random.nextInt(range);
+        if (!used.contains(num)) {
+          used.add(num);
+          numbers.add(num);
+        }
+      }
+      numbers.sort();
+      return numbers;
+    } else {
+      // Expert: Complex patterns (Grade 4, Level 15-20)
+      final baseStart = level * 3 + grade * 4 + attempt * 6;
+      final range = 20 + level;
+      final numbers = <int>[];
+      final used = <int>{};
+      
+      while (numbers.length < totalCircles) {
+        final num = baseStart + random.nextInt(range);
+        if (!used.contains(num)) {
+          used.add(num);
+          numbers.add(num);
+        }
+      }
+      
+      numbers.sort();
+      return numbers;
+    }
+  }
+
+  // Decoy count appropriate for grades 1-4
+  static int _calculateDecoyCount(int grade, int level, int hiddenCount) {
+    final baseDifficulty = grade + (level / 5.0);
+    final baseDecoys = 2 + (level / 4).floor();
+    final gradeMultiplier = (grade >= 3) ? 1.3 : 1.0;
+    
+    final totalDecoys = (baseDecoys * gradeMultiplier).round();
+    
+    final minDecoys = math.max(2, hiddenCount ~/ 3);
+    final maxDecoys = hiddenCount + 5;
+    
+    return totalDecoys.clamp(minDecoys, maxDecoys);
+  }
+
+  // FIXED: Proper variable initialization for decoy generation
+  static List<int> _generateEnhancedDecoys(int grade, int level, int count, 
+                                         List<int> correctNumbers, List<int> hiddenNumbers) {
+    debugPrint("[Enhanced Decoys] Generating $count decoy numbers");
+    final decoys = <int>{};
+    final allCorrect = Set<int>.from(correctNumbers);
+    final random = math.Random();
+    final difficulty = grade + (level / 5.0);
+    
+    final minCorrect = correctNumbers.isNotEmpty ? correctNumbers.first : 1;
+    final maxCorrect = correctNumbers.isNotEmpty ? correctNumbers.last : 10;
+    final range = maxCorrect - minCorrect;
+    
+    while (decoys.length < count) {
+      int decoy = 1; // FIXED: Initialize the variable
+      
+      if (difficulty < 2.5) {
+        // Easy: Close to correct numbers
+        final baseNum = correctNumbers[random.nextInt(correctNumbers.length)];
+        decoy = baseNum + random.nextInt(6) - 3;
+      } else if (difficulty < 4.0) {
+        // Medium: Mix of close and distant numbers
+        if (random.nextBool()) {
+          final baseNum = correctNumbers[random.nextInt(correctNumbers.length)];
+          decoy = baseNum + random.nextInt(8) - 4;
+        } else {
+          decoy = minCorrect + random.nextInt(range + 8);
+        }
+      } else if (difficulty < 5.5) {
+        // Hard: Strategic placement to confuse
+        final strategy = random.nextInt(3);
+        switch (strategy) {
+          case 0:
+            final baseNum = correctNumbers[random.nextInt(correctNumbers.length)];
+            decoy = baseNum + [1, -1, 2, -2][random.nextInt(4)];
+            break;
+          case 1:
+            decoy = minCorrect - 3 + random.nextInt(range + 12);
+            break;
+          case 2:
+            decoy = maxCorrect + random.nextInt(8) + 1;
+            break;
+        }
+      } else {
+        // Expert: Very tricky decoys
+        final strategy = random.nextInt(4);
+        switch (strategy) {
+          case 0:
+            final baseNum = correctNumbers[random.nextInt(correctNumbers.length)];
+            decoy = baseNum + [-1, 1][random.nextInt(2)];
+            break;
+          case 1:
+            decoy = minCorrect + random.nextInt(range + 10);
+            break;
+          case 2:
+            decoy = maxCorrect + random.nextInt(12) + 2;
+            break;
+          case 3:
+            decoy = math.max(1, minCorrect - random.nextInt(6) - 1);
+            break;
+        }
+      }
+      
+      // Ensure positive and unique
+      if (decoy > 0 && !allCorrect.contains(decoy) && !decoys.contains(decoy)) {
+        decoys.add(decoy);
+      }
+    }
+    
+    final result = decoys.toList();
+    debugPrint("[Enhanced Decoys] Generated: $result");
+    return result;
+  }
+  
   SolutionResult checkSolution(List<int> userAnswers) {
     debugPrint("✅ [Puzzle] checkSolution: $userAnswers");
     final completeArrangement = List<int>.filled(totalCircles, 0);
@@ -936,23 +1065,35 @@ class _MagicTriangleSolver {
   late List<int> _arrangement;
   late List<bool> _usedFlags;
   int _iterations = 0;
-  static const int _maxIterations = 500000; 
+  late int _maxIterations;
 
   _MagicTriangleSolver(this.circlesPerSide, this.numbersToUse)
       : totalCircles = (circlesPerSide * 3) - 3 {
     _arrangement = List.filled(totalCircles, 0);
     _usedFlags = List.filled(numbersToUse.length, false);
-    numbersToUse.shuffle();
-    debugPrint("[Solver] Initialized with $totalCircles circles, numbers: $numbersToUse");
+    
+    _maxIterations = _calculateMaxIterations();
+    numbersToUse.shuffle(); // Simple shuffle is sufficient
+    
+    debugPrint("[Enhanced Solver] Initialized with $totalCircles circles, numbers: $numbersToUse");
+    debugPrint("[Enhanced Solver] Max iterations: $_maxIterations");
+  }
+
+  int _calculateMaxIterations() {
+    final baseIterations = 100000;
+    final complexityFactor = math.pow(circlesPerSide, 2.0).toInt();
+    return baseIterations * complexityFactor;
   }
 
   List<int>? findSolution() {
-    debugPrint("[Solver] Starting backtracking algorithm");
+    debugPrint("[Enhanced Solver] Starting enhanced backtracking algorithm");
+    _iterations = 0;
+    
     if (_solve(0, -1)) {
-        debugPrint("[Solver] Solution found after $_iterations iterations.");
+        debugPrint("[Enhanced Solver] Solution found after $_iterations iterations.");
         return _arrangement;
     } else {
-        debugPrint("[Solver] FAILED to find a solution after $_iterations iterations (limit: $_maxIterations).");
+        debugPrint("[Enhanced Solver] FAILED to find a solution after $_iterations iterations (limit: $_maxIterations).");
         return null;
     }
   }
@@ -960,12 +1101,16 @@ class _MagicTriangleSolver {
   bool _solve(int k, int targetSum) {
     _iterations++;
     if (_iterations > _maxIterations) {
-      debugPrint("[Solver] Max iterations reached, giving up");
+      debugPrint("[Enhanced Solver] Max iterations reached, giving up");
       return false;
     }
     
+    if (_iterations % 50000 == 0) {
+      debugPrint("[Enhanced Solver] Progress: $_iterations iterations, position $k/$totalCircles");
+    }
+    
     if (k == totalCircles) {
-      debugPrint("[Solver] All positions filled, solution found!");
+      debugPrint("[Enhanced Solver] All positions filled, solution found!");
       return true;
     }
 
@@ -979,6 +1124,7 @@ class _MagicTriangleSolver {
 
         if (k == circlesPerSide - 1) {
           nextTargetSum = MagicTrianglePuzzle._calculateSideSums(_arrangement, circlesPerSide)[0];
+          if (nextTargetSum < 10 || nextTargetSum > 300) passesPruning = false;
         } else if (k == 2 * circlesPerSide - 2) {
           if (MagicTrianglePuzzle._calculateSideSums(_arrangement, circlesPerSide)[1] != targetSum) {
             passesPruning = false;

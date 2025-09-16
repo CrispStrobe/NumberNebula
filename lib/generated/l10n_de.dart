@@ -862,4 +862,108 @@ class SDe extends S {
 
   @override
   String get maxValue => 'Max. Wert';
+
+  @override
+  String get spatialBlocksGameTitle => 'Raum-Blöcke';
+
+  @override
+  String get spatialBlocksInstructions =>
+      'Platziere Blöcke um das Zielmuster nachzubilden';
+
+  @override
+  String get spatialBlocksFail =>
+      'Muster stimmt nicht überein! Versuche es erneut.';
+
+  @override
+  String spatialBlocksDifficulty(int level) {
+    return 'Komplexitätsstufe: $level';
+  }
+
+  @override
+  String get spatialBlocksTarget => 'Zielmuster';
+
+  @override
+  String get spatialBlocksWorkspace => 'Arbeitsbereich';
+
+  @override
+  String get spatialBlocksPieces => 'Verfügbare Teile';
+
+  @override
+  String get spatialBlocksWinTitle => 'Muster erfolgreich!';
+
+  @override
+  String spatialBlocksWinDesc(int bonus) {
+    return 'Bonuspunkte: $bonus';
+  }
+
+  @override
+  String get blockCounterGameTitle => '3D Block-Zähler';
+
+  @override
+  String get blockCounterInstructions =>
+      'Drehe und zähle alle Blöcke einschließlich der versteckten';
+
+  @override
+  String get blockCounterFail => 'Falsche Anzahl! Versuche es erneut.';
+
+  @override
+  String blockCounterComplexity(int level) {
+    return 'Komplexität: $level';
+  }
+
+  @override
+  String get blockCounterQuestion =>
+      'Wie viele Blöcke sind in dieser Struktur?';
+
+  @override
+  String get blockCounterSelectAnswer => 'Wähle deine Antwort';
+
+  @override
+  String get blockCounterShowHint => 'Versteckte zeigen';
+
+  @override
+  String get blockCounterHideHint => 'Hinweis verbergen';
+
+  @override
+  String get blockCounterRotateInstructions =>
+      'Ziehen zum Drehen • Kneifen zum Zoomen';
+
+  @override
+  String get blockCounterHintShowing =>
+      'Versteckte Blöcke sind gelb hervorgehoben';
+
+  @override
+  String get blockCounterHintHidden =>
+      'Einige Blöcke können hinter anderen versteckt sein';
+
+  @override
+  String get blockCounterWinTitle => 'Perfekte Zählung!';
+
+  @override
+  String blockCounterWinDesc(int count) {
+    return 'Richtig! Es waren $count Blöcke insgesamt.';
+  }
+
+  @override
+  String blockCounterBonusPoints(int bonus) {
+    return 'Bonuspunkte: $bonus';
+  }
+
+  @override
+  String get blockCounterDifficultyVeryEasy => 'Sehr Einfach';
+
+  @override
+  String get blockCounterDifficultyEasy => 'Einfach';
+
+  @override
+  String get blockCounterDifficultyMedium => 'Mittel';
+
+  @override
+  String get blockCounterDifficultyHard => 'Schwer';
+
+  @override
+  String get blockCounterNextPuzzle => 'Nächstes Rätsel';
+
+  @override
+  String get blockCounterBackToMenu => 'Zurück zum Menü';
 }

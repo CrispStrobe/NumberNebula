@@ -1,12 +1,12 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // --- CORE SERVICES ---
 import 'core/services/audio_service.dart';
-import 'core/services/debug_provider.dart'; // FIX: Added this import
+import 'core/services/debug_provider.dart';
 import 'core/services/progress_service.dart';
 import 'core/services/purchase_service.dart';
 import 'core/services/puzzle_image_service.dart';
@@ -28,6 +28,8 @@ import 'features/games/screens/hyperdrive_gates_game.dart';
 import 'features/games/screens/planet_hopping_game.dart';
 import 'features/games/screens/number_walls_game.dart';
 import 'features/games/screens/codebreaker_game.dart';
+import 'features/games/screens/spatial_blocks_game.dart'; 
+import 'features/games/screens/blocks_counter_game.dart'; 
 
 // --- UTILS & GENERATED ---
 import 'shared/utils/app_utilities.dart';
@@ -56,15 +58,12 @@ void main() async {
   GlobalErrorHandler.init();
   
   runApp(
-    // --- 3. PROVIDE THE GLOBAL INSTANCES TO THE WIDGET TREE ---
-    // We use the `.value` constructor for existing ChangeNotifier instances.
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: gameProvider),
         ChangeNotifierProvider.value(value: sriService),
         ChangeNotifierProvider.value(value: purchaseService),
         ChangeNotifierProvider.value(value: debugProvider),
-        // Services that don't change state can be provided directly.
         Provider.value(value: progressService),
         Provider.value(value: audioService),
       ],
@@ -74,7 +73,6 @@ void main() async {
 }
 
 class SpaceMathApp extends StatefulWidget {
-  // FIX: This widget no longer needs constructor parameters
   const SpaceMathApp({super.key});
 
   @override
@@ -85,13 +83,10 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   Locale? _locale;
   bool _isInitialized = false;
   String? _initializationError;
-  // Hold a reference to GameProvider to use in lifecycle methods
-  // late GameProvider _gameProvider; // it's now a global instance that is provided.
   
   @override
   void initState() {
     super.initState();
-    // _gameProvider = GameProvider(); // Initialize the provider
     WidgetsBinding.instance.addObserver(this);
     _initializeApp();
   }
@@ -99,30 +94,10 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    purchaseService.dispose(); // Dispose the purchase service
+    purchaseService.dispose();
     super.dispose();
   }
 
-  // --- 4. SIMPLIFIED LIFECYCLE MANAGEMENT ---
-  // The state no longer needs its own provider instances.
-  // It can access the global ones via `context.read<T>()` or the
-  // global variables directly.
-  /* 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    switch (state) {
-      case AppLifecycleState.paused:
-      case AppLifecycleState.detached:
-        _saveAppState();
-        break;
-      case AppLifecycleState.resumed:
-        _restoreAppState();
-        break;
-      default:
-        break;
-    }
-  } */
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
@@ -134,7 +109,6 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   Future<void> _initializeApp() async {
     try {
       await _loadLanguagePreference();
-      // Load data into the *global* provider instances
       await progressService.loadProgress(gameProvider);
       await sriService.loadSriData();
       setState(() => _isInitialized = true);
@@ -168,10 +142,8 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   }
   
   Future<void> _saveAppState() async {
-    // This saves all necessary data
     await progressService.saveProgress(gameProvider);
     await sriService.saveSriData();
-    // Also save language preference
     try {
       final prefs = await SharedPreferences.getInstance();
       if (_locale != null) {
@@ -183,7 +155,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   }
   
   Future<void> _restoreAppState() async {
-    // Restore app state when app comes back to foreground
+    // Restore logic if needed
   }
 
   @override
@@ -247,74 +219,6 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   }
 }
 
-// App Settings Manager for handling app-level settings
-class AppSettingsManager {
-  late SharedPreferences _prefs;
-  bool _isInitialized = false;
-  
-  Future<void> init() async {
-    if (!_isInitialized) {
-      _prefs = await SharedPreferences.getInstance();
-      _isInitialized = true;
-    }
-  }
-  
-  Future<String> getLanguage() async {
-    await init();
-    return _prefs.getString('language') ?? 'en';
-  }
-  
-  Future<void> setLanguage(String languageCode) async {
-    await init();
-    await _prefs.setString('language', languageCode);
-  }
-  
-  Future<bool> getSoundEnabled() async {
-    await init();
-    return _prefs.getBool('sound_enabled') ?? true;
-  }
-  
-  Future<void> setSoundEnabled(bool enabled) async {
-    await init();
-    await _prefs.setBool('sound_enabled', enabled);
-  }
-  
-  Future<bool> getMusicEnabled() async {
-    await init();
-    return _prefs.getBool('music_enabled') ?? true;
-  }
-  
-  Future<void> setMusicEnabled(bool enabled) async {
-    await init();
-    await _prefs.setBool('music_enabled', enabled);
-  }
-  
-  Future<bool> getHintsEnabled() async {
-    await init();
-    return _prefs.getBool('hints_enabled') ?? true;
-  }
-  
-  Future<void> setHintsEnabled(bool enabled) async {
-    await init();
-    await _prefs.setBool('hints_enabled', enabled);
-  }
-  
-  Future<bool> getHapticEnabled() async {
-    await init();
-    return _prefs.getBool('haptic_enabled') ?? true;
-  }
-  
-  Future<void> setHapticEnabled(bool enabled) async {
-    await init();
-    await _prefs.setBool('haptic_enabled', enabled);
-  }
-  
-  Future<void> resetAllSettings() async {
-    await init();
-    await _prefs.clear();
-  }
-}
-
 class AppRoutes {
   // Route names
   static const String splash = '/';
@@ -327,6 +231,8 @@ class AppRoutes {
   static const String planetHopping = '/games/planet-hopping';
   static const String numberWalls = '/games/number-walls';
   static const String codebreaker = '/games/codebreaker';
+  static const String spatialBlocks = '/games/spatial-blocks'; // NEW
+  static const String blockCounter = '/games/block-counter'; // NEW
   static const String settings = '/settings';
   static const String achievements = '/achievements';
   static const String loading = '/loading';
@@ -337,74 +243,82 @@ class AppRoutes {
     
     switch (settings.name) {
         case splash:
-            return _createRoute(const SplashScreen());
-            
+          return _createRoute(const SplashScreen());
+          
         case home:
-            return _createRoute(const HomeScreen());
-            
+          return _createRoute(const HomeScreen());
+          
         case gameMenu:
-            return _createRoute(const GameMenuScreen());
-            
+          return _createRoute(const GameMenuScreen());
+          
         case magicTriangles:
-            final grade = args?['grade'] as int? ?? 3;
-            final level = args?['level'] as int? ?? 1;
-            return _createRoute(MagicTrianglesGame(grade: grade, level: level));
-            
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(MagicTrianglesGame(grade: grade, level: level));
+          
         case asteroidGame:
-            final grade = args?['grade'] as int? ?? 3;
-            final level = args?['level'] as int? ?? 1;
-            return _createRoute(AsteroidMathGame(grade: grade, level: level));
-            
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(AsteroidMathGame(grade: grade, level: level));
+          
         case puzzleGame:
-            final grade = args?['grade'] as int? ?? 3;
-            final level = args?['level'] as int? ?? 1;
-            return _createRoute(PuzzleMathGame(grade: grade, level: level));
-            
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(PuzzleMathGame(grade: grade, level: level));
+          
         case hyperdriveGates:
-            final grade = args?['grade'] as int? ?? 3;
-            final level = args?['level'] as int? ?? 1;
-            return _createRoute(HyperdriveGatesGame(grade: grade, level: level));
-            
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(HyperdriveGatesGame(grade: grade, level: level));
+          
         case planetHopping:
-            final grade = args?['grade'] as int? ?? 3;
-            final level = args?['level'] as int? ?? 1;
-            return _createRoute(PlanetHoppingGame(grade: grade, level: level));
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(PlanetHoppingGame(grade: grade, level: level));
 
         case numberWalls:
-            final grade = args?['grade'] as int? ?? 3;
-            final level = args?['level'] as int? ?? 1;
-            return _createRoute(NumberWallsGame(grade: grade, level: level));
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(NumberWallsGame(grade: grade, level: level));
 
         case codebreaker:
-            final grade = args?['grade'] as int? ?? 3;
-            final level = args?['level'] as int? ?? 1;
-            return _createRoute(CodebreakerGame(grade: grade, level: level));
-        
-        case AppRoutes.settings: // FIX: Use AppRoutes.settings instead of settings
-            return _createRoute(const SettingsScreen());
-        
-        case AppRoutes.achievements:  // FIX: Use AppRoutes.achievements 
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(CodebreakerGame(grade: grade, level: level));
+      
+        case spatialBlocks: // FIX: This will now compile correctly
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(SpatialBlocksGame(grade: grade, level: level));
+
+        case blockCounter: // FIX: This will now compile correctly
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(BlockCounterGame(grade: grade, level: level));
+      
+        case AppRoutes.settings:
+          return _createRoute(const SettingsScreen());
+      
+        case AppRoutes.achievements:
         return _createRoute(const AchievementsScreen());
-        
+      
         case loading:
-            final message = args?['message'] as String?;
-            return _createRoute(SpaceLoadingScreen(message: message));
-            
+          final message = args?['message'] as String?;
+          return _createRoute(SpaceLoadingScreen(message: message));
+          
         case error:
-            final title = args?['title'] as String? ?? 'Error';
-            final message = args?['message'] as String? ?? 'Something went wrong';
-            return _createRoute(SpaceErrorScreen(title: title, message: message));
-            
+          final title = args?['title'] as String? ?? 'Error';
+          final message = args?['message'] as String? ?? 'Something went wrong';
+          return _createRoute(SpaceErrorScreen(title: title, message: message));
+          
         default:
-            return _createRoute(
-                SpaceErrorScreen(
-                title: 'Route Not Found',
-                message: 'The requested page could not be found.',
-                onBack: () {
-                    // Navigate back to home - this would need context
-                },
-                ),
-            );
+          return _createRoute(
+              SpaceErrorScreen(
+              title: 'Route Not Found',
+              message: 'The requested page could not be found.',
+              onBack: () {},
+              ),
+          );
     }
     }
   
@@ -427,39 +341,6 @@ class AppRoutes {
         );
       },
       transitionDuration: const Duration(milliseconds: 400),
-    );
-  }
-  
-  // Navigation helpers
-  static Future<void> navigateToGame(
-    BuildContext context,
-    String gameRoute, {
-    required int grade,
-    required int level,
-  }) {
-    return Navigator.pushNamed(
-      context,
-      gameRoute,
-      arguments: {'grade': grade, 'level': level},
-    );
-  }
-  
-  static Future<void> navigateToHome(BuildContext context) {
-    return Navigator.pushNamedAndRemoveUntil(
-      context,
-      home,
-      (route) => false,
-    );
-  }
-  
-  static Future<void> showLoadingScreen(
-    BuildContext context, {
-    String? message,
-  }) {
-    return Navigator.pushNamed(
-      context,
-      loading,
-      arguments: {'message': message},
     );
   }
 }

@@ -373,5 +373,72 @@
     "allowedOperations": "Allowed Operations",
     "numberRange": "Number Range",
     "minValue": "Min Value",
-    "maxValue": "Max Value"
+    "maxValue": "Max Value",
+
+    "spatialBlocksGameTitle": "Spatial Blocks",
+    "spatialBlocksInstructions": "Match the target pattern by placing blocks",
+    "spatialBlocksFail": "Pattern doesn't match! Try again.",
+    "spatialBlocksDifficulty": "Complexity Level: {level}",
+    "@spatialBlocksDifficulty": {
+        "placeholders": {
+            "level": {
+                "type": "int"
+            }
+        }
+    },
+    "spatialBlocksTarget": "Target Pattern",
+    "spatialBlocksWorkspace": "Workspace",
+    "spatialBlocksPieces": "Available Pieces",
+    "spatialBlocksWinTitle": "Pattern Matched!",
+    "spatialBlocksWinDesc": "Bonus points: {bonus}",
+    "@spatialBlocksWinDesc": {
+        "placeholders": {
+            "bonus": {
+                "type": "int"
+            }
+        }
+    },
+
+    "blockCounterGameTitle": "3D Block Counter",
+    "blockCounterInstructions": "Rotate and count all blocks including hidden ones",
+    "blockCounterFail": "Incorrect count! Try again.",
+    "blockCounterComplexity": "Complexity: {level}",
+    "@blockCounterComplexity": {
+        "placeholders": {
+            "level": {
+                "type": "int"
+            }
+        }
+    },
+    "blockCounterQuestion": "How many blocks are in this structure?",
+    "blockCounterSelectAnswer": "Select Your Answer",
+    "blockCounterShowHint": "Show Hidden",
+    "blockCounterHideHint": "Hide Hint",
+    "blockCounterRotateInstructions": "Drag to rotate • Pinch to zoom",
+    "blockCounterHintShowing": "Hidden blocks are highlighted in yellow",
+    "blockCounterHintHidden": "Some blocks may be hidden behind others",
+    "blockCounterWinTitle": "Perfect Count!",
+    "blockCounterWinDesc": "Correct! There were {count} blocks total.",
+    "@blockCounterWinDesc": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "blockCounterBonusPoints": "Bonus points: {bonus}",
+    "@blockCounterBonusPoints": {
+        "placeholders": {
+            "bonus": {
+                "type": "int"
+            }
+        }
+    },
+    "blockCounterDifficultyVeryEasy": "Very easy",
+    "blockCounterDifficultyEasy": "Easy", 
+    "blockCounterDifficultyMedium": "Middle",
+    "blockCounterDifficultyHard": "Hard",
+    "blockCounterNextPuzzle": "Next mission",
+    "blockCounterBackToMenu": "Back to base"
+
 }

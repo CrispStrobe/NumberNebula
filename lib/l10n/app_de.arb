@@ -307,5 +307,71 @@
     "allowedOperations": "Erlaubte Rechenarten",
     "numberRange": "Zahlenbereich",
     "minValue": "Min. Wert",
-    "maxValue": "Max. Wert"
+    "maxValue": "Max. Wert",
+
+    "spatialBlocksGameTitle": "Raum-Blöcke",
+    "spatialBlocksInstructions": "Platziere Blöcke um das Zielmuster nachzubilden",
+    "spatialBlocksFail": "Muster stimmt nicht überein! Versuche es erneut.",
+    "spatialBlocksDifficulty": "Komplexitätsstufe: {level}",
+    "@spatialBlocksDifficulty": {
+        "placeholders": {
+            "level": {
+                "type": "int"
+            }
+        }
+    },
+    "spatialBlocksTarget": "Zielmuster",
+    "spatialBlocksWorkspace": "Arbeitsbereich",
+    "spatialBlocksPieces": "Verfügbare Teile",
+    "spatialBlocksWinTitle": "Muster erfolgreich!",
+    "spatialBlocksWinDesc": "Bonuspunkte: {bonus}",
+    "@spatialBlocksWinDesc": {
+        "placeholders": {
+            "bonus": {
+                "type": "int"
+            }
+        }
+    },
+
+    "blockCounterGameTitle": "3D Block-Zähler",
+    "blockCounterInstructions": "Drehe und zähle alle Blöcke einschließlich der versteckten",
+    "blockCounterFail": "Falsche Anzahl! Versuche es erneut.",
+    "blockCounterComplexity": "Komplexität: {level}",
+    "@blockCounterComplexity": {
+        "placeholders": {
+            "level": {
+                "type": "int"
+            }
+        }
+    },
+    "blockCounterQuestion": "Wie viele Blöcke sind in dieser Struktur?",
+    "blockCounterSelectAnswer": "Wähle deine Antwort",
+    "blockCounterShowHint": "Versteckte zeigen",
+    "blockCounterHideHint": "Hinweis verbergen",
+    "blockCounterRotateInstructions": "Ziehen zum Drehen • Kneifen zum Zoomen",
+    "blockCounterHintShowing": "Versteckte Blöcke sind gelb hervorgehoben",
+    "blockCounterHintHidden": "Einige Blöcke können hinter anderen versteckt sein",
+    "blockCounterWinTitle": "Perfekte Zählung!",
+    "blockCounterWinDesc": "Richtig! Es waren {count} Blöcke insgesamt.",
+    "@blockCounterWinDesc": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "blockCounterBonusPoints": "Bonuspunkte: {bonus}",
+    "@blockCounterBonusPoints": {
+        "placeholders": {
+            "bonus": {
+                "type": "int"
+            }
+        }
+    },
+    "blockCounterDifficultyVeryEasy": "Sehr Einfach",
+    "blockCounterDifficultyEasy": "Einfach", 
+    "blockCounterDifficultyMedium": "Mittel",
+    "blockCounterDifficultyHard": "Schwer",
+    "blockCounterNextPuzzle": "Nächstes Rätsel",
+    "blockCounterBackToMenu": "Zurück zum Menü"
 }

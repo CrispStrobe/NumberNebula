@@ -857,4 +857,105 @@ class SEn extends S {
 
   @override
   String get maxValue => 'Max Value';
+
+  @override
+  String get spatialBlocksGameTitle => 'Spatial Blocks';
+
+  @override
+  String get spatialBlocksInstructions =>
+      'Match the target pattern by placing blocks';
+
+  @override
+  String get spatialBlocksFail => 'Pattern doesn\'t match! Try again.';
+
+  @override
+  String spatialBlocksDifficulty(int level) {
+    return 'Complexity Level: $level';
+  }
+
+  @override
+  String get spatialBlocksTarget => 'Target Pattern';
+
+  @override
+  String get spatialBlocksWorkspace => 'Workspace';
+
+  @override
+  String get spatialBlocksPieces => 'Available Pieces';
+
+  @override
+  String get spatialBlocksWinTitle => 'Pattern Matched!';
+
+  @override
+  String spatialBlocksWinDesc(int bonus) {
+    return 'Bonus points: $bonus';
+  }
+
+  @override
+  String get blockCounterGameTitle => '3D Block Counter';
+
+  @override
+  String get blockCounterInstructions =>
+      'Rotate and count all blocks including hidden ones';
+
+  @override
+  String get blockCounterFail => 'Incorrect count! Try again.';
+
+  @override
+  String blockCounterComplexity(int level) {
+    return 'Complexity: $level';
+  }
+
+  @override
+  String get blockCounterQuestion => 'How many blocks are in this structure?';
+
+  @override
+  String get blockCounterSelectAnswer => 'Select Your Answer';
+
+  @override
+  String get blockCounterShowHint => 'Show Hidden';
+
+  @override
+  String get blockCounterHideHint => 'Hide Hint';
+
+  @override
+  String get blockCounterRotateInstructions => 'Drag to rotate • Pinch to zoom';
+
+  @override
+  String get blockCounterHintShowing =>
+      'Hidden blocks are highlighted in yellow';
+
+  @override
+  String get blockCounterHintHidden =>
+      'Some blocks may be hidden behind others';
+
+  @override
+  String get blockCounterWinTitle => 'Perfect Count!';
+
+  @override
+  String blockCounterWinDesc(int count) {
+    return 'Correct! There were $count blocks total.';
+  }
+
+  @override
+  String blockCounterBonusPoints(int bonus) {
+    return 'Bonus points: $bonus';
+  }
+
+  @override
+  String get blockCounterDifficultyVeryEasy => 'Very easy';
+
+  @override
+  String get blockCounterDifficultyEasy => 'Easy';
+
+  @override
+  String get blockCounterDifficultyMedium => 'Middle';
+
+  @override
+  String get blockCounterDifficultyHard => 'Hard';
+
+  @override
+  String get blockCounterNextPuzzle => 'Next mission';
+
+  @override
+  String get blockCounterBackToMenu => 'Back to base';
 }
