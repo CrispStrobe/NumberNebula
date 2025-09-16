@@ -859,41 +859,41 @@ class SEn extends S {
   String get maxValue => 'Max Value';
 
   @override
-  String get perspectivePuzzleGameTitle => 'Perspektiven-Puzzle';
+  String get perspectivePuzzleGameTitle => 'Perspective Puzzle';
 
   @override
-  String get perspectivePuzzleInstructions => 'Wähle die korrekte Ansicht';
+  String get perspectivePuzzleInstructions => 'Choose the correct perspective';
 
   @override
   String perspectivePuzzleSelectView(String perspective) {
-    return 'Wähle die korrekte $perspective Ansicht';
+    return 'Select the correct $perspective View';
   }
 
   @override
-  String get perspectivePuzzleCorrect => 'Richtig!';
+  String get perspectivePuzzleCorrect => 'Correct!';
 
   @override
-  String get perspectivePuzzleIncorrect => 'Versuche es erneut!';
+  String get perspectivePuzzleIncorrect => 'Try again!';
 
   @override
-  String get perspectivePuzzleWinTitle => 'Puzzle gelöst!';
+  String get perspectivePuzzleWinTitle => 'Puzzle Solved!';
 
   @override
   String perspectivePuzzleWinDesc(int bonus) {
-    return 'Großartig! Du hast alle 4 Perspektiven erkannt. Bonus: $bonus Punkte.';
+    return 'Great! You identified all 4 perspectives. Bonus: $bonus points.';
   }
 
   @override
-  String get perspectiveFront => 'VORDER';
+  String get perspectiveFront => 'FRONT';
 
   @override
-  String get perspectiveBack => 'RÜCK';
+  String get perspectiveBack => 'BACK';
 
   @override
-  String get perspectiveLeft => 'LINKE';
+  String get perspectiveLeft => 'LEFT';
 
   @override
-  String get perspectiveRight => 'RECHTE';
+  String get perspectiveRight => 'RIGHT';
 
   @override
   String get blockCounterGameTitle => '3D Block Counter';

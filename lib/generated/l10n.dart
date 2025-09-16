@@ -1642,67 +1642,67 @@ abstract class S {
   /// No description provided for @perspectivePuzzleGameTitle.
   ///
   /// In en, this message translates to:
-  /// **'Perspektiven-Puzzle'**
+  /// **'Perspective Puzzle'**
   String get perspectivePuzzleGameTitle;
 
   /// No description provided for @perspectivePuzzleInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Wähle die korrekte Ansicht'**
+  /// **'Choose the correct perspective'**
   String get perspectivePuzzleInstructions;
 
   /// No description provided for @perspectivePuzzleSelectView.
   ///
   /// In en, this message translates to:
-  /// **'Wähle die korrekte {perspective} Ansicht'**
+  /// **'Select the correct {perspective} View'**
   String perspectivePuzzleSelectView(String perspective);
 
   /// No description provided for @perspectivePuzzleCorrect.
   ///
   /// In en, this message translates to:
-  /// **'Richtig!'**
+  /// **'Correct!'**
   String get perspectivePuzzleCorrect;
 
   /// No description provided for @perspectivePuzzleIncorrect.
   ///
   /// In en, this message translates to:
-  /// **'Versuche es erneut!'**
+  /// **'Try again!'**
   String get perspectivePuzzleIncorrect;
 
   /// No description provided for @perspectivePuzzleWinTitle.
   ///
   /// In en, this message translates to:
-  /// **'Puzzle gelöst!'**
+  /// **'Puzzle Solved!'**
   String get perspectivePuzzleWinTitle;
 
   /// No description provided for @perspectivePuzzleWinDesc.
   ///
   /// In en, this message translates to:
-  /// **'Großartig! Du hast alle 4 Perspektiven erkannt. Bonus: {bonus} Punkte.'**
+  /// **'Great! You identified all 4 perspectives. Bonus: {bonus} points.'**
   String perspectivePuzzleWinDesc(int bonus);
 
   /// No description provided for @perspectiveFront.
   ///
   /// In en, this message translates to:
-  /// **'VORDER'**
+  /// **'FRONT'**
   String get perspectiveFront;
 
   /// No description provided for @perspectiveBack.
   ///
   /// In en, this message translates to:
-  /// **'RÜCK'**
+  /// **'BACK'**
   String get perspectiveBack;
 
   /// No description provided for @perspectiveLeft.
   ///
   /// In en, this message translates to:
-  /// **'LINKE'**
+  /// **'LEFT'**
   String get perspectiveLeft;
 
   /// No description provided for @perspectiveRight.
   ///
   /// In en, this message translates to:
-  /// **'RECHTE'**
+  /// **'RIGHT'**
   String get perspectiveRight;
 
   /// No description provided for @blockCounterGameTitle.
