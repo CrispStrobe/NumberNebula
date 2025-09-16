@@ -309,29 +309,32 @@
     "minValue": "Min. Wert",
     "maxValue": "Max. Wert",
 
-    "spatialBlocksGameTitle": "Raum-Blöcke",
-    "spatialBlocksInstructions": "Platziere Blöcke um das Zielmuster nachzubilden",
-    "spatialBlocksFail": "Muster stimmt nicht überein! Versuche es erneut.",
-    "spatialBlocksDifficulty": "Komplexitätsstufe: {level}",
-    "@spatialBlocksDifficulty": {
+    "perspectivePuzzleGameTitle": "Perspektiven-Puzzle",
+    "perspectivePuzzleInstructions": "Wähle die korrekte Ansicht",
+    
+    "perspectivePuzzleSelectView": "Wähle die korrekte {perspective} Ansicht",
+    "@perspectivePuzzleSelectView": {
         "placeholders": {
-            "level": {
-                "type": "int"
+            "perspective": {
+                "type": "String"
             }
         }
     },
-    "spatialBlocksTarget": "Zielmuster",
-    "spatialBlocksWorkspace": "Arbeitsbereich",
-    "spatialBlocksPieces": "Verfügbare Teile",
-    "spatialBlocksWinTitle": "Muster erfolgreich!",
-    "spatialBlocksWinDesc": "Bonuspunkte: {bonus}",
-    "@spatialBlocksWinDesc": {
+    "perspectivePuzzleCorrect": "Richtig!",
+    "perspectivePuzzleIncorrect": "Versuche es erneut!",
+    "perspectivePuzzleWinTitle": "Puzzle gelöst!",
+    "perspectivePuzzleWinDesc": "Großartig! Du hast alle 4 Perspektiven erkannt. Bonus: {bonus} Punkte.",
+    "@perspectivePuzzleWinDesc": {
         "placeholders": {
             "bonus": {
                 "type": "int"
             }
         }
     },
+    "perspectiveFront": "VORDER",
+    "perspectiveBack": "RÜCK",
+    "perspectiveLeft": "LINKE",
+    "perspectiveRight": "RECHTE",
 
     "blockCounterGameTitle": "3D Block-Zähler",
     "blockCounterInstructions": "Drehe und zähle alle Blöcke einschließlich der versteckten",

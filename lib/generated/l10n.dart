@@ -1639,59 +1639,71 @@ abstract class S {
   /// **'Max Value'**
   String get maxValue;
 
-  /// No description provided for @spatialBlocksGameTitle.
+  /// No description provided for @perspectivePuzzleGameTitle.
   ///
   /// In en, this message translates to:
-  /// **'Spatial Blocks'**
-  String get spatialBlocksGameTitle;
+  /// **'Perspektiven-Puzzle'**
+  String get perspectivePuzzleGameTitle;
 
-  /// No description provided for @spatialBlocksInstructions.
+  /// No description provided for @perspectivePuzzleInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Match the target pattern by placing blocks'**
-  String get spatialBlocksInstructions;
+  /// **'Wähle die korrekte Ansicht'**
+  String get perspectivePuzzleInstructions;
 
-  /// No description provided for @spatialBlocksFail.
+  /// No description provided for @perspectivePuzzleSelectView.
   ///
   /// In en, this message translates to:
-  /// **'Pattern doesn\'t match! Try again.'**
-  String get spatialBlocksFail;
+  /// **'Wähle die korrekte {perspective} Ansicht'**
+  String perspectivePuzzleSelectView(String perspective);
 
-  /// No description provided for @spatialBlocksDifficulty.
+  /// No description provided for @perspectivePuzzleCorrect.
   ///
   /// In en, this message translates to:
-  /// **'Complexity Level: {level}'**
-  String spatialBlocksDifficulty(int level);
+  /// **'Richtig!'**
+  String get perspectivePuzzleCorrect;
 
-  /// No description provided for @spatialBlocksTarget.
+  /// No description provided for @perspectivePuzzleIncorrect.
   ///
   /// In en, this message translates to:
-  /// **'Target Pattern'**
-  String get spatialBlocksTarget;
+  /// **'Versuche es erneut!'**
+  String get perspectivePuzzleIncorrect;
 
-  /// No description provided for @spatialBlocksWorkspace.
+  /// No description provided for @perspectivePuzzleWinTitle.
   ///
   /// In en, this message translates to:
-  /// **'Workspace'**
-  String get spatialBlocksWorkspace;
+  /// **'Puzzle gelöst!'**
+  String get perspectivePuzzleWinTitle;
 
-  /// No description provided for @spatialBlocksPieces.
+  /// No description provided for @perspectivePuzzleWinDesc.
   ///
   /// In en, this message translates to:
-  /// **'Available Pieces'**
-  String get spatialBlocksPieces;
+  /// **'Großartig! Du hast alle 4 Perspektiven erkannt. Bonus: {bonus} Punkte.'**
+  String perspectivePuzzleWinDesc(int bonus);
 
-  /// No description provided for @spatialBlocksWinTitle.
+  /// No description provided for @perspectiveFront.
   ///
   /// In en, this message translates to:
-  /// **'Pattern Matched!'**
-  String get spatialBlocksWinTitle;
+  /// **'VORDER'**
+  String get perspectiveFront;
 
-  /// No description provided for @spatialBlocksWinDesc.
+  /// No description provided for @perspectiveBack.
   ///
   /// In en, this message translates to:
-  /// **'Bonus points: {bonus}'**
-  String spatialBlocksWinDesc(int bonus);
+  /// **'RÜCK'**
+  String get perspectiveBack;
+
+  /// No description provided for @perspectiveLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'LINKE'**
+  String get perspectiveLeft;
+
+  /// No description provided for @perspectiveRight.
+  ///
+  /// In en, this message translates to:
+  /// **'RECHTE'**
+  String get perspectiveRight;
 
   /// No description provided for @blockCounterGameTitle.
   ///

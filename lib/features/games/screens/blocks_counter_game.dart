@@ -16,40 +16,44 @@ import '../../../shared/utils/app_utilities.dart';
 // VISUAL CONFIGURATION - Tweak these parameters to adjust 3D rendering
 // =============================================================================
 class _VisualConfig {
-  // NEW: Dynamic camera settings
+  // --- Camera ---
   static const double cameraDistanceFactor = 2.0; // How far the camera is based on puzzle size
-  static final cube.Vector3 cameraTarget = cube.Vector3(0, 0, 0);
+  static final cube.Vector3 cameraTarget = cube.Vector3(0, -0.5, 0); // Aim slightly below center for better view angle
 
-  // Cube appearance
+  // --- Lighting ---
+  static final cube.Vector3 lightPosition = cube.Vector3(15, 20, 20); // Position of the main light
+  static final Color lightColor = Colors.white; // Color of the light
+  static const double ambientIntensity = 0.6; // Overall ambient light
+  static const double diffuseIntensity = 1.0; // Directional light contribution
+  static const double specularIntensity = 1.0; // Highlight intensity
+
+  // --- Material ---
+  static final cube.Vector3 materialSpecular = cube.Vector3(0.8, 0.8, 0.8); // How much light is reflected
+  static const double materialShininess = 100.0; // Sharpness of the specular highlight (higher = shinier)
+
+  // --- Cube Appearance ---
   static const double cubeSize = 0.98;
   static const double cubeSpacing = 1.0;
   
-  // Lighting and colors
-  static const double lightDistance = 12.0;
-  static const double lightHeight = 10.0;
-  static const double materialBrightness = 2.2;
-  
-  // Animation
+  // --- Animation & UI ---
   static const int rotationDurationSeconds = 15;
-  
-  // Container
   static const double containerHeight = 350.0;
   static const double containerBorderRadius = 16.0;
   
-  // More vivid, saturated cube colors
+  // --- More vivid, saturated cube colors (adjusted for better contrast) ---
   static const List<Color> cubeColors = [
-    Color(0xFF00E5FF), // Bright Cyan
-    Color(0xFF76FF03), // Bright Lime Green  
-    Color(0xFFFF6D00), // Bright Orange
-    Color(0xFFE91E63), // Bright Pink
-    Color(0xFF9C27B0), // Bright Purple
-    Color(0xFFFFEB3B), // Bright Yellow
-    Color(0xFF03DAC6), // Bright Teal
+    Color(0xFF00C8FF), // Brighter Cyan
+    Color(0xFF64DD17), // Brighter Lime Green  
+    Color(0xFFFF9100), // Brighter Orange
+    Color(0xFFD500F9), // Brighter Purple/Magenta
+    Color(0xFF304FFE), // Brighter Blue
+    Color(0xFFFFEA00), // Brighter Yellow
+    Color(0xFF1DE9B6), // Brighter Teal
     Color(0xFFFF1744), // Bright Red
   ];
 }
 
-// --- FIX: Helper class to manually define Cube geometry for flutter_cube v0.1.1 ---
+// --- Helper class to manually define Cube geometry for flutter_cube v0.1.1 ---
 class _CubeGeometry {
   final List<cube.Vector3> vertices = [
     cube.Vector3(-0.5, -0.5, -0.5), cube.Vector3(0.5, -0.5, -0.5),
@@ -71,7 +75,7 @@ class _CubeGeometry {
 
 //##############################################################################
 //#
-//#                      NEW: DATA MODELS & PUZZLE LOGIC
+//#                      DATA MODELS & PUZZLE LOGIC
 //#
 //##############################################################################
 
@@ -194,9 +198,7 @@ class BlockCountingPuzzle {
         maxHeight: maxHeight
       ),
       correctAnswer: correctAnswer,
-      // FIX #1: Changed '...' to the correct '..' cascade operator
       answerChoices: choices.toList()..shuffle(),
-      // FIX #2: Added the missing 'difficulty' parameter
       difficulty: difficulty,
     );
   }
@@ -341,18 +343,15 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
       final material = cube.Material();
       final color = blockData.color; // Use the color assigned during generation
       
-      final brightColor = Color.fromRGBO(
-        (color.red * _VisualConfig.materialBrightness).clamp(0, 255).toInt(),
-        (color.green * _VisualConfig.materialBrightness).clamp(0, 255).toInt(),
-        (color.blue * _VisualConfig.materialBrightness).clamp(0, 255).toInt(),
-        1.0,
-      );
-      
       material.diffuse.setFrom(cube.Vector3(
-        brightColor.red / 255.0,
-        brightColor.green / 255.0,
-        brightColor.blue / 255.0,
+        color.red / 255.0,
+        color.green / 255.0,
+        color.blue / 255.0,
       ));
+      
+      // FIX: Add specular and shininess for better lighting effects
+      material.specular.setFrom(_VisualConfig.materialSpecular);
+      material.shininess = _VisualConfig.materialShininess;
       
       cubeObject.mesh = cube.Mesh(
         vertices: geometry.vertices,
@@ -387,7 +386,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
 
   void _handleSuccess() {
     int baseScore = 150 * widget.grade;
-    int difficultyBonus = (currentPuzzle!.difficulty + 1) * 50;
+    int difficultyBonus = (currentPuzzle?.difficulty ?? 1) * 50;
     int totalScore = baseScore + difficultyBonus;
     context.read<GameProvider>().addScore(totalScore);
     _successController.forward(from: 0.0);
@@ -419,7 +418,20 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
   @override
   Widget build(BuildContext context) {
     if (_isGenerating || currentPuzzle == null) {
-      return Scaffold( /* Loading UI */ );
+      return Scaffold(
+        body: SpaceBackground(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(color: SpaceTheme.starYellow),
+                const SizedBox(height: 16),
+                Text(S.of(context)!.loadingAdventure, style: SpaceTheme.bodyStyle),
+              ],
+            ),
+          ),
+        ),
+      );
     }
     return Scaffold(
       body: SpaceBackground(
@@ -512,17 +524,26 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
                     
                     // NEW: DYNAMIC CAMERA SETUP
                     final structure = currentPuzzle!.blockStructure;
-                    final maxSize = math.max(structure.gridWidth, math.max(structure.gridDepth, structure.maxHeight)).toDouble();
-                    final distance = maxSize * _VisualConfig.cameraDistanceFactor;
+                    // Calculate largest dimension for optimal camera distance
+                    final maxDimension = math.max(structure.gridWidth, 
+                                          math.max(structure.gridDepth, structure.maxHeight)).toDouble();
+                    // Adjust distance based on dimension and factor. Add a small offset to prevent clipping.
+                    final distance = maxDimension * _VisualConfig.cameraDistanceFactor + 3.0; 
 
+                    // Set camera position (slightly elevated and to the side)
                     scene.camera.position.setValues(distance, distance * 0.8, distance);
                     scene.camera.target.setFrom(_VisualConfig.cameraTarget);
                     
-                    scene.light.position.setFrom(cube.Vector3(
-                      _VisualConfig.lightDistance, 
-                      _VisualConfig.lightHeight, 
-                      _VisualConfig.lightDistance
-                    ));
+                    // Set light position
+                    scene.light.position.setFrom(_VisualConfig.lightPosition);
+                    
+                    // Set the light's color and intensity
+                    scene.light.setColor(
+                      _VisualConfig.lightColor,
+                      _VisualConfig.ambientIntensity,
+                      _VisualConfig.diffuseIntensity,
+                      _VisualConfig.specularIntensity,
+                    );
                   },
                 ),
               ),
@@ -690,4 +711,3 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
     );
   }
 }
-

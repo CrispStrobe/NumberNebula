@@ -859,36 +859,41 @@ class SEn extends S {
   String get maxValue => 'Max Value';
 
   @override
-  String get spatialBlocksGameTitle => 'Spatial Blocks';
+  String get perspectivePuzzleGameTitle => 'Perspektiven-Puzzle';
 
   @override
-  String get spatialBlocksInstructions =>
-      'Match the target pattern by placing blocks';
+  String get perspectivePuzzleInstructions => 'Wähle die korrekte Ansicht';
 
   @override
-  String get spatialBlocksFail => 'Pattern doesn\'t match! Try again.';
-
-  @override
-  String spatialBlocksDifficulty(int level) {
-    return 'Complexity Level: $level';
+  String perspectivePuzzleSelectView(String perspective) {
+    return 'Wähle die korrekte $perspective Ansicht';
   }
 
   @override
-  String get spatialBlocksTarget => 'Target Pattern';
+  String get perspectivePuzzleCorrect => 'Richtig!';
 
   @override
-  String get spatialBlocksWorkspace => 'Workspace';
+  String get perspectivePuzzleIncorrect => 'Versuche es erneut!';
 
   @override
-  String get spatialBlocksPieces => 'Available Pieces';
+  String get perspectivePuzzleWinTitle => 'Puzzle gelöst!';
 
   @override
-  String get spatialBlocksWinTitle => 'Pattern Matched!';
-
-  @override
-  String spatialBlocksWinDesc(int bonus) {
-    return 'Bonus points: $bonus';
+  String perspectivePuzzleWinDesc(int bonus) {
+    return 'Großartig! Du hast alle 4 Perspektiven erkannt. Bonus: $bonus Punkte.';
   }
+
+  @override
+  String get perspectiveFront => 'VORDER';
+
+  @override
+  String get perspectiveBack => 'RÜCK';
+
+  @override
+  String get perspectiveLeft => 'LINKE';
+
+  @override
+  String get perspectiveRight => 'RECHTE';
 
   @override
   String get blockCounterGameTitle => '3D Block Counter';

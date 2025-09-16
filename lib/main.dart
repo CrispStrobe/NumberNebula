@@ -28,7 +28,7 @@ import 'features/games/screens/hyperdrive_gates_game.dart';
 import 'features/games/screens/planet_hopping_game.dart';
 import 'features/games/screens/number_walls_game.dart';
 import 'features/games/screens/codebreaker_game.dart';
-import 'features/games/screens/spatial_blocks_game.dart'; 
+import 'features/games/screens/perspective_puzzle_game.dart'; 
 import 'features/games/screens/blocks_counter_game.dart'; 
 
 // --- UTILS & GENERATED ---
@@ -231,7 +231,7 @@ class AppRoutes {
   static const String planetHopping = '/games/planet-hopping';
   static const String numberWalls = '/games/number-walls';
   static const String codebreaker = '/games/codebreaker';
-  static const String spatialBlocks = '/games/spatial-blocks'; // NEW
+  static const String perspectivePuzzle = '/games/perspective-puzzle';
   static const String blockCounter = '/games/block-counter'; // NEW
   static const String settings = '/settings';
   static const String achievements = '/achievements';
@@ -286,12 +286,12 @@ class AppRoutes {
           final level = args?['level'] as int? ?? 1;
           return _createRoute(CodebreakerGame(grade: grade, level: level));
       
-        case spatialBlocks: // FIX: This will now compile correctly
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(SpatialBlocksGame(grade: grade, level: level));
+        case perspectivePuzzle:
+            final grade = args?['grade'] as int? ?? 3;
+            final level = args?['level'] as int? ?? 1;
+            return _createRoute(PerspectivePuzzleGame(grade: grade, level: level));
 
-        case blockCounter: // FIX: This will now compile correctly
+        case blockCounter: 
           final grade = args?['grade'] as int? ?? 3;
           final level = args?['level'] as int? ?? 1;
           return _createRoute(BlockCounterGame(grade: grade, level: level));

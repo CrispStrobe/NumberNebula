@@ -16,7 +16,7 @@ import 'path_finder_game.dart';
 import 'planet_hopping_game.dart';
 import 'number_walls_game.dart';
 import 'codebreaker_game.dart';
-import 'spatial_blocks_game.dart'; // NEW: Import new game
+import 'perspective_puzzle_game.dart';
 import 'blocks_counter_game.dart'; // NEW: Import new game
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
@@ -311,11 +311,11 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
             onTap: () => _navigateToGame(CodebreakerGame(grade: gameProvider.grade, level: gameProvider.level))),
         // NEW: Add Spatial Blocks game
         GameInfo(
-            title: s.spatialBlocksGameTitle,
-            description: s.spatialBlocksInstructions,
+            title: s.perspectivePuzzleGameTitle, // Use the correct string
+            description: s.perspectivePuzzleInstructions,
             icon: Icons.grid_view_sharp,
             gradient: const LinearGradient(colors: [Color(0xFFf5af19), Color(0xFFf12711)]),
-            onTap: () => _navigateToGame(SpatialBlocksGame(grade: gameProvider.grade, level: gameProvider.level))),
+            onTap: () => _navigateToGame(PerspectivePuzzleGame(grade: gameProvider.grade, level: gameProvider.level))), // Use PerspectivePuzzleGame
         // NEW: Add Block Counter game
         GameInfo(
             title: s.blockCounterGameTitle,

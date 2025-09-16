@@ -864,37 +864,41 @@ class SDe extends S {
   String get maxValue => 'Max. Wert';
 
   @override
-  String get spatialBlocksGameTitle => 'Raum-Blöcke';
+  String get perspectivePuzzleGameTitle => 'Perspektiven-Puzzle';
 
   @override
-  String get spatialBlocksInstructions =>
-      'Platziere Blöcke um das Zielmuster nachzubilden';
+  String get perspectivePuzzleInstructions => 'Wähle die korrekte Ansicht';
 
   @override
-  String get spatialBlocksFail =>
-      'Muster stimmt nicht überein! Versuche es erneut.';
-
-  @override
-  String spatialBlocksDifficulty(int level) {
-    return 'Komplexitätsstufe: $level';
+  String perspectivePuzzleSelectView(String perspective) {
+    return 'Wähle die korrekte $perspective Ansicht';
   }
 
   @override
-  String get spatialBlocksTarget => 'Zielmuster';
+  String get perspectivePuzzleCorrect => 'Richtig!';
 
   @override
-  String get spatialBlocksWorkspace => 'Arbeitsbereich';
+  String get perspectivePuzzleIncorrect => 'Versuche es erneut!';
 
   @override
-  String get spatialBlocksPieces => 'Verfügbare Teile';
+  String get perspectivePuzzleWinTitle => 'Puzzle gelöst!';
 
   @override
-  String get spatialBlocksWinTitle => 'Muster erfolgreich!';
-
-  @override
-  String spatialBlocksWinDesc(int bonus) {
-    return 'Bonuspunkte: $bonus';
+  String perspectivePuzzleWinDesc(int bonus) {
+    return 'Großartig! Du hast alle 4 Perspektiven erkannt. Bonus: $bonus Punkte.';
   }
+
+  @override
+  String get perspectiveFront => 'VORDER';
+
+  @override
+  String get perspectiveBack => 'RÜCK';
+
+  @override
+  String get perspectiveLeft => 'LINKE';
+
+  @override
+  String get perspectiveRight => 'RECHTE';
 
   @override
   String get blockCounterGameTitle => '3D Block-Zähler';

@@ -375,29 +375,31 @@
     "minValue": "Min Value",
     "maxValue": "Max Value",
 
-    "spatialBlocksGameTitle": "Spatial Blocks",
-    "spatialBlocksInstructions": "Match the target pattern by placing blocks",
-    "spatialBlocksFail": "Pattern doesn't match! Try again.",
-    "spatialBlocksDifficulty": "Complexity Level: {level}",
-    "@spatialBlocksDifficulty": {
+    "perspectivePuzzleGameTitle": "Perspective Puzzle",
+    "perspectivePuzzleInstructions": "Choose the correct perspective",
+    "perspectivePuzzleSelectView": "Select the correct {perspective} View",
+    "@perspectivePuzzleSelectView": {
         "placeholders": {
-            "level": {
-                "type": "int"
+            "perspective": {
+                "type": "String"
             }
         }
     },
-    "spatialBlocksTarget": "Target Pattern",
-    "spatialBlocksWorkspace": "Workspace",
-    "spatialBlocksPieces": "Available Pieces",
-    "spatialBlocksWinTitle": "Pattern Matched!",
-    "spatialBlocksWinDesc": "Bonus points: {bonus}",
-    "@spatialBlocksWinDesc": {
+    "perspectivePuzzleCorrect": "Correct!",
+    "perspectivePuzzleIncorrect": "Try again!",
+    "perspectivePuzzleWinTitle": "Puzzle Solved!",
+    "perspectivePuzzleWinDesc": "Great! You identified all 4 perspectives. Bonus: {bonus} points.",
+    "@perspectivePuzzleWinDesc": {
         "placeholders": {
             "bonus": {
                 "type": "int"
             }
         }
     },
+    "perspectiveFront": "FRONT",
+    "perspectiveBack": "BACK",
+    "perspectiveLeft": "LEFT",
+    "perspectiveRight": "RIGHT",
 
     "blockCounterGameTitle": "3D Block Counter",
     "blockCounterInstructions": "Rotate and count all blocks including hidden ones",
