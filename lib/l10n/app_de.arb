@@ -309,21 +309,33 @@
     "minValue": "Min. Wert",
     "maxValue": "Max. Wert",
 
-    "perspectivePuzzleGameTitle": "Perspektiven-Puzzle",
-    "perspectivePuzzleInstructions": "Wähle die korrekte Ansicht",
-    
-    "perspectivePuzzleSelectView": "Wähle die korrekte {perspective} Ansicht",
-    "@perspectivePuzzleSelectView": {
+    "perspectivePuzzleGameTitle": "Anomalie-Scan",
+    "anomalyScanTitle": "Anomalie-Scan",    
+    "perspectivePuzzleInstructions": "Scanne Astro-Objekte aus verschiedenen Sensor-Perspektiven.",
+    "anomalyScanSelectReadout": "Ordne das Hologramm dem korrekten {perspective} Sensor-Scan zu",
+    "@anomalyScanSelectReadout": {
         "placeholders": {
             "perspective": {
                 "type": "String"
             }
         }
     },
-    "perspectivePuzzleCorrect": "Richtig!",
-    "perspectivePuzzleIncorrect": "Versuche es erneut!",
-    "perspectivePuzzleWinTitle": "Puzzle gelöst!",
-    "perspectivePuzzleWinDesc": "Großartig! Du hast alle 4 Perspektiven erkannt. Bonus: {bonus} Punkte.",
+    "anomalyScanWinTitle": "Analyse abgeschlossen!",
+    "anomalyScanWinDesc": "Anomalie identifiziert. Daten protokolliert. Bonus: {bonus} Punkte.",
+    "@anomalyScanWinDesc": {
+        "placeholders": {
+            "bonus": {
+                "type": "int"
+            }
+        }
+    },
+    "anomalyScanFail": "Scan-Fehler. Sensoren werden rekalibriert...",
+    "perspectiveDensityScan": "DICHTE",
+    "perspectiveStructuralScan": "STRUKTUR",
+    "perspectiveThermalScan": "THERMAL",
+    "perspectiveEMScan": "EM-FELD",
+    "perspectivePuzzleWinTitle": "Analyse vollständig!",
+    "perspectivePuzzleWinDesc": "Anomalie identifiziert. Daten protokolliert. Bonus: {bonus} Punkte.",
     "@perspectivePuzzleWinDesc": {
         "placeholders": {
             "bonus": {
@@ -331,10 +343,18 @@
             }
         }
     },
-    "perspectiveFront": "VORDER",
-    "perspectiveBack": "RÜCK",
-    "perspectiveLeft": "LINKE",
-    "perspectiveRight": "RECHTE",
+    "perspectivePuzzleSelectView": "Wähle die Perspektive {perspective} .",
+    "@perspectivePuzzleSelectView": {
+        "placeholders": {
+            "perspective": {
+                "type": "String"
+            }
+        }
+    },
+    "perspectiveFront": "VORN",
+    "perspectiveBack": "HINTEN",
+    "perspectiveLeft": "LINKS",
+    "perspectiveRight": "RECHTS",    
 
     "blockCounterGameTitle": "3D Block-Zähler",
     "blockCounterInstructions": "Drehe und zähle alle Blöcke einschließlich der versteckten",

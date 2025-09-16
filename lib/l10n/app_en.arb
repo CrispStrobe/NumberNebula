@@ -375,20 +375,22 @@
     "minValue": "Min Value",
     "maxValue": "Max Value",
 
-    "perspectivePuzzleGameTitle": "Perspective Puzzle",
-    "perspectivePuzzleInstructions": "Choose the correct perspective",
-    "perspectivePuzzleSelectView": "Select the correct {perspective} View",
-    "@perspectivePuzzleSelectView": {
+    "perspectivePuzzleGameTitle": "Anomaly Scan",
+    "anomalyScanTitle": "Anomaly Scan",
+    "perspectivePuzzleInstructions": "Scan space objects with different sensor perspectives.",
+    "anomalyScanSelectReadout": "Match hologram to correct {perspective} sensor readout",
+    "@anomalyScanSelectReadout": {
         "placeholders": {
             "perspective": {
                 "type": "String"
             }
         }
     },
-    "perspectivePuzzleCorrect": "Correct!",
-    "perspectivePuzzleIncorrect": "Try again!",
-    "perspectivePuzzleWinTitle": "Puzzle Solved!",
-    "perspectivePuzzleWinDesc": "Great! You identified all 4 perspectives. Bonus: {bonus} points.",
+    "anomalyScanWinTitle": "Analysis Complete!",
+    "anomalyScanWinDesc": "Anomaly Identified. Data logged. Bonus: {bonus} points.",
+
+    "perspectivePuzzleWinTitle": "Analysis Complete!",
+    "perspectivePuzzleWinDesc": "Anomaly Identified. Data logged. Bonus: {bonus} points.",
     "@perspectivePuzzleWinDesc": {
         "placeholders": {
             "bonus": {
@@ -396,10 +398,31 @@
             }
         }
     },
+    "perspectivePuzzleSelectView": "Select the {perspective} perspective.",
+    "@perspectivePuzzleSelectView": {
+        "placeholders": {
+            "perspective": {
+                "type": "String"
+            }
+        }
+    },
     "perspectiveFront": "FRONT",
     "perspectiveBack": "BACK",
     "perspectiveLeft": "LEFT",
-    "perspectiveRight": "RIGHT",
+    "perspectiveRight": "RIGHT",    
+    
+    "@anomalyScanWinDesc": {
+        "placeholders": {
+            "bonus": {
+                "type": "int"
+            }
+        }
+    },
+    "anomalyScanFail": "Scan Mismatch. Recalibrating sensors...",
+    "perspectiveDensityScan": "DENSITY",
+    "perspectiveStructuralScan": "STRUCTURAL",
+    "perspectiveThermalScan": "THERMAL",
+    "perspectiveEMScan": "EM-FIELD",
 
     "blockCounterGameTitle": "3D Block Counter",
     "blockCounterInstructions": "Rotate and count all blocks including hidden ones",

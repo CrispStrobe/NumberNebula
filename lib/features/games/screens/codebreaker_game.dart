@@ -342,86 +342,81 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     );
   }
 
-    @override
-    Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     if (puzzle == null || _isGenerating) {
-        return Scaffold(
+      return Scaffold(
         body: SpaceBackground(
           child: Center(
             child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
                 const CircularProgressIndicator(),
                 const SizedBox(height: 16),
                 Text(S.of(context)!.loadingAdventure, style: SpaceTheme.bodyStyle),
-            ],
+              ],
             ),
           ),
         ),
-        );
+      );
     }
 
     return Scaffold(
-        body: SpaceBackground(
+      body: SpaceBackground(
         child: SafeArea(
-            child: Column(
+          child: Column(
             children: [
-                GameUI(
+              GameUI(
                 title: S.of(context)!.codebreaker,
                 level: widget.level, 
                 onBack: () => Navigator.of(context).pop()
-                ),
-                Padding(
+              ),
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
-                    S.of(context)!.codebreakerInstructions,
-                    style: SpaceTheme.bodyStyle, 
-                    textAlign: TextAlign.center,
+                  S.of(context)!.codebreakerInstructions,
+                  style: SpaceTheme.bodyStyle, 
+                  textAlign: TextAlign.center,
                 ),
-                ),
-                Expanded(
+              ),
+              Expanded(
                 child: LayoutBuilder(
-                    builder: (context, constraints) {
+                  builder: (context, constraints) {
                     bool isWide = constraints.maxWidth > 650;
-                    return isWide ? _buildWideLayout() : _buildConstrainedTallLayout(constraints);
-                    },
+                    return isWide ? _buildWideLayout() : _buildResponsiveLayout(constraints);
+                  },
                 ),
-                ),
+              ),
             ],
-            ),
+          ),
         ),
-        ),
+      ),
     );
-    }
+  }
 
-  Widget _buildConstrainedTallLayout(BoxConstraints constraints) {
-    final availableHeight = constraints.maxHeight;
-    // Adjust ratios based on number of equations to prevent overflow
-    final numEquations = puzzle?.equations.length ?? 4;
-    final equationRatio = numEquations > 4 ? 0.65 : 0.6; // More space for more equations
-    final numberPadRatio = 1.0 - equationRatio;
-    
-    final equationHeight = availableHeight * equationRatio;
-    final numberPadHeight = availableHeight * numberPadRatio;
-    
+  Widget _buildResponsiveLayout(BoxConstraints constraints) {
+    // Always use scrollable layout to prevent overflow
+    return _buildScrollableLayout(constraints);
+  }
+
+  Widget _buildScrollableLayout(BoxConstraints constraints) {
     return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: SingleChildScrollView(
         child: Column(
-        children: [
+          children: [
+            _buildEquationDisplay(),
+            const SizedBox(height: 16),
             SizedBox(
-            height: equationHeight,
-            child: SingleChildScrollView(
-                child: _buildEquationDisplay(),
+              height: math.min(280, constraints.maxHeight * 0.4), // Responsive number pad height
+              child: _buildNumberPad(),
             ),
-            ),
-            SizedBox(
-            height: numberPadHeight,
-            child: _buildNumberPad(),
-            ),
-        ],
+            const SizedBox(height: 20), // Bottom padding
+          ],
         ),
+      ),
     );
-    }
+  }
 
   Widget _buildWideLayout() {
     return Padding(
@@ -439,303 +434,323 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
   Widget _buildEquationDisplay() {
     return AnimatedBuilder(
-        animation: _glowAnimation,
-        builder: (context, child) {
+      animation: _glowAnimation,
+      builder: (context, child) {
         return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
             gradient: RadialGradient(
-                colors: [
+              colors: [
                 SpaceTheme.alienGreen.withOpacity(0.1 * _glowAnimation.value),
                 SpaceTheme.deepSpace.withOpacity(0.05),
-                ],
+              ],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-                color: SpaceTheme.alienGreen.withOpacity(_glowAnimation.value),
-                width: 2,
+              color: SpaceTheme.alienGreen.withOpacity(_glowAnimation.value),
+              width: 2,
             ),
-            ),
-            child: Column(
+          ),
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: puzzle!.equations.asMap().entries.map((entry) {
-                final index = entry.key;
-                final equation = entry.value;
-                return _buildSingleEquation(equation, index);
+              final index = entry.key;
+              final equation = entry.value;
+              return _buildSingleEquation(equation, index);
             }).toList(),
-            ),
+          ),
         );
-        },
+      },
     );
-    }
+  }
 
   void _debugCurrentState() {
     debugPrint("🔍 [STATE] Need to fill: ${puzzle!.hiddenPositions.where((pos) => !userSolution.containsKey(pos)).join(', ')}");
-    }
+  }
 
   Widget _buildSingleEquation(PuzzleEquation equation, int equationIndex) {
+    final numEquations = puzzle?.equations.length ?? 4;
+    
     return Container(
-        margin: const EdgeInsets.symmetric(vertical: 2),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: SpaceTheme.cardDecoration.copyWith(
+      margin: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: SpaceTheme.cardDecoration.copyWith(
         border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
-        ),
-        child: Row(
+      ),
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-            _buildTermWidget(equation.term1, 'eq${equationIndex}_term1'),
-            Padding(
+          _buildTermWidget(equation.term1, 'eq${equationIndex}_term1'),
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-                equation.op,
-                style: SpaceTheme.headlineStyle.copyWith(fontSize: 18, color: SpaceTheme.starYellow),
+              equation.op,
+              style: SpaceTheme.headlineStyle.copyWith(
+                fontSize: _getFontSize(numEquations, 18), 
+                color: SpaceTheme.starYellow
+              ),
             ),
-            ),
-            _buildTermWidget(equation.term2, 'eq${equationIndex}_term2'),
-            Padding(
+          ),
+          _buildTermWidget(equation.term2, 'eq${equationIndex}_term2'),
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-                '=',
-                style: SpaceTheme.headlineStyle.copyWith(fontSize: 20, color: SpaceTheme.alienGreen),
+              '=',
+              style: SpaceTheme.headlineStyle.copyWith(
+                fontSize: _getFontSize(numEquations, 20), 
+                color: SpaceTheme.alienGreen
+              ),
             ),
-            ),
-            _buildTermWidget(equation.result, 'eq${equationIndex}_result'),
+          ),
+          _buildTermWidget(equation.result, 'eq${equationIndex}_result'),
         ],
-        ),
+      ),
     );
-    }
+  }
+
+  double _getFontSize(int numEquations, double baseFontSize) {
+    final factor = numEquations > 5 ? 0.75 : (numEquations > 4 ? 0.85 : 1.0);
+    return baseFontSize * factor;
+  }
 
   Widget _buildTermWidget(dynamic term, String positionId) {
-    // Dynamic sizing based on number of equations to prevent overflow
     final numEquations = puzzle?.equations.length ?? 4;
-    final cellSize = numEquations > 5 ? 42.0 : (numEquations > 4 ? 46.0 : 50.0);
-    final fontSize = numEquations > 5 ? 14.0 : (numEquations > 4 ? 15.0 : 16.0);
-    final symbolSize = numEquations > 5 ? 22.0 : (numEquations > 4 ? 24.0 : 26.0);
+    final cellSize = _getCellSize(numEquations);
+    final fontSize = _getFontSize(numEquations, 16);
+    final symbolSize = _getFontSize(numEquations, 26);
     
     if (term is int) {
-        // Numbers: Show as symbol with number overlay
-        return Column(
+      // Numbers: Show as symbol with number overlay
+      return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-            Container(
+          Container(
             width: cellSize, 
             height: cellSize,
             decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
-                border: Border.all(color: SpaceTheme.alienGreen, width: 2),
+              borderRadius: BorderRadius.circular(8),
+              gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
+              border: Border.all(color: SpaceTheme.alienGreen, width: 2),
             ),
             child: Stack(
-                children: [
+              children: [
                 // Background symbol
                 Center(
-                    child: Text(
+                  child: Text(
                     "🔢",
                     style: TextStyle(fontSize: symbolSize * 0.7, color: SpaceTheme.alienGreen.withOpacity(0.3)),
-                    ),
+                  ),
                 ),
                 // Number overlay
                 Center(
-                    child: Text(
+                  child: Text(
                     term.toString(),
                     style: SpaceTheme.headlineStyle.copyWith(fontSize: fontSize),
-                    ),
+                  ),
                 ),
-                ],
+              ],
             ),
-            ),
+          ),
         ],
-        );
+      );
     } else {
-        final symbol = term as String;
-        final isHidden = puzzle!.hiddenSymbols.contains(symbol);
-        final hasUserValue = userSolution.containsKey(positionId);
-        final isLastDropped = positionId == _lastDroppedPosition;
-        final shouldAcceptDrops = isHidden && !hasUserValue;
-        
-        Widget cellContent;
-        
-        if (hasUserValue) {
+      final symbol = term as String;
+      final isHidden = puzzle!.hiddenSymbols.contains(symbol);
+      final hasUserValue = userSolution.containsKey(positionId);
+      final isLastDropped = positionId == _lastDroppedPosition;
+      final shouldAcceptDrops = isHidden && !hasUserValue;
+      
+      Widget cellContent;
+      
+      if (hasUserValue) {
         // Hidden symbol with user number overlay - symbol shines through
         cellContent = Container(
-            width: cellSize, 
-            height: cellSize,
-            decoration: BoxDecoration(
+          width: cellSize, 
+          height: cellSize,
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             gradient: const LinearGradient(colors: [SpaceTheme.nebulaPurple, SpaceTheme.deepSpace]),
             border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
-            ),
-            child: Stack(
+          ),
+          child: Stack(
             children: [
-                // Background symbol (visible but muted)
-                Center(
+              // Background symbol (visible but muted)
+              Center(
                 child: Text(
-                    _getSymbolIcon(symbol),
-                    style: TextStyle(fontSize: symbolSize * 0.8, color: SpaceTheme.nebulaPurple.withOpacity(0.6)),
+                  _getSymbolIcon(symbol),
+                  style: TextStyle(fontSize: symbolSize * 0.8, color: SpaceTheme.nebulaPurple.withOpacity(0.6)),
                 ),
-                ),
-                // Semi-transparent number overlay
-                Center(
+              ),
+              // Semi-transparent number overlay
+              Center(
                 child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                    decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.4), // Much more transparent
+                  padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.4),
                     borderRadius: BorderRadius.circular(3),
-                    ),
-                    child: Text(
+                  ),
+                  child: Text(
                     userSolution[positionId].toString(),
                     style: SpaceTheme.headlineStyle.copyWith(
-                        fontSize: fontSize, 
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
+                      fontSize: fontSize, 
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      shadows: [
                         const Shadow(
-                            blurRadius: 2,
-                            color: Colors.black,
-                            offset: Offset(1, 1),
+                          blurRadius: 2,
+                          color: Colors.black,
+                          offset: Offset(1, 1),
                         ),
-                        ],
+                      ],
                     ),
-                    ),
+                  ),
                 ),
-                ),
+              ),
             ],
-            ),
+          ),
         );
-        } else if (!isHidden) {
+      } else if (!isHidden) {
         // Visible symbol with known value overlay - symbol shines through
         final value = puzzle!.knownSymbolValues[symbol]!;
         cellContent = Container(
-            width: cellSize, 
-            height: cellSize,
-            decoration: BoxDecoration(
+          width: cellSize, 
+          height: cellSize,
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
             border: Border.all(color: SpaceTheme.alienGreen, width: 2),
-            ),
-            child: Stack(
+          ),
+          child: Stack(
             children: [
-                // Background symbol (visible but muted)
-                Center(
+              // Background symbol (visible but muted)
+              Center(
                 child: Text(
-                    _getSymbolIcon(symbol),
-                    style: TextStyle(fontSize: symbolSize * 0.8, color: SpaceTheme.alienGreen.withOpacity(0.6)),
+                  _getSymbolIcon(symbol),
+                  style: TextStyle(fontSize: symbolSize * 0.8, color: SpaceTheme.alienGreen.withOpacity(0.6)),
                 ),
-                ),
-                // Semi-transparent value overlay
-                Center(
+              ),
+              // Semi-transparent value overlay
+              Center(
                 child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                    decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.4), // Much more transparent
+                  padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.4),
                     borderRadius: BorderRadius.circular(3),
-                    ),
-                    child: Text(
+                  ),
+                  child: Text(
                     value.toString(),
                     style: SpaceTheme.headlineStyle.copyWith(
-                        fontSize: fontSize, 
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
+                      fontSize: fontSize, 
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      shadows: [
                         const Shadow(
-                            blurRadius: 2,
-                            color: Colors.black,
-                            offset: Offset(1, 1),
+                          blurRadius: 2,
+                          color: Colors.black,
+                          offset: Offset(1, 1),
                         ),
-                        ],
+                      ],
                     ),
-                    ),
+                  ),
                 ),
-                ),
+              ),
             ],
-            ),
+          ),
         );
-        } else {
+      } else {
         // Empty hidden symbol - show symbol prominently waiting for number
         cellContent = Container(
-            width: cellSize, 
-            height: cellSize,
-            decoration: BoxDecoration(
+          width: cellSize, 
+          height: cellSize,
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             gradient: const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
             border: Border.all(color: SpaceTheme.alienGreen, width: 2),
-            ),
-            child: Center(
+          ),
+          child: Center(
             child: Text(
-                _getSymbolIcon(symbol),
-                style: TextStyle(fontSize: symbolSize, color: SpaceTheme.alienGreen.withOpacity(0.8)),
+              _getSymbolIcon(symbol),
+              style: TextStyle(fontSize: symbolSize, color: SpaceTheme.alienGreen.withOpacity(0.8)),
             ),
-            ),
+          ),
         );
-        }
-        
-        if (isLastDropped) {
+      }
+      
+      if (isLastDropped) {
         cellContent = ScaleTransition(scale: _dropAnimation, child: cellContent);
-        }
-        
-        // Wrap in DragTarget if it should accept drops
-        if (shouldAcceptDrops) {
-            return SizedBox(
-                width: cellSize + 24, 
-                height: cellSize + 24,
-                child: DragTarget<int>(
-                builder: (context, candidateData, rejectedData) {
-                    final isHovering = candidateData.isNotEmpty;
-                    
-                    return Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Container(
-                        width: cellSize, 
-                        height: cellSize,
-                        decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        gradient: isHovering 
-                            ? const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
-                            : const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
-                        border: Border.all(
-                            color: isHovering ? SpaceTheme.starYellow : SpaceTheme.alienGreen, 
-                            width: isHovering ? 3 : 2
-                        ),
-                        boxShadow: isHovering ? [
-                            BoxShadow(
-                            color: SpaceTheme.starYellow.withOpacity(0.6),
-                            blurRadius: 8,
-                            spreadRadius: 2,
-                            )
-                        ] : null,
-                        ),
-                        child: GestureDetector(
-                        onTap: hasUserValue ? () => _removeNumber(positionId) : null,
-                        child: Center(
-                            child: Text(
-                            _getSymbolIcon(symbol),
-                            style: TextStyle(
-                                fontSize: symbolSize, 
-                                color: isHovering 
-                                ? SpaceTheme.starYellow 
-                                : SpaceTheme.alienGreen.withOpacity(0.9)
-                            ),
-                            ),
-                        ),
-                        ),
+      }
+      
+      // Wrap in DragTarget if it should accept drops
+      if (shouldAcceptDrops) {
+        return SizedBox(
+          width: cellSize + 24, 
+          height: cellSize + 24,
+          child: DragTarget<int>(
+            builder: (context, candidateData, rejectedData) {
+              final isHovering = candidateData.isNotEmpty;
+              
+              return Padding(
+                padding: const EdgeInsets.all(12),
+                child: Container(
+                  width: cellSize, 
+                  height: cellSize,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    gradient: isHovering 
+                        ? const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
+                        : const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
+                    border: Border.all(
+                        color: isHovering ? SpaceTheme.starYellow : SpaceTheme.alienGreen, 
+                        width: isHovering ? 3 : 2
                     ),
-                    );
-                },
-                onWillAcceptWithDetails: (details) {
-                    return true; // Always accept - the _isDragging check was wrong!
-                },
-                onAcceptWithDetails: (details) {
-                    debugPrint("🎯 [DROPPED] ✅ ${details.data} → $positionId");
-                    _placeNumber(details.data, positionId);
-                },
+                    boxShadow: isHovering ? [
+                      BoxShadow(
+                        color: SpaceTheme.starYellow.withOpacity(0.6),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      )
+                    ] : null,
+                  ),
+                  child: GestureDetector(
+                    onTap: hasUserValue ? () => _removeNumber(positionId) : null,
+                    child: Center(
+                      child: Text(
+                        _getSymbolIcon(symbol),
+                        style: TextStyle(
+                          fontSize: symbolSize, 
+                          color: isHovering 
+                              ? SpaceTheme.starYellow 
+                              : SpaceTheme.alienGreen.withOpacity(0.9)
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-            );
-            }
-        
-        return cellContent;
+              );
+            },
+            onWillAcceptWithDetails: (details) {
+              return true;
+            },
+            onAcceptWithDetails: (details) {
+              debugPrint("🎯 [DROPPED] ✅ ${details.data} → $positionId");
+              _placeNumber(details.data, positionId);
+            },
+          ),
+        );
+      }
+      
+      return cellContent;
     }
-    }
+  }
+
+  double _getCellSize(int numEquations) {
+    // Dynamic cell size based on number of equations
+    if (numEquations <= 3) return 50.0;
+    if (numEquations <= 4) return 46.0;
+    if (numEquations <= 5) return 42.0;
+    return 38.0; // For 6+ equations
+  }
 
   String _getSymbolIcon(String symbol) {
     const symbolMap = {
@@ -760,69 +775,69 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
   Widget _buildNumberPad() {
     return LayoutBuilder(
-        builder: (context, constraints) {
+      builder: (context, constraints) {
         final availableWidth = constraints.maxWidth;
         final crossAxisCount = availableWidth > 400 ? 4 : 3;
         
         return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+          mainAxisSize: MainAxisSize.min,
+          children: [
             Text(S.of(context)!.codebreakerSelectNumbers, style: SpaceTheme.bodyStyle),
             const SizedBox(height: 8),
             Expanded(
-                child: Container(
+              child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: SpaceTheme.cardDecoration.copyWith(
-                    border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
+                  border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
                 ),
                 child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: _isDragging ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  shrinkWrap: true,
+                  physics: _isDragging ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: crossAxisCount,
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                     childAspectRatio: 1.0,
-                    ),
-                    itemCount: numberPool.length,
-                    itemBuilder: (context, index) {
+                  ),
+                  itemCount: numberPool.length,
+                  itemBuilder: (context, index) {
                     if (index >= numberPool.length) return Container();
                     final number = numberPool[index];
                     return Draggable<int>(
-                        data: number,
-                        onDragStarted: () {
-                            setState(() {
-                            _isDragging = true;
-                            _draggingNumber = number;
-                            });
-                            debugPrint("🎮 [DRAG] 🚀 Started: $number");
-                        },
-                        onDragEnd: (details) {
-                            setState(() {
-                            _isDragging = false;
-                            _draggingNumber = null;
-                            });
-                            
-                            debugPrint("🎮 [DRAG] 🏁 End: $number, accepted=${details.wasAccepted}");
-                            if (!details.wasAccepted) {
-                            debugPrint("🎮 [DRAG] ❌ FAILED: $number");
-                            final availableTargets = puzzle!.hiddenPositions.where((pos) => !userSolution.containsKey(pos)).toList();
-                            debugPrint("🎮 [DRAG] Available targets: $availableTargets");
-                            }
-                        },
-                        feedback: _buildDraggableFeedback(number),
-                        childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number)),
-                        child: _buildNumberTile(number),
-                        );
-                    },
+                      data: number,
+                      onDragStarted: () {
+                        setState(() {
+                          _isDragging = true;
+                          _draggingNumber = number;
+                        });
+                        debugPrint("🎮 [DRAG] 🚀 Started: $number");
+                      },
+                      onDragEnd: (details) {
+                        setState(() {
+                          _isDragging = false;
+                          _draggingNumber = null;
+                        });
+                        
+                        debugPrint("🎮 [DRAG] 🏁 End: $number, accepted=${details.wasAccepted}");
+                        if (!details.wasAccepted) {
+                          debugPrint("🎮 [DRAG] ❌ FAILED: $number");
+                          final availableTargets = puzzle!.hiddenPositions.where((pos) => !userSolution.containsKey(pos)).toList();
+                          debugPrint("🎮 [DRAG] Available targets: $availableTargets");
+                        }
+                      },
+                      feedback: _buildDraggableFeedback(number),
+                      childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number)),
+                      child: _buildNumberTile(number),
+                    );
+                  },
                 ),
-                ),
+              ),
             ),
-            ],
+          ],
         );
-        },
+      },
     );
-    }
+  }
 
   Widget _buildNumberTile(int number) {
     return Container(
@@ -884,8 +899,8 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                            Navigator.of(context).pop(); // Close the dialog
-                            Navigator.of(context).pop(); // Close the game screen
+                          Navigator.of(context).pop(); // Close the dialog
+                          Navigator.of(context).pop(); // Close the game screen
                         },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.backToMenu),
@@ -903,7 +918,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 }
 
 //##############################################################################
-// ADVANCED PUZZLE GENERATION SYSTEM (Preserved original logic)
+// ADVANCED PUZZLE GENERATION SYSTEM (Fixed to avoid number-number equations)
 //##############################################################################
 
 /// Represents a single equation with term1 op term2 = result
@@ -932,6 +947,11 @@ class PuzzleEquation {
     if (result is String) symbols.add(result as String);
     return symbols.toSet().toList();
   }
+
+  /// Returns true if this equation has both operands as visible numbers
+  bool hasBothOperandsAsNumbers() {
+    return term1 is int && term2 is int;
+  }
 }
 
 /// Solves puzzles using iterative substitution
@@ -940,13 +960,12 @@ class PuzzleSolver {
   
   PuzzleSolver({this.verbose = false});
 
-  Map<String, int>? solve(List<PuzzleEquation> equations, List<String> allSymbols, [Map<String, int>? initialKnown]) {
+  Map<String, int>? solve(List<PuzzleEquation> equations, List<String> allSymbols) {
     if (verbose) debugPrint("🧠 [SOLVER] Starting to solve puzzle with ${equations.length} equations and ${allSymbols.length} symbols");
     
-    final knownValues = Map<String, int>.from(initialKnown ?? {});
+    final knownValues = <String, int>{};
     
     if (verbose) {
-      debugPrint("🧠 [SOLVER] Initial known values: $knownValues");
       debugPrint("🧠 [SOLVER] Equations to solve:");
       for (int i = 0; i < equations.length; i++) {
         debugPrint("🧠 [SOLVER]   Eq$i: ${equations[i]}");
@@ -1109,21 +1128,40 @@ class AdvancedPuzzleGenerator {
       }
     }).toList();
     
-    return {
-      'numSymbols': math.min(4 + grade, 6),
-      'valueRange': [numberRange['min']!, numberRange['max']!],
-      'operators': operatorStrings,
-      'numEquations': math.min(4 + grade, 6)
-    };
+    // Use Python-style difficulty parameters
+    if (grade == 1) {
+      return {
+        'numSymbols': 3,
+        'valueRange': [1, 15],
+        'operators': ['+'],
+        'numEquations': 3
+      };
+    } else if (grade == 2) {
+      return {
+        'numSymbols': 4,
+        'valueRange': [2, 25],
+        'operators': ['+', '-'],
+        'numEquations': 4
+      };
+    } else {
+      return {
+        'numSymbols': 4,
+        'valueRange': [2, 20],
+        'operators': ['+', '-', '*'],
+        'numEquations': 4
+      };
+    }
   }
 
   void _generateSolutionKey() {
     final numSymbols = params['numSymbols'] as int;
     final valueRange = params['valueRange'] as List<int>;
     
+    // Shuffle symbols and take the required amount
     symbols = List.from(availableSymbols)..shuffle(_random);
     symbols = symbols.take(numSymbols).toList();
     
+    // Generate unique random values for each symbol
     final values = <int>[];
     for (int i = valueRange[0]; i <= valueRange[1]; i++) {
       values.add(i);
@@ -1179,101 +1217,125 @@ class AdvancedPuzzleGenerator {
   }
 
   List<PuzzleEquation> _createEquationPool() {
-    if (verbose) debugPrint("🏗️ [GENERATOR] Creating sophisticated equation pool...");
+    if (verbose) debugPrint("🏗️ [GENERATOR] Creating equation pool...");
     
     final pool = <PuzzleEquation>[];
     final eqStrings = <String>{};
     final valueToSymbol = <int, String>{};
     
     for (final entry in solution.entries) {
-        valueToSymbol[entry.value] = entry.key;
+      valueToSymbol[entry.value] = entry.key;
     }
     
     final operators = params['operators'] as List<String>;
     
-    // Template 1: symbol op symbol = result (number or symbol)
+    // Template 1: symbol op symbol = result (symbol or number)
     for (final s1 in symbols) {
-        for (final s2 in symbols) {
+      for (final s2 in symbols) {
         for (final op in operators) {
-            final v1 = solution[s1]!;
-            final v2 = solution[s2]!;
-            
-            if ((op == '-' && v1 == v2) || (op == '/' && v1 == v2)) continue;
-            if (op == '-' && v1 < v2) continue;
-            if (op == '/' && (v2 == 0 || v1 % v2 != 0)) continue;
-            
-            final resVal = _calculateInt(v1, v2, op);
-            final result = valueToSymbol[resVal] ?? (resVal <= params['valueRange'][1] ? resVal : null);
-            if (result == null) continue;
-
-            
-            final eq = PuzzleEquation(term1: s1, op: op, term2: s2, result: result);
-            final eqStr = eq.toString();
-            
-            if (!eqStrings.contains(eqStr)) {
+          final v1 = solution[s1]!;
+          final v2 = solution[s2]!;
+          
+          if (op == '-' && v1 < v2) continue;
+          if (op == '/' && (v2 == 0 || v1 % v2 != 0)) continue;
+          
+          final resVal = _calculateInt(v1, v2, op);
+          final result = valueToSymbol[resVal] ?? resVal;
+          
+          final eq = PuzzleEquation(term1: s1, op: op, term2: s2, result: result);
+          final eqStr = eq.toString();
+          
+          if (!eqStrings.contains(eqStr)) {
             pool.add(eq);
             eqStrings.add(eqStr);
-            if (verbose) debugPrint("🏗️ [GENERATOR] Added: $eq");
-            }
+            if (verbose) debugPrint("🏗️ [GENERATOR] Added symbol-symbol: $eq");
+          }
         }
-        }
+      }
     }
     
-    // Template 2: number op number = symbol
-    for (final sRes in symbols) {
-    final vRes = solution[sRes]!;
-    
-    for (int i = 0; i < 8; i++) {
+    // Template 2: symbol op number = result (symbol or number)
+    for (final s1 in symbols) {
+      final v1 = solution[s1]!;
+      
+      for (int attempt = 0; attempt < 5; attempt++) {
         final op = operators[_random.nextInt(operators.length)];
-        int? n1, n2;
+        int? n2;
         
         switch (op) {
-        case '+':
-            if (vRes <= 2) continue;
-            final maxSplit = vRes - 1;
-            n1 = _random.nextInt(maxSplit) + 1;
-            n2 = vRes - n1;
+          case '+':
+            n2 = _random.nextInt(params['valueRange'][1]) + 1;
             break;
-        case '-':
-            final valueRange = params['valueRange'] as List<int>;
-            final maxVal = valueRange[1];
-            final rangeSize = maxVal - vRes;
-            if (rangeSize <= 0) continue;
-            n1 = _random.nextInt(rangeSize) + vRes + 1;
-            n2 = n1 - vRes;
+          case '-':
+            if (v1 > 1) n2 = _random.nextInt(v1 - 1) + 1;
             break;
-        case '*':
-            final factors = <int>[];
-            for (int f = 2; f <= math.sqrt(vRes).floor(); f++) {
-            if (vRes % f == 0) factors.add(f);
+          case '*':
+            n2 = _random.nextInt(8) + 2; // 2-9
+            break;
+          case '/':
+            final divisors = <int>[];
+            for (int i = 2; i < v1; i++) {
+              if (v1 % i == 0) divisors.add(i);
             }
-            if (factors.isEmpty) continue;
-            n1 = factors[_random.nextInt(factors.length)];
-            n2 = vRes ~/ n1;
+            if (divisors.isNotEmpty) n2 = divisors[_random.nextInt(divisors.length)];
             break;
-        default:
-            continue;
         }
         
-        if (n1 != null && n2 != null) {
-        final eq = PuzzleEquation(term1: n1, op: op, term2: n2, result: sRes);
-        final eqStr = eq.toString();
+        if (n2 != null) {
+          final resVal = _calculateInt(v1, n2, op);
+          final result = valueToSymbol[resVal] ?? resVal;
+          
+          // Create symbol op number = result
+          final eq1 = PuzzleEquation(term1: s1, op: op, term2: n2, result: result);
+          final eq1Str = eq1.toString();
+          if (!eqStrings.contains(eq1Str)) {
+            pool.add(eq1);
+            eqStrings.add(eq1Str);
+            if (verbose) debugPrint("🏗️ [GENERATOR] Added symbol-number: $eq1");
+          }
+          
+          // For commutative operations, also create number op symbol = result
+          if (op == '+' || op == '*') {
+            final eq2 = PuzzleEquation(term1: n2, op: op, term2: s1, result: result);
+            final eq2Str = eq2.toString();
+            if (!eqStrings.contains(eq2Str)) {
+              pool.add(eq2);
+              eqStrings.add(eq2Str);
+              if (verbose) debugPrint("🏗️ [GENERATOR] Added number-symbol: $eq2");
+            }
+          }
+        }
+      }
+    }
+    
+    // Template 3: number op number = symbol (but only strategic ones)
+    for (final sRes in symbols) {
+      final vRes = solution[sRes]!;
+      
+      for (int attempt = 0; attempt < 5; attempt++) {
+        final op = operators[_random.nextInt(operators.length)];
         
-        if (!eqStrings.contains(eqStr)) {
+        if (op == '+' && vRes > 1) {
+          final n1 = _random.nextInt(vRes - 1) + 1;
+          final n2 = vRes - n1;
+          
+          final eq = PuzzleEquation(term1: n1, op: op, term2: n2, result: sRes);
+          final eqStr = eq.toString();
+          if (!eqStrings.contains(eqStr)) {
             pool.add(eq);
             eqStrings.add(eqStr);
-            if (verbose) debugPrint("🏗️ [GENERATOR] Added factorized: $eq");
+            if (verbose) debugPrint("🏗️ [GENERATOR] Added number-number-symbol: $eq");
+          }
         }
-        }
-    }
+      }
     }
     
     if (verbose) debugPrint("🏗️ [GENERATOR] Created equation pool with ${pool.length} equations");
     return pool;
-    }
+  }
 
   List<PuzzleEquation>? _generatePuzzleCandidate() {
-    if (verbose) debugPrint("🏗️ [GENERATOR] Assembling puzzle candidate...");
+    if (verbose) debugPrint("🏗️ [GENERATOR] Assembling puzzle candidate with connectivity...");
     
     final pool = _createEquationPool();
     pool.shuffle(_random);
@@ -1281,9 +1343,15 @@ class AdvancedPuzzleGenerator {
     final puzzle = <PuzzleEquation>[];
     final knownSymbols = <String>{};
     
-    final entryPoints = pool.where((eq) => eq.getSymbols().length <= 1).toList();
+    // Find valid entry points: equations with ≤1 symbols AND at least one symbol on the left side
+    final entryPoints = pool.where((eq) {
+      final symbolCount = eq.getSymbols().length;
+      final hasSymbolOnLeft = eq.term1 is String || eq.term2 is String;
+      return symbolCount <= 1 && hasSymbolOnLeft;
+    }).toList();
+    
     if (entryPoints.isEmpty) {
-      if (verbose) debugPrint("🏗️ [GENERATOR] No entry points found");
+      if (verbose) debugPrint("🏗️ [GENERATOR] No valid entry points found");
       return null;
     }
     
@@ -1294,15 +1362,17 @@ class AdvancedPuzzleGenerator {
     
     if (verbose) debugPrint("🏗️ [GENERATOR] Starting with: $firstEq, known symbols: $knownSymbols");
     
+    // Build the chain by adding equations that introduce exactly one new symbol
     final numSymbols = params['numSymbols'] as int;
     while (knownSymbols.length < numSymbols) {
       PuzzleEquation? nextLink;
       
       for (final eq in pool) {
-        final eqSyms = eq.getSymbols().toSet();
-        final newSymbols = eqSyms.difference(knownSymbols);
-        final connectingSymbols = eqSyms.intersection(knownSymbols);
+        final eqSymbols = eq.getSymbols().toSet();
+        final newSymbols = eqSymbols.difference(knownSymbols.toSet());
+        final connectingSymbols = eqSymbols.intersection(knownSymbols.toSet());
         
+        // Must introduce exactly one new symbol AND connect to known symbols
         if (newSymbols.length == 1 && connectingSymbols.isNotEmpty) {
           nextLink = eq;
           break;
@@ -1320,13 +1390,14 @@ class AdvancedPuzzleGenerator {
       }
     }
     
+    // Add filler equations that use only known symbols
     final numEquations = params['numEquations'] as int;
     while (puzzle.length < numEquations) {
       PuzzleEquation? filler;
       
       for (final eq in pool) {
-        final eqSyms = eq.getSymbols().toSet();
-        if (eqSyms.difference(knownSymbols).isEmpty) {
+        final eqSymbols = eq.getSymbols().toSet();
+        if (eqSymbols.difference(knownSymbols.toSet()).isEmpty) {
           filler = eq;
           break;
         }
@@ -1391,7 +1462,7 @@ class AdvancedCodebreakerPuzzle {
     debugPrint("🎯 [PUZZLE FACTORY] Generated ${puzzleEquations.length} equations");
     
     final allSymbols = generator.symbols;
-    final visibleCount = 1;
+    final visibleCount = 1; // Always show exactly 1 symbol to start
 
     allSymbols.shuffle();
     final visibleSymbols = allSymbols.take(visibleCount).toList();
@@ -1407,16 +1478,17 @@ class AdvancedCodebreakerPuzzle {
     
     final correctNumbers = hiddenSymbols.map((s) => generator.solution[s]!).toSet();
     final decoys = <int>{};
-    final numberRange = difficultyConfig.numberRange;
-    final maxVal = numberRange['max']!;
+    final numberRange = generator.params['valueRange'] as List<int>;
+    final maxVal = numberRange[1];
 
     debugPrint("🎯 [PUZZLE FACTORY] Correct numbers needed: ${correctNumbers.join(', ')}");
 
+    // Generate strategic decoys (close to correct numbers)
     for (final correct in correctNumbers) {
-    for (int i = 1; i <= 2; i++) {
+      for (int i = 1; i <= 2; i++) {
         if (correct - i > 0) decoys.add(correct - i);
         if (correct + i <= maxVal) decoys.add(correct + i);
-    }
+      }
     }
     decoys.removeAll(correctNumbers);
 
@@ -1425,10 +1497,10 @@ class AdvancedCodebreakerPuzzle {
     final requiredDecoys = targetPoolSize - correctNumbers.length;
 
     while (decoys.length < requiredDecoys) {
-    final randomDecoy = random.nextInt(maxVal) + 1;
-    if (!correctNumbers.contains(randomDecoy)) {
+      final randomDecoy = random.nextInt(maxVal) + 1;
+      if (!correctNumbers.contains(randomDecoy)) {
         decoys.add(randomDecoy);
-    }
+      }
     }
 
     final numberPool = <int>[];

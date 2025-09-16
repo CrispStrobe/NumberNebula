@@ -859,28 +859,39 @@ class SEn extends S {
   String get maxValue => 'Max Value';
 
   @override
-  String get perspectivePuzzleGameTitle => 'Perspective Puzzle';
+  String get perspectivePuzzleGameTitle => 'Anomaly Scan';
 
   @override
-  String get perspectivePuzzleInstructions => 'Choose the correct perspective';
+  String get anomalyScanTitle => 'Anomaly Scan';
 
   @override
-  String perspectivePuzzleSelectView(String perspective) {
-    return 'Select the correct $perspective View';
+  String get perspectivePuzzleInstructions =>
+      'Scan space objects with different sensor perspectives.';
+
+  @override
+  String anomalyScanSelectReadout(String perspective) {
+    return 'Match hologram to correct $perspective sensor readout';
   }
 
   @override
-  String get perspectivePuzzleCorrect => 'Correct!';
+  String get anomalyScanWinTitle => 'Analysis Complete!';
 
   @override
-  String get perspectivePuzzleIncorrect => 'Try again!';
+  String anomalyScanWinDesc(int bonus) {
+    return 'Anomaly Identified. Data logged. Bonus: $bonus points.';
+  }
 
   @override
-  String get perspectivePuzzleWinTitle => 'Puzzle Solved!';
+  String get perspectivePuzzleWinTitle => 'Analysis Complete!';
 
   @override
   String perspectivePuzzleWinDesc(int bonus) {
-    return 'Great! You identified all 4 perspectives. Bonus: $bonus points.';
+    return 'Anomaly Identified. Data logged. Bonus: $bonus points.';
+  }
+
+  @override
+  String perspectivePuzzleSelectView(String perspective) {
+    return 'Select the $perspective perspective.';
   }
 
   @override
@@ -894,6 +905,21 @@ class SEn extends S {
 
   @override
   String get perspectiveRight => 'RIGHT';
+
+  @override
+  String get anomalyScanFail => 'Scan Mismatch. Recalibrating sensors...';
+
+  @override
+  String get perspectiveDensityScan => 'DENSITY';
+
+  @override
+  String get perspectiveStructuralScan => 'STRUCTURAL';
+
+  @override
+  String get perspectiveThermalScan => 'THERMAL';
+
+  @override
+  String get perspectiveEMScan => 'EM-FIELD';
 
   @override
   String get blockCounterGameTitle => '3D Block Counter';

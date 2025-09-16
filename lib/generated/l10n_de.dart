@@ -864,41 +864,67 @@ class SDe extends S {
   String get maxValue => 'Max. Wert';
 
   @override
-  String get perspectivePuzzleGameTitle => 'Perspektiven-Puzzle';
+  String get perspectivePuzzleGameTitle => 'Anomalie-Scan';
 
   @override
-  String get perspectivePuzzleInstructions => 'Wähle die korrekte Ansicht';
+  String get anomalyScanTitle => 'Anomalie-Scan';
 
   @override
-  String perspectivePuzzleSelectView(String perspective) {
-    return 'Wähle die korrekte $perspective Ansicht';
+  String get perspectivePuzzleInstructions =>
+      'Scanne Astro-Objekte aus verschiedenen Sensor-Perspektiven.';
+
+  @override
+  String anomalyScanSelectReadout(String perspective) {
+    return 'Ordne das Hologramm dem korrekten $perspective Sensor-Scan zu';
   }
 
   @override
-  String get perspectivePuzzleCorrect => 'Richtig!';
+  String get anomalyScanWinTitle => 'Analyse abgeschlossen!';
 
   @override
-  String get perspectivePuzzleIncorrect => 'Versuche es erneut!';
+  String anomalyScanWinDesc(int bonus) {
+    return 'Anomalie identifiziert. Daten protokolliert. Bonus: $bonus Punkte.';
+  }
 
   @override
-  String get perspectivePuzzleWinTitle => 'Puzzle gelöst!';
+  String get perspectivePuzzleWinTitle => 'Analyse vollständig!';
 
   @override
   String perspectivePuzzleWinDesc(int bonus) {
-    return 'Großartig! Du hast alle 4 Perspektiven erkannt. Bonus: $bonus Punkte.';
+    return 'Anomalie identifiziert. Daten protokolliert. Bonus: $bonus Punkte.';
   }
 
   @override
-  String get perspectiveFront => 'VORDER';
+  String perspectivePuzzleSelectView(String perspective) {
+    return 'Wähle die Perspektive $perspective .';
+  }
 
   @override
-  String get perspectiveBack => 'RÜCK';
+  String get perspectiveFront => 'VORN';
 
   @override
-  String get perspectiveLeft => 'LINKE';
+  String get perspectiveBack => 'HINTEN';
 
   @override
-  String get perspectiveRight => 'RECHTE';
+  String get perspectiveLeft => 'LINKS';
+
+  @override
+  String get perspectiveRight => 'RECHTS';
+
+  @override
+  String get anomalyScanFail => 'Scan-Fehler. Sensoren werden rekalibriert...';
+
+  @override
+  String get perspectiveDensityScan => 'DICHTE';
+
+  @override
+  String get perspectiveStructuralScan => 'STRUKTUR';
+
+  @override
+  String get perspectiveThermalScan => 'THERMAL';
+
+  @override
+  String get perspectiveEMScan => 'EM-FELD';
 
   @override
   String get blockCounterGameTitle => '3D Block-Zähler';

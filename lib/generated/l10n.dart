@@ -1642,44 +1642,56 @@ abstract class S {
   /// No description provided for @perspectivePuzzleGameTitle.
   ///
   /// In en, this message translates to:
-  /// **'Perspective Puzzle'**
+  /// **'Anomaly Scan'**
   String get perspectivePuzzleGameTitle;
+
+  /// No description provided for @anomalyScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Anomaly Scan'**
+  String get anomalyScanTitle;
 
   /// No description provided for @perspectivePuzzleInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Choose the correct perspective'**
+  /// **'Scan space objects with different sensor perspectives.'**
   String get perspectivePuzzleInstructions;
 
-  /// No description provided for @perspectivePuzzleSelectView.
+  /// No description provided for @anomalyScanSelectReadout.
   ///
   /// In en, this message translates to:
-  /// **'Select the correct {perspective} View'**
-  String perspectivePuzzleSelectView(String perspective);
+  /// **'Match hologram to correct {perspective} sensor readout'**
+  String anomalyScanSelectReadout(String perspective);
 
-  /// No description provided for @perspectivePuzzleCorrect.
+  /// No description provided for @anomalyScanWinTitle.
   ///
   /// In en, this message translates to:
-  /// **'Correct!'**
-  String get perspectivePuzzleCorrect;
+  /// **'Analysis Complete!'**
+  String get anomalyScanWinTitle;
 
-  /// No description provided for @perspectivePuzzleIncorrect.
+  /// No description provided for @anomalyScanWinDesc.
   ///
   /// In en, this message translates to:
-  /// **'Try again!'**
-  String get perspectivePuzzleIncorrect;
+  /// **'Anomaly Identified. Data logged. Bonus: {bonus} points.'**
+  String anomalyScanWinDesc(int bonus);
 
   /// No description provided for @perspectivePuzzleWinTitle.
   ///
   /// In en, this message translates to:
-  /// **'Puzzle Solved!'**
+  /// **'Analysis Complete!'**
   String get perspectivePuzzleWinTitle;
 
   /// No description provided for @perspectivePuzzleWinDesc.
   ///
   /// In en, this message translates to:
-  /// **'Great! You identified all 4 perspectives. Bonus: {bonus} points.'**
+  /// **'Anomaly Identified. Data logged. Bonus: {bonus} points.'**
   String perspectivePuzzleWinDesc(int bonus);
+
+  /// No description provided for @perspectivePuzzleSelectView.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the {perspective} perspective.'**
+  String perspectivePuzzleSelectView(String perspective);
 
   /// No description provided for @perspectiveFront.
   ///
@@ -1704,6 +1716,36 @@ abstract class S {
   /// In en, this message translates to:
   /// **'RIGHT'**
   String get perspectiveRight;
+
+  /// No description provided for @anomalyScanFail.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Mismatch. Recalibrating sensors...'**
+  String get anomalyScanFail;
+
+  /// No description provided for @perspectiveDensityScan.
+  ///
+  /// In en, this message translates to:
+  /// **'DENSITY'**
+  String get perspectiveDensityScan;
+
+  /// No description provided for @perspectiveStructuralScan.
+  ///
+  /// In en, this message translates to:
+  /// **'STRUCTURAL'**
+  String get perspectiveStructuralScan;
+
+  /// No description provided for @perspectiveThermalScan.
+  ///
+  /// In en, this message translates to:
+  /// **'THERMAL'**
+  String get perspectiveThermalScan;
+
+  /// No description provided for @perspectiveEMScan.
+  ///
+  /// In en, this message translates to:
+  /// **'EM-FIELD'**
+  String get perspectiveEMScan;
 
   /// No description provided for @blockCounterGameTitle.
   ///
