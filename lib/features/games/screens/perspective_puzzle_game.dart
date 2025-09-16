@@ -25,119 +25,214 @@ class _VisualConfig {
     const Color(0xFF00C8FF), const Color(0xFF64DD17), const Color(0xFFFF9100),
     const Color(0xFFD500F9), const Color(0xFFFFEA00), const Color(0xFFFF1744),
   ];
-
-  // === FIX 1: CORRECTED ORTHOGONAL ARROW DIRECTIONS ===
-  // The arrows now point straight-on from the named perspective, matching the 2D view logic.
-  // They are also positioned closer to the origin to be well within camera view.
+  
   static final Map<String, Map<String, dynamic>> perspectiveData = {
-    'Front': { // Arrow from +Z axis looking toward the origin
-      'arrowStart': cube.Vector3(0, 0.5, 2.5),
-      'arrowEnd': cube.Vector3(0, 0.5, -0.5),
-      'color': const Color(0xFF00C8FF),
-    },
-    'Back': { // Arrow from -Z axis looking toward the origin
-      'arrowStart': cube.Vector3(0, 0.5, -2.5),
-      'arrowEnd': cube.Vector3(0, 0.5, 0.5),
-      'color': const Color(0xFFFF1744),
-    },
-    'Left': { // Arrow from -X axis looking toward the origin
-      'arrowStart': cube.Vector3(-2.5, 0.5, 0),
-      'arrowEnd': cube.Vector3(0.5, 0.5, 0),
-      'color': const Color(0xFF64DD17),
-    },
-    'Right': { // Arrow from +X axis looking toward the origin
-      'arrowStart': cube.Vector3(2.5, 0.5, 0),
-      'arrowEnd': cube.Vector3(-0.5, 0.5, 0),
-      'color': const Color(0xFFFF9100),
-    },
-  };
+  // Arrow for the front - FIXED DIRECTION (should point AWAY from cube)
+  'Front': {
+    'arrowStart': cube.Vector3(0, 0.5, 5.0),
+    'arrowEnd': cube.Vector3(0, 0.5, 2.0),
+    'color': const Color(0xFF00C8FF),
+  },
+  // Arrow for the back (points TOWARDS cube)
+  'Back': {
+    'arrowStart': cube.Vector3(0, 0.5, -5.0),
+    'arrowEnd': cube.Vector3(0, 0.5, -2.0),
+    'color': const Color(0xFFFF1744),
+  },
+  // Arrow for the left - MOVED FURTHER OUT
+  'Left': {
+    'arrowStart': cube.Vector3(-5.0, 0.5, 0),
+    'arrowEnd': cube.Vector3(-2.0, 0.5, 0),
+    'color': const Color(0xFF64DD17),
+  },
+  // Arrow for the right - MOVED FURTHER OUT
+  'Right': {
+    'arrowStart': cube.Vector3(5.0, 0.5, 0),
+    'arrowEnd': cube.Vector3(2.0, 0.5, 0),
+    'color': const Color(0xFFFF9100),
+  },
+};
 }
 
-
-// NEW: Robust 3D Arrow using a single mesh and the lookAt() method
-// FINAL, CORRECTED VERSION: Uses the proper axis-angle vector for rotation
+// Robust 3D Arrow using a single mesh
+// Ultra-simple 3D Arrow - create specific geometry for each direction
 class _Arrow3D {
-  /// Generates a single, unified mesh for an arrow pointing along the +Z axis.
-  static cube.Mesh _generateArrowMesh(double length, double shaftRadius, double headRadius, double headLength) {
-    final shaftLength = length - headLength;
-    final vertices = <cube.Vector3>[];
-    final indices = <cube.Polygon>[];
-
-    // Shaft Vertices
-    vertices.addAll([
-      cube.Vector3(-shaftRadius, -shaftRadius, 0), cube.Vector3(shaftRadius, -shaftRadius, 0),
-      cube.Vector3(shaftRadius, shaftRadius, 0), cube.Vector3(-shaftRadius, shaftRadius, 0),
-      cube.Vector3(-shaftRadius, -shaftRadius, shaftLength), cube.Vector3(shaftRadius, -shaftRadius, shaftLength),
-      cube.Vector3(shaftRadius, shaftRadius, shaftLength), cube.Vector3(-shaftRadius, shaftRadius, shaftLength),
-    ]);
-
-    // Shaft side faces
-    indices.addAll([
-      cube.Polygon(0, 4, 5), cube.Polygon(0, 5, 1), cube.Polygon(1, 5, 6),
-      cube.Polygon(1, 6, 2), cube.Polygon(2, 6, 7), cube.Polygon(2, 7, 3),
-      cube.Polygon(3, 7, 4), cube.Polygon(3, 4, 0),
-    ]);
-
-    // Head Vertices
-    vertices.addAll([
-      cube.Vector3(-headRadius, -headRadius, shaftLength), cube.Vector3(headRadius, -headRadius, shaftLength),
-      cube.Vector3(headRadius, headRadius, shaftLength), cube.Vector3(-headRadius, headRadius, shaftLength),
-      cube.Vector3(0, 0, length),
-    ]);
-
-    // Head pyramid faces
-    indices.addAll([
-      cube.Polygon(8, 9, 12), cube.Polygon(9, 10, 12),
-      cube.Polygon(10, 11, 12), cube.Polygon(11, 8, 12),
-      cube.Polygon(8, 11, 10), cube.Polygon(8, 10, 9),
-    ]);
-
-    return cube.Mesh(vertices: vertices, indices: indices);
-  }
-
-  /// Creates a fully oriented 3D arrow object.
+  /// Creates a fully oriented 3D arrow object using predefined geometries
   static cube.Object createArrow(cube.Vector3 start, cube.Vector3 end, Color color) {
     final material = cube.Material()
       ..diffuse.setValues(color.red / 255, color.green / 255, color.blue / 255);
 
-    final length = (end - start).length;
-    if (length < 0.1) return cube.Object();
-
-    // 1. Generate a standard arrow mesh pointing along the +Z axis
-    final arrowMesh = _generateArrowMesh(length, 0.15, 0.35, length * 0.4);
-    final arrowObject = cube.Object(position: start, mesh: arrowMesh..material = material, name: 'arrow');
-
-    // 2. Define source and target vectors for rotation
-    final source = cube.Vector3(0, 0, 1);
-    final target = (end - start)..normalize();
+    final direction = end - start;
     
-    // 3. Calculate the axis and angle of rotation
-    final dot = cube.dot3(source, target);
+    // Determine which direction this arrow should point
+    cube.Mesh arrowMesh;
+    cube.Vector3 position;
     
-    // Check if vectors are not already aligned
-    if (dot < 0.9999) {
-      cube.Vector3 axis;
-      double angle;
-
-      if (dot < -0.9999) {
-        // The vectors are opposite. We can rotate 180 degrees around any perpendicular axis.
-        // The Y axis is a stable choice.
-        axis = cube.Vector3(0, 1, 0);
-        angle = math.pi;
+    if (direction.z.abs() > direction.x.abs()) {
+      // Z-direction arrow (Front/Back)
+      if (direction.z > 0) {
+        // Direction is positive Z (Back - towards cube)
+        arrowMesh = _createZPositiveArrow();
+        position = start;
       } else {
-        // Standard case: find the axis via cross product and angle via dot product.
-        axis = cube.Vector3.zero();
-        cube.cross3(axis, source, target);
-        axis.normalize();
-        angle = math.acos(dot);
+        // Direction is negative Z (Front - away from cube)
+        arrowMesh = _createZNegativeArrow();
+        position = start;
       }
-      
-      // 4. THE FIX: Set the object's rotation to the axis scaled by the angle.
-      arrowObject.rotation.setFrom(axis..scale(angle));
-      arrowObject.updateTransform();
+    } else {
+      // X-direction arrow (Left/Right)  
+      if (direction.x > 0) {
+        // Direction is positive X (Right - away from cube)
+        arrowMesh = _createXPositiveArrow();
+        position = start;
+      } else {
+        // Direction is negative X (Left - away from cube)
+        arrowMesh = _createXNegativeArrow();
+        position = start;
+      }
     }
     
-    return arrowObject;
+    return cube.Object(
+      position: position,
+      mesh: arrowMesh..material = material, 
+      name: 'arrow'
+    );
+  }
+
+  // Arrow pointing towards +Z (Back - towards cube)
+  static cube.Mesh _createZPositiveArrow() {
+    final vertices = <cube.Vector3>[
+      // Shaft base at start
+      cube.Vector3(-0.15, 0.35, 0), cube.Vector3(0.15, 0.35, 0),
+      cube.Vector3(0.15, 0.65, 0), cube.Vector3(-0.15, 0.65, 0),
+      
+      // Shaft end (where head begins) - EXACT same Z as head base
+      cube.Vector3(-0.15, 0.35, 2.0), cube.Vector3(0.15, 0.35, 2.0),
+      cube.Vector3(0.15, 0.65, 2.0), cube.Vector3(-0.15, 0.65, 2.0),
+      
+      // Head base (EXACT same Z as shaft end for perfect connection)
+      cube.Vector3(-0.35, 0.15, 2.0), cube.Vector3(0.35, 0.15, 2.0),
+      cube.Vector3(0.35, 0.85, 2.0), cube.Vector3(-0.35, 0.85, 2.0),
+      
+      // Head tip
+      cube.Vector3(0, 0.5, 3.0),
+    ];
+    
+    final indices = <cube.Polygon>[
+      // Shaft faces
+      cube.Polygon(0, 1, 5), cube.Polygon(0, 5, 4),
+      cube.Polygon(1, 2, 6), cube.Polygon(1, 6, 5),
+      cube.Polygon(2, 3, 7), cube.Polygon(2, 7, 6),
+      cube.Polygon(3, 0, 4), cube.Polygon(3, 4, 7),
+      
+      // Head pyramid faces
+      cube.Polygon(8, 12, 9), cube.Polygon(9, 12, 10),
+      cube.Polygon(10, 12, 11), cube.Polygon(11, 12, 8),
+    ];
+    
+    return cube.Mesh(vertices: vertices, indices: indices);
+  }
+
+  // Arrow pointing towards -Z (Front - away from cube)
+  static cube.Mesh _createZNegativeArrow() {
+    final vertices = <cube.Vector3>[
+      // Shaft base at start
+      cube.Vector3(-0.15, 0.35, 0), cube.Vector3(0.15, 0.35, 0),
+      cube.Vector3(0.15, 0.65, 0), cube.Vector3(-0.15, 0.65, 0),
+      
+      // Shaft end (where head begins) - EXACT same Z as head base
+      cube.Vector3(-0.15, 0.35, -2.0), cube.Vector3(0.15, 0.35, -2.0),
+      cube.Vector3(0.15, 0.65, -2.0), cube.Vector3(-0.15, 0.65, -2.0),
+      
+      // Head base (EXACT same Z as shaft end for perfect connection)
+      cube.Vector3(-0.35, 0.15, -2.0), cube.Vector3(0.35, 0.15, -2.0),
+      cube.Vector3(0.35, 0.85, -2.0), cube.Vector3(-0.35, 0.85, -2.0),
+      
+      // Head tip
+      cube.Vector3(0, 0.5, -3.0),
+    ];
+    
+    final indices = <cube.Polygon>[
+      // Shaft faces
+      cube.Polygon(0, 4, 5), cube.Polygon(0, 5, 1),
+      cube.Polygon(1, 5, 6), cube.Polygon(1, 6, 2),
+      cube.Polygon(2, 6, 7), cube.Polygon(2, 7, 3),
+      cube.Polygon(3, 7, 4), cube.Polygon(3, 4, 0),
+      
+      // Head pyramid faces
+      cube.Polygon(8, 9, 12), cube.Polygon(9, 10, 12),
+      cube.Polygon(10, 11, 12), cube.Polygon(11, 8, 12),
+    ];
+    
+    return cube.Mesh(vertices: vertices, indices: indices);
+  }
+
+  // Arrow pointing towards +X (Left - away from cube)
+  static cube.Mesh _createXPositiveArrow() {
+    final vertices = <cube.Vector3>[
+      // Shaft base at start
+      cube.Vector3(0, 0.35, -0.15), cube.Vector3(0, 0.35, 0.15),
+      cube.Vector3(0, 0.65, 0.15), cube.Vector3(0, 0.65, -0.15),
+      
+      // Shaft end (where head begins) - EXACT same X as head base
+      cube.Vector3(2.0, 0.35, -0.15), cube.Vector3(2.0, 0.35, 0.15),
+      cube.Vector3(2.0, 0.65, 0.15), cube.Vector3(2.0, 0.65, -0.15),
+      
+      // Head base (EXACT same X as shaft end for perfect connection)
+      cube.Vector3(2.0, 0.15, -0.35), cube.Vector3(2.0, 0.15, 0.35),
+      cube.Vector3(2.0, 0.85, 0.35), cube.Vector3(2.0, 0.85, -0.35),
+      
+      // Head tip
+      cube.Vector3(3.0, 0.5, 0),
+    ];
+    
+    final indices = <cube.Polygon>[
+      // Shaft faces
+      cube.Polygon(0, 1, 5), cube.Polygon(0, 5, 4),
+      cube.Polygon(1, 2, 6), cube.Polygon(1, 6, 5),
+      cube.Polygon(2, 3, 7), cube.Polygon(2, 7, 6),
+      cube.Polygon(3, 0, 4), cube.Polygon(3, 4, 7),
+      
+      // Head pyramid faces
+      cube.Polygon(8, 12, 9), cube.Polygon(9, 12, 10),
+      cube.Polygon(10, 12, 11), cube.Polygon(11, 12, 8),
+    ];
+    
+    return cube.Mesh(vertices: vertices, indices: indices);
+  }
+
+  // Arrow pointing towards -X (Right - away from cube)
+  static cube.Mesh _createXNegativeArrow() {
+    final vertices = <cube.Vector3>[
+      // Shaft base at start
+      cube.Vector3(0, 0.35, -0.15), cube.Vector3(0, 0.35, 0.15),
+      cube.Vector3(0, 0.65, 0.15), cube.Vector3(0, 0.65, -0.15),
+      
+      // Shaft end (where head begins) - EXACT same X as head base
+      cube.Vector3(-2.0, 0.35, -0.15), cube.Vector3(-2.0, 0.35, 0.15),
+      cube.Vector3(-2.0, 0.65, 0.15), cube.Vector3(-2.0, 0.65, -0.15),
+      
+      // Head base (EXACT same X as shaft end for perfect connection)
+      cube.Vector3(-2.0, 0.15, -0.35), cube.Vector3(-2.0, 0.15, 0.35),
+      cube.Vector3(-2.0, 0.85, 0.35), cube.Vector3(-2.0, 0.85, -0.35),
+      
+      // Head tip
+      cube.Vector3(-3.0, 0.5, 0),
+    ];
+    
+    final indices = <cube.Polygon>[
+      // Shaft faces
+      cube.Polygon(0, 4, 5), cube.Polygon(0, 5, 1),
+      cube.Polygon(1, 5, 6), cube.Polygon(1, 6, 2),
+      cube.Polygon(2, 6, 7), cube.Polygon(2, 7, 3),
+      cube.Polygon(3, 7, 4), cube.Polygon(3, 4, 0),
+      
+      // Head pyramid faces
+      cube.Polygon(8, 9, 12), cube.Polygon(9, 10, 12),
+      cube.Polygon(10, 11, 12), cube.Polygon(11, 8, 12),
+    ];
+    
+    return cube.Mesh(vertices: vertices, indices: indices);
   }
 }
 
@@ -227,8 +322,6 @@ class PerspectivePuzzle {
   static PerspectiveView _createEmptyView(int width, int height) =>
       List.generate(height + 1, (_) => List.generate(width, (_) => null));
 
-  // === FIX 2: ADDED VERBOSE LOGGING TO ALL PERSPECTIVE FUNCTIONS ===
-
   // View from the Front (+Z axis looking toward -Z)
   static PerspectiveView _getFrontView(Set<Block> s, int size, int maxH) {
     if (kDebugMode) print('[PerspectivePuzzle] Calculating Front View...');
@@ -303,7 +396,7 @@ class PerspectivePuzzle {
 }
 
 // =============================================================================
-// FLUTTER WIDGET & STATE (No changes needed below this line)
+// FLUTTER WIDGET & STATE
 // =============================================================================
 enum AnswerState { unanswered, correct, incorrect }
 
@@ -329,7 +422,6 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   final cube.Object _arrowObject = cube.Object(name: 'arrowContainer');
   cube.Scene? _scene;
   
-  // Camera rotation state - we'll control camera instead of scene
   double _cameraRotationY = 0.0;
   static const double _maxRotation = 0.26; // ~15 degrees
   double? _lastPanX;
@@ -348,10 +440,14 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   }
 
   void _generatePuzzle() async {
+    if (!mounted) return; // Check before starting
     setState(() => _isGenerating = true);
+    
     final puzzle = await compute(PerspectivePuzzle.generate, {'grade': widget.grade, 'level': widget.level});
+    
+    // Safety check before calling setState
     if (mounted) {
-      setState(() {
+        setState(() {
         currentPuzzle = puzzle;
         _perspectivesToSolve = ['Front', 'Right', 'Back', 'Left']..shuffle();
         _currentTurnIndex = 0;
@@ -359,9 +455,9 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
         _cameraRotationY = 0.0; // Reset rotation
         _createSceneObject(puzzle.structure);
         _setupTurn();
-      });
+        });
     }
-  }
+    }
 
   void _setupTurn() {
     if (currentPuzzle == null) return;
@@ -380,14 +476,11 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   void _updateArrowForPerspective(String perspective) {
     if (_scene == null) return;
     
-    // Remove old arrow object if it exists
     _arrowObject.children.clear();
-    // A bit safer to check before removing
     if (_scene!.world.children.contains(_arrowObject)) {
       _scene!.world.remove(_arrowObject);
     }
 
-    // Create new arrow
     final perspectiveInfo = _VisualConfig.perspectiveData[perspective]!;
     final arrowColor = perspectiveInfo['color'] as Color;
     final start = perspectiveInfo['arrowStart'] as cube.Vector3;
@@ -396,7 +489,6 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     final newArrow = _Arrow3D.createArrow(start, end, arrowColor);
     _arrowObject.add(newArrow);
     
-    // Add arrow container back to scene
     _scene!.world.add(_arrowObject);
     _scene!.update();
   }
@@ -404,10 +496,8 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   void _updateCameraPosition() {
     if (_scene == null) return;
     
-    // Use the base camera position and apply rotation
     final basePos = _VisualConfig.baseCameraPosition;
     
-    // Simple Y-axis rotation matrix logic
     final cosY = math.cos(_cameraRotationY);
     final sinY = math.sin(_cameraRotationY);
     
@@ -474,25 +564,29 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     } else {
       setState(() => _answerState = AnswerState.incorrect);
       Future.delayed(const Duration(milliseconds: 1500), () {
-        if (mounted) setState(() {
-          _selectedAnswerIndex = -1;
-          _answerState = AnswerState.unanswered;
-        });
+        if (mounted) {
+          setState(() {
+            _selectedAnswerIndex = -1;
+            _answerState = AnswerState.unanswered;
+          });
+        }
       });
     }
   }
   
   void _nextTurn() {
-    if (!mounted) return;
+    if (!mounted) return; // safety check
+
     if (_currentTurnIndex < _perspectivesToSolve.length - 1) {
-      setState(() => _currentTurnIndex++);
-      _setupTurn();
+        setState(() => _currentTurnIndex++);
+        _setupTurn();
     } else {
-      _handleSuccess();
+        _handleSuccess();
     }
-  }
+    }
 
   void _handleSuccess() {
+    if (!mounted) return;
     int score = 250 * widget.grade + (currentPuzzle?.difficulty ?? 1) * 100;
     context.read<GameProvider>().addScore(score);
     _successController.forward(from: 0.0);
@@ -557,17 +651,9 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
       padding: const EdgeInsets.all(16.0),
       child: Row(
         children: [
-          // Left side - 3D View
-          Expanded(
-            flex: 5,
-            child: _build3DView(),
-          ),
+          Expanded( flex: 5, child: _build3DView() ),
           const SizedBox(width: 20),
-          // Right side - Answer choices
-          Expanded(
-            flex: 6,
-            child: _buildInteractionArea(),
-          ),
+          Expanded( flex: 6, child: _buildInteractionArea() ),
         ],
       ),
     );
@@ -578,17 +664,9 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          // Top - 3D View
-          Expanded(
-            flex: 4,
-            child: _build3DView(),
-          ),
+          Expanded( flex: 4, child: _build3DView() ),
           const SizedBox(height: 16),
-          // Bottom - Answer choices
-          Expanded(
-            flex: 5,
-            child: _buildInteractionArea(),
-          ),
+          Expanded( flex: 5, child: _buildInteractionArea() ),
         ],
       ),
     );
@@ -604,7 +682,6 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
         borderRadius: BorderRadius.circular(12),
         child: Stack(
           children: [
-            // 3D Scene with pan gesture for camera rotation
             GestureDetector(
               onPanUpdate: _handlePanUpdate,
               onPanEnd: _handlePanEnd,
@@ -614,16 +691,13 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
                   _scene = s;
                   _scene!.world.add(_sceneObject);
                   
-                  // Set up camera
                   _updateCameraPosition();
                   _scene!.light.position.setFrom(_VisualConfig.lightPosition);
                   
-                  // Create arrow for initial perspective
                   _updateArrowForPerspective(currentPerspective);
                 },
               ),
             ),
-            // Direction indicator with arrow color
             Positioned(
               bottom: 12,
               left: 0,
@@ -640,12 +714,8 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: perspectiveInfo['color'],
-                          shape: BoxShape.circle,
-                        ),
+                        width: 8, height: 8,
+                        decoration: BoxDecoration( color: perspectiveInfo['color'], shape: BoxShape.circle ),
                       ),
                       const SizedBox(width: 12),
                       Text(
@@ -659,19 +729,14 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
                       ),
                       const SizedBox(width: 12),
                       Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: perspectiveInfo['color'],
-                          shape: BoxShape.circle,
-                        ),
+                        width: 8, height: 8,
+                        decoration: BoxDecoration( color: perspectiveInfo['color'], shape: BoxShape.circle ),
                       ),
                     ],
                   ),
                 ),
               ),
             ),
-            // Rotation hint
             Positioned(
               top: 12,
               right: 12,
@@ -708,7 +773,6 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     
     return Column(
       children: [
-        // Title
         Padding(
           padding: const EdgeInsets.only(bottom: 16.0),
           child: Text(
@@ -717,11 +781,9 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
             textAlign: TextAlign.center,
           ),
         ),
-        // Answer choices grid - NO SCROLLING
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              // Calculate size for 2x2 grid with proper spacing
               final spacing = 12.0;
               final availableWidth = constraints.maxWidth - spacing;
               final availableHeight = constraints.maxHeight - spacing;
@@ -773,27 +835,32 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   }
 
   void _createSceneObject(Set<Block> blocks) {
+    if (!mounted) return; // safety check
+    
     _sceneObject.children.clear();
     if (blocks.isEmpty || currentPuzzle == null) return;
     
-    // Calculate center offset for better positioning
     final size = (currentPuzzle!.gridSize - 1) / 2.0;
     final height = (currentPuzzle!.maxHeight) / 2.0;
     
     for (final block in blocks) {
-      final material = cube.Material();
-      material.diffuse.setValues(block.color.red/255, block.color.green/255, block.color.blue/255);
-      _sceneObject.add(cube.Object(
+        final material = cube.Material();
+        material.diffuse.setValues(block.color.red/255, block.color.green/255, block.color.blue/255);
+        _sceneObject.add(cube.Object(
         position: cube.Vector3(block.x - size, block.y - height, block.z - size),
         mesh: cube.Mesh(
-          vertices: _CubeGeometry.vertices, 
-          indices: _CubeGeometry.indices,
-          material: material
+            vertices: _CubeGeometry.vertices, 
+            indices: _CubeGeometry.indices,
+            material: material
         )
-      ));
+        ));
     }
-    _scene?.update();
-  }
+    
+    // Only update scene if mounted
+    if (mounted && _scene != null) {
+        _scene!.update();
+    }
+    }
   
   Widget _buildSuccessDialog(int bonusScore) {
      return ScaleTransition(
@@ -819,7 +886,6 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   }
 }
 
-// Robust, responsive PerspectiveGridWidget
 class PerspectiveGridWidget extends StatelessWidget {
   final PerspectiveView view;
   final double maxSize;
@@ -837,7 +903,6 @@ class PerspectiveGridWidget extends StatelessWidget {
     final maxRowLength = view.map((row) => row.length).reduce(math.max);
     if (maxRowLength == 0) return const SizedBox.shrink();
     
-    // Calculate cell size to fit within maxSize with some padding
     final cellSize = math.min(maxSize / maxRowLength, maxSize / view.length) * 0.85;
     final gridWidth = maxRowLength * cellSize;
     final gridHeight = view.length * cellSize;
