@@ -1345,6 +1345,12 @@ abstract class S {
   /// **'Ready for launch!'**
   String get readyForLaunch;
 
+  /// No description provided for @launch.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch'**
+  String get launch;
+
   /// No description provided for @splashScreenSubtitle.
   ///
   /// In en, this message translates to:
@@ -1932,6 +1938,96 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Color shows mastery (green is best). Number shows problems tracked in that area.'**
   String get progressMatrixDesc;
+
+  /// No description provided for @signalTriangulationGameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Signal Triangulation'**
+  String get signalTriangulationGameTitle;
+
+  /// No description provided for @signalTriangulationInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'A faint Precursor signal has been detected! Decode the frequency sequence by analyzing echo responses. Green dots = correct frequency in correct position, Orange rings = correct frequency in wrong position.'**
+  String get signalTriangulationInstructions;
+
+  /// No description provided for @signalTriangulationAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Attempts: {current}/{max}'**
+  String signalTriangulationAttempts(int current, int max);
+
+  /// No description provided for @signalTriangulationLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Sequence: {length} frequencies'**
+  String signalTriangulationLength(int length);
+
+  /// No description provided for @signalTriangulationCurrentSequence.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Signal Sequence'**
+  String get signalTriangulationCurrentSequence;
+
+  /// No description provided for @signalTriangulationFrequencies.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Frequencies'**
+  String get signalTriangulationFrequencies;
+
+  /// No description provided for @signalTriangulationPreviousAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Echo Analysis Log'**
+  String get signalTriangulationPreviousAttempts;
+
+  /// No description provided for @signalTriangulationClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get signalTriangulationClear;
+
+  /// No description provided for @signalTriangulationTransmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmit'**
+  String get signalTriangulationTransmit;
+
+  /// No description provided for @signalTriangulationWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Signal Source Located!'**
+  String get signalTriangulationWinTitle;
+
+  /// No description provided for @signalTriangulationWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent work, Astro-Technician! You triangulated the Precursor cache in {attempts} attempts, earning {totalScore} points. Efficiency bonus: {bonus} points!'**
+  String signalTriangulationWinDesc(int attempts, int totalScore, int bonus);
+
+  /// No description provided for @signalTriangulationLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Signal Lost in Static'**
+  String get signalTriangulationLoseTitle;
+
+  /// No description provided for @signalTriangulationLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The signal has faded beyond detection range. The Precursor cache remains hidden in the cosmic void.'**
+  String get signalTriangulationLoseDesc;
+
+  /// No description provided for @signalTriangulationReveal.
+  ///
+  /// In en, this message translates to:
+  /// **'The correct sequence was: {sequence}'**
+  String signalTriangulationReveal(String sequence);
+
+  /// No description provided for @nextSignal.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Signal'**
+  String get nextSignal;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

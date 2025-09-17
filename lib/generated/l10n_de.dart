@@ -697,6 +697,9 @@ class SDe extends S {
   String get readyForLaunch => 'Bereit zum Start!';
 
   @override
+  String get launch => 'Start';
+
+  @override
   String get splashScreenSubtitle => 'Erkunden • Lernen • Entdecken';
 
   @override
@@ -1032,4 +1035,59 @@ class SDe extends S {
   @override
   String get progressMatrixDesc =>
       'Die Farbe zeigt die Beherrschung (grün ist am besten). Die Zahl zeigt die Anzahl der Aufgaben in diesem Bereich.';
+
+  @override
+  String get signalTriangulationGameTitle => 'Signal-Triangulation';
+
+  @override
+  String get signalTriangulationInstructions =>
+      'Ein schwaches Precursor-Signal wurde erkannt! Entschlüssele die Frequenzfolge durch Analyse der Echo-Antworten. Grüne Punkte = richtige Frequenz an richtiger Position, Orange Ringe = richtige Frequenz an falscher Position.';
+
+  @override
+  String signalTriangulationAttempts(int current, int max) {
+    return 'Versuche: $current/$max';
+  }
+
+  @override
+  String signalTriangulationLength(int length) {
+    return 'Sequenz: $length Frequenzen';
+  }
+
+  @override
+  String get signalTriangulationCurrentSequence => 'Aktuelle Signalsequenz';
+
+  @override
+  String get signalTriangulationFrequencies => 'Verfügbare Frequenzen';
+
+  @override
+  String get signalTriangulationPreviousAttempts => 'Echo-Analyse-Protokoll';
+
+  @override
+  String get signalTriangulationClear => 'Löschen';
+
+  @override
+  String get signalTriangulationTransmit => 'Senden';
+
+  @override
+  String get signalTriangulationWinTitle => 'Signalquelle lokalisiert!';
+
+  @override
+  String signalTriangulationWinDesc(int attempts, int totalScore, int bonus) {
+    return 'Ausgezeichnete Arbeit, Astro-Techniker! Du hast den Precursor-Speicher in $attempts Versuchen trianguliert und $totalScore Punkte verdient. Effizienz-Bonus: $bonus Punkte!';
+  }
+
+  @override
+  String get signalTriangulationLoseTitle => 'Signal im Rauschen verloren';
+
+  @override
+  String get signalTriangulationLoseDesc =>
+      'Das Signal ist jenseits der Erkennungsreichweite verblasst. Der Precursor-Speicher bleibt in der kosmischen Leere verborgen.';
+
+  @override
+  String signalTriangulationReveal(String sequence) {
+    return 'Die korrekte Sequenz war: $sequence';
+  }
+
+  @override
+  String get nextSignal => 'Nächstes Signal';
 }

@@ -289,6 +289,7 @@
     "preparingSpaceStation": "Preparing space station...",
     "calibratingNav": "Calibrating navigation systems...",
     "readyForLaunch": "Ready for launch!",
+    "launch": "Launch",
     "splashScreenSubtitle": "Explore • Learn • Discover",
     "pathFinderTitle": "PathFinder",
     "pathFinderDesc": "Navigate quantum space corridors! Calculate the right trajectory through dangerous cosmic phenomena to reach your destination safely.",
@@ -477,7 +478,54 @@
     "sriMastered": "Mastered",
     "sriLearning": "Learning",
     "progressMatrixTitle": "Progress Matrix",
-    "progressMatrixDesc": "Color shows mastery (green is best). Number shows problems tracked in that area."
+    "progressMatrixDesc": "Color shows mastery (green is best). Number shows problems tracked in that area.",
+
+      "signalTriangulationGameTitle": "Signal Triangulation",
+  "signalTriangulationInstructions": "A faint Precursor signal has been detected! Decode the frequency sequence by analyzing echo responses. Green dots = correct frequency in correct position, Orange rings = correct frequency in wrong position.",
+  
+  "signalTriangulationAttempts": "Attempts: {current}/{max}",
+  "@signalTriangulationAttempts": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  
+  "signalTriangulationLength": "Sequence: {length} frequencies",
+  "@signalTriangulationLength": {
+    "placeholders": {
+      "length": {"type": "int"}
+    }
+  },
+  
+  "signalTriangulationCurrentSequence": "Current Signal Sequence",
+  "signalTriangulationFrequencies": "Available Frequencies",
+  "signalTriangulationPreviousAttempts": "Echo Analysis Log",
+  
+  "signalTriangulationClear": "Clear",
+  "signalTriangulationTransmit": "Transmit",
+  
+  "signalTriangulationWinTitle": "Signal Source Located!",
+  "signalTriangulationWinDesc": "Excellent work, Astro-Technician! You triangulated the Precursor cache in {attempts} attempts, earning {totalScore} points. Efficiency bonus: {bonus} points!",
+  "@signalTriangulationWinDesc": {
+    "placeholders": {
+      "attempts": {"type": "int"},
+      "totalScore": {"type": "int"}, 
+      "bonus": {"type": "int"}
+    }
+  },
+  
+  "signalTriangulationLoseTitle": "Signal Lost in Static",
+  "signalTriangulationLoseDesc": "The signal has faded beyond detection range. The Precursor cache remains hidden in the cosmic void.",
+  
+  "signalTriangulationReveal": "The correct sequence was: {sequence}",
+  "@signalTriangulationReveal": {
+    "placeholders": {
+      "sequence": {"type": "String"}
+    }
+  },
+  
+  "nextSignal": "Next Signal"
 
 
 }

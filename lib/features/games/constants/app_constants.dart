@@ -1,3 +1,5 @@
+// lib/features/games/constants/app_constants.dart:
+
 class AppConstants {
   // App Information
   static const String appName = 'Space Math Academy';

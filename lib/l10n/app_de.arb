@@ -223,6 +223,7 @@
     "preparingSpaceStation": "Bereite Raumstation vor...",
     "calibratingNav": "Kalibriere Navigationssysteme...",
     "readyForLaunch": "Bereit zum Start!",
+    "launch": "Start",
     "splashScreenSubtitle": "Erkunden • Lernen • Entdecken",
     "pathFinderTitle": "PfadFinder",
     "pathFinderDesc": "Navigiere durch Quanten-Raumkorridore! Berechne die richtige Flugbahn durch gefährliche kosmische Phänomene, um sicher anzukommen.",
@@ -261,6 +262,7 @@
     "pathFinderFailureClearSpace": "Navigationsfehler!",
     "pathFinderFailureIonStorm": "Ionensturm-Schäden!",
     "pathFinderFailureQuantumTunnel": "Quanten-Instabilität!",
+
     "numberWalls": "Zahlenmauern",
     "numberWallsDesc": "Baue kosmische Rechenpyramiden! Stabilisiere die Quantenstruktur!",
     "numberWallsGameTitle": "Quanten-Pyramiden-Baumeister",
@@ -409,6 +411,53 @@
     "sriMastered": "Beherrscht",
     "sriLearning": "Im Training",
     "progressMatrixTitle": "Fortschrittsmatrix",
-    "progressMatrixDesc": "Die Farbe zeigt die Beherrschung (grün ist am besten). Die Zahl zeigt die Anzahl der Aufgaben in diesem Bereich."
+    "progressMatrixDesc": "Die Farbe zeigt die Beherrschung (grün ist am besten). Die Zahl zeigt die Anzahl der Aufgaben in diesem Bereich.",
+
+      "signalTriangulationGameTitle": "Signal-Triangulation",
+  "signalTriangulationInstructions": "Ein schwaches Precursor-Signal wurde erkannt! Entschlüssele die Frequenzfolge durch Analyse der Echo-Antworten. Grüne Punkte = richtige Frequenz an richtiger Position, Orange Ringe = richtige Frequenz an falscher Position.",
+  
+  "signalTriangulationAttempts": "Versuche: {current}/{max}",
+  "@signalTriangulationAttempts": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  
+  "signalTriangulationLength": "Sequenz: {length} Frequenzen",
+  "@signalTriangulationLength": {
+    "placeholders": {
+      "length": {"type": "int"}
+    }
+  },
+  
+  "signalTriangulationCurrentSequence": "Aktuelle Signalsequenz",
+  "signalTriangulationFrequencies": "Verfügbare Frequenzen",
+  "signalTriangulationPreviousAttempts": "Echo-Analyse-Protokoll",
+  
+  "signalTriangulationClear": "Löschen",
+  "signalTriangulationTransmit": "Senden",
+  
+  "signalTriangulationWinTitle": "Signalquelle lokalisiert!",
+  "signalTriangulationWinDesc": "Ausgezeichnete Arbeit, Astro-Techniker! Du hast den Precursor-Speicher in {attempts} Versuchen trianguliert und {totalScore} Punkte verdient. Effizienz-Bonus: {bonus} Punkte!",
+  "@signalTriangulationWinDesc": {
+    "placeholders": {
+      "attempts": {"type": "int"},
+      "totalScore": {"type": "int"},
+      "bonus": {"type": "int"}
+    }
+  },
+  
+  "signalTriangulationLoseTitle": "Signal im Rauschen verloren",
+  "signalTriangulationLoseDesc": "Das Signal ist jenseits der Erkennungsreichweite verblasst. Der Precursor-Speicher bleibt in der kosmischen Leere verborgen.",
+  
+  "signalTriangulationReveal": "Die korrekte Sequenz war: {sequence}",
+  "@signalTriangulationReveal": {
+    "placeholders": {
+      "sequence": {"type": "String"}
+    }
+  },
+  
+  "nextSignal": "Nächstes Signal"
 
 }

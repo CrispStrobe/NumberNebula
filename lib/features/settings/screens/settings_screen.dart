@@ -7,10 +7,13 @@ import 'dart:math' as math;
 import '../widgets/sri_statistics_dialog.dart'; // statistics dialog widget
 
 import '../../../core/theme/space_theme.dart';
+import '../../../core/services/debug_provider.dart';
+import '../../../core/services/progress_service.dart';
+
 import '../../../generated/l10n.dart';
+
 import '../../games/constants/app_constants.dart';
 import '../../games/providers/game_provider.dart';
-import '../../../core/services/debug_provider.dart';
 import '../../games/widgets/space_background.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -1203,6 +1206,9 @@ class _SettingsScreenState extends State<SettingsScreen>
               onTap: () {
                 debugPrint("[SETTINGS] 🎓 Grade changed to: $grade");
                 gameProvider.setGrade(grade);
+                // SAVE PROGRESS IMMEDIATELY
+                context.read<ProgressService>().saveProgress(gameProvider);
+
                 Navigator.of(context).pop();
               },
               child: Container(

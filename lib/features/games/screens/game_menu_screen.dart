@@ -17,7 +17,8 @@ import 'planet_hopping_game.dart';
 import 'number_walls_game.dart';
 import 'codebreaker_game.dart';
 import 'perspective_puzzle_game.dart';
-import 'blocks_counter_game.dart'; // NEW: Import new game
+import 'blocks_counter_game.dart';
+import 'signal_triangulation_game.dart';
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../achievements/screens/achievements_screen.dart';
@@ -38,7 +39,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   late Animation<double> _floatAnimation;
 
   // NEW: Update game count
-  static const int _gameCount = 10;
+  static const int _gameCount = 11;
 
   @override
   void initState() {
@@ -323,6 +324,13 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
             icon: Icons.view_in_ar,
             gradient: const LinearGradient(colors: [Color(0xFF00F260), Color(0xFF0575E6)]),
             onTap: () => _navigateToGame(BlockCounterGame(grade: gameProvider.grade, level: gameProvider.level))),
+        GameInfo(
+            title: s.signalTriangulationGameTitle,
+            description: s.signalTriangulationInstructions,
+            icon: Icons.track_changes,
+            gradient: const LinearGradient(colors: [Color(0xFF00c6ff), Color(0xFF0072ff)]),
+            onTap: () => _navigateToGame(SignalTriangulationGame(grade: gameProvider.grade, level: gameProvider.level)),
+        ),
     ];
 
     if (index >= games.length) return const SizedBox.shrink(); // Safety check
@@ -450,7 +458,7 @@ class _GameCardState extends State<GameCard> with SingleTickerProviderStateMixin
                           children: [
                             const Icon(Icons.play_arrow, color: Colors.white, size: 14),
                             const SizedBox(width: 4),
-                            Text('Launch', style: SpaceTheme.buttonStyle.copyWith(fontSize: 12)),
+                            Text(S.of(context)!.launch, style: SpaceTheme.buttonStyle.copyWith(fontSize: 12)),
                           ],
                         ),
                       ),

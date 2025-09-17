@@ -29,7 +29,8 @@ import 'features/games/screens/planet_hopping_game.dart';
 import 'features/games/screens/number_walls_game.dart';
 import 'features/games/screens/codebreaker_game.dart';
 import 'features/games/screens/perspective_puzzle_game.dart'; 
-import 'features/games/screens/blocks_counter_game.dart'; 
+import 'features/games/screens/blocks_counter_game.dart';
+import 'features/games/screens/signal_triangulation_game.dart'; 
 
 // --- UTILS & GENERATED ---
 import 'shared/utils/app_utilities.dart';
@@ -224,6 +225,7 @@ class AppRoutes {
   static const String splash = '/';
   static const String home = '/home';
   static const String gameMenu = '/games';
+
   static const String magicTriangles = '/games/magic-triangles';
   static const String asteroidGame = '/games/asteroid-math';
   static const String puzzleGame = '/games/puzzle-math';
@@ -232,7 +234,9 @@ class AppRoutes {
   static const String numberWalls = '/games/number-walls';
   static const String codebreaker = '/games/codebreaker';
   static const String perspectivePuzzle = '/games/perspective-puzzle';
-  static const String blockCounter = '/games/block-counter'; // NEW
+  static const String blockCounter = '/games/block-counter';
+  static const String signalTriangulation = '/games/signal-triangulation';
+  
   static const String settings = '/settings';
   static const String achievements = '/achievements';
   static const String loading = '/loading';
@@ -295,6 +299,11 @@ class AppRoutes {
           final grade = args?['grade'] as int? ?? 3;
           final level = args?['level'] as int? ?? 1;
           return _createRoute(BlockCounterGame(grade: grade, level: level));
+
+        case signalTriangulation:
+            final grade = args?['grade'] as int? ?? 3;
+            final level = args?['level'] as int? ?? 1;
+            return _createRoute(SignalTriangulationGame(grade: grade, level: level));
       
         case AppRoutes.settings:
           return _createRoute(const SettingsScreen());

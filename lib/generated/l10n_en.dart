@@ -691,6 +691,9 @@ class SEn extends S {
   String get readyForLaunch => 'Ready for launch!';
 
   @override
+  String get launch => 'Launch';
+
+  @override
   String get splashScreenSubtitle => 'Explore • Learn • Discover';
 
   @override
@@ -1025,4 +1028,59 @@ class SEn extends S {
   @override
   String get progressMatrixDesc =>
       'Color shows mastery (green is best). Number shows problems tracked in that area.';
+
+  @override
+  String get signalTriangulationGameTitle => 'Signal Triangulation';
+
+  @override
+  String get signalTriangulationInstructions =>
+      'A faint Precursor signal has been detected! Decode the frequency sequence by analyzing echo responses. Green dots = correct frequency in correct position, Orange rings = correct frequency in wrong position.';
+
+  @override
+  String signalTriangulationAttempts(int current, int max) {
+    return 'Attempts: $current/$max';
+  }
+
+  @override
+  String signalTriangulationLength(int length) {
+    return 'Sequence: $length frequencies';
+  }
+
+  @override
+  String get signalTriangulationCurrentSequence => 'Current Signal Sequence';
+
+  @override
+  String get signalTriangulationFrequencies => 'Available Frequencies';
+
+  @override
+  String get signalTriangulationPreviousAttempts => 'Echo Analysis Log';
+
+  @override
+  String get signalTriangulationClear => 'Clear';
+
+  @override
+  String get signalTriangulationTransmit => 'Transmit';
+
+  @override
+  String get signalTriangulationWinTitle => 'Signal Source Located!';
+
+  @override
+  String signalTriangulationWinDesc(int attempts, int totalScore, int bonus) {
+    return 'Excellent work, Astro-Technician! You triangulated the Precursor cache in $attempts attempts, earning $totalScore points. Efficiency bonus: $bonus points!';
+  }
+
+  @override
+  String get signalTriangulationLoseTitle => 'Signal Lost in Static';
+
+  @override
+  String get signalTriangulationLoseDesc =>
+      'The signal has faded beyond detection range. The Precursor cache remains hidden in the cosmic void.';
+
+  @override
+  String signalTriangulationReveal(String sequence) {
+    return 'The correct sequence was: $sequence';
+  }
+
+  @override
+  String get nextSignal => 'Next Signal';
 }
