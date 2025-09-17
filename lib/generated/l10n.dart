@@ -1525,6 +1525,12 @@ abstract class S {
   /// **'Galactic Division Network'**
   String get numberWallsDivision;
 
+  /// No description provided for @numberWallsDropFar.
+  ///
+  /// In en, this message translates to:
+  /// **'numberWallsDropFar'**
+  String get numberWallsDropFar;
+
   /// No description provided for @codebreaker.
   ///
   /// In en, this message translates to:

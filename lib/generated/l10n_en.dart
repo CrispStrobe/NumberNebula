@@ -793,6 +793,9 @@ class SEn extends S {
   String get numberWallsDivision => 'Galactic Division Network';
 
   @override
+  String get numberWallsDropFar => 'numberWallsDropFar';
+
+  @override
   String get codebreaker => 'Codebreaker';
 
   @override

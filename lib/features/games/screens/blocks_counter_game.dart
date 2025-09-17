@@ -17,19 +17,23 @@ import '../../../shared/utils/app_utilities.dart';
 // =============================================================================
 class _VisualConfig {
   // --- Camera ---
-  static const double cameraDistanceFactor = 2.0; // How far the camera is based on puzzle size
+  // static const double cameraDistanceFactor = 2.0; // How far the camera is based on puzzle size
+  static const double cameraDistanceFactor = 0.4;
   static final cube.Vector3 cameraTarget = cube.Vector3(0, -0.5, 0); // Aim slightly below center for better view angle
 
   // --- Lighting ---
-  static final cube.Vector3 lightPosition = cube.Vector3(15, 20, 20); // Position of the main light
+  // static final cube.Vector3 lightPosition = cube.Vector3(15, 20, 20); // Position of the main light
+  static final cube.Vector3 lightPosition = cube.Vector3(5, 30, 15);
   static final Color lightColor = Colors.white; // Color of the light
-  static const double ambientIntensity = 0.6; // Overall ambient light
-  static const double diffuseIntensity = 1.0; // Directional light contribution
-  static const double specularIntensity = 1.0; // Highlight intensity
+  // static const double ambientIntensity = 0.6; // Overall ambient light
+  static const double ambientIntensity = 0.9; 
+  // static const double diffuseIntensity = 1.0; // Directional light contribution
+  static const double diffuseIntensity = 1.5; 
+  static const double specularIntensity = 0.2; // Highlight intensity
 
   // --- Material ---
   static final cube.Vector3 materialSpecular = cube.Vector3(0.8, 0.8, 0.8); // How much light is reflected
-  static const double materialShininess = 100.0; // Sharpness of the specular highlight (higher = shinier)
+  static const double materialShininess = 10.0; // Sharpness of the specular highlight (higher = shinier)
 
   // --- Cube Appearance ---
   static const double cubeSize = 0.98;

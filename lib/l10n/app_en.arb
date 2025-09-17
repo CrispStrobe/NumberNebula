@@ -348,6 +348,8 @@
     "numberWallsSubtraction": "Stellar Subtraction Grid",
     "numberWallsMultiplication": "Cosmic Multiplication Array",
     "numberWallsDivision": "Galactic Division Network",
+    "numberWallsDropFar": "Drop it closer to the target please.",
+
     "codebreaker": "Codebreaker",
     "codebreakerDesc": "Intercept and decode alien transmissions! Solve complex equation systems to reveal their secrets.",
     "codebreakerSuccess": "Code cracked!",

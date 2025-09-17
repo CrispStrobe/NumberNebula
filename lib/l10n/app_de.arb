@@ -282,6 +282,8 @@
     "numberWallsSubtraction": "Stern-Subtraktions-Gitter",
     "numberWallsMultiplication": "Kosmisches Multiplikations-Array",
     "numberWallsDivision": "Galaktisches Divisions-Netzwerk",
+    "numberWallsDropFar": "Bitte näher zum Ziel platzieren.",
+
     "codebreaker": "Codeknacker",
     "codebreakerDesc": "Fange außerirdische Übertragungen ab und entschlüssle sie! Löse komplexe Gleichungssysteme, um ihre Geheimnisse zu lüften.",
     "codebreakerSuccess": "Code geknackt!",

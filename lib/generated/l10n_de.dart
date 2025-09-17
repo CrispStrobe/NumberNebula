@@ -799,6 +799,9 @@ class SDe extends S {
   String get numberWallsDivision => 'Galaktisches Divisions-Netzwerk';
 
   @override
+  String get numberWallsDropFar => 'numberWallsDropFar';
+
+  @override
   String get codebreaker => 'Codeknacker';
 
   @override
