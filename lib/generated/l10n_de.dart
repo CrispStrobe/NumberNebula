@@ -1106,4 +1106,30 @@ class SDe extends S {
 
   @override
   String get nextSignal => 'Nächstes Signal';
+
+  @override
+  String get cryptexLockBreakerGameTitle => 'Kryptex-Schloss-Knacker';
+
+  @override
+  String get cryptexLockBreakerInstructions =>
+      'Ein antikes Precursor-Kryptex versperrt deinen Weg! Dieser mechanische Tresor nutzt ineinandergreifende mathematische Gleichungen als Kombination. Drehe die Scheiben, um alle Gleichungen gleichzeitig zu erfüllen und die Geheimnisse darin zu entsperren.';
+
+  @override
+  String get cryptexLockBreakerControls =>
+      'Tippe und ziehe Scheiben hoch/runter zum Drehen • Beobachte, wie Gleichungen grün werden, wenn gelöst';
+
+  @override
+  String get cryptexLockBreakerEquations => 'Schloss-Gleichungen';
+
+  @override
+  String get cryptexLockBreakerWinTitle => 'Kryptex entsperrt!';
+
+  @override
+  String cryptexLockBreakerWinDesc(
+      int totalScore, int complexityBonus, int equationBonus) {
+    return 'Brillante Arbeit, Astro-Techniker! Du hast den Precursor-Schlossmechanismus geknackt und $totalScore Punkte verdient. Komplexitäts-Bonus: $complexityBonus • Gleichungs-Bonus: $equationBonus';
+  }
+
+  @override
+  String get nextCryptex => 'Nächstes Kryptex';
 }

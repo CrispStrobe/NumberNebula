@@ -2052,6 +2052,49 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Next Signal'**
   String get nextSignal;
+
+  /// No description provided for @cryptexLockBreakerGameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cryptex Lock Breaker'**
+  String get cryptexLockBreakerGameTitle;
+
+  /// No description provided for @cryptexLockBreakerInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'An ancient Precursor Cryptex blocks your path! This mechanical vault uses interlocking mathematical equations as its combination. Rotate the dials to satisfy all equations simultaneously and unlock the secrets within.'**
+  String get cryptexLockBreakerInstructions;
+
+  /// No description provided for @cryptexLockBreakerControls.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap and drag dials up/down to rotate • Watch the equations turn green when solved'**
+  String get cryptexLockBreakerControls;
+
+  /// No description provided for @cryptexLockBreakerEquations.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock Equations'**
+  String get cryptexLockBreakerEquations;
+
+  /// No description provided for @cryptexLockBreakerWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cryptex Unlocked!'**
+  String get cryptexLockBreakerWinTitle;
+
+  /// No description provided for @cryptexLockBreakerWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Brilliant work, Astro-Technician! You\'ve cracked the Precursor lock mechanism and earned {totalScore} points. Complexity bonus: {complexityBonus} • Equation bonus: {equationBonus}'**
+  String cryptexLockBreakerWinDesc(
+      int totalScore, int complexityBonus, int equationBonus);
+
+  /// No description provided for @nextCryptex.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Cryptex'**
+  String get nextCryptex;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

@@ -8,6 +8,7 @@ import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
+
 import 'magic_triangles_game.dart';
 import 'asteroid_math_game.dart';
 import 'puzzle_math_game.dart';
@@ -19,6 +20,8 @@ import 'codebreaker_game.dart';
 import 'perspective_puzzle_game.dart';
 import 'blocks_counter_game.dart';
 import 'signal_triangulation_game.dart';
+import 'cryptex_lock_breaker_game.dart';
+
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../achievements/screens/achievements_screen.dart';
@@ -39,7 +42,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   late Animation<double> _floatAnimation;
 
   // NEW: Update game count
-  static const int _gameCount = 11;
+  static const int _gameCount = 12;
 
   @override
   void initState() {
@@ -317,7 +320,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
             icon: Icons.grid_view_sharp,
             gradient: const LinearGradient(colors: [Color(0xFFf5af19), Color(0xFFf12711)]),
             onTap: () => _navigateToGame(PerspectivePuzzleGame(grade: gameProvider.grade, level: gameProvider.level))), // Use PerspectivePuzzleGame
-        // NEW: Add Block Counter game
+
         GameInfo(
             title: s.blockCounterGameTitle,
             description: s.blockCounterInstructions,
@@ -330,6 +333,13 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
             icon: Icons.track_changes,
             gradient: const LinearGradient(colors: [Color(0xFF00c6ff), Color(0xFF0072ff)]),
             onTap: () => _navigateToGame(SignalTriangulationGame(grade: gameProvider.grade, level: gameProvider.level)),
+        ),
+        GameInfo(
+            title: s.cryptexLockBreakerGameTitle,
+            description: s.cryptexLockBreakerInstructions,
+            icon: Icons.track_changes,
+            gradient: const LinearGradient(colors: [Color(0xFF01c6ff), Color(0xFF0172ff)]),
+            onTap: () => _navigateToGame(CryptexLockBreakerGame(grade: gameProvider.grade, level: gameProvider.level)),
         ),
     ];
 

@@ -1098,4 +1098,30 @@ class SEn extends S {
 
   @override
   String get nextSignal => 'Next Signal';
+
+  @override
+  String get cryptexLockBreakerGameTitle => 'Cryptex Lock Breaker';
+
+  @override
+  String get cryptexLockBreakerInstructions =>
+      'An ancient Precursor Cryptex blocks your path! This mechanical vault uses interlocking mathematical equations as its combination. Rotate the dials to satisfy all equations simultaneously and unlock the secrets within.';
+
+  @override
+  String get cryptexLockBreakerControls =>
+      'Tap and drag dials up/down to rotate • Watch the equations turn green when solved';
+
+  @override
+  String get cryptexLockBreakerEquations => 'Lock Equations';
+
+  @override
+  String get cryptexLockBreakerWinTitle => 'Cryptex Unlocked!';
+
+  @override
+  String cryptexLockBreakerWinDesc(
+      int totalScore, int complexityBonus, int equationBonus) {
+    return 'Brilliant work, Astro-Technician! You\'ve cracked the Precursor lock mechanism and earned $totalScore points. Complexity bonus: $complexityBonus • Equation bonus: $equationBonus';
+  }
+
+  @override
+  String get nextCryptex => 'Next Cryptex';
 }

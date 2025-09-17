@@ -60,7 +60,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       vsync: this,
     )..repeat();
 
-    // NEW: Controller for the visual gravity pulse effect
     _gravityController = AnimationController(
       duration: const Duration(seconds: 4),
       vsync: this,
@@ -70,9 +69,14 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       duration: const Duration(seconds: 10),
       vsync: this,
     )..repeat();
-
-    _initializeGame();
-    _gameController.addListener(_updateGame);
+    
+    // Defer initialization until the first frame is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _initializeGame();
+        _gameController.addListener(_updateGame);
+      }
+    });
 
     Timer(const Duration(seconds: 5), () {
       if (mounted) setState(() => _showInstructions = false);
@@ -128,6 +132,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     }
   }
 
+  // ### START: MODIFIED PLANET GENERATION LOGIC ###
   void _generatePlanets() {
     planets.clear();
     final random = math.Random();
@@ -138,66 +143,77 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     final usedAnswers = <int>{};
     debugPrint("[Gameplay] Generating $planetCount unique planets...");
 
-    // MODIFIED: Get providers once at the beginning for efficiency.
     final sriService = context.read<SriService>();
     final gameProvider = context.read<GameProvider>();
+    final screenSize = MediaQuery.of(context).size;
 
     int attempts = 0;
     while (problems.length < planetCount && attempts < 100) {
       attempts++;
-      
-      // MODIFIED: Use the central, settings-aware problem generator.
-      // This function respects custom settings and prioritizes SRI review problems.
       final problem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
       
       if (!usedAnswers.contains(problem.answer)) {
         problems.add(problem);
         usedAnswers.add(problem.answer);
-        debugPrint("[Problem Gen] ✅ Generated: ${problem.expression} = ${problem.answer}");
-      } else {
-        debugPrint("[Problem Gen] ⚠️ Skipped duplicate answer: ${problem.answer}");
       }
     }
 
-    if (problems.isEmpty) {
-      debugPrint("[Gameplay] ⚠️ No problems generated, creating fallback planets");
-      for (int i = 0; i < 3; i++) {
-        problems.add(MathProblem.generateProblem(gameProvider, widget.level, sriService));
-      }
-    }
-    
-    const screenWidth = 800.0;
-    const screenHeight = 600.0;
-    const margin = 100.0;
-    
-    final zones = [
-      Rect.fromLTWH(margin, margin, 200, 150),
-      Rect.fromLTWH(screenWidth - 300, margin, 200, 150),
-      Rect.fromLTWH(margin, screenHeight - 250, 200, 150),
-      Rect.fromLTWH(screenWidth - 300, screenHeight - 250, 200, 150),
-      Rect.fromLTWH(300, 200, 200, 200),
-      Rect.fromLTWH(150, 300, 150, 150),
-      Rect.fromLTWH(500, 300, 150, 150),
-    ];
-    
     for (int i = 0; i < problems.length; i++) {
       final planetRadius = (32.0 + random.nextDouble() * 16).clamp(30.0, 45.0);
       
-      final zone = zones[i % zones.length];
-      final planetX = zone.left + random.nextDouble() * (zone.width - planetRadius * 2) + planetRadius;
-      final planetY = zone.top + random.nextDouble() * (zone.height - planetRadius * 2) + planetRadius;
+      // This helper function now ensures the position is valid.
+      final position = _findNonOverlappingPosition(screenSize, planetRadius, planets);
 
       planets.add(Planet(
         id: i,
-        position: Offset(planetX, planetY),
+        position: position,
         radius: planetRadius,
-        mass: (planetRadius * 0.1).clamp(3.0, 5.0), // Mass for visual gravity
+        mass: (planetRadius * 0.1).clamp(3.0, 5.0),
         problem: problems[i],
         color: _getPlanetColor(i),
         visited: false,
       ));
     }
   }
+
+  // This is the new helper function to prevent overlaps.
+  Offset _findNonOverlappingPosition(Size screenSize, double newPlanetRadius, List<Planet> existingPlanets) {
+    final random = math.Random();
+    const int maxAttempts = 100;
+    const double padding = 15.0; // Extra space between planets
+
+    for (int i = 0; i < maxAttempts; i++) {
+      // Generate a random position within safe screen bounds
+      final double x = random.nextDouble() * (screenSize.width - newPlanetRadius * 2 - 100) + newPlanetRadius + 50;
+      final double y = random.nextDouble() * (screenSize.height - newPlanetRadius * 2 - 200) + newPlanetRadius + 100;
+      final newPosition = Offset(x, y);
+      
+      bool hasOverlap = false;
+      // Check against all previously placed planets
+      for (final existingPlanet in existingPlanets) {
+        final distance = (newPosition - existingPlanet.position).distance;
+        final minDistance = newPlanetRadius + existingPlanet.radius + padding;
+        if (distance < minDistance) {
+          hasOverlap = true;
+          break; // Overlap found, break inner loop to try a new position
+        }
+      }
+      
+      // If no overlaps were found after checking all existing planets, this position is valid
+      if (!hasOverlap) {
+        return newPosition;
+      }
+    }
+    
+    // Fallback if no position could be found after many attempts (rare)
+    debugPrint("Could not find a non-overlapping position after $maxAttempts attempts. Placing randomly.");
+    return Offset(
+      random.nextDouble() * (screenSize.width - newPlanetRadius * 2) + newPlanetRadius,
+      random.nextDouble() * (screenSize.height - newPlanetRadius * 2 - 150) + newPlanetRadius + 75,
+    );
+  }
+  // ### END: MODIFIED PLANET GENERATION LOGIC ###
+
 
   void _generateTargetSequence() {
     targetSequence = planets.map((p) => p.answer).toList();
@@ -259,7 +275,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       hopper.position += hopper.velocity * dt;
     }
 
-    // --- NEW: Visual Gravitational Pull (Positional Drift) ---
+    // --- Visual Gravitational Pull (Positional Drift) ---
     if (!hopper.isLanded) {
       Offset gravityDrift = Offset.zero;
       final gravityStrength = 0.2 + (_gravityController.value * 0.3); // Pulsating strength
@@ -268,15 +284,13 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         final distanceVector = planet.position - hopper.position;
         final distance = distanceVector.distance;
         
-        // Only apply pull within a certain range
         if (distance < (planet.radius + 120) && distance > 1) {
           final direction = distanceVector.normalize();
-          // The force falls off with distance, but not as drastically as real gravity
           final pullMagnitude = (gravityStrength * planet.mass) / (distance * 0.1);
           gravityDrift += direction * pullMagnitude;
         }
       }
-      hopper.position += gravityDrift; // Apply the drift directly to the position
+      hopper.position += gravityDrift;
     }
 
     // --- Boundary Checks ---
@@ -299,7 +313,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       }
     }
     
-    // --- Update Particles and Check for Landing ---
     particles.removeWhere((p) => p.update(dt));
     for (final planet in planets) {
       if (_checkPlanetLanding(planet)) {
@@ -400,7 +413,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   Widget _buildHintDisplay() {
-    // FIX: Add bounds check to prevent range error
     final bool shouldShow = _showNextTargetHint && 
                            gameActive && 
                            nextTargetIndex < targetSequence.length;
@@ -445,7 +457,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     );
   }
 
-  // --- Particle Effects & Dialogs ---
   List<Widget> _buildBackgroundElements() {
     return [
       ...backgroundStars.map((star) => Positioned(
@@ -476,7 +487,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
           left: particle.position.dx,
           top: particle.position.dy,
           child: ParticleWidget(particle: particle))),
-      // Instruction overlay at the bottom, within the game area
       Positioned(
         bottom: 10,
         left: 0,
@@ -569,9 +579,11 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       nextTargetIndex = 0;
       particles.clear();
       _showNextTargetHint = false;
-      _initializeGame();
     });
+    // Re-initialize game state, which now includes non-overlapping planet generation
+    _initializeGame();
   }
+
 
   Widget _buildWinDialog(int bonus) {
     return Dialog(

@@ -31,6 +31,7 @@ import 'features/games/screens/codebreaker_game.dart';
 import 'features/games/screens/perspective_puzzle_game.dart'; 
 import 'features/games/screens/blocks_counter_game.dart';
 import 'features/games/screens/signal_triangulation_game.dart'; 
+import 'features/games/screens/cryptex_lock_breaker_game.dart'; 
 
 // --- UTILS & GENERATED ---
 import 'shared/utils/app_utilities.dart';
@@ -236,6 +237,7 @@ class AppRoutes {
   static const String perspectivePuzzle = '/games/perspective-puzzle';
   static const String blockCounter = '/games/block-counter';
   static const String signalTriangulation = '/games/signal-triangulation';
+  static const String cryptexLockBreaker = '/games/cryptex-lock-breaker';
   
   static const String settings = '/settings';
   static const String achievements = '/achievements';
@@ -304,6 +306,11 @@ class AppRoutes {
             final grade = args?['grade'] as int? ?? 3;
             final level = args?['level'] as int? ?? 1;
             return _createRoute(SignalTriangulationGame(grade: grade, level: level));
+
+        case cryptexLockBreaker:
+            final grade = args?['grade'] as int? ?? 3;
+            final level = args?['level'] as int? ?? 1;
+            return _createRoute(CryptexLockBreakerGame(grade: grade, level: level));
       
         case AppRoutes.settings:
           return _createRoute(const SettingsScreen());

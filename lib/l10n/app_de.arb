@@ -462,6 +462,24 @@
     }
   },
   
-  "nextSignal": "Nächstes Signal"
+  "nextSignal": "Nächstes Signal",
+
+  "cryptexLockBreakerGameTitle": "Kryptex-Schloss-Knacker",
+  "cryptexLockBreakerInstructions": "Ein antikes Precursor-Kryptex versperrt deinen Weg! Dieser mechanische Tresor nutzt ineinandergreifende mathematische Gleichungen als Kombination. Drehe die Scheiben, um alle Gleichungen gleichzeitig zu erfüllen und die Geheimnisse darin zu entsperren.",
+  
+  "cryptexLockBreakerControls": "Tippe und ziehe Scheiben hoch/runter zum Drehen • Beobachte, wie Gleichungen grün werden, wenn gelöst",
+  "cryptexLockBreakerEquations": "Schloss-Gleichungen",
+  
+  "cryptexLockBreakerWinTitle": "Kryptex entsperrt!",
+  "cryptexLockBreakerWinDesc": "Brillante Arbeit, Astro-Techniker! Du hast den Precursor-Schlossmechanismus geknackt und {totalScore} Punkte verdient. Komplexitäts-Bonus: {complexityBonus} • Gleichungs-Bonus: {equationBonus}",
+  "@cryptexLockBreakerWinDesc": {
+    "placeholders": {
+      "totalScore": {"type": "int"},
+      "complexityBonus": {"type": "int"}, 
+      "equationBonus": {"type": "int"}
+    }
+  },
+  
+  "nextCryptex": "Nächstes Kryptex"
 
 }
