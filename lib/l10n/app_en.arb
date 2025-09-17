@@ -183,7 +183,7 @@
             "target": {}
         }
     },
-    "planetHoppingInstructions": "TAP anywhere to jump toward that location • Use gravity to swing between planets",
+    "planetHoppingInstructions": "Seek the planet with greatest gravitational pull.",
     "planetHoppingWinTitle": "Solar System Mastered!",
     "planetHoppingWinDesc": "You successfully navigated all planets in the correct sequence!\nLives Bonus: {bonus} points",
     "planetHoppingWinDescBonus": "You successfully navigated all planets in the correct sequence!\nLives Bonus: {bonus} points",

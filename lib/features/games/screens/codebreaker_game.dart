@@ -1101,7 +1101,9 @@ class AdvancedPuzzleGenerator {
   late Map<String, dynamic> params;
   List<String> symbols = [];
   Map<String, int> solution = {};
-  final PuzzleSolver solver = PuzzleSolver(verbose: true);
+  // MODIFIED: The solver is now initialized within the constructor
+  // to ensure the 'verbose' flag is correctly passed.
+  late final PuzzleSolver solver;
 
   static const List<String> availableSymbols = [
     'nebula', 'star', 'galaxy', 'planet', 'rocket', 'satellite', 'comet', 
@@ -1109,17 +1111,18 @@ class AdvancedPuzzleGenerator {
   ];
 
   AdvancedPuzzleGenerator({required this.difficulty, this.verbose = false}) {
+    // Initialize solver here
+    solver = PuzzleSolver(verbose: verbose);
+    // Get parameters based on the provided difficulty config
     params = _getParams();
     if (verbose) debugPrint("🏗️ [GENERATOR] Initialized with difficulty ${difficulty.grade}, params: $params");
   }
 
+  // MODIFIED: This method is now fully driven by the custom settings
+  // passed in the 'difficulty' config object.
   Map<String, dynamic> _getParams() {
-    final grade = difficulty.grade;
-    final operationTypes = difficulty.operationTypes;
-    final numberRange = difficulty.numberRange;
-    
-    // Convert the framework operations to our string format
-    final operatorStrings = operationTypes.map((op) {
+    // 1. Get the operators from the config and convert them to the required string format
+    final operatorStrings = difficulty.operationTypes.map((op) {
       switch (op) {
         case MathOperation.addition: return '+';
         case MathOperation.subtraction: return '-';
@@ -1127,30 +1130,36 @@ class AdvancedPuzzleGenerator {
         case MathOperation.division: return '/';
       }
     }).toList();
-    
-    // Use Python-style difficulty parameters
-    if (grade == 1) {
-      return {
-        'numSymbols': 3,
-        'valueRange': [1, 15],
-        'operators': ['+'],
-        'numEquations': 3
-      };
+
+    // 2. Get the number range directly from the config
+    final valueRange = [
+      difficulty.numberRange['min']!,
+      difficulty.numberRange['max']!,
+    ];
+
+    // 3. Determine other parameters based on grade as a fallback for complexity
+    final int numSymbols, numEquations;
+    final grade = difficulty.grade;
+
+    if (grade >= 3) {
+        numSymbols = 4;
+        numEquations = 4;
     } else if (grade == 2) {
-      return {
-        'numSymbols': 4,
-        'valueRange': [2, 25],
-        'operators': ['+', '-'],
-        'numEquations': 4
-      };
+        numSymbols = 4;
+        numEquations = 4;
     } else {
-      return {
-        'numSymbols': 4,
-        'valueRange': [2, 20],
-        'operators': ['+', '-', '*'],
-        'numEquations': 4
-      };
+        numSymbols = 3;
+        numEquations = 3;
     }
+
+    // 4. Return the parameters, ensuring operators and range come from the custom settings
+    return {
+      'numSymbols': numSymbols,
+      'valueRange': valueRange,
+      // Use the operators from the config, with '+' as a safe fallback
+      'operators': operatorStrings.isNotEmpty ? operatorStrings : ['+'],
+      'numEquations': numEquations,
+    };
   }
 
   void _generateSolutionKey() {

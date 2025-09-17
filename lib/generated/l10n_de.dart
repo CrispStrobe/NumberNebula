@@ -500,7 +500,7 @@ class SDe extends S {
 
   @override
   String get planetHoppingInstructions =>
-      'TIPPE irgendwohin, um dorthin zu springen • Nutze die Schwerkraft, um zwischen Planeten zu schwingen';
+      'Suche den Planeten mit der größten Gravitation.';
 
   @override
   String get planetHoppingWinTitle => 'Sonnensystem gemeistert!';
@@ -799,7 +799,7 @@ class SDe extends S {
   String get numberWallsDivision => 'Galaktisches Divisions-Netzwerk';
 
   @override
-  String get numberWallsDropFar => 'numberWallsDropFar';
+  String get numberWallsDropFar => 'Bitte näher zum Ziel platzieren.';
 
   @override
   String get codebreaker => 'Codeknacker';

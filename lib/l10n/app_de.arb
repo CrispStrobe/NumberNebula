@@ -152,7 +152,7 @@
     "planetHoppingObjectiveEvenOdd": "Besuche zuerst gerade, dann ungerade Zahlen!",
     "planetHoppingTitle": "Planeten-Hüpfen",
     "planetHoppingNextTarget": "Nächstes: {target}",
-    "planetHoppingInstructions": "TIPPE irgendwohin, um dorthin zu springen • Nutze die Schwerkraft, um zwischen Planeten zu schwingen",
+    "planetHoppingInstructions": "Suche den Planeten mit der größten Gravitation.",
     "planetHoppingWinTitle": "Sonnensystem gemeistert!",
     "planetHoppingWinDesc": "Du hast erfolgreich alle Planeten in der richtigen Reihenfolge navigiert!\nLebens-Bonus: {bonus} Punkte",
     "planetHoppingWinDescBonus": "Du hast erfolgreich alle Planeten in der richtigen Reihenfolge navigiert!\nLebens-Bonus: {bonus} Punkte",

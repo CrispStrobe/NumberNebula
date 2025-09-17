@@ -496,7 +496,7 @@ class SEn extends S {
 
   @override
   String get planetHoppingInstructions =>
-      'TAP anywhere to jump toward that location • Use gravity to swing between planets';
+      'Seek the planet with greatest gravitational pull.';
 
   @override
   String get planetHoppingWinTitle => 'Solar System Mastered!';
@@ -793,7 +793,7 @@ class SEn extends S {
   String get numberWallsDivision => 'Galactic Division Network';
 
   @override
-  String get numberWallsDropFar => 'numberWallsDropFar';
+  String get numberWallsDropFar => 'Drop it closer to the target please.';
 
   @override
   String get codebreaker => 'Codebreaker';

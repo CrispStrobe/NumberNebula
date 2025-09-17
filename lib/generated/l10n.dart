@@ -1018,7 +1018,7 @@ abstract class S {
   /// No description provided for @planetHoppingInstructions.
   ///
   /// In en, this message translates to:
-  /// **'TAP anywhere to jump toward that location • Use gravity to swing between planets'**
+  /// **'Seek the planet with greatest gravitational pull.'**
   String get planetHoppingInstructions;
 
   /// No description provided for @planetHoppingWinTitle.
@@ -1528,7 +1528,7 @@ abstract class S {
   /// No description provided for @numberWallsDropFar.
   ///
   /// In en, this message translates to:
-  /// **'numberWallsDropFar'**
+  /// **'Drop it closer to the target please.'**
   String get numberWallsDropFar;
 
   /// No description provided for @codebreaker.

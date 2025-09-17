@@ -1,5 +1,4 @@
 // lib/features/games/screens/planet_hopping_game.dart
-import '../../../generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
@@ -29,7 +28,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     with TickerProviderStateMixin {
   // --- Animation & Timers ---
   late AnimationController _gameController;
-  late AnimationController _gravityController;
+  late AnimationController _gravityController; // NEW: For pulsing gravity effect
   late AnimationController _planetController;
   Timer? _hintTimer;
   Timer? _reLandingCooldown;
@@ -61,8 +60,9 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       vsync: this,
     )..repeat();
 
+    // NEW: Controller for the visual gravity pulse effect
     _gravityController = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 4),
       vsync: this,
     )..repeat(reverse: true);
 
@@ -74,12 +74,8 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     _initializeGame();
     _gameController.addListener(_updateGame);
 
-    debugPrint("[Game Init] ℹ️ Starting 5-second timer for instructions overlay.");
     Timer(const Duration(seconds: 5), () {
-      if (mounted) {
-        debugPrint("[Game Init] ℹ️ Hiding instructions overlay now.");
-        setState(() => _showInstructions = false);
-      }
+      if (mounted) setState(() => _showInstructions = false);
     });
   }
 
@@ -116,7 +112,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     _hintTimer?.cancel();
     _hintTimer = Timer(const Duration(seconds: 12), () {
       if (mounted && gameActive) {
-        debugPrint("[UI] 💡 Hint timer fired after student had time to calculate.");
         setState(() => _showNextTargetHint = true);
       }
     });
@@ -127,8 +122,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     final random = math.Random();
     for (int i = 0; i < 80; i++) {
       backgroundStars.add(Star(
-          position:
-              Offset(random.nextDouble() * 1500, random.nextDouble() * 1000),
+          position: Offset(random.nextDouble() * 1500, random.nextDouble() * 1000),
           size: random.nextDouble() * 2 + 1,
           brightness: random.nextDouble() * 0.8 + 0.2));
     }
@@ -139,151 +133,77 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     final random = math.Random();
     final difficulty = widget.grade + widget.level;
     final planetCount = (5 + (difficulty / 4)).clamp(5, 8).toInt();
-
-    // Generate unique problems/answers for each planet
+    
     final problems = <MathProblem>[];
     final usedAnswers = <int>{};
     debugPrint("[Gameplay] Generating $planetCount unique planets...");
-    
-    // Get SRI problems once at the beginning to avoid repeated calls
+
+    // MODIFIED: Get providers once at the beginning for efficiency.
     final sriService = context.read<SriService>();
-    List<String> reviewProblems = [];
-    try {
-      reviewProblems = sriService.getProblemsForReview(limit: planetCount);
-      // Remove duplicates from SRI problems immediately
-      reviewProblems = reviewProblems.toSet().toList();
-      debugPrint("[SRI] Found ${reviewProblems.length} unique problems for review: $reviewProblems");
-    } catch (e) {
-      debugPrint("[SRI] Error getting review problems: $e");
-      reviewProblems = [];
-    }
-    
-    // Convert SRI problems to MathProblems first, filtering out duplicates
-    final sriMathProblems = <MathProblem>[];
-    final processedSriIds = <String>{};
-    
-    for (final sriId in reviewProblems) {
-      if (processedSriIds.contains(sriId)) {
-        debugPrint("[SRI] ⚠️ Skipped already processed SRI ID: $sriId");
-        continue;
-      }
-      
-      final problem = _createProblemFromSriId(sriId);
-      if (!usedAnswers.contains(problem.answer)) {
-        sriMathProblems.add(problem);
-        usedAnswers.add(problem.answer);
-        processedSriIds.add(sriId);
-        debugPrint("[SRI] ✅ Added review problem: ${problem.expression} = ${problem.answer}");
-        
-        // Stop if we have enough SRI problems
-        if (sriMathProblems.length >= planetCount ~/ 2) break;
-      } else {
-        debugPrint("[SRI] ⚠️ Skipped SRI duplicate answer: ${problem.answer}");
-      }
-    }
-    
-    // Add the SRI problems to our final list
-    problems.addAll(sriMathProblems);
-    
-    // Generate remaining random problems to fill the required count
+    final gameProvider = context.read<GameProvider>();
+
     int attempts = 0;
     while (problems.length < planetCount && attempts < 100) {
       attempts++;
-      final problem = MathProblem.random(widget.grade, difficulty: widget.level);
+      
+      // MODIFIED: Use the central, settings-aware problem generator.
+      // This function respects custom settings and prioritizes SRI review problems.
+      final problem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
       
       if (!usedAnswers.contains(problem.answer)) {
         problems.add(problem);
         usedAnswers.add(problem.answer);
-        debugPrint("[Random] ✅ Generated new problem: ${problem.expression} = ${problem.answer}");
+        debugPrint("[Problem Gen] ✅ Generated: ${problem.expression} = ${problem.answer}");
       } else {
-        debugPrint("[Random] ⚠️ Skipped duplicate answer: ${problem.answer}");
-      }
-    }
-    
-    // Safety check: ensure we have at least some planets
-    if (problems.isEmpty) {
-      debugPrint("[Gameplay] ⚠️ No problems generated, creating fallback planets");
-      for (int i = 0; i < 3; i++) {
-        final problem = MathProblem.random(widget.grade, difficulty: widget.level);
-        problems.add(problem);
+        debugPrint("[Problem Gen] ⚠️ Skipped duplicate answer: ${problem.answer}");
       }
     }
 
-    // Better planet positioning - more scattered and varied
-    const screenWidth = 800.0;  
-    const screenHeight = 600.0; 
+    if (problems.isEmpty) {
+      debugPrint("[Gameplay] ⚠️ No problems generated, creating fallback planets");
+      for (int i = 0; i < 3; i++) {
+        problems.add(MathProblem.generateProblem(gameProvider, widget.level, sriService));
+      }
+    }
+    
+    const screenWidth = 800.0;
+    const screenHeight = 600.0;
     const margin = 100.0;
     
-    // Define multiple zones for more interesting distribution
     final zones = [
-      Rect.fromLTWH(margin, margin, 200, 150),                           // Top-left
-      Rect.fromLTWH(screenWidth - 300, margin, 200, 150),               // Top-right  
-      Rect.fromLTWH(margin, screenHeight - 250, 200, 150),              // Bottom-left
-      Rect.fromLTWH(screenWidth - 300, screenHeight - 250, 200, 150),   // Bottom-right
-      Rect.fromLTWH(300, 200, 200, 200),                                // Center
-      Rect.fromLTWH(150, 300, 150, 150),                                // Mid-left
-      Rect.fromLTWH(500, 300, 150, 150),                                // Mid-right
+      Rect.fromLTWH(margin, margin, 200, 150),
+      Rect.fromLTWH(screenWidth - 300, margin, 200, 150),
+      Rect.fromLTWH(margin, screenHeight - 250, 200, 150),
+      Rect.fromLTWH(screenWidth - 300, screenHeight - 250, 200, 150),
+      Rect.fromLTWH(300, 200, 200, 200),
+      Rect.fromLTWH(150, 300, 150, 150),
+      Rect.fromLTWH(500, 300, 150, 150),
     ];
     
     for (int i = 0; i < problems.length; i++) {
       final planetRadius = (32.0 + random.nextDouble() * 16).clamp(30.0, 45.0);
-      final mass = (planetRadius * planetRadius * 0.1).clamp(50.0, 200.0);
       
-      // Select a zone and place planet randomly within it
       final zone = zones[i % zones.length];
       final planetX = zone.left + random.nextDouble() * (zone.width - planetRadius * 2) + planetRadius;
       final planetY = zone.top + random.nextDouble() * (zone.height - planetRadius * 2) + planetRadius;
 
-      final planet = Planet(
+      planets.add(Planet(
         id: i,
         position: Offset(planetX, planetY),
         radius: planetRadius,
-        mass: mass,
+        mass: (planetRadius * 0.1).clamp(3.0, 5.0), // Mass for visual gravity
         problem: problems[i],
         color: _getPlanetColor(i),
         visited: false,
-      );
-      planets.add(planet);
-      
-      debugPrint("[Gameplay] 🪐 Planet ${i} at (${planetX.toInt()}, ${planetY.toInt()}) shows: ${problems[i].expression} = ${problems[i].answer}");
-    }
-  }
-
-  // Helper method to recreate MathProblem from SRI ID
-  MathProblem _createProblemFromSriId(String sriId) {
-    final parts = sriId.split('_');
-    if (parts.length != 3) {
-      // Fallback to random problem if SRI ID format is unexpected
-      return MathProblem.random(widget.grade, difficulty: widget.level);
-    }
-    
-    final operation = parts[0];
-    final operandA = int.tryParse(parts[1]) ?? 1;
-    final operandB = int.tryParse(parts[2]) ?? 1;
-    
-    switch (operation) {
-      case 'ADD':
-        return MathProblem.addition(operandA, operandB, difficulty: widget.level);
-      case 'SUB':
-        return MathProblem.subtraction(operandA, operandB, difficulty: widget.level);
-      case 'MUL':
-        return MathProblem.multiplication(operandA, operandB, difficulty: widget.level);
-      case 'DIV':
-        return MathProblem.division(operandA, operandB, difficulty: widget.level);
-      default:
-        return MathProblem.random(widget.grade, difficulty: widget.level);
+      ));
     }
   }
 
   void _generateTargetSequence() {
     targetSequence = planets.map((p) => p.answer).toList();
     switch (widget.level % 3) {
-      case 0:
-        targetSequence.sort();
-        break; // Ascending
-      case 1:
-        targetSequence.sort((a, b) => b.compareTo(a));
-        break; // Descending
+      case 0: targetSequence.sort(); break; // Ascending
+      case 1: targetSequence.sort((a, b) => b.compareTo(a)); break; // Descending
       case 2:
         final evens = targetSequence.where((n) => n % 2 == 0).toList()..sort();
         final odds = targetSequence.where((n) => n % 2 == 1).toList()..sort();
@@ -301,14 +221,12 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
     _lastLandedPlanetId = planet.id;
     _reLandingCooldown?.cancel();
-    _reLandingCooldown =
-        Timer(const Duration(milliseconds: 500), () => _lastLandedPlanetId = null);
+    _reLandingCooldown = Timer(const Duration(milliseconds: 500), () => _lastLandedPlanetId = null);
 
     final sriService = context.read<SriService>();
     final bool isCorrect = nextTargetIndex < targetSequence.length &&
                           planet.answer == targetSequence[nextTargetIndex];
 
-    // Record the player's response
     sriService.recordResponse(planet.problem, isCorrect);
 
     if (isCorrect) {
@@ -319,14 +237,11 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       context.read<GameProvider>().addScore(100 * widget.grade);
       _addSuccessParticles(planet);
       
-      if (nextTargetIndex >= targetSequence.length) {
-        _winGame();
-      }
+      if (nextTargetIndex >= targetSequence.length) _winGame();
     } else {
-      debugPrint("[Gameplay] ❌ WRONG landing! Expected index $nextTargetIndex, got ${planet.answer}");
+      debugPrint("[Gameplay] ❌ WRONG landing!");
       lives--;
       _addErrorParticles(planet);
-
       final bounceDirection = (hopper.position - planet.position).normalize();
       hopper.velocity = bounceDirection * 150;
       if (lives <= 0) _gameOver();
@@ -338,33 +253,36 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     if (!gameActive || !mounted) return;
     final dt = 0.016;
 
-    if (hopper.isLanded) {
-      setState(() {});
-      return;
+    // --- Core Movement (Ballistic Trajectory) ---
+    if (!hopper.isLanded) {
+      hopper.velocity *= 0.998; // Air drag
+      hopper.position += hopper.velocity * dt;
     }
-    
-    const double G = 150;
-    Offset totalForce = Offset.zero;
 
-    for (final planet in planets) {
-      final distanceVector = planet.position - hopper.position;
-      final distance = distanceVector.distance;
-      if (distance < (planet.radius + 120) && distance > 0) {
-        final direction = distanceVector.normalize();
-        final forceMagnitude = (G * hopper.mass * planet.mass) / (distance * distance);
-        totalForce += direction * forceMagnitude;
+    // --- NEW: Visual Gravitational Pull (Positional Drift) ---
+    if (!hopper.isLanded) {
+      Offset gravityDrift = Offset.zero;
+      final gravityStrength = 0.2 + (_gravityController.value * 0.3); // Pulsating strength
+
+      for (final planet in planets) {
+        final distanceVector = planet.position - hopper.position;
+        final distance = distanceVector.distance;
+        
+        // Only apply pull within a certain range
+        if (distance < (planet.radius + 120) && distance > 1) {
+          final direction = distanceVector.normalize();
+          // The force falls off with distance, but not as drastically as real gravity
+          final pullMagnitude = (gravityStrength * planet.mass) / (distance * 0.1);
+          gravityDrift += direction * pullMagnitude;
+        }
       }
+      hopper.position += gravityDrift; // Apply the drift directly to the position
     }
-    
-    hopper.velocity += totalForce * dt;
-    hopper.velocity *= 0.998;
-    hopper.position += hopper.velocity * dt;
 
-    // Keep spaceship within the playing field boundaries
+    // --- Boundary Checks ---
     if (_gameWidth > 0 && _gameHeight > 0) {
       const double bounceDamping = 0.5;
-      const double margin = 15; // Approx. hopper radius
-
+      const double margin = 15;
       if (hopper.position.dx < margin) {
         hopper.position = Offset(margin, hopper.position.dy);
         hopper.velocity = Offset(-hopper.velocity.dx * bounceDamping, hopper.velocity.dy);
@@ -372,7 +290,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         hopper.position = Offset(_gameWidth - margin, hopper.position.dy);
         hopper.velocity = Offset(-hopper.velocity.dx * bounceDamping, hopper.velocity.dy);
       }
-
       if (hopper.position.dy < margin) {
         hopper.position = Offset(hopper.position.dx, margin);
         hopper.velocity = Offset(hopper.velocity.dx, -hopper.velocity.dy * bounceDamping);
@@ -382,8 +299,8 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       }
     }
     
+    // --- Update Particles and Check for Landing ---
     particles.removeWhere((p) => p.update(dt));
-
     for (final planet in planets) {
       if (_checkPlanetLanding(planet)) {
         _landOnPlanet(planet);
