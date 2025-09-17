@@ -464,6 +464,18 @@
     "blockCounterDifficultyMedium": "Middle",
     "blockCounterDifficultyHard": "Hard",
     "blockCounterNextPuzzle": "Next mission",
-    "blockCounterBackToMenu": "Back to base"
+    "blockCounterBackToMenu": "Back to base",
+
+    "sriStatisticsTitle": "Learning Insights",
+    "sriStatisticsDesc": "View your progress and identify areas for improvement.",
+    "premiumFeature": "This is a premium feature. Unlock the full version to access.",
+    "close": "Close",
+    "sriMastery": "Overall Mastery",
+    "sriTotal": "Total Tracked",
+    "sriMastered": "Mastered",
+    "sriLearning": "Learning",
+    "progressMatrixTitle": "Progress Matrix",
+    "progressMatrixDesc": "Color shows mastery (green is best). Number shows problems tracked in that area."
+
 
 }

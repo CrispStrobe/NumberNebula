@@ -285,6 +285,7 @@ class GameProvider extends ChangeNotifier {
       'gameProgress': _gameProgress,
       'achievements': _achievements.map((a) => a.toJson()).toList(),
       'useAdaptiveDifficulty': _useAdaptiveDifficulty,
+      'isFullVersionUnlocked': _isFullVersionUnlocked,
       
       'useCustomProblemSettings': _useCustomProblemSettings,
       'customOperations': _customOperations.toList(), // Convert set to list for JSON

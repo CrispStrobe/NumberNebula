@@ -989,4 +989,37 @@ class SEn extends S {
 
   @override
   String get blockCounterBackToMenu => 'Back to base';
+
+  @override
+  String get sriStatisticsTitle => 'Learning Insights';
+
+  @override
+  String get sriStatisticsDesc =>
+      'View your progress and identify areas for improvement.';
+
+  @override
+  String get premiumFeature =>
+      'This is a premium feature. Unlock the full version to access.';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get sriMastery => 'Overall Mastery';
+
+  @override
+  String get sriTotal => 'Total Tracked';
+
+  @override
+  String get sriMastered => 'Mastered';
+
+  @override
+  String get sriLearning => 'Learning';
+
+  @override
+  String get progressMatrixTitle => 'Progress Matrix';
+
+  @override
+  String get progressMatrixDesc =>
+      'Color shows mastery (green is best). Number shows problems tracked in that area.';
 }

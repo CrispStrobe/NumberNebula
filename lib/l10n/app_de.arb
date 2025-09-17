@@ -396,5 +396,17 @@
     "blockCounterDifficultyMedium": "Mittel",
     "blockCounterDifficultyHard": "Schwer",
     "blockCounterNextPuzzle": "Nächstes Rätsel",
-    "blockCounterBackToMenu": "Zurück zum Menü"
+    "blockCounterBackToMenu": "Zurück zum Menü",
+
+    "sriStatisticsTitle": "Lernfortschritt",
+    "sriStatisticsDesc": "Sieh dir deinen Fortschritt an und erkenne, wo du dich verbessern kannst.",
+    "premiumFeature": "Dies ist eine Premium-Funktion. Schalte die Vollversion frei, um darauf zuzugreifen.",
+    "close": "Schließen",
+    "sriMastery": "Gesamtbeherrschung",
+    "sriTotal": "Gesamt Erfasst",
+    "sriMastered": "Beherrscht",
+    "sriLearning": "Im Training",
+    "progressMatrixTitle": "Fortschrittsmatrix",
+    "progressMatrixDesc": "Die Farbe zeigt die Beherrschung (grün ist am besten). Die Zahl zeigt die Anzahl der Aufgaben in diesem Bereich."
+
 }

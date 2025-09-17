@@ -1866,6 +1866,66 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Back to base'**
   String get blockCounterBackToMenu;
+
+  /// No description provided for @sriStatisticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning Insights'**
+  String get sriStatisticsTitle;
+
+  /// No description provided for @sriStatisticsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'View your progress and identify areas for improvement.'**
+  String get sriStatisticsDesc;
+
+  /// No description provided for @premiumFeature.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a premium feature. Unlock the full version to access.'**
+  String get premiumFeature;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @sriMastery.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall Mastery'**
+  String get sriMastery;
+
+  /// No description provided for @sriTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Tracked'**
+  String get sriTotal;
+
+  /// No description provided for @sriMastered.
+  ///
+  /// In en, this message translates to:
+  /// **'Mastered'**
+  String get sriMastered;
+
+  /// No description provided for @sriLearning.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning'**
+  String get sriLearning;
+
+  /// No description provided for @progressMatrixTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress Matrix'**
+  String get progressMatrixTitle;
+
+  /// No description provided for @progressMatrixDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Color shows mastery (green is best). Number shows problems tracked in that area.'**
+  String get progressMatrixDesc;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

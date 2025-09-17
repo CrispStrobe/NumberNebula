@@ -48,23 +48,19 @@ class SriService with ChangeNotifier {
   Map<String, SriProblemData> _sriDatabase = {};
   static const _sriStorageKey = 'sri_database';
   
-  // FIX: Add session tracking to prevent returning same problems repeatedly
   final Set<String> _alreadyReturnedThisSession = {};
   DateTime? _sessionStartTime;
 
-  // Verbose logging for SRI operations
   void _log(String message) {
     debugPrint('[SRI_SERVICE] 🧠 $message');
   }
 
-  // FIX: Reset session tracking when needed
   void resetSession() {
     _alreadyReturnedThisSession.clear();
     _sessionStartTime = DateTime.now();
     _log('Session reset. Clearing returned problems cache.');
   }
 
-  // FIX: Auto-reset session if it's been more than 10 minutes
   void _checkSessionExpiry() {
     if (_sessionStartTime == null || 
         DateTime.now().difference(_sessionStartTime!).inMinutes > 10) {
@@ -72,7 +68,80 @@ class SriService with ChangeNotifier {
     }
   }
 
-  // Generate a unique, consistent ID for any math problem
+    /// NEW: Calculates a detailed breakdown of progress across operations and number ranges.
+    /// This powers the Progress Matrix heatmap.
+  Map<MathOperation, Map<NumberRange, OperationStat>> getDetailedBreakdown() {
+    _log('Calculating detailed progress breakdown...');
+    // Initialize a nested map to hold our aggregated data.
+    // MODIFIED: Add a field to accumulate the total E-Factor for averaging
+    final breakdown = {
+      for (var op in MathOperation.values)
+        op: {
+          for (var range in NumberRange.values)
+            range: {'tracked': 0, 'mastered': 0, 'totalEFactor': 0.0}
+        }
+    };
+
+    _sriDatabase.forEach((problemId, data) {
+        final parts = problemId.split('_');
+        if (parts.length != 3) return;
+
+        // 1. Determine the operation from the problem ID prefix.
+        MathOperation? operation;
+        switch (parts[0]) {
+        case 'ADD': operation = MathOperation.addition; break;
+        case 'SUB': operation = MathOperation.subtraction; break;
+        case 'MUL': operation = MathOperation.multiplication; break;
+        case 'DIV': operation = MathOperation.division; break;
+        }
+        if (operation == null) return;
+
+        // 2. Determine the number range from the largest operand.
+        final operand1 = int.tryParse(parts[1]) ?? 0;
+        final operand2 = int.tryParse(parts[2]) ?? 0;
+        final maxOperand = max(operand1, operand2);
+
+        NumberRange range;
+        if (maxOperand <= 10) {
+        range = NumberRange.range1_10;
+        } else if (maxOperand <= 20) {
+        range = NumberRange.range11_20;
+        } else if (maxOperand <= 50) {
+        range = NumberRange.range21_50;
+        } else {
+        range = NumberRange.range51plus;
+        }
+
+        // 3. Increment the tracked and mastered counts for the correct bucket.
+        // MODIFIED: Increment stats and accumulate the E-Factor
+      breakdown[operation]![range]!['tracked'] = (breakdown[operation]![range]!['tracked'] as int) + 1;
+      breakdown[operation]![range]!['totalEFactor'] = (breakdown[operation]![range]!['totalEFactor'] as double) + data.easinessFactor;
+      if (isProblemMastered(problemId)) {
+        breakdown[operation]![range]!['mastered'] = (breakdown[operation]![range]!['mastered'] as int) + 1;
+      }
+    });
+
+    // Convert the raw map into a more robust map of OperationStat objects.
+    // MODIFIED: Convert the raw map to OperationStat objects, calculating the average
+    final finalBreakdown = breakdown.map((op, rangeMap) {
+      return MapEntry(op, rangeMap.map((range, stats) {
+        final tracked = stats['tracked'] as int;
+        final mastered = stats['mastered'] as int;
+        final totalEFactor = stats['totalEFactor'] as double;
+        return MapEntry(
+            range,
+            OperationStat(
+              tracked: tracked,
+              mastered: mastered,
+              averageEasiness: tracked > 0 ? totalEFactor / tracked : 2.5,
+            ));
+      }));
+    });
+    
+    _log('✅ Detailed breakdown calculated.');
+    return finalBreakdown;
+    }
+
   String _getProblemId(MathProblem problem) {
     if (problem.operation == MathOperation.addition) {
       return 'ADD_${min(problem.operandA, problem.operandB)}_${max(problem.operandA, problem.operandB)}';
@@ -83,7 +152,6 @@ class SriService with ChangeNotifier {
     } else if (problem.operation == MathOperation.division) {
       return 'DIV_${problem.operandA}_${problem.operandB}';
     } else {
-      // This case should not be reached with a valid enum.
       throw Exception("Unknown MathOperation type for SRI ID generation: ${problem.operation}");
     }
   }
@@ -92,10 +160,6 @@ class SriService with ChangeNotifier {
     final data = _sriDatabase[problemId];
     if (data == null) return false;
 
-    // Define "mastery" as:
-    // - At least 3 successful attempts in a row (repetitions)
-    // - High easiness factor (the problem is consistently easy for the player)
-    // - Very few or no failures
     final isMastered = data.repetitions >= 3 && data.easinessFactor > 4.0 && data.failureCount <= 1;
 
     if (isMastered) {
@@ -123,7 +187,6 @@ class SriService with ChangeNotifier {
       _sriDatabase = {};
     }
     
-    // Reset session on load
     resetSession();
     notifyListeners();
   }
@@ -146,7 +209,6 @@ class SriService with ChangeNotifier {
     final problemId = _getProblemId(problem);
     _log('Recording response for problem "$problemId": ${wasCorrect ? "Correct" : "Incorrect"}');
 
-    // Get existing data or create a new entry
     final data = _sriDatabase[problemId] ?? SriProblemData(
       problemId: problemId,
       nextReviewDate: DateTime.now(),
@@ -158,22 +220,17 @@ class SriService with ChangeNotifier {
       data.failureCount++;
     }
 
-    // Simplified SM-2 algorithm for spaced repetition
-    // Quality of response (q): 5 for correct, 1 for incorrect
     final q = wasCorrect ? 5 : 1;
 
     if (q < 3) {
-      // Incorrect response: reset repetition count
       data.repetitions = 0;
     } else {
       data.repetitions++;
     }
 
-    // Update easiness factor
     data.easinessFactor = data.easinessFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
     if (data.easinessFactor < 1.3) data.easinessFactor = 1.3;
 
-    // Calculate next review interval
     int intervalInDays;
     if (data.repetitions <= 1) {
       intervalInDays = 1;
@@ -189,17 +246,14 @@ class SriService with ChangeNotifier {
     _log('Updated SRI for "$problemId": EF=${data.easinessFactor.toStringAsFixed(2)}, Reps=${data.repetitions}, NextReview=${data.nextReviewDate.toIso8601String().substring(0, 10)}');
     
     notifyListeners();
-    // Auto-save on every response for robustness
     saveSriData();
   }
 
-  // FIX: Enhanced getProblemsForReview with session tracking and exclusion support
   List<String> getProblemsForReview({
     int limit = 5, 
     Set<String>? excludeIds,
     bool resetSessionFirst = false
   }) {
-    // Auto-reset session if expired or explicitly requested
     if (resetSessionFirst) {
       resetSession();
     } else {
@@ -219,7 +273,6 @@ class SriService with ChangeNotifier {
             !isProblemMastered(data.problemId))
         .toList();
 
-    // Sort by the most difficult (lowest easiness factor) and longest overdue
     reviewable.sort((a, b) {
         int efComparison = a.easinessFactor.compareTo(b.easinessFactor);
         if (efComparison != 0) return efComparison;
@@ -228,7 +281,6 @@ class SriService with ChangeNotifier {
     
     final problemIds = reviewable.map((data) => data.problemId).take(limit).toList();
     
-    // Track returned problems to avoid duplicates
     _alreadyReturnedThisSession.addAll(problemIds);
     
     _log('Found ${problemIds.length} NEW problems due for review (excluding ${allExcluded.length} already returned/excluded).');
@@ -239,7 +291,6 @@ class SriService with ChangeNotifier {
     return problemIds;
   }
 
-  // FIX: Convenience method to get available review count without returning problems
   int getAvailableReviewCount({Set<String>? excludeIds}) {
     _checkSessionExpiry();
     
@@ -257,7 +308,6 @@ class SriService with ChangeNotifier {
         .length;
   }
 
-  // FIX: Method to clear session and get fresh problems (useful for new games)
   List<String> getFreshProblemsForReview({int limit = 5, Set<String>? excludeIds}) {
     return getProblemsForReview(
       limit: limit, 
@@ -266,10 +316,71 @@ class SriService with ChangeNotifier {
     );
   }
 
-  // Debug method to see current session state
   void debugPrintSessionState() {
     _log('SESSION DEBUG: ${_alreadyReturnedThisSession.length} problems returned this session');
     _log('Returned problems: ${_alreadyReturnedThisSession.join(", ")}');
     _log('Available for review: ${getAvailableReviewCount()}');
   }
+
+  // --- NEW: STATISTICS GETTERS for Advanced Viewer ---
+
+  /// Returns the total number of unique problems tracked by the SRI system.
+  int get totalTrackedProblems => _sriDatabase.length;
+
+  /// Returns the number of problems considered "mastered".
+  int get masteredProblemCount {
+    return _sriDatabase.keys.where((id) => isProblemMastered(id)).length;
+  }
+
+  /// Returns the number of problems currently being learned (not yet mastered).
+  int get learningProblemCount => totalTrackedProblems - masteredProblemCount;
+
+  /// Returns a list of the most difficult problems (lowest easiness factor).
+  List<SriProblemData> getMostDifficultProblems({int limit = 5}) {
+    final problems = _sriDatabase.values.toList();
+    // Sort by easiness factor, ascending.
+    problems.sort((a, b) => a.easinessFactor.compareTo(b.easinessFactor));
+    return problems.take(limit).toList();
+  }
+
+  /// Returns a list of the problems with the highest failure counts.
+  List<SriProblemData> getMostFailedProblems({int limit = 5}) {
+    final problems = _sriDatabase.values.toList();
+    // Sort by failure count, descending, then by easiness factor as a tie-breaker.
+    problems.sort((a, b) {
+      final failCompare = b.failureCount.compareTo(a.failureCount);
+      if (failCompare != 0) return failCompare;
+      return a.easinessFactor.compareTo(b.easinessFactor);
+    });
+    // Filter out problems that have never been failed
+    return problems.where((p) => p.failureCount > 0).take(limit).toList();
+  }
 }
+
+/// NEW: A helper to get a display-friendly label for a number range.
+/// TODO: might use the S.of(context) localization instance.
+String getNumberRangeLabel(NumberRange range) {
+    switch (range) {
+        case NumberRange.range1_10: return '1-10';
+        case NumberRange.range11_20: return '11-20';
+        case NumberRange.range21_50: return '21-50';
+        case NumberRange.range51plus: return '51+';
+    }
+    }
+
+class OperationStat {
+  final int tracked;
+  final int mastered;
+  final double averageEasiness; // NEW: To track average E-Factor
+  double get masteryPercent => tracked > 0 ? mastered / tracked : 0.0;
+
+  OperationStat({
+    this.tracked = 0,
+    this.mastered = 0,
+    this.averageEasiness = 2.5, // Default E-Factor
+  });
+}
+
+
+/// NEW: Defines the number range buckets used for analysis.
+enum NumberRange { range1_10, range11_20, range21_50, range51plus }

@@ -45,6 +45,8 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     final gameProvider = context.read<GameProvider>();
     
     currentPuzzleImage = PuzzleImageService.instance.getImageForLevel(widget.level);
+    log("🖼️ LOADED IMAGE: $currentPuzzleImage for level ${widget.level}", name: "PuzzleMath.ImageLoading");
+    
     _generatePuzzle();
     if (gameProvider.puzzleTimerEnabled) {
       _startTimer();
@@ -88,7 +90,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     } else {
       columns = 3; rows = 4;
     }
-    log("Generating puzzle with grade $difficulty. Grid: $columns x $rows", name: "PuzzleMath");
+    log("🧩 PUZZLE GRID: ${columns}x${rows} = ${columns * rows} pieces (Grade: $difficulty)", name: "PuzzleMath.Grid");
 
     final pieceCount = columns * rows;
     _generateEdgeShapes(); 
@@ -211,7 +213,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: LayoutBuilder(builder: (context, constraints) {
-                    log("LayoutBuilder constraints: MaxW=${constraints.maxWidth}, MaxH=${constraints.maxHeight}", name: "PuzzleMath.Layout");
+                    log("📐 LAYOUT CONSTRAINTS: MaxW=${constraints.maxWidth.toStringAsFixed(1)}, MaxH=${constraints.maxHeight.toStringAsFixed(1)}", name: "PuzzleMath.Layout");
                     return Row(
                       children: [
                         Expanded(flex: 3, child: _buildPuzzleBoard(constraints)),
@@ -242,17 +244,26 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         pieceWidth = pieceHeight;
     }
     
-    log("Calculated piece size: W=${pieceWidth.toStringAsFixed(2)}, H=${pieceHeight.toStringAsFixed(2)}", name: "PuzzleMath.Layout");
+    log("📏 CALCULATED PIECE SIZE: W=${pieceWidth.toStringAsFixed(2)}, H=${pieceHeight.toStringAsFixed(2)}", name: "PuzzleMath.Sizing");
     return Size(pieceWidth, pieceHeight);
   }
 
   Widget _buildPuzzleBoard(BoxConstraints constraints) {
     final pieceSize = _calculatePieceSize(constraints);
     final bumpSize = math.min(pieceSize.width, pieceSize.height) / 4;
-  
-    final boardWidth = pieceSize.width * columns;
-    final boardHeight = pieceSize.height * rows;
-    log("Building puzzle board: W=${boardWidth.toStringAsFixed(2)}, H=${boardHeight.toStringAsFixed(2)}", name: "PuzzleMath.Layout");
+    
+    // 🔧 FIX: Calculate board size to include bump extensions
+    final coreWidth = pieceSize.width * columns;
+    final coreHeight = pieceSize.height * rows;
+    final boardWidth = coreWidth + (bumpSize * 2); // Add bump space on both sides
+    final boardHeight = coreHeight + (bumpSize * 2); // Add bump space on both sides
+    
+    log("🎯 PUZZLE BOARD DIMENSIONS:", name: "PuzzleMath.Board");
+    log("   Core Grid: ${coreWidth.toStringAsFixed(1)} x ${coreHeight.toStringAsFixed(1)}", name: "PuzzleMath.Board");
+    log("   Bump Size: ${bumpSize.toStringAsFixed(1)}", name: "PuzzleMath.Board");
+    log("   Total Board: ${boardWidth.toStringAsFixed(1)} x ${boardHeight.toStringAsFixed(1)}", name: "PuzzleMath.Board");
+    log("   Piece Size (without bumps): ${pieceSize.width.toStringAsFixed(1)} x ${pieceSize.height.toStringAsFixed(1)}", name: "PuzzleMath.Board");
+    log("   Extended Piece Size (with bumps): ${(pieceSize.width + bumpSize * 2).toStringAsFixed(1)} x ${(pieceSize.height + bumpSize * 2).toStringAsFixed(1)}", name: "PuzzleMath.Board");
 
     return Center(
       child: Container(
@@ -271,8 +282,11 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
             final slotData = pieces.firstWhere((p) => p.row == row && p.col == col);
             final isPlaced = placedPieces.containsKey(slotData.id);
 
-            final slotLeft = (col * pieceSize.width) - bumpSize;
-            final slotTop = (row * pieceSize.height) - bumpSize;
+            // 🔧 FIX: Adjust positioning to account for the bump space added to container
+            final slotLeft = (col * pieceSize.width); // Remove the -bumpSize offset
+            final slotTop = (row * pieceSize.height); // Remove the -bumpSize offset
+
+            log("🎯 SLOT ${slotData.id} (${row},${col}): pos=(${slotLeft.toStringAsFixed(1)}, ${slotTop.toStringAsFixed(1)})", name: "PuzzleMath.SlotPos");
 
             return Positioned(
               left: slotLeft,
@@ -344,6 +358,11 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     final trayPieceSize = Size(pieceSize.width * 0.7, pieceSize.height * 0.7);
     final trayBumpSize = math.min(trayPieceSize.width, trayPieceSize.height) / 4;
     final extendedTraySize = trayPieceSize.width + (trayBumpSize * 2);
+    
+    log("🗂️ PIECE TRAY DIMENSIONS:", name: "PuzzleMath.Tray");
+    log("   Tray Piece Size: ${trayPieceSize.width.toStringAsFixed(1)} x ${trayPieceSize.height.toStringAsFixed(1)}", name: "PuzzleMath.Tray");
+    log("   Tray Bump Size: ${trayBumpSize.toStringAsFixed(1)}", name: "PuzzleMath.Tray");
+    log("   Extended Tray Size: ${extendedTraySize.toStringAsFixed(1)}", name: "PuzzleMath.Tray");
     
     return Container(
       padding: const EdgeInsets.all(8.0),
@@ -624,93 +643,99 @@ class PuzzlePieceWidget extends StatelessWidget {
     this.onRemove, // ✅ NEW
   });
 
-  @override
-  Widget build(BuildContext context) {
-    final totalWidth = pieceSize.width * columns;
-    final totalHeight = pieceSize.height * rows;
-    
-    final offsetX = -(data.col * pieceSize.width);
-    final offsetY = -(data.row * pieceSize.height);
-    
-    final bumpSize = math.min(pieceSize.width, pieceSize.height) / 4;
-    final extendedWidth = pieceSize.width + (bumpSize * 2);
-    final extendedHeight = pieceSize.height + (bumpSize * 2);
+  // REPLACE the build method in PuzzlePieceWidget class with this:
 
-    // ✅ MODIFIED: Restructured with a Stack to separate rotating and non-rotating parts
-    return GestureDetector(
-      // Decide action based on whether the piece is in the tray or on the board
-      onTap: isPlaced ? onRemove : onRotate,
-      child: SizedBox(
-        width: extendedWidth,
-        height: extendedHeight,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // --- LAYER 1: The ROTATING part (Shape + Image) ---
-            Transform.rotate(
-              angle: data.rotation * math.pi / 180,
-              child: Material(
-                color: Colors.transparent,
-                elevation: isPlaced ? 0 : 8,
-                child: ClipPath(
-                  clipper: JigsawPieceClipper(
-                    data: data,
-                    columns: columns,
-                    rows: rows,
-                    edgeShapes: edgeShapes,
-                    bumpSize: bumpSize,
-                  ),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Positioned(
-                        left: offsetX - bumpSize,
-                        top: offsetY - bumpSize,
-                        width: totalWidth,
-                        height: totalHeight,
-                        child: Image.asset(
-                          imagePath,
-                          fit: BoxFit.cover,
-                        ),
+@override
+Widget build(BuildContext context) {
+  final totalWidth = pieceSize.width * columns;
+  final totalHeight = pieceSize.height * rows;
+  
+  final offsetX = -(data.col * pieceSize.width);
+  final offsetY = -(data.row * pieceSize.height);
+  
+  final bumpSize = math.min(pieceSize.width, pieceSize.height) / 4;
+  final extendedWidth = pieceSize.width + (bumpSize * 2);
+  final extendedHeight = pieceSize.height + (bumpSize * 2);
+
+  // ADD VERBOSE LOGGING with debugPrint
+  debugPrint("PIECE ${data.id} (${data.row},${data.col}): Image positioning");
+  debugPrint("  Piece size: ${pieceSize.width.toStringAsFixed(1)} x ${pieceSize.height.toStringAsFixed(1)}");
+  debugPrint("  Total image: ${totalWidth.toStringAsFixed(1)} x ${totalHeight.toStringAsFixed(1)}");
+  debugPrint("  Offset: (${offsetX.toStringAsFixed(1)}, ${offsetY.toStringAsFixed(1)})");
+  debugPrint("  Bump size: ${bumpSize.toStringAsFixed(1)}");
+  debugPrint("  Extended size: ${extendedWidth.toStringAsFixed(1)} x ${extendedHeight.toStringAsFixed(1)}");
+  debugPrint("  Is edge piece: Right=${data.col == columns - 1}, Bottom=${data.row == rows - 1}");
+
+  return GestureDetector(
+    onTap: isPlaced ? onRemove : onRotate,
+    child: SizedBox(
+      width: extendedWidth,
+      height: extendedHeight,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Transform.rotate(
+            angle: data.rotation * math.pi / 180,
+            child: Material(
+              color: Colors.transparent,
+              elevation: isPlaced ? 0 : 8,
+              child: ClipPath(
+                clipper: JigsawPieceClipper(
+                  data: data,
+                  columns: columns,
+                  rows: rows,
+                  edgeShapes: edgeShapes,
+                  bumpSize: bumpSize,
+                ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // FIX: Make image larger to cover bump extensions
+                    Positioned(
+                      left: offsetX - bumpSize,
+                      top: offsetY - bumpSize,
+                      width: totalWidth + (bumpSize * 2), // CHANGED: Add bump space
+                      height: totalHeight + (bumpSize * 2), // CHANGED: Add bump space
+                      child: Image.asset(
+                        imagePath,
+                        fit: BoxFit.cover,
                       ),
-                      Container(
-                        color: Colors.black.withOpacity(0.4),
-                      ),
-                    ],
+                    ),
+                    Container(
+                      color: Colors.black.withOpacity(0.4),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (!isPlaced)
+            Container(
+              width: pieceSize.width * 0.6,
+              height: pieceSize.width * 0.4,
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange],
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  data.answer.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ),
-            // --- LAYER 2: The NON-ROTATING part (Number) ---
-            // This is outside the Transform.rotate, so it always stays upright.
-            if (!isPlaced)
-              Container(
-                width: pieceSize.width * 0.6,
-                height: pieceSize.width * 0.4,
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange],
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                // Wrap Text in a FittedBox for adaptive sizing
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    data.answer.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 // JigsawPieceClipper (No changes needed here, the previous fix was correct)

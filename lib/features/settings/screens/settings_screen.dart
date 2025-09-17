@@ -4,10 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math' as math;
 
+import '../widgets/sri_statistics_dialog.dart'; // statistics dialog widget
+
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../../games/constants/app_constants.dart';
 import '../../games/providers/game_provider.dart';
+import '../../../core/services/debug_provider.dart';
 import '../../games/widgets/space_background.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -144,7 +147,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         gameProvider.setSoundEnabled(soundEnabled);
         gameProvider.setMusicEnabled(musicEnabled);
         gameProvider.setPuzzleTimer(puzzleTimerEnabled);
-        
+
         gameProvider.setUseCustomSettings(useCustomSettings);
         gameProvider.setCustomOperations(customOps);
         gameProvider.setCustomRange(min: customMin, max: customMax);
@@ -295,14 +298,16 @@ class _SettingsScreenState extends State<SettingsScreen>
         title: S.of(context)!.gameplay,
         icon: Icons.games,
         children: [
-          Consumer<GameProvider>(
-            builder: (context, gameProvider, child) {
+          Consumer2<GameProvider, DebugProvider>(
+            builder: (context, gameProvider, debugProvider, child) {
+              final isUnlocked = gameProvider.isFullVersionUnlocked || debugProvider.isPaidUnlockedForced;
+            
               return Column(
                 children: [
                   // NEW: Add Adaptive Difficulty Toggle
                   _buildSwitchTile(
-                    title: S.of(context)!.adaptiveDifficulty, // 'Adaptive Difficulty', // TODO: Add to l10n
-                    subtitle: S.of(context)!.adjustProblems, // 'Adjusts problems based on your skill', // TODO: Add to l10n
+                    title: S.of(context)!.adaptiveDifficulty, 
+                    subtitle: S.of(context)!.adjustProblems,
                     value: gameProvider.useAdaptiveDifficulty,
                     onChanged: (value) {
                       debugPrint("[SETTINGS] 🧠 Adaptive difficulty changed to: $value");
@@ -344,6 +349,31 @@ class _SettingsScreenState extends State<SettingsScreen>
                     },
                     icon: Icons.vibration,
                   ),
+
+                  const Divider(color: SpaceTheme.nebulaPurple, height: 24),
+                    _buildFeatureRow(
+                    title: S.of(context)!.sriStatisticsTitle,
+                    subtitle: S.of(context)!.sriStatisticsDesc,
+                    icon: Icons.bar_chart,
+                    isLocked: !isUnlocked,
+                    onTap: () {
+                        if (isUnlocked) {
+                        showDialog(
+                            context: context,
+                            builder: (context) => const SriStatisticsDialog(),
+                        );
+                        } else {
+                        // Inform the user that this is a premium feature
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                            content: Text(S.of(context)!.premiumFeature),
+                            backgroundColor: SpaceTheme.planetOrange,
+                            ),
+                        );
+                        }
+                    },
+                    ),
+
                 ],
               );
             },
@@ -353,25 +383,26 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  // --- Method to build the entire problem customization card ---
+  // --- Method to build the problem customization card ---
   Widget _buildProblemCustomizationSettings() {
     return SlideTransition(
-      position: _settingAnimations[2], // Adjust animation index if needed
-      child: Consumer<GameProvider>(
-        builder: (context, gameProvider, child) {
-          final isUnlocked = gameProvider.isFullVersionUnlocked;
-          final bool isCustomEnabled = isUnlocked && gameProvider.useCustomProblemSettings;
+        position: _settingAnimations[2], // Adjust animation index if needed
+        child: Consumer2<GameProvider, DebugProvider>( // CHANGED: Use Consumer2 to watch both providers
+        builder: (context, gameProvider, debugProvider, child) {
+            // FIX: Check both full version unlock AND debug forced unlock
+            final isUnlocked = gameProvider.isFullVersionUnlocked || debugProvider.isPaidUnlockedForced;
+            final bool isCustomEnabled = isUnlocked && gameProvider.useCustomProblemSettings;
 
-          return _buildSettingsCard(
+            return _buildSettingsCard(
             title: S.of(context)!.problemCustomization,
             icon: Icons.calculate,
             children: [
-              Text(
+                Text(
                 S.of(context)!.problemCustomizationDesc,
                 style: SpaceTheme.bodyStyle.copyWith(fontSize: 14, color: Colors.white70),
-              ),
-              const SizedBox(height: 16),
-              _buildSwitchTile(
+                ),
+                const SizedBox(height: 16),
+                _buildSwitchTile(
                 title: S.of(context)!.enableCustomSettings,
                 subtitle: isUnlocked ? '' : S.of(context)!.problemCustomizationUnlock,
                 value: gameProvider.useCustomProblemSettings,
@@ -379,35 +410,88 @@ class _SettingsScreenState extends State<SettingsScreen>
                     ? (value) {
                         gameProvider.setUseCustomSettings(value);
                         _saveSetting('use_custom_settings', value);
-                      }
+                        }
                     : (value) {}, // Empty function to disable
                 icon: Icons.toggle_on,
                 isLocked: !isUnlocked,
-              ),
-              const Divider(color: SpaceTheme.nebulaPurple, height: 24),
+                ),
+                const Divider(color: SpaceTheme.nebulaPurple, height: 24),
 
-              // Allowed Operations Section
-              Text(
+                // Allowed Operations Section
+                Text(
                 S.of(context)!.allowedOperations,
                 style: SpaceTheme.titleStyle.copyWith(fontSize: 16, color: isCustomEnabled ? Colors.white : Colors.grey),
-              ),
-              const SizedBox(height: 8),
-              _buildOperationCheckboxes(isCustomEnabled),
-              
-              const SizedBox(height: 16),
-              // Number Range Section
-              Text(
+                ),
+                const SizedBox(height: 8),
+                _buildOperationCheckboxes(isCustomEnabled),
+                const SizedBox(height: 16),
+                // Number Range Section
+                Text(
                 S.of(context)!.numberRange,
                 style: SpaceTheme.titleStyle.copyWith(fontSize: 16, color: isCustomEnabled ? Colors.white : Colors.grey),
-              ),
-              const SizedBox(height: 8),
-              _buildRangeSliders(isCustomEnabled),
+                ),
+                const SizedBox(height: 8),
+                _buildRangeSliders(isCustomEnabled),
             ],
-          );
+            );
         },
-      ),
+        ),
     );
-  }
+    }
+
+  Widget _buildFeatureRow({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool isLocked,
+    required VoidCallback onTap,
+    }) {
+    return InkWell(
+        onTap: isLocked ? null : onTap, // Disable tap if locked
+        borderRadius: BorderRadius.circular(12),
+        child: Opacity(
+        opacity: isLocked ? 0.6 : 1.0,
+        child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+            children: [
+                Icon(
+                icon,
+                color: isLocked ? Colors.grey : SpaceTheme.alienGreen,
+                size: 24,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                    Text(
+                        title,
+                        style: SpaceTheme.bodyStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        ),
+                    ),
+                    Text(
+                        subtitle,
+                        style: SpaceTheme.bodyStyle.copyWith(
+                        fontSize: 12,
+                        color: Colors.white60,
+                        ),
+                    ),
+                    ],
+                ),
+                ),
+                if (isLocked)
+                const Icon(Icons.lock, color: SpaceTheme.starYellow, size: 20)
+                else
+                const Icon(Icons.chevron_right, color: Colors.white70),
+            ],
+            ),
+        ),
+        ),
+    );
+    }
 
   // --- Helper for operation checkboxes ---
   Widget _buildOperationCheckboxes(bool isEnabled) {

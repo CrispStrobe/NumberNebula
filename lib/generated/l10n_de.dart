@@ -996,4 +996,37 @@ class SDe extends S {
 
   @override
   String get blockCounterBackToMenu => 'Zurück zum Menü';
+
+  @override
+  String get sriStatisticsTitle => 'Lernfortschritt';
+
+  @override
+  String get sriStatisticsDesc =>
+      'Sieh dir deinen Fortschritt an und erkenne, wo du dich verbessern kannst.';
+
+  @override
+  String get premiumFeature =>
+      'Dies ist eine Premium-Funktion. Schalte die Vollversion frei, um darauf zuzugreifen.';
+
+  @override
+  String get close => 'Schließen';
+
+  @override
+  String get sriMastery => 'Gesamtbeherrschung';
+
+  @override
+  String get sriTotal => 'Gesamt Erfasst';
+
+  @override
+  String get sriMastered => 'Beherrscht';
+
+  @override
+  String get sriLearning => 'Im Training';
+
+  @override
+  String get progressMatrixTitle => 'Fortschrittsmatrix';
+
+  @override
+  String get progressMatrixDesc =>
+      'Die Farbe zeigt die Beherrschung (grün ist am besten). Die Zahl zeigt die Anzahl der Aufgaben in diesem Bereich.';
 }
