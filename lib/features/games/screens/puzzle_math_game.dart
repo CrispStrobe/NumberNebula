@@ -282,7 +282,11 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         decoration: BoxDecoration(
           color: SpaceTheme.deepSpace.withOpacity(0.2),
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.8), width: 3),
+          border: Border.all(
+            color: SpaceTheme.starYellow.withOpacity(0.8),
+            width: 3,
+            strokeAlign: BorderSide.strokeAlignOutside,
+          ),
         ),
         child: Stack(
           clipBehavior: Clip.none, // This is crucial to let edge bumps render outside the container
