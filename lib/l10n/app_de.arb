@@ -285,6 +285,10 @@
     "numberWallsMultiplication": "Kosmisches Multiplikations-Array",
     "numberWallsDivision": "Galaktisches Divisions-Netzwerk",
     "numberWallsDropFar": "Bitte näher zum Ziel platzieren.",
+    "numberWallsAddDesc": "Jeder Stein ist die Summe der zwei darunter.",
+    "numberWallsSubDesc": "Der untere Stein ist der Unterschied zwischen den beiden darüber.",
+    "numberWallsMultDesc": "Jeder Stein ist das Produkt der beiden darunter.",
+    "numberWallsDivDesc": "Jeder Stein ist das Ergebnis der Teilung der beiden darunter.",
 
     "codebreaker": "Codeknacker",
     "codebreakerDesc": "Fange außerirdische Übertragungen ab und entschlüssle sie! Löse komplexe Gleichungssysteme, um ihre Geheimnisse zu lüften.",

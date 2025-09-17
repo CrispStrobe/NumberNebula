@@ -170,25 +170,79 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _checkIfComplete() {
+    // Check if all slots are filled.
     if (userAnswers.every((answer) => answer != null)) {
       final isValid = currentPuzzle!.validateSolution(userAnswers.cast<int>());
 
-      final sriService = context.read<SriService>();
-      final wallProblem = MathProblem(
-        expression: "numberwall_${currentPuzzle!.operation.name}_grade${widget.grade}_level${widget.level}_height${currentPuzzle!.wallHeight}",
-        answer: isValid ? 1 : 0,
-        operation: _convertWallOperationToMathOperation(currentPuzzle!.operation),
-        operandA: currentPuzzle!.wallHeight,
-        operandB: widget.level,
-        difficulty: widget.grade,
-      );
-      sriService.recordResponse(wallProblem, isValid);
-      debugPrint("🧱 SRI: Recorded ${currentPuzzle!.operation.name} wall (Grade ${widget.grade}, Level ${widget.level}) as ${isValid ? 'correct' : 'incorrect'}");
-
+      // --- START: NEW AND CORRECTED LOGIC ---
       if (isValid) {
+        // If the solution is valid, log each individual solved problem to SRI.
+        _logSolvedProblemsToSRI(userAnswers.cast<int>());
         _handleSuccess();
       } else {
+        // If incorrect, show the failure message. No SRI logging is done.
         _handleIncorrect();
+      }
+      // --- END: NEW AND CORRECTED LOGIC ---
+    }
+  }
+
+  void _logSolvedProblemsToSRI(List<int> solvedAnswers) {
+    debugPrint("🧱 SRI: Logging all solved problems for the completed wall...");
+    final sriService = context.read<SriService>();
+    final puzzle = currentPuzzle!;
+    
+    // 1. We use the puzzle's known full solution for accuracy.
+    final completeWall = puzzle.fullSolution;
+
+    // 2. Iterate through the wall to find the calculations the user solved.
+    for (int row = 0; row < puzzle.wallHeight - 1; row++) {
+      final cellsInCurrentRow = row + 1;
+      final currentRowStart = row * (row + 1) ~/ 2;
+      final nextRowStart = (row + 1) * (row + 2) ~/ 2;
+
+      for (int col = 0; col < cellsInCurrentRow; col++) {
+        final parentIndex = currentRowStart + col;
+
+        // 3. We only log problems for bricks the user had to fill in.
+        if (puzzle.hiddenCells.contains(parentIndex)) {
+          final leftChildIndex = nextRowStart + col;
+          final rightChildIndex = nextRowStart + col + 1;
+
+          if (rightChildIndex < completeWall.length) {
+            final leftValue = completeWall[leftChildIndex];
+            final rightValue = completeWall[rightChildIndex];
+            
+            MathProblem? problemToLog;
+
+            // 4. Create a specific MathProblem for the calculation and log it.
+            switch (puzzle.operation) {
+              case WallOperation.addition:
+                problemToLog = MathProblem.addition(leftValue, rightValue);
+                break;
+              case WallOperation.subtraction:
+                // For SRI, log the standard high-low subtraction.
+                problemToLog = MathProblem.subtraction(math.max(leftValue, rightValue), math.min(leftValue, rightValue));
+                break;
+              case WallOperation.multiplication:
+                problemToLog = MathProblem.multiplication(leftValue, rightValue);
+                break;
+              case WallOperation.division:
+                // For SRI, log the standard dividend/divisor problem.
+                if (leftValue > rightValue && rightValue != 0 && leftValue % rightValue == 0) {
+                  problemToLog = MathProblem.division(leftValue, rightValue);
+                } else if (rightValue > leftValue && leftValue != 0 && rightValue % leftValue == 0) {
+                  problemToLog = MathProblem.division(rightValue, leftValue);
+                }
+                break;
+            }
+            
+            if (problemToLog != null) {
+              sriService.recordResponse(problemToLog, true); // Always correct since the wall is valid.
+              debugPrint("🧱 SRI: Logged problem -> ${problemToLog.expression}");
+            }
+          }
+        }
       }
     }
   }
@@ -388,10 +442,10 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   String _getOperationDescription(WallOperation operation) {
     // UPDATED description for subtraction
     switch (operation) {
-      case WallOperation.addition: return 'Each brick is the sum of the two below it.';
-      case WallOperation.subtraction: return 'The top brick is the difference of the two below it.';
-      case WallOperation.multiplication: return 'Each brick is the product of the two below it.';
-      case WallOperation.division: return 'Each brick is the quotient of the two below it.';
+      case WallOperation.addition: return S.of(context)!.numberWallsAddDesc;
+      case WallOperation.subtraction: return S.of(context)!.numberWallsSubDesc;
+      case WallOperation.multiplication: return S.of(context)!.numberWallsMultDesc;
+      case WallOperation.division: return S.of(context)!.numberWallsDivDesc;
     }
   }
 

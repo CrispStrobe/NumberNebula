@@ -38,31 +38,64 @@ class MathProblem {
   });
 
   static MathProblem generateProblem(GameProvider gameProvider, int level, SriService sriService) {
-    // 1. Prioritize problems that are due for review
-    final problemsToReview = sriService.getProblemsForReview(limit: 1);
-    if (problemsToReview.isNotEmpty) {
-      final problemId = problemsToReview.first;
-      debugPrint('[SRI] Found problem to review: $problemId');
-      final parts = problemId.split('_');
-      final type = parts[0];
-      final operandA = int.parse(parts[1]);
-      final operandB = int.parse(parts[2]);
+    final difficultyConfig = DifficultyManager.getDifficulty(gameProvider, level);
+    
+    // 1. Check if custom settings are active for filtering
+    if (gameProvider.useCustomProblemSettings) {
+      // Get all reviewable problems that match the custom operations
+      final allReviewable = sriService.getProblemsForReview(limit: 100); // Get a larger batch to filter
+      final filteredReviewable = allReviewable.where((problemId) {
+        final opString = problemId.split('_').first;
+        switch (opString) {
+          case 'ADD': return gameProvider.customOperations.contains('addition');
+          case 'SUB': return gameProvider.customOperations.contains('subtraction');
+          case 'MUL': return gameProvider.customOperations.contains('multiplication');
+          case 'DIV': return gameProvider.customOperations.contains('division');
+          default: return false;
+        }
+      }).toList();
 
-      switch (type) {
-        case 'ADD': return MathProblem.addition(operandA, operandB);
-        case 'SUB': return MathProblem.subtraction(operandA, operandB);
-        case 'MUL': return MathProblem.multiplication(operandA, operandB);
-        case 'DIV': return MathProblem.division(operandA, operandB);
+      if (filteredReviewable.isNotEmpty) {
+        final problemId = filteredReviewable.first;
+        debugPrint('[SRI] Found CUSTOM-FILTERED problem to review: $problemId');
+        // (The logic to parse and return the problem remains the same)
+        final parts = problemId.split('_');
+        final type = parts[0];
+        final operandA = int.parse(parts[1]);
+        final operandB = int.parse(parts[2]);
+        switch (type) {
+          case 'ADD': return MathProblem.addition(operandA, operandB);
+          case 'SUB': return MathProblem.subtraction(operandA, operandB);
+          case 'MUL': return MathProblem.multiplication(operandA, operandB);
+          case 'DIV': return MathProblem.division(operandA, operandB);
+        }
+      }
+      // If no suitable review problems are found, fall through to generate a new one using custom settings.
+    } else {
+      // Original logic for non-custom mode: prioritize any review problem
+      final problemsToReview = sriService.getProblemsForReview(limit: 1);
+      if (problemsToReview.isNotEmpty) {
+        final problemId = problemsToReview.first;
+        debugPrint('[SRI] Found problem to review: $problemId');
+        final parts = problemId.split('_');
+        final type = parts[0];
+        final operandA = int.parse(parts[1]);
+        final operandB = int.parse(parts[2]);
+        switch (type) {
+          case 'ADD': return MathProblem.addition(operandA, operandB);
+          case 'SUB': return MathProblem.subtraction(operandA, operandB);
+          case 'MUL': return MathProblem.multiplication(operandA, operandB);
+          case 'DIV': return MathProblem.division(operandA, operandB);
+        }
       }
     }
 
-    // 2. If no reviews are due, generate a new problem using centralized difficulty settings
-    final difficultyConfig = DifficultyManager.getDifficulty(gameProvider, level);
+    // 2. If no reviews are due (or none match filters), generate a new problem
     MathProblem newProblem;
     int attempts = 0;
 
     do {
-      newProblem = _generateFromConfig(difficultyConfig); // **UPDATE**: Call new helper
+      newProblem = _generateFromConfig(difficultyConfig);
       attempts++;
       if (attempts > 20) {
         debugPrint('[SRI] Could not find a non-mastered problem after 20 attempts. Serving a random one.');

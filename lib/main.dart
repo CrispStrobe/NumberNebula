@@ -38,11 +38,11 @@ import 'generated/l10n.dart';
 
 // --- GLOBAL INSTANCES & NAVIGATOR KEY ---
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-final GameProvider gameProvider = GameProvider();
+final ProgressService progressService = ProgressService(); // MOVE THIS UP
+final GameProvider gameProvider = GameProvider(progressService: progressService); // NOW PASS IT IN
 final SriService sriService = SriService();
 final PurchaseService purchaseService = PurchaseService();
 final DebugProvider debugProvider = DebugProvider();
-final ProgressService progressService = ProgressService();
 final AudioService audioService = AudioService();
 
 void main() async {

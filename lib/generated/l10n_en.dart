@@ -799,6 +799,21 @@ class SEn extends S {
   String get numberWallsDropFar => 'Drop it closer to the target please.';
 
   @override
+  String get numberWallsAddDesc => 'Each brick is the sum of the two below it.';
+
+  @override
+  String get numberWallsSubDesc =>
+      'The top brick is the difference of the two below it.';
+
+  @override
+  String get numberWallsMultDesc =>
+      'Each brick is the product of the two below it.';
+
+  @override
+  String get numberWallsDivDesc =>
+      'Each brick is the quotient of the two below it.';
+
+  @override
   String get codebreaker => 'Codebreaker';
 
   @override

@@ -1537,6 +1537,30 @@ abstract class S {
   /// **'Drop it closer to the target please.'**
   String get numberWallsDropFar;
 
+  /// No description provided for @numberWallsAddDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Each brick is the sum of the two below it.'**
+  String get numberWallsAddDesc;
+
+  /// No description provided for @numberWallsSubDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The top brick is the difference of the two below it.'**
+  String get numberWallsSubDesc;
+
+  /// No description provided for @numberWallsMultDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Each brick is the product of the two below it.'**
+  String get numberWallsMultDesc;
+
+  /// No description provided for @numberWallsDivDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Each brick is the quotient of the two below it.'**
+  String get numberWallsDivDesc;
+
   /// No description provided for @codebreaker.
   ///
   /// In en, this message translates to:

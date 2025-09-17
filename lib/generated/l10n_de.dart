@@ -805,6 +805,22 @@ class SDe extends S {
   String get numberWallsDropFar => 'Bitte näher zum Ziel platzieren.';
 
   @override
+  String get numberWallsAddDesc =>
+      'Jeder Stein ist die Summe der zwei darunter.';
+
+  @override
+  String get numberWallsSubDesc =>
+      'Der untere Stein ist der Unterschied zwischen den beiden darüber.';
+
+  @override
+  String get numberWallsMultDesc =>
+      'Jeder Stein ist das Produkt der beiden darunter.';
+
+  @override
+  String get numberWallsDivDesc =>
+      'Jeder Stein ist das Ergebnis der Teilung der beiden darunter.';
+
+  @override
   String get codebreaker => 'Codeknacker';
 
   @override

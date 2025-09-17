@@ -350,6 +350,11 @@
     "numberWallsMultiplication": "Cosmic Multiplication Array",
     "numberWallsDivision": "Galactic Division Network",
     "numberWallsDropFar": "Drop it closer to the target please.",
+       
+    "numberWallsAddDesc": "Each brick is the sum of the two below it.",
+    "numberWallsSubDesc": "The top brick is the difference of the two below it.",
+    "numberWallsMultDesc": "Each brick is the product of the two below it.",
+    "numberWallsDivDesc": "Each brick is the quotient of the two below it.",
 
     "codebreaker": "Codebreaker",
     "codebreakerDesc": "Intercept and decode alien transmissions! Solve complex equation systems to reveal their secrets.",

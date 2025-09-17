@@ -420,7 +420,9 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: SpaceTheme.starYellow, width: 1.5)),
             child: Text(
-                shouldShow ? 'Next target: ${targetSequence[nextTargetIndex]}' : '',
+                shouldShow
+                    ? S.of(context)!.planetHoppingNextTarget(targetSequence[nextTargetIndex])
+                    : '',
                 style: SpaceTheme.titleStyle
                     .copyWith(color: SpaceTheme.starYellow, fontSize: 16)),
           ),

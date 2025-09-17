@@ -1,5 +1,6 @@
 // lib/features/games/providers/game_provider.dart
 import 'package:flutter/foundation.dart';
+import '../../../core/services/progress_service.dart';
 
 // The Achievement data class. It should be at the top-level, NOT inside another class.
 class Achievement {
@@ -30,6 +31,7 @@ class Achievement {
 
 // The GameProvider class. There should only be ONE declaration of this.
 class GameProvider extends ChangeNotifier {
+  final ProgressService _progressService;
   int _score = 0;
   int _level = 1;
   int _grade = 1;
@@ -47,6 +49,9 @@ class GameProvider extends ChangeNotifier {
   int _customRangeMin = 1;
   int _customRangeMax = 20;
 
+  GameProvider({required ProgressService progressService})
+      : _progressService = progressService;
+
   // Getter
   bool get isFullVersionUnlocked => _isFullVersionUnlocked;
 
@@ -54,7 +59,8 @@ class GameProvider extends ChangeNotifier {
   void unlockFullVersion() {
     _isFullVersionUnlocked = true;
     notifyListeners();
-    // We don't save here directly; we let the app lifecycle handle it
+    _saveProgress();
+    // alternatively: We don't save here directly; we let the app lifecycle handle it
     // to batch save operations.
   }
 
@@ -76,6 +82,11 @@ class GameProvider extends ChangeNotifier {
   Set<String> get customOperations => _customOperations;
   int get customRangeMin => _customRangeMin;
   int get customRangeMax => _customRangeMax;
+
+  Future<void> _saveProgress() async {
+    // This is a "fire and forget" call. We don't need to wait for it.
+    _progressService.saveProgress(this);
+  }
 
   // --- Setters for Custom Settings ---
   void setUseCustomSettings(bool value) {
@@ -101,6 +112,7 @@ class GameProvider extends ChangeNotifier {
     _score += points;
     _checkAchievements();
     notifyListeners();
+    _saveProgress();
   }
 
   void setPuzzleTimer(bool enabled) {
@@ -117,6 +129,7 @@ class GameProvider extends ChangeNotifier {
   void nextLevel() {
     _level++;
     notifyListeners();
+    _saveProgress();
   }
 
   void setLevel(int level) {
@@ -128,6 +141,7 @@ class GameProvider extends ChangeNotifier {
     _grade = newGrade;
     _level = newLevel;
     notifyListeners();
+    _saveProgress();
   }
 
   // Grade/Skill Level management
@@ -135,6 +149,7 @@ class GameProvider extends ChangeNotifier {
     _grade = grade.clamp(1, 4); // UPDATED: Clamp to 1-4
     _level = 1; // Reset level when changing grade
     notifyListeners();
+    _saveProgress();
   }
 
   // Setter for adaptive difficulty
@@ -187,6 +202,7 @@ class GameProvider extends ChangeNotifier {
     _gameProgress[gameType] = level;
     _checkAchievements();
     notifyListeners();
+    _saveProgress();
   }
 
   int getGameProgress(String gameType) {
@@ -230,6 +246,7 @@ class GameProvider extends ChangeNotifier {
     _achievements.clear(); // Also clear achievements for a full reset
     _gameProgress.clear();
     notifyListeners();
+    _saveProgress();
   }
 
   void startNewGame(String gameType) {

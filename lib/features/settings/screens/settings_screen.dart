@@ -1206,8 +1206,8 @@ class _SettingsScreenState extends State<SettingsScreen>
               onTap: () {
                 debugPrint("[SETTINGS] 🎓 Grade changed to: $grade");
                 gameProvider.setGrade(grade);
-                // SAVE PROGRESS IMMEDIATELY
-                context.read<ProgressService>().saveProgress(gameProvider);
+                // SAVE PROGRESS IMMEDIATELY => it's now handled by the provider
+                // context.read<ProgressService>().saveProgress(gameProvider);
 
                 Navigator.of(context).pop();
               },
