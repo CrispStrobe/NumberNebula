@@ -869,7 +869,8 @@ class MagicTrianglePuzzle {
     } else if (difficulty < 5.5) {
       // Hard: Larger ranges (Grade 3-4, higher levels)
       final baseStart = level * 2 + grade * 3 + attempt * 4;
-      final range = 10 + level;
+      // FIX: Ensure range is always large enough for totalCircles
+      final range = math.max(totalCircles + 5, 10 + level * 2);
       final numbers = <int>[];
       final used = <int>{};
       
@@ -885,7 +886,8 @@ class MagicTrianglePuzzle {
     } else {
       // Expert: Complex patterns (Grade 4, Level 15-20)
       final baseStart = level * 3 + grade * 4 + attempt * 6;
-      final range = 20 + level;
+      // FIX: Ensure range is always large enough for totalCircles
+      final range = math.max(totalCircles + 8, 20 + level * 2);
       final numbers = <int>[];
       final used = <int>{};
       
