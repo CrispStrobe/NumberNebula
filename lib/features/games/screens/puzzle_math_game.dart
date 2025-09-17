@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'dart:developer';
+// REFACTORED: No longer need dart:developer
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart'; // REFACTORED: Import for debugPrint
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -41,11 +42,12 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   void _initializeGame() {
-    log("--- INITIALIZING NEW GAME ---", name: "PuzzleMath");
+    // REFACTORED: Using debugPrint for CLI output
+    debugPrint("--- INITIALIZING NEW GAME ---");
     final gameProvider = context.read<GameProvider>();
     
     currentPuzzleImage = PuzzleImageService.instance.getImageForLevel(widget.level);
-    log("🖼️ LOADED IMAGE: $currentPuzzleImage for level ${widget.level}", name: "PuzzleMath.ImageLoading");
+    debugPrint("🖼️ LOADED IMAGE: $currentPuzzleImage for level ${widget.level}");
     
     _generatePuzzle();
     if (gameProvider.puzzleTimerEnabled) {
@@ -56,14 +58,14 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   void _startTimer() {
     _timeLeft = 120;
     _timer?.cancel();
-    log("Starting timer. Duration: $_timeLeft seconds.", name: "PuzzleMath");
+    debugPrint("TIMER: Starting timer. Duration: $_timeLeft seconds.");
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted && _timeLeft > 0) {
         setState(() => _timeLeft--);
       } else {
         timer.cancel();
         if (mounted) {
-          log("Timer finished.", name: "PuzzleMath");
+          debugPrint("TIMER: Timer finished.");
           _showGameOverDialog("Time's up, space cadet!");
         }
       }
@@ -73,7 +75,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   @override
   void dispose() {
     _timer?.cancel();
-    log("Disposing PuzzleMathGame widget.", name: "PuzzleMath");
+    debugPrint("Disposing PuzzleMathGame widget.");
     super.dispose();
   }
 
@@ -90,7 +92,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     } else {
       columns = 3; rows = 4;
     }
-    log("🧩 PUZZLE GRID: ${columns}x${rows} = ${columns * rows} pieces (Grade: $difficulty)", name: "PuzzleMath.Grid");
+    debugPrint("PUZZLE: Grid set to ${columns}x${rows} = ${columns * rows} pieces (Grade: $difficulty)");
 
     final pieceCount = columns * rows;
     _generateEdgeShapes(); 
@@ -111,7 +113,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         rotation: 0, 
       ));
     }
-    log("Generated ${pieceData.length} pieces with math problems.", name: "PuzzleMath");
+    debugPrint("PUZZLE: Generated ${pieceData.length} pieces with math problems.");
 
     setState(() {
       pieces = pieceData..shuffle(math.Random());
@@ -134,12 +136,12 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         _edgeShapes['v-$r-$c'] = random.nextBool() ? JigsawSide.knob : JigsawSide.hole;
       }
     }
-    log("Generated ${_edgeShapes.length} unique edge shapes.", name: "PuzzleMath");
+    debugPrint("PUZZLE: Generated ${_edgeShapes.length} unique interior edge shapes.");
   }
 
   void _onToggleTimer(bool isEnabled) {
     context.read<GameProvider>().setPuzzleTimer(isEnabled);
-    log("Timer toggled: ${isEnabled ? 'ON' : 'OFF'}", name: "PuzzleMath");
+    debugPrint("TIMER: Timer toggled: ${isEnabled ? 'ON' : 'OFF'}");
     if (isEnabled) {
       _startTimer();
     } else {
@@ -152,16 +154,15 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     setState(() {
       final piece = pieces.firstWhere((p) => p.id == pieceId);
       piece.rotation = (piece.rotation + 90) % 360;
-      log("Rotated piece ID $pieceId to ${piece.rotation} degrees.", name: "PuzzleMath.Interaction");
+      debugPrint("INTERACTION: Rotated piece ID $pieceId to ${piece.rotation} degrees.");
     });
   }
 
-  // ✅ NEW: Function to remove a piece from the board
   void _removePiece(int slotId) {
     setState(() {
       final pieceId = placedPieces[slotId];
       placedPieces.remove(slotId);
-      log("Removed piece ID $pieceId from slot ID $slotId.", name: "PuzzleMath.Interaction");
+      debugPrint("INTERACTION: Removed piece ID $pieceId from slot ID $slotId.");
     });
   }
 
@@ -213,7 +214,9 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: LayoutBuilder(builder: (context, constraints) {
-                    log("📐 LAYOUT CONSTRAINTS: MaxW=${constraints.maxWidth.toStringAsFixed(1)}, MaxH=${constraints.maxHeight.toStringAsFixed(1)}", name: "PuzzleMath.Layout");
+                    // REFACTORED: Verbose logging
+                    debugPrint("==================== LAYOUT REBUILD ====================");
+                    debugPrint("LAYOUT: Available constraints: MaxW=${constraints.maxWidth.toStringAsFixed(1)}, MaxH=${constraints.maxHeight.toStringAsFixed(1)}");
                     return Row(
                       children: [
                         Expanded(flex: 3, child: _buildPuzzleBoard(constraints)),
@@ -231,66 +234,80 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   Size _calculatePieceSize(BoxConstraints constraints) {
+    // Calculate board size based on the 3/5 flex split for the board area
+    final availableWidth = constraints.maxWidth * (3 / 5);
+    final availableHeight = constraints.maxHeight;
+
+    // Leave a small margin
     final boardConstraints = BoxConstraints(
-        maxWidth: constraints.maxWidth * 0.9, 
-        maxHeight: constraints.maxHeight * 0.9,
+        maxWidth: availableWidth * 0.95, 
+        maxHeight: availableHeight * 0.95,
     );
 
     double pieceWidth = (boardConstraints.maxWidth / columns);
-    double pieceHeight = pieceWidth;
-
-    if (pieceHeight * rows > boardConstraints.maxHeight) {
-        pieceHeight = (boardConstraints.maxHeight / rows);
-        pieceWidth = pieceHeight;
-    }
+    double pieceHeight = (boardConstraints.maxHeight / rows);
     
-    log("📏 CALCULATED PIECE SIZE: W=${pieceWidth.toStringAsFixed(2)}, H=${pieceHeight.toStringAsFixed(2)}", name: "PuzzleMath.Sizing");
-    return Size(pieceWidth, pieceHeight);
+    // Make pieces square by choosing the smaller of the two dimensions
+    final pieceSide = math.min(pieceWidth, pieceHeight);
+    
+    // REFACTORED: Verbose logging
+    debugPrint("SIZING: Calculating piece size...");
+    debugPrint("SIZING:   -> Available for board: W=${availableWidth.toStringAsFixed(1)}, H=${availableHeight.toStringAsFixed(1)}");
+    debugPrint("SIZING:   -> Using constraints: W=${boardConstraints.maxWidth.toStringAsFixed(1)}, H=${boardConstraints.maxHeight.toStringAsFixed(1)}");
+    debugPrint("SIZING:   -> Calculated side length: ${pieceSide.toStringAsFixed(2)}");
+    
+    return Size(pieceSide, pieceSide);
   }
 
   Widget _buildPuzzleBoard(BoxConstraints constraints) {
     final pieceSize = _calculatePieceSize(constraints);
     final bumpSize = math.min(pieceSize.width, pieceSize.height) / 4;
     
-    // 🔧 FIX: Calculate board size to include bump extensions
+    // REFACTORED: Board size is now the *core* size, excluding bumps.
+    // The Center widget will handle alignment, and Clip.none will show the bumps.
     final coreWidth = pieceSize.width * columns;
     final coreHeight = pieceSize.height * rows;
-    final boardWidth = coreWidth + (bumpSize * 2); // Add bump space on both sides
-    final boardHeight = coreHeight + (bumpSize * 2); // Add bump space on both sides
     
-    log("🎯 PUZZLE BOARD DIMENSIONS:", name: "PuzzleMath.Board");
-    log("   Core Grid: ${coreWidth.toStringAsFixed(1)} x ${coreHeight.toStringAsFixed(1)}", name: "PuzzleMath.Board");
-    log("   Bump Size: ${bumpSize.toStringAsFixed(1)}", name: "PuzzleMath.Board");
-    log("   Total Board: ${boardWidth.toStringAsFixed(1)} x ${boardHeight.toStringAsFixed(1)}", name: "PuzzleMath.Board");
-    log("   Piece Size (without bumps): ${pieceSize.width.toStringAsFixed(1)} x ${pieceSize.height.toStringAsFixed(1)}", name: "PuzzleMath.Board");
-    log("   Extended Piece Size (with bumps): ${(pieceSize.width + bumpSize * 2).toStringAsFixed(1)} x ${(pieceSize.height + bumpSize * 2).toStringAsFixed(1)}", name: "PuzzleMath.Board");
+    // REFACTORED: Verbose logging for all board dimensions
+    debugPrint("-------------------- Puzzle Board Build --------------------");
+    debugPrint("BOARD: Piece Size (Core): ${pieceSize.width.toStringAsFixed(1)} x ${pieceSize.height.toStringAsFixed(1)}");
+    debugPrint("BOARD: Bump Size: ${bumpSize.toStringAsFixed(1)}");
+    debugPrint("BOARD: Core Grid Dimensions: ${coreWidth.toStringAsFixed(1)} x ${coreHeight.toStringAsFixed(1)}");
+    debugPrint("----------------------------------------------------------");
 
     return Center(
       child: Container(
-        width: boardWidth,
-        height: boardHeight,
+        width: coreWidth,
+        height: coreHeight,
         decoration: BoxDecoration(
           color: SpaceTheme.deepSpace.withOpacity(0.2),
           borderRadius: BorderRadius.circular(15),
           border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.8), width: 3),
         ),
         child: Stack(
-          clipBehavior: Clip.none, 
+          clipBehavior: Clip.none, // This is crucial to let edge bumps render outside the container
           children: List.generate(rows * columns, (index) {
             final row = index ~/ columns;
             final col = index % columns;
+            // The slotData is the piece that *should* go here
             final slotData = pieces.firstWhere((p) => p.row == row && p.col == col);
             final isPlaced = placedPieces.containsKey(slotData.id);
 
-            // 🔧 FIX: Adjust positioning to account for the bump space added to container
-            final slotLeft = (col * pieceSize.width); // Remove the -bumpSize offset
-            final slotTop = (row * pieceSize.height); // Remove the -bumpSize offset
+            // REFACTORED: Robust positioning.
+            // Calculate the top-left of the piece's core area.
+            final coreLeft = col * pieceSize.width;
+            final coreTop = row * pieceSize.height;
 
-            log("🎯 SLOT ${slotData.id} (${row},${col}): pos=(${slotLeft.toStringAsFixed(1)}, ${slotTop.toStringAsFixed(1)})", name: "PuzzleMath.SlotPos");
+            // The PuzzleSlotWidget is larger than the core size to accommodate bumps.
+            // We must offset its position by -bumpSize so the core area aligns perfectly with the grid.
+            final slotWidgetLeft = coreLeft - bumpSize;
+            final slotWidgetTop = coreTop - bumpSize;
+
+            debugPrint("BOARD: Slot ${slotData.id} (R:$row, C:$col) | Core Pos: (${coreLeft.toStringAsFixed(1)}, ${coreTop.toStringAsFixed(1)}) | Widget Pos: (${slotWidgetLeft.toStringAsFixed(1)}, ${slotWidgetTop.toStringAsFixed(1)})");
 
             return Positioned(
-              left: slotLeft,
-              top: slotTop,
+              left: slotWidgetLeft,
+              top: slotWidgetTop,
               child: DragTarget<int>(
                 builder: (context, candidateData, rejectedData) {
                   return PuzzleSlotWidget(
@@ -309,7 +326,6 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                             rows: rows,
                             edgeShapes: _edgeShapes,
                             isPlaced: true,
-                            // ✅ MODIFIED: Pass the remove function to the placed piece
                             onRemove: () => _removePiece(slotData.id),
                           )
                         : null,
@@ -317,30 +333,27 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                 },
                 onWillAccept: (pieceId) {
                   final willAccept = !isPlaced;
-                  log("Piece ID $pieceId hovering over slot ${slotData.id} (${slotData.problem}). Will Accept: $willAccept", name: "PuzzleMath.DragDrop");
+                  debugPrint("DRAG: Piece ID $pieceId hovering over slot ${slotData.id}. Will Accept: $willAccept");
                   return willAccept;
                 },
                 onAccept: (pieceId) {
                   final pieceData = pieces.firstWhere((p) => p.id == pieceId);
-                  final slotData = pieces.firstWhere((p) => p.row == (index ~/ columns) && p.col == (index % columns));
-
                   final isCorrect = pieceData.answer == slotData.answer && pieceData.rotation == 0;
         
-                  log("Attempting to place piece ID $pieceId (Answer: ${pieceData.answer}, Rot: ${pieceData.rotation}) into slot ${slotData.id} (Answer: ${slotData.answer})", name: "PuzzleMath.DragDrop");
+                  debugPrint("DROP: Attempting place piece ID $pieceId (Ans: ${pieceData.answer}, Rot: ${pieceData.rotation}) -> slot ${slotData.id} (Ans: ${slotData.answer})");
                   
-                  // Get the SRI service and record the player's response
                   final sriService = context.read<SriService>();
                   sriService.recordResponse(pieceData.problem, isCorrect);
                 
                   if (isCorrect) {
-                    log("SUCCESS: Correct placement.", name: "PuzzleMath.DragDrop");
+                    debugPrint("DROP: SUCCESS! Correct placement.");
                     setState(() => placedPieces[slotData.id] = pieceId);
                     context.read<GameProvider>().addScore(50);
                     if (placedPieces.length == pieces.length) {
                       _showWinDialog();
                     }
                   } else {
-                    log("FAILURE: Incorrect placement. Reason: ${pieceData.answer != slotData.answer ? 'Wrong Answer' : 'Wrong Rotation'}", name: "PuzzleMath.DragDrop");
+                    debugPrint("DROP: FAILURE! Incorrect. Reason: ${pieceData.answer != slotData.answer ? 'Wrong Answer' : 'Wrong Rotation'}");
                     _showIncorrectPlacement();
                   }
                 },
@@ -353,17 +366,18 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   Widget _buildPieceTray(BoxConstraints constraints) {
-    final pieceSize = _calculatePieceSize(constraints);
-    
-    final trayPieceSize = Size(pieceSize.width * 0.7, pieceSize.height * 0.7);
+    // We use the same piece size calculation but scale the pieces down for the tray
+    final boardPieceSize = _calculatePieceSize(constraints);
+    final trayPieceSize = Size(boardPieceSize.width * 0.8, boardPieceSize.height * 0.8);
     final trayBumpSize = math.min(trayPieceSize.width, trayPieceSize.height) / 4;
-    final extendedTraySize = trayPieceSize.width + (trayBumpSize * 2);
+    // The grid view needs to know the full size of the widget, including bumps
+    final extendedTrayWidgetSize = trayPieceSize.width + (trayBumpSize * 2);
     
-    log("🗂️ PIECE TRAY DIMENSIONS:", name: "PuzzleMath.Tray");
-    log("   Tray Piece Size: ${trayPieceSize.width.toStringAsFixed(1)} x ${trayPieceSize.height.toStringAsFixed(1)}", name: "PuzzleMath.Tray");
-    log("   Tray Bump Size: ${trayBumpSize.toStringAsFixed(1)}", name: "PuzzleMath.Tray");
-    log("   Extended Tray Size: ${extendedTraySize.toStringAsFixed(1)}", name: "PuzzleMath.Tray");
-    
+    debugPrint("-------------------- Piece Tray Build --------------------");
+    debugPrint("TRAY: Tray Piece Size (Core): ${trayPieceSize.width.toStringAsFixed(1)} x ${trayPieceSize.height.toStringAsFixed(1)}");
+    debugPrint("TRAY: Extended Widget Size for Grid: ${extendedTrayWidgetSize.toStringAsFixed(1)}");
+    debugPrint("--------------------------------------------------------");
+
     return Container(
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
@@ -381,7 +395,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
           Expanded(
             child: GridView.builder(
               gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: extendedTraySize + 20,
+                maxCrossAxisExtent: extendedTrayWidgetSize + 20, // Add padding
                 childAspectRatio: 1.0,
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
@@ -390,7 +404,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
               itemBuilder: (context, index) {
                 final pieceData = pieces[index];
                 if (placedPieces.values.contains(pieceData.id)) {
-                  return Container(); 
+                  return const SizedBox.shrink(); // Use SizedBox.shrink() for efficiency
                 }
                 return Center(
                   child: Draggable<int>(
@@ -416,7 +430,6 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                         columns: columns,
                         rows: rows,
                         edgeShapes: _edgeShapes,
-                        onRotate: () => _rotatePiece(pieceData.id),
                       ),
                     ),
                     child: PuzzlePieceWidget(
@@ -449,26 +462,23 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   void _resetGame() {
-    Navigator.of(context).pop(); // Close the dialog first
-    _initializeGame(); // Re-run the setup logic
+    Navigator.of(context).pop(); 
+    _initializeGame(); 
   }
 
   void _showWinDialog() {
-    log("--- PUZZLE COMPLETE ---", name: "PuzzleMath");
+    debugPrint("--- PUZZLE COMPLETE ---");
     _timer?.cancel();
     final gameProvider = context.read<GameProvider>();
     int bonus = 0;
     String message = S.of(context)!.puzzleMathWin;
     if (gameProvider.puzzleTimerEnabled) {
       bonus = (_timeLeft * 2);
-      // Using S.of(context) for localization
       message = S.of(context)!.puzzleMathWinBonus(bonus);
     }
     gameProvider.addScore(100 + bonus);
-    log("Awarding win bonus. Base: 100, Time Bonus: $bonus", name: "PuzzleMath");
+    debugPrint("GAME: Awarding win bonus. Base: 100, Time Bonus: $bonus");
 
-    // MODIFIED: Replaced the custom SpaceDialog with a standard AlertDialog
-    // to allow for multiple actions (Play Again / Back to Menu).
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -490,14 +500,13 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         actions: [
           TextButton(
             child: Text(S.of(context)!.playAgain, style: const TextStyle(color: Colors.cyanAccent)),
-            // Calls the new reset method
             onPressed: _resetGame,
           ),
           TextButton(
             child: Text(S.of(context)!.backToMenu, style: const TextStyle(color: Colors.white)),
             onPressed: () {
-              Navigator.pop(ctx); // Close dialog
-              Navigator.pop(context); // Close game screen
+              Navigator.pop(ctx); 
+              Navigator.pop(context);
             },
           ),
         ],
@@ -534,10 +543,8 @@ class PuzzlePieceData {
     this.rotation = 0,
   });
 
-  // Getters for math problem data
   String get problemExpression => problem.expression;
   int get answer => problem.answer;
-
 }
 
 class PuzzleSlotWidget extends StatelessWidget {
@@ -562,6 +569,7 @@ class PuzzleSlotWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bumpSize = math.min(pieceSize.width, pieceSize.height) / 4;
+    // The widget's total size must include room for bumps on both sides
     final extendedWidth = pieceSize.width + (bumpSize * 2);
     final extendedHeight = pieceSize.height + (bumpSize * 2);
     
@@ -593,13 +601,13 @@ class PuzzleSlotWidget extends StatelessWidget {
           child: Center(
             child: Container(
               padding: const EdgeInsets.all(8),
+              // Make the text box proportional to the piece size
               width: pieceSize.width * 0.8,
               height: pieceSize.height * 0.5,
               decoration: BoxDecoration(
                 color: Colors.black.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(6),
               ),
-              // ✅ MODIFIED: Wrapped Text in a FittedBox for adaptive sizing
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
@@ -627,7 +635,6 @@ class PuzzlePieceWidget extends StatelessWidget {
   final bool isPlaced;
   final Map<String, JigsawSide> edgeShapes;
   final VoidCallback? onRotate;
-  // ✅ NEW: Callback for removing a placed piece
   final VoidCallback? onRemove;
 
   const PuzzlePieceWidget({
@@ -640,105 +647,107 @@ class PuzzlePieceWidget extends StatelessWidget {
     this.isPlaced = false,
     required this.edgeShapes,
     this.onRotate,
-    this.onRemove, // ✅ NEW
+    this.onRemove,
   });
 
-  // REPLACE the build method in PuzzlePieceWidget class with this:
+  @override
+  Widget build(BuildContext context) {
+    final totalImageWidth = pieceSize.width * columns;
+    final totalImageHeight = pieceSize.height * rows;
+    
+    // This calculates where this piece's section starts in the full image
+    final imageOffsetX = -(data.col * pieceSize.width);
+    final imageOffsetY = -(data.row * pieceSize.height);
+    
+    final bumpSize = math.min(pieceSize.width, pieceSize.height) / 4;
+    final extendedWidgetWidth = pieceSize.width + (bumpSize * 2);
+    final extendedWidgetHeight = pieceSize.height + (bumpSize * 2);
 
-@override
-Widget build(BuildContext context) {
-  final totalWidth = pieceSize.width * columns;
-  final totalHeight = pieceSize.height * rows;
-  
-  final offsetX = -(data.col * pieceSize.width);
-  final offsetY = -(data.row * pieceSize.height);
-  
-  final bumpSize = math.min(pieceSize.width, pieceSize.height) / 4;
-  final extendedWidth = pieceSize.width + (bumpSize * 2);
-  final extendedHeight = pieceSize.height + (bumpSize * 2);
+    // REFACTORED: Verbose logging for piece widget rendering
+    debugPrint("PIECE WIDGET ${data.id} (R:${data.row},C:${data.col}): "
+        "CoreSize=${pieceSize.width.toStringAsFixed(1)}, "
+        "ExtendedSize=${extendedWidgetWidth.toStringAsFixed(1)}, "
+        "ImageOffset=(${imageOffsetX.toStringAsFixed(1)}, ${imageOffsetY.toStringAsFixed(1)})");
 
-  // ADD VERBOSE LOGGING with debugPrint
-  debugPrint("PIECE ${data.id} (${data.row},${data.col}): Image positioning");
-  debugPrint("  Piece size: ${pieceSize.width.toStringAsFixed(1)} x ${pieceSize.height.toStringAsFixed(1)}");
-  debugPrint("  Total image: ${totalWidth.toStringAsFixed(1)} x ${totalHeight.toStringAsFixed(1)}");
-  debugPrint("  Offset: (${offsetX.toStringAsFixed(1)}, ${offsetY.toStringAsFixed(1)})");
-  debugPrint("  Bump size: ${bumpSize.toStringAsFixed(1)}");
-  debugPrint("  Extended size: ${extendedWidth.toStringAsFixed(1)} x ${extendedHeight.toStringAsFixed(1)}");
-  debugPrint("  Is edge piece: Right=${data.col == columns - 1}, Bottom=${data.row == rows - 1}");
-
-  return GestureDetector(
-    onTap: isPlaced ? onRemove : onRotate,
-    child: SizedBox(
-      width: extendedWidth,
-      height: extendedHeight,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Transform.rotate(
-            angle: data.rotation * math.pi / 180,
-            child: Material(
-              color: Colors.transparent,
-              elevation: isPlaced ? 0 : 8,
-              child: ClipPath(
-                clipper: JigsawPieceClipper(
-                  data: data,
-                  columns: columns,
-                  rows: rows,
-                  edgeShapes: edgeShapes,
-                  bumpSize: bumpSize,
-                ),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    // FIX: Make image larger to cover bump extensions
-                    Positioned(
-                      left: offsetX - bumpSize,
-                      top: offsetY - bumpSize,
-                      width: totalWidth + (bumpSize * 2), // CHANGED: Add bump space
-                      height: totalHeight + (bumpSize * 2), // CHANGED: Add bump space
-                      child: Image.asset(
-                        imagePath,
-                        fit: BoxFit.cover,
+    return GestureDetector(
+      // A placed piece can be removed, an unplaced piece can be rotated
+      onTap: isPlaced ? onRemove : onRotate,
+      child: SizedBox(
+        width: extendedWidgetWidth,
+        height: extendedWidgetHeight,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Transform.rotate(
+              angle: data.rotation * math.pi / 180,
+              child: Material(
+                color: Colors.transparent,
+                elevation: isPlaced ? 0 : 8,
+                child: ClipPath(
+                  clipper: JigsawPieceClipper(
+                    data: data,
+                    columns: columns,
+                    rows: rows,
+                    edgeShapes: edgeShapes,
+                    bumpSize: bumpSize,
+                  ),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      // The Image asset must be larger than the piece to account for bumps
+                      Positioned(
+                        left: imageOffsetX - bumpSize,
+                        top: imageOffsetY - bumpSize,
+                        width: totalImageWidth + (bumpSize * 2),
+                        height: totalImageHeight + (bumpSize * 2),
+                        child: Image.asset(
+                          imagePath,
+                          fit: BoxFit.cover,
+                        ),
                       ),
-                    ),
-                    Container(
-                      color: Colors.black.withOpacity(0.4),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (!isPlaced)
-            Container(
-              width: pieceSize.width * 0.6,
-              height: pieceSize.width * 0.4,
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange],
-                ),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  data.answer.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                      // Overlay to darken the image slightly
+                      Container(
+                        color: Colors.black.withOpacity(0.4),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-        ],
+            if (!isPlaced)
+              Container(
+                width: pieceSize.width * 0.6,
+                height: pieceSize.width * 0.4,
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 4, spreadRadius: 1)
+                  ]
+                ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    data.answer.toString(),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24, // A base font size for FittedBox to scale from
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
-// JigsawPieceClipper (No changes needed here, the previous fix was correct)
+// JigsawPieceClipper remains the same as it was functionally correct.
 class JigsawPieceClipper extends CustomClipper<Path> {
   final PuzzlePieceData data;
   final int columns, rows;
@@ -756,6 +765,7 @@ class JigsawPieceClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
+    // The core size is the widget's total size minus the bump areas on both axes
     final double coreWidth = size.width - (bumpSize * 2);
     final double coreHeight = size.height - (bumpSize * 2);
 
@@ -772,6 +782,7 @@ class JigsawPieceClipper extends CustomClipper<Path> {
         ? JigsawSide.flat
         : edgeShapes['h-${data.row}-${data.col}']!;
     
+    // Start drawing from the top-left corner of the core piece area
     path.moveTo(bumpSize, bumpSize);
 
     _createEdgePath(path, JigsawEdge.top, topShape, coreWidth, coreHeight);
@@ -784,13 +795,14 @@ class JigsawPieceClipper extends CustomClipper<Path> {
   }
 
   void _createEdgePath(Path path, JigsawEdge edge, JigsawSide shape, double w, double h) {
+    // Current position is implicitly managed by the path object
     switch (edge) {
       case JigsawEdge.top:
         if (shape == JigsawSide.flat) {
           path.lineTo(bumpSize + w, bumpSize);
         } else {
-          path.lineTo(bumpSize + w * 0.35, bumpSize);
           double ySign = (shape == JigsawSide.knob) ? -1 : 1;
+          path.lineTo(bumpSize + w * 0.35, bumpSize);
           path.cubicTo(
               bumpSize + w * 0.30, bumpSize + (bumpSize * ySign),
               bumpSize + w * 0.70, bumpSize + (bumpSize * ySign),
@@ -803,8 +815,8 @@ class JigsawPieceClipper extends CustomClipper<Path> {
         if (shape == JigsawSide.flat) {
           path.lineTo(bumpSize + w, bumpSize + h);
         } else {
-          path.lineTo(bumpSize + w, bumpSize + h * 0.35);
           double xSign = (shape == JigsawSide.knob) ? 1 : -1;
+          path.lineTo(bumpSize + w, bumpSize + h * 0.35);
           path.cubicTo(
               bumpSize + w + (bumpSize * xSign), bumpSize + h * 0.30,
               bumpSize + w + (bumpSize * xSign), bumpSize + h * 0.70,
@@ -817,8 +829,8 @@ class JigsawPieceClipper extends CustomClipper<Path> {
         if (shape == JigsawSide.flat) {
           path.lineTo(bumpSize, bumpSize + h);
         } else {
-          path.lineTo(bumpSize + w * 0.65, bumpSize + h);
           double ySign = (shape == JigsawSide.knob) ? 1 : -1;
+          path.lineTo(bumpSize + w * 0.65, bumpSize + h);
            path.cubicTo(
               bumpSize + w * 0.70, bumpSize + h + (bumpSize * ySign),
               bumpSize + w * 0.30, bumpSize + h + (bumpSize * ySign),
@@ -831,8 +843,8 @@ class JigsawPieceClipper extends CustomClipper<Path> {
          if (shape == JigsawSide.flat) {
           path.lineTo(bumpSize, bumpSize);
         } else {
-          path.lineTo(bumpSize, bumpSize + h * 0.65);
           double xSign = (shape == JigsawSide.knob) ? -1 : 1;
+          path.lineTo(bumpSize, bumpSize + h * 0.65);
            path.cubicTo(
               bumpSize + (bumpSize * xSign), bumpSize + h * 0.70,
               bumpSize + (bumpSize * xSign), bumpSize + h * 0.30,
@@ -862,7 +874,7 @@ extension on JigsawSide {
   }
 }
 
-// Dialog widget
+// Dialog widget (unchanged)
 class SpaceDialog extends StatelessWidget {
   final String title;
   final String content;
