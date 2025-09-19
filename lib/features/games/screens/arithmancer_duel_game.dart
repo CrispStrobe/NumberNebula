@@ -33,13 +33,15 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   late AnimationController _combatController;
   late AnimationController _particleController;
   late AnimationController _shakeController;
+  late AnimationController _cardGlowController;
   late Animation<double> _pulseAnimation;
   late Animation<double> _shakeAnimation;
+  late Animation<double> _cardGlowAnimation;
 
   // Game State
   late ArithmancerGame _game;
   List<MathCard> _handCards = [];
-  List<MathCard> _expressionCards = [];
+  List<MathCard> _battlefieldCards = [];
   MathematicalEnemy? _currentEnemy;
   
   // UI State
@@ -48,6 +50,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   int _lastDamage = 0;
   List<String> _lastProperties = [];
   bool _showingResult = false;
+  bool _isDraggingCard = false;
   
   // Visual Effects
   List<CombatParticle> _particles = [];
@@ -89,6 +92,15 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     _shakeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _shakeController, curve: Curves.elasticOut)
     );
+
+    _cardGlowController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat(reverse: true);
+    
+    _cardGlowAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(parent: _cardGlowController, curve: Curves.easeInOut)
+    );
   }
 
   void _initializeGame() {
@@ -117,38 +129,13 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     setState(() {
       _handCards = List.from(_game.hand);
       _currentEnemy = _game.currentEnemy;
-      _expressionCards.clear();
+      _battlefieldCards.clear();
       _showingResult = false;
     });
   }
 
-  void _addCardToExpression(MathCard card) {
-    HapticFeedback.lightImpact();
-    
-    setState(() {
-      _expressionCards.add(card);
-      _handCards.remove(card);
-    });
-  }
-
-  void _removeCardFromExpression(int index) {
-    HapticFeedback.lightImpact();
-    
-    setState(() {
-      final card = _expressionCards.removeAt(index);
-      _handCards.add(card);
-    });
-  }
-
-  void _clearExpression() {
-    setState(() {
-      _handCards.addAll(_expressionCards);
-      _expressionCards.clear();
-    });
-  }
-
-  void _executeExpression() async {
-    if (_expressionCards.isEmpty || _isCalculating) return;
+  void _executeBattlefield() async {
+    if (_battlefieldCards.isEmpty || _isCalculating) return;
     
     setState(() {
       _isCalculating = true;
@@ -157,16 +144,16 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
     // Calculate the mathematical result using the correct API
     final evaluator = ExpressionEvaluator();
-    final allResults = evaluator.generateAllResults(_expressionCards);
+    final allResults = evaluator.generateAllResults(_battlefieldCards);
     
-    // Find the result that uses exactly our expression cards
+    // Find the result that uses exactly our battlefield cards
     MathResult? result;
     for (final r in allResults) {
-      if (r.usedCards.length == _expressionCards.length) {
+      if (r.usedCards.length == _battlefieldCards.length) {
         // Check if it uses the same cards (by comparing IDs)
         final usedIds = r.usedCards.map((c) => c.id).toSet();
-        final expressionIds = _expressionCards.map((c) => c.id).toSet();
-        if (usedIds.containsAll(expressionIds) && expressionIds.containsAll(usedIds)) {
+        final battlefieldIds = _battlefieldCards.map((c) => c.id).toSet();
+        if (usedIds.containsAll(battlefieldIds) && battlefieldIds.containsAll(usedIds)) {
           result = r;
           break;
         }
@@ -182,7 +169,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     }
 
     // Check if player has enough energy
-    final cost = _expressionCards.fold(0, (sum, card) => sum + card.cost);
+    final cost = _battlefieldCards.fold(0, (sum, card) => sum + card.cost);
     if (cost > _game.playerEnergy) {
       _showStatus(S.of(context)!.arithmancerNotEnoughEnergy);
       setState(() {
@@ -197,7 +184,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     // Apply the result manually since _executeResult is private
     _game.playerEnergy -= cost;
     
-    // Remove used cards from hand (they're already removed from _expressionCards)
+    // Remove used cards from hand (they're already removed from _battlefieldCards)
     for (final card in nonNullResult.usedCards) {
       _game.hand.removeWhere((c) => c.id == card.id);
     }
@@ -221,7 +208,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       _lastProperties = _getPropertyStrings(nonNullResult);
       _showingResult = true;
       _isCalculating = false;
-      _expressionCards.clear(); // Cards are consumed
+      _battlefieldCards.clear(); // Cards are consumed
     });
 
     // Visual effects
@@ -336,18 +323,13 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         child: SafeArea(
           child: Column(
             children: [
-              GameUI(
-                title: S.of(context)!.arithmancerGameTitle,
-                level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
-              ),
-              _buildGameHeader(),
+              _buildCompactHeader(),
               Expanded(
                 child: Column(
                   children: [
                     _buildEnemyArea(),
-                    _buildExpressionArea(),
-                    _buildHandArea(),
+                    _buildBattlefield(),
+                    Expanded(child: _buildHandArea()),
                   ],
                 ),
               ),
@@ -358,157 +340,143 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     );
   }
 
-  Widget _buildGameHeader() {
+  Widget _buildCompactHeader() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: SpaceTheme.cardDecoration,
+      height: 60,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [SpaceTheme.deepSpace.withOpacity(0.9), Colors.transparent],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildStatWidget(
-            icon: Icons.favorite,
-            label: S.of(context)!.arithmancerHealth,
-            value: "${_game.playerHealth}/${_game.maxHealth}",
-            color: SpaceTheme.rocketRed,
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
           ),
-          _buildStatWidget(
-            icon: Icons.flash_on,
-            label: S.of(context)!.arithmancerEnergy,
-            value: "${_game.playerEnergy}/${_game.maxEnergy}",
-            color: SpaceTheme.starYellow,
+          Text(
+            S.of(context)!.arithmancerGameTitle,
+            style: SpaceTheme.headlineStyle.copyWith(fontSize: 18),
           ),
-          _buildStatWidget(
-            icon: Icons.shield,
-            label: S.of(context)!.arithmancerBlock,
-            value: "${_game.currentBlock}",
-            color: SpaceTheme.alienGreen,
-          ),
+          const Spacer(),
+          _buildCompactStat(Icons.favorite, "${_game.playerHealth}", SpaceTheme.rocketRed),
+          const SizedBox(width: 16),
+          _buildCompactStat(Icons.flash_on, "${_game.playerEnergy}", SpaceTheme.starYellow),
+          const SizedBox(width: 16),
+          _buildCompactStat(Icons.shield, "${_game.currentBlock}", SpaceTheme.alienGreen),
         ],
       ),
     );
   }
 
-  Widget _buildStatWidget({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return Column(
+  Widget _buildCompactStat(IconData icon, String value, Color color) {
+    return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
-        ),
+        Icon(icon, color: color, size: 16),
+        const SizedBox(width: 4),
         Text(
           value,
-          style: SpaceTheme.titleStyle.copyWith(color: color, fontSize: 16),
+          style: SpaceTheme.titleStyle.copyWith(color: color, fontSize: 14),
         ),
       ],
     );
   }
 
   Widget _buildEnemyArea() {
-    if (_currentEnemy == null) {
-      return const SizedBox(height: 120);
-    }
+    if (_currentEnemy == null) return const SizedBox.shrink();
 
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: SpaceTheme.cardDecoration.copyWith(
-        border: Border.all(color: SpaceTheme.rocketRed, width: 2),
+      height: 100,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [SpaceTheme.rocketRed.withOpacity(0.2), SpaceTheme.deepSpace.withOpacity(0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: SpaceTheme.rocketRed.withOpacity(0.5), width: 1),
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _currentEnemy!.name,
-                      style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _currentEnemy!.lore,
-                      style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
-                    ),
-                  ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _currentEnemy!.name,
+                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 16, color: SpaceTheme.rocketRed),
                 ),
-              ),
-              AnimatedBuilder(
-                animation: _pulseAnimation,
-                child: Icon(
-                  Icons.android,
-                  size: 48,
-                  color: SpaceTheme.rocketRed,
-                ),
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _pulseAnimation.value,
-                    child: child,
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Health bar
-          Container(
-            height: 8,
-            decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: (_currentEnemy!.health / _currentEnemy!.maxHealth).clamp(0.0, 1.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [SpaceTheme.rocketRed, SpaceTheme.planetOrange],
-                  ),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            "${_currentEnemy!.health}/${_currentEnemy!.maxHealth} HP",
-            style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
-          ),
-          // Mathematical shields
-          if (_currentEnemy!.mathematicalShields.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: _currentEnemy!.mathematicalShields.keys.map((shield) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                const SizedBox(height: 4),
+                // Health bar
+                Container(
+                  height: 6,
                   decoration: BoxDecoration(
-                    color: SpaceTheme.alienGreen.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: SpaceTheme.alienGreen),
+                    color: SpaceTheme.deepSpace,
+                    borderRadius: BorderRadius.circular(3),
                   ),
-                  child: Text(
-                    _getShieldName(shield),
-                    style: SpaceTheme.bodyStyle.copyWith(
-                      fontSize: 10,
-                      color: SpaceTheme.alienGreen,
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: (_currentEnemy!.health / _currentEnemy!.maxHealth).clamp(0.0, 1.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [SpaceTheme.rocketRed, SpaceTheme.planetOrange],
+                        ),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
                     ),
                   ),
-                );
-              }).toList(),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  "${_currentEnemy!.health}/${_currentEnemy!.maxHealth} HP",
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 10),
+                ),
+                // Shields
+                if (_currentEnemy!.mathematicalShields.isNotEmpty)
+                  Wrap(
+                    spacing: 4,
+                    children: _currentEnemy!.mathematicalShields.keys.take(2).map((shield) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: SpaceTheme.alienGreen.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          _getShieldName(shield),
+                          style: SpaceTheme.bodyStyle.copyWith(
+                            fontSize: 8,
+                            color: SpaceTheme.alienGreen,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+              ],
             ),
-          ],
+          ),
+          AnimatedBuilder(
+            animation: _pulseAnimation,
+            child: Icon(
+              Icons.smart_toy,
+              size: 40,
+              color: SpaceTheme.rocketRed,
+            ),
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _pulseAnimation.value,
+                child: child,
+              );
+            },
+          ),
         ],
       ),
     );
@@ -527,200 +495,206 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     }
   }
 
-  Widget _buildExpressionArea() {
+  Widget _buildBattlefield() {
     return Container(
+      height: 140,
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: SpaceTheme.cardDecoration,
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                S.of(context)!.arithmancerExpression,
-                style: SpaceTheme.titleStyle,
-              ),
-              Row(
-                children: [
-                  if (_expressionCards.isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.clear, color: SpaceTheme.rocketRed),
-                      onPressed: _clearExpression,
+          // Battle zone
+          Expanded(
+            child: DragTarget<MathCard>(
+              onWillAccept: (card) {
+                setState(() => _isDraggingCard = true);
+                return card != null;
+              },
+              onLeave: (card) {
+                setState(() => _isDraggingCard = false);
+              },
+              onAccept: (card) {
+                HapticFeedback.lightImpact();
+                setState(() {
+                  _battlefieldCards.add(card);
+                  _handCards.remove(card);
+                  _isDraggingCard = false;
+                });
+              },
+              builder: (context, candidateData, rejectedData) {
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: _isDraggingCard 
+                          ? [SpaceTheme.starYellow.withOpacity(0.3), SpaceTheme.alienGreen.withOpacity(0.3)]
+                          : [SpaceTheme.deepSpace.withOpacity(0.6), SpaceTheme.nebulaPurple.withOpacity(0.3)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  ElevatedButton(
-                    onPressed: _expressionCards.isEmpty || _isCalculating 
-                        ? null 
-                        : _executeExpression,
-                    style: SpaceTheme.primaryButtonStyle,
-                    child: _isCalculating
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(S.of(context)!.arithmancerExecute),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _isDraggingCard ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
+                      width: 2,
+                    ),
                   ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Expression builder
-          Container(
-            height: 60,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: SpaceTheme.nebulaPurple),
-            ),
-            child: _expressionCards.isEmpty
-                ? Center(
-                    child: Text(
-                      S.of(context)!.arithmancerDragCards,
-                      style: SpaceTheme.bodyStyle.copyWith(
-                        color: Colors.white54,
+                  child: Stack(
+                    children: [
+                      // Battlefield cards
+                      Positioned.fill(
+                        child: _battlefieldCards.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.ads_click,
+                                      color: Colors.white38,
+                                      size: 32,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      S.of(context)!.arithmancerDragCards,
+                                      style: SpaceTheme.bodyStyle.copyWith(
+                                        color: Colors.white38,
+                                        fontSize: 12,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: _battlefieldCards.asMap().entries.map((entry) {
+                                          return GestureDetector(
+                                            onTap: () {
+                                              HapticFeedback.lightImpact();
+                                              setState(() {
+                                                final card = _battlefieldCards.removeAt(entry.key);
+                                                _handCards.add(card);
+                                              });
+                                            },
+                                            child: _buildBattlefieldCard(entry.value),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                    // Execute button
+                                    if (_battlefieldCards.isNotEmpty)
+                                      Container(
+                                        margin: const EdgeInsets.only(left: 8),
+                                        child: ElevatedButton(
+                                          onPressed: _isCalculating ? null : _executeBattlefield,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: SpaceTheme.starYellow,
+                                            foregroundColor: Colors.black,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          ),
+                                          child: _isCalculating
+                                              ? const SizedBox(
+                                                  width: 16,
+                                                  height: 16,
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                                  ),
+                                                )
+                                              : Text(
+                                                  S.of(context)!.arithmancerExecute,
+                                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                                ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
                       ),
-                    ),
-                  )
-                : ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    itemCount: _expressionCards.length,
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        onTap: () => _removeCardFromExpression(index),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                          child: _buildCard(_expressionCards[index], isInExpression: true),
+                      // Result overlay
+                      if (_showingResult)
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  SpaceTheme.alienGreen.withOpacity(0.8),
+                                  SpaceTheme.cosmicPink.withOpacity(0.8)
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "$_lastExpression = $_lastDamage",
+                                    style: SpaceTheme.headlineStyle.copyWith(fontSize: 18),
+                                  ),
+                                  if (_lastProperties.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _lastProperties.join(" • "),
+                                      style: SpaceTheme.bodyStyle.copyWith(
+                                        fontSize: 12,
+                                        color: SpaceTheme.starYellow,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      );
-                    },
+                    ],
                   ),
+                );
+              },
+            ),
           ),
-          // Result display
-          if (_showingResult) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [SpaceTheme.alienGreen, SpaceTheme.cosmicPink],
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    "$_lastExpression = ${_lastDamage}",
-                    style: SpaceTheme.headlineStyle.copyWith(fontSize: 18),
-                  ),
-                  if (_lastProperties.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      _lastProperties.join(" • "),
-                      style: SpaceTheme.bodyStyle.copyWith(
-                        fontSize: 12,
-                        color: SpaceTheme.starYellow,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
           // Status message
-          if (_statusMessage.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              _statusMessage,
-              style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow),
-              textAlign: TextAlign.center,
+          if (_statusMessage.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: SpaceTheme.deepSpace.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _statusMessage,
+                style: SpaceTheme.bodyStyle.copyWith(
+                  color: SpaceTheme.starYellow,
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
-          ],
         ],
       ),
     );
   }
 
-  Widget _buildHandArea() {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(16),
-        decoration: SpaceTheme.cardDecoration,
-        child: Column(
-          children: [
-            Text(
-              S.of(context)!.arithmancerHand,
-              style: SpaceTheme.titleStyle,
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: _handCards.isEmpty
-                  ? Center(
-                      child: Text(
-                        S.of(context)!.arithmancerNoCards,
-                        style: SpaceTheme.bodyStyle.copyWith(color: Colors.white54),
-                      ),
-                    )
-                  : GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                        childAspectRatio: 0.7,
-                      ),
-                      itemCount: _handCards.length,
-                      itemBuilder: (context, index) {
-                        final card = _handCards[index];
-                        return GestureDetector(
-                          onTap: () => _addCardToExpression(card),
-                          child: _buildCard(card),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCard(MathCard card, {bool isInExpression = false}) {
-    Color borderColor;
-    Color backgroundColor;
-    
-    switch (card.type) {
-      case CardType.number:
-        borderColor = SpaceTheme.alienGreen;
-        backgroundColor = SpaceTheme.alienGreen.withOpacity(0.2);
-        break;
-      case CardType.operator:
-        borderColor = SpaceTheme.starYellow;
-        backgroundColor = SpaceTheme.starYellow.withOpacity(0.2);
-        break;
-      case CardType.parentheses:
-        borderColor = SpaceTheme.cosmicPink;
-        backgroundColor = SpaceTheme.cosmicPink.withOpacity(0.2);
-        break;
-      default:
-        borderColor = SpaceTheme.nebulaPurple;
-        backgroundColor = SpaceTheme.nebulaPurple.withOpacity(0.2);
-        break;
-    }
-
+  Widget _buildBattlefieldCard(MathCard card) {
     return Container(
+      width: 50,
+      height: 70,
       decoration: BoxDecoration(
-        color: backgroundColor,
+        gradient: _getCardGradient(card),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: borderColor, width: 2),
+        border: Border.all(color: _getCardBorderColor(card), width: 2),
         boxShadow: [
           BoxShadow(
-            color: borderColor.withOpacity(0.3),
-            blurRadius: 4,
-            spreadRadius: 1,
+            color: _getCardBorderColor(card).withOpacity(0.5),
+            blurRadius: 8,
+            spreadRadius: 2,
           ),
         ],
       ),
@@ -730,28 +704,192 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
           Text(
             card.toString(),
             style: SpaceTheme.headlineStyle.copyWith(
-              fontSize: isInExpression ? 16 : 20,
+              fontSize: 16,
               color: Colors.white,
+              shadows: [
+                Shadow(
+                  color: _getCardBorderColor(card),
+                  blurRadius: 4,
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 4),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace.withOpacity(0.7),
-              borderRadius: BorderRadius.circular(10),
+              color: Colors.black.withOpacity(0.6),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               "${card.cost}E",
-              style: SpaceTheme.bodyStyle.copyWith(
-                fontSize: 10,
+              style: const TextStyle(
                 color: SpaceTheme.starYellow,
+                fontSize: 8,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildHandArea() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Text(
+            S.of(context)!.arithmancerHand,
+            style: SpaceTheme.titleStyle.copyWith(fontSize: 16),
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: _handCards.isEmpty
+                ? Center(
+                    child: Text(
+                      S.of(context)!.arithmancerNoCards,
+                      style: SpaceTheme.bodyStyle.copyWith(color: Colors.white54),
+                    ),
+                  )
+                : GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.7,
+                    ),
+                    itemCount: _handCards.length,
+                    itemBuilder: (context, index) {
+                      final card = _handCards[index];
+                      return _buildDraggableCard(card);
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDraggableCard(MathCard card) {
+    return Draggable<MathCard>(
+      data: card,
+      feedback: Transform.scale(
+        scale: 1.2,
+        child: _buildCard(card, isBeingDragged: true),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.5,
+        child: _buildCard(card),
+      ),
+      child: _buildCard(card),
+    );
+  }
+
+  Widget _buildCard(MathCard card, {bool isBeingDragged = false}) {
+    return AnimatedBuilder(
+      animation: _cardGlowAnimation,
+      builder: (context, child) {
+        return Container(
+          decoration: BoxDecoration(
+            gradient: _getCardGradient(card),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _getCardBorderColor(card).withOpacity(
+                isBeingDragged ? 1.0 : _cardGlowAnimation.value
+              ),
+              width: isBeingDragged ? 3 : 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: _getCardBorderColor(card).withOpacity(
+                  isBeingDragged ? 0.8 : _cardGlowAnimation.value * 0.5
+                ),
+                blurRadius: isBeingDragged ? 20 : 10,
+                spreadRadius: isBeingDragged ? 4 : 2,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                card.toString(),
+                style: SpaceTheme.headlineStyle.copyWith(
+                  fontSize: isBeingDragged ? 24 : 20,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      color: _getCardBorderColor(card),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  "${card.cost}E",
+                  style: TextStyle(
+                    color: SpaceTheme.starYellow,
+                    fontSize: isBeingDragged ? 12 : 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  LinearGradient _getCardGradient(MathCard card) {
+    switch (card.type) {
+      case CardType.number:
+        return const LinearGradient(
+          colors: [SpaceTheme.alienGreen, SpaceTheme.cosmicPink],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+      case CardType.operator:
+        return const LinearGradient(
+          colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+      case CardType.parentheses:
+        return const LinearGradient(
+          colors: [SpaceTheme.nebulaPurple, SpaceTheme.cosmicPink],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+      default:
+        return const LinearGradient(
+          colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+    }
+  }
+
+  Color _getCardBorderColor(MathCard card) {
+    switch (card.type) {
+      case CardType.number:
+        return SpaceTheme.alienGreen;
+      case CardType.operator:
+        return SpaceTheme.starYellow;
+      case CardType.parentheses:
+        return SpaceTheme.cosmicPink;
+      default:
+        return SpaceTheme.nebulaPurple;
+    }
   }
 
   Widget _buildVictoryDialog(int score) {
@@ -852,6 +990,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     _combatController.dispose();
     _particleController.dispose();
     _shakeController.dispose();
+    _cardGlowController.dispose();
     _statusTimer?.cancel();
     super.dispose();
   }
