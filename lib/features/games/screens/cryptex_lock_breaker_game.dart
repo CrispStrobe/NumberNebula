@@ -352,7 +352,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
 
   Widget _buildCryptexVisual() {
     return Container(
-      height: 400,
+      height: 220,
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: Stack(
         alignment: Alignment.center,
@@ -362,7 +362,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
             animation: _unlockAnimation,
             builder: (context, child) {
               return CustomPaint(
-                size: const Size(450, 250),
+                size: const Size(400, 160),
                 painter: CryptexBodyPainter(
                   isUnlocked: isUnlocked,
                   unlockProgress: _unlockAnimation.value,
@@ -464,9 +464,11 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   }
 
   Widget _buildEquationsDisplay() {
+    final equations = currentPuzzle.equations;
+    
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: SpaceTheme.cardDecoration.copyWith(
         border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
       ),
@@ -474,10 +476,28 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
         children: [
           Text(
             S.of(context)!.cryptexLockBreakerEquations,
-            style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.nebulaPurple),
+            style: SpaceTheme.titleStyle.copyWith(
+              color: SpaceTheme.nebulaPurple, 
+              fontSize: 16,
+            ),
           ),
-          const SizedBox(height: 16),
-          ...currentPuzzle.equations.map((equation) => _buildEquationRow(equation)),
+          const SizedBox(height: 8),
+          // Two-column layout
+          Column(
+            children: [
+              for (int i = 0; i < equations.length; i += 2)
+                Row(
+                  children: [
+                    Expanded(child: _buildEquationRow(equations[i])),
+                    if (i + 1 < equations.length) ...[
+                      const SizedBox(width: 8),
+                      Expanded(child: _buildEquationRow(equations[i + 1])),
+                    ] else
+                      const Expanded(child: SizedBox()),
+                  ],
+                ),
+            ],
+          ),
         ],
       ),
     );
@@ -492,13 +512,13 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
         final highlightIntensity = isSatisfied ? _equationAnimation.value : 0.0;
         
         return Container(
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          margin: const EdgeInsets.symmetric(vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: BoxDecoration(
             color: isSatisfied 
                 ? SpaceTheme.alienGreen.withOpacity(0.2 * highlightIntensity)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(4),
             border: Border.all(
               color: isSatisfied ? SpaceTheme.alienGreen : Colors.white30,
               width: isSatisfied ? 2 : 1,
@@ -507,51 +527,23 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Left side of equation
-              Text(
-                equation.getLeftSideDisplay(),
-                style: SpaceTheme.bodyStyle.copyWith(
-                  fontSize: 18,
-                  color: isSatisfied ? SpaceTheme.alienGreen : Colors.white,
-                  fontWeight: isSatisfied ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-              
-              // Equals sign
-              Text(
-                '=',
-                style: SpaceTheme.bodyStyle.copyWith(
-                  fontSize: 20,
-                  color: isSatisfied ? SpaceTheme.alienGreen : Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              
-              // Right side of equation
-              Text(
-                equation.getRightSideDisplay(),
-                style: SpaceTheme.bodyStyle.copyWith(
-                  fontSize: 18,
-                  color: isSatisfied ? SpaceTheme.alienGreen : Colors.white,
-                  fontWeight: isSatisfied ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-              
-              // Current result
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isSatisfied ? SpaceTheme.alienGreen.withOpacity(0.3) : Colors.black26,
-                  borderRadius: BorderRadius.circular(4),
-                ),
+              // Equation
+              Expanded(
                 child: Text(
-                  equation.getCurrentResult(dialValues).toString(),
+                  '${equation.getLeftSideDisplay()} = ${equation.getRightSideDisplay()}',
                   style: SpaceTheme.bodyStyle.copyWith(
-                    fontSize: 16,
-                    color: isSatisfied ? Colors.white : Colors.white70,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: isSatisfied ? SpaceTheme.alienGreen : Colors.white,
+                    fontWeight: isSatisfied ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
+              ),
+              
+              // Status indicator
+              Icon(
+                isSatisfied ? Icons.check_circle : Icons.radio_button_unchecked,
+                color: isSatisfied ? SpaceTheme.alienGreen : Colors.white30,
+                size: 16,
               ),
             ],
           ),

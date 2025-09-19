@@ -548,7 +548,176 @@
     }
   },
   
-  "nextCryptex": "Next Cryptex"
+  "nextCryptex": "Next Cryptex",
+
+  "arithmancerGameTitle": "Arithmancer's Duel",
+  "@arithmancerGameTitle": {
+    "description": "Title of the Arithmancer game"
+  },
+
+  "arithmancerGameInstructions": "Fight as Combat Coder against rogue AI programs, leverage your Neural Arsenal.",
+  
+  "arithmancerHealth": "Health",
+  "@arithmancerHealth": {
+    "description": "Health stat label"
+  },
+  
+  "arithmancerEnergy": "Energy",
+  "@arithmancerEnergy": {
+    "description": "Energy stat label"
+  },
+  
+  "arithmancerBlock": "Block",
+  "@arithmancerBlock": {
+    "description": "Block stat label"
+  },
+  
+  "arithmancerExpression": "Combat Sequence",
+  "@arithmancerExpression": {
+    "description": "Expression builder area title"
+  },
+  
+  "arithmancerExecute": "Execute",
+  "@arithmancerExecute": {
+    "description": "Button to execute the mathematical expression"
+  },
+  
+  "arithmancerDragCards": "Drag cards here to build your combat sequence",
+  "@arithmancerDragCards": {
+    "description": "Placeholder text for empty expression area"
+  },
+  
+  "arithmancerHand": "Neural Arsenal",
+  "@arithmancerHand": {
+    "description": "Hand area title"
+  },
+  
+  "arithmancerNoCards": "No algorithms available",
+  "@arithmancerNoCards": {
+    "description": "Message when hand is empty"
+  },
+  
+  "arithmancerInvalidExpression": "Invalid sequence - check syntax",
+  "@arithmancerInvalidExpression": {
+    "description": "Error message for invalid mathematical expression"
+  },
+  
+  "arithmancerNotEnoughEnergy": "Insufficient processing power",
+  "@arithmancerNotEnoughEnergy": {
+    "description": "Error message when not enough energy to execute"
+  },
+  
+  "arithmancerEnemyAttack": "AI counterattack deals {damage} damage!",
+  "@arithmancerEnemyAttack": {
+    "description": "Message when enemy attacks",
+    "placeholders": {
+      "damage": {
+        "type": "int",
+        "example": "15"
+      }
+    }
+  },
+  
+  "arithmancerPropertyPrime": "Prime",
+  "@arithmancerPropertyPrime": {
+    "description": "Prime number mathematical property"
+  },
+  
+  "arithmancerPropertySquare": "Perfect Square",
+  "@arithmancerPropertySquare": {
+    "description": "Perfect square mathematical property"
+  },
+  
+  "arithmancerPropertyFibonacci": "Fibonacci",
+  "@arithmancerPropertyFibonacci": {
+    "description": "Fibonacci number mathematical property"
+  },
+  
+  "arithmancerPropertyEven": "Even",
+  "@arithmancerPropertyEven": {
+    "description": "Even number mathematical property"
+  },
+  
+  "arithmancerPropertyOdd": "Odd",
+  "@arithmancerPropertyOdd": {
+    "description": "Odd number mathematical property"
+  },
+  
+  "arithmancerPropertyPowerOfTwo": "Power of 2",
+  "@arithmancerPropertyPowerOfTwo": {
+    "description": "Power of two mathematical property"
+  },
+  
+  "arithmancerShieldPrime": "Prime Shield",
+  "@arithmancerShieldPrime": {
+    "description": "Prime number defense shield"
+  },
+  
+  "arithmancerShieldEven": "Even Absorber",
+  "@arithmancerShieldEven": {
+    "description": "Even number defense shield"
+  },
+  
+  "arithmancerShieldOdd": "Odd Vulnerable",
+  "@arithmancerShieldOdd": {
+    "description": "Odd number weakness"
+  },
+  
+  "arithmancerShieldSquare": "Square Immunity",
+  "@arithmancerShieldSquare": {
+    "description": "Perfect square defense shield"
+  },
+  
+  "arithmancerShieldFibonacci": "Fibonacci Lock",
+  "@arithmancerShieldFibonacci": {
+    "description": "Fibonacci sequence defense shield"
+  },
+  
+  "arithmancerShieldPowerOfTwo": "Binary Fortress",
+  "@arithmancerShieldPowerOfTwo": {
+    "description": "Power of two defense shield"
+  },
+  
+  "arithmancerVictoryTitle": "Neural Breach Successful!",
+  "@arithmancerVictoryTitle": {
+    "description": "Victory dialog title"
+  },
+  
+  "arithmancerVictoryDesc": "Rogue AI neutralized! You earned {score} data credits for restoring this network node.",
+  "@arithmancerVictoryDesc": {
+    "description": "Victory dialog description",
+    "placeholders": {
+      "score": {
+        "type": "int",
+        "example": "500"
+      }
+    }
+  },
+  
+  "arithmancerDefeatTitle": "System Compromised",
+  "@arithmancerDefeatTitle": {
+    "description": "Defeat dialog title"
+  },
+  
+  "arithmancerDefeatDesc": "The rogue AI has overwhelmed your defenses. Analyzing attack patterns for next attempt...",
+  "@arithmancerDefeatDesc": {
+    "description": "Defeat dialog description"
+  },
+  
+  "arithmancerNextChallenge": "Engage New Target",
+  "@arithmancerNextChallenge": {
+    "description": "Button to start next challenge"
+  },
+  
+  "arithmancerTryAgain": "Retry Infiltration",
+  "@arithmancerTryAgain": {
+    "description": "Button to try again after defeat"
+  },
+  
+  "arithmancerReturnToBridge": "Return to Bridge",
+  "@arithmancerReturnToBridge": {
+    "description": "Button to return to main menu"
+  }
 
 
 }

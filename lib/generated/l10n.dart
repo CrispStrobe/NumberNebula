@@ -2095,6 +2095,198 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Next Cryptex'**
   String get nextCryptex;
+
+  /// Title of the Arithmancer game
+  ///
+  /// In en, this message translates to:
+  /// **'Arithmancer\'s Duel'**
+  String get arithmancerGameTitle;
+
+  /// No description provided for @arithmancerGameInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Fight as Combat Coder against rogue AI programs, leverage your Neural Arsenal.'**
+  String get arithmancerGameInstructions;
+
+  /// Health stat label
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get arithmancerHealth;
+
+  /// Energy stat label
+  ///
+  /// In en, this message translates to:
+  /// **'Energy'**
+  String get arithmancerEnergy;
+
+  /// Block stat label
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get arithmancerBlock;
+
+  /// Expression builder area title
+  ///
+  /// In en, this message translates to:
+  /// **'Combat Sequence'**
+  String get arithmancerExpression;
+
+  /// Button to execute the mathematical expression
+  ///
+  /// In en, this message translates to:
+  /// **'Execute'**
+  String get arithmancerExecute;
+
+  /// Placeholder text for empty expression area
+  ///
+  /// In en, this message translates to:
+  /// **'Drag cards here to build your combat sequence'**
+  String get arithmancerDragCards;
+
+  /// Hand area title
+  ///
+  /// In en, this message translates to:
+  /// **'Neural Arsenal'**
+  String get arithmancerHand;
+
+  /// Message when hand is empty
+  ///
+  /// In en, this message translates to:
+  /// **'No algorithms available'**
+  String get arithmancerNoCards;
+
+  /// Error message for invalid mathematical expression
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid sequence - check syntax'**
+  String get arithmancerInvalidExpression;
+
+  /// Error message when not enough energy to execute
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient processing power'**
+  String get arithmancerNotEnoughEnergy;
+
+  /// Message when enemy attacks
+  ///
+  /// In en, this message translates to:
+  /// **'AI counterattack deals {damage} damage!'**
+  String arithmancerEnemyAttack(int damage);
+
+  /// Prime number mathematical property
+  ///
+  /// In en, this message translates to:
+  /// **'Prime'**
+  String get arithmancerPropertyPrime;
+
+  /// Perfect square mathematical property
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect Square'**
+  String get arithmancerPropertySquare;
+
+  /// Fibonacci number mathematical property
+  ///
+  /// In en, this message translates to:
+  /// **'Fibonacci'**
+  String get arithmancerPropertyFibonacci;
+
+  /// Even number mathematical property
+  ///
+  /// In en, this message translates to:
+  /// **'Even'**
+  String get arithmancerPropertyEven;
+
+  /// Odd number mathematical property
+  ///
+  /// In en, this message translates to:
+  /// **'Odd'**
+  String get arithmancerPropertyOdd;
+
+  /// Power of two mathematical property
+  ///
+  /// In en, this message translates to:
+  /// **'Power of 2'**
+  String get arithmancerPropertyPowerOfTwo;
+
+  /// Prime number defense shield
+  ///
+  /// In en, this message translates to:
+  /// **'Prime Shield'**
+  String get arithmancerShieldPrime;
+
+  /// Even number defense shield
+  ///
+  /// In en, this message translates to:
+  /// **'Even Absorber'**
+  String get arithmancerShieldEven;
+
+  /// Odd number weakness
+  ///
+  /// In en, this message translates to:
+  /// **'Odd Vulnerable'**
+  String get arithmancerShieldOdd;
+
+  /// Perfect square defense shield
+  ///
+  /// In en, this message translates to:
+  /// **'Square Immunity'**
+  String get arithmancerShieldSquare;
+
+  /// Fibonacci sequence defense shield
+  ///
+  /// In en, this message translates to:
+  /// **'Fibonacci Lock'**
+  String get arithmancerShieldFibonacci;
+
+  /// Power of two defense shield
+  ///
+  /// In en, this message translates to:
+  /// **'Binary Fortress'**
+  String get arithmancerShieldPowerOfTwo;
+
+  /// Victory dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Neural Breach Successful!'**
+  String get arithmancerVictoryTitle;
+
+  /// Victory dialog description
+  ///
+  /// In en, this message translates to:
+  /// **'Rogue AI neutralized! You earned {score} data credits for restoring this network node.'**
+  String arithmancerVictoryDesc(int score);
+
+  /// Defeat dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'System Compromised'**
+  String get arithmancerDefeatTitle;
+
+  /// Defeat dialog description
+  ///
+  /// In en, this message translates to:
+  /// **'The rogue AI has overwhelmed your defenses. Analyzing attack patterns for next attempt...'**
+  String get arithmancerDefeatDesc;
+
+  /// Button to start next challenge
+  ///
+  /// In en, this message translates to:
+  /// **'Engage New Target'**
+  String get arithmancerNextChallenge;
+
+  /// Button to try again after defeat
+  ///
+  /// In en, this message translates to:
+  /// **'Retry Infiltration'**
+  String get arithmancerTryAgain;
+
+  /// Button to return to main menu
+  ///
+  /// In en, this message translates to:
+  /// **'Return to Bridge'**
+  String get arithmancerReturnToBridge;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

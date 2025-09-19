@@ -1124,4 +1124,107 @@ class SEn extends S {
 
   @override
   String get nextCryptex => 'Next Cryptex';
+
+  @override
+  String get arithmancerGameTitle => 'Arithmancer\'s Duel';
+
+  @override
+  String get arithmancerGameInstructions =>
+      'Fight as Combat Coder against rogue AI programs, leverage your Neural Arsenal.';
+
+  @override
+  String get arithmancerHealth => 'Health';
+
+  @override
+  String get arithmancerEnergy => 'Energy';
+
+  @override
+  String get arithmancerBlock => 'Block';
+
+  @override
+  String get arithmancerExpression => 'Combat Sequence';
+
+  @override
+  String get arithmancerExecute => 'Execute';
+
+  @override
+  String get arithmancerDragCards =>
+      'Drag cards here to build your combat sequence';
+
+  @override
+  String get arithmancerHand => 'Neural Arsenal';
+
+  @override
+  String get arithmancerNoCards => 'No algorithms available';
+
+  @override
+  String get arithmancerInvalidExpression => 'Invalid sequence - check syntax';
+
+  @override
+  String get arithmancerNotEnoughEnergy => 'Insufficient processing power';
+
+  @override
+  String arithmancerEnemyAttack(int damage) {
+    return 'AI counterattack deals $damage damage!';
+  }
+
+  @override
+  String get arithmancerPropertyPrime => 'Prime';
+
+  @override
+  String get arithmancerPropertySquare => 'Perfect Square';
+
+  @override
+  String get arithmancerPropertyFibonacci => 'Fibonacci';
+
+  @override
+  String get arithmancerPropertyEven => 'Even';
+
+  @override
+  String get arithmancerPropertyOdd => 'Odd';
+
+  @override
+  String get arithmancerPropertyPowerOfTwo => 'Power of 2';
+
+  @override
+  String get arithmancerShieldPrime => 'Prime Shield';
+
+  @override
+  String get arithmancerShieldEven => 'Even Absorber';
+
+  @override
+  String get arithmancerShieldOdd => 'Odd Vulnerable';
+
+  @override
+  String get arithmancerShieldSquare => 'Square Immunity';
+
+  @override
+  String get arithmancerShieldFibonacci => 'Fibonacci Lock';
+
+  @override
+  String get arithmancerShieldPowerOfTwo => 'Binary Fortress';
+
+  @override
+  String get arithmancerVictoryTitle => 'Neural Breach Successful!';
+
+  @override
+  String arithmancerVictoryDesc(int score) {
+    return 'Rogue AI neutralized! You earned $score data credits for restoring this network node.';
+  }
+
+  @override
+  String get arithmancerDefeatTitle => 'System Compromised';
+
+  @override
+  String get arithmancerDefeatDesc =>
+      'The rogue AI has overwhelmed your defenses. Analyzing attack patterns for next attempt...';
+
+  @override
+  String get arithmancerNextChallenge => 'Engage New Target';
+
+  @override
+  String get arithmancerTryAgain => 'Retry Infiltration';
+
+  @override
+  String get arithmancerReturnToBridge => 'Return to Bridge';
 }

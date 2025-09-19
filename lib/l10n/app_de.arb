@@ -480,6 +480,176 @@
     }
   },
   
-  "nextCryptex": "Nächstes Kryptex"
+  "nextCryptex": "Nächstes Kryptex",
+
+  
+  "arithmancerGameTitle": "Arithmancer-Duell",
+  "@arithmancerGameTitle": {
+    "description": "Titel des Arithmancer-Spiels"
+  },
+
+  "arithmancerGameInstructions": "Kämpfe als Coder gegen feindselige KI Programme.",
+
+  "arithmancerHealth": "Gesundheit",
+  "@arithmancerHealth": {
+    "description": "Gesundheits-Statusanzeige"
+  },
+  
+  "arithmancerEnergy": "Energie",
+  "@arithmancerEnergy": {
+    "description": "Energie-Statusanzeige"
+  },
+  
+  "arithmancerBlock": "Schild",
+  "@arithmancerBlock": {
+    "description": "Schild-Statusanzeige"
+  },
+  
+  "arithmancerExpression": "Kampfsequenz",
+  "@arithmancerExpression": {
+    "description": "Titel des Ausdrucks-Baubereichs"
+  },
+  
+  "arithmancerExecute": "Ausführen",
+  "@arithmancerExecute": {
+    "description": "Schaltfläche zum Ausführen des mathematischen Ausdrucks"
+  },
+  
+  "arithmancerDragCards": "Ziehe Karten hierher, um deine Kampfsequenz zu erstellen",
+  "@arithmancerDragCards": {
+    "description": "Platzhaltertext für leeren Ausdrucksbereich"
+  },
+  
+  "arithmancerHand": "Neural-Arsenal",
+  "@arithmancerHand": {
+    "description": "Titel des Handbereichs"
+  },
+  
+  "arithmancerNoCards": "Keine Algorithmen verfügbar",
+  "@arithmancerNoCards": {
+    "description": "Nachricht wenn die Hand leer ist"
+  },
+  
+  "arithmancerInvalidExpression": "Ungültige Sequenz - Syntax prüfen",
+  "@arithmancerInvalidExpression": {
+    "description": "Fehlermeldung für ungültigen mathematischen Ausdruck"
+  },
+  
+  "arithmancerNotEnoughEnergy": "Unzureichende Verarbeitungsleistung",
+  "@arithmancerNotEnoughEnergy": {
+    "description": "Fehlermeldung bei zu wenig Energie"
+  },
+  
+  "arithmancerEnemyAttack": "KI-Gegenangriff verursacht {damage} Schaden!",
+  "@arithmancerEnemyAttack": {
+    "description": "Nachricht wenn der Gegner angreift",
+    "placeholders": {
+      "damage": {
+        "type": "int",
+        "example": "15"
+      }
+    }
+  },
+  
+  "arithmancerPropertyPrime": "Primzahl",
+  "@arithmancerPropertyPrime": {
+    "description": "Primzahl-Eigenschaft"
+  },
+  
+  "arithmancerPropertySquare": "Quadratzahl",
+  "@arithmancerPropertySquare": {
+    "description": "Quadratzahl-Eigenschaft"
+  },
+  
+  "arithmancerPropertyFibonacci": "Fibonacci",
+  "@arithmancerPropertyFibonacci": {
+    "description": "Fibonacci-Eigenschaft"
+  },
+  
+  "arithmancerPropertyEven": "Gerade",
+  "@arithmancerPropertyEven": {
+    "description": "Gerade Zahl-Eigenschaft"
+  },
+  
+  "arithmancerPropertyOdd": "Ungerade",
+  "@arithmancerPropertyOdd": {
+    "description": "Ungerade Zahl-Eigenschaft"
+  },
+  
+  "arithmancerPropertyPowerOfTwo": "Zweierpotenz",
+  "@arithmancerPropertyPowerOfTwo": {
+    "description": "Zweierpotenz-Eigenschaft"
+  },
+  
+  "arithmancerShieldPrime": "Primzahl-Schild",
+  "@arithmancerShieldPrime": {
+    "description": "Primzahl-Verteidigungsschild"
+  },
+  
+  "arithmancerShieldEven": "Gerade-Absorber",
+  "@arithmancerShieldEven": {
+    "description": "Gerade Zahlen-Verteidigungsschild"
+  },
+  
+  "arithmancerShieldOdd": "Ungerade-Schwäche",
+  "@arithmancerShieldOdd": {
+    "description": "Ungerade Zahlen-Schwäche"
+  },
+  
+  "arithmancerShieldSquare": "Quadrat-Immunität",
+  "@arithmancerShieldSquare": {
+    "description": "Quadratzahl-Verteidigungsschild"
+  },
+  
+  "arithmancerShieldFibonacci": "Fibonacci-Sperre",
+  "@arithmancerShieldFibonacci": {
+    "description": "Fibonacci-Verteidigungsschild"
+  },
+  
+  "arithmancerShieldPowerOfTwo": "Binär-Festung",
+  "@arithmancerShieldPowerOfTwo": {
+    "description": "Zweierpotenz-Verteidigungsschild"
+  },
+  
+  "arithmancerVictoryTitle": "Neural-Durchbruch erfolgreich!",
+  "@arithmancerVictoryTitle": {
+    "description": "Titel des Siegesdialogs"
+  },
+  
+  "arithmancerVictoryDesc": "Schurkische KI neutralisiert! Du hast {score} Daten-Credits für die Wiederherstellung dieses Netzwerkknotens erhalten.",
+  "@arithmancerVictoryDesc": {
+    "description": "Beschreibung des Siegesdialogs",
+    "placeholders": {
+      "score": {
+        "type": "int",
+        "example": "500"
+      }
+    }
+  },
+  
+  "arithmancerDefeatTitle": "System kompromittiert",
+  "@arithmancerDefeatTitle": {
+    "description": "Titel des Niederlagendialogs"
+  },
+  
+  "arithmancerDefeatDesc": "Die schurkische KI hat deine Verteidigung überwältigt. Analysiere Angriffsmuster für den nächsten Versuch...",
+  "@arithmancerDefeatDesc": {
+    "description": "Beschreibung des Niederlagendialogs"
+  },
+  
+  "arithmancerNextChallenge": "Neues Ziel angreifen",
+  "@arithmancerNextChallenge": {
+    "description": "Schaltfläche für nächste Herausforderung"
+  },
+  
+  "arithmancerTryAgain": "Infiltration wiederholen",
+  "@arithmancerTryAgain": {
+    "description": "Schaltfläche zum erneuten Versuchen nach Niederlage"
+  },
+  
+  "arithmancerReturnToBridge": "Zur Brücke zurück",
+  "@arithmancerReturnToBridge": {
+    "description": "Schaltfläche zum Hauptmenü zurückkehren"
+  }
 
 }

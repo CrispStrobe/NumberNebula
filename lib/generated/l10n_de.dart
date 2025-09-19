@@ -1132,4 +1132,109 @@ class SDe extends S {
 
   @override
   String get nextCryptex => 'Nächstes Kryptex';
+
+  @override
+  String get arithmancerGameTitle => 'Arithmancer-Duell';
+
+  @override
+  String get arithmancerGameInstructions =>
+      'Kämpfe als Coder gegen feindselige KI Programme.';
+
+  @override
+  String get arithmancerHealth => 'Gesundheit';
+
+  @override
+  String get arithmancerEnergy => 'Energie';
+
+  @override
+  String get arithmancerBlock => 'Schild';
+
+  @override
+  String get arithmancerExpression => 'Kampfsequenz';
+
+  @override
+  String get arithmancerExecute => 'Ausführen';
+
+  @override
+  String get arithmancerDragCards =>
+      'Ziehe Karten hierher, um deine Kampfsequenz zu erstellen';
+
+  @override
+  String get arithmancerHand => 'Neural-Arsenal';
+
+  @override
+  String get arithmancerNoCards => 'Keine Algorithmen verfügbar';
+
+  @override
+  String get arithmancerInvalidExpression =>
+      'Ungültige Sequenz - Syntax prüfen';
+
+  @override
+  String get arithmancerNotEnoughEnergy =>
+      'Unzureichende Verarbeitungsleistung';
+
+  @override
+  String arithmancerEnemyAttack(int damage) {
+    return 'KI-Gegenangriff verursacht $damage Schaden!';
+  }
+
+  @override
+  String get arithmancerPropertyPrime => 'Primzahl';
+
+  @override
+  String get arithmancerPropertySquare => 'Quadratzahl';
+
+  @override
+  String get arithmancerPropertyFibonacci => 'Fibonacci';
+
+  @override
+  String get arithmancerPropertyEven => 'Gerade';
+
+  @override
+  String get arithmancerPropertyOdd => 'Ungerade';
+
+  @override
+  String get arithmancerPropertyPowerOfTwo => 'Zweierpotenz';
+
+  @override
+  String get arithmancerShieldPrime => 'Primzahl-Schild';
+
+  @override
+  String get arithmancerShieldEven => 'Gerade-Absorber';
+
+  @override
+  String get arithmancerShieldOdd => 'Ungerade-Schwäche';
+
+  @override
+  String get arithmancerShieldSquare => 'Quadrat-Immunität';
+
+  @override
+  String get arithmancerShieldFibonacci => 'Fibonacci-Sperre';
+
+  @override
+  String get arithmancerShieldPowerOfTwo => 'Binär-Festung';
+
+  @override
+  String get arithmancerVictoryTitle => 'Neural-Durchbruch erfolgreich!';
+
+  @override
+  String arithmancerVictoryDesc(int score) {
+    return 'Schurkische KI neutralisiert! Du hast $score Daten-Credits für die Wiederherstellung dieses Netzwerkknotens erhalten.';
+  }
+
+  @override
+  String get arithmancerDefeatTitle => 'System kompromittiert';
+
+  @override
+  String get arithmancerDefeatDesc =>
+      'Die schurkische KI hat deine Verteidigung überwältigt. Analysiere Angriffsmuster für den nächsten Versuch...';
+
+  @override
+  String get arithmancerNextChallenge => 'Neues Ziel angreifen';
+
+  @override
+  String get arithmancerTryAgain => 'Infiltration wiederholen';
+
+  @override
+  String get arithmancerReturnToBridge => 'Zur Brücke zurück';
 }

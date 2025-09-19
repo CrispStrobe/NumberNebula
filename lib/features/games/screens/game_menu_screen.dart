@@ -21,6 +21,8 @@ import 'perspective_puzzle_game.dart';
 import 'blocks_counter_game.dart';
 import 'signal_triangulation_game.dart';
 import 'cryptex_lock_breaker_game.dart';
+import 'arithmancer_duel_game.dart';
+
 
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
@@ -41,8 +43,8 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   late List<Animation<Offset>> _cardAnimations;
   late Animation<double> _floatAnimation;
 
-  // NEW: Update game count
-  static const int _gameCount = 12;
+  // for new games, we must manually update game count
+  static const int _gameCount = 13;
 
   @override
   void initState() {
@@ -340,6 +342,13 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
             icon: Icons.track_changes,
             gradient: const LinearGradient(colors: [Color(0xFF01c6ff), Color(0xFF0172ff)]),
             onTap: () => _navigateToGame(CryptexLockBreakerGame(grade: gameProvider.grade, level: gameProvider.level)),
+        ),
+        GameInfo(
+            title: s.arithmancerGameTitle,
+            description: s.arithmancerGameInstructions,
+            icon: Icons.track_changes,
+            gradient: const LinearGradient(colors: [Color(0xFF05c6ff), Color(0xFF0572ff)]),
+            onTap: () => _navigateToGame(ArithmancerDuelGame(grade: gameProvider.grade, level: gameProvider.level)),
         ),
     ];
 
