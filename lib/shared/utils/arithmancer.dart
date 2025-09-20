@@ -1,4 +1,4 @@
-// arithmancer_math_focused.dart
+// lib/shared/utils/arithmancer.dart
 // Pure Mathematical Combat System
 
 import 'dart:math';
@@ -147,20 +147,24 @@ class MathematicalEnemy {
 
     // --- Each shield is now a separate 'if' block to allow for multiple effects ---
 
-    // Prime Shield - with your new 3-tier logic
+    // Prime Shield - with corrected 3-tier logic
     if (mathematicalShields.containsKey('prime_shield')) {
         int threshold = mathematicalShields['prime_shield'];
         
-        // --- NEW TIERED LOGIC FOR PRIME GUARDIAN ---
-        bool resultIsPrime = result.isPrime && result.value >= threshold;
+        // --- CORRECTED TIERED LOGIC FOR PRIME GUARDIAN ---
+        bool isPrimeResult = result.isPrime;
+        bool meetsThreshold = result.value >= threshold;
         bool isSingleCardPlay = result.usedCards.length == 1;
 
-        if (resultIsPrime && isSingleCardPlay) {
-        // Tier 1: MassBonus for playing a single prime card.
+        if (isPrimeResult && meetsThreshold && isSingleCardPlay) {
+        // Tier 1: Mass bonus for playing a single prime card ≥ threshold.
         finalDamage *= 3.0; 
-        } else if (resultIsPrime && !isSingleCardPlay) {
-        // Tier 2: Bonus for CREATING a prime with an equation.
+        } else if (isPrimeResult && meetsThreshold && !isSingleCardPlay) {
+        // Tier 2: Bonus for CREATING a prime ≥ threshold with an equation.
         finalDamage *= 2.0; 
+        } else if (isPrimeResult && !meetsThreshold) {
+        // Tier 2.5: Small primes get normal damage (no penalty, no bonus)
+        finalDamage *= 1.0; // Keep original damage
         } else {
         // Tier 3: Heavy penalty for any non-prime result.
         finalDamage *= 0.1; 
@@ -1531,79 +1535,110 @@ class ExpressionEvaluator {
 
   bool _canAddCard(List<MathCard> sequence, MathCard nextCard) {
     if (sequence.isEmpty) {
-        // An expression can now start with a Number OR a Minus operator.
-        return nextCard.type == CardType.number || nextCard.operator == '-';
+      // An expression can now start with a Number OR a Minus operator.
+      return nextCard.type == CardType.number || nextCard.operator == '-';
     }
 
     final lastCard = sequence.last;
 
     // If the sequence so far is just a '-', the next card MUST be a number.
     if (sequence.length == 1 && lastCard.operator == '-') {
-        return nextCard.type == CardType.number;
+      return nextCard.type == CardType.number;
     }
 
     switch (lastCard.type) {
-        case CardType.number:
+      case CardType.number:
         return nextCard.type == CardType.operator ||
-                nextCard.type == CardType.parentheses;
-        case CardType.operator:
+              nextCard.type == CardType.parentheses ||
+              nextCard.type == CardType.sequencer; // Allow sequencer after numbers
+      case CardType.operator:
         // After any operator, you must have a number.
         return nextCard.type == CardType.number;
-        case CardType.parentheses:
-        return nextCard.type == CardType.operator;
-        default:
+      case CardType.parentheses:
+        // After parentheses, allow operators or more parentheses
+        return nextCard.type == CardType.operator || 
+              nextCard.type == CardType.parentheses ||
+              nextCard.type == CardType.sequencer; // Allow sequencer after parentheses
+      case CardType.sequencer:
+        // After &&, start a new equation with a number or minus
+        return nextCard.type == CardType.number || nextCard.operator == '-';
+      default:
         return false;
     }
-    }
+  }
 
   MathResult? _evaluateExpression(List<MathCard> cards) {
     if (cards.isEmpty) return null;
-    // Prevent invalid expressions like a single lonely operator card.
     if (cards.length == 1 && cards.first.type == CardType.operator) return null;
 
+    // Check if this contains a sequencer card
+    int sequencerIndex = cards.indexWhere((card) => card.type == CardType.sequencer);
+    
+    if (sequencerIndex != -1) {
+      // Split into two expressions at the sequencer
+      List<MathCard> firstExpression = cards.sublist(0, sequencerIndex);
+      List<MathCard> secondExpression = cards.sublist(sequencerIndex + 1);
+      
+      if (firstExpression.isEmpty || secondExpression.isEmpty) return null;
+      
+      // Evaluate both expressions
+      MathResult? result1 = _evaluateExpression(firstExpression);
+      MathResult? result2 = _evaluateExpression(secondExpression);
+      
+      if (result1 == null || result2 == null) return null;
+      
+      // Combine results - sum the values
+      double combinedValue = result1.value + result2.value;
+      String combinedExpression = "${result1.expression} && ${result2.expression}";
+      
+      // Combine mathematical properties
+      List<String> combinedProperties = [];
+      combinedProperties.addAll(result1.mathematicalProperties);
+      combinedProperties.addAll(result2.mathematicalProperties);
+      combinedProperties.add("chained_equation");
+      
+      return MathResult(combinedValue, List.from(cards), combinedExpression, combinedProperties);
+    }
+
+    // Regular single expression handling (rest of your existing code)
     List<String> tokens = [];
     String expression;
 
     // Check for the special unary minus case at the beginning
     if (cards.first.operator == '-') {
-        // We will evaluate "-19" as "0 - 19" to make the postfix logic work,
-        // but we will display it as "-19".
-        expression = cards.map((c) => c.operator ?? c.value.toString()).join(' ');
-        tokens.add('0'); // The trick: add a leading zero.
-        for (var card in cards) {
+      expression = cards.map((c) => c.operator ?? c.value.toString()).join(' ');
+      tokens.add('0');
+      for (var card in cards) {
         tokens.add(card.operator ?? card.value.toString());
-        }
+      }
     } else {
-        // This is the original logic for standard expressions like "19 + 3"
-        for (int i = 0; i < cards.length; i++) {
+      for (int i = 0; i < cards.length; i++) {
         MathCard card = cards[i];
         if (card.type == CardType.parentheses) {
-            if (tokens.isNotEmpty) {
+          if (tokens.isNotEmpty) {
             String lastToken = tokens.removeLast();
             tokens.add("($lastToken)");
-            }
+          }
         } else {
-            tokens.add(card.operator ?? card.value.toString());
+          tokens.add(card.operator ?? card.value.toString());
         }
-        }
-        expression = tokens.join(' ');
+      }
+      expression = tokens.join(' ');
     }
 
-    // Validate expression ends with a number or parenthesis
     final lastTokenStr = tokens.last.replaceAll(RegExp(r'[\(\)]'), '');
-    if (['+', '-', '*', '/'].contains(lastTokenStr)) return null;
+    if (['+', '-', '*', '/'].contains(lastTokenStr) && tokens.length > 1) return null;
 
     double? value = _evaluatePostfixExpression(tokens);
     if (value == null || value.isInfinite || value.isNaN) return null;
 
-    // Detect mathematical properties
     List<String> properties = [];
     if (_isPrime(value.round()) && value == value.round()) properties.add("prime");
     if (_isPerfectSquare(value)) properties.add("perfect_square");
     if (_isFibonacci(value.round()) && value == value.round()) properties.add("fibonacci");
 
     return MathResult(value, List.from(cards), expression, properties);
-    }
+  }
 
   double? _evaluatePostfixExpression(List<String> infix) {
     // Convert to postfix and evaluate
