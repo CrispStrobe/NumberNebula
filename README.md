@@ -5,9 +5,20 @@ A space-themed math learning app for primary school students (grades 3-6), speci
 ## ✨ Features
 
 ### 🎮 Mini Games
-- **Zauberdreiecke (Magic Triangles)**: Solve mathematical triangle puzzles where each side adds up to the same sum
-- **Cosmic Bubble Math**: Pop floating bubbles in correct mathematical order with physics-based movement
-- **Space Puzzle Math**: Complete space station puzzles by solving math problems and fitting rotatable pieces
+### 🎮 Mini Games
+
+  - **Magic Triangles**: Solve mathematical triangle puzzles where each side adds up to the same sum
+  - **Space Puzzle Math**: Complete space station puzzles by solving math problems and fitting rotatable pieces
+  - **Hyperdrive Gates**: Pilot a spaceship through gates with the correct answer to a math problem while avoiding obstacles
+  - **Path Finder**: Select the correct mathematical path for your spaceship to follow, avoiding hazards and collecting points
+  - **Planet Hopping**: Navigate your space hopper to planets in the correct numerical sequence, solving math problems along the way
+  - **Number Walls**: Fill in the missing numbers in a pyramid-like structure where each number is the result of a mathematical operation on the two numbers below it
+  - **Codebreaker**: Decipher a code by assigning numbers to symbols to solve a series of interconnected equations
+  - **Perspective Puzzle**: Recreate a 3D block structure from a 2D perspective view, testing spatial reasoning and visualization skills
+  - **Spatial Blocks**: Construct a 3D block structure by stacking colored pieces on a grid to match a rotating target model
+  - **Signal Triangulation**: A logic puzzle where players must deduce a secret sequence of colored and shaped glyphs using feedback from their guesses.
+  - **Cryptex Lock Breaker**: Solve a system of mathematical equations to determine the correct combination for a series of rotating dials.
+  - **Arithmancer Duel**: A turn-based card game where players craft mathematical expressions to defeat an AI opponent.
 
 ### 🌟 Key Features
 - **Multi-language support**: English & German (i18n)
@@ -64,10 +75,21 @@ A space-themed math learning app for primary school students (grades 3-6), speci
    │       ├── providers/
    │       │   └── game_provider.dart
    │       ├── screens/
-   │       │   ├── game_menu_screen.dart
-   │       │   ├── magic_triangles_game.dart
-   │       │   ├── bubble_math_game.dart
-   │       │   └── puzzle_math_game.dart
+   │   │       │   ├── arithmancer_duel_game.dart
+   │   │       │   ├── asteroid_math_game.dart
+   │   │       │   ├── blocks_counter_game.dart
+   │   │       │   ├── codebreaker_game.dart
+   │   │       │   ├── cryptex_lock_breaker_game.dart
+   │   │       │   ├── game_menu_screen.dart
+   │   │       │   ├── hyperdrive_gates_game.dart
+   │   │       │   ├── magic_triangles_game.dart
+   │   │       │   ├── number_walls_game.dart
+   │   │       │   ├── path_finder_game.dart
+   │   │       │   ├── perspective_puzzle_game.dart
+   │   │       │   ├── planet_hopping_game.dart
+   │   │       │   ├── puzzle_math_game.dart
+   │   │       │   ├── signal_triangulation_game.dart
+   │   │       │   └── spatial_blocks_game.dart
    │       └── widgets/
    │           ├── space_background.dart
    │           └── game_ui.dart
@@ -315,7 +337,7 @@ flutter gen-l10n
 
 This project is created for educational purposes. Please ensure compliance with any third-party assets or fonts used.
 
-## 🎯 Future Enhancements
+## 🎯 Possible Future Enhancements
 
 - **Multiplayer mode**: Local multiplayer on shared iPad
 - **Adaptive difficulty**: AI-driven difficulty adjustment
@@ -323,15 +345,5 @@ This project is created for educational purposes. Please ensure compliance with 
 - **Offline mode**: Full functionality without internet
 - **Voice recognition**: Speak answers aloud
 - **Accessibility**: Screen reader support, high contrast mode
-
-## 📞 Support
-
-For technical issues or feature requests:
-1. Check troubleshooting section
-2. Review Flutter documentation
-3. Test on different devices/simulators
-4. Check console logs for errors
-
----
 
 **Happy coding and may the mathematical force be with you! 🚀✨**

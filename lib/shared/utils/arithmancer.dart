@@ -1423,7 +1423,7 @@ class ArithmancerGame {
 
     // REDUCED HEALING: Less generous recovery to maintain challenge
     int healing =
-        25 + (enemiesDefeated * 5); // 30, 35, 40, 45, 50 healing (much less)
+        25 + (enemiesDefeated * 15); // 40, 55, 70, 85, 100 healing
     playerHealth = min(maxHealth, playerHealth + healing);
     log("💚 Systems restored: +$healing HP! Current: $playerHealth/$maxHealth");
   }
