@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:space_math_academy/core/services/debug_provider.dart'; // Import the provider
+import 'package:space_math_academy/core/services/debug_provider.dart';
 
-import 'dart:async'; // FIX: Add this import for Timer functionality
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
-import '../../achievements/screens/achievements_screen.dart'; // Re-use AchievementUIData
+import '../../achievements/screens/achievements_screen.dart';
 import '../../games/providers/game_provider.dart';
 import '../../games/widgets/space_background.dart';
 import '../widgets/animated_logo.dart';
@@ -15,7 +15,7 @@ import '../widgets/grade_selector.dart';
 import '../widgets/stats_card.dart';
 import '../../games/screens/game_menu_screen.dart';
 import '../../settings/screens/settings_screen.dart';
-import '../../games/widgets/debug_panel.dart'; // FIX: Added missing import
+import '../../games/widgets/debug_panel.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -38,7 +38,6 @@ class _HomeScreenState extends State<HomeScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  // STATE VARIABLES
   int _debugTapCount = 0;
   Timer? _debugResetTimer;
 
@@ -72,7 +71,6 @@ class _HomeScreenState extends State<HomeScreen>
       curve: Curves.elasticOut,
     ));
 
-    // Start animations
     _fadeController.forward();
     Future.delayed(const Duration(milliseconds: 300), () {
       _slideController.forward();
@@ -146,10 +144,11 @@ class _HomeScreenState extends State<HomeScreen>
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                // Header with settings button
                 _buildHeader(),
-                Expanded(
-                  child: isLandscape ? _buildLandscapeLayout() : _buildPortraitLayout(),
+                Expanded( // FIX: Wrap the main content in Expanded to prevent overflow
+                  child: Center( // FIX: Center the content to prevent overflow
+                    child: isLandscape ? _buildLandscapeLayout() : _buildPortraitLayout(),
+                  ),
                 ),
               ],
             ),
@@ -163,17 +162,14 @@ class _HomeScreenState extends State<HomeScreen>
     return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-        // App title with hidden debug gesture
         GestureDetector(
             onTap: () {
-            // Cancel any existing reset timer
             _debugResetTimer?.cancel();
 
             setState(() {
                 _debugTapCount++;
             });
 
-            // If 7 taps are reached, enable debug mode
             if (_debugTapCount >= 7) {
                 context.read<DebugProvider>().enableDebugMenu();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -183,10 +179,9 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 );
                 setState(() {
-                _debugTapCount = 0; // Reset after success
+                _debugTapCount = 0;
                 });
             } else {
-                // Start a timer to reset the count if the user stops tapping
                 _debugResetTimer = Timer(const Duration(seconds: 2), () {
                 setState(() {
                     _debugTapCount = 0;
@@ -203,7 +198,6 @@ class _HomeScreenState extends State<HomeScreen>
             ),
         ),
         
-        // Settings button
         IconButton(
             onPressed: _navigateToSettings,
             icon: const Icon(
@@ -220,99 +214,95 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  
   Widget _buildLandscapeLayout() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 800 || screenHeight < 500;
+    
     return Row(
-        children: [
-        // LEFT SIDE - Now wrapped in a SingleChildScrollView
+      children: [
+        // LEFT SIDE - Clean design without ugly overlay
         Expanded(
-            flex: 3,
-            child: SingleChildScrollView( // FIX: Allows this column to scroll if content is too tall
-            child: Padding( // Add padding here for better spacing
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                  const SizedBox(height: 20), // Add top spacing
-                  FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: const AnimatedLogo(),
-                  ),
-                  const SizedBox(height: 24),
-                  SlideTransition(
-                  position: _slideAnimation,
-                  child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: Column(
-                      children: [
-                          Text(
-                          S.of(context)!.welcome,
-                          style: SpaceTheme.headlineStyle.copyWith(fontSize: 28),
-                          textAlign: TextAlign.center,
-                          ),
-                      ],
-                      ),
-                  ),
-                  ),
-                  const SizedBox(height: 32),
-                  SlideTransition(
-                  position: _slideAnimation,
-                  child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: const CompactGradeSelector(),
-                  ),
-                  ),
-                  const SizedBox(height: 32),
-                  SlideTransition(
-                  position: _slideAnimation,
-                  child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: _buildStartButton(),
-                  ),
-                  ),
-                  const SizedBox(height: 20), // Add bottom spacing
-              ],
-              ),
-            ),
-            ),
-        ),
-        
-        const SizedBox(width: 20),
-        
-        // RIGHT SIDE - Stats (remains the same)
-        Expanded(
-            flex: 2,
-            child: Column( // Keep this column centered
+          flex: isSmallScreen ? 4 : 3,
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
+              // Clean logo without overlay
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: AnimatedLogo(size: isSmallScreen ? 80 : 150), // Even smaller on small screens
+              ),
+              // Skip welcome text on small screens to save space
+              if (!isSmallScreen) ...[
+                SizedBox(height: 16),
+                SlideTransition(
+                  position: _slideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Text(
+                      S.of(context)!.welcome,
+                      style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+              SizedBox(height: isSmallScreen ? 8 : 24),
               SlideTransition(
-              position: _slideAnimation,
-              child: FadeTransition(
+                position: _slideAnimation,
+                child: FadeTransition(
                   opacity: _fadeAnimation,
-                  child: const CompactStatsCard(),
+                  child: const CompactGradeSelector(),
+                ),
               ),
-              ),
-              const SizedBox(height: 16),
+              SizedBox(height: isSmallScreen ? 8 : 20),
               SlideTransition(
-              position: _slideAnimation,
-              child: FadeTransition(
+                position: _slideAnimation,
+                child: FadeTransition(
                   opacity: _fadeAnimation,
-                  child: const CompactAchievementsPreview(),
-              ),
+                  child: _buildStartButton(isSmallScreen),
+                ),
               ),
             ],
-            ),
+          ),
         ),
-        ],
+        
+        SizedBox(width: isSmallScreen ? 6 : 20),
+        
+        // RIGHT SIDE - Smaller
+        Expanded(
+          flex: isSmallScreen ? 3 : 2,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SlideTransition(
+                position: _slideAnimation,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: CompactStatsCard(isSmallScreen: isSmallScreen),
+                ),
+              ),
+              SizedBox(height: isSmallScreen ? 4 : 12),
+              SlideTransition(
+                position: _slideAnimation,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: CompactAchievementsPreview(isSmallScreen: isSmallScreen),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
-
 
   Widget _buildPortraitLayout() {
     return Column(
         children: [
-        // Top section
         FadeTransition(
             opacity: _fadeAnimation,
             child: const AnimatedLogo(),
@@ -330,10 +320,8 @@ class _HomeScreenState extends State<HomeScreen>
             ),
         ),
 
-        // Spacer will push content apart and absorb any extra vertical space
         const Spacer(),
 
-        // Middle section of cards
         SlideTransition(
             position: _slideAnimation,
             child: FadeTransition(
@@ -358,56 +346,58 @@ class _HomeScreenState extends State<HomeScreen>
             ),
         ),
 
-        // Another Spacer to ensure the button is pushed to the bottom
         const Spacer(),
 
-        // Bottom Button - This will now be anchored towards the bottom of the screen
         SlideTransition(
             position: _slideAnimation,
             child: FadeTransition(
             opacity: _fadeAnimation,
-            child: _buildStartButton(),
+            child: _buildStartButton(false),
             ),
         ),
         ],
     );
     }
 
-
-  Widget _buildStartButton() {
+  Widget _buildStartButton(bool isSmallScreen) {
     return Container(
-      height: 70,
+      height: isSmallScreen ? 32 : 60, // Much smaller on small screens
+      constraints: BoxConstraints(
+        maxWidth: isSmallScreen ? 180 : 300, // Narrower on small screens
+      ),
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
-        borderRadius: BorderRadius.circular(35),
+        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 30),
         boxShadow: [
           BoxShadow(
-            color: SpaceTheme.starYellow.withOpacity(0.5),
-            blurRadius: 20,
-            spreadRadius: 2,
+            color: SpaceTheme.starYellow.withOpacity(0.4),
+            blurRadius: isSmallScreen ? 10 : 20,
+            spreadRadius: 1,
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(35),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 30),
           onTap: _navigateToGameMenu,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40.0),
+            padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12.0 : 32.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
+                Icon(
                   Icons.rocket_launch,
                   color: Colors.white,
-                  size: 28,
+                  size: isSmallScreen ? 12 : 24,
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: isSmallScreen ? 6 : 12),
                 Text(
                   S.of(context)!.startAdventure,
-                  style: SpaceTheme.buttonStyle.copyWith(fontSize: 18),
+                  style: SpaceTheme.buttonStyle.copyWith(
+                    fontSize: isSmallScreen ? 10 : 16
+                  ),
                 ),
               ],
             ),
@@ -418,16 +408,96 @@ class _HomeScreenState extends State<HomeScreen>
   }
 }
 
-// COMPACT Stats Card - Smaller version
+// Updated AnimatedLogo with size parameter
+class AnimatedLogo extends StatefulWidget {
+  final double size;
+  
+  const AnimatedLogo({super.key, this.size = 150});
+
+  @override
+  State<AnimatedLogo> createState() => _AnimatedLogoState();
+}
+
+class _AnimatedLogoState extends State<AnimatedLogo>
+    with SingleTickerProviderStateMixin {
+  
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  
+  @override
+  void initState() {
+    super.initState();
+    
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+    
+    _animation = Tween<double>(
+      begin: 0.9,
+      end: 1.1,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+  }
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _animation.value,
+          child: Container(
+            width: widget.size,
+            height: widget.size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFFFFD700),
+                  Color(0xFFFF6B35),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFD700).withOpacity(0.5),
+                  blurRadius: 20,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.rocket_launch,
+              color: Colors.white,
+              size: widget.size * 0.4,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// Updated CompactStatsCard with responsive sizing
 class CompactStatsCard extends StatelessWidget {
-  const CompactStatsCard({super.key});
+  final bool isSmallScreen;
+  
+  const CompactStatsCard({super.key, this.isSmallScreen = false});
 
   @override
   Widget build(BuildContext context) {
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
         return Container(
-          padding: const EdgeInsets.all(16), // Reduced padding
+          padding: EdgeInsets.all(isSmallScreen ? 8 : 12), // Reduced padding
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
@@ -437,7 +507,7 @@ class CompactStatsCard extends StatelessWidget {
                 Color(0xFF1E2235),
               ],
             ),
-            borderRadius: BorderRadius.circular(15), // Smaller radius
+            borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 12), // Smaller radius
             boxShadow: const [
               BoxShadow(
                 color: Colors.black26,
@@ -448,19 +518,20 @@ class CompactStatsCard extends StatelessWidget {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min, // FIX: Prevent taking extra space
             children: [
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.analytics,
-                    color: Color(0xFFFFD700), // starYellow
-                    size: 20, // Smaller icon
+                    color: Color(0xFFFFD700),
+                    size: isSmallScreen ? 12 : 16, // Smaller icon
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isSmallScreen ? 4 : 6), // Less spacing
                   Text(
                     S.of(context)!.progress,
-                    style: const TextStyle(
-                      fontSize: 16, // Smaller text
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? 10 : 14, // Smaller text
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
@@ -468,26 +539,25 @@ class CompactStatsCard extends StatelessWidget {
                 ],
               ),
               
-              const SizedBox(height: 12), // Less spacing
+              SizedBox(height: isSmallScreen ? 4 : 8), // Less spacing
               
-              // Horizontal stats row instead of column
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildCompactStatItem(
                     icon: Icons.star,
                     value: gameProvider.score.toString(),
-                    color: const Color(0xFFFFD700), // starYellow
+                    color: const Color(0xFFFFD700),
                   ),
                   _buildCompactStatItem(
                     icon: Icons.trending_up,
                     value: gameProvider.level.toString(),
-                    color: const Color(0xFF06FFA5), // alienGreen
+                    color: const Color(0xFF06FFA5),
                   ),
                   _buildCompactStatItem(
                     icon: Icons.emoji_events,
                     value: gameProvider.totalAchievements.toString(),
-                    color: const Color(0xFFFF6B35), // planetOrange
+                    color: const Color(0xFFFF6B35),
                   ),
                 ],
               ),
@@ -504,27 +574,28 @@ class CompactStatsCard extends StatelessWidget {
     required Color color,
   }) {
     return Column(
+      mainAxisSize: MainAxisSize.min, // FIX: Prevent taking extra space
       children: [
         Container(
-          width: 28,
-          height: 28,
+          width: isSmallScreen ? 20 : 24, // Smaller containers
+          height: isSmallScreen ? 20 : 24,
           decoration: BoxDecoration(
             color: color.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(4),
           ),
           child: Icon(
             icon,
             color: color,
-            size: 16,
+            size: isSmallScreen ? 10 : 12, // Smaller icons
           ),
         ),
         
-        const SizedBox(height: 4),
+        const SizedBox(height: 2), // Minimal spacing
         
         Text(
           value,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: isSmallScreen ? 10 : 12, // Smaller text
             color: color,
             fontWeight: FontWeight.bold,
           ),
@@ -532,6 +603,133 @@ class CompactStatsCard extends StatelessWidget {
       ],
     );
   }
+}
+
+// Updated CompactAchievementsPreview with responsive sizing
+class CompactAchievementsPreview extends StatelessWidget {
+  final bool isSmallScreen;
+  
+  const CompactAchievementsPreview({super.key, this.isSmallScreen = false});
+
+  AchievementUIData _getAchievementUIData(BuildContext context, String id) {
+    final s = S.of(context)!;
+    switch (id) {
+      case 'first_century':
+        return AchievementUIData(title: s.achievementFirstCenturyTitle, description: s.achievementFirstCenturyDesc, icon: '💯');
+      case 'score_master':
+        return AchievementUIData(title: s.achievementScoreMasterTitle, description: s.achievementScoreMasterDesc, icon: '⭐');
+      default:
+        return AchievementUIData(title: s.achievementFirstCenturyTitle, description: s.achievementFirstCenturyDesc, icon: '💯');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<GameProvider>(
+      builder: (context, gameProvider, child) {
+        final achievements = gameProvider.achievements.take(2).toList(); 
+
+        return Container(
+          padding: EdgeInsets.all(isSmallScreen ? 6 : 8), // Reduced padding
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF2A2D3E),
+                Color(0xFF1E2235),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 12),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min, // FIX: Prevent taking extra space
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.emoji_events,
+                    color: SpaceTheme.starYellow,
+                    size: isSmallScreen ? 10 : 14, // Smaller icon
+                  ),
+                  SizedBox(width: isSmallScreen ? 2 : 4), // Less spacing
+                  Text(
+                    S.of(context)!.achievements,
+                    style: SpaceTheme.titleStyle.copyWith(
+                      fontSize: isSmallScreen ? 8 : 12 // Smaller text
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: isSmallScreen ? 2 : 4), // Less spacing
+              if (achievements.isEmpty)
+                Text(
+                  S.of(context)!.playToUnlock,
+                  style: SpaceTheme.bodyStyle.copyWith(
+                    fontSize: isSmallScreen ? 6 : 9 // Smaller text
+                  ),
+                  textAlign: TextAlign.center,
+                )
+              else
+                Column(
+                  mainAxisSize: MainAxisSize.min, // FIX: Prevent taking extra space
+                  children: achievements.map((achievement) {
+                    final uiData = _getAchievementUIData(context, achievement.id);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 2), // Minimal spacing
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min, // FIX: Prevent taking extra space
+                        children: [
+                          Text(
+                            uiData.icon,
+                            style: TextStyle(fontSize: isSmallScreen ? 8 : 10), // Smaller emoji
+                          ),
+                          const SizedBox(width: 2), // Minimal spacing
+                          Flexible( // Use Flexible instead of Expanded
+                            child: Text(
+                              uiData.title,
+                              style: SpaceTheme.bodyStyle.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: isSmallScreen ? 6 : 8, // Smaller text
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class AchievementUIData {
+  final String title;
+  final String description;
+  final String icon;
+
+  AchievementUIData({
+    required this.title,
+    required this.description,
+    required this.icon,
+  });
 }
 
 // COMPACT Grade Selector - Smaller version  
@@ -644,117 +842,6 @@ class CompactGradeSelector extends StatelessWidget {
                   );
                 }).toList(),
               ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-
-// REFACTOR: This widget now fetches its own localized text based on IDs.
-class CompactAchievementsPreview extends StatelessWidget {
-  const CompactAchievementsPreview({super.key});
-
-  // Helper method to get localized data for an achievement ID
-  AchievementUIData _getAchievementUIData(BuildContext context, String id) {
-    final s = S.of(context)!;
-    switch (id) {
-      case 'first_century':
-        return AchievementUIData(title: s.achievementFirstCenturyTitle, description: s.achievementFirstCenturyDesc, icon: '💯');
-      case 'score_master':
-        return AchievementUIData(title: s.achievementScoreMasterTitle, description: s.achievementScoreMasterDesc, icon: '⭐');
-      // Add other cases here if you want to show different achievements
-      default:
-        return AchievementUIData(title: s.achievementFirstCenturyTitle, description: s.achievementFirstCenturyDesc, icon: '💯');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<GameProvider>(
-      builder: (context, gameProvider, child) {
-        // We get the simple Achievement objects (with just IDs)
-        final achievements = gameProvider.achievements.take(2).toList(); 
-
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF2A2D3E),
-                Color(0xFF1E2235),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 8,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.emoji_events,
-                    color: SpaceTheme.starYellow,
-                    size: 18, // Smaller icon
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    S.of(context)!.achievements,
-                    style: SpaceTheme.titleStyle.copyWith(fontSize: 14), // Smaller text
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              if (achievements.isEmpty)
-                Text(
-                  S.of(context)!.playToUnlock,
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 11), // Smaller text
-                  textAlign: TextAlign.center,
-                )
-              else
-                Column(
-                  children: achievements.map((achievement) {
-                    // Look up the localized text using the ID
-                    final uiData = _getAchievementUIData(context, achievement.id);
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 4), // Minimal spacing
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            uiData.icon, // Use the looked-up icon
-                            style: const TextStyle(fontSize: 14), // Smaller emoji
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              uiData.title, // Use the looked-up title
-                              style: SpaceTheme.bodyStyle.copyWith(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 10, // Much smaller text
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
             ],
           ),
         );

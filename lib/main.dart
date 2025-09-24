@@ -467,110 +467,136 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 800 || screenSize.height < 500;
+    
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: SpaceTheme.spaceGradient),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnimatedBuilder(
-                animation: _logoScale,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _logoScale.value,
-                    child: Container(
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        gradient: SpaceTheme.starGradient,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: SpaceTheme.starYellow.withOpacity(0.5),
-                            blurRadius: 30,
-                            spreadRadius: 10,
+        child: SafeArea( // FIX: Add SafeArea to prevent overflow
+          child: SingleChildScrollView( // FIX: Make scrollable if needed
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: screenSize.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedBuilder(
+                    animation: _logoScale,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _logoScale.value,
+                        child: Container(
+                          width: isSmallScreen ? 100 : 150, // FIX: Smaller logo on small screens
+                          height: isSmallScreen ? 100 : 150,
+                          decoration: BoxDecoration(
+                            gradient: SpaceTheme.starGradient,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: SpaceTheme.starYellow.withOpacity(0.5),
+                                blurRadius: isSmallScreen ? 20 : 30,
+                                spreadRadius: isSmallScreen ? 5 : 10,
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: const Icon(Icons.rocket_launch, color: Colors.white, size: 80),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 40),
-              AnimatedBuilder(
-                animation: _textOpacity,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _textOpacity.value,
-                    child: Column(
-                      children: [
-                        Text(
-                          S.of(context)!.appTitle, // This is safe to call here
-                          style: SpaceTheme.headlineStyle.copyWith(fontSize: 36),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          S.of(context)!.splashScreenSubtitle, // And here
-                          style: SpaceTheme.bodyStyle.copyWith(
-                            fontSize: 18,
-                            color: SpaceTheme.starYellow,
+                          child: Icon(
+                            Icons.rocket_launch, 
+                            color: Colors.white, 
+                            size: isSmallScreen ? 50 : 80 // FIX: Smaller icon on small screens
                           ),
                         ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 60),
-              AnimatedBuilder(
-                animation: _textOpacity,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _textOpacity.value,
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          width: 250,
-                          child: AnimatedBuilder(
-                            animation: _progressAnimation,
-                            builder: (context, child) {
-                              return LinearProgressIndicator(
-                                value: _progressAnimation.value,
-                                backgroundColor: SpaceTheme.deepSpace,
-                                valueColor: const AlwaysStoppedAnimation<Color>(
-                                  SpaceTheme.starYellow,
+                      );
+                    },
+                  ),
+                  SizedBox(height: isSmallScreen ? 20 : 40), // FIX: Less spacing on small screens
+                  AnimatedBuilder(
+                    animation: _textOpacity,
+                    builder: (context, child) {
+                      return Opacity(
+                        opacity: _textOpacity.value,
+                        child: Column(
+                          children: [
+                            Text(
+                              S.of(context)!.appTitle,
+                              style: SpaceTheme.headlineStyle.copyWith(
+                                fontSize: isSmallScreen ? 24 : 36 // FIX: Smaller text on small screens
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: isSmallScreen ? 8 : 16),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20), // FIX: Add padding
+                              child: Text(
+                                S.of(context)!.splashScreenSubtitle,
+                                style: SpaceTheme.bodyStyle.copyWith(
+                                  fontSize: isSmallScreen ? 14 : 18,
+                                  color: SpaceTheme.starYellow,
                                 ),
-                              );
-                            },
-                          ),
+                                textAlign: TextAlign.center, // FIX: Center text
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _loadingMessage, // Display the current loading message
-                          style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+                      );
+                    },
+                  ),
+                  SizedBox(height: isSmallScreen ? 30 : 60), // FIX: Less spacing on small screens
+                  AnimatedBuilder(
+                    animation: _textOpacity,
+                    builder: (context, child) {
+                      return Opacity(
+                        opacity: _textOpacity.value,
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              width: isSmallScreen ? 200 : 250, // FIX: Smaller progress bar on small screens
+                              child: AnimatedBuilder(
+                                animation: _progressAnimation,
+                                builder: (context, child) {
+                                  return LinearProgressIndicator(
+                                    value: _progressAnimation.value,
+                                    backgroundColor: SpaceTheme.deepSpace,
+                                    valueColor: const AlwaysStoppedAnimation<Color>(
+                                      SpaceTheme.starYellow,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            SizedBox(height: isSmallScreen ? 12 : 16),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Text(
+                                _loadingMessage,
+                                style: SpaceTheme.bodyStyle.copyWith(
+                                  fontSize: isSmallScreen ? 12 : 14
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            SizedBox(height: isSmallScreen ? 4 : 8),
+                            Text(
+                              '${(_progress * 100).toInt()}%',
+                              style: SpaceTheme.bodyStyle.copyWith(
+                                fontSize: isSmallScreen ? 10 : 12,
+                                color: SpaceTheme.starYellow,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${(_progress * 100).toInt()}%',
-                          style: SpaceTheme.bodyStyle.copyWith(
-                            fontSize: 12,
-                            color: SpaceTheme.starYellow,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                      );
+                    },
+                  ),
+                  SizedBox(height: isSmallScreen ? 20 : 40), // FIX: Bottom spacing
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
+  
 }
 
 // Global Error Handler
@@ -588,5 +614,162 @@ class GlobalErrorHandler {
     FlutterError.onError = (FlutterErrorDetails details) {
       handleError(details.exception, details.stack ?? StackTrace.empty);
     };
+  }
+}
+
+class SpaceLoadingScreen extends StatelessWidget {
+  final String? message;
+  
+  const SpaceLoadingScreen({super.key, this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 800 || screenSize.height < 500;
+    
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(gradient: SpaceTheme.spaceGradient),
+        child: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: isSmallScreen ? 40 : 60,
+                  height: isSmallScreen ? 40 : 60,
+                  child: const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(SpaceTheme.starYellow),
+                  ),
+                ),
+                SizedBox(height: isSmallScreen ? 16 : 24),
+                if (message != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      message!,
+                      style: SpaceTheme.bodyStyle.copyWith(
+                        fontSize: isSmallScreen ? 14 : 16,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SpaceErrorScreen extends StatelessWidget {
+  final String title;
+  final String message;
+  final VoidCallback? onRetry;
+  final VoidCallback? onBack;
+  
+  const SpaceErrorScreen({
+    super.key,
+    required this.title,
+    required this.message,
+    this.onRetry,
+    this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 800 || screenSize.height < 500;
+    
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(gradient: SpaceTheme.spaceGradient),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: screenSize.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: isSmallScreen ? 60 : 80,
+                      color: SpaceTheme.rocketRed,
+                    ),
+                    SizedBox(height: isSmallScreen ? 16 : 24),
+                    Text(
+                      title,
+                      style: SpaceTheme.headlineStyle.copyWith(
+                        fontSize: isSmallScreen ? 20 : 28,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: isSmallScreen ? 12 : 16),
+                    Text(
+                      message,
+                      style: SpaceTheme.bodyStyle.copyWith(
+                        fontSize: isSmallScreen ? 14 : 16,
+                        color: Colors.white70,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: isSmallScreen ? 24 : 32),
+                    if (onRetry != null || onBack != null)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (onBack != null) ...[
+                            ElevatedButton(
+                              onPressed: onBack,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: SpaceTheme.deepSpace,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isSmallScreen ? 16 : 24,
+                                  vertical: isSmallScreen ? 8 : 12,
+                                ),
+                              ),
+                              child: Text(
+                                'Go Back',
+                                style: TextStyle(fontSize: isSmallScreen ? 12 : 14),
+                              ),
+                            ),
+                            if (onRetry != null) SizedBox(width: isSmallScreen ? 12 : 16),
+                          ],
+                          if (onRetry != null)
+                            ElevatedButton(
+                              onPressed: onRetry,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: SpaceTheme.starYellow,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isSmallScreen ? 16 : 24,
+                                  vertical: isSmallScreen ? 8 : 12,
+                                ),
+                              ),
+                              child: Text(
+                                'Retry',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 12 : 14,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

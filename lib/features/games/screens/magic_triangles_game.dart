@@ -84,24 +84,20 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   void dispose() {
     debugPrint("🚀 [UI] MagicTrianglesGame.dispose() - Cleaning up controllers");
     
-    // Stop all animations before disposing
     _glowController.stop();
     _successController.stop();
     _timeController.stop();
     _dropController.stop();
     _warpController.stop();
     
-    // Remove any listeners
     _warpController.clearListeners();
     
-    // Dispose controllers
     _glowController.dispose();
     _successController.dispose();
     _timeController.dispose();
     _dropController.dispose();
     _warpController.dispose();
     
-    // Clear puzzle data
     currentPuzzle = null;
     userAnswers.clear();
     numberPool.clear();
@@ -207,12 +203,10 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     setState(() => _isWarping = true);
     _warpController.forward();
 
-    // Define a listener function that can be removed.
     void listener(AnimationStatus status) {
       if (status == AnimationStatus.completed) {
         debugPrint("🎉 [UI] Warp animation completed, calculating score");
         
-        // IMPORTANT: Remove the listener immediately to prevent it from firing again.
         _warpController.removeStatusListener(listener);
 
         int baseScore = 150 * widget.grade;
@@ -220,7 +214,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         context.read<GameProvider>().addScore(baseScore + bonusScore);
         _successController.forward(from: 0.0);
         
-        if (mounted) { // Always check if the widget is still in the tree before showing a dialog
+        if (mounted) {
           showDialog(
             context: context,
             barrierDismissible: false,
@@ -230,7 +224,6 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       }
     }
 
-    // Add the listener.
     _warpController.addStatusListener(listener);
   }
 
@@ -249,17 +242,27 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   Widget build(BuildContext context) {
     debugPrint("🏗️ [UI] build() called - _isGenerating: $_isGenerating, currentPuzzle: ${currentPuzzle != null}");
     
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 800 || screenSize.height < 500; // iPhone landscape detection
+    
     if (currentPuzzle == null || _isGenerating) {
       debugPrint("🏗️ [UI] Showing loading screen");
       return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: 16),
-              Text(S.of(context)!.calculatingCoordinates, style: SpaceTheme.bodyStyle),
-            ],
+        body: SpaceBackground(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(),
+                SizedBox(height: isSmallScreen ? 12 : 16),
+                Text(
+                  S.of(context)!.calculatingCoordinates,
+                  style: SpaceTheme.bodyStyle.copyWith(
+                    fontSize: isSmallScreen ? 14 : 16
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -271,30 +274,17 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         child: SafeArea(
           child: Column(
             children: [
-              GameUI(title: S.of(context)!.magicTrianglesGameTitle, level: widget.level, onBack: () => Navigator.of(context).pop()),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text(
-                  S.of(context)!.magicTrianglesInstructions,
-                  style: SpaceTheme.bodyStyle, textAlign: TextAlign.center,
+              _buildCompactGameHeader(isSmallScreen),
+              if (!isSmallScreen) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(
+                    S.of(context)!.magicTrianglesInstructions,
+                    style: SpaceTheme.bodyStyle, textAlign: TextAlign.center,
+                  ),
                 ),
-              ),
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                padding: const EdgeInsets.all(16),
-                decoration: SpaceTheme.cardDecoration,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.hub, color: SpaceTheme.alienGreen, size: 28),
-                    const SizedBox(width: 12),
-                    Text(
-                      S.of(context)!.magicTrianglesWarpFrequency(currentPuzzle!.warpFrequency),
-                      style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.alienGreen, fontSize: 20),
-                    ),
-                  ],
-                ),
-              ),
+              ],
+              _buildWarpFrequencyCard(isSmallScreen),
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
@@ -307,6 +297,210 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // Compact header for small screens
+  Widget _buildCompactGameHeader(bool isSmallScreen) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmallScreen ? 12 : 16, 
+        vertical: isSmallScreen ? 8 : 16
+      ),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF1E2235),
+            Colors.transparent,
+          ],
+        ),
+      ),
+      child: Row(
+        children: [
+          // Back Button
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.white,
+              size: isSmallScreen ? 20 : 28,
+            ),
+            style: IconButton.styleFrom(
+              backgroundColor: const Color(0xFF1A1A2E).withOpacity(0.8),
+              padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
+            ),
+          ),
+          
+          SizedBox(width: isSmallScreen ? 12 : 20),
+          
+          // Title - more compact on small screens
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  S.of(context)!.magicTrianglesGameTitle,
+                  style: SpaceTheme.headlineStyle.copyWith(
+                    fontSize: isSmallScreen ? 18 : 28
+                  ),
+                ),
+                if (isSmallScreen)
+                  Text(
+                    S.of(context)!.magicTrianglesInstructions,
+                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 10),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
+          ),
+          
+          // Level and Score - more compact
+          Row(
+            children: [
+              _buildCompactStatItem(
+                icon: Icons.emoji_events,
+                label: isSmallScreen ? '' : 'Level',
+                value: widget.level.toString(),
+                color: const Color(0xFFFFD700),
+                isSmall: isSmallScreen,
+              ),
+              
+              SizedBox(width: isSmallScreen ? 8 : 20),
+              
+              Consumer<GameProvider>(
+                builder: (context, gameProvider, child) {
+                  return _buildCompactStatItem(
+                    icon: Icons.star,
+                    label: isSmallScreen ? '' : 'Score',
+                    value: gameProvider.score.toString(),
+                    color: const Color(0xFF06FFA5),
+                    isSmall: isSmallScreen,
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactStatItem({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+    required bool isSmall,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmall ? 8 : 16, 
+        vertical: isSmall ? 4 : 8
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A2E).withOpacity(0.8),
+        borderRadius: BorderRadius.circular(isSmall ? 12 : 20),
+        border: Border.all(
+          color: color.withOpacity(0.5),
+          width: isSmall ? 1 : 2,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: isSmall ? 16 : 20),
+          if (label.isNotEmpty || !isSmall) ...[
+            SizedBox(width: isSmall ? 4 : 8),
+            if (!isSmall)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
+                  ),
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              )
+            else
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+          ] else ...[
+            const SizedBox(width: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                color: color,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // More subtle warp frequency card
+  Widget _buildWarpFrequencyCard(bool isSmallScreen) {
+    return Align(
+      alignment: Alignment.centerRight, // Align to right to save triangle space
+      child: Container(
+        margin: EdgeInsets.only(
+          right: isSmallScreen ? 16 : 20,
+          top: isSmallScreen ? 2 : 4,
+          bottom: isSmallScreen ? 2 : 4,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: isSmallScreen ? 8 : 12,
+          vertical: isSmallScreen ? 4 : 6,
+        ),
+        decoration: BoxDecoration(
+          color: SpaceTheme.deepSpace.withOpacity(0.4), // More transparent
+          borderRadius: BorderRadius.circular(isSmallScreen ? 6 : 10),
+          border: Border.all(
+            color: SpaceTheme.alienGreen.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min, // Only take needed space
+          children: [
+            Icon(
+              Icons.hub, 
+              color: SpaceTheme.alienGreen, 
+              size: isSmallScreen ? 12 : 16 // Smaller icon
+            ),
+            SizedBox(width: isSmallScreen ? 4 : 8),
+            Text(
+              "Warp: ${currentPuzzle!.warpFrequency}", // Shorter text
+              style: SpaceTheme.titleStyle.copyWith(
+                color: SpaceTheme.alienGreen, 
+                fontSize: isSmallScreen ? 10 : 14, // Smaller text
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -349,7 +543,21 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     return LayoutBuilder(
       builder: (context, constraints) {
         debugPrint("🔺 [UI] Triangle LayoutBuilder constraints: ${constraints.maxWidth}x${constraints.maxHeight}");
-        final size = math.min(constraints.maxWidth, constraints.maxHeight).clamp(250.0, 450.0);
+        
+        // Better size calculation for small screens
+        final screenSize = MediaQuery.of(context).size;
+        final isSmallScreen = screenSize.width < 800 || screenSize.height < 500;
+        
+        double size;
+        if (isSmallScreen) {
+          // For small screens, use more of the available space
+          size = math.min(constraints.maxWidth * 0.9, constraints.maxHeight * 0.8)
+              .clamp(200.0, 350.0);
+        } else {
+          size = math.min(constraints.maxWidth, constraints.maxHeight)
+              .clamp(250.0, 450.0);
+        }
+        
         final center = Offset(size / 2, size / 2);
         final radius = size * 0.4;
         debugPrint("🔺 [UI] Triangle parameters: size=$size, center=$center, radius=$radius");
@@ -478,7 +686,13 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     List<Widget> nodes = [];
     int answerIdx = 0;
     
-    final nodeSize = (size * 0.18).clamp(45.0, 75.0);
+    // Better node size calculation for small screens
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 800 || screenSize.height < 500;
+    
+    final nodeSize = isSmallScreen 
+        ? (size * 0.15).clamp(35.0, 55.0)  // Smaller nodes for small screens
+        : (size * 0.18).clamp(45.0, 75.0);
     debugPrint("🔵 [UI] Node size: $nodeSize");
     
     for (int i = 0; i < currentPuzzle!.totalCircles; i++) {
@@ -558,7 +772,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         child: Text(
           isHidden ? (value?.toString() ?? '') : value.toString(),
           style: SpaceTheme.headlineStyle.copyWith(
-            fontSize: size * 0.35,
+            fontSize: size * 0.4, // Slightly larger font relative to node size
             color: isHidden && value == null ? Colors.transparent : Colors.white,
             shadows: const [Shadow(color: SpaceTheme.starYellow, blurRadius: 10)],
           ),
@@ -570,22 +784,33 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
   Widget _buildNumberPad() {
     debugPrint("🔢 [UI] _buildNumberPad - numberPool: $numberPool (length: ${numberPool.length})");
+    
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 800 || screenSize.height < 500;
+    
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(S.of(context)!.magicTrianglesResonators, style: SpaceTheme.bodyStyle),
-        const SizedBox(height: 12),
+        Text(
+          S.of(context)!.magicTrianglesResonators, 
+          style: SpaceTheme.bodyStyle.copyWith(
+            fontSize: isSmallScreen ? 12 : 14
+          ),
+        ),
+        SizedBox(height: isSmallScreen ? 8 : 12),
         Container(
-          padding: const EdgeInsets.all(8),
-          decoration: SpaceTheme.cardDecoration.copyWith(border: Border.all(color: SpaceTheme.nebulaPurple, width: 2)),
-          constraints: const BoxConstraints(maxWidth: 350),
+          padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
+          decoration: SpaceTheme.cardDecoration.copyWith(
+            border: Border.all(color: SpaceTheme.nebulaPurple, width: 2)
+          ),
+          constraints: BoxConstraints(maxWidth: isSmallScreen ? 280 : 350),
           child: GridView.builder(
             shrinkWrap: true,
             physics: const BouncingScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: isSmallScreen ? 5 : 4, // More columns on small screens
+              crossAxisSpacing: isSmallScreen ? 6 : 8,
+              mainAxisSpacing: isSmallScreen ? 6 : 8,
             ),
             itemCount: numberPool.length,
             itemBuilder: (context, index) {
@@ -595,9 +820,12 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               final number = numberPool[index];
               return Draggable<int>(
                 data: number,
-                feedback: _buildDraggableFeedback(number),
-                childWhenDragging: Opacity(opacity: 0.3, child: _buildResonator(number)),
-                child: _buildResonator(number),
+                feedback: _buildDraggableFeedback(number, isSmallScreen),
+                childWhenDragging: Opacity(
+                  opacity: 0.3, 
+                  child: _buildResonator(number, isSmallScreen)
+                ),
+                child: _buildResonator(number, isSmallScreen),
               );
             },
           ),
@@ -606,29 +834,46 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     );
   }
 
-  Widget _buildResonator(int number) {
+  Widget _buildResonator(int number, bool isSmallScreen) {
     return Container(
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.7), width: 2),
+        borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 12),
+        border: Border.all(
+          color: SpaceTheme.starYellow.withOpacity(0.7), 
+          width: isSmallScreen ? 1 : 2
+        ),
       ),
-      child: Center(child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 18))),
+      child: Center(
+        child: Text(
+          number.toString(), 
+          style: SpaceTheme.headlineStyle.copyWith(
+            fontSize: isSmallScreen ? 14 : 18
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildDraggableFeedback(int number) {
+  Widget _buildDraggableFeedback(int number, bool isSmallScreen) {
     return Material(
       color: Colors.transparent,
       child: Container(
-        width: 60,
-        height: 60,
+        width: isSmallScreen ? 45 : 60,
+        height: isSmallScreen ? 45 : 60,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: SpaceTheme.starGradient,
           boxShadow: const [BoxShadow(color: SpaceTheme.starYellow, blurRadius: 20, spreadRadius: 5)],
         ),
-        child: Center(child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 22))),
+        child: Center(
+          child: Text(
+            number.toString(), 
+            style: SpaceTheme.headlineStyle.copyWith(
+              fontSize: isSmallScreen ? 16 : 22
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -685,8 +930,8 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop(); // Close the dialog
-                          Navigator.of(context).pop(); // Close the game screen
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.toTheBridge),
@@ -702,6 +947,8 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     );
   }
 }
+
+// [The MagicTrianglePuzzle, _MagicTriangleSolver, SolutionResult, and WormholePainter classes remain the same as in the original file]
 
 class MagicTrianglePuzzle {
   final int circlesPerSide;
@@ -738,8 +985,8 @@ class MagicTrianglePuzzle {
   }
 
   static MagicTrianglePuzzle generate(Map<String, int> args) {
-    final grade = args['grade']!; // 1-4 (school years 3-6)
-    final level = args['level']!; // 1-20
+    final grade = args['grade']!;
+    final level = args['level']!;
 
     debugPrint("\n--- Generating Enhanced Triangle Puzzle ---");
     int circlesPerSide = _determineCirclesPerSide(grade, level);
@@ -809,31 +1056,26 @@ class MagicTrianglePuzzle {
     return puzzle;
   }
 
-  // Proper scaling for grades 1-4 and levels 1-20
   static int _determineCirclesPerSide(int grade, int level) {
-    final totalDifficulty = grade + (level / 5.0); // Grades 1-4, Levels 1-20
+    final totalDifficulty = grade + (level / 5.0);
     
     debugPrint("[Difficulty] Grade=$grade, Level=$level, TotalDifficulty=$totalDifficulty");
     
-    if (totalDifficulty <= 2.0) return 3;  // Grade 1, Level 1-5
-    if (totalDifficulty <= 3.5) return 4;  // Grade 1-2, Level 6-20 or Grade 3, Level 1-2
-    if (totalDifficulty <= 5.0) return 5;  // Grade 3-4, Level 3-10
-    if (totalDifficulty <= 6.5) return 6;  // Grade 4, Level 11-20
-    return 7; // Grade 4, Level 15-20 only
+    if (totalDifficulty <= 2.0) return 3;
+    if (totalDifficulty <= 3.5) return 4;
+    if (totalDifficulty <= 5.0) return 5;
+    if (totalDifficulty <= 6.5) return 6;
+    return 7;
   }
 
-  // Visibility reduction based on proper 1-4 grade system
   static int _determineVisibleCount(int grade, int level, int totalCircles) {
     final difficulty = grade + (level / 5.0);
     
-    // Start with 80% visibility and reduce based on difficulty
-    double visibilityRatio = 0.80 - (difficulty * 0.06); // More gradual than before
+    double visibilityRatio = 0.80 - (difficulty * 0.06);
     
-    // Additional level-based reduction
     visibilityRatio -= (level - 1) * 0.01;
     
-    // Clamp to reasonable bounds for grades 1-4
-    visibilityRatio = visibilityRatio.clamp(0.25, 0.80); // Min 25% visible
+    visibilityRatio = visibilityRatio.clamp(0.25, 0.80);
     
     final int minVisible = math.max(3, (totalCircles / 5).ceil());
     final int maxVisible = (totalCircles * 0.75).floor();
@@ -847,17 +1089,14 @@ class MagicTrianglePuzzle {
     return calculatedVisible.clamp(minVisible, maxVisible);
   }
 
-  // Number generation suitable for grades 1-4
   static List<int> _generateNumberSet(int grade, int level, int totalCircles, int attempt) {
     final random = math.Random();
     final difficulty = grade + (level / 5.0);
     
     if (difficulty < 2.5) {
-      // Easy: Sequential numbers (Grade 1, early levels)
       final baseStart = math.max(1, level + attempt * 2);
       return List.generate(totalCircles, (i) => baseStart + i);
     } else if (difficulty < 4.0) {
-      // Medium: Sequential with small gaps (Grade 2-3)
       final baseStart = math.max(1, level + grade + attempt * 3);
       final numbers = <int>[];
       int current = baseStart;
@@ -867,9 +1106,7 @@ class MagicTrianglePuzzle {
       }
       return numbers;
     } else if (difficulty < 5.5) {
-      // Hard: Larger ranges (Grade 3-4, higher levels)
       final baseStart = level * 2 + grade * 3 + attempt * 4;
-      // FIX: Ensure range is always large enough for totalCircles
       final range = math.max(totalCircles + 5, 10 + level * 2);
       final numbers = <int>[];
       final used = <int>{};
@@ -884,9 +1121,7 @@ class MagicTrianglePuzzle {
       numbers.sort();
       return numbers;
     } else {
-      // Expert: Complex patterns (Grade 4, Level 15-20)
       final baseStart = level * 3 + grade * 4 + attempt * 6;
-      // FIX: Ensure range is always large enough for totalCircles
       final range = math.max(totalCircles + 8, 20 + level * 2);
       final numbers = <int>[];
       final used = <int>{};
@@ -904,7 +1139,6 @@ class MagicTrianglePuzzle {
     }
   }
 
-  // Decoy count appropriate for grades 1-4
   static int _calculateDecoyCount(int grade, int level, int hiddenCount) {
     final baseDifficulty = grade + (level / 5.0);
     final baseDecoys = 2 + (level / 4).floor();
@@ -918,7 +1152,6 @@ class MagicTrianglePuzzle {
     return totalDecoys.clamp(minDecoys, maxDecoys);
   }
 
-  // FIXED: Proper variable initialization for decoy generation
   static List<int> _generateEnhancedDecoys(int grade, int level, int count, 
                                          List<int> correctNumbers, List<int> hiddenNumbers) {
     debugPrint("[Enhanced Decoys] Generating $count decoy numbers");
@@ -932,14 +1165,12 @@ class MagicTrianglePuzzle {
     final range = maxCorrect - minCorrect;
     
     while (decoys.length < count) {
-      int decoy = 1; // FIXED: Initialize the variable
+      int decoy = 1;
       
       if (difficulty < 2.5) {
-        // Easy: Close to correct numbers
         final baseNum = correctNumbers[random.nextInt(correctNumbers.length)];
         decoy = baseNum + random.nextInt(6) - 3;
       } else if (difficulty < 4.0) {
-        // Medium: Mix of close and distant numbers
         if (random.nextBool()) {
           final baseNum = correctNumbers[random.nextInt(correctNumbers.length)];
           decoy = baseNum + random.nextInt(8) - 4;
@@ -947,7 +1178,6 @@ class MagicTrianglePuzzle {
           decoy = minCorrect + random.nextInt(range + 8);
         }
       } else if (difficulty < 5.5) {
-        // Hard: Strategic placement to confuse
         final strategy = random.nextInt(3);
         switch (strategy) {
           case 0:
@@ -962,7 +1192,6 @@ class MagicTrianglePuzzle {
             break;
         }
       } else {
-        // Expert: Very tricky decoys
         final strategy = random.nextInt(4);
         switch (strategy) {
           case 0:
@@ -981,7 +1210,6 @@ class MagicTrianglePuzzle {
         }
       }
       
-      // Ensure positive and unique
       if (decoy > 0 && !allCorrect.contains(decoy) && !decoys.contains(decoy)) {
         decoys.add(decoy);
       }
@@ -1075,7 +1303,7 @@ class _MagicTriangleSolver {
     _usedFlags = List.filled(numbersToUse.length, false);
     
     _maxIterations = _calculateMaxIterations();
-    numbersToUse.shuffle(); // Simple shuffle is sufficient
+    numbersToUse.shuffle();
     
     debugPrint("[Enhanced Solver] Initialized with $totalCircles circles, numbers: $numbersToUse");
     debugPrint("[Enhanced Solver] Max iterations: $_maxIterations");
