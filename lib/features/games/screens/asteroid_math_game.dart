@@ -23,7 +23,7 @@ class GameConfig {
   
   // Speed Settings
   static const double baseAsteroidSpeed = 3.0; // Reduced from 8.0
-  static const double speedMultiplier = 2.0; // Reduced from 6.0
+  static const double speedMultiplier = 1.8; // Reduced from 6.0
   static const double asteroidBounceDeceleration = 0.9; // Increased from 0.8 for smoother bouncing
   static const double maxRotationSpeed = 0.8; // Reduced from 1.5
   
@@ -42,8 +42,11 @@ class GameConfig {
   // Asteroid Settings
   static const double minAsteroidSize = 50.0; // Reduced from 60.0
   static const double asteroidSizeVariation = 30.0; // Reduced from 40.0
-  static const double asteroidSpacing = 0.6; // For collision detection when spawning
-  
+  static const double asteroidSpacing = 1.1; // For collision detection when spawning
+
+  static const double maxLevelForScaling = 20.0; // The level at which asteroids reach max size
+  static const double maxSizeMultiplier = 1.4;   // The max size multiplier (1.0 to 1.4)
+
   // Game Timing
   static const double updateDeltaTime = 0.02; // 50fps equivalent
   
@@ -228,11 +231,18 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       problems.add(simpleProblem);
       usedAnswers.add(plainNumber);
     }
-    
+
+  
     // Create asteroids from problems
     for (int i = 0; i < problems.length; i++) {
       final problem = problems[i];
-      final asteroidSize = (GameConfig.minAsteroidSize + random.nextDouble() * GameConfig.asteroidSizeVariation) * difficulty.visualComplexity;
+
+      // Calculate a multiplier that grows from 1.0 to 1.4 as the level goes from 1 to 20
+      final double progress = ((widget.level - 1) / (GameConfig.maxLevelForScaling - 1)).clamp(0.0, 1.0);
+      final double sizeMultiplier = 1.0 + (progress * (GameConfig.maxSizeMultiplier - 1.0));
+
+      final asteroidSize = (GameConfig.minAsteroidSize + random.nextDouble() * GameConfig.asteroidSizeVariation) * sizeMultiplier;
+
       final asteroidSpeed = (GameConfig.baseAsteroidSpeed + (difficulty.gameSpeed * GameConfig.speedMultiplier));
 
       Offset position;
@@ -243,18 +253,22 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
           random.nextDouble() * (screenSize.height - asteroidSize - 220) + 100,
         );
         positionAttempts++;
-      } while (positionAttempts < 10 && _isPositionTooClose(position, asteroidSize));
+      } while (positionAttempts < 30 && _isPositionTooClose(position, asteroidSize));
 
       final asteroidType = AsteroidType.values[random.nextInt(AsteroidType.values.length)];
+
+      final angle = random.nextDouble() * 2 * math.pi;
+      final speed = asteroidSpeed * (0.7 + random.nextDouble() * 0.3); // Speed is 70-100% of max
 
       asteroids.add(Asteroid(
         id: i,
         problem: problem,
         position: position,
-        velocity: Offset(
+        /* velocity: Offset(
           (random.nextDouble() - 0.5) * asteroidSpeed,
           (random.nextDouble() - 0.5) * asteroidSpeed,
-        ),
+        ), */
+        velocity: Offset(math.cos(angle) * speed, math.sin(angle) * speed),
         size: asteroidSize,
         rotationSpeed: (random.nextDouble() - 0.5) * GameConfig.maxRotationSpeed * difficulty.animationSpeed,
         rotation: random.nextDouble() * 2 * math.pi,

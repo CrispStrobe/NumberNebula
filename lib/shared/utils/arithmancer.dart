@@ -1065,7 +1065,7 @@ class EnemyRoster {
           ),
       () => MathematicalEnemy(
             name: "Square Root Bastion",
-            maxHealth: 75, // Increased from 45
+            maxHealth: 45, // Increased from 45
             lore:
                 "An ancient fortress that crumbles only to perfect geometric forms.",
             mathematicalShields: {'square_immune': true},
@@ -1076,7 +1076,7 @@ class EnemyRoster {
           ),
       () => MathematicalEnemy(
             name: "Fibonacci Serpent",
-            maxHealth: 90, // Increased from 55
+            maxHealth: 60, // Increased from 55
             lore: "A recursive predator locked in the golden spiral.",
             mathematicalShields: {'fibonacci_only': true},
             behavior: [
@@ -1087,7 +1087,7 @@ class EnemyRoster {
           ),
       () => MathematicalEnemy(
             name: "Binary Overlord",
-            maxHealth: 110, // Increased from 70
+            maxHealth: 75, // Increased from 70
             lore:
                 "Powered by the fundamental duality of computation - only powers of 2 can breach its defenses.",
             mathematicalShields: {
@@ -1423,7 +1423,7 @@ class ArithmancerGame {
 
     // REDUCED HEALING: Less generous recovery to maintain challenge
     int healing =
-        25 + (enemiesDefeated * 15); // 40, 55, 70, 85, 100 healing
+        25 + (enemiesDefeated * 30); 
     playerHealth = min(maxHealth, playerHealth + healing);
     log("💚 Systems restored: +$healing HP! Current: $playerHealth/$maxHealth");
   }

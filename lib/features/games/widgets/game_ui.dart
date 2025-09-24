@@ -1,3 +1,5 @@
+// lib/features/games/widgets/game_ui.dart:
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/space_theme.dart';

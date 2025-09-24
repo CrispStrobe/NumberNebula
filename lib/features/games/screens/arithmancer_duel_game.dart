@@ -857,6 +857,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final sideBarWidth = screenWidth * 0.15; 
+
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
@@ -870,30 +873,29 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                       children: [
                         // Left side - Deck pile
                         SizedBox(
-                          width: 100,
+                          width: sideBarWidth,
                           child: _buildDeckArea(),
                         ),
                         // Center - Main game area
                         Expanded(
                           child: Column(
                             children: [
-                              // Opponent area - increased height to prevent overflow  
-                                SizedBox(
-                                height: 100, // Increased from 80 to 100
-                                child: _buildOpponentArea(),
-                                ),
-                                // Battlefield - increased height to prevent overflow
-                                SizedBox(
-                                height: 160, // Increased from 140 to 160  
-                                child: _buildBattlefield(),
-                                ),
-                                // Player stats - increased height to prevent overflow
-                                SizedBox(
-                                height: 100, // Increased
-                                child: _buildPlayerArea(),
-                                ),
-                              // Hand area - takes remaining space
+                              // --- FLEX VALUES REBALANCED FOR LARGER CARDS --- ✨
+
                               Expanded(
+                                flex: 4, // OLD: 3 - Shrunk
+                                child: _buildOpponentArea(),
+                              ),
+                              Expanded(
+                                flex: 9, // OLD: 5 - Shrunk significantly
+                                child: _buildBattlefield(),
+                              ),
+                              Expanded(
+                                flex: 4, // OLD: 3 - Shrunk
+                                child: _buildPlayerArea(),
+                              ),
+                              Expanded(
+                                flex: 11, // OLD: 4 - Greatly expanded for larger cards
                                 child: _buildHandArea(),
                               ),
                             ],
@@ -901,7 +903,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                         ),
                         // Right side - Discard pile
                         SizedBox(
-                          width: 100,
+                          width: sideBarWidth,
                           child: _buildDiscardArea(),
                         ),
                       ],
@@ -909,7 +911,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                   ),
                 ],
               ),
-              // Visual effects overlay
+              // Visual effects overlay...
               ..._particles.map((p) => p.buildWidget()),
               ..._energyOrbs.map((orb) => orb.buildWidget()),
               ..._shieldEffects.map((shield) => shield.buildWidget()),
@@ -1158,180 +1160,176 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     if (_currentEnemy == null) return const SizedBox.shrink();
 
     return Container(
-      margin: const EdgeInsets.all(2), // Further reduced from 4
-      child: AnimatedBuilder(
-        animation: _damageAnimation,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(
-              math.sin(_damageAnimation.value * math.pi * 4) * 2,
-              0,
+      margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            SpaceTheme.rocketRed.withOpacity(0.2),
+            SpaceTheme.deepSpace.withOpacity(0.9),
+          ],
+          stops: const [0.0, 1.0],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: SpaceTheme.rocketRed, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: SpaceTheme.rocketRed.withOpacity(0.6),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Enemy Avatar
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: SpaceTheme.rocketRed,
+              border: Border.all(color: Colors.white, width: 1),
             ),
-            child: Stack(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6), // Further reduced from 8
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        SpaceTheme.rocketRed.withOpacity(0.1),
-                        SpaceTheme.deepSpace.withOpacity(0.9),
-                        SpaceTheme.rocketRed.withOpacity(0.1),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: SpaceTheme.rocketRed, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: SpaceTheme.rocketRed.withOpacity(0.6),
-                        blurRadius: 15,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      // Enemy Avatar
-                      AnimatedBuilder(
-                        animation: _pulseAnimation,
-                        builder: (context, child) {
-                          return Transform.scale(
-                            scale: _pulseAnimation.value,
-                            child: Container(
-                              width: 35, // Further reduced from 40
-                              height: 35, // Further reduced from 40
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: RadialGradient(
-                                  colors: [SpaceTheme.rocketRed, SpaceTheme.deepSpace],
-                                ),
-                                border: Border.all(color: SpaceTheme.rocketRed, width: 2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: SpaceTheme.rocketRed.withOpacity(0.8),
-                                    blurRadius: 10,
-                                    spreadRadius: 2,
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                Icons.smart_toy,
-                                color: Colors.white,
-                                size: 18, // Further reduced from 20
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 8), // Further reduced from 12
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _currentEnemy!.name.toUpperCase(),
-                              style: SpaceTheme.headlineStyle.copyWith(
-                                fontSize: 12, // Further reduced from 14
-                                color: SpaceTheme.rocketRed,
-                                letterSpacing: 1.0,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 1), // Further reduced from 2
-                            _buildCompactHealthBar(_currentEnemy!.health, _currentEnemy!.maxHealth, SpaceTheme.rocketRed),
-                          ],
-                        ),
-                      ),
-                    ],
+            child: const Icon(Icons.smart_toy, color: Colors.black, size: 18),
+          ),
+          const SizedBox(width: 8),
+          // Enemy Name (uses FittedBox to scale down if needed)
+          SizedBox(
+            height: 20,
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: Text(
+                _currentEnemy!.name.toUpperCase(),
+                style: SpaceTheme.headlineStyle.copyWith(
+                  color: Colors.white,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ),
+          ),
+          const Spacer(),
+          // Health Bar and Text combined
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: 120, // A fixed width for the health bar itself
+                height: 18,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(9),
+                  border: Border.all(color: SpaceTheme.rocketRed.withOpacity(0.5)),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(9),
+                  child: LinearProgressIndicator(
+                    value: (_currentEnemy!.health / _currentEnemy!.maxHealth).clamp(0.0, 1.0),
+                    backgroundColor: Colors.transparent,
+                    valueColor: const AlwaysStoppedAnimation<Color>(SpaceTheme.rocketRed),
                   ),
                 ),
-                // Shield visual effects overlaid on top
-                ..._shieldEffects.map((shield) => shield.buildWidget()),
-              ],
-            ),
-          );
-        },
+              ),
+              Text(
+                "${_currentEnemy!.health}",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+                ),
+              ),
+            ],
+          ),
+          // Shields will now be handled differently if needed,
+          // as they would need to be placed in the Row or outside in the parent Stack.
+        ],
       ),
     );
   }
 
   Widget _buildPlayerArea() {
+    final int currentHealth = _pvpGame?.player1State.health ?? _game.playerHealth;
+    final int maxHealth = _pvpGame != null ? 120 : _game.maxHealth;
+    final int currentEnergy = _pvpGame?.player1State.energy ?? _game.playerEnergy;
+    final int currentBlock = _pvpGame?.player1State.block ?? _game.currentBlock;
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 2), // Further reduced from 4
-      child: Container(
-        padding: const EdgeInsets.all(6), // Further reduced from 8
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              SpaceTheme.alienGreen.withOpacity(0.1),
-              SpaceTheme.deepSpace.withOpacity(0.9),
-              SpaceTheme.alienGreen.withOpacity(0.1),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: SpaceTheme.alienGreen, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: SpaceTheme.alienGreen.withOpacity(0.6),
-              blurRadius: 15,
-              spreadRadius: 2,
-            ),
+      margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            SpaceTheme.alienGreen.withOpacity(0.2),
+            SpaceTheme.deepSpace.withOpacity(0.9),
           ],
+          stops: const [0.0, 1.0],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
         ),
-        child: Row(
-          children: [
-            // Avatar
-            Container(
-              width: 25, // Further reduced from 30
-              height: 25, // Further reduced from 30
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace],
-                ),
-                border: Border.all(color: SpaceTheme.alienGreen, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: SpaceTheme.alienGreen.withOpacity(0.8),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.person,
-                color: Colors.white,
-                size: 12, // Further reduced from 15
-              ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: SpaceTheme.alienGreen, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: SpaceTheme.alienGreen.withOpacity(0.6),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Player Avatar
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: SpaceTheme.alienGreen,
+              border: Border.all(color: Colors.white, width: 1),
             ),
-            const SizedBox(width: 6), // Further reduced from 8
-            Expanded(
-              child: _buildCompactHealthBar(
-                _pvpGame?.player1State.health ?? _game.playerHealth,
-                _pvpGame?.player1State.health ?? _game.maxHealth,
-                SpaceTheme.alienGreen,
-              ),
-            ),
-            const SizedBox(width: 6), // Further reduced from 8
-            Column(
-              mainAxisSize: MainAxisSize.min,
+            child: const Icon(Icons.person, color: Colors.black, size: 18),
+          ),
+          const SizedBox(width: 8),
+          // Health Bar and Text combined
+          Expanded(
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                _buildCompactStat(
-                  "E", 
-                  "${_pvpGame?.player1State.energy ?? _game.playerEnergy}", 
-                  SpaceTheme.starYellow
+                Container(
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(9),
+                    border: Border.all(color: SpaceTheme.alienGreen.withOpacity(0.5)),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(9),
+                    child: LinearProgressIndicator(
+                      value: (currentHealth / maxHealth).clamp(0.0, 1.0),
+                      backgroundColor: Colors.transparent,
+                      valueColor: const AlwaysStoppedAnimation<Color>(SpaceTheme.alienGreen),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 1), // Further reduced from 2
-                _buildCompactStat(
-                  "S", 
-                  "${_pvpGame?.player1State.block ?? _game.currentBlock}", 
-                  SpaceTheme.alienGreen
+                Text(
+                  "HEALTH: $currentHealth",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+                  ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+          // Energy and Shield Stats
+          _buildCompactStat("E", "$currentEnergy", SpaceTheme.starYellow),
+          const SizedBox(width: 6),
+          _buildCompactStat("S", "$currentBlock", SpaceTheme.nebulaPurple),
+        ],
       ),
     );
   }
@@ -1630,88 +1628,81 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   Widget _buildHandArea() {
     return Container(
       margin: const EdgeInsets.all(8),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              SpaceTheme.nebulaPurple.withOpacity(0.2),
-              SpaceTheme.deepSpace.withOpacity(0.8),
-              SpaceTheme.nebulaPurple.withOpacity(0.2),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
-        ),
-        child: Column(
-          children: [
-            Text(
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.2), // Added a subtle background
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.5)),
+      ),
+      child: Column(
+        children: [
+          // FIX: Give the title a fixed height to prevent it from consuming all the space.
+          Container(
+            height: 28, // Give the title a predictable, fixed height
+            alignment: Alignment.center,
+            child: Text(
               "NEURAL ARSENAL",
               style: SpaceTheme.titleStyle.copyWith(
-                fontSize: 14,
+                fontSize: 12, // Slightly smaller font
                 color: SpaceTheme.nebulaPurple,
                 letterSpacing: 1.5,
               ),
             ),
-            const SizedBox(height: 8),
-            Expanded(
+          ),
+          // The SizedBox below the title is no longer needed.
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 8), // Add padding here instead
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  // Calculate optimal card dimensions
-                  final cardWidth = (constraints.maxWidth - (6 * 8)) / 7; // 7 cards with 8px spacing
-                  final cardHeight = constraints.maxHeight - 16; // Leave some padding
-                  
-      // Hand area uses exact card count, no dynamic generation
-      List<Widget> handSlots = [];
-      for (int i = 0; i < 7; i++) {
-        if (i < _handCards.length) {
-          final card = _handCards[i];
-          handSlots.add(
-            Container(
-              width: cardWidth,
-              height: cardHeight,
-              margin: EdgeInsets.only(right: i < 6 ? 8 : 0),
-              child: _buildDraggableCard(card, i),
-            ),
-          );
-        } else {
-          handSlots.add(
-            Container(
-              width: cardWidth,
-              height: cardHeight,
-              margin: EdgeInsets.only(right: i < 6 ? 8 : 0),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white12, width: 1),
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.add,
-                  color: Colors.white12,
-                  size: 20,
-                ),
-              ),
-            ),
-          );
-        }
-      }
-      
-      return Row(children: handSlots);
+                  // This logic is now safe because the Expanded parent has a guaranteed height.
+                  final cardWidth = (constraints.maxWidth - (6 * 6)) / 7; // Adjusted spacing
+                  final double cardHeight = constraints.maxHeight; // Use all available height
+
+                  if (cardHeight <= 0) return const SizedBox.shrink();
+
+                  List<Widget> handSlots = [];
+                  for (int i = 0; i < 7; i++) {
+                    if (i < _handCards.length) {
+                      final card = _handCards[i];
+                      handSlots.add(
+                        Container(
+                          width: cardWidth,
+                          height: cardHeight,
+                          margin: EdgeInsets.only(right: i < 6 ? 6 : 0),
+                          child: _buildDraggableCard(card, i),
+                        ),
+                      );
+                    } else {
+                      // Render empty slots for consistency
+                      handSlots.add(
+                        Container(
+                          width: cardWidth,
+                          height: cardHeight,
+                          margin: EdgeInsets.only(right: i < 6 ? 6 : 0),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                  return Row(children: handSlots);
                 },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildCompactHealthBar(int current, int max, Color color) {
-    final percentage = (current / max).clamp(0.0, 1.0);
+    final percentage = max > 0 ? (current / max).clamp(0.0, 1.0) : 0.0;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min, // Constrains the Column's size to its children
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1719,7 +1710,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             Text(
               "HEALTH",
               style: SpaceTheme.bodyStyle.copyWith(
-                fontSize: 8,
+                fontSize: 7, // CHANGED from 8
                 color: Colors.white70,
                 letterSpacing: 1.0,
               ),
@@ -1727,38 +1718,34 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             Text(
               "$current",
               style: SpaceTheme.headlineStyle.copyWith(
-                fontSize: 18,
+                fontSize: 14, // CHANGED from 18
                 color: color,
                 fontWeight: FontWeight.bold,
                 shadows: [
-                  Shadow(color: color, blurRadius: 6),
+                  Shadow(color: color, blurRadius: 4), // Reduced blur
                 ],
               ),
             ),
           ],
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 2), // Unchanged, but feels right with smaller fonts
         Container(
-          height: 6,
+          height: 5, // CHANGED from 6
           decoration: BoxDecoration(
-            color: SpaceTheme.deepSpace,
+            color: color.withOpacity(0.15),
             borderRadius: BorderRadius.circular(3),
-            border: Border.all(color: color.withOpacity(0.5), width: 1),
           ),
           child: FractionallySizedBox(
             alignment: Alignment.centerLeft,
             widthFactor: percentage,
             child: Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [color, color.withOpacity(0.6)],
-                ),
+                color: color,
                 borderRadius: BorderRadius.circular(3),
                 boxShadow: [
                   BoxShadow(
                     color: color.withOpacity(0.8),
-                    blurRadius: 4,
-                    spreadRadius: 1,
+                    blurRadius: 3, // Reduced blur
                   ),
                 ],
               ),
@@ -1771,11 +1758,12 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   Widget _buildCompactStat(String label, String value, Color color) {
     return Column(
+      mainAxisSize: MainAxisSize.min, // Constrains the Column's size
       children: [
         Text(
           label,
           style: SpaceTheme.bodyStyle.copyWith(
-            fontSize: 8,
+            fontSize: 7, // CHANGED from 8
             color: Colors.white70,
             letterSpacing: 1.0,
           ),
@@ -1783,11 +1771,11 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         Text(
           value,
           style: SpaceTheme.headlineStyle.copyWith(
-            fontSize: 16,
+            fontSize: 12, // CHANGED from 16
             color: color,
             fontWeight: FontWeight.bold,
             shadows: [
-              Shadow(color: color, blurRadius: 6),
+              Shadow(color: color, blurRadius: 4), // Reduced blur
             ],
           ),
         ),

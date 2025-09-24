@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:ui';
+import 'dart:async';
 
 import '../../../core/theme/space_theme.dart';
 import '../constants/app_constants.dart';
@@ -35,12 +36,14 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   late AnimationController _successController;
   late AnimationController _feedbackController;
   late AnimationController _glyphController;
+  late AnimationController _headerController;
   
   late Animation<double> _pulseAnimation;
   late Animation<double> _scanAnimation;
   late Animation<double> _successAnimation;
   late Animation<double> _feedbackAnimation;
   late Animation<double> _glyphAnimation;
+  late Animation<double> _headerAnimation;
 
   // Game State
   late List<SignalGlyph> secretSequence;
@@ -51,6 +54,10 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   bool gameActive = true;
   bool hasWon = false;
   int currentPosition = 0;
+  
+  // UI State
+  bool showHeader = true;
+  Timer? _headerTimer;
   
   // Visual Effects
   List<SignalParticle> particles = [];
@@ -67,6 +74,13 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     _setupAnimationControllers();
     _initializeGameParameters();
     _generateSecretSequence();
+    
+    // Start header timer after a brief delay to ensure proper initialization
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _startHeaderTimer();
+      }
+    });
     
     debugPrint("🎯 [SignalTriangulation] Secret sequence: ${secretSequence.map((g) => g.name).join(', ')}");
   }
@@ -106,6 +120,24 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     );
     _glyphAnimation = CurvedAnimation(
         parent: _glyphController, curve: Curves.elasticOut);
+
+    _headerController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _headerAnimation = CurvedAnimation(
+        parent: _headerController, curve: Curves.easeInOut);
+  }
+
+  void _startHeaderTimer() {
+    _headerController.forward();
+    _headerTimer = Timer(const Duration(seconds: 12), () {
+      if (mounted && gameActive) {
+        _headerController.reverse().then((_) {
+          setState(() => showHeader = false);
+        });
+      }
+    });
   }
 
   void _initializeGameParameters() {
@@ -338,126 +370,304 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWideScreen = screenWidth > 700;
+    
     return Scaffold(
-      body: SpaceBackground(
-        child: SafeArea(
-          child: Stack(
-            children: [
-              // Animated background effects
-              Positioned.fill(
-                child: AnimatedBuilder(
-                  animation: Listenable.merge([_pulseController, _scanController]),
-                  builder: (context, child) {
-                    return CustomPaint(
-                      painter: SignalBackgroundPainter(
-                        pulseIntensity: _pulseAnimation.value,
-                        scanProgress: _scanAnimation.value,
-                        gameWon: hasWon,
-                      ),
-                    );
-                  },
+      backgroundColor: SpaceTheme.deepSpace, // Ensure no white background flash
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: SpaceTheme.deepSpace, // Double ensure background color
+        child: SpaceBackground(
+          child: SafeArea(
+            child: Stack(
+              children: [
+                // Animated background effects
+                Positioned.fill(
+                  child: AnimatedBuilder(
+                    animation: Listenable.merge([_pulseController, _scanController]),
+                    builder: (context, child) {
+                      return CustomPaint(
+                        painter: SignalBackgroundPainter(
+                          pulseIntensity: _pulseAnimation.value,
+                          scanProgress: _scanAnimation.value,
+                          gameWon: hasWon,
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
-              
-              // Particles
-              ...particles.map((p) => p.build()),
-              
-              // Main game UI
-              Column(
-                children: [
-                  GameUI(
-                    title: S.of(context)!.signalTriangulationGameTitle,
-                    level: widget.level,
-                    onBack: () => Navigator.of(context).pop(),
-                  ),
-                  
-                  // Instructions
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Text(
-                      S.of(context)!.signalTriangulationInstructions,
-                      style: SpaceTheme.bodyStyle,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  
-                  // Status info
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    padding: const EdgeInsets.all(16),
-                    decoration: SpaceTheme.cardDecoration,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.radio, color: SpaceTheme.alienGreen, size: 24),
-                            const SizedBox(width: 8),
-                            Text(
-                              S.of(context)!.signalTriangulationAttempts(previousGuesses.length, maxGuesses),
-                              style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.alienGreen),
-                            ),
+                
+                // Particles
+                ...particles.map((p) => p.build()),
+                
+                // Always visible minimal header (when full header is hidden)
+                if (!showHeader)
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: 50,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            SpaceTheme.deepSpace.withOpacity(0.8),
+                            Colors.transparent,
                           ],
                         ),
-                        Row(
-                          children: [
-                            const Icon(Icons.adjust, color: SpaceTheme.starYellow, size: 24),
-                            const SizedBox(width: 8),
-                            Text(
-                              S.of(context)!.signalTriangulationLength(sequenceLength),
-                              style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
+                      ),
+                      child: Row(
                         children: [
-                          // Current guess area
-                          _buildCurrentGuess(),
-                          
-                          const SizedBox(height: 20),
-                          
-                          // Glyph selector
-                          _buildGlyphSelector(),
-                          
-                          const SizedBox(height: 20),
-                          
-                          // Previous guesses
-                          _buildPreviousGuesses(),
-                          
-                          const SizedBox(height: 20),
+                          IconButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
+                            style: IconButton.styleFrom(
+                              backgroundColor: SpaceTheme.deepSpace.withOpacity(0.7),
+                              padding: const EdgeInsets.all(6),
+                              minimumSize: const Size(32, 32),
+                            ),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: SpaceTheme.deepSpace.withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: SpaceTheme.alienGreen.withOpacity(0.3)),
+                            ),
+                            child: Text(
+                              '${previousGuesses.length}/$maxGuesses',
+                              style: const TextStyle(color: SpaceTheme.alienGreen, fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
-                ],
-              ),
-            ],
+                
+                // Full header (shows for 12 seconds)
+                if (showHeader)
+                  AnimatedBuilder(
+                    animation: _headerAnimation,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, -100 * (1 - _headerAnimation.value)),
+                        child: Opacity(
+                          opacity: _headerAnimation.value * 0.9,
+                          child: _buildCompactHeader(),
+                        ),
+                      );
+                    },
+                  ),
+                
+                // Main game content with two-column layout
+                Positioned(
+                  top: showHeader ? 80 : 55,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: isWideScreen ? _buildTwoColumnLayout() : _buildMobileLayout(),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  Widget _buildCompactHeader() {
+    return Container(
+      height: 70,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            SpaceTheme.deepSpace.withOpacity(0.8),
+            Colors.transparent,
+          ],
+        ),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+            style: IconButton.styleFrom(
+              backgroundColor: SpaceTheme.deepSpace.withOpacity(0.6),
+              padding: const EdgeInsets.all(8),
+            ),
+          ),
+          const SizedBox(width: 8),
+          
+          // Compact instructions in header
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: SpaceTheme.deepSpace.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.3)),
+              ),
+              child: Text(
+                S.of(context)!.signalTriangulationInstructions,
+                style: SpaceTheme.bodyStyle.copyWith(fontSize: 10, color: Colors.white70),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          
+          const SizedBox(width: 8),
+          _buildCompactStat(Icons.adjust, sequenceLength.toString(), SpaceTheme.starYellow),
+          const SizedBox(width: 8),
+          _buildCompactStat(Icons.radio, '${previousGuesses.length}/$maxGuesses', SpaceTheme.alienGreen),
+          const SizedBox(width: 8),
+          Consumer<GameProvider>(
+            builder: (context, gameProvider, child) {
+              return _buildCompactStat(Icons.star, gameProvider.score.toString(), SpaceTheme.cosmicPink);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactStat(IconData icon, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 4),
+          Text(value, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTwoColumnLayout() {
+    return Row(
+      children: [
+        // Left column - Game controls (NO SCROLLING, NO INSTRUCTIONS)
+        Expanded(
+          flex: 3,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                // Current guess - compact
+                _buildCurrentGuess(),
+                const SizedBox(height: 8),
+                
+                // Glyph selector - only takes needed space
+                _buildGlyphSelector(),
+                
+                // Spacer to push content to top
+                const Spacer(),
+              ],
+            ),
+          ),
+        ),
+        
+        // Right column - Previous guesses
+        Expanded(
+          flex: 2,
+          child: Container(
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(12),
+            decoration: SpaceTheme.cardDecoration,
+            child: Column(
+              children: [
+                Text(
+                  S.of(context)!.signalTriangulationPreviousAttempts,
+                  style: SpaceTheme.titleStyle.copyWith(fontSize: 16),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: _buildPreviousGuessesScrollable(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        children: [
+          _buildCurrentGuess(),
+          const SizedBox(height: 8),
+          _buildGlyphSelector(),
+          const SizedBox(height: 8),
+          _buildPreviousGuesses(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactInstructions() {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: SpaceTheme.cardDecoration.copyWith(
+        border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.3)),
+      ),
+      child: Text(
+        S.of(context)!.signalTriangulationInstructions,
+        style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
+        textAlign: TextAlign.center,
+        maxLines: 3,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  Widget _buildInstructions() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: SpaceTheme.cardDecoration.copyWith(
+        border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.3)),
+      ),
+      child: Text(
+        S.of(context)!.signalTriangulationInstructions,
+        style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
   Widget _buildCurrentGuess() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: SpaceTheme.cardDecoration.copyWith(
         border: Border.all(color: SpaceTheme.alienGreen, width: 2),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             S.of(context)!.signalTriangulationCurrentSequence,
-            style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.alienGreen),
+            style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.alienGreen, fontSize: 16),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(sequenceLength, (index) {
@@ -473,9 +683,9 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                   return Transform.scale(
                     scale: scale,
                     child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: 60,
-                      height: 60,
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      width: 45,
+                      height: 45,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: glyph.color,
@@ -486,36 +696,40 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                         boxShadow: [
                           BoxShadow(
                             color: (glyph.color ?? Colors.transparent).withOpacity(0.5),
-                            blurRadius: 10,
-                            spreadRadius: isActive ? 3 : 1,
+                            blurRadius: 6,
+                            spreadRadius: isActive ? 2 : 1,
                           ),
                         ],
                       ),
                       child: glyph.icon != null ?
-                          Icon(glyph.icon, color: Colors.white, size: 30) :
+                          Icon(glyph.icon, color: Colors.white, size: 22) :
                           (isActive ? Icon(Icons.radio_button_unchecked, 
-                              color: SpaceTheme.starYellow, size: 24) : null),
+                              color: SpaceTheme.starYellow, size: 18) : null),
                     ),
                   );
                 },
               );
             }),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           if (gameActive) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
                   onPressed: currentPosition > 0 ? _clearGuess : null,
-                  style: SpaceTheme.secondaryButtonStyle,
-                  child: Text(S.of(context)!.signalTriangulationClear),
+                  style: SpaceTheme.secondaryButtonStyle.copyWith(
+                    padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+                  ),
+                  child: Text(S.of(context)!.signalTriangulationClear, style: const TextStyle(fontSize: 12)),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 ElevatedButton(
                   onPressed: currentPosition >= sequenceLength ? _submitGuess : null,
-                  style: SpaceTheme.primaryButtonStyle,
-                  child: Text(S.of(context)!.signalTriangulationTransmit),
+                  style: SpaceTheme.primaryButtonStyle.copyWith(
+                    padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+                  ),
+                  child: Text(S.of(context)!.signalTriangulationTransmit, style: const TextStyle(fontSize: 12)),
                 ),
               ],
             ),
@@ -529,50 +743,71 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     if (!gameActive) return const SizedBox.shrink();
     
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: SpaceTheme.cardDecoration,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             S.of(context)!.signalTriangulationFrequencies,
-            style: SpaceTheme.titleStyle,
+            style: SpaceTheme.titleStyle.copyWith(fontSize: 16),
           ),
-          const SizedBox(height: 16),
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 12,
-            runSpacing: 12,
-            children: availableGlyphs.map((glyph) {
-              return GestureDetector(
-                onTap: () => _selectGlyph(glyph),
-                child: AnimatedBuilder(
-                  animation: _pulseAnimation,
-                  builder: (context, child) {
-                    return Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: glyph.color,
-                        border: Border.all(color: SpaceTheme.alienGreen, width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: glyph.color!.withOpacity(_pulseAnimation.value * 0.5),
-                            blurRadius: 8,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Icon(glyph.icon, color: Colors.white, size: 24),
-                    );
-                  },
-                ),
-              );
-            }).toList(),
+          const SizedBox(height: 12),
+          Flexible(
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: availableGlyphs.map((glyph) {
+                return GestureDetector(
+                  onTap: () => _selectGlyph(glyph),
+                  child: AnimatedBuilder(
+                    animation: _pulseAnimation,
+                    builder: (context, child) {
+                      return Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: glyph.color,
+                          border: Border.all(color: SpaceTheme.alienGreen, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: glyph.color!.withOpacity(_pulseAnimation.value * 0.5),
+                              blurRadius: 6,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: Icon(glyph.icon, color: Colors.white, size: 18),
+                      );
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPreviousGuessesScrollable() {
+    if (previousGuesses.isEmpty) {
+      return Center(
+        child: Text(
+          'No attempts yet',
+          style: SpaceTheme.bodyStyle.copyWith(color: Colors.white60),
+        ),
+      );
+    }
+    
+    return ListView.builder(
+      itemCount: previousGuesses.length,
+      reverse: true,
+      itemBuilder: (context, index) {
+        return _buildGuessResult(previousGuesses[previousGuesses.length - 1 - index]);
+      },
     );
   }
 
@@ -580,17 +815,18 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     if (previousGuesses.isEmpty) return const SizedBox.shrink();
     
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(16),
       decoration: SpaceTheme.cardDecoration,
       child: Column(
         children: [
           Text(
             S.of(context)!.signalTriangulationPreviousAttempts,
-            style: SpaceTheme.titleStyle,
+            style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
           ),
           const SizedBox(height: 16),
-          ...previousGuesses.reversed.map((result) => _buildGuessResult(result)),
+          Column(
+            children: previousGuesses.reversed.take(5).map((result) => _buildGuessResult(result)).toList(),
+          ),
         ],
       ),
     );
@@ -598,11 +834,11 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
 
   Widget _buildGuessResult(GuessResult result) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.3)),
       ),
       child: Row(
@@ -611,15 +847,15 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
           Expanded(
             child: Row(
               children: result.guess.map((glyph) => Container(
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                width: 30,
-                height: 30,
+                margin: const EdgeInsets.symmetric(horizontal: 1),
+                width: 24,
+                height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: glyph.color,
                   border: Border.all(color: Colors.white30),
                 ),
-                child: Icon(glyph.icon, color: Colors.white, size: 16),
+                child: Icon(glyph.icon, color: Colors.white, size: 12),
               )).toList(),
             ),
           ),
@@ -628,25 +864,29 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
           Row(
             children: [
               // Correct position indicators
-              ...List.generate(result.correctPosition, (_) => Container(
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                width: 16,
-                height: 16,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: SpaceTheme.alienGreen,
-                ),
-              )),
+              Row(
+                children: List.generate(result.correctPosition, (_) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 1),
+                  width: 12,
+                  height: 12,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: SpaceTheme.alienGreen,
+                  ),
+                )),
+              ),
               // Correct glyph, wrong position indicators
-              ...List.generate(result.correctGlyph, (_) => Container(
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                width: 16,
-                height: 16,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: SpaceTheme.starYellow, width: 2),
-                ),
-              )),
+              Row(
+                children: List.generate(result.correctGlyph, (_) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 1),
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: SpaceTheme.starYellow, width: 2),
+                  ),
+                )),
+              ),
             ],
           ),
         ],
@@ -663,53 +903,64 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(
-              padding: const EdgeInsets.all(24),
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.7,
+                maxWidth: MediaQuery.of(context).size.width * 0.85,
+              ),
+              padding: const EdgeInsets.all(20),
               decoration: SpaceTheme.cardDecoration.copyWith(
                 border: Border.all(color: SpaceTheme.alienGreen, width: 2),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.radio, size: 64, color: SpaceTheme.alienGreen),
-                  const SizedBox(height: 16),
-                  Text(
-                    S.of(context)!.signalTriangulationWinTitle,
-                    style: SpaceTheme.headlineStyle,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    S.of(context)!.signalTriangulationWinDesc(
-                      previousGuesses.length,
-                      totalScore,
-                      efficiencyBonus,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.radio, size: 48, color: SpaceTheme.alienGreen),
+                    const SizedBox(height: 12),
+                    Text(
+                      S.of(context)!.signalTriangulationWinTitle,
+                      style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
+                      textAlign: TextAlign.center,
                     ),
-                    style: SpaceTheme.bodyStyle,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          _resetGame();
-                        },
-                        style: SpaceTheme.secondaryButtonStyle,
-                        child: Text(S.of(context)!.nextSignal),
+                    const SizedBox(height: 12),
+                    Text(
+                      S.of(context)!.signalTriangulationWinDesc(
+                        previousGuesses.length,
+                        totalScore,
+                        efficiencyBonus,
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
-                        },
-                        style: SpaceTheme.primaryButtonStyle,
-                        child: Text(S.of(context)!.toTheBridge),
-                      ),
-                    ],
-                  ),
-                ],
+                      style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              _resetGame();
+                            },
+                            style: SpaceTheme.secondaryButtonStyle,
+                            child: Text(S.of(context)!.nextSignal, style: const TextStyle(fontSize: 12)),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pop();
+                            },
+                            style: SpaceTheme.primaryButtonStyle,
+                            child: Text(S.of(context)!.toTheBridge, style: const TextStyle(fontSize: 12)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -722,57 +973,68 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
-        padding: const EdgeInsets.all(24),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+          maxWidth: MediaQuery.of(context).size.width * 0.85,
+        ),
+        padding: const EdgeInsets.all(20),
         decoration: SpaceTheme.cardDecoration.copyWith(
           border: Border.all(color: SpaceTheme.rocketRed, width: 2),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.signal_wifi_off, size: 64, color: SpaceTheme.rocketRed),
-            const SizedBox(height: 16),
-            Text(
-              S.of(context)!.signalTriangulationLoseTitle,
-              style: SpaceTheme.headlineStyle,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              S.of(context)!.signalTriangulationLoseDesc,
-              style: SpaceTheme.bodyStyle,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              S.of(context)!.signalTriangulationReveal(
-                secretSequence.map((g) => g.displayName).join(' - ')
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.signal_wifi_off, size: 48, color: SpaceTheme.rocketRed),
+              const SizedBox(height: 12),
+              Text(
+                S.of(context)!.signalTriangulationLoseTitle,
+                style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
+                textAlign: TextAlign.center,
               ),
-              style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.alienGreen),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _resetGame();
-                  },
-                  style: SpaceTheme.secondaryButtonStyle,
-                  child: Text(S.of(context)!.tryAgain),
+              const SizedBox(height: 12),
+              Text(
+                S.of(context)!.signalTriangulationLoseDesc,
+                style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                S.of(context)!.signalTriangulationReveal(
+                  secretSequence.map((g) => g.displayName).join(' - ')
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                  },
-                  style: SpaceTheme.primaryButtonStyle,
-                  child: Text(S.of(context)!.toTheBridge),
-                ),
-              ],
-            ),
-          ],
+                style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.alienGreen, fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _resetGame();
+                      },
+                      style: SpaceTheme.secondaryButtonStyle,
+                      child: Text(S.of(context)!.tryAgain, style: const TextStyle(fontSize: 12)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      },
+                      style: SpaceTheme.primaryButtonStyle,
+                      child: Text(S.of(context)!.toTheBridge, style: const TextStyle(fontSize: 12)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -786,20 +1048,25 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       currentGuess = List.filled(sequenceLength, SignalGlyph.empty);
       currentPosition = 0;
       particles.clear();
+      showHeader = true;
     });
     
     _generateSecretSequence();
     _successController.reset();
     _feedbackController.reset();
+    _headerController.forward();
+    _startHeaderTimer();
   }
 
   @override
   void dispose() {
+    _headerTimer?.cancel();
     _pulseController.dispose();
     _scanController.dispose();
     _successController.dispose();
     _feedbackController.dispose();
     _glyphController.dispose();
+    _headerController.dispose();
     super.dispose();
   }
 }
