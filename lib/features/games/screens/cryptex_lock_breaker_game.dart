@@ -263,96 +263,138 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     });
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
-          child: Stack(
-            children: [
-              // Animated background effects
-              Positioned.fill(
-                child: AnimatedBuilder(
-                  animation: Listenable.merge([_rotationController, _glowController, _unlockController]),
-                  builder: (context, child) {
-                    return CustomPaint(
-                      painter: CryptexBackgroundPainter(
-                        rotationAngle: _rotationAnimation.value,
-                        glowIntensity: _glowAnimation.value,
-                        unlockProgress: _unlockAnimation.value,
-                        isUnlocked: isUnlocked,
-                      ),
-                    );
-                  },
-                ),
-              ),
-              
-              // Particles
-              ...particles.map((p) => p.build()),
-              
-              // Main game UI
-              Column(
+          child: LayoutBuilder( // Use LayoutBuilder to get screen constraints
+            builder: (context, constraints) {
+              final isCompact = constraints.maxHeight < 450;
+
+              return Stack(
                 children: [
-                  GameUI(
-                    title: S.of(context)!.cryptexLockBreakerGameTitle,
-                    level: widget.level,
-                    onBack: () => Navigator.of(context).pop(),
-                  ),
-                  
-                  // Instructions
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Text(
-                      S.of(context)!.cryptexLockBreakerInstructions,
-                      style: SpaceTheme.bodyStyle,
-                      textAlign: TextAlign.center,
+                  // ... (The existing Positioned.fill and particles code remains the same)
+                  Positioned.fill(
+                    child: AnimatedBuilder(
+                      animation: Listenable.merge([_rotationController, _glowController, _unlockController]),
+                      builder: (context, child) {
+                        return CustomPaint(
+                          painter: CryptexBackgroundPainter(
+                            rotationAngle: _rotationAnimation.value,
+                            glowIntensity: _glowAnimation.value,
+                            unlockProgress: _unlockAnimation.value,
+                            isUnlocked: isUnlocked,
+                          ),
+                        );
+                      },
                     ),
                   ),
+                  ...particles.map((p) => p.build()),
                   
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 20),
-                          
-                          // Cryptex visual with dials
-                          _buildCryptexVisual(),
-                          
-                          const SizedBox(height: 30),
-                          
-                          // Equations display
-                          _buildEquationsDisplay(),
-                          
-                          const SizedBox(height: 20),
-                          
-                          // Controls hint
-                          if (gameActive && !isUnlocked)
-                            Text(
-                              S.of(context)!.cryptexLockBreakerControls,
-                              style: SpaceTheme.bodyStyle.copyWith(
-                                color: Colors.white60,
-                                fontSize: 14,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          
-                          const SizedBox(height: 20),
-                        ],
+                  // Main game UI column
+                  Column(
+                    children: [
+                      // The new adaptive header handles instructions on small screens
+                      _buildAdaptiveHeader(isCompact: isCompact),
+                      
+                      // The Cryptex visual now expands to fill available space
+                      Expanded(
+                        flex: 5, // Give the most space to the cryptex
+                        child: _buildCryptexVisual(),
                       ),
-                    ),
+                      
+                      const SizedBox(height: 12),
+                      
+                      // Equations display
+                      _buildEquationsDisplay(),
+                      
+                      const Spacer(flex: 1), // Use a Spacer for flexible padding
+                      
+                      // Controls hint
+                      if (gameActive && !isUnlocked)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Text(
+                            S.of(context)!.cryptexLockBreakerControls,
+                            style: SpaceTheme.bodyStyle.copyWith(
+                              color: Colors.white60,
+                              fontSize: 12,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                    ],
                   ),
                 ],
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),
     );
   }
 
+  Widget _buildAdaptiveHeader({required bool isCompact}) {
+    // For large screens, use the original layout.
+    if (!isCompact) {
+      return Column(
+        children: [
+          GameUI(
+            title: S.of(context)!.cryptexLockBreakerGameTitle,
+            level: widget.level,
+            onBack: () => Navigator.of(context).pop(),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              S.of(context)!.cryptexLockBreakerInstructions,
+              style: SpaceTheme.bodyStyle,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      );
+    }
+    
+    // For compact screens, build a condensed header with instructions inside.
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: Row(
+        children: [
+          // Use the existing GameUI for the back button and title for consistency.
+          Expanded(
+            child: GameUI(
+              title: S.of(context)!.cryptexLockBreakerGameTitle,
+              level: widget.level,
+              onBack: () => Navigator.of(context).pop(),
+              // Pass a custom child to insert the instructions text
+              customTitleWidget: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    S.of(context)!.cryptexLockBreakerGameTitle,
+                    style: SpaceTheme.headlineStyle.copyWith(fontSize: 18),
+                  ),
+                  Text(
+                    S.of(context)!.cryptexLockBreakerInstructions, // Use the now-shortened text
+                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: Colors.white70),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   Widget _buildCryptexVisual() {
     return Container(
-      height: 220,
+      // REMOVED: height: 220, to allow this widget to be flexible.
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: Stack(
         alignment: Alignment.center,
@@ -561,53 +603,63 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20), // Slightly reduced padding
               decoration: SpaceTheme.cardDecoration.copyWith(
                 border: Border.all(color: SpaceTheme.alienGreen, width: 2),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.lock_open, size: 64, color: SpaceTheme.alienGreen),
-                  const SizedBox(height: 16),
-                  Text(
-                    S.of(context)!.cryptexLockBreakerWinTitle,
-                    style: SpaceTheme.headlineStyle,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    S.of(context)!.cryptexLockBreakerWinDesc(
-                      totalScore,
-                      complexityBonus,
-                      equationBonus,
+              // FIX: Wrap the Column in a SingleChildScrollView to prevent overflow
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Slightly smaller icon to save space
+                    const Icon(Icons.lock_open, size: 56, color: SpaceTheme.alienGreen),
+                    const SizedBox(height: 12), // Reduced spacing
+                    Text(
+                      S.of(context)!.cryptexLockBreakerWinTitle,
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center,
                     ),
-                    style: SpaceTheme.bodyStyle,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          _resetGame();
-                        },
-                        style: SpaceTheme.secondaryButtonStyle,
-                        child: Text(S.of(context)!.nextCryptex),
+                    const SizedBox(height: 12), // Reduced spacing
+                    Text(
+                      S.of(context)!.cryptexLockBreakerWinDesc(
+                        totalScore,
+                        complexityBonus,
+                        equationBonus,
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
-                        },
-                        style: SpaceTheme.primaryButtonStyle,
-                        child: Text(S.of(context)!.toTheBridge),
-                      ),
-                    ],
-                  ),
-                ],
+                      style: SpaceTheme.bodyStyle,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20), // Reduced spacing
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        // Wrap buttons in Flexible to handle long text
+                        Flexible(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              _resetGame();
+                            },
+                            style: SpaceTheme.secondaryButtonStyle,
+                            child: Text(S.of(context)!.nextCryptex, textAlign: TextAlign.center),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Flexible(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pop();
+                            },
+                            style: SpaceTheme.primaryButtonStyle,
+                            child: Text(S.of(context)!.toTheBridge, textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

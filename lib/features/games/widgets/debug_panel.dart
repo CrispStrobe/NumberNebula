@@ -39,33 +39,34 @@ class _DebugPanelState extends State<DebugPanel> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(s.debugPanelTitle, style: SpaceTheme.headlineStyle),
-            const SizedBox(height: 24),
-            _buildSwitch(s.debugForceUnlock, debugProvider.isPaidUnlockedForced, (value) {
-              context.read<DebugProvider>().setPaidUnlock(value);
-            }),
-            const Divider(color: SpaceTheme.nebulaPurple, height: 32),
-            _buildSlider('Skill Level', _grade.toDouble(), 1, 4, (value) {
-              setState(() => _grade = value.toInt());
-            }),
-            _buildSlider('Game Level', _level.toDouble(), 1, 20, (value) {
-              setState(() => _level = value.toInt());
-            }),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.check),
-              onPressed: () {
-                context.read<GameProvider>().setDifficulty(_grade, _level);
-                // FIX: Removed the call to the non-existent onSettingsApplied()
-                Navigator.of(context).pop();
-              },
-              style: SpaceTheme.primaryButtonStyle,
-              label: Text(s.debugApplyAndClose),
-            ),
-          ],
+        child: SingleChildScrollView( // prevents overflow
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(s.debugPanelTitle, style: SpaceTheme.headlineStyle),
+              const SizedBox(height: 24),
+              _buildSwitch(s.debugForceUnlock, debugProvider.isPaidUnlockedForced, (value) {
+                context.read<DebugProvider>().setPaidUnlock(value);
+              }),
+              const Divider(color: SpaceTheme.nebulaPurple, height: 32),
+              _buildSlider('Skill Level', _grade.toDouble(), 1, 4, (value) {
+                setState(() => _grade = value.toInt());
+              }),
+              _buildSlider('Game Level', _level.toDouble(), 1, 20, (value) {
+                setState(() => _level = value.toInt());
+              }),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.check),
+                onPressed: () {
+                  context.read<GameProvider>().setDifficulty(_grade, _level);
+                  Navigator.of(context).pop();
+                },
+                style: SpaceTheme.primaryButtonStyle,
+                label: Text(s.debugApplyAndClose),
+              ),
+            ],
+          ),
         ),
       ),
     );

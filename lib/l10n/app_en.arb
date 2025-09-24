@@ -176,7 +176,7 @@
     "planetHoppingObjectiveAsc": "Visit planets in ascending order!",
     "planetHoppingObjectiveDesc": "Visit planets in descending order!",
     "planetHoppingObjectiveEvenOdd": "Visit even numbers first, then odd!",
-    "planetHoppingTitle": "Planet Hopping",
+    "planetHoppingTitle": "Gravity Sling",
     "planetHoppingNextTarget": "Next: {target}",
     "@planetHoppingNextTarget": {
         "placeholders": {
@@ -291,7 +291,7 @@
     "readyForLaunch": "Ready for launch!",
     "launch": "Launch",
     "splashScreenSubtitle": "Explore • Learn • Discover",
-    "pathFinderTitle": "PathFinder",
+    "pathFinderTitle": "Path Finder",
     "pathFinderDesc": "Navigate quantum space corridors! Calculate the right trajectory through dangerous cosmic phenomena to reach your destination safely.",
     "pathFinderSolve": "SOLVE:",
     "pathFinderChoosePath": "Choose the path for: {expression}",

@@ -1,7 +1,6 @@
 import 'dart:async';
-// REFACTORED: No longer need dart:developer
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart'; // REFACTORED: Import for debugPrint
+import 'package:flutter/foundation.dart'; // Import for debugPrint
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -169,6 +168,9 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   @override
   Widget build(BuildContext context) {
     final gameProvider = context.watch<GameProvider>();
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 800 || screenSize.height < 500;
+    
     if (currentPuzzleImage == null) {
       return const Scaffold(
           body: Center(
@@ -180,47 +182,29 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         child: SafeArea(
           child: Column(
             children: [
-              GameUI(
-                title: S.of(context)!.puzzleMath,
-                level: widget.level,
-                timeLeft: gameProvider.puzzleTimerEnabled ? _timeLeft : null,
-                onBack: () => Navigator.of(context).pop(),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        S.of(context)!.puzzleMathInstructions,
-                        textAlign: TextAlign.center,
-                        style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Text(S.of(context)!.timer, style: SpaceTheme.bodyStyle.copyWith(color: Colors.white)),
-                        Switch(
-                          value: gameProvider.puzzleTimerEnabled,
-                          onChanged: _onToggleTimer,
-                          activeColor: SpaceTheme.alienGreen,
-                        ),
-                      ],
-                    ),
-                  ],
+              // Compact header with timer toggle
+              _buildCompactHeader(gameProvider, isSmallScreen),
+              // Brief instructions only on larger screens
+              if (!isSmallScreen)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                  child: Text(
+                    S.of(context)!.puzzleMathInstructions,
+                    textAlign: TextAlign.center,
+                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
+                  ),
                 ),
-              ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: LayoutBuilder(builder: (context, constraints) {
-                    // REFACTORED: Verbose logging
                     debugPrint("==================== LAYOUT REBUILD ====================");
                     debugPrint("LAYOUT: Available constraints: MaxW=${constraints.maxWidth.toStringAsFixed(1)}, MaxH=${constraints.maxHeight.toStringAsFixed(1)}");
                     return Row(
                       children: [
-                        Expanded(flex: 3, child: _buildPuzzleBoard(constraints)),
-                        Expanded(flex: 2, child: _buildPieceTray(constraints)),
+                        Expanded(flex: 5, child: _buildPuzzleBoard(constraints)), // More space for larger boards
+                        SizedBox(width: isSmallScreen ? 8 : 16),
+                        Expanded(flex: 3, child: _buildCompactPieceTray(constraints, isSmallScreen)), // Proportional tray space
                       ],
                     );
                   }),
@@ -229,6 +213,118 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // New compact header method for responsive UI on smaller screens
+  Widget _buildCompactHeader(GameProvider gameProvider, bool isSmallScreen) {
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF1E2235), Colors.transparent],
+        ),
+      ),
+      child: Row(
+        children: [
+          // Back Button
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.white,
+              size: isSmallScreen ? 20 : 24,
+            ),
+            style: IconButton.styleFrom(
+              backgroundColor: const Color(0xFF1A1A2E).withOpacity(0.8),
+              padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
+            ),
+          ),
+          
+          SizedBox(width: isSmallScreen ? 8 : 12),
+          
+          // Title and instructions in one line for small screens
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  S.of(context)!.puzzleMath,
+                  style: SpaceTheme.headlineStyle.copyWith(
+                    fontSize: isSmallScreen ? 16 : 20
+                  ),
+                ),
+                if (isSmallScreen)
+                  Text(
+                    S.of(context)!.puzzleMathInstructions,
+                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 8),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
+          ),
+          
+          // Level indicator
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 6 : 8,
+              vertical: isSmallScreen ? 2 : 4,
+            ),
+            decoration: BoxDecoration(
+              color: SpaceTheme.deepSpace.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              'L${widget.level}',
+              style: TextStyle(
+                fontSize: isSmallScreen ? 10 : 14,
+                color: SpaceTheme.starYellow,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          
+          SizedBox(width: isSmallScreen ? 4 : 8),
+          
+          // Timer display and toggle
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (gameProvider.puzzleTimerEnabled) ...[
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSmallScreen ? 4 : 6,
+                    vertical: isSmallScreen ? 2 : 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _timeLeft < 30 ? SpaceTheme.rocketRed : SpaceTheme.cosmicPink,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${_timeLeft ~/ 60}:${(_timeLeft % 60).toString().padLeft(2, '0')}',
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? 10 : 12,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                SizedBox(width: isSmallScreen ? 2 : 4),
+              ],
+              Switch(
+                value: gameProvider.puzzleTimerEnabled,
+                onChanged: _onToggleTimer,
+                activeColor: SpaceTheme.alienGreen,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -366,6 +462,229 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
           }),
         ),
       ),
+    );
+  }
+
+  // more responsive method
+  Widget _buildCompactPieceTray(BoxConstraints constraints, bool isSmallScreen) {
+    final boardPieceSize = _calculatePieceSize(constraints);
+    final availablePieces = pieces.where((piece) => !placedPieces.values.contains(piece.id)).toList();
+    
+    // Calculate optimal tray layout based on piece count
+    final pieceCount = availablePieces.length;
+    int crossAxisCount;
+    double sizeMultiplier;
+    
+    if (pieceCount <= 4) {
+      crossAxisCount = 2;
+      sizeMultiplier = isSmallScreen ? 0.9 : 1.0; // Much larger pieces
+    } else if (pieceCount <= 6) {
+      crossAxisCount = 2;
+      sizeMultiplier = isSmallScreen ? 0.85 : 0.95; // Still large
+    } else if (pieceCount <= 9) {
+      crossAxisCount = 3;
+      sizeMultiplier = isSmallScreen ? 0.8 : 0.9; // Large
+    } else {
+      crossAxisCount = isSmallScreen ? 3 : 4;
+      sizeMultiplier = isSmallScreen ? 0.75 : 0.85; // Decent size even for many pieces
+    }
+    
+    final trayPieceSize = Size(
+      boardPieceSize.width * sizeMultiplier, 
+      boardPieceSize.height * sizeMultiplier
+    );
+    
+    debugPrint("TRAY: ${availablePieces.length} pieces, ${crossAxisCount} columns, size multiplier: $sizeMultiplier");
+    
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen ? 2 : 4), // Minimal padding
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: SpaceTheme.alienGreen.withOpacity(0.3), width: 1),
+      ),
+      child: Column(
+        children: [
+          Text(
+            S.of(context)!.constellationPieces,
+            style: SpaceTheme.titleStyle.copyWith(
+              fontSize: isSmallScreen ? 10 : 12
+            ),
+          ),
+          SizedBox(height: isSmallScreen ? 1 : 2), // Minimal spacing
+          Expanded(
+            child: availablePieces.isEmpty 
+              ? Center(
+                  child: Text(
+                    'All pieces placed!',
+                    style: SpaceTheme.bodyStyle.copyWith(
+                      fontSize: isSmallScreen ? 8 : 10,
+                      color: SpaceTheme.alienGreen,
+                    ),
+                  ),
+                )
+              : GridView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.zero, // Remove default padding
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: 1, // Minimal spacing
+                    mainAxisSpacing: 1, // Minimal spacing
+                    childAspectRatio: 1.0,
+                  ),
+                  itemCount: availablePieces.length,
+                  itemBuilder: (context, index) {
+                    final pieceData = availablePieces[index];
+                    return _buildMaximizedTrayPiece(
+                      pieceData, 
+                      trayPieceSize, 
+                      isSmallScreen
+                    );
+                  },
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // method that maximizes piece size within each grid cell
+  Widget _buildMaximizedTrayPiece(
+    PuzzlePieceData pieceData, 
+    Size baseTrayPieceSize, 
+    bool isSmallScreen
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Use almost all available space in the grid cell
+        final availableSize = math.min(constraints.maxWidth, constraints.maxHeight);
+        final margin = isSmallScreen ? 2.0 : 4.0; // Tiny margin
+        final maxPieceSize = availableSize - margin;
+        
+        // Scale the base size to fit, but prefer larger pieces
+        final scaleFactor = maxPieceSize / math.max(baseTrayPieceSize.width, baseTrayPieceSize.height);
+        
+        final finalSize = Size(
+          baseTrayPieceSize.width * scaleFactor,
+          baseTrayPieceSize.height * scaleFactor,
+        );
+        
+        final trayBumpSize = math.min(finalSize.width, finalSize.height) / 4;
+        
+        return Padding(
+          padding: EdgeInsets.all(margin / 2), // Minimal padding
+          child: Center(
+            child: Draggable<int>(
+              data: pieceData.id,
+              feedback: Material(
+                color: Colors.transparent,
+                child: Transform.scale(
+                  scale: 1.1, // Slightly larger when dragging
+                  child: PuzzlePieceWidget(
+                    imagePath: currentPuzzleImage!,
+                    data: pieceData,
+                    pieceSize: finalSize,
+                    columns: columns,
+                    rows: rows,
+                    edgeShapes: _edgeShapes,
+                  ),
+                ),
+              ),
+              childWhenDragging: Opacity(
+                opacity: 0.2, // More transparent when dragging
+                child: PuzzlePieceWidget(
+                  imagePath: currentPuzzleImage!,
+                  data: pieceData,
+                  pieceSize: finalSize,
+                  columns: columns,
+                  rows: rows,
+                  edgeShapes: _edgeShapes,
+                ),
+              ),
+              child: GestureDetector(
+                onTap: () => _rotatePiece(pieceData.id),
+                child: PuzzlePieceWidget(
+                  imagePath: currentPuzzleImage!,
+                  data: pieceData,
+                  pieceSize: finalSize,
+                  columns: columns,
+                  rows: rows,
+                  edgeShapes: _edgeShapes,
+                  onRotate: () => _rotatePiece(pieceData.id),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // helper method for better piece container handling
+  Widget _buildTrayPieceContainer(
+    PuzzlePieceData pieceData, 
+    Size trayPieceSize, 
+    double trayBumpSize, 
+    bool isSmallScreen
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Scale the piece to fit the available space while maintaining aspect ratio
+        final availableSize = math.min(constraints.maxWidth, constraints.maxHeight);
+        final maxPieceSize = availableSize * 0.9; // Leave some margin
+        
+        final scaledSize = Size(
+          math.min(trayPieceSize.width, maxPieceSize),
+          math.min(trayPieceSize.height, maxPieceSize),
+        );
+        
+        return Center(
+          child: SizedBox(
+            width: scaledSize.width + (trayBumpSize * 2),
+            height: scaledSize.height + (trayBumpSize * 2),
+            child: Draggable<int>(
+              data: pieceData.id,
+              feedback: Material(
+                color: Colors.transparent,
+                child: Transform.scale(
+                  scale: 1.2, // Slightly larger when dragging
+                  child: PuzzlePieceWidget(
+                    imagePath: currentPuzzleImage!,
+                    data: pieceData,
+                    pieceSize: scaledSize,
+                    columns: columns,
+                    rows: rows,
+                    edgeShapes: _edgeShapes,
+                  ),
+                ),
+              ),
+              childWhenDragging: Opacity(
+                opacity: 0.3,
+                child: PuzzlePieceWidget(
+                  imagePath: currentPuzzleImage!,
+                  data: pieceData,
+                  pieceSize: scaledSize,
+                  columns: columns,
+                  rows: rows,
+                  edgeShapes: _edgeShapes,
+                ),
+              ),
+              child: GestureDetector(
+                onTap: () => _rotatePiece(pieceData.id),
+                child: PuzzlePieceWidget(
+                  imagePath: currentPuzzleImage!,
+                  data: pieceData,
+                  pieceSize: scaledSize,
+                  columns: columns,
+                  rows: rows,
+                  edgeShapes: _edgeShapes,
+                  onRotate: () => _rotatePiece(pieceData.id),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

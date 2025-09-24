@@ -342,6 +342,104 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     );
   }
 
+  Widget _buildResponsiveLayout({required bool isCompact}) {
+    // This flag triggers only for the most crowded screens.
+    final bool isExtraCompact = isCompact && (puzzle?.equations.length ?? 0) >= 4;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16.0, 0, 16.0, isCompact ? 4.0 : 8.0),
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: _buildEquationDisplay(isCompact: isCompact, isExtraCompact: isExtraCompact),
+            ),
+          ),
+          // Further reduce spacing in extra compact mode.
+          SizedBox(height: isExtraCompact ? 4 : (isCompact ? 8 : 16)),
+          _buildNumberPad(isCompact: isCompact, isExtraCompact: isExtraCompact),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWideLayout({required bool isCompact, required bool isExtraCompact}) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 3,
+            // FIX: Pass the isExtraCompact flag to the child widget
+            child: _buildEquationDisplay(isCompact: isCompact, isExtraCompact: isExtraCompact),
+          ),
+          const SizedBox(width: 24),
+          Expanded(
+            flex: 2,
+            // FIX: Pass the isExtraCompact flag to the child widget
+            child: _buildNumberPad(isCompact: isCompact, isExtraCompact: isExtraCompact),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdaptiveHeader({required bool isCompact}) {
+    if (!isCompact) {
+      return Column(
+        children: [
+          GameUI(
+            title: S.of(context)!.codebreaker,
+            level: widget.level,
+            onBack: () => Navigator.of(context).pop(),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Text(
+              S.of(context)!.codebreakerInstructions,
+              style: SpaceTheme.bodyStyle,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 4, 16, 8),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  S.of(context)!.codebreaker,
+                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 18),
+                ),
+                Text(
+                  S.of(context)!.codebreakerInstructions,
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: Colors.white70),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          _buildLevelIndicator(isCompact: true),
+          const SizedBox(width: 8),
+          _buildScoreIndicator(isCompact: true),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (puzzle == null || _isGenerating) {
@@ -364,80 +462,95 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
-          child: Column(
-            children: [
-              GameUI(
-                title: S.of(context)!.codebreaker,
-                level: widget.level, 
-                onBack: () => Navigator.of(context).pop()
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  S.of(context)!.codebreakerInstructions,
-                  style: SpaceTheme.bodyStyle, 
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    bool isWide = constraints.maxWidth > 650;
-                    return isWide ? _buildWideLayout() : _buildResponsiveLayout(constraints);
-                  },
-                ),
-              ),
-            ],
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final bool isCompact = constraints.maxHeight < 450;
+              final bool isWide = constraints.maxWidth > 650;
+              // Calculate isExtraCompact here to pass it to all layouts
+              final bool isExtraCompact = isCompact && (puzzle?.equations.length ?? 0) >= 4;
+
+              return Column(
+                children: [
+                  _buildAdaptiveHeader(isCompact: isCompact),
+                  Expanded(
+                    child: isWide
+                        ? _buildWideLayout(isCompact: isCompact, isExtraCompact: isExtraCompact)
+                        : _buildResponsiveLayout(isCompact: isCompact),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
     );
   }
 
-  Widget _buildResponsiveLayout(BoxConstraints constraints) {
-    // Always use scrollable layout to prevent overflow
-    return _buildScrollableLayout(constraints);
-  }
-
-  Widget _buildScrollableLayout(BoxConstraints constraints) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildEquationDisplay(),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: math.min(280, constraints.maxHeight * 0.4), // Responsive number pad height
-              child: _buildNumberPad(),
-            ),
-            const SizedBox(height: 20), // Bottom padding
-          ],
-        ),
+  Widget _buildLevelIndicator({required bool isCompact}) {
+    final fontSize = isCompact ? 12.0 : 16.0;
+    final iconSize = isCompact ? 20.0 : 24.0;
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 8 : 12, 
+        vertical: isCompact ? 4 : 8,
       ),
-    );
-  }
-
-  Widget _buildWideLayout() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: SpaceTheme.starYellow),
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(flex: 3, child: _buildEquationDisplay()),
-          const SizedBox(width: 24),
-          Expanded(flex: 2, child: _buildNumberPad()),
+          Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: iconSize),
+          SizedBox(width: isCompact ? 4 : 8),
+          Text(
+            'Level ${widget.level}',
+            style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildEquationDisplay() {
+  Widget _buildScoreIndicator({required bool isCompact}) {
+    final fontSize = isCompact ? 12.0 : 16.0;
+    final iconSize = isCompact ? 20.0 : 24.0;
+    return Consumer<GameProvider>(
+      builder: (context, gameProvider, child) {
+        return Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: isCompact ? 8 : 12, 
+            vertical: isCompact ? 4 : 8,
+          ),
+          decoration: BoxDecoration(
+            color: SpaceTheme.deepSpace.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: SpaceTheme.alienGreen),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.star, color: SpaceTheme.alienGreen, size: iconSize),
+              SizedBox(width: isCompact ? 4 : 8),
+              Text(
+                gameProvider.score.toString(),
+                style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEquationDisplay({required bool isCompact, required bool isExtraCompact}) {
     return AnimatedBuilder(
       animation: _glowAnimation,
       builder: (context, child) {
         return Container(
-          padding: const EdgeInsets.all(16),
+          // Reduce padding even more in the most compact layouts.
+          padding: EdgeInsets.all(isExtraCompact ? 8 : (isCompact ? 12 : 16)),
           decoration: BoxDecoration(
             gradient: RadialGradient(
               colors: [
@@ -454,10 +567,10 @@ class _CodebreakerGameState extends State<CodebreakerGame>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
-            children: puzzle!.equations.asMap().entries.map((entry) {
+            children: puzzle!.equations.asMap().entries.map<Widget>((entry) {
               final index = entry.key;
               final equation = entry.value;
-              return _buildSingleEquation(equation, index);
+              return _buildSingleEquation(equation, index, isCompact: isCompact, isExtraCompact: isExtraCompact);
             }).toList(),
           ),
         );
@@ -469,56 +582,58 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     debugPrint("🔍 [STATE] Need to fill: ${puzzle!.hiddenPositions.where((pos) => !userSolution.containsKey(pos)).join(', ')}");
   }
 
-  Widget _buildSingleEquation(PuzzleEquation equation, int equationIndex) {
+  Widget _buildSingleEquation(PuzzleEquation equation, int equationIndex, {required bool isCompact, required bool isExtraCompact}) {
     final numEquations = puzzle?.equations.length ?? 4;
     
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      // Trim the last bit of vertical padding from each equation row.
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: isExtraCompact ? 1 : (isCompact ? 2 : 6)),
       decoration: SpaceTheme.cardDecoration.copyWith(
         border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildTermWidget(equation.term1, 'eq${equationIndex}_term1'),
+          _buildTermWidget(equation.term1, 'eq${equationIndex}_term1', isCompact: isCompact),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               equation.op,
               style: SpaceTheme.headlineStyle.copyWith(
-                fontSize: _getFontSize(numEquations, 18), 
+                fontSize: _getFontSize(numEquations, 18, isCompact: isCompact), 
                 color: SpaceTheme.starYellow
               ),
             ),
           ),
-          _buildTermWidget(equation.term2, 'eq${equationIndex}_term2'),
+          _buildTermWidget(equation.term2, 'eq${equationIndex}_term2', isCompact: isCompact),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               '=',
               style: SpaceTheme.headlineStyle.copyWith(
-                fontSize: _getFontSize(numEquations, 20), 
+                fontSize: _getFontSize(numEquations, 20, isCompact: isCompact), 
                 color: SpaceTheme.alienGreen
               ),
             ),
           ),
-          _buildTermWidget(equation.result, 'eq${equationIndex}_result'),
+          _buildTermWidget(equation.result, 'eq${equationIndex}_result', isCompact: isCompact),
         ],
       ),
     );
   }
 
-  double _getFontSize(int numEquations, double baseFontSize) {
-    final factor = numEquations > 5 ? 0.75 : (numEquations > 4 ? 0.85 : 1.0);
-    return baseFontSize * factor;
+  double _getFontSize(int numEquations, double baseFontSize, {bool isCompact = false}) {
+    final equationFactor = numEquations > 5 ? 0.75 : (numEquations > 4 ? 0.85 : 1.0);
+    final compactFactor = isCompact ? 0.85 : 1.0;
+    return baseFontSize * equationFactor * compactFactor;
   }
 
-  Widget _buildTermWidget(dynamic term, String positionId) {
+  Widget _buildTermWidget(dynamic term, String positionId, {required bool isCompact}) {
     final numEquations = puzzle?.equations.length ?? 4;
-    final cellSize = _getCellSize(numEquations);
-    final fontSize = _getFontSize(numEquations, 16);
-    final symbolSize = _getFontSize(numEquations, 26);
+    final cellSize = _getCellSize(numEquations, isCompact: isCompact);
+    final fontSize = _getFontSize(numEquations, 16, isCompact: isCompact);
+    final symbolSize = _getFontSize(numEquations, 26, isCompact: isCompact);
     
     if (term is int) {
       // Numbers: Show as symbol with number overlay
@@ -684,14 +799,14 @@ class _CodebreakerGameState extends State<CodebreakerGame>
       // Wrap in DragTarget if it should accept drops
       if (shouldAcceptDrops) {
         return SizedBox(
-          width: cellSize + 24, 
-          height: cellSize + 24,
+          width: cellSize + (isCompact ? 16 : 24), 
+          height: cellSize + (isCompact ? 16 : 24),
           child: DragTarget<int>(
             builder: (context, candidateData, rejectedData) {
               final isHovering = candidateData.isNotEmpty;
               
               return Padding(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(isCompact ? 8 : 12),
                 child: Container(
                   width: cellSize, 
                   height: cellSize,
@@ -744,12 +859,15 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     }
   }
 
-  double _getCellSize(int numEquations) {
-    // Dynamic cell size based on number of equations
-    if (numEquations <= 3) return 50.0;
-    if (numEquations <= 4) return 46.0;
-    if (numEquations <= 5) return 42.0;
-    return 38.0; // For 6+ equations
+  double _getCellSize(int numEquations, {bool isCompact = false}) {
+    double baseSize;
+    if (numEquations <= 3) baseSize = 50.0;
+    else if (numEquations <= 4) baseSize = 46.0;
+    else if (numEquations <= 5) baseSize = 42.0;
+    else baseSize = 38.0;
+
+    // Apply a scaling factor for compact mode.
+    return isCompact ? baseSize * 0.8 : baseSize;
   }
 
   String _getSymbolIcon(String symbol) {
@@ -773,64 +891,58 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     return symbolMap[symbol] ?? '⭐';
   }
 
-  Widget _buildNumberPad() {
+  Widget _buildNumberPad({required bool isCompact, required bool isExtraCompact}) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableWidth = constraints.maxWidth;
-        final crossAxisCount = availableWidth > 400 ? 4 : 3;
-        
+        final crossAxisCount = isCompact || availableWidth > 400 ? 4 : 3;
+
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(S.of(context)!.codebreakerSelectNumbers, style: SpaceTheme.bodyStyle),
-            const SizedBox(height: 8),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: SpaceTheme.cardDecoration.copyWith(
-                  border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
+            if (!isCompact)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(S.of(context)!.codebreakerSelectNumbers, style: SpaceTheme.bodyStyle),
+              ),
+            Container(
+              padding: EdgeInsets.all(isCompact ? 8 : 12),
+              decoration: SpaceTheme.cardDecoration.copyWith(
+                border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
+              ),
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 8,
+                  // Reduce vertical spacing between number tiles in the tightest layout.
+                  mainAxisSpacing: isExtraCompact ? 4 : 8,
+                  childAspectRatio: isCompact ? 1.1 : 1.0,
                 ),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: _isDragging ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    childAspectRatio: 1.0,
-                  ),
-                  itemCount: numberPool.length,
-                  itemBuilder: (context, index) {
-                    if (index >= numberPool.length) return Container();
-                    final number = numberPool[index];
-                    return Draggable<int>(
-                      data: number,
-                      onDragStarted: () {
-                        setState(() {
-                          _isDragging = true;
-                          _draggingNumber = number;
-                        });
-                        debugPrint("🎮 [DRAG] 🚀 Started: $number");
-                      },
-                      onDragEnd: (details) {
-                        setState(() {
-                          _isDragging = false;
-                          _draggingNumber = null;
-                        });
-                        
-                        debugPrint("🎮 [DRAG] 🏁 End: $number, accepted=${details.wasAccepted}");
-                        if (!details.wasAccepted) {
-                          debugPrint("🎮 [DRAG] ❌ FAILED: $number");
-                          final availableTargets = puzzle!.hiddenPositions.where((pos) => !userSolution.containsKey(pos)).toList();
-                          debugPrint("🎮 [DRAG] Available targets: $availableTargets");
-                        }
-                      },
-                      feedback: _buildDraggableFeedback(number),
-                      childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number)),
-                      child: _buildNumberTile(number),
-                    );
-                  },
-                ),
+                itemCount: numberPool.length,
+                itemBuilder: (context, index) {
+                  if (index >= numberPool.length) return Container();
+                  final number = numberPool[index];
+                  return Draggable<int>(
+                    data: number,
+                    onDragStarted: () {
+                      setState(() {
+                        _isDragging = true;
+                        _draggingNumber = number;
+                      });
+                    },
+                    onDragEnd: (details) {
+                      setState(() {
+                        _isDragging = false;
+                        _draggingNumber = null;
+                      });
+                    },
+                    feedback: _buildDraggableFeedback(number),
+                    childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
+                    child: _buildNumberTile(number, isCompact: isCompact),
+                  );
+                },
               ),
             ),
           ],
@@ -839,15 +951,20 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     );
   }
 
-  Widget _buildNumberTile(int number) {
+  Widget _buildNumberTile(int number, {required bool isCompact}) {
     return Container(
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
-        borderRadius: BorderRadius.circular(12),
+        // Reduce border radius for smaller tiles
+        borderRadius: BorderRadius.circular(isCompact ? 8 : 12),
         border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.7), width: 2),
       ),
       child: Center(
-        child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 18)),
+        child: Text(
+          number.toString(),
+          // Reduce font size in compact mode
+          style: SpaceTheme.headlineStyle.copyWith(fontSize: isCompact ? 16 : 18),
+        ),
       ),
     );
   }

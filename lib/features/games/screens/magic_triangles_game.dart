@@ -544,22 +544,21 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       builder: (context, constraints) {
         debugPrint("🔺 [UI] Triangle LayoutBuilder constraints: ${constraints.maxWidth}x${constraints.maxHeight}");
         
-        // Better size calculation for small screens
         final screenSize = MediaQuery.of(context).size;
         final isSmallScreen = screenSize.width < 800 || screenSize.height < 500;
         
         double size;
         if (isSmallScreen) {
-          // For small screens, use more of the available space
-          size = math.min(constraints.maxWidth * 0.9, constraints.maxHeight * 0.8)
-              .clamp(200.0, 350.0);
+          // Use much more of the available space on small screens
+          size = math.min(constraints.maxWidth * 0.95, constraints.maxHeight * 0.9)
+              .clamp(280.0, 400.0); // Larger minimum size
         } else {
           size = math.min(constraints.maxWidth, constraints.maxHeight)
-              .clamp(250.0, 450.0);
+              .clamp(300.0, 500.0);
         }
         
         final center = Offset(size / 2, size / 2);
-        final radius = size * 0.4;
+        final radius = size * 0.42; // Slightly larger radius
         debugPrint("🔺 [UI] Triangle parameters: size=$size, center=$center, radius=$radius");
         
         final nodePoints = currentPuzzle!.getCirclePositions(center, radius);
@@ -617,7 +616,6 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               final droppedNumber = details.data;
               debugPrint("🎯 [UI] Global drop position: ${details.offset}");
               debugPrint("🎯 [UI] Local drop position: $localDropPosition");
-              debugPrint("🎯 [UI] Triangle size: $size, center: $center");
 
               int? closestGlobalIndex = _findClosestEmptyNode(localDropPosition, nodePoints, size);
               debugPrint("🎯 [UI] Closest empty node: $closestGlobalIndex");

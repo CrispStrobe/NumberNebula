@@ -487,7 +487,7 @@ class SEn extends S {
       'Visit even numbers first, then odd!';
 
   @override
-  String get planetHoppingTitle => 'Planet Hopping';
+  String get planetHoppingTitle => 'Gravity Sling';
 
   @override
   String planetHoppingNextTarget(Object target) {
@@ -697,7 +697,7 @@ class SEn extends S {
   String get splashScreenSubtitle => 'Explore • Learn • Discover';
 
   @override
-  String get pathFinderTitle => 'PathFinder';
+  String get pathFinderTitle => 'Path Finder';
 
   @override
   String get pathFinderDesc =>

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:ui';
+import 'dart:async';
 
 import '../constants/app_constants.dart';
 import '../../../core/theme/space_theme.dart';
@@ -59,6 +60,11 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   int _lastPlacedCellIndex = -1;
   bool _isDraggingOver = false;
 
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
+  Timer? _fadeTimer;
+  bool _shouldShowOperationHint = true;
+
   @override
   void initState() {
     super.initState();
@@ -90,7 +96,29 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     _operationAnimation = Tween<double>(begin: 0.7, end: 1.0)
         .animate(CurvedAnimation(parent: _operationController, curve: Curves.easeInOut));
     
+    // New fade controller
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 1000), vsync: this
+    );
+    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0)
+        .animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOut));
+    
     _generatePuzzle();
+    
+    // Start the fade timer
+    _startFadeTimer();
+  }
+
+  void _startFadeTimer() {
+    _fadeTimer?.cancel();
+    _fadeTimer = Timer(const Duration(seconds: 15), () {
+      if (mounted && _shouldShowOperationHint) {
+        setState(() {
+          _shouldShowOperationHint = false;
+        });
+        _fadeController.forward();
+      }
+    });
   }
 
   @override
@@ -109,8 +137,10 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     setState(() {
       _isGenerating = true;
       _isWarping = false;
+      _shouldShowOperationHint = true;
       _warpController.reset();
       _successController.reset();
+      _fadeController.reset();
     });
 
     try {
@@ -124,7 +154,6 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         'customMax': gameProvider.customRangeMax,
       };
 
-      // The compute function runs puzzle generation in a separate isolate
       final puzzle = await compute(NumberWallPuzzle.generate, puzzleArgs);
       
       if (mounted) {
@@ -135,6 +164,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
           _isGenerating = false;
         });
         debugPrint("🧱 Puzzle generated: ${currentPuzzle!.operation.name} wall, height ${currentPuzzle!.wallHeight}");
+        _startFadeTimer(); // Restart the timer for new puzzle
       }
     } catch (e, stackTrace) {
       debugPrint("❌ Error in _generatePuzzle: $e");
@@ -312,30 +342,24 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
-          child: Column(
+          child: Stack(
             children: [
-              GameUI(
-                title: S.of(context)!.numberWallsGameTitle, 
-                level: widget.level, 
-                onBack: () => Navigator.of(context).pop()
+              Column(
+                children: [
+                  _buildCompactHeader(),
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        bool isWide = constraints.maxWidth > 650;
+                        return isWide ? _buildWideLayout() : _buildCompactTallLayout();
+                      },
+                    ),
+                  ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text(
-                  S.of(context)!.numberWallsInstructions,
-                  style: SpaceTheme.bodyStyle, 
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              _buildOperationIndicator(),
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    bool isWide = constraints.maxWidth > 650;
-                    return isWide ? _buildWideLayout() : _buildTallLayout();
-                  },
-                ),
-              ),
+              // Floating operation indicator on the right
+              if (_shouldShowOperationHint || _fadeController.status == AnimationStatus.reverse)
+                _buildFloatingOperationIndicator(),
             ],
           ),
         ),
@@ -343,88 +367,269 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     );
   }
 
-  Widget _buildOperationIndicator() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: _getOperationGradient(currentPuzzle!.operation),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _getOperationColor(currentPuzzle!.operation), width: 3),
-        boxShadow: [
-          BoxShadow(
-            color: _getOperationColor(currentPuzzle!.operation).withOpacity(0.4),
-            blurRadius: 15,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnimatedBuilder(
-                animation: _operationAnimation,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _operationAnimation.value,
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        _getOperationIcon(currentPuzzle!.operation), 
-                        color: Colors.white, 
-                        size: 40
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _getOperationTitle(currentPuzzle!.operation),
-                    style: SpaceTheme.titleStyle.copyWith(
-                      color: Colors.white, 
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    _getOperationDescription(currentPuzzle!.operation),
-                    style: SpaceTheme.bodyStyle.copyWith(
-                      color: Colors.white70, 
-                      fontSize: 14,
-                    ),
+  Widget _buildFloatingOperationIndicator() {
+    return Positioned(
+      top: 80,
+      right: 16,
+      child: AnimatedBuilder(
+        animation: _fadeAnimation,
+        builder: (context, child) {
+          return Opacity(
+            opacity: _shouldShowOperationHint ? 1.0 : _fadeAnimation.value,
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.75,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: _getOperationGradient(currentPuzzle!.operation),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _getOperationColor(currentPuzzle!.operation), width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: _getOperationColor(currentPuzzle!.operation).withOpacity(0.3),
+                    blurRadius: 10,
+                    spreadRadius: 1,
                   ),
                 ],
               ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedBuilder(
+                    animation: _operationAnimation,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _operationAnimation.value * 0.8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            _getOperationIcon(currentPuzzle!.operation), 
+                            color: Colors.white, 
+                            size: 16
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _getOperationTitle(currentPuzzle!.operation),
+                          style: SpaceTheme.titleStyle.copyWith(
+                            color: Colors.white, 
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          _getOperationDescription(currentPuzzle!.operation),
+                          style: SpaceTheme.bodyStyle.copyWith(
+                            color: Colors.white70, 
+                            fontSize: 10,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (kTweakProblems)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'TWEAK',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildCompactHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+          ),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  S.of(context)!.numberWallsGameTitle,
+                  style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  S.of(context)!.numberWallsInstructions,
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 11), 
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: SpaceTheme.starYellow.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: SpaceTheme.starYellow),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.emoji_events, size: 16, color: SpaceTheme.starYellow),
+                    const SizedBox(width: 4),
+                    Text('${widget.level}', style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: SpaceTheme.alienGreen.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: SpaceTheme.alienGreen),
+                ),
+                child: Consumer<GameProvider>(
+                  builder: (context, gameProvider, child) {
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star, size: 16, color: SpaceTheme.alienGreen),
+                        const SizedBox(width: 4),
+                        Text('${gameProvider.score}', style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                      ],
+                    );
+                  },
+                ),
+              ),
             ],
           ),
-          if (kTweakProblems) ...[
-            const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactBrick(int number) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: SpaceTheme.starGradient,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.7), width: 1.5),
+      ),
+      child: Center(
+        child: Text(
+          number.toString(), 
+          style: SpaceTheme.headlineStyle.copyWith(fontSize: 14)
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactOperationIndicator() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        gradient: _getOperationGradient(currentPuzzle!.operation),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _getOperationColor(currentPuzzle!.operation), width: 2),
+      ),
+      child: Row(
+        children: [
+          AnimatedBuilder(
+            animation: _operationAnimation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _operationAnimation.value * 0.8,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _getOperationIcon(currentPuzzle!.operation), 
+                    color: Colors.white, 
+                    size: 20
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _getOperationTitle(currentPuzzle!.operation),
+                  style: SpaceTheme.titleStyle.copyWith(
+                    color: Colors.white, 
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  _getOperationDescription(currentPuzzle!.operation),
+                  style: SpaceTheme.bodyStyle.copyWith(
+                    color: Colors.white70, 
+                    fontSize: 11,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          if (kTweakProblems)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
                 color: Colors.orange.withOpacity(0.8),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'TWEAKING MODE: $kTweakOps (${kTweakRangeMin}-${kTweakRangeMax})',
+                'TWEAK',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 12,
+                  fontSize: 9,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-          ],
         ],
       ),
     );
@@ -488,24 +693,27 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         children: [
           Expanded(flex: 3, child: _buildWallArea()),
           const SizedBox(width: 24),
-          Expanded(flex: 2, child: _buildNumberPad()),
+          Expanded(flex: 2, child: _buildCompactNumberPad()),
         ],
       ),
     );
   }
 
-  Widget _buildTallLayout() {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          children: [
-            _buildWallArea(),
-            const SizedBox(height: 24),
-            _buildNumberPad(),
-            const SizedBox(height: 20),
-          ],
-        ),
+  Widget _buildCompactTallLayout() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      child: Column(
+        children: [
+          Flexible(
+            flex: 3,
+            child: _buildWallArea(),
+          ),
+          const SizedBox(height: 12),
+          Flexible(
+            flex: 2,
+            child: _buildCompactNumberPad(),
+          ),
+        ],
       ),
     );
   }
@@ -750,35 +958,42 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     );
   }
 
-  Widget _buildNumberPad() {
+  Widget _buildCompactNumberPad() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(S.of(context)!.numberWallsBricks, style: SpaceTheme.bodyStyle),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: SpaceTheme.cardDecoration.copyWith(
-            border: Border.all(color: SpaceTheme.nebulaPurple, width: 2)
-          ),
-          constraints: const BoxConstraints(maxWidth: 350),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const BouncingScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4, crossAxisSpacing: 8, mainAxisSpacing: 8,
+        Text(
+          S.of(context)!.numberWallsBricks, 
+          style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)
+        ),
+        const SizedBox(height: 6),
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: SpaceTheme.cardDecoration.copyWith(
+              border: Border.all(color: SpaceTheme.nebulaPurple, width: 2)
             ),
-            itemCount: numberPool.length,
-            itemBuilder: (context, index) {
-              if (index >= numberPool.length) return Container();
-              final number = numberPool[index];
-              return Draggable<int>(
-                data: number,
-                feedback: _buildDraggableFeedback(number),
-                childWhenDragging: Opacity(opacity: 0.3, child: _buildBrick(number)),
-                child: _buildBrick(number),
-              );
-            },
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const BouncingScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: math.min(5, numberPool.length), 
+                crossAxisSpacing: 6, 
+                mainAxisSpacing: 6,
+                childAspectRatio: 1.0,
+              ),
+              itemCount: numberPool.length,
+              itemBuilder: (context, index) {
+                if (index >= numberPool.length) return Container();
+                final number = numberPool[index];
+                return Draggable<int>(
+                  data: number,
+                  feedback: _buildDraggableFeedback(number),
+                  childWhenDragging: Opacity(opacity: 0.3, child: _buildCompactBrick(number)),
+                  child: _buildCompactBrick(number),
+                );
+              },
+            ),
           ),
         ),
       ],

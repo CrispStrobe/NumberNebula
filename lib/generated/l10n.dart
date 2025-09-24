@@ -1006,7 +1006,7 @@ abstract class S {
   /// No description provided for @planetHoppingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Planet Hopping'**
+  /// **'Gravity Sling'**
   String get planetHoppingTitle;
 
   /// No description provided for @planetHoppingNextTarget.
@@ -1360,7 +1360,7 @@ abstract class S {
   /// No description provided for @pathFinderTitle.
   ///
   /// In en, this message translates to:
-  /// **'PathFinder'**
+  /// **'Path Finder'**
   String get pathFinderTitle;
 
   /// No description provided for @pathFinderDesc.

@@ -472,11 +472,15 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     
     return Scaffold(
       body: Container(
+        width: double.infinity, // FIX: Ensure full width
+        height: double.infinity, // FIX: Ensure full height
         decoration: const BoxDecoration(gradient: SpaceTheme.spaceGradient),
-        child: SafeArea( // FIX: Add SafeArea to prevent overflow
-          child: SingleChildScrollView( // FIX: Make scrollable if needed
+        child: SafeArea(
+          child: SingleChildScrollView(
             child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: screenSize.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom),
+              constraints: BoxConstraints(
+                minHeight: screenSize.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -486,7 +490,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       return Transform.scale(
                         scale: _logoScale.value,
                         child: Container(
-                          width: isSmallScreen ? 100 : 150, // FIX: Smaller logo on small screens
+                          width: isSmallScreen ? 100 : 150,
                           height: isSmallScreen ? 100 : 150,
                           decoration: BoxDecoration(
                             gradient: SpaceTheme.starGradient,
@@ -502,13 +506,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                           child: Icon(
                             Icons.rocket_launch, 
                             color: Colors.white, 
-                            size: isSmallScreen ? 50 : 80 // FIX: Smaller icon on small screens
+                            size: isSmallScreen ? 50 : 80
                           ),
                         ),
                       );
                     },
                   ),
-                  SizedBox(height: isSmallScreen ? 20 : 40), // FIX: Less spacing on small screens
+                  SizedBox(height: isSmallScreen ? 20 : 40),
                   AnimatedBuilder(
                     animation: _textOpacity,
                     builder: (context, child) {
@@ -519,20 +523,20 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             Text(
                               S.of(context)!.appTitle,
                               style: SpaceTheme.headlineStyle.copyWith(
-                                fontSize: isSmallScreen ? 24 : 36 // FIX: Smaller text on small screens
+                                fontSize: isSmallScreen ? 24 : 36
                               ),
                               textAlign: TextAlign.center,
                             ),
                             SizedBox(height: isSmallScreen ? 8 : 16),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20), // FIX: Add padding
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
                               child: Text(
                                 S.of(context)!.splashScreenSubtitle,
                                 style: SpaceTheme.bodyStyle.copyWith(
                                   fontSize: isSmallScreen ? 14 : 18,
                                   color: SpaceTheme.starYellow,
                                 ),
-                                textAlign: TextAlign.center, // FIX: Center text
+                                textAlign: TextAlign.center,
                               ),
                             ),
                           ],
@@ -540,7 +544,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       );
                     },
                   ),
-                  SizedBox(height: isSmallScreen ? 30 : 60), // FIX: Less spacing on small screens
+                  SizedBox(height: isSmallScreen ? 30 : 60),
                   AnimatedBuilder(
                     animation: _textOpacity,
                     builder: (context, child) {
@@ -549,7 +553,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         child: Column(
                           children: [
                             SizedBox(
-                              width: isSmallScreen ? 200 : 250, // FIX: Smaller progress bar on small screens
+                              width: isSmallScreen ? 200 : 250,
                               child: AnimatedBuilder(
                                 animation: _progressAnimation,
                                 builder: (context, child) {
@@ -587,7 +591,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       );
                     },
                   ),
-                  SizedBox(height: isSmallScreen ? 20 : 40), // FIX: Bottom spacing
+                  SizedBox(height: isSmallScreen ? 20 : 40),
                 ],
               ),
             ),

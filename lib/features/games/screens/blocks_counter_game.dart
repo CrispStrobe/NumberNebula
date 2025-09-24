@@ -499,56 +499,53 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
       children: [
         Text(S.of(context)!.blockCounterQuestion, style: SpaceTheme.titleStyle.copyWith(fontSize: 18), textAlign: TextAlign.center),
         const SizedBox(height: 16),
-        Container(
-          height: _VisualConfig.containerHeight,
-          decoration: SpaceTheme.cardDecoration.copyWith(
-            borderRadius: BorderRadius.circular(_VisualConfig.containerBorderRadius),
-            boxShadow: [
-              BoxShadow(color: SpaceTheme.starYellow.withOpacity(0.3), blurRadius: 10, spreadRadius: 2),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(_VisualConfig.containerBorderRadius),
-            child: Container(
-              color: const Color(0xFF1A1A2E),
-              child: AnimatedBuilder(
-                animation: _rotationAnimation,
-                builder: (context, child) {
-                  _sceneObject?.rotation.y = _rotationAnimation.value;
-                  _scene?.update();
-                  return child!;
-                },
-                child: cube.Cube(
-                  key: _cubeKey,
-                  onSceneCreated: (cube.Scene scene) {
-                    _scene = scene;
-                    if (_sceneObject != null) {
-                      scene.world.add(_sceneObject!);
-                    }
-                    
-                    // NEW: DYNAMIC CAMERA SETUP
-                    final structure = currentPuzzle!.blockStructure;
-                    // Calculate largest dimension for optimal camera distance
-                    final maxDimension = math.max(structure.gridWidth, 
-                                          math.max(structure.gridDepth, structure.maxHeight)).toDouble();
-                    // Adjust distance based on dimension and factor. Add a small offset to prevent clipping.
-                    final distance = maxDimension * _VisualConfig.cameraDistanceFactor + 3.0; 
-
-                    // Set camera position (slightly elevated and to the side)
-                    scene.camera.position.setValues(distance, distance * 0.8, distance);
-                    scene.camera.target.setFrom(_VisualConfig.cameraTarget);
-                    
-                    // Set light position
-                    scene.light.position.setFrom(_VisualConfig.lightPosition);
-                    
-                    // Set the light's color and intensity
-                    scene.light.setColor(
-                      _VisualConfig.lightColor,
-                      _VisualConfig.ambientIntensity,
-                      _VisualConfig.diffuseIntensity,
-                      _VisualConfig.specularIntensity,
-                    );
+        // FIX: Wrap the container in Expanded and remove the fixed height
+        // to make it fill the available space instead of overflowing.
+        Expanded(
+          child: Container(
+            decoration: SpaceTheme.cardDecoration.copyWith(
+              borderRadius: BorderRadius.circular(_VisualConfig.containerBorderRadius),
+              boxShadow: [
+                BoxShadow(color: SpaceTheme.starYellow.withOpacity(0.3), blurRadius: 10, spreadRadius: 2),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(_VisualConfig.containerBorderRadius),
+              child: Container(
+                color: const Color(0xFF1A1A2E),
+                child: AnimatedBuilder(
+                  animation: _rotationAnimation,
+                  builder: (context, child) {
+                    _sceneObject?.rotation.y = _rotationAnimation.value;
+                    _scene?.update();
+                    return child!;
                   },
+                  child: cube.Cube(
+                    key: _cubeKey,
+                    onSceneCreated: (cube.Scene scene) {
+                      _scene = scene;
+                      if (_sceneObject != null) {
+                        scene.world.add(_sceneObject!);
+                      }
+                      
+                      final structure = currentPuzzle!.blockStructure;
+                      final maxDimension = math.max(structure.gridWidth, 
+                                            math.max(structure.gridDepth, structure.maxHeight)).toDouble();
+                      final distance = maxDimension * _VisualConfig.cameraDistanceFactor + 3.0; 
+
+                      scene.camera.position.setValues(distance, distance * 0.8, distance);
+                      scene.camera.target.setFrom(_VisualConfig.cameraTarget);
+                      
+                      scene.light.position.setFrom(_VisualConfig.lightPosition);
+                      
+                      scene.light.setColor(
+                        _VisualConfig.lightColor,
+                        _VisualConfig.ambientIntensity,
+                        _VisualConfig.diffuseIntensity,
+                        _VisualConfig.specularIntensity,
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
@@ -577,7 +574,82 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 2.0,
+              childAspectRatio: 1.5,
+            ),
+            itemCount: answerChoices.length,
+            itemBuilder: (context, index) {
+              final answer = answerChoices[index];
+              final isSelected = _selectedAnswerIndex == index;
+              final isCorrect = userAnswer != null &&
+                               answer == currentPuzzle!.correctAnswer;
+              final isWrong = userAnswer != null && isSelected && !isCorrect;
+
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                child: ElevatedButton(
+                  onPressed: userAnswer == null ? () => _selectAnswer(index) : null,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(8),
+                    backgroundColor: isCorrect
+                        ? SpaceTheme.alienGreen
+                        : isWrong
+                            ? SpaceTheme.rocketRed
+                            : isSelected
+                                ? SpaceTheme.spaceBlue
+                                : SpaceTheme.deepSpace,
+                    foregroundColor: Colors.white,
+                    elevation: isSelected ? 8 : 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: isSelected
+                            ? SpaceTheme.starYellow
+                            : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: Text(
+                      answer.toString(),
+                      style: SpaceTheme.headlineStyle.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        // The redundant success/fail text block below the buttons was
+        // removed entirely. The pop-up dialog handles this feedback.
+      ],
+    );
+  }
+
+  Widget _buildAnswerArea_old() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          S.of(context)!.blockCounterSelectAnswer,
+          style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: SpaceTheme.cardDecoration,
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              // FIX: Changed aspect ratio to make buttons more square-like.
+              childAspectRatio: 1.5, 
             ),
             itemCount: answerChoices.length,
             itemBuilder: (context, index) {
@@ -592,6 +664,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
                 child: ElevatedButton(
                   onPressed: userAnswer == null ? () => _selectAnswer(index) : null,
                   style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(8), // Add padding for FittedBox
                     backgroundColor: isCorrect 
                         ? SpaceTheme.alienGreen 
                         : isWrong 
@@ -611,11 +684,15 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
                       ),
                     ),
                   ),
-                  child: Text(
-                    answer.toString(),
-                    style: SpaceTheme.headlineStyle.copyWith(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                  // FIX: Wrap the Text with a FittedBox to make the font size
+                  // automatically shrink to fit the available space.
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: Text(
+                      answer.toString(),
+                      style: SpaceTheme.headlineStyle.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),

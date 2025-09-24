@@ -145,10 +145,15 @@ class _HomeScreenState extends State<HomeScreen>
             child: Column(
               children: [
                 _buildHeader(),
-                Expanded( // FIX: Wrap the main content in Expanded to prevent overflow
-                  child: Center( // FIX: Center the content to prevent overflow
-                    child: isLandscape ? _buildLandscapeLayout() : _buildPortraitLayout(),
-                  ),
+                // A bit of spacing to ensure header doesn't touch the main content.
+                const SizedBox(height: 16), 
+                Expanded(
+                  // FIX: The Center widget was removed.
+                  // Expanded now directly constrains its child, forcing the
+                  // landscape Row to fit the available width and preventing the overflow.
+                  child: isLandscape
+                      ? _buildLandscapeLayout()
+                      : _buildPortraitLayout(),
                 ),
               ],
             ),
@@ -221,35 +226,34 @@ class _HomeScreenState extends State<HomeScreen>
     
     return Row(
       children: [
-        // LEFT SIDE - Clean design without ugly overlay
+        // LEFT SIDE - Better flex distribution
         Expanded(
-          flex: isSmallScreen ? 4 : 3,
+          flex: isSmallScreen ? 4 : 5, // More space on larger screens
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Clean logo without overlay
               FadeTransition(
                 opacity: _fadeAnimation,
-                child: AnimatedLogo(size: isSmallScreen ? 80 : 150), // Even smaller on small screens
+                child: AnimatedLogo(size: isSmallScreen ? 80 : 180), // Larger logo on big screens
               ),
-              // Skip welcome text on small screens to save space
+              // Show welcome text on larger screens
               if (!isSmallScreen) ...[
-                SizedBox(height: 16),
+                const SizedBox(height: 24),
                 SlideTransition(
                   position: _slideAnimation,
                   child: FadeTransition(
                     opacity: _fadeAnimation,
                     child: Text(
                       S.of(context)!.welcome,
-                      style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
+                      style: SpaceTheme.headlineStyle.copyWith(fontSize: 28),
                       textAlign: TextAlign.center,
                     ),
                   ),
                 ),
               ],
-              SizedBox(height: isSmallScreen ? 8 : 24),
+              SizedBox(height: isSmallScreen ? 8 : 32),
               SlideTransition(
                 position: _slideAnimation,
                 child: FadeTransition(
@@ -257,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen>
                   child: const CompactGradeSelector(),
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 8 : 20),
+              SizedBox(height: isSmallScreen ? 8 : 32),
               SlideTransition(
                 position: _slideAnimation,
                 child: FadeTransition(
@@ -269,11 +273,11 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
         
-        SizedBox(width: isSmallScreen ? 6 : 20),
+        SizedBox(width: isSmallScreen ? 6 : 32), // More spacing on larger screens
         
-        // RIGHT SIDE - Smaller
+        // RIGHT SIDE - Adjust flex for larger screens
         Expanded(
-          flex: isSmallScreen ? 3 : 2,
+          flex: isSmallScreen ? 3 : 4, // Better ratio for larger screens
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
@@ -285,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen>
                   child: CompactStatsCard(isSmallScreen: isSmallScreen),
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 4 : 12),
+              SizedBox(height: isSmallScreen ? 4 : 20), // More spacing on larger screens
               SlideTransition(
                 position: _slideAnimation,
                 child: FadeTransition(
@@ -361,9 +365,10 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildStartButton(bool isSmallScreen) {
     return Container(
-      height: isSmallScreen ? 32 : 60, // Much smaller on small screens
+      // REMOVED: The fixed 'height' property which prevented the button from growing.
       constraints: BoxConstraints(
-        maxWidth: isSmallScreen ? 180 : 300, // Narrower on small screens
+        maxWidth: isSmallScreen ? 180 : 300,
+        minHeight: isSmallScreen ? 48 : 60, // Use minHeight to ensure a good minimum size.
       ),
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
@@ -382,7 +387,11 @@ class _HomeScreenState extends State<HomeScreen>
           borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 30),
           onTap: _navigateToGameMenu,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12.0 : 32.0),
+            // Added vertical padding to ensure the button looks good with one or two lines.
+            padding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 12.0 : 24.0,
+              vertical: isSmallScreen ? 8.0 : 12.0,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -390,13 +399,16 @@ class _HomeScreenState extends State<HomeScreen>
                 Icon(
                   Icons.rocket_launch,
                   color: Colors.white,
-                  size: isSmallScreen ? 12 : 24,
+                  size: isSmallScreen ? 16 : 24,
                 ),
-                SizedBox(width: isSmallScreen ? 6 : 12),
-                Text(
-                  S.of(context)!.startAdventure,
-                  style: SpaceTheme.buttonStyle.copyWith(
-                    fontSize: isSmallScreen ? 10 : 16
+                SizedBox(width: isSmallScreen ? 8 : 12),
+                Flexible(
+                  child: Text(
+                    S.of(context)!.startAdventure,
+                    textAlign: TextAlign.center, // Center the text for a cleaner look.
+                    style: SpaceTheme.buttonStyle.copyWith(
+                        fontSize: isSmallScreen ? 12 : 16),
+                    // REMOVED: maxLines and overflow properties to allow text wrapping.
                   ),
                 ),
               ],
@@ -497,7 +509,7 @@ class CompactStatsCard extends StatelessWidget {
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
         return Container(
-          padding: EdgeInsets.all(isSmallScreen ? 8 : 12), // Reduced padding
+          padding: EdgeInsets.all(isSmallScreen ? 8 : 20), // More padding on large screens
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
@@ -507,7 +519,7 @@ class CompactStatsCard extends StatelessWidget {
                 Color(0xFF1E2235),
               ],
             ),
-            borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 12), // Smaller radius
+            borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 16), // Larger radius on big screens
             boxShadow: const [
               BoxShadow(
                 color: Colors.black26,
@@ -518,20 +530,20 @@ class CompactStatsCard extends StatelessWidget {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min, // FIX: Prevent taking extra space
+            mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 children: [
                   Icon(
                     Icons.analytics,
                     color: Color(0xFFFFD700),
-                    size: isSmallScreen ? 12 : 16, // Smaller icon
+                    size: isSmallScreen ? 12 : 20, // Larger icon on big screens
                   ),
-                  SizedBox(width: isSmallScreen ? 4 : 6), // Less spacing
+                  SizedBox(width: isSmallScreen ? 4 : 8),
                   Text(
                     S.of(context)!.progress,
                     style: TextStyle(
-                      fontSize: isSmallScreen ? 10 : 14, // Smaller text
+                      fontSize: isSmallScreen ? 10 : 16, // Larger text on big screens
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
@@ -539,7 +551,7 @@ class CompactStatsCard extends StatelessWidget {
                 ],
               ),
               
-              SizedBox(height: isSmallScreen ? 4 : 8), // Less spacing
+              SizedBox(height: isSmallScreen ? 4 : 12),
               
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -574,28 +586,28 @@ class CompactStatsCard extends StatelessWidget {
     required Color color,
   }) {
     return Column(
-      mainAxisSize: MainAxisSize.min, // FIX: Prevent taking extra space
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: isSmallScreen ? 20 : 24, // Smaller containers
-          height: isSmallScreen ? 20 : 24,
+          width: isSmallScreen ? 20 : 32, // Larger containers on big screens
+          height: isSmallScreen ? 20 : 32,
           decoration: BoxDecoration(
             color: color.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(isSmallScreen ? 4 : 6),
           ),
           child: Icon(
             icon,
             color: color,
-            size: isSmallScreen ? 10 : 12, // Smaller icons
+            size: isSmallScreen ? 10 : 16, // Larger icons on big screens
           ),
         ),
         
-        const SizedBox(height: 2), // Minimal spacing
+        const SizedBox(height: 4),
         
         Text(
           value,
           style: TextStyle(
-            fontSize: isSmallScreen ? 10 : 12, // Smaller text
+            fontSize: isSmallScreen ? 10 : 14, // Larger text on big screens
             color: color,
             fontWeight: FontWeight.bold,
           ),

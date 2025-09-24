@@ -8,6 +8,7 @@ class GameUI extends StatelessWidget {
   final int level;
   final int? timeLeft;
   final VoidCallback onBack;
+  final Widget? customTitleWidget; 
   
   const GameUI({
     super.key,
@@ -15,6 +16,7 @@ class GameUI extends StatelessWidget {
     required this.level,
     this.timeLeft,
     required this.onBack,
+    this.customTitleWidget,
   });
 
   @override
@@ -32,6 +34,7 @@ class GameUI extends StatelessWidget {
         ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center, // Align items vertically
         children: [
           // Back Button
           IconButton(
@@ -49,9 +52,11 @@ class GameUI extends StatelessWidget {
           
           const SizedBox(width: 20),
           
-          // Title
+          // Title Area
           Expanded(
-            child: Text(
+            // FIX: Conditionally display the custom widget or the default title.
+            // This ensures backward compatibility with other games.
+            child: customTitleWidget ?? Text(
               title,
               style: const TextStyle(
                 fontFamily: 'SpaceGrotesk',
