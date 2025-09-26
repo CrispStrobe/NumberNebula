@@ -1752,21 +1752,22 @@ class AdvancedCodebreakerPuzzle {
       knownValues[symbol] = generator.solution[symbol]!;
     }
     
-    final correctNumbers = hiddenSymbols.map((s) => generator.solution[s]!).toSet();
+    final correctNumbersList = hiddenSymbols.map((s) => generator.solution[s]!).toList();
+    final correctNumbersSet = correctNumbersList.toSet(); // Use a Set for efficient decoy generation
     final decoys = <int>{};
     final numberRange = generator.params['valueRange'] as List<int>;
     final maxVal = numberRange[1];
 
-    debugPrint("🎯 [PUZZLE FACTORY] Correct numbers needed: ${correctNumbers.join(', ')}");
+    debugPrint("🎯 [PUZZLE FACTORY] Correct numbers needed: ${correctNumbersList.join(', ')}");
 
     // Generate strategic decoys (close to correct numbers)
-    for (final correct in correctNumbers) {
+    for (final correct in correctNumbersSet) { // Iterate over the Set of unique numbers
       for (int i = 1; i <= 2; i++) {
         if (correct - i > 0) decoys.add(correct - i);
         if (correct + i <= maxVal) decoys.add(correct + i);
       }
     }
-    decoys.removeAll(correctNumbers);
+    decoys.removeAll(correctNumbersSet);
 
     final random = math.Random();
     final targetPoolSize = 8;
@@ -1780,8 +1781,8 @@ class AdvancedCodebreakerPuzzle {
     }
 
     final numberPool = <int>[];
-    numberPool.addAll(correctNumbers);
-    numberPool.addAll(decoys.take(targetPoolSize - correctNumbers.length));
+    numberPool.addAll(correctNumbersList); // Add the List, which contains duplicates
+    numberPool.addAll(decoys.take(targetPoolSize - correctNumbersList.length));
 
     numberPool.shuffle();
     final finalPool = numberPool;

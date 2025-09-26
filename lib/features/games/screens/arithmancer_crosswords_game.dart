@@ -1456,7 +1456,7 @@ class CrosswordGenerator {
           }
         }
 
-        final correctNumbers = emptyCells.map((cellId) => solution[cellId]!).toSet();
+        final correctNumbers = emptyCells.map((cellId) => solution[cellId]!).toList();
         final numberPool = _generateNumberPool(correctNumbers.cast<int>());
 
         // Create visual layout
@@ -1577,7 +1577,7 @@ class CrosswordGenerator {
     }
   }
 
-  List<int> _generateNumberPool(Set<int> correctNumbers) {
+  List<int> _generateNumberPool(List<int> correctNumbers) {
     final pool = <int>[];
     pool.addAll(correctNumbers);
     

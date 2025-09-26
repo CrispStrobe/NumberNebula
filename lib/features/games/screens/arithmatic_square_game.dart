@@ -1131,7 +1131,8 @@ class ArithmeticSquareGenerator {
       }
     }
     
-    final correctNumbers = emptyCells.map((cellId) => solution[cellId]!).toSet();
+    final correctNumbers = emptyCells.map((cellId) => solution[cellId]!).toList();
+
     final numberPool = _generateNumberPool(correctNumbers.cast<int>());
     
     return ArithmeticSquarePuzzle(
@@ -1292,7 +1293,7 @@ class ArithmeticSquareGenerator {
     return currentVal;
   }
 
-  List<int> _generateNumberPool(Set<int> correctNumbers) {
+  List<int> _generateNumberPool(List<int> correctNumbers) {
     final pool = <int>[];
     pool.addAll(correctNumbers);
     
