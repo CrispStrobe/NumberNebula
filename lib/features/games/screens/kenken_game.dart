@@ -679,6 +679,7 @@ class _KenkenGameState extends State<KenkenGame>
   Widget _buildNumberPad({required bool isCompact}) {
     final gridSize = puzzle!.size;
     final isLargeGrid = gridSize > 6;
+    final tileSize = isLargeGrid ? 35.0 : (isCompact ? 40.0 : 50.0);
     
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -697,14 +698,18 @@ class _KenkenGameState extends State<KenkenGame>
             spacing: isLargeGrid ? 4 : 8,
             runSpacing: isLargeGrid ? 4 : 8,
             children: numberPool.map((number) {
-              return Draggable<int>(
-                data: number,
-                feedback: _buildDraggableFeedback(number, isCompact || isLargeGrid),
-                childWhenDragging: Opacity(
-                  opacity: 0.7, 
-                  child: _buildNumberTile(number, isCompact: isCompact || isLargeGrid)
+              return SizedBox(
+                width: tileSize,
+                height: tileSize,
+                child: Draggable<int>(
+                  data: number,
+                  feedback: _buildDraggableFeedback(number, isCompact || isLargeGrid),
+                  childWhenDragging: Opacity(
+                    opacity: 0.7, 
+                    child: _buildNumberTile(number, tileSize: tileSize)
+                  ),
+                  child: _buildNumberTile(number, tileSize: tileSize),
                 ),
-                child: _buildNumberTile(number, isCompact: isCompact || isLargeGrid),
               );
             }).toList(),
           ),
@@ -713,17 +718,22 @@ class _KenkenGameState extends State<KenkenGame>
     );
   }
 
-  Widget _buildNumberTile(int number, {required bool isCompact}) {
+  Widget _buildNumberTile(int number, {double? tileSize}) {
+    final size = tileSize ?? 50.0;
+    final fontSize = size < 40 ? 14.0 : (size < 45 ? 16.0 : 18.0);
+    
     return Container(
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
-        borderRadius: BorderRadius.circular(isCompact ? 8 : 12),
+        borderRadius: BorderRadius.circular(size < 40 ? 8 : 12),
         border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.7), width: 2),
       ),
       child: Center(
         child: Text(
           number.toString(),
-          style: SpaceTheme.headlineStyle.copyWith(fontSize: isCompact ? 16 : 18),
+          style: SpaceTheme.headlineStyle.copyWith(fontSize: fontSize),
         ),
       ),
     );
