@@ -22,7 +22,8 @@ import 'blocks_counter_game.dart';
 import 'signal_triangulation_game.dart';
 import 'cryptex_lock_breaker_game.dart';
 import 'arithmancer_duel_game.dart';
-
+import 'arithmatic_square_game.dart';
+import 'arithmancer_crosswords_game.dart';
 
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
@@ -44,7 +45,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   late Animation<double> _floatAnimation;
 
   // for new games, we must manually update game count
-  static const int _gameCount = 13;
+  static const int _gameCount = 15;
 
   @override
   void initState() {
@@ -349,6 +350,20 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
             icon: Icons.track_changes,
             gradient: const LinearGradient(colors: [Color(0xFF05c6ff), Color(0xFF0572ff)]),
             onTap: () => _navigateToGame(ArithmancerDuelGame(grade: gameProvider.grade, level: gameProvider.level)),
+        ),
+        GameInfo(
+            title: s.arithmeticSquare,
+            description: s.arithmeticSquareInstructions,
+            icon: Icons.track_changes,
+            gradient: const LinearGradient(colors: [Color(0xFF05c6ff), Color(0xFF0572ff)]),
+            onTap: () => _navigateToGame(ArithmeticSquareGame(grade: gameProvider.grade, level: gameProvider.level)),
+        ),
+        GameInfo(
+            title: s.arithmancerCrosswords,
+            description: s.arithmancerCrosswordsInstructions,
+            icon: Icons.track_changes,
+            gradient: const LinearGradient(colors: [Color(0xFF05c6ff), Color(0xFF0572ff)]),
+            onTap: () => _navigateToGame(ArithmancerCrosswordsGame(grade: gameProvider.grade, level: gameProvider.level)),
         ),
     ];
 

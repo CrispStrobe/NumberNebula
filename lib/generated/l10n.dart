@@ -2287,6 +2287,78 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Return to Bridge'**
   String get arithmancerReturnToBridge;
+
+  /// Title for the Arithmetic Square puzzle game
+  ///
+  /// In en, this message translates to:
+  /// **'Arithmetic Square'**
+  String get arithmeticSquare;
+
+  /// Instructions for playing the Arithmetic Square game
+  ///
+  /// In en, this message translates to:
+  /// **'Fill the empty cells to make each row and column form valid equations!'**
+  String get arithmeticSquareInstructions;
+
+  /// Error message when the arithmetic square solution is incorrect
+  ///
+  /// In en, this message translates to:
+  /// **'Some equations don\'t add up! Check your numbers and try again.'**
+  String get arithmeticSquareError;
+
+  /// Instruction text above the number pool in arithmetic square
+  ///
+  /// In en, this message translates to:
+  /// **'Drag numbers into the empty cells:'**
+  String get arithmeticSquareSelectNumbers;
+
+  /// Title shown in success dialog for arithmetic square
+  ///
+  /// In en, this message translates to:
+  /// **'Mathematical Mastery!'**
+  String get arithmeticSquareWinTitle;
+
+  /// Success message for completing arithmetic square puzzle
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding! You\'ve solved the arithmetic square and earned {bonusScore} bonus points for your mathematical precision!'**
+  String arithmeticSquareWinDesc(int bonusScore);
+
+  /// Title for the Arithmancer Crosswords puzzle game
+  ///
+  /// In en, this message translates to:
+  /// **'Arithmancer Crosswords'**
+  String get arithmancerCrosswords;
+
+  /// Instructions for playing the Arithmancer Crosswords game
+  ///
+  /// In en, this message translates to:
+  /// **'Solve the intersecting math equations by placing numbers in the crossword grid!'**
+  String get arithmancerCrosswordsInstructions;
+
+  /// Error message when the crossword solution is incorrect
+  ///
+  /// In en, this message translates to:
+  /// **'The crossword equations don\'t balance! Check your math and try again.'**
+  String get arithmancerCrosswordsError;
+
+  /// Instruction text above the number pool in arithmancer crosswords
+  ///
+  /// In en, this message translates to:
+  /// **'Drag numbers to fill the crossword:'**
+  String get arithmancerCrosswordsSelectNumbers;
+
+  /// Title shown in success dialog for arithmancer crosswords
+  ///
+  /// In en, this message translates to:
+  /// **'Crossword Champion!'**
+  String get arithmancerCrosswordsWinTitle;
+
+  /// Success message for completing arithmancer crosswords puzzle
+  ///
+  /// In en, this message translates to:
+  /// **'Brilliant! You\'ve mastered the mathematical crossword and earned {bonusScore} bonus points for your arithmantic prowess!'**
+  String arithmancerCrosswordsWinDesc(int bonusScore);
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

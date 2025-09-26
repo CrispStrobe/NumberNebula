@@ -650,6 +650,78 @@
   "arithmancerReturnToBridge": "Zur Brücke zurück",
   "@arithmancerReturnToBridge": {
     "description": "Schaltfläche zum Hauptmenü zurückkehren"
+  },
+
+  "arithmeticSquare": "Rechenquadrat",
+  "@arithmeticSquare": {
+    "description": "Titel für das Rechenquadrat-Puzzle-Spiel"
+  },
+  
+  "arithmeticSquareInstructions": "Fülle die leeren Felder aus, damit jede Zeile und Spalte gültige Gleichungen bildet!",
+  "@arithmeticSquareInstructions": {
+    "description": "Anweisungen zum Spielen des Rechenquadrat-Spiels"
+  },
+  
+  "arithmeticSquareError": "Einige Gleichungen stimmen nicht! Überprüfe deine Zahlen und versuche es erneut.",
+  "@arithmeticSquareError": {
+    "description": "Fehlermeldung, wenn die Rechenquadrat-Lösung falsch ist"
+  },
+  
+  "arithmeticSquareSelectNumbers": "Ziehe Zahlen in die leeren Felder:",
+  "@arithmeticSquareSelectNumbers": {
+    "description": "Anweisungstext über dem Zahlenpool im Rechenquadrat"
+  },
+  
+  "arithmeticSquareWinTitle": "Mathematische Meisterschaft!",
+  "@arithmeticSquareWinTitle": {
+    "description": "Titel im Erfolgsdialog für Rechenquadrat"
+  },
+  
+  "arithmeticSquareWinDesc": "Ausgezeichnet! Du hast das Rechenquadrat gelöst und {bonusScore} Bonuspunkte für deine mathematische Präzision erhalten!",
+  "@arithmeticSquareWinDesc": {
+    "description": "Erfolgsmeldung für das Lösen des Rechenquadrat-Puzzles",
+    "placeholders": {
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
+    }
+  },
+
+  "arithmancerCrosswords": "Arithmancer Kreuzworträtsel",
+  "@arithmancerCrosswords": {
+    "description": "Titel für das Arithmancer Kreuzworträtsel-Puzzle-Spiel"
+  },
+  
+  "arithmancerCrosswordsInstructions": "Löse die sich kreuzenden Mathe-Gleichungen, indem du Zahlen in das Kreuzworträtsel-Gitter einsetzt!",
+  "@arithmancerCrosswordsInstructions": {
+    "description": "Anweisungen zum Spielen des Arithmancer Kreuzworträtsel-Spiels"
+  },
+  
+  "arithmancerCrosswordsError": "Die Kreuzworträtsel-Gleichungen stimmen nicht! Überprüfe deine Mathematik und versuche es erneut.",
+  "@arithmancerCrosswordsError": {
+    "description": "Fehlermeldung, wenn die Kreuzworträtsel-Lösung falsch ist"
+  },
+  
+  "arithmancerCrosswordsSelectNumbers": "Ziehe Zahlen zum Ausfüllen des Kreuzworträtsels:",
+  "@arithmancerCrosswordsSelectNumbers": {
+    "description": "Anweisungstext über dem Zahlenpool im Arithmancer Kreuzworträtsel"
+  },
+  
+  "arithmancerCrosswordsWinTitle": "Kreuzworträtsel-Champion!",
+  "@arithmancerCrosswordsWinTitle": {
+    "description": "Titel im Erfolgsdialog für Arithmancer Kreuzworträtsel"
+  },
+  
+  "arithmancerCrosswordsWinDesc": "Brillant! Du hast das mathematische Kreuzworträtsel gemeistert und {bonusScore} Bonuspunkte für deine arithmantische Meisterschaft erhalten!",
+  "@arithmancerCrosswordsWinDesc": {
+    "description": "Erfolgsmeldung für das Lösen des Arithmancer Kreuzworträtsel-Puzzles",
+    "placeholders": {
+      "bonusScore": {
+        "type": "int",
+        "example": "200"
+      }
+    }
   }
 
 }

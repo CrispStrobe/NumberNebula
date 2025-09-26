@@ -33,10 +33,13 @@ import 'features/games/screens/blocks_counter_game.dart';
 import 'features/games/screens/signal_triangulation_game.dart'; 
 import 'features/games/screens/cryptex_lock_breaker_game.dart'; 
 import 'features/games/screens/arithmancer_duel_game.dart'; 
+import 'features/games/screens/arithmatic_square_game.dart'; 
+import 'features/games/screens/arithmancer_crosswords_game.dart'; 
 
 // --- UTILS & GENERATED ---
 import 'shared/utils/app_utilities.dart';
 import 'generated/l10n.dart';
+import 'package:dart_csp/dart_csp.dart';
 
 // --- GLOBAL INSTANCES & NAVIGATOR KEY ---
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -239,7 +242,9 @@ class AppRoutes {
   static const String blockCounter = '/games/block-counter';
   static const String signalTriangulation = '/games/signal-triangulation';
   static const String cryptexLockBreaker = '/games/cryptex-lock-breaker';
-  static const String arithmancerDuel = '/games/cryptex-lock-breaker';
+  static const String arithmancerDuel = '/games/arithmancer-duel';
+  static const String arithmaticSquare = '/games/arithmatic-square';
+  static const String arithmancerCrosswords = '/games/arithmancer-crosswords';
   
   static const String settings = '/settings';
   static const String achievements = '/achievements';
@@ -318,6 +323,16 @@ class AppRoutes {
             final grade = args?['grade'] as int? ?? 3;
             final level = args?['level'] as int? ?? 1;
             return _createRoute(ArithmancerDuelGame(grade: grade, level: level));
+
+        case arithmaticSquare:
+            final grade = args?['grade'] as int? ?? 3;
+            final level = args?['level'] as int? ?? 1;
+            return _createRoute(ArithmeticSquareGame(grade: grade, level: level)); 
+
+        case arithmancerCrosswords:
+            final grade = args?['grade'] as int? ?? 3;
+            final level = args?['level'] as int? ?? 1;
+            return _createRoute(ArithmancerCrosswordsGame(grade: grade, level: level));  
       
         case AppRoutes.settings:
           return _createRoute(const SettingsScreen());

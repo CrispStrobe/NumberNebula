@@ -41,6 +41,8 @@ dependencies:
   
   # Math & Physics
   vector_math: ^2.1.4
+  dart_csp:
+    path: ../dartcsp
   
   # Development
   flutter_launcher_icons: ^0.13.1

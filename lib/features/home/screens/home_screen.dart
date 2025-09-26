@@ -229,48 +229,50 @@ class _HomeScreenState extends State<HomeScreen>
         // LEFT SIDE - Better flex distribution
         Expanded(
           flex: isSmallScreen ? 4 : 5, // More space on larger screens
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: AnimatedLogo(size: isSmallScreen ? 80 : 180), // Larger logo on big screens
-              ),
-              // Show welcome text on larger screens
-              if (!isSmallScreen) ...[
-                const SizedBox(height: 24),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: AnimatedLogo(size: isSmallScreen ? 80 : 180), // Larger logo on big screens
+                ),
+                // Show welcome text on larger screens
+                if (!isSmallScreen) ...[
+                  const SizedBox(height: 24),
+                  SlideTransition(
+                    position: _slideAnimation,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Text(
+                        S.of(context)!.welcome,
+                        style: SpaceTheme.headlineStyle.copyWith(fontSize: 28),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
+                SizedBox(height: isSmallScreen ? 8 : 32),
                 SlideTransition(
                   position: _slideAnimation,
                   child: FadeTransition(
                     opacity: _fadeAnimation,
-                    child: Text(
-                      S.of(context)!.welcome,
-                      style: SpaceTheme.headlineStyle.copyWith(fontSize: 28),
-                      textAlign: TextAlign.center,
-                    ),
+                    child: const CompactGradeSelector(),
+                  ),
+                ),
+                SizedBox(height: isSmallScreen ? 8 : 32),
+                SlideTransition(
+                  position: _slideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: _buildStartButton(isSmallScreen),
                   ),
                 ),
               ],
-              SizedBox(height: isSmallScreen ? 8 : 32),
-              SlideTransition(
-                position: _slideAnimation,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: const CompactGradeSelector(),
-                ),
-              ),
-              SizedBox(height: isSmallScreen ? 8 : 32),
-              SlideTransition(
-                position: _slideAnimation,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: _buildStartButton(isSmallScreen),
-                ),
-              ),
-            ],
-          ),
+            ), // Column
+          ) // SingleChildScrollView
         ),
         
         SizedBox(width: isSmallScreen ? 6 : 32), // More spacing on larger screens
@@ -278,27 +280,29 @@ class _HomeScreenState extends State<HomeScreen>
         // RIGHT SIDE - Adjust flex for larger screens
         Expanded(
           flex: isSmallScreen ? 3 : 4, // Better ratio for larger screens
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SlideTransition(
-                position: _slideAnimation,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: CompactStatsCard(isSmallScreen: isSmallScreen),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SlideTransition(
+                  position: _slideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: CompactStatsCard(isSmallScreen: isSmallScreen),
+                  ),
                 ),
-              ),
-              SizedBox(height: isSmallScreen ? 4 : 20), // More spacing on larger screens
-              SlideTransition(
-                position: _slideAnimation,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: CompactAchievementsPreview(isSmallScreen: isSmallScreen),
+                SizedBox(height: isSmallScreen ? 4 : 20), // More spacing on larger screens
+                SlideTransition(
+                  position: _slideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: CompactAchievementsPreview(isSmallScreen: isSmallScreen),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ), // Column
+          ) // SingleChildScrollView(
         ),
       ],
     );

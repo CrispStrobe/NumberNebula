@@ -1237,4 +1237,50 @@ class SDe extends S {
 
   @override
   String get arithmancerReturnToBridge => 'Zur Brücke zurück';
+
+  @override
+  String get arithmeticSquare => 'Rechenquadrat';
+
+  @override
+  String get arithmeticSquareInstructions =>
+      'Fülle die leeren Felder aus, damit jede Zeile und Spalte gültige Gleichungen bildet!';
+
+  @override
+  String get arithmeticSquareError =>
+      'Einige Gleichungen stimmen nicht! Überprüfe deine Zahlen und versuche es erneut.';
+
+  @override
+  String get arithmeticSquareSelectNumbers =>
+      'Ziehe Zahlen in die leeren Felder:';
+
+  @override
+  String get arithmeticSquareWinTitle => 'Mathematische Meisterschaft!';
+
+  @override
+  String arithmeticSquareWinDesc(int bonusScore) {
+    return 'Ausgezeichnet! Du hast das Rechenquadrat gelöst und $bonusScore Bonuspunkte für deine mathematische Präzision erhalten!';
+  }
+
+  @override
+  String get arithmancerCrosswords => 'Arithmancer Kreuzworträtsel';
+
+  @override
+  String get arithmancerCrosswordsInstructions =>
+      'Löse die sich kreuzenden Mathe-Gleichungen, indem du Zahlen in das Kreuzworträtsel-Gitter einsetzt!';
+
+  @override
+  String get arithmancerCrosswordsError =>
+      'Die Kreuzworträtsel-Gleichungen stimmen nicht! Überprüfe deine Mathematik und versuche es erneut.';
+
+  @override
+  String get arithmancerCrosswordsSelectNumbers =>
+      'Ziehe Zahlen zum Ausfüllen des Kreuzworträtsels:';
+
+  @override
+  String get arithmancerCrosswordsWinTitle => 'Kreuzworträtsel-Champion!';
+
+  @override
+  String arithmancerCrosswordsWinDesc(int bonusScore) {
+    return 'Brillant! Du hast das mathematische Kreuzworträtsel gemeistert und $bonusScore Bonuspunkte für deine arithmantische Meisterschaft erhalten!';
+  }
 }

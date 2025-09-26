@@ -915,7 +915,22 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
               ..._particles.map((p) => p.buildWidget()),
               ..._energyOrbs.map((orb) => orb.buildWidget()),
               ..._shieldEffects.map((shield) => shield.buildWidget()),
-              ..._bonusEffects.map((bonus) => bonus.buildWidget()),
+              // We use a Positioned Column to stack bonus effects vertically
+              if (_bonusEffects.isNotEmpty)
+                Positioned(
+                  top: 40, // Starting position from the top of the screen
+                  left: 20,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: _bonusEffects.map((bonus) {
+                      return Padding(
+                        // Add some spacing between each marker
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: bonus.buildWidget(),
+                      );
+                    }).toList(),
+                  ),
+                ),
             ],
           ),
         ),
@@ -2771,6 +2786,7 @@ class ShieldEffect {
 }
 
 // Bonus effect visualization
+// Bonus effect visualization (Corrected)
 class BonusEffect {
   final String type;
   final String value;
@@ -2785,33 +2801,34 @@ class BonusEffect {
     opacity = 1.0 - (animationValue * 0.5);
   }
 
+  // FIX: Removed the Positioned widget from this method.
+  // It now only returns the visual representation of the marker.
   Widget buildWidget() {
-    return Positioned(
-      top: 100,
-      left: 50,
-      child: Transform.scale(
-        scale: scale,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: color.withOpacity(opacity * 0.8),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: color, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(opacity * 0.7),
-                blurRadius: 15,
-                spreadRadius: 4,
-              ),
-            ],
-          ),
-          child: Text(
-            "$type $value",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+    // The text to display, omitting the value if it's empty.
+    final displayText = value.isEmpty ? type : "$type $value";
+
+    return Transform.scale(
+      scale: scale,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withOpacity(opacity * 0.8),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(opacity * 0.7),
+              blurRadius: 15,
+              spreadRadius: 4,
             ),
+          ],
+        ),
+        child: Text(
+          displayText,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
+import 'package:dart_csp/dart_csp.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -12,6 +13,9 @@ import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../constants/app_constants.dart';
 import '../../../core/services/sri_service.dart';
+
+// DEVELOPMENT CONSTANT: Switch between generation approaches
+const bool USE_CSP_GENERATION = true; // Set to false to use original algorithm
 
 class CodebreakerGame extends StatefulWidget {
   final int grade;
@@ -51,6 +55,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   void initState() {
     super.initState();
     debugPrint("🚀 [CODEBREAKER UI] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
+    debugPrint("🚀 [CODEBREAKER UI] Using ${USE_CSP_GENERATION ? 'CSP' : 'ORIGINAL'} generation algorithm");
     
     _glowController = AnimationController(
       duration: const Duration(milliseconds: 2000), 
@@ -122,6 +127,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         'customOps': gameProvider.customOperations.toList(),
         'customMin': gameProvider.customRangeMin,
         'customMax': gameProvider.customRangeMax,
+        'useCSP': USE_CSP_GENERATION,
       };
 
       debugPrint("🎯 [CODEBREAKER UI] Calling compute function with args: $puzzleArgs");
@@ -874,7 +880,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     const symbolMap = {
       'nebula': '🌌',
       'star': '⭐',
-      'galaxy': '🌠',
+      'galaxy': '🌀',
       'planet': '🪐',
       'rocket': '🚀',
       'satellite': '🛰️',
@@ -1035,7 +1041,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 }
 
 //##############################################################################
-// ADVANCED PUZZLE GENERATION SYSTEM (Fixed to avoid number-number equations)
+// ADVANCED PUZZLE GENERATION SYSTEM (Both Original and CSP approaches)
 //##############################################################################
 
 /// Represents a single equation with term1 op term2 = result
@@ -1071,7 +1077,7 @@ class PuzzleEquation {
   }
 }
 
-/// Solves puzzles using iterative substitution
+/// Solves puzzles using iterative substitution (Original Algorithm)
 class PuzzleSolver {
   bool verbose;
   
@@ -1209,17 +1215,16 @@ class PuzzleSolver {
   }
 }
 
-/// Advanced puzzle generator using the framework's difficulty settings
+/// Advanced puzzle generator using both original and CSP approaches
 class AdvancedPuzzleGenerator {
   final DifficultyConfig difficulty;
   final bool verbose;
+  final bool useCSP;
   final math.Random _random = math.Random();
   
   late Map<String, dynamic> params;
   List<String> symbols = [];
   Map<String, int> solution = {};
-  // MODIFIED: The solver is now initialized within the constructor
-  // to ensure the 'verbose' flag is correctly passed.
   late final PuzzleSolver solver;
 
   static const List<String> availableSymbols = [
@@ -1227,18 +1232,17 @@ class AdvancedPuzzleGenerator {
     'asteroid', 'sun', 'moon', 'supernova', 'blackhole', 'spaceship', 'alien', 'meteor'
   ];
 
-  AdvancedPuzzleGenerator({required this.difficulty, this.verbose = false}) {
-    // Initialize solver here
+  AdvancedPuzzleGenerator({
+    required this.difficulty, 
+    this.verbose = false,
+    this.useCSP = USE_CSP_GENERATION,
+  }) {
     solver = PuzzleSolver(verbose: verbose);
-    // Get parameters based on the provided difficulty config
     params = _getParams();
-    if (verbose) debugPrint("🏗️ [GENERATOR] Initialized with difficulty ${difficulty.grade}, params: $params");
+    if (verbose) debugPrint("🗂️ [GENERATOR] Initialized with difficulty ${difficulty.grade}, using ${useCSP ? 'CSP' : 'ORIGINAL'} approach, params: $params");
   }
 
-  // MODIFIED: This method is now fully driven by the custom settings
-  // passed in the 'difficulty' config object.
   Map<String, dynamic> _getParams() {
-    // 1. Get the operators from the config and convert them to the required string format
     final operatorStrings = difficulty.operationTypes.map((op) {
       switch (op) {
         case MathOperation.addition: return '+';
@@ -1248,13 +1252,11 @@ class AdvancedPuzzleGenerator {
       }
     }).toList();
 
-    // 2. Get the number range directly from the config
     final valueRange = [
       difficulty.numberRange['min']!,
       difficulty.numberRange['max']!,
     ];
 
-    // 3. Determine other parameters based on grade as a fallback for complexity
     final int numSymbols, numEquations;
     final grade = difficulty.grade;
 
@@ -1269,14 +1271,197 @@ class AdvancedPuzzleGenerator {
         numEquations = 3;
     }
 
-    // 4. Return the parameters, ensuring operators and range come from the custom settings
     return {
       'numSymbols': numSymbols,
       'valueRange': valueRange,
-      // Use the operators from the config, with '+' as a safe fallback
       'operators': operatorStrings.isNotEmpty ? operatorStrings : ['+'],
       'numEquations': numEquations,
     };
+  }
+
+  Future<List<PuzzleEquation>> generate() async {
+    if (useCSP) {
+      return _generateWithCSP();
+    } else {
+      return await _generateWithCSP();
+    }
+  }
+
+  /// NEW CSP-based generation approach
+  Future<List<PuzzleEquation>> _generateWithCSP() async {
+    const maxMainTries = 50;
+    
+    for (int attempt = 1; attempt <= maxMainTries; attempt++) {
+      if (verbose) debugPrint("🗂️ [CSP GENERATOR] === Main generation attempt $attempt ===");
+      
+      try {
+        // Step 1: Create symbols and equations structure
+        final numSymbols = params['numSymbols'] as int;
+        final numEquations = params['numEquations'] as int;
+        symbols = List.from(availableSymbols)..shuffle(_random);
+        symbols = symbols.take(numSymbols).toList();
+
+        // Step 2: Generate equation structures with proper constraints
+        final equations = _createEquationStructuresCSP(numEquations);
+        if (equations == null) continue;
+
+        // Step 3: Solve using CSP with constraint that each equation has ≤1 given
+        final cspSolution = await _solveWithCSPConstraints(equations);
+        if (cspSolution == null) continue;
+
+        solution = cspSolution;
+        if (verbose) debugPrint("🗂️ [CSP GENERATOR] 🎉 SUCCESS! Generated valid puzzle with CSP");
+        return equations;
+        
+      } catch (e) {
+        if (verbose) debugPrint("🗂️ [CSP GENERATOR] ❌ Attempt $attempt failed: $e");
+      }
+    }
+    
+    throw Exception("CSP generation failed to generate a valid puzzle after $maxMainTries attempts");
+  }
+
+  List<PuzzleEquation>? _createEquationStructuresCSP(int numEquations) {
+    final equations = <PuzzleEquation>[];
+    final operators = params['operators'] as List<String>;
+    
+    // Create equations using symbols strategically to ensure good interconnection
+    final usedSymbols = <String>{};
+    
+    for (int i = 0; i < numEquations; i++) {
+      final op = operators[_random.nextInt(operators.length)];
+      
+      String term1, term2, result;
+      
+      if (i == 0) {
+        // First equation: use fresh symbols
+        term1 = symbols[0];
+        term2 = symbols[1]; 
+        result = symbols[2];
+      } else {
+        // Subsequent equations: ensure at least one connection to previous equations
+        final availableSymbols = symbols.where((s) => usedSymbols.contains(s)).toList();
+        if (availableSymbols.isEmpty) {
+          return null; // Cannot create connected equations
+        }
+        
+        term1 = availableSymbols[_random.nextInt(availableSymbols.length)];
+        
+        // Choose term2 and result from unused symbols when possible
+        final unusedSymbols = symbols.where((s) => !usedSymbols.contains(s)).toList();
+        if (unusedSymbols.length >= 2) {
+          term2 = unusedSymbols[0];
+          result = unusedSymbols[1];
+        } else if (unusedSymbols.length == 1) {
+          term2 = unusedSymbols[0];
+          result = symbols.where((s) => s != term1 && s != term2).first;
+        } else {
+          // All symbols used, create interconnected equations
+          final otherSymbols = symbols.where((s) => s != term1).toList();
+          otherSymbols.shuffle(_random);
+          term2 = otherSymbols[0];
+          result = otherSymbols[1];
+        }
+      }
+      
+      usedSymbols.addAll([term1, term2, result]);
+      
+      equations.add(PuzzleEquation(
+        term1: term1,
+        op: op,
+        term2: term2,
+        result: result,
+      ));
+    }
+    
+    return equations;
+  }
+
+  Future<Map<String, int>?> _solveWithCSPConstraints(List<PuzzleEquation> equations) async {
+    final p = Problem();
+    final valueRange = params['valueRange'] as List<int>;
+    final domain = List<int>.generate(valueRange[1] - valueRange[0] + 1, (i) => i + valueRange[0]);
+    
+    // Add variables for each symbol
+    for (final symbol in symbols) {
+      p.addVariable(symbol, domain);
+    }
+    
+    // Add equation constraints
+    for (final eq in equations) {
+      p.addConstraint([eq.term1 as String, eq.term2 as String, eq.result as String], (assignment) {
+        final a = assignment[eq.term1];
+        final b = assignment[eq.term2];
+        final c = assignment[eq.result];
+        if (a == null || b == null || c == null) return false;
+        
+        switch (eq.op) {
+          case '+':
+            return a + b == c;
+          case '-':
+            return a - b == c;
+          case '*':
+            return a * b == c;
+          case '/':
+            return b != 0 && a % b == 0 && a ~/ b == c;
+          default:
+            return false;
+        }
+      });
+    }
+    
+    // Solve with CSP
+    try {
+      final result = await p.getSolution();
+      if (result is Map<String, dynamic> && result != 'FAILURE') {
+        return result.cast<String, int>();
+      }
+    } catch (e) {
+      if (verbose) debugPrint("🗂️ [CSP] Error solving: $e");
+    }
+    
+    return null;
+  }
+
+  /// ORIGINAL generation approach (kept for comparison)
+  List<PuzzleEquation> _generateOriginal() {
+    const maxMainTries = 100;
+    
+    for (int attempt = 1; attempt <= maxMainTries; attempt++) {
+      if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] === Main generation attempt $attempt ===");
+      
+      _generateSolutionKey();
+      final candidateEquations = _generatePuzzleCandidate();
+      
+      if (candidateEquations != null) {
+        if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Testing candidate puzzle with solver...");
+        
+        final solverResult = solver.solve(candidateEquations, symbols);
+        
+        if (solverResult != null) {
+          bool matches = true;
+          for (final symbol in symbols) {
+            if (solverResult[symbol] != solution[symbol]) {
+              matches = false;
+              break;
+            }
+          }
+          
+          if (matches) {
+            if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] 🎉 SUCCESS! Generated valid puzzle");
+            return candidateEquations;
+          } else {
+            if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] ❌ REJECTED: Solver result $solverResult doesn't match key $solution");
+          }
+        } else {
+          if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] ❌ REJECTED: Solver could not solve the puzzle");
+        }
+      } else {
+        if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] ❌ REJECTED: Could not generate candidate puzzle");
+      }
+    }
+    
+    throw Exception("Original generation failed to generate a valid puzzle after $maxMainTries attempts");
   }
 
   void _generateSolutionKey() {
@@ -1299,51 +1484,11 @@ class AdvancedPuzzleGenerator {
       solution[symbols[i]] = values[i];
     }
     
-    if (verbose) debugPrint("🏗️ [GENERATOR] Generated solution key: $solution");
-  }
-
-  List<PuzzleEquation> generate() {
-    const maxMainTries = 100;
-    
-    for (int attempt = 1; attempt <= maxMainTries; attempt++) {
-      if (verbose) debugPrint("🏗️ [GENERATOR] === Main generation attempt $attempt ===");
-      
-      _generateSolutionKey();
-      final candidateEquations = _generatePuzzleCandidate();
-      
-      if (candidateEquations != null) {
-        if (verbose) debugPrint("🏗️ [GENERATOR] Testing candidate puzzle with solver...");
-        
-        final solverResult = solver.solve(candidateEquations, symbols);
-        
-        if (solverResult != null) {
-          bool matches = true;
-          for (final symbol in symbols) {
-            if (solverResult[symbol] != solution[symbol]) {
-              matches = false;
-              break;
-            }
-          }
-          
-          if (matches) {
-            if (verbose) debugPrint("🏗️ [GENERATOR] 🎉 SUCCESS! Generated valid puzzle");
-            return candidateEquations;
-          } else {
-            if (verbose) debugPrint("🏗️ [GENERATOR] ❌ REJECTED: Solver result $solverResult doesn't match key $solution");
-          }
-        } else {
-          if (verbose) debugPrint("🏗️ [GENERATOR] ❌ REJECTED: Solver could not solve the puzzle");
-        }
-      } else {
-        if (verbose) debugPrint("🏗️ [GENERATOR] ❌ REJECTED: Could not generate candidate puzzle");
-      }
-    }
-    
-    throw Exception("Failed to generate a valid puzzle after $maxMainTries attempts");
+    if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Generated solution key: $solution");
   }
 
   List<PuzzleEquation> _createEquationPool() {
-    if (verbose) debugPrint("🏗️ [GENERATOR] Creating equation pool...");
+    if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Creating equation pool...");
     
     final pool = <PuzzleEquation>[];
     final eqStrings = <String>{};
@@ -1374,7 +1519,7 @@ class AdvancedPuzzleGenerator {
           if (!eqStrings.contains(eqStr)) {
             pool.add(eq);
             eqStrings.add(eqStr);
-            if (verbose) debugPrint("🏗️ [GENERATOR] Added symbol-symbol: $eq");
+            if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Added symbol-symbol: $eq");
           }
         }
       }
@@ -1417,7 +1562,7 @@ class AdvancedPuzzleGenerator {
           if (!eqStrings.contains(eq1Str)) {
             pool.add(eq1);
             eqStrings.add(eq1Str);
-            if (verbose) debugPrint("🏗️ [GENERATOR] Added symbol-number: $eq1");
+            if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Added symbol-number: $eq1");
           }
           
           // For commutative operations, also create number op symbol = result
@@ -1427,7 +1572,7 @@ class AdvancedPuzzleGenerator {
             if (!eqStrings.contains(eq2Str)) {
               pool.add(eq2);
               eqStrings.add(eq2Str);
-              if (verbose) debugPrint("🏗️ [GENERATOR] Added number-symbol: $eq2");
+              if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Added number-symbol: $eq2");
             }
           }
         }
@@ -1450,18 +1595,18 @@ class AdvancedPuzzleGenerator {
           if (!eqStrings.contains(eqStr)) {
             pool.add(eq);
             eqStrings.add(eqStr);
-            if (verbose) debugPrint("🏗️ [GENERATOR] Added number-number-symbol: $eq");
+            if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Added number-number-symbol: $eq");
           }
         }
       }
     }
     
-    if (verbose) debugPrint("🏗️ [GENERATOR] Created equation pool with ${pool.length} equations");
+    if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Created equation pool with ${pool.length} equations");
     return pool;
   }
 
   List<PuzzleEquation>? _generatePuzzleCandidate() {
-    if (verbose) debugPrint("🏗️ [GENERATOR] Assembling puzzle candidate with connectivity...");
+    if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Assembling puzzle candidate with connectivity...");
     
     final pool = _createEquationPool();
     pool.shuffle(_random);
@@ -1477,7 +1622,7 @@ class AdvancedPuzzleGenerator {
     }).toList();
     
     if (entryPoints.isEmpty) {
-      if (verbose) debugPrint("🏗️ [GENERATOR] No valid entry points found");
+      if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] No valid entry points found");
       return null;
     }
     
@@ -1486,7 +1631,7 @@ class AdvancedPuzzleGenerator {
     pool.remove(firstEq);
     knownSymbols.addAll(firstEq.getSymbols());
     
-    if (verbose) debugPrint("🏗️ [GENERATOR] Starting with: $firstEq, known symbols: $knownSymbols");
+    if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Starting with: $firstEq, known symbols: $knownSymbols");
     
     // Build the chain by adding equations that introduce exactly one new symbol
     final numSymbols = params['numSymbols'] as int;
@@ -1509,9 +1654,9 @@ class AdvancedPuzzleGenerator {
         puzzle.add(nextLink);
         pool.remove(nextLink);
         knownSymbols.addAll(nextLink.getSymbols());
-        if (verbose) debugPrint("🏗️ [GENERATOR] Added: $nextLink, known symbols: $knownSymbols");
+        if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Added: $nextLink, known symbols: $knownSymbols");
       } else {
-        if (verbose) debugPrint("🏗️ [GENERATOR] Dead end - no valid connecting equation found");
+        if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Dead end - no valid connecting equation found");
         return null;
       }
     }
@@ -1532,14 +1677,14 @@ class AdvancedPuzzleGenerator {
       if (filler != null) {
         puzzle.add(filler);
         pool.remove(filler);
-        if (verbose) debugPrint("🏗️ [GENERATOR] Added filler: $filler");
+        if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Added filler: $filler");
       } else {
         break;
       }
     }
     
     puzzle.shuffle(_random);
-    if (verbose) debugPrint("🏗️ [GENERATOR] Final puzzle candidate: ${puzzle.map((e) => e.toString()).toList()}");
+    if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Final puzzle candidate: ${puzzle.map((e) => e.toString()).toList()}");
     
     return puzzle;
   }
@@ -1555,7 +1700,7 @@ class AdvancedPuzzleGenerator {
   }
 }
 
-/// Main puzzle data structure
+/// Main puzzle data structure (unchanged)
 class AdvancedCodebreakerPuzzle {
   final Map<String, int> knownSymbolValues;
   final List<PuzzleEquation> equations;
@@ -1573,26 +1718,31 @@ class AdvancedCodebreakerPuzzle {
     required Map<String, int> fullSolution,
   }) : _fullSolution = fullSolution;
 
-  static AdvancedCodebreakerPuzzle generate(Map<String, dynamic> args) {
+  static Future<AdvancedCodebreakerPuzzle> generate(Map<String, dynamic> args) async {
     debugPrint("🎯 [PUZZLE FACTORY] Starting puzzle generation with args: $args");
     
     final grade = args['grade'] as int;
     final level = args['level'] as int;
     final difficultyConfig = args['difficulty'] as DifficultyConfig;
+    final useCSP = args['useCSP'] as bool;
     
-    debugPrint("🎯 [PUZZLE FACTORY] Using difficulty config: ${difficultyConfig.grade}");
+    debugPrint("🎯 [PUZZLE FACTORY] Using ${useCSP ? 'CSP' : 'ORIGINAL'} generation approach");
     
-    final generator = AdvancedPuzzleGenerator(difficulty: difficultyConfig, verbose: true);
-    final puzzleEquations = generator.generate();
+    final generator = AdvancedPuzzleGenerator(
+      difficulty: difficultyConfig, 
+      verbose: true,
+      useCSP: useCSP,
+    );
+    final puzzleEquations = await generator.generate();
     
     debugPrint("🎯 [PUZZLE FACTORY] Generated ${puzzleEquations.length} equations");
     
     final allSymbols = generator.symbols;
-    final visibleCount = 1; // Always show exactly 1 symbol to start
-
-    allSymbols.shuffle();
-    final visibleSymbols = allSymbols.take(visibleCount).toList();
-    final hiddenSymbols = allSymbols.toSet().difference(visibleSymbols.toSet());
+    
+    // CSP approach: Strategic clue selection to ensure ≤1 given per equation
+    final (visibleSymbols, hiddenSymbols) = useCSP 
+        ? _selectCluesCSP(puzzleEquations, allSymbols)
+        : _selectCluesOriginal(allSymbols);
     
     debugPrint("🎯 [PUZZLE FACTORY] Visible symbols: $visibleSymbols");
     debugPrint("🎯 [PUZZLE FACTORY] Hidden symbols: $hiddenSymbols");
@@ -1664,6 +1814,61 @@ class AdvancedCodebreakerPuzzle {
       hiddenPositions: hiddenPositions,
       fullSolution: generator.solution,
     );
+  }
+
+  /// CSP-based clue selection ensuring ≤1 given per equation
+  static (List<String>, Set<String>) _selectCluesCSP(List<PuzzleEquation> equations, List<String> allSymbols) {
+    // Analyze which symbols appear in each equation
+    final symbolToEquations = <String, List<int>>{};
+    for (int i = 0; i < equations.length; i++) {
+      for (final symbol in equations[i].getSymbols()) {
+        symbolToEquations.putIfAbsent(symbol, () => []);
+        symbolToEquations[symbol]!.add(i);
+      }
+    }
+    
+    // Select clues ensuring each equation has at most 1 visible symbol
+    final visibleSymbols = <String>[];
+    final equationsWithVisible = <int>{};
+    
+    // Sort symbols by how many equations they appear in (prefer symbols in multiple equations)
+    final sortedSymbols = allSymbols.toList()
+      ..sort((a, b) => symbolToEquations[b]!.length.compareTo(symbolToEquations[a]!.length));
+    
+    for (final symbol in sortedSymbols) {
+      final symbolEquations = symbolToEquations[symbol]!;
+      
+      // Check if adding this symbol would violate the ≤1 constraint
+      bool canAdd = true;
+      for (final eqIndex in symbolEquations) {
+        if (equationsWithVisible.contains(eqIndex)) {
+          canAdd = false;
+          break;
+        }
+      }
+      
+      if (canAdd && visibleSymbols.length < 2) { // Limit visible symbols
+        visibleSymbols.add(symbol);
+        equationsWithVisible.addAll(symbolEquations);
+      }
+    }
+    
+    // If we don't have any visible symbols, pick one carefully
+    if (visibleSymbols.isEmpty && allSymbols.isNotEmpty) {
+      visibleSymbols.add(allSymbols.first);
+    }
+    
+    final hiddenSymbols = allSymbols.toSet().difference(visibleSymbols.toSet());
+    return (visibleSymbols, hiddenSymbols);
+  }
+
+  /// Original clue selection (for comparison)
+  static (List<String>, Set<String>) _selectCluesOriginal(List<String> allSymbols) {
+    allSymbols.shuffle();
+    final visibleCount = 1; // Always show exactly 1 symbol to start
+    final visibleSymbols = allSymbols.take(visibleCount).toList();
+    final hiddenSymbols = allSymbols.toSet().difference(visibleSymbols.toSet());
+    return (visibleSymbols, hiddenSymbols);
   }
 
   bool validateSolution(Map<String, int> userSolution) {

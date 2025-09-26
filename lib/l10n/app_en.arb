@@ -717,6 +717,78 @@
   "arithmancerReturnToBridge": "Return to Bridge",
   "@arithmancerReturnToBridge": {
     "description": "Button to return to main menu"
+  },
+
+  "arithmeticSquare": "Arithmetic Square",
+  "@arithmeticSquare": {
+    "description": "Title for the Arithmetic Square puzzle game"
+  },
+  
+  "arithmeticSquareInstructions": "Fill the empty cells to make each row and column form valid equations!",
+  "@arithmeticSquareInstructions": {
+    "description": "Instructions for playing the Arithmetic Square game"
+  },
+  
+  "arithmeticSquareError": "Some equations don't add up! Check your numbers and try again.",
+  "@arithmeticSquareError": {
+    "description": "Error message when the arithmetic square solution is incorrect"
+  },
+  
+  "arithmeticSquareSelectNumbers": "Drag numbers into the empty cells:",
+  "@arithmeticSquareSelectNumbers": {
+    "description": "Instruction text above the number pool in arithmetic square"
+  },
+  
+  "arithmeticSquareWinTitle": "Mathematical Mastery!",
+  "@arithmeticSquareWinTitle": {
+    "description": "Title shown in success dialog for arithmetic square"
+  },
+  
+  "arithmeticSquareWinDesc": "Outstanding! You've solved the arithmetic square and earned {bonusScore} bonus points for your mathematical precision!",
+  "@arithmeticSquareWinDesc": {
+    "description": "Success message for completing arithmetic square puzzle",
+    "placeholders": {
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
+    }
+  },
+
+  "arithmancerCrosswords": "Arithmancer Crosswords",
+  "@arithmancerCrosswords": {
+    "description": "Title for the Arithmancer Crosswords puzzle game"
+  },
+  
+  "arithmancerCrosswordsInstructions": "Solve the intersecting math equations by placing numbers in the crossword grid!",
+  "@arithmancerCrosswordsInstructions": {
+    "description": "Instructions for playing the Arithmancer Crosswords game"
+  },
+  
+  "arithmancerCrosswordsError": "The crossword equations don't balance! Check your math and try again.",
+  "@arithmancerCrosswordsError": {
+    "description": "Error message when the crossword solution is incorrect"
+  },
+  
+  "arithmancerCrosswordsSelectNumbers": "Drag numbers to fill the crossword:",
+  "@arithmancerCrosswordsSelectNumbers": {
+    "description": "Instruction text above the number pool in arithmancer crosswords"
+  },
+  
+  "arithmancerCrosswordsWinTitle": "Crossword Champion!",
+  "@arithmancerCrosswordsWinTitle": {
+    "description": "Title shown in success dialog for arithmancer crosswords"
+  },
+  
+  "arithmancerCrosswordsWinDesc": "Brilliant! You've mastered the mathematical crossword and earned {bonusScore} bonus points for your arithmantic prowess!",
+  "@arithmancerCrosswordsWinDesc": {
+    "description": "Success message for completing arithmancer crosswords puzzle",
+    "placeholders": {
+      "bonusScore": {
+        "type": "int",
+        "example": "200"
+      }
+    }
   }
 
 

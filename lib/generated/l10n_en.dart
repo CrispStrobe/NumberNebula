@@ -1227,4 +1227,50 @@ class SEn extends S {
 
   @override
   String get arithmancerReturnToBridge => 'Return to Bridge';
+
+  @override
+  String get arithmeticSquare => 'Arithmetic Square';
+
+  @override
+  String get arithmeticSquareInstructions =>
+      'Fill the empty cells to make each row and column form valid equations!';
+
+  @override
+  String get arithmeticSquareError =>
+      'Some equations don\'t add up! Check your numbers and try again.';
+
+  @override
+  String get arithmeticSquareSelectNumbers =>
+      'Drag numbers into the empty cells:';
+
+  @override
+  String get arithmeticSquareWinTitle => 'Mathematical Mastery!';
+
+  @override
+  String arithmeticSquareWinDesc(int bonusScore) {
+    return 'Outstanding! You\'ve solved the arithmetic square and earned $bonusScore bonus points for your mathematical precision!';
+  }
+
+  @override
+  String get arithmancerCrosswords => 'Arithmancer Crosswords';
+
+  @override
+  String get arithmancerCrosswordsInstructions =>
+      'Solve the intersecting math equations by placing numbers in the crossword grid!';
+
+  @override
+  String get arithmancerCrosswordsError =>
+      'The crossword equations don\'t balance! Check your math and try again.';
+
+  @override
+  String get arithmancerCrosswordsSelectNumbers =>
+      'Drag numbers to fill the crossword:';
+
+  @override
+  String get arithmancerCrosswordsWinTitle => 'Crossword Champion!';
+
+  @override
+  String arithmancerCrosswordsWinDesc(int bonusScore) {
+    return 'Brilliant! You\'ve mastered the mathematical crossword and earned $bonusScore bonus points for your arithmantic prowess!';
+  }
 }
