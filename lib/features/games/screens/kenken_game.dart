@@ -441,7 +441,7 @@ class _KenkenGameState extends State<KenkenGame>
         animation: _glowAnimation,
         builder: (context, child) {
           return Container(
-            padding: EdgeInsets.all(isCompact ? 12 : 16),
+            padding: EdgeInsets.all(isCompact ? 8 : 12), // Reduced padding
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
@@ -463,10 +463,11 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   Widget _buildKenkenGrid({required bool isCompact}) {
-    // Dynamic cell size based on grid size and screen space
+    // Much more generous sizing - use most of the available space
     final gridSize = puzzle!.size;
-    final maxCellSize = isCompact ? 35.0 : 50.0;
-    final cellSize = math.min(maxCellSize, 300.0 / gridSize); // Scale down for larger grids
+    final maxGridWidth = isCompact ? 350.0 : 500.0; // Increased from 300
+    final maxCellSize = isCompact ? 45.0 : 70.0; // Increased from 35/50
+    final cellSize = math.min(maxCellSize, maxGridWidth / gridSize);
     
     return Container(
       child: Column(
@@ -678,37 +679,62 @@ class _KenkenGameState extends State<KenkenGame>
 
   Widget _buildNumberPad({required bool isCompact}) {
     final gridSize = puzzle!.size;
-    final isLargeGrid = gridSize > 6;
-    final tileSize = isLargeGrid ? 35.0 : (isCompact ? 40.0 : 50.0);
+    
+    // Use the SAME cell size calculation as the grid
+    final maxGridWidth = isCompact ? 350.0 : 500.0;
+    final maxCellSize = isCompact ? 45.0 : 70.0;
+    final cellSize = math.min(maxCellSize, maxGridWidth / gridSize);
+    
+    // Arrange numbers in 3 columns like a phone keypad
+    final numbers = numberPool;
+    final rows = <List<int>>[];
+    
+    for (int i = 0; i < numbers.length; i += 3) {
+      final rowNumbers = numbers.sublist(i, math.min(i + 3, numbers.length));
+      rows.add(rowNumbers);
+    }
     
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (!isCompact && !isLargeGrid)
+        if (!isCompact && gridSize <= 6)
           Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: Text(S.of(context)!.kenkenSelectNumbers, style: SpaceTheme.bodyStyle),
           ),
         Container(
-          padding: EdgeInsets.all(isCompact || isLargeGrid ? 6 : 12),
+          padding: EdgeInsets.all(isCompact ? 6 : 12),
           decoration: SpaceTheme.cardDecoration.copyWith(
             border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
           ),
-          child: Wrap(
-            spacing: isLargeGrid ? 4 : 8,
-            runSpacing: isLargeGrid ? 4 : 8,
-            children: numberPool.map((number) {
-              return SizedBox(
-                width: tileSize,
-                height: tileSize,
-                child: Draggable<int>(
-                  data: number,
-                  feedback: _buildDraggableFeedback(number, isCompact || isLargeGrid),
-                  childWhenDragging: Opacity(
-                    opacity: 0.7, 
-                    child: _buildNumberTile(number, tileSize: tileSize)
-                  ),
-                  child: _buildNumberTile(number, tileSize: tileSize),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: rows.map((rowNumbers) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (int i = 0; i < 3; i++)
+                      Padding(
+                        padding: EdgeInsets.only(right: i < 2 ? 8.0 : 0),
+                        child: i < rowNumbers.length
+                            ? SizedBox(
+                                width: cellSize,
+                                height: cellSize,
+                                child: Draggable<int>(
+                                  data: rowNumbers[i],
+                                  feedback: _buildDraggableFeedback(rowNumbers[i], isCompact),
+                                  childWhenDragging: Opacity(
+                                    opacity: 0.7,
+                                    child: _buildNumberTile(rowNumbers[i], tileSize: cellSize)
+                                  ),
+                                  child: _buildNumberTile(rowNumbers[i], tileSize: cellSize),
+                                ),
+                              )
+                            : SizedBox(width: cellSize, height: cellSize), // Empty space
+                      ),
+                  ],
                 ),
               );
             }).toList(),

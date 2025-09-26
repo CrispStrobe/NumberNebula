@@ -160,13 +160,13 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     
     setState(() {
       userSolution[cellId] = number;
-      numberPool.remove(number);
+      // DON'T remove number from pool - allow reuse!
       _lastDroppedPosition = cellId;
       _dropController.forward(from: 0.0);
     });
 
     debugPrint("🎮 [PLACE] User solution after: $userSolution");
-    debugPrint("🎮 [PLACE] Number pool after: $numberPool");
+    debugPrint("🎮 [PLACE] Number pool remains: $numberPool");
     _checkSolution();
   }
 
@@ -174,12 +174,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     debugPrint("🗑️ [ARITHMANCER CROSSWORDS] Removing number from cell $cellId");
     
     setState(() {
-      final number = userSolution[cellId];
-      if (number != null) {
-        userSolution.remove(cellId);
-        numberPool.add(number);
-        numberPool.sort();
-      }
+      userSolution.remove(cellId);
+      // No need to add back to pool since numbers aren't consumed
     });
   }
 
@@ -206,7 +202,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   void _logSolvedProblemsToSRI(Map<String, int> solution) {
-    debugPrint("🔤 SRI: Logging all solved problems for the completed crossword...");
+    debugPrint("📤 SRI: Logging all solved problems for the completed crossword...");
     final sriService = context.read<SriService>();
     
     // Create the complete solution
@@ -247,7 +243,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       
       if (problem != null) {
         sriService.recordResponse(problem, true);
-        debugPrint("🔤 SRI: Logged equation problem -> ${problem.expression}");
+        debugPrint("📤 SRI: Logged equation problem -> ${problem.expression}");
       }
     }
   }
@@ -472,7 +468,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     final operatorSize = isCompact ? 20.0 : 25.0;
     
     // Calculate the bounding box of all cells
-    final allPositions = <Point<int>>[
+    final allPositions = <math.Point<int>>[
       ...puzzle!.numberCells.keys,
       ...puzzle!.operatorCells.keys,
     ];
@@ -862,158 +858,33 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
 }
 
 //##############################################################################
-// CROSSWORD PUZZLE GENERATION SYSTEM (Following gencw.dart exactly)
+// EXACT BLUEPRINT COPY FROM gencw.dart - FOLLOWS PRECISELY
 //##############################################################################
 
-/// Represents a Point in 2D space (Exact copy from gencw.dart)
-class Point<T extends num> {
-  final T x;
-  final T y;
-  
-  const Point(this.x, this.y);
-  
-  @override
-  bool operator ==(Object other) {
-    return other is Point && other.x == x && other.y == y;
-  }
-  
-  @override
-  int get hashCode => Object.hash(x, y);
-  
-  @override
-  String toString() => 'Point($x, $y)';
-}
+/// Configuration for the crossword puzzle generator
+class PuzzleConfig {
+  int minN;
+  int maxN;
+  List<String> ops;
+  int targetEdges;
+  int numClues;
+  bool noDups;
+  bool verbose;
+  int timeoutSeconds;
 
-/// Represents a mathematical equation in the crossword (Exact copy from gencw.dart)
-class CrosswordEquation {
-  final List<Point<int>> numberCells;
-  final Point<int> operatorCell;
-  final String operator;
-  
-  CrosswordEquation(this.numberCells, this.operatorCell, this.operator);
-  
-  List<String> get variableNames =>
-      numberCells.map((p) => 'C_${p.y}_${p.x}').toList();
-      
-  Set<Point<int>> get allCells {
-    final op = operatorCell;
-    final n1 = numberCells[0];
-    final n2 = numberCells[1];
-    final n3 = numberCells[2];
-    return {
-      n1,
-      op,
-      Point((op.x + n2.x) ~/ 2, (op.y + n2.y) ~/ 2),
-      n2,
-      Point((n2.x + n3.x) ~/ 2, (n2.y + n3.y) ~/ 2),
-      n3
-    };
-  }
-
-  @override
-  String toString() =>
-      '${variableNames[0]} $operator ${variableNames[1]} == ${variableNames[2]}';
-}
-
-/// Main crossword puzzle data structure
-class CrosswordPuzzle {
-  final Map<String, int> clues;
-  final Set<String> emptyCells;
-  final List<CrosswordEquation> equations;
-  final List<int> numberPool;
-  final Map<String, int> fullSolution;
-  
-  // Visual layout data
-  final Map<Point<int>, String> numberCells; // Position -> CellId
-  final Map<Point<int>, String> operatorCells; // Position -> Operator
-  final Set<Point<int>> equalsCells; // Positions of equals signs
-
-  CrosswordPuzzle({
-    required this.clues,
-    required this.emptyCells,
-    required this.equations,
-    required this.numberPool,
-    required this.fullSolution,
-    required this.numberCells,
-    required this.operatorCells,
-    required this.equalsCells,
+  PuzzleConfig({
+    this.minN = 1,
+    this.maxN = 9,
+    this.ops = const ['+', '−', '×', '÷'],
+    this.targetEdges = 8,
+    this.numClues = 0,
+    this.noDups = false,
+    this.verbose = false,
+    this.timeoutSeconds = 30,
   });
-
-  static Future<CrosswordPuzzle> generate(Map<String, dynamic> args) async {
-    debugPrint("🎯 [CROSSWORD FACTORY] Starting puzzle generation with args: $args");
-    
-    final grade = args['grade'] as int;
-    final level = args['level'] as int;
-    final difficultyConfig = args['difficulty'] as DifficultyConfig;
-    final useCustomSettings = args['useCustomSettings'] as bool;
-    final customOps = (args['customOps'] as List<dynamic>).cast<String>().toSet();
-    final customMin = args['customMin'] as int;
-    final customMax = args['customMax'] as int;
-    
-    debugPrint("🎯 [CROSSWORD FACTORY] Using difficulty config: ${difficultyConfig.grade}");
-    
-    final generator = CrosswordGenerator(
-      grade: grade,
-      level: level,
-      difficultyConfig: difficultyConfig,
-      useCustomSettings: useCustomSettings,
-      customOps: customOps,
-      customMin: customMin,
-      customMax: customMax,
-    );
-    
-    return await generator.generate();
-  }
-
-  bool validateSolution(Map<String, int> userSolution) {
-    debugPrint("✅ [CROSSWORD VALIDATION] Starting solution validation");
-    
-    // Create complete solution
-    final completeGrid = Map<String, int>.from(clues);
-    completeGrid.addAll(userSolution);
-    
-    // Validate all equations using the same logic as gencw.dart
-    for (final equation in equations) {
-      final values = equation.variableNames.map((varName) => completeGrid[varName]!).toList();
-      final operand1 = values[0];
-      final operand2 = values[1];
-      final result = values[2];
-      
-      bool isValid = false;
-      switch (equation.operator) {
-        case '+':
-          isValid = operand1 + operand2 == result;
-          break;
-        case '−':
-        case '-':
-          isValid = operand1 - operand2 == result;
-          break;
-        case '×':
-        case '*':
-          isValid = operand1 * operand2 == result;
-          break;
-        case '÷':
-        case '/':
-          isValid = operand2 != 0 && operand1 % operand2 == 0 && operand1 ~/ operand2 == result;
-          break;
-      }
-      
-      if (!isValid) {
-        debugPrint("✅ [CROSSWORD VALIDATION] ❌ Equation failed: $equation -> $operand1 ${equation.operator} $operand2 = $result");
-        return false;
-      }
-    }
-    
-    debugPrint("✅ [CROSSWORD VALIDATION] ✅ Solution is valid!");
-    return true;
-  }
-
-  List<String> getAllOperators() {
-    return equations.map((eq) => eq.operator).toList();
-  }
 }
 
-/// Grid pattern generator (Exact copy from gencw.dart)
+/// Grid pattern generator - EXACT COPY from gencw.dart
 class GridPatternGenerator {
   final int width;
   final int height;
@@ -1021,10 +892,13 @@ class GridPatternGenerator {
   late List<List<String>> grid;
   final math.Random random = math.Random();
   int edgeCount = 0;
-  late Point<int> mazeStart;
+  late math.Point<int> mazeStart;
   late int firstDirection;
-  final List<Point<int>> directions = [
-    Point(0, -1), Point(1, 0), Point(0, 1), Point(-1, 0)
+  final List<math.Point<int>> directions = [
+    math.Point(0, -1),
+    math.Point(1, 0),
+    math.Point(0, 1),
+    math.Point(-1, 0)
   ];
 
   GridPatternGenerator({
@@ -1033,7 +907,7 @@ class GridPatternGenerator {
     required this.targetEdges,
   }) {
     initializeGrid();
-    mazeStart = Point(width ~/ 2, height ~/ 2);
+    mazeStart = math.Point(width ~/ 2, height ~/ 2);
     firstDirection = random.nextInt(4);
     if (isValidPosition(mazeStart.x, mazeStart.y)) {
       grid[mazeStart.y][mazeStart.x] = '█';
@@ -1048,8 +922,8 @@ class GridPatternGenerator {
     return x >= 2 && x < width - 2 && y >= 2 && y < height - 2;
   }
 
-  int countSquaresBehind(Point<int> pos, int direction) {
-    Point<int> oppositeDir = directions[(direction + 2) % 4];
+  int countSquaresBehind(math.Point<int> pos, int direction) {
+    math.Point<int> oppositeDir = directions[(direction + 2) % 4];
     int count = 0;
     for (int step = 1; step <= 4; step++) {
       int x = pos.x + (oppositeDir.x * step);
@@ -1060,9 +934,9 @@ class GridPatternGenerator {
     return count;
   }
 
-  bool canWalk4Steps(Point<int> pos, int direction) {
+  bool canWalk4Steps(math.Point<int> pos, int direction) {
     if (countSquaresBehind(pos, direction) >= 4) return false;
-    Point<int> dir = directions[direction];
+    math.Point<int> dir = directions[direction];
     for (int step = 1; step <= 4; step++) {
       int x = pos.x + (dir.x * step);
       int y = pos.y + (dir.y * step);
@@ -1072,19 +946,19 @@ class GridPatternGenerator {
     return true;
   }
 
-  Point<int> walk4Steps(Point<int> pos, int direction) {
-    Point<int> dir = directions[direction];
+  math.Point<int> walk4Steps(math.Point<int> pos, int direction) {
+    math.Point<int> dir = directions[direction];
     for (int step = 1; step <= 4; step++) {
       int x = pos.x + (dir.x * step);
       int y = pos.y + (dir.y * step);
       if (isValidPosition(x, y)) grid[y][x] = '█';
     }
     edgeCount++;
-    return Point(pos.x + (dir.x * 4), pos.y + (dir.y * 4));
+    return math.Point(pos.x + (dir.x * 4), pos.y + (dir.y * 4));
   }
 
   void runMazeWalker() {
-    Point<int> currentPos = mazeStart;
+    math.Point<int> currentPos = mazeStart;
     int currentDirection = firstDirection;
 
     for (int moves = 0; moves < 15 && edgeCount < targetEdges; moves++) {
@@ -1095,9 +969,9 @@ class GridPatternGenerator {
           ..shuffle(random);
 
         if (decision < 40) {
-          Point<int> dir = directions[currentDirection];
-          Point<int> backPos =
-              Point(currentPos.x - (dir.x * 2), currentPos.y - (dir.y * 2));
+          math.Point<int> dir = directions[currentDirection];
+          math.Point<int> backPos =
+              math.Point(currentPos.x - (dir.x * 2), currentPos.y - (dir.y * 2));
           bool foundTurn = false;
           for (int newDir in turnOptions) {
             if (canWalk4Steps(backPos, newDir)) {
@@ -1143,48 +1017,77 @@ class GridPatternGenerator {
     }
     return grid;
   }
+
+
 }
 
-/// Puzzle parser (Exact copy from gencw.dart)
+/// Equation representation - EXACT COPY from gencw.dart
+class Equation {
+  final List<math.Point<int>> numberCells;
+  final math.Point<int> operatorCell;
+  final String operator;
+  
+  Equation(this.numberCells, this.operatorCell, this.operator);
+  
+  List<String> get variableNames =>
+      numberCells.map((p) => 'C_${p.y}_${p.x}').toList();
+      
+  Set<math.Point<int>> get allCells {
+    final op = operatorCell;
+    final n1 = numberCells[0];
+    final n2 = numberCells[1];
+    final n3 = numberCells[2];
+    return {
+      n1,
+      op,
+      math.Point((op.x + n2.x) ~/ 2, (op.y + n2.y) ~/ 2),
+      n2,
+      math.Point((n2.x + n3.x) ~/ 2, (n2.y + n3.y) ~/ 2),
+      n3
+    };
+  }
+
+  @override
+  String toString() =>
+      '${variableNames[0]} $operator ${variableNames[1]} == ${variableNames[2]}';
+}
+
+/// Puzzle parser - EXACT COPY from gencw.dart
 class PuzzleParser {
   final List<List<String>> grid;
-  final List<String> availableOps;
+  final PuzzleConfig config;
   final math.Random random = math.Random();
-  final List<CrosswordEquation> equations = [];
-  final Set<Point<int>> numberCellLocations = {};
+  final List<Equation> equations = [];
+  final Set<math.Point<int>> numberCellLocations = {};
 
-  PuzzleParser(this.grid, this.availableOps) {
+  PuzzleParser(this.grid, this.config) {
     _findEquations();
   }
 
   void _findEquations() {
     int height = grid.length;
     int width = grid[0].length;
-    
-    // Find horizontal equations
     for (int r = 0; r < height; r++) {
       for (int c = 0; c < width - 4; c++) {
         if (List.generate(5, (i) => grid[r][c + i])
             .every((cell) => cell == '█')) {
-          final numberCells = [Point(c, r), Point(c + 2, r), Point(c + 4, r)];
-          final operatorCell = Point(c + 1, r);
-          final eq = CrosswordEquation(numberCells, operatorCell,
-              availableOps[random.nextInt(availableOps.length)]);
+          final numberCells = [math.Point(c, r), math.Point(c + 2, r), math.Point(c + 4, r)];
+          final operatorCell = math.Point(c + 1, r);
+          final eq = Equation(numberCells, operatorCell,
+              config.ops[random.nextInt(config.ops.length)]);
           equations.add(eq);
           numberCellLocations.addAll(numberCells);
         }
       }
     }
-    
-    // Find vertical equations
     for (int r = 0; r < height - 4; r++) {
       for (int c = 0; c < width; c++) {
         if (List.generate(5, (i) => grid[r + i][c])
             .every((cell) => cell == '█')) {
-          final numberCells = [Point(c, r), Point(c, r + 2), Point(c, r + 4)];
-          final operatorCell = Point(c, r + 1);
-          final eq = CrosswordEquation(numberCells, operatorCell,
-              availableOps[random.nextInt(availableOps.length)]);
+          final numberCells = [math.Point(c, r), math.Point(c, r + 2), math.Point(c, r + 4)];
+          final operatorCell = math.Point(c, r + 1);
+          final eq = Equation(numberCells, operatorCell,
+              config.ops[random.nextInt(config.ops.length)]);
           equations.add(eq);
           numberCellLocations.addAll(numberCells);
         }
@@ -1200,7 +1103,7 @@ class PuzzleParser {
         if (cell == '█') totalBlockCells++;
       }
     }
-    final cellsInEquations = <Point<int>>{};
+    final cellsInEquations = <math.Point<int>>{};
     for (final eq in equations) {
       cellsInEquations.addAll(eq.allCells);
     }
@@ -1208,7 +1111,7 @@ class PuzzleParser {
   }
 }
 
-/// ASCII Renderer for debugging (Exact copy from gencw.dart)
+/// ASCII renderer - EXACT COPY from gencw.dart
 class AsciiRenderer {
   final PuzzleParser puzzle;
   final PuzzleConfig config;
@@ -1221,11 +1124,11 @@ class AsciiRenderer {
 
   String render() {
     if (puzzle.numberCellLocations.isEmpty) return "No valid equations found.";
-    final equationCells = <Point<int>, String>{};
+    final equationCells = <math.Point<int>, String>{};
     for (final eq in puzzle.equations) {
-      final mid1 = Point((eq.operatorCell.x + eq.numberCells[1].x) ~/ 2,
+      final mid1 = math.Point((eq.operatorCell.x + eq.numberCells[1].x) ~/ 2,
           (eq.operatorCell.y + eq.numberCells[1].y) ~/ 2);
-      final mid2 = Point((eq.numberCells[1].x + eq.numberCells[2].x) ~/ 2,
+      final mid2 = math.Point((eq.numberCells[1].x + eq.numberCells[2].x) ~/ 2,
           (eq.numberCells[1].y + eq.numberCells[2].y) ~/ 2);
       equationCells[mid1] = eq.operator;
       equationCells[mid2] = '=';
@@ -1284,251 +1187,110 @@ class AsciiRenderer {
   }
 }
 
-/// Puzzle config for ASCII renderer
-class PuzzleConfig {
-  int minN;
-  int maxN;
-  List<String> ops;
-  int targetEdges;
-  int numClues;
-  bool noDups;
-  bool verbose;
-  int timeoutSeconds;
+/// MAIN GENERATOR - EXACT COPY OF main() from gencw.dart with matching logs
+Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
+  debugPrint('--- MATH CROSSWORD PUZZLE GENERATOR & SOLVER ---');
+  debugPrint(
+      'Config: Range=${config.minN}-${config.maxN}, Ops=${config.ops}, Edges=${config.targetEdges}, Clues=${config.numClues}, NoDups=${config.noDups}, Timeout=${config.timeoutSeconds}s');
 
-  PuzzleConfig({
-    this.minN = 1,
-    this.maxN = 9,
-    this.ops = const ['+', '−', '×', '÷'],
-    this.targetEdges = 8,
-    this.numClues = 0,
-    this.noDups = false,
-    this.verbose = false,
-    this.timeoutSeconds = 30,
-  });
-}
+  dynamic solution;
+  PuzzleParser? successfulPuzzle;
+  Map<String, int> finalClues = {};
+  const maxAttempts = 100;
 
-/// Generator using the exact same approach as gencw.dart
-class CrosswordGenerator {
-  final int grade;
-  final int level;
-  final DifficultyConfig difficultyConfig;
-  final bool useCustomSettings;
-  final Set<String> customOps;
-  final int customMin;
-  final int customMax;
-  final math.Random _random = math.Random();
+  for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+    debugPrint('\n' + ('-' * 60));
+    debugPrint('--- ATTEMPT $attempt/$maxAttempts ---');
 
-  CrosswordGenerator({
-    required this.grade,
-    required this.level,
-    required this.difficultyConfig,
-    required this.useCustomSettings,
-    required this.customOps,
-    required this.customMin,
-    required this.customMax,
-  });
-
-  Future<CrosswordPuzzle> generate() async {
-    debugPrint("🔧 [CROSSWORD GENERATOR] Starting crossword generation");
-    
-    const maxAttempts = 100; // Same as gencw.dart
-    
-    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-      debugPrint("🔧 [CROSSWORD GENERATOR] === Attempt $attempt/$maxAttempts ===");
+    // STEP 1: Generate a valid pattern
+    debugPrint("[1] Generating pattern...");
+    PuzzleParser puzzle;
+    int patternAttempt = 0;
+    do {
+      patternAttempt++;
+      final generator = GridPatternGenerator(targetEdges: config.targetEdges);
+      final rawGrid = generator.generatePattern();
       
-      try {
-        // Step 1: Generate a valid pattern (exact same logic as gencw.dart)
-        debugPrint("🔧 [CROSSWORD GENERATOR] [1] Generating pattern...");
-        PuzzleParser? puzzle;
-        int patternAttempt = 0;
-        
-        do {
-          patternAttempt++;
-          final targetEdges = _determineTargetEdges();
-          final generator = GridPatternGenerator(targetEdges: targetEdges);
-          final rawGrid = generator.generatePattern();
-          final availableOps = _getAvailableOperators();
-          puzzle = PuzzleParser(rawGrid, availableOps);
-        } while ((puzzle == null || !puzzle.isPatternValid()) && patternAttempt < 100);
 
-        if (puzzle == null || !puzzle.isPatternValid()) {
-          debugPrint("🔧 [CROSSWORD GENERATOR] FAILED to generate a valid puzzle pattern. Retrying...");
-          continue;
-        }
+      
+      puzzle = PuzzleParser(rawGrid, config);
+    } while (!puzzle.isPatternValid() && patternAttempt < 100);
 
-        final allVarNames = puzzle.numberCellLocations.map((p) => 'C_${p.y}_${p.x}').toList();
-        debugPrint("🔧 [CROSSWORD GENERATOR] Pattern found with ${puzzle.equations.length} equations and ${allVarNames.length} cells.");
+    if (!puzzle.isPatternValid()) {
+      debugPrint("  -> FAILED to generate a valid puzzle pattern. Retrying...");
+      continue; // Restart the main loop
+    }
 
-        // Step 2: Generate intelligent clues (EXACT same as gencw.dart)
-        debugPrint("🔧 [CROSSWORD GENERATOR] [2] Generating clues...");
-        final numClues = _determineNumberOfClues();
-        final clues = <String, int>{};
-        final domain = _getNumberDomain();
+    final allVarNames =
+        puzzle.numberCellLocations.map((p) => 'C_${p.y}_${p.x}').toList();
+    debugPrint(
+        "  -> Pattern found with ${puzzle.equations.length} equations and ${allVarNames.length} cells.");
 
-        // Power position selection (EXACT same logic as gencw.dart)
-        final variableCounts = <String, int>{};
-        for (final varName in allVarNames) {
-          variableCounts[varName] = 0;
-        }
-        for (final eq in puzzle.equations) {
-          for (final varName in eq.variableNames) {
-            variableCounts[varName] = (variableCounts[varName] ?? 0) + 1;
-          }
-        }
+    // STEP 2: Generate intelligent clues
+    debugPrint("[2] Generating ${config.numClues} 'Power Position' clues...");
+    final clues = <String, int>{};
+    final domain = List<int>.generate(config.maxN - config.minN + 1, (i) => i + config.minN);
 
-        final candidates = [...allVarNames];
-        final clueVars = <String>[];
-        final disqualifiedEquations = <CrosswordEquation>{};
-
-        for (int i = 0; i < numClues && candidates.isNotEmpty; i++) {
-          candidates.sort((a, b) => variableCounts[b]!.compareTo(variableCounts[a]!));
-          if (candidates.isEmpty) break;
-          final bestCandidate = candidates.first;
-
-          final chosenEquation = puzzle.equations.firstWhere(
-            (eq) => eq.variableNames.contains(bestCandidate) && !disqualifiedEquations.contains(eq),
-            orElse: () => puzzle!.equations.first,
-          );
-
-          String clueVariable;
-          // EXACT same placement strategy as gencw.dart
-          switch (chosenEquation.operator) {
-            case '+':
-            case '×':
-              clueVariable = chosenEquation.variableNames[2]; // Result
-              break;
-            case '−':
-            case '÷':
-              clueVariable = chosenEquation.variableNames[0]; // First operand
-              break;
-            default:
-              clueVariable = bestCandidate;
-          }
-          clueVars.add(clueVariable);
-          disqualifiedEquations.add(chosenEquation);
-          candidates.removeWhere((v) => chosenEquation.variableNames.contains(v));
-        }
-
-        final usedClueValues = <int>{};
-        for (final clueVar in clueVars.toSet()) {
-          int clueValue;
-          do {
-            clueValue = domain[_random.nextInt(domain.length)];
-          } while (usedClueValues.contains(clueValue));
-          clues[clueVar] = clueValue;
-          usedClueValues.add(clueValue);
-        }
-        debugPrint("🔧 [CROSSWORD GENERATOR] Clues placed: $clues");
-
-        // Step 3: Solve using CSP (EXACT same approach as gencw.dart)
-        debugPrint("🔧 [CROSSWORD GENERATOR] [3] Solving puzzle with CSP...");
-        final solution = await _solveWithCSP(puzzle, clues, allVarNames);
-
-        if (solution == null) {
-          debugPrint("🔧 [CROSSWORD GENERATOR] CSP solver failed");
-          continue;
-        }
-
-        // Add ASCII debug output exactly like gencw.dart
-        final puzzleConfig = PuzzleConfig(
-          minN: _getNumberDomain().first,
-          maxN: _getNumberDomain().last,
-          ops: _getAvailableOperators(),
-        );
-        
-        // Show empty puzzle (what player sees)
-        final emptyRenderer = AsciiRenderer(puzzle, puzzleConfig, solution: clues);
-        debugPrint("🔧 [CROSSWORD GENERATOR] [4] Puzzle to be solved:");
-        debugPrint(emptyRenderer.render());
-        
-        // Show complete solution
-        final solvedRenderer = AsciiRenderer(puzzle, puzzleConfig, solution: solution);
-        debugPrint("🔧 [CROSSWORD GENERATOR] [5] Complete solution:");
-        debugPrint(solvedRenderer.render());
-
-        debugPrint("🔧 [CROSSWORD GENERATOR] ✅ SUCCESS! Solution found on attempt $attempt");
-
-        // Step 4: Create final puzzle
-        final emptyCells = <String>{};
-        for (final varName in allVarNames) {
-          if (!clues.containsKey(varName)) {
-            emptyCells.add(varName);
-          }
-        }
-
-        final correctNumbers = emptyCells.map((cellId) => solution[cellId]!).toList();
-        final numberPool = _generateNumberPool(correctNumbers.cast<int>());
-
-        // Create visual layout
-        final (numberCells, operatorCells, equalsCells) = _createVisualLayout(puzzle);
-
-        return CrosswordPuzzle(
-          clues: clues,
-          emptyCells: emptyCells,
-          equations: puzzle.equations,
-          numberPool: numberPool,
-          fullSolution: solution,
-          numberCells: numberCells,
-          operatorCells: operatorCells,
-          equalsCells: equalsCells,
-        );
-
-      } catch (e) {
-        debugPrint("🔧 [CROSSWORD GENERATOR] Attempt $attempt failed: $e");
+    final variableCounts = <String, int>{};
+    for (final varName in allVarNames) {
+      variableCounts[varName] = 0;
+    }
+    for (final eq in puzzle.equations) {
+      for (final varName in eq.variableNames) {
+        variableCounts[varName] = (variableCounts[varName] ?? 0) + 1;
       }
     }
-    
-    throw Exception("Failed to generate a valid puzzle after $maxAttempts attempts");
-  }
 
-  int _determineTargetEdges() {
-    // Adapt target edges based on grade/level like the original
-    if (grade <= 2) return 4 + (level ~/ 3);
-    if (grade <= 4) return 6 + (level ~/ 2);
-    return 8 + level;
-  }
+    final List<String> candidates = [...allVarNames];
+    final clueVars = <String>[];
+    final disqualifiedEquations = <Equation>{};
 
-  int _determineNumberOfClues() {
-    // Same logic as gencw.dart - few or no clues to make it challenging
-    if (grade <= 2) return 1;
-    if (grade <= 3) return level <= 5 ? 1 : 0;
-    return 0;
-  }
+    for (int i = 0; i < config.numClues && candidates.isNotEmpty; i++) {
+      candidates.sort((a, b) => variableCounts[b]!.compareTo(variableCounts[a]!));
+      if (candidates.isEmpty) break;
+      final bestCandidate = candidates.first;
 
-  List<String> _getAvailableOperators() {
-    // Convert framework operations to proper symbols (same as gencw.dart)
-    if (useCustomSettings && customOps.isNotEmpty) {
-      return customOps.map((op) {
-        switch (op) {
-          case 'addition': return '+';
-          case 'subtraction': return '−';
-          case 'multiplication': return '×';
-          case 'division': return '÷';
-          default: return '+';
-        }
-      }).toList();
+      final chosenEquation = puzzle.equations.firstWhere(
+        (eq) => eq.variableNames.contains(bestCandidate) && !disqualifiedEquations.contains(eq),
+        orElse: () => puzzle.equations.first,
+      );
+
+      String clueVariable;
+      switch (chosenEquation.operator) {
+        case '+':
+        case '×':
+          clueVariable = chosenEquation.variableNames[2];
+          break;
+        case '−':
+        case '÷':
+          clueVariable = chosenEquation.variableNames[0];
+          break;
+        default:
+          clueVariable = bestCandidate;
+      }
+      clueVars.add(clueVariable);
+      disqualifiedEquations.add(chosenEquation);
+      candidates.removeWhere((v) => chosenEquation.variableNames.contains(v));
     }
 
-    final ops = <String>['+'];
-    if (grade >= 2) ops.add('−');
-    if (grade >= 3) ops.add('×');
-    if (grade >= 4 && level >= 6) ops.add('÷');
-    
-    return ops;
-  }
+    final usedClueValues = <int>{};
+    for (final clueVar in clueVars.toSet()) {
+      int clueValue;
+      do {
+        clueValue = domain[math.Random().nextInt(domain.length)];
+      } while (config.noDups && usedClueValues.contains(clueValue));
+      clues[clueVar] = clueValue;
+      if (config.noDups) usedClueValues.add(clueValue);
+    }
+    debugPrint("  -> Clues placed: $clues");
 
-  List<int> _getNumberDomain() {
-    final minVal = useCustomSettings ? customMin : math.max(1, grade);
-    final maxVal = useCustomSettings ? customMax : math.min(9, 3 + grade * 2);
-    return List<int>.generate(maxVal - minVal + 1, (i) => i + minVal);
-  }
-
-  // CSP solving with EXACT same approach as gencw.dart
-  Future<Map<String, int>?> _solveWithCSP(PuzzleParser puzzle, Map<String, int> clues, List<String> allVarNames) async {
+    // STEP 3: Formulate and solve the CSP with a timeout
+    debugPrint("[3] Solving puzzle (timeout in ${config.timeoutSeconds}s)...");
     final p = Problem();
-    final fullDomain = _getNumberDomain();
-    
-    // Add variables (EXACT same as gencw.dart)
+    final fullDomain = List<int>.generate(config.maxN - config.minN + 1, (i) => i + config.minN);
+    if (config.noDups) {
+      fullDomain.removeWhere((val) => clues.values.contains(val));
+    }
     for (final varName in allVarNames) {
       if (clues.containsKey(varName)) {
         p.addVariable(varName, [clues[varName]!]);
@@ -1536,8 +1298,6 @@ class CrosswordGenerator {
         p.addVariable(varName, fullDomain);
       }
     }
-    
-    // Add constraints for each equation (EXACT same as gencw.dart)
     for (final eq in puzzle.equations) {
       p.addConstraint(eq.variableNames, (assignment) {
         final a = assignment[eq.variableNames[0]];
@@ -1548,80 +1308,267 @@ class CrosswordGenerator {
           case '+':
             return a + b == c;
           case '−':
-          case '-':
             return a - b == c;
           case '×':
-          case '*':
             return a * b == c;
           case '÷':
-          case '/':
             return b != 0 && a % b == 0 && a ~/ b == c;
           default:
             return false;
         }
       });
     }
+    if (config.noDups) {
+      p.addAllDifferent(allVarNames);
+    }
 
+    final stopwatch = Stopwatch()..start();
     try {
-      final solution = await p.getSolution().timeout(Duration(seconds: 30));
-      
-      if (solution == 'FAILURE') {
-        return null;
+      final potentialSolution = await p
+          .getSolution()
+          .timeout(Duration(seconds: config.timeoutSeconds));
+      stopwatch.stop();
+
+      if (potentialSolution != 'FAILURE') {
+        debugPrint(
+            "  -> SUCCESS! Solution found in ${stopwatch.elapsedMilliseconds}ms.");
+        solution = potentialSolution;
+        successfulPuzzle = puzzle;
+        finalClues = clues;
+        debugPrint("\n[4] Puzzle to be solved:");
+        final emptyRenderer = AsciiRenderer(puzzle, config, solution: clues);
+        debugPrint(emptyRenderer.render());
+        break;
+      } else {
+        debugPrint(
+            "  -> UNSOLVABLE. The generated clues create a contradiction. Retrying...");
       }
-      
-      return solution.cast<String, int>();
-      
     } catch (e) {
-      debugPrint("🔧 [CSP] Solver timeout or error: $e");
-      return null;
+      stopwatch.stop();
+      debugPrint(
+          "  -> TIMEOUT. The puzzle is too complex to solve in ${stopwatch.elapsedMilliseconds}ms. Retrying...");
     }
   }
 
-  List<int> _generateNumberPool(List<int> correctNumbers) {
-    final pool = <int>[];
-    pool.addAll(correctNumbers);
+  debugPrint('\n' + ('=' * 60));
+  // STEP 4: Display the final result
+  if (solution != null &&
+      solution != 'FAILURE' &&
+      successfulPuzzle != null) {
+    debugPrint("--- FINAL SOLUTION ---");
+    final solvedRenderer =
+        AsciiRenderer(successfulPuzzle, config, solution: solution);
+    debugPrint(solvedRenderer.render());
     
-    final domain = _getNumberDomain();
-    
-    // Add some decoy numbers
-    final decoyCount = math.max(3, 6 - correctNumbers.length);
-    final decoys = <int>{};
-    
-    while (decoys.length < decoyCount) {
-      final decoy = domain[_random.nextInt(domain.length)];
-      if (!correctNumbers.contains(decoy)) {
-        decoys.add(decoy);
-      }
+    // Convert to game format - fix type casting
+    final typedSolution = solution.cast<String, int>();
+    return _convertToGameFormat(successfulPuzzle, finalClues, typedSolution);
+  } else {
+    throw Exception(
+        "Failed to generate a solvable puzzle after $maxAttempts attempts");
+  }
+}
+
+CrosswordPuzzle _convertToGameFormat(PuzzleParser puzzle, Map<String, int> clues, Map<String, int> solution) {
+  final allVarNames = puzzle.numberCellLocations.map((p) => 'C_${p.y}_${p.x}').toList();
+  
+  final emptyCells = <String>{};
+  for (final varName in allVarNames) {
+    if (!clues.containsKey(varName)) {
+      emptyCells.add(varName);
     }
-    
-    pool.addAll(decoys);
-    pool.shuffle(_random);
-    
-    return pool;
   }
 
-  (Map<Point<int>, String>, Map<Point<int>, String>, Set<Point<int>>) _createVisualLayout(PuzzleParser puzzle) {
-    final numberCells = <Point<int>, String>{};
-    final operatorCells = <Point<int>, String>{};
-    final equalsCells = <Set<Point<int>>>{};
-    
-    for (final eq in puzzle.equations) {
-      // Number cells
-      for (int i = 0; i < eq.numberCells.length; i++) {
-        numberCells[eq.numberCells[i]] = eq.variableNames[i];
-      }
-      
-      // Operator cell
-      operatorCells[eq.operatorCell] = eq.operator;
-      
-      // Equals cell (between second number and result)
-      final eqPos = Point(
-        (eq.numberCells[1].x + eq.numberCells[2].x) ~/ 2,
-        (eq.numberCells[1].y + eq.numberCells[2].y) ~/ 2,
-      );
-      equalsCells.add({eqPos});
+  final correctNumbers = emptyCells.map((cellId) => solution[cellId]!).toSet();
+  final numberPool = _generateNumberPool(correctNumbers.cast<int>());
+
+  // Create visual layout
+  final (numberCells, operatorCells, equalsCells) = _createVisualLayout(puzzle);
+  
+  // Convert equations
+  final gameEquations = puzzle.equations.map((eq) => CrosswordEquation(
+    eq.numberCells, eq.operatorCell, eq.operator
+  )).toList();
+
+  return CrosswordPuzzle(
+    clues: clues,
+    emptyCells: emptyCells,
+    equations: gameEquations,
+    numberPool: numberPool,
+    fullSolution: solution,
+    numberCells: numberCells,
+    operatorCells: operatorCells,
+    equalsCells: equalsCells,
+  );
+}
+
+List<int> _generateNumberPool(Set<int> correctNumbers) {
+  final pool = <int>[];
+  
+  // Add all unique numbers that appear in the solution
+  pool.addAll(correctNumbers);
+  
+  // Add a few decoy numbers (that don't appear in solution)
+  final domain = List<int>.generate(9, (i) => i + 1); // 1-9
+  final decoys = <int>{};
+  final random = math.Random();
+  
+  final decoyCount = math.max(3, 6 - correctNumbers.length);
+  while (decoys.length < decoyCount) {
+    final decoy = domain[random.nextInt(domain.length)];
+    if (!correctNumbers.contains(decoy)) {
+      decoys.add(decoy);
+    }
+  }
+  
+  pool.addAll(decoys);
+  pool.shuffle(random);
+  
+  return pool;
+}
+
+(Map<math.Point<int>, String>, Map<math.Point<int>, String>, Set<math.Point<int>>) _createVisualLayout(PuzzleParser puzzle) {
+  final numberCells = <math.Point<int>, String>{};
+  final operatorCells = <math.Point<int>, String>{};
+  final equalsCells = <Set<math.Point<int>>>{};
+  
+  for (final eq in puzzle.equations) {
+    // Number cells
+    for (int i = 0; i < eq.numberCells.length; i++) {
+      numberCells[eq.numberCells[i]] = eq.variableNames[i];
     }
     
-    return (numberCells, operatorCells, equalsCells.expand((s) => s).toSet());
+    // Operator cell
+    operatorCells[eq.operatorCell] = eq.operator;
+    
+    // Equals cell (between second number and result)
+    final eqPos = math.Point(
+      (eq.numberCells[1].x + eq.numberCells[2].x) ~/ 2,
+      (eq.numberCells[1].y + eq.numberCells[2].y) ~/ 2,
+    );
+    equalsCells.add({eqPos});
   }
+  
+  return (numberCells, operatorCells, equalsCells.expand((s) => s).toSet());
+}
+
+class CrosswordPuzzle {
+  final Map<String, int> clues;
+  final Set<String> emptyCells;
+  final List<CrosswordEquation> equations;
+  final List<int> numberPool;
+  final Map<String, int> fullSolution;
+  
+  // Visual layout data
+  final Map<math.Point<int>, String> numberCells; // Position -> CellId
+  final Map<math.Point<int>, String> operatorCells; // Position -> Operator
+  final Set<math.Point<int>> equalsCells; // Positions of equals signs
+
+  CrosswordPuzzle({
+    required this.clues,
+    required this.emptyCells,
+    required this.equations,
+    required this.numberPool,
+    required this.fullSolution,
+    required this.numberCells,
+    required this.operatorCells,
+    required this.equalsCells,
+  });
+
+  static Future<CrosswordPuzzle> generate(Map<String, dynamic> args) async {
+    debugPrint("🎯 [CROSSWORD FACTORY] Starting puzzle generation with args: $args");
+    
+    final grade = args['grade'] as int;
+    final level = args['level'] as int;
+    
+    // Create config based on game parameters - EXACT gencw.dart defaults
+    final config = PuzzleConfig(
+      minN: 1,  // Use gencw.dart default
+      maxN: 9,  // Use gencw.dart default
+      ops: ['+', '−', '×', '÷'], // Use ALL operations like gencw.dart
+      targetEdges: 8, // Use gencw.dart default
+      numClues: 0, // Use gencw.dart default
+      noDups: false, // Use gencw.dart default
+      timeoutSeconds: 30, // Use gencw.dart default
+    );
+    
+    return await generateCrosswordPuzzle(config);
+  }
+
+  bool validateSolution(Map<String, int> userSolution) {
+    debugPrint("✅ [CROSSWORD VALIDATION] Starting solution validation");
+    
+    // Create complete solution
+    final completeGrid = Map<String, int>.from(clues);
+    completeGrid.addAll(userSolution);
+    
+    // Validate all equations
+    for (final equation in equations) {
+      final values = equation.variableNames.map((varName) => completeGrid[varName]!).toList();
+      final operand1 = values[0];
+      final operand2 = values[1];
+      final result = values[2];
+      
+      bool isValid = false;
+      switch (equation.operator) {
+        case '+':
+          isValid = operand1 + operand2 == result;
+          break;
+        case '−':
+        case '-':
+          isValid = operand1 - operand2 == result;
+          break;
+        case '×':
+        case '*':
+          isValid = operand1 * operand2 == result;
+          break;
+        case '÷':
+        case '/':
+          isValid = operand2 != 0 && operand1 % operand2 == 0 && operand1 ~/ operand2 == result;
+          break;
+      }
+      
+      if (!isValid) {
+        debugPrint("✅ [CROSSWORD VALIDATION] ❌ Equation failed: $equation -> $operand1 ${equation.operator} $operand2 = $result");
+        return false;
+      }
+    }
+    
+    debugPrint("✅ [CROSSWORD VALIDATION] ✅ Solution is valid!");
+    return true;
+  }
+
+  List<String> getAllOperators() {
+    return equations.map((eq) => eq.operator).toList();
+  }
+}
+
+class CrosswordEquation {
+  final List<math.Point<int>> numberCells;
+  final math.Point<int> operatorCell;
+  final String operator;
+  
+  CrosswordEquation(this.numberCells, this.operatorCell, this.operator);
+  
+  List<String> get variableNames =>
+      numberCells.map((p) => 'C_${p.y}_${p.x}').toList();
+      
+  Set<math.Point<int>> get allCells {
+    final op = operatorCell;
+    final n1 = numberCells[0];
+    final n2 = numberCells[1];
+    final n3 = numberCells[2];
+    return {
+      n1,
+      op,
+      math.Point((op.x + n2.x) ~/ 2, (op.y + n2.y) ~/ 2),
+      n2,
+      math.Point((n2.x + n3.x) ~/ 2, (n2.y + n3.y) ~/ 2),
+      n3
+    };
+  }
+
+  @override
+  String toString() =>
+      '${variableNames[0]} $operator ${variableNames[1]} == ${variableNames[2]}';
 }
