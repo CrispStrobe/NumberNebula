@@ -1,0 +1,8 @@
+{
+  "builds": [
+    {
+      "src": "pubspec.yaml",
+      "use": "@ondriver/flutter"
+    }
+  ]
+}

@@ -14,6 +14,97 @@ import '../constants/difficulty_manager.dart';
 import '../constants/app_constants.dart';
 import '../../../core/services/sri_service.dart';
 
+// ============================================================================
+// CROSSWORD PUZZLE SCALING CONFIGURATION
+// ============================================================================
+// Adjust these constants to fine-tune difficulty scaling for GRADES 1-4 ONLY
+
+class CrosswordConfig {
+  // Number range scaling (compress into 4 grades)
+  static const int baseMinNumber = 1;
+  static const int baseMaxNumber = 9;
+  static const int numberRangeGrowthPerGrade = 5; // Aggressive growth: +5 to max per grade
+  static const int maxNumberCap = 25; // Higher cap for grade 4
+  
+  // Puzzle size scaling (compress into 4 grades + 20 levels each)
+  static const int baseEdges = 4; // Start very small
+  static const int edgesGrowthPerLevel = 1; // +1 edge every 2 levels
+  static const int levelDivisorForEdges = 2; // level/2 for growth calculation
+  static const int edgesGrowthPerGrade = 4; // +4 edges per grade
+  static const int maxEdges = 20; // Maximum puzzle complexity for grade 4 level 20
+  
+  // Clue system (pre-filled cells) - start earlier since only 4 grades
+  static const int cluesStartGrade = 3; // Start giving clues at grade 3
+  static const int maxClues = 4; // Maximum pre-filled cells
+  
+  // Advanced constraints - must fit in grade 4
+  static const int noDupsStartGrade = 4; // Enable unique numbers at grade 4
+  static const int noDupsStartLevel = 15; // And only at level 15+
+  
+  // Operation complexity (compress into 4 grades)
+  static const Map<int, List<String>> operationsByGrade = {
+    1: ['+'], // Grade 1: Addition only
+    2: ['+', '−'], // Grade 2: Add subtraction  
+    3: ['+', '−', '×'], // Grade 3: Add multiplication
+    4: ['+', '−', '×', '÷'], // Grade 4: All operations (highly complex)
+  };
+  
+  // Timeout scaling (grade 4 needs much more time)
+  static const int baseTimeout = 20;
+  static const int timeoutGrowthPerGrade = 15; // +15 seconds per grade
+  static const int maxTimeout = 90; // Up to 90 seconds for grade 4
+  
+  // Calculate actual config for a given grade/level
+  static PuzzleConfig createConfig(int grade, int level) {
+    // Number range - aggressive scaling
+    final minN = baseMinNumber;
+    final maxN = math.min(
+      baseMaxNumber + (grade * numberRangeGrowthPerGrade), 
+      maxNumberCap
+    );
+    
+    // Puzzle size - both grade and level scaling
+    final baseForGrade = baseEdges + (grade * edgesGrowthPerGrade);
+    final levelBonus = level ~/ levelDivisorForEdges * edgesGrowthPerLevel;
+    final edges = math.min(baseForGrade + levelBonus, maxEdges);
+    
+    // Operations
+    final ops = operationsByGrade[grade] ?? operationsByGrade[4]!;
+    
+    // Clues - scale within the compressed range
+    final clues = grade >= cluesStartGrade ? 
+      math.min((grade - cluesStartGrade + 1) + (level ~/ 10), maxClues) : 0;
+    
+    // Advanced constraints
+    final noDups = grade >= noDupsStartGrade && level >= noDupsStartLevel;
+    
+    // Timeout - generous for complex grade 4 puzzles
+    final timeout = math.min(
+      baseTimeout + (grade * timeoutGrowthPerGrade),
+      maxTimeout
+    );
+    
+    return PuzzleConfig(
+      minN: minN,
+      maxN: maxN,
+      ops: ops,
+      targetEdges: edges,
+      numClues: clues,
+      noDups: noDups,
+      timeoutSeconds: timeout,
+    );
+  }
+  
+  // Debug helper to see what config will be generated
+  static String debugConfig(int grade, int level) {
+    final config = createConfig(grade, level);
+    return 'Grade $grade, Level $level → Range=${config.minN}-${config.maxN}, '
+           'Ops=${config.ops}, Edges=${config.targetEdges}, '
+           'Clues=${config.numClues}, NoDups=${config.noDups}, '
+           'Timeout=${config.timeoutSeconds}s';
+  }
+}
+
 class ArithmancerCrosswordsGame extends StatefulWidget {
   final int grade;
   final int level;
@@ -1476,21 +1567,14 @@ class CrosswordPuzzle {
   });
 
   static Future<CrosswordPuzzle> generate(Map<String, dynamic> args) async {
-    debugPrint("🎯 [CROSSWORD FACTORY] Starting puzzle generation with args: $args");
-    
     final grade = args['grade'] as int;
     final level = args['level'] as int;
     
-    // Create config based on game parameters - EXACT gencw.dart defaults
-    final config = PuzzleConfig(
-      minN: 1,  // Use gencw.dart default
-      maxN: 9,  // Use gencw.dart default
-      ops: ['+', '−', '×', '÷'], // Use ALL operations like gencw.dart
-      targetEdges: 8, // Use gencw.dart default
-      numClues: 0, // Use gencw.dart default
-      noDups: false, // Use gencw.dart default
-      timeoutSeconds: 30, // Use gencw.dart default
-    );
+    // Use the new scaling configuration system
+    final config = CrosswordConfig.createConfig(grade, level);
+    
+    debugPrint("🎯 [CROSSWORD FACTORY] Starting puzzle generation with args: $args");
+    debugPrint("🎯 [CROSSWORD FACTORY] ${CrosswordConfig.debugConfig(grade, level)}");
     
     return await generateCrosswordPuzzle(config);
   }

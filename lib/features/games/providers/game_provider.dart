@@ -1,6 +1,7 @@
 // lib/features/games/providers/game_provider.dart
 import 'package:flutter/foundation.dart';
 import '../../../core/services/progress_service.dart';
+import '../../../core/config/app_config.dart';
 
 // The Achievement data class. It should be at the top-level, NOT inside another class.
 class Achievement {
@@ -50,7 +51,12 @@ class GameProvider extends ChangeNotifier {
   int _customRangeMax = 20;
 
   GameProvider({required ProgressService progressService})
-      : _progressService = progressService;
+      : _progressService = progressService {
+    // If IAPs are globally disabled, force the unlocked state on initialization.
+    if (!AppConfig.inapps_active) {
+      _isFullVersionUnlocked = true;
+    }
+   }
 
   // Getter
   bool get isFullVersionUnlocked => _isFullVersionUnlocked;
@@ -321,6 +327,11 @@ class GameProvider extends ChangeNotifier {
     _gameProgress = Map<String, int>.from(json['gameProgress'] ?? {});
     _useAdaptiveDifficulty = json['useAdaptiveDifficulty'] ?? false;
     _isFullVersionUnlocked = json['isFullVersionUnlocked'] ?? false;
+
+    // overridhere to handle loading a saved state where the user hadn't purchased the app yet.
+    if (!AppConfig.inapps_active) {
+      _isFullVersionUnlocked = true;
+    }
 
     // --- Load custom settings ---
     _useCustomProblemSettings = json['useCustomProblemSettings'] ?? false;
