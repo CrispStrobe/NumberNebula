@@ -1324,12 +1324,34 @@ class AdvancedPuzzleGenerator {
   List<PuzzleEquation>? _createEquationStructuresCSP(int numEquations) {
     final equations = <PuzzleEquation>[];
     final operators = params['operators'] as List<String>;
+    final valueRange = params['valueRange'] as List<int>;
+    final maxVal = valueRange[1];
+    final minVal = valueRange[0];
     
     // Create equations using symbols strategically to ensure good interconnection
     final usedSymbols = <String>{};
     
     for (int i = 0; i < numEquations; i++) {
-      final op = operators[_random.nextInt(operators.length)];
+      // FILTER OPERATORS based on domain constraints
+      final validOps = operators.where((op) {
+        switch (op) {
+          case '-':
+            // For subtraction, ensure we can have meaningful differences within range
+            return maxVal - minVal >= 1;
+          case '/':
+            // For division, ensure we have reasonable divisors
+            return maxVal >= 2;
+          case '*':
+            // For multiplication, ensure products don't exceed range too quickly  
+            return maxVal >= 4;
+          default:
+            return true;
+        }
+      }).toList();
+      
+      if (validOps.isEmpty) validOps.add('+'); // Fallback to addition
+      
+      final op = validOps[_random.nextInt(validOps.length)];
       
       String term1, term2, result;
       
@@ -1407,6 +1429,37 @@ class AdvancedPuzzleGenerator {
           default:
             return false;
         }
+      });
+    }
+    
+    // ADD DOMAIN VALIDATION: Ensure results stay within valid range
+    for (final eq in equations) {
+      p.addConstraint([eq.term1 as String, eq.term2 as String], (assignment) {
+        final a = assignment[eq.term1];
+        final b = assignment[eq.term2];
+        if (a == null || b == null) return true; // Let other constraints handle nulls
+        
+        int result;
+        switch (eq.op) {
+          case '+':
+            result = a + b;
+            break;
+          case '-':
+            result = a - b;
+            break;
+          case '*':
+            result = a * b;
+            break;
+          case '/':
+            if (b == 0 || a % b != 0) return false;
+            result = a ~/ b;
+            break;
+          default:
+            return false;
+        }
+        
+        // Ensure result is within valid domain range
+        return result >= valueRange[0] && result <= valueRange[1];
       });
     }
     
@@ -1734,6 +1787,23 @@ class AdvancedCodebreakerPuzzle {
       useCSP: useCSP,
     );
     final puzzleEquations = await generator.generate();
+
+    // VALIDATE that the generated solution actually works
+    final testSolver = PuzzleSolver(verbose: true);
+    final validationResult = testSolver.solve(puzzleEquations, generator.symbols);
+    
+    if (validationResult == null) {
+      throw Exception("Generated puzzle has no valid solution - this should not happen with CSP");
+    }
+    
+    // Verify the validation matches the generator's solution
+    for (final symbol in generator.symbols) {
+      if (validationResult[symbol] != generator.solution[symbol]) {
+        throw Exception("Solution mismatch for symbol $symbol: expected ${generator.solution[symbol]}, got ${validationResult[symbol]}");
+      }
+    }
+    
+    debugPrint("🎯 [PUZZLE FACTORY] Solution validation passed ✓");
     
     debugPrint("🎯 [PUZZLE FACTORY] Generated ${puzzleEquations.length} equations");
     
