@@ -24,6 +24,7 @@ import 'cryptex_lock_breaker_game.dart';
 import 'arithmancer_duel_game.dart';
 import 'arithmatic_square_game.dart';
 import 'arithmancer_crosswords_game.dart';
+import 'kenken_game.dart';
 
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
@@ -45,7 +46,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   late Animation<double> _floatAnimation;
 
   // for new games, we must manually update game count
-  static const int _gameCount = 15;
+  static const int _gameCount = 16;
 
   @override
   void initState() {
@@ -316,7 +317,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
             icon: Icons.vpn_key,
             gradient: const LinearGradient(colors: [Color(0xFF00c6ff), Color(0xFF0072ff)]),
             onTap: () => _navigateToGame(CodebreakerGame(grade: gameProvider.grade, level: gameProvider.level))),
-        // NEW: Add Spatial Blocks game
         GameInfo(
             title: s.perspectivePuzzleGameTitle, // Use the correct string
             description: s.perspectivePuzzleInstructions,
@@ -338,32 +338,39 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
             onTap: () => _navigateToGame(SignalTriangulationGame(grade: gameProvider.grade, level: gameProvider.level)),
         ),
         GameInfo(
-            title: s.cryptexLockBreakerGameTitle,
-            description: s.cryptexLockBreakerInstructions,
-            icon: Icons.track_changes,
-            gradient: const LinearGradient(colors: [Color(0xFF01c6ff), Color(0xFF0172ff)]),
-            onTap: () => _navigateToGame(CryptexLockBreakerGame(grade: gameProvider.grade, level: gameProvider.level)),
+          title: s.cryptexLockBreakerGameTitle,
+          description: s.cryptexLockBreakerInstructions,
+          icon: Icons.dialpad, // 🔐 Looks like a combination lock
+          gradient: const LinearGradient(colors: [Color(0xFFED213A), Color(0xFF93291E)]), // Intense red "danger" gradient
+          onTap: () => _navigateToGame(CryptexLockBreakerGame(grade: gameProvider.grade, level: gameProvider.level)),
         ),
         GameInfo(
             title: s.arithmancerGameTitle,
             description: s.arithmancerGameInstructions,
-            icon: Icons.track_changes,
-            gradient: const LinearGradient(colors: [Color(0xFF05c6ff), Color(0xFF0572ff)]),
+            icon: Icons.auto_awesome, // ✨ "Mancer" implies magic
+            gradient: const LinearGradient(colors: [Color(0xFFcc2b5e), Color(0xFF753a88)]), // Mystical purple/pink gradient
             onTap: () => _navigateToGame(ArithmancerDuelGame(grade: gameProvider.grade, level: gameProvider.level)),
         ),
         GameInfo(
             title: s.arithmeticSquare,
             description: s.arithmeticSquareInstructions,
-            icon: Icons.track_changes,
-            gradient: const LinearGradient(colors: [Color(0xFF05c6ff), Color(0xFF0572ff)]),
+            icon: Icons.grid_on, // 🔢 Perfect for a grid-based puzzle
+            gradient: const LinearGradient(colors: [Color(0xFFa8e063), Color(0xFF56ab2f)]), // Fresh green gradient
             onTap: () => _navigateToGame(ArithmeticSquareGame(grade: gameProvider.grade, level: gameProvider.level)),
         ),
         GameInfo(
             title: s.arithmancerCrosswords,
             description: s.arithmancerCrosswordsInstructions,
-            icon: Icons.track_changes,
-            gradient: const LinearGradient(colors: [Color(0xFF05c6ff), Color(0xFF0572ff)]),
+            icon: Icons.border_all, //  crossword-like grid
+            gradient: const LinearGradient(colors: [Color(0xFFff8008), Color(0xFFffc837)]), // Warm sunrise orange gradient
             onTap: () => _navigateToGame(ArithmancerCrosswordsGame(grade: gameProvider.grade, level: gameProvider.level)),
+        ),
+        GameInfo(
+            title: s.kenken,
+            description: s.kenkenInstructions, 
+            icon: Icons.dashboard_customize, // Represents the "cages" in KenKen
+            gradient: const LinearGradient(colors: [Color(0xFF00d2ff), Color(0xFF3a7bd5)]), // Cool blue ocean gradient
+            onTap: () => _navigateToGame(KenkenGame(grade: gameProvider.grade, level: gameProvider.level)),
         ),
     ];
 

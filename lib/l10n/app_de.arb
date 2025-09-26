@@ -722,6 +722,43 @@
         "example": "200"
       }
     }
+  },
+  
+  "kenken": "KenKen",
+  "@kenken": {
+    "description": "Name des KenKen-Rätselspiels"
+  },
+  
+  "kenkenInstructions": "Fülle das Gitter so, dass jede Zeile und Spalte jede Zahl genau einmal enthält. Zahlen in Käfigen müssen den mathematischen Hinweis erfüllen.",
+  "@kenkenInstructions": {
+    "description": "Anweisungen zum Spielen von KenKen"
+  },
+  
+  "kenkenError": "Hoppla! Die Lösung erfüllt nicht alle Bedingungen. Überprüfe die Käfig-Mathematik und die Lateinisches-Quadrat-Regeln!",
+  "@kenkenError": {
+    "description": "Fehlermeldung wenn die KenKen-Lösung falsch ist"
+  },
+  
+  "kenkenSelectNumbers": "Ziehe Zahlen um das Gitter zu füllen:",
+  "@kenkenSelectNumbers": {
+    "description": "Anweisungen für die Zahlenauswahl in KenKen"
+  },
+  
+  "kenkenWinTitle": "Mathematische Meisterschaft!",
+  "@kenkenWinTitle": {
+    "description": "Titel für KenKen-Gewinn-Dialog"
+  },
+  
+  "kenkenWinDesc": "Unglaubliches logisches Denken! Du hast dieses KenKen-Rätsel perfekt gelöst und {bonusScore} Bonuspunkte für deine mathematischen Fähigkeiten erhalten!",
+  "@kenkenWinDesc": {
+    "description": "Beschreibung für KenKen-Gewinn-Dialog mit Bonuspunkten",
+    "placeholders": {
+      "bonusScore": {
+        "type": "int",
+        "description": "Die verdienten Bonuspunkte"
+      }
+    }
   }
+  
 
 }

@@ -1273,4 +1273,26 @@ class SEn extends S {
   String arithmancerCrosswordsWinDesc(int bonusScore) {
     return 'Brilliant! You\'ve mastered the mathematical crossword and earned $bonusScore bonus points for your arithmantic prowess!';
   }
+
+  @override
+  String get kenken => 'KenKen';
+
+  @override
+  String get kenkenInstructions =>
+      'Fill the grid so each row and column contains every number exactly once. Numbers in cages must satisfy the math clue.';
+
+  @override
+  String get kenkenError =>
+      'Oops! The solution doesn\'t satisfy all constraints. Check the cage math and Latin square rules!';
+
+  @override
+  String get kenkenSelectNumbers => 'Drag numbers to fill the grid:';
+
+  @override
+  String get kenkenWinTitle => 'Mathematical Mastery!';
+
+  @override
+  String kenkenWinDesc(int bonusScore) {
+    return 'Incredible logical thinking! You\'ve solved this KenKen puzzle perfectly and earned $bonusScore bonus points for your mathematical prowess!';
+  }
 }

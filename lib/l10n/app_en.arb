@@ -789,6 +789,42 @@
         "example": "200"
       }
     }
+  },
+
+  "kenken": "KenKen",
+  "@kenken": {
+    "description": "Name of the KenKen puzzle game"
+  },
+  
+  "kenkenInstructions": "Fill the grid so each row and column contains every number exactly once. Numbers in cages must satisfy the math clue.",
+  "@kenkenInstructions": {
+    "description": "Instructions for playing KenKen"
+  },
+  
+  "kenkenError": "Oops! The solution doesn't satisfy all constraints. Check the cage math and Latin square rules!",
+  "@kenkenError": {
+    "description": "Error message when KenKen solution is incorrect"
+  },
+  
+  "kenkenSelectNumbers": "Drag numbers to fill the grid:",
+  "@kenkenSelectNumbers": {
+    "description": "Instructions for the number selection pad in KenKen"
+  },
+  
+  "kenkenWinTitle": "Mathematical Mastery!",
+  "@kenkenWinTitle": {
+    "description": "Title for KenKen win dialog"
+  },
+  
+  "kenkenWinDesc": "Incredible logical thinking! You've solved this KenKen puzzle perfectly and earned {bonusScore} bonus points for your mathematical prowess!",
+  "@kenkenWinDesc": {
+    "description": "Description for KenKen win dialog with bonus score",
+    "placeholders": {
+      "bonusScore": {
+        "type": "int",
+        "description": "The bonus points earned"
+      }
+    }
   }
 
 

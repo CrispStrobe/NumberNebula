@@ -2359,6 +2359,42 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Brilliant! You\'ve mastered the mathematical crossword and earned {bonusScore} bonus points for your arithmantic prowess!'**
   String arithmancerCrosswordsWinDesc(int bonusScore);
+
+  /// Name of the KenKen puzzle game
+  ///
+  /// In en, this message translates to:
+  /// **'KenKen'**
+  String get kenken;
+
+  /// Instructions for playing KenKen
+  ///
+  /// In en, this message translates to:
+  /// **'Fill the grid so each row and column contains every number exactly once. Numbers in cages must satisfy the math clue.'**
+  String get kenkenInstructions;
+
+  /// Error message when KenKen solution is incorrect
+  ///
+  /// In en, this message translates to:
+  /// **'Oops! The solution doesn\'t satisfy all constraints. Check the cage math and Latin square rules!'**
+  String get kenkenError;
+
+  /// Instructions for the number selection pad in KenKen
+  ///
+  /// In en, this message translates to:
+  /// **'Drag numbers to fill the grid:'**
+  String get kenkenSelectNumbers;
+
+  /// Title for KenKen win dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Mathematical Mastery!'**
+  String get kenkenWinTitle;
+
+  /// Description for KenKen win dialog with bonus score
+  ///
+  /// In en, this message translates to:
+  /// **'Incredible logical thinking! You\'ve solved this KenKen puzzle perfectly and earned {bonusScore} bonus points for your mathematical prowess!'**
+  String kenkenWinDesc(int bonusScore);
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

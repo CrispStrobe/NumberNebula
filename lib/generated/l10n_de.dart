@@ -1283,4 +1283,26 @@ class SDe extends S {
   String arithmancerCrosswordsWinDesc(int bonusScore) {
     return 'Brillant! Du hast das mathematische Kreuzworträtsel gemeistert und $bonusScore Bonuspunkte für deine arithmantische Meisterschaft erhalten!';
   }
+
+  @override
+  String get kenken => 'KenKen';
+
+  @override
+  String get kenkenInstructions =>
+      'Fülle das Gitter so, dass jede Zeile und Spalte jede Zahl genau einmal enthält. Zahlen in Käfigen müssen den mathematischen Hinweis erfüllen.';
+
+  @override
+  String get kenkenError =>
+      'Hoppla! Die Lösung erfüllt nicht alle Bedingungen. Überprüfe die Käfig-Mathematik und die Lateinisches-Quadrat-Regeln!';
+
+  @override
+  String get kenkenSelectNumbers => 'Ziehe Zahlen um das Gitter zu füllen:';
+
+  @override
+  String get kenkenWinTitle => 'Mathematische Meisterschaft!';
+
+  @override
+  String kenkenWinDesc(int bonusScore) {
+    return 'Unglaubliches logisches Denken! Du hast dieses KenKen-Rätsel perfekt gelöst und $bonusScore Bonuspunkte für deine mathematischen Fähigkeiten erhalten!';
+  }
 }
