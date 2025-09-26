@@ -15,7 +15,7 @@ import '../constants/app_constants.dart';
 import '../../../core/services/sri_service.dart';
 
 // DEVELOPMENT CONSTANT: Switch between generation approaches
-const bool USE_CSP_GENERATION = true; // Set to false to use original algorithm
+const bool USE_CSP_GENERATION = false; // Set to false to use original algorithm
 
 class CodebreakerGame extends StatefulWidget {
   final int grade;
@@ -1409,7 +1409,7 @@ class AdvancedPuzzleGenerator {
       p.addVariable(symbol, domain);
     }
     
-    // Add equation constraints
+    // Add equation constraints (3 variables - use Map signature)
     for (final eq in equations) {
       p.addConstraint([eq.term1 as String, eq.term2 as String, eq.result as String], (assignment) {
         final a = assignment[eq.term1];
@@ -1417,50 +1417,37 @@ class AdvancedPuzzleGenerator {
         final c = assignment[eq.result];
         if (a == null || b == null || c == null) return false;
         
+        int calculatedResult;
         switch (eq.op) {
           case '+':
-            return a + b == c;
-          case '-':
-            return a - b == c;
-          case '*':
-            return a * b == c;
-          case '/':
-            return b != 0 && a % b == 0 && a ~/ b == c;
-          default:
-            return false;
-        }
-      });
-    }
-    
-    // ADD DOMAIN VALIDATION: Ensure results stay within valid range
-    for (final eq in equations) {
-      p.addConstraint([eq.term1 as String, eq.term2 as String], (assignment) {
-        final a = assignment[eq.term1];
-        final b = assignment[eq.term2];
-        if (a == null || b == null) return true; // Let other constraints handle nulls
-        
-        int result;
-        switch (eq.op) {
-          case '+':
-            result = a + b;
+            calculatedResult = a + b;
             break;
           case '-':
-            result = a - b;
+            calculatedResult = a - b;
             break;
           case '*':
-            result = a * b;
+            calculatedResult = a * b;
             break;
           case '/':
             if (b == 0 || a % b != 0) return false;
-            result = a ~/ b;
+            calculatedResult = a ~/ b;
             break;
           default:
             return false;
         }
         
-        // Ensure result is within valid domain range
-        return result >= valueRange[0] && result <= valueRange[1];
+        // Ensure the calculated result is within domain AND matches the result variable
+        return calculatedResult >= valueRange[0] && 
+              calculatedResult <= valueRange[1] && 
+              calculatedResult == c;
       });
+    }
+    
+    // Add pairwise constraints to ensure all values are unique (2 variables - use direct signature)
+    for (int i = 0; i < symbols.length; i++) {
+      for (int j = i + 1; j < symbols.length; j++) {
+        p.addConstraint([symbols[i], symbols[j]], (a, b) => a != b);
+      }
     }
     
     // Solve with CSP
