@@ -999,7 +999,7 @@ class CrosswordPuzzle {
       }
       
       if (!isValid) {
-        debugPrint("✅ [CROSSWORD VALIDATION] ❌ Equation failed: $equation -> $operand1 $operator $operand2 = $result");
+        debugPrint("✅ [CROSSWORD VALIDATION] ❌ Equation failed: $equation -> $operand1 ${equation.operator} $operand2 = $result");
         return false;
       }
     }

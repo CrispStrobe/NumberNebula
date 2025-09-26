@@ -1771,11 +1771,11 @@ class AdvancedCodebreakerPuzzle {
 
     final random = math.Random();
     final targetPoolSize = 8;
-    final requiredDecoys = targetPoolSize - correctNumbers.length;
+    final requiredDecoys = targetPoolSize - correctNumbersList.length;
 
     while (decoys.length < requiredDecoys) {
       final randomDecoy = random.nextInt(maxVal) + 1;
-      if (!correctNumbers.contains(randomDecoy)) {
+      if (!correctNumbersSet.contains(randomDecoy)) {
         decoys.add(randomDecoy);
       }
     }
@@ -1788,7 +1788,7 @@ class AdvancedCodebreakerPuzzle {
     final finalPool = numberPool;
 
     debugPrint("🎯 [PUZZLE FACTORY] Final number pool: ${finalPool.join(', ')}");
-    debugPrint("🎯 [PUZZLE FACTORY] Verifying all correct numbers included: ${correctNumbers.every((n) => finalPool.contains(n))}");
+    debugPrint("🎯 [PUZZLE FACTORY] Verifying all correct numbers included: ${correctNumbersList.every((n) => finalPool.contains(n))}");
     
     final hiddenPositions = <String>[];
     for (int i = 0; i < puzzleEquations.length; i++) {
