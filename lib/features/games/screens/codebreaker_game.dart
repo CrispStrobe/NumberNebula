@@ -1798,9 +1798,26 @@ class AdvancedCodebreakerPuzzle {
     
     debugPrint("🎯 [PUZZLE FACTORY] Using ${useCSP ? 'CSP' : 'ORIGINAL'} generation approach");
     
+    // FIX: Handle the enum conversion properly
+    final customOpsRaw = args['customOps'] as List<dynamic>;
+    final customOps = customOpsRaw.map((op) {
+      if (op is MathOperation) return op;
+      // Handle string conversion from compute serialization
+      if (op is String) {
+        switch (op) {
+          case 'addition': return MathOperation.addition;
+          case 'subtraction': return MathOperation.subtraction;
+          case 'multiplication': return MathOperation.multiplication;
+          case 'division': return MathOperation.division;
+          default: return MathOperation.addition;
+        }
+      }
+      return MathOperation.addition; // fallback
+    }).toList();
+    
     final customSettings = {
       'useCustomSettings': args['useCustomSettings'] as bool,
-      'customOps': args['customOps'] as List<MathOperation>,
+      'customOps': customOps, // Use the converted list
       'customMin': args['customMin'] as int,
       'customMax': args['customMax'] as int,
     };
