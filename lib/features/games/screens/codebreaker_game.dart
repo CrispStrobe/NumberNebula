@@ -1220,6 +1220,7 @@ class AdvancedPuzzleGenerator {
   final DifficultyConfig difficulty;
   final bool verbose;
   final bool useCSP;
+  final Map<String, dynamic>? customSettings;
   final math.Random _random = math.Random();
   
   late Map<String, dynamic> params;
@@ -1236,6 +1237,7 @@ class AdvancedPuzzleGenerator {
     required this.difficulty, 
     this.verbose = false,
     this.useCSP = USE_CSP_GENERATION,
+    this.customSettings,
   }) {
     solver = PuzzleSolver(verbose: verbose);
     params = _getParams();
@@ -1243,19 +1245,43 @@ class AdvancedPuzzleGenerator {
   }
 
   Map<String, dynamic> _getParams() {
-    final operatorStrings = difficulty.operationTypes.map((op) {
-      switch (op) {
-        case MathOperation.addition: return '+';
-        case MathOperation.subtraction: return '-';
-        case MathOperation.multiplication: return '*';
-        case MathOperation.division: return '/';
-      }
-    }).toList();
-
-    final valueRange = [
-      difficulty.numberRange['min']!,
-      difficulty.numberRange['max']!,
-    ];
+    List<String> operatorStrings;
+    List<int> valueRange;
+    
+    // Check if custom settings should be used
+    if (customSettings != null && customSettings!['useCustomSettings'] == true) {
+      // Use custom operations if provided
+      final customOps = customSettings!['customOps'] as List<MathOperation>? ?? [];
+      operatorStrings = customOps.map((op) {
+        switch (op) {
+          case MathOperation.addition: return '+';
+          case MathOperation.subtraction: return '-';
+          case MathOperation.multiplication: return '*';
+          case MathOperation.division: return '/';
+        }
+      }).toList();
+      
+      // Use custom range if provided
+      valueRange = [
+        customSettings!['customMin'] as int? ?? difficulty.numberRange['min']!,
+        customSettings!['customMax'] as int? ?? difficulty.numberRange['max']!,
+      ];
+    } else {
+      // Use difficulty config
+      operatorStrings = difficulty.operationTypes.map((op) {
+        switch (op) {
+          case MathOperation.addition: return '+';
+          case MathOperation.subtraction: return '-';
+          case MathOperation.multiplication: return '*';
+          case MathOperation.division: return '/';
+        }
+      }).toList();
+      
+      valueRange = [
+        difficulty.numberRange['min']!,
+        difficulty.numberRange['max']!,
+      ];
+    }
 
     final int numSymbols, numEquations;
     final grade = difficulty.grade;
@@ -1283,7 +1309,7 @@ class AdvancedPuzzleGenerator {
     if (useCSP) {
       return _generateWithCSP();
     } else {
-      return await _generateWithCSP();
+      return _generateOriginal(); // Call the correct method
     }
   }
 
@@ -1443,10 +1469,14 @@ class AdvancedPuzzleGenerator {
       });
     }
     
-    // Add pairwise constraints to ensure all values are unique (2 variables - use direct signature)
+    // Add pairwise constraints to ensure all values are unique
     for (int i = 0; i < symbols.length; i++) {
       for (int j = i + 1; j < symbols.length; j++) {
-        p.addConstraint([symbols[i], symbols[j]], (a, b) => a != b);
+        p.addConstraint([symbols[i], symbols[j]], (assignment) {
+          final a = assignment[symbols[i]];
+          final b = assignment[symbols[j]];
+          return a != null && b != null && a != b;
+        });
       }
     }
     
@@ -1768,11 +1798,20 @@ class AdvancedCodebreakerPuzzle {
     
     debugPrint("🎯 [PUZZLE FACTORY] Using ${useCSP ? 'CSP' : 'ORIGINAL'} generation approach");
     
+    final customSettings = {
+      'useCustomSettings': args['useCustomSettings'] as bool,
+      'customOps': args['customOps'] as List<MathOperation>,
+      'customMin': args['customMin'] as int,
+      'customMax': args['customMax'] as int,
+    };
+
     final generator = AdvancedPuzzleGenerator(
       difficulty: difficultyConfig, 
       verbose: true,
       useCSP: useCSP,
+      customSettings: customSettings,
     );
+
     final puzzleEquations = await generator.generate();
 
     // VALIDATE that the generated solution actually works
