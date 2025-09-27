@@ -156,9 +156,11 @@ packages:
   dart_csp:
     dependency: "direct main"
     description:
-      path: "../dartcsp"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "65063cfdd1f8ba5b9205f3912e0f18a0c9f7eba5"
+      url: "https://github.com/CrispStrobe/dartCSP.git"
+    source: git
     version: "2.0.0"
   equatable:
     dependency: "direct main"
@@ -320,10 +322,10 @@ packages:
     dependency: transitive
     description:
       name: in_app_purchase_storekit
-      sha256: aedbeea5beae10af3e5c380b65049842715b2bb014983e2a48b9006473f33cd9
+      sha256: ceb343184fbf0f44ad68f89ef97085eec7f93f3868eef0e8a635087b9a407826
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.4"
+    version: "0.4.5"
   intl:
     dependency: "direct main"
     description:
@@ -544,10 +546,10 @@ packages:
     dependency: transitive
     description:
       name: shared_preferences_android
-      sha256: a2608114b1ffdcbc9c120eb71a0e207c71da56202852d4aab8a5e30a82269e74
+      sha256: bd14436108211b0d4ee5038689a56d4ae3620fd72fd6036e113bf1345bc74d9e
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.12"
+    version: "2.4.13"
   shared_preferences_foundation:
     dependency: transitive
     description:

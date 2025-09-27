@@ -42,7 +42,7 @@ dependencies:
   # Math & Physics
   vector_math: ^2.1.4
   dart_csp:
-    path: https://github.com/CrispStrobe/dartCSP.git
+    git: https://github.com/CrispStrobe/dartCSP.git
   
   # Development
   flutter_launcher_icons: ^0.13.1
