@@ -33,9 +33,11 @@ class CrosswordConfig {
   static const int edgesGrowthPerGrade = 4; // +4 edges per grade
   static const int maxEdges = 20; // Maximum puzzle complexity for grade 4 level 20
   
-  // Clue system (pre-filled cells) - start earlier since only 4 grades
-  static const int cluesStartGrade = 3; // Start giving clues at grade 3
-  static const int maxClues = 4; // Maximum pre-filled cells
+  // Clue system (pre-filled cells) - ALWAYS provide clues for mathematical reasoning
+  static const int baseClues = 2; // Always start with at least 2 clues
+  static const int cluesGrowthPerGrade = 1; // +1 clue per grade
+  static const int cluesGrowthPerLevel = 1; // +1 clue every 10 levels
+  static const int maxClues = 6; // Maximum pre-filled cells
   
   // Advanced constraints - must fit in grade 4
   static const int noDupsStartGrade = 4; // Enable unique numbers at grade 4
@@ -54,26 +56,34 @@ class CrosswordConfig {
   static const int timeoutGrowthPerGrade = 15; // +15 seconds per grade
   static const int maxTimeout = 90; // Up to 90 seconds for grade 4
   
-  // Calculate actual config for a given grade/level
-  static PuzzleConfig createConfig(int grade, int level) {
-    // Number range - aggressive scaling
-    final minN = baseMinNumber;
-    final maxN = math.min(
-      baseMaxNumber + (grade * numberRangeGrowthPerGrade), 
-      maxNumberCap
-    );
+  // Calculate actual config for a given grade/level with optional custom settings
+  static PuzzleConfig createConfig(int grade, int level, {
+    bool useCustomSettings = false,
+    List<String>? customOps,
+    int? customMin,
+    int? customMax,
+  }) {
+    // Number range - use custom settings if provided
+    final minN = useCustomSettings && customMin != null ? customMin : baseMinNumber;
+    final maxN = useCustomSettings && customMax != null 
+        ? customMax 
+        : math.min(baseMaxNumber + (grade * numberRangeGrowthPerGrade), maxNumberCap);
     
     // Puzzle size - both grade and level scaling
     final baseForGrade = baseEdges + (grade * edgesGrowthPerGrade);
     final levelBonus = level ~/ levelDivisorForEdges * edgesGrowthPerLevel;
     final edges = math.min(baseForGrade + levelBonus, maxEdges);
     
-    // Operations
-    final ops = operationsByGrade[grade] ?? operationsByGrade[4]!;
+    // Operations - use custom settings if provided
+    final ops = useCustomSettings && customOps != null && customOps.isNotEmpty
+        ? _convertCustomOperations(customOps)
+        : (operationsByGrade[grade] ?? operationsByGrade[4]!);
     
-    // Clues - scale within the compressed range
-    final clues = grade >= cluesStartGrade ? 
-      math.min((grade - cluesStartGrade + 1) + (level ~/ 10), maxClues) : 0;
+    // Clues - ALWAYS provide clues for mathematical reasoning
+    final clues = math.min(
+      baseClues + (grade * cluesGrowthPerGrade) + (level ~/ 10 * cluesGrowthPerLevel),
+      maxClues
+    );
     
     // Advanced constraints
     final noDups = grade >= noDupsStartGrade && level >= noDupsStartLevel;
@@ -95,10 +105,36 @@ class CrosswordConfig {
     );
   }
   
+  // Convert custom operation names to symbols
+  static List<String> _convertCustomOperations(List<String> customOps) {
+    const operationMap = {
+      'addition': '+',
+      'subtraction': '−',
+      'multiplication': '×',
+      'division': '÷',
+    };
+    
+    return customOps
+        .map((op) => operationMap[op] ?? op)
+        .where((op) => ['+', '−', '×', '÷'].contains(op))
+        .toList();
+  }
+  
   // Debug helper to see what config will be generated
-  static String debugConfig(int grade, int level) {
-    final config = createConfig(grade, level);
-    return 'Grade $grade, Level $level → Range=${config.minN}-${config.maxN}, '
+  static String debugConfig(int grade, int level, {
+    bool useCustomSettings = false,
+    List<String>? customOps,
+    int? customMin,
+    int? customMax,
+  }) {
+    final config = createConfig(grade, level, 
+      useCustomSettings: useCustomSettings,
+      customOps: customOps,
+      customMin: customMin,
+      customMax: customMax,
+    );
+    final customStr = useCustomSettings ? ' [CUSTOM]' : '';
+    return 'Grade $grade, Level $level$customStr → Range=${config.minN}-${config.maxN}, '
            'Ops=${config.ops}, Edges=${config.targetEdges}, '
            'Clues=${config.numClues}, NoDups=${config.noDups}, '
            'Timeout=${config.timeoutSeconds}s';
@@ -1521,7 +1557,7 @@ List<int> _generateNumberPool(Set<int> correctNumbers) {
 (Map<math.Point<int>, String>, Map<math.Point<int>, String>, Set<math.Point<int>>) _createVisualLayout(PuzzleParser puzzle) {
   final numberCells = <math.Point<int>, String>{};
   final operatorCells = <math.Point<int>, String>{};
-  final equalsCells = <Set<math.Point<int>>>{};
+  final equalsCells = <math.Point<int>>{};
   
   for (final eq in puzzle.equations) {
     // Number cells
@@ -1537,10 +1573,12 @@ List<int> _generateNumberPool(Set<int> correctNumbers) {
       (eq.numberCells[1].x + eq.numberCells[2].x) ~/ 2,
       (eq.numberCells[1].y + eq.numberCells[2].y) ~/ 2,
     );
-    equalsCells.add({eqPos});
+    equalsCells.add(eqPos);  // Add the Point directly, not wrapped in {}
   }
   
-  return (numberCells, operatorCells, equalsCells.expand((s) => s).toSet());
+  debugPrint("🎯 [LAYOUT] Created visual layout: ${numberCells.length} number cells, ${operatorCells.length} operator cells, ${equalsCells.length} equals cells");
+  
+  return (numberCells, operatorCells, equalsCells);  // Return the proper tuple
 }
 
 class CrosswordPuzzle {
@@ -1569,12 +1607,30 @@ class CrosswordPuzzle {
   static Future<CrosswordPuzzle> generate(Map<String, dynamic> args) async {
     final grade = args['grade'] as int;
     final level = args['level'] as int;
+    final useCustomSettings = args['useCustomSettings'] as bool? ?? false;
+    final customOps = args['customOps'] as List<String>? ?? [];
+    final customMin = args['customMin'] as int?;
+    final customMax = args['customMax'] as int?;
     
-    // Use the new scaling configuration system
-    final config = CrosswordConfig.createConfig(grade, level);
+    // Use the new scaling configuration system with custom settings support
+    final config = CrosswordConfig.createConfig(
+      grade, 
+      level,
+      useCustomSettings: useCustomSettings,
+      customOps: customOps,
+      customMin: customMin,
+      customMax: customMax,
+    );
     
     debugPrint("🎯 [CROSSWORD FACTORY] Starting puzzle generation with args: $args");
-    debugPrint("🎯 [CROSSWORD FACTORY] ${CrosswordConfig.debugConfig(grade, level)}");
+    debugPrint("🎯 [CROSSWORD FACTORY] ${CrosswordConfig.debugConfig(
+      grade, 
+      level,
+      useCustomSettings: useCustomSettings,
+      customOps: customOps,
+      customMin: customMin,
+      customMax: customMax,
+    )}");
     
     return await generateCrosswordPuzzle(config);
   }
