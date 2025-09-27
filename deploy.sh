@@ -152,6 +152,13 @@ deploy_vercel() {
     # Save current directory
     local original_dir=$(pwd)
     
+    # Copy .vercel configuration if it exists in root
+    if [ -d ".vercel" ] && [ -f ".vercel/project.json" ]; then
+        print_status "Copying Vercel configuration to build directory..."
+        cp -r .vercel build/web/
+        print_success "Vercel configuration copied"
+    fi
+    
     # Navigate to build directory
     if ! cd build/web; then
         print_error "Failed to navigate to build/web directory"
