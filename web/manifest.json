@@ -1,12 +1,12 @@
 {
-    "name": "space_math_academy",
-    "short_name": "space_math_academy",
+    "name": "Space Math Academy",
+    "short_name": "Space Math",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0a0a2a",
     "theme_color": "#0a0a2a",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "description": "A space-themed math learning app for primary school students.",
+    "orientation": "landscape-primary",
     "prefer_related_applications": false,
     "icons": [
         {
