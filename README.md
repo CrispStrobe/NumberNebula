@@ -1,10 +1,9 @@
 # 🚀 Space Math Academy
 
-A space-themed math learning app for primary school students (grades 3-6), specifically optimized for iPads. Features engaging mini-games including Zauberdreiecke (Magic Triangles), floating bubble math, and visual puzzle games.
+A space-themed math learning app for primary school students onwards, specifically optimized for iPads. Features engaging mini-games including Zauberdreiecke (Magic Triangles), floating bubble math, and visual puzzle games.
 
 ## ✨ Features
 
-### 🎮 Mini Games
 ### 🎮 Mini Games
 
   - **Magic Triangles**: Solve mathematical triangle puzzles where each side adds up to the same sum
