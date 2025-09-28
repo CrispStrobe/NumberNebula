@@ -1239,6 +1239,130 @@ class SDe extends S {
   String get arithmancerReturnToBridge => 'Zur Brücke zurück';
 
   @override
+  String get arithmancerGameModeNeuralBreach => 'NEURAL-DURCHBRUCH';
+
+  @override
+  String get arithmancerGameModeAiDuel => 'KI-KAMPF-DUELL';
+
+  @override
+  String get arithmancerGameModeNeuralLadder => 'NEURAL-LEITER';
+
+  @override
+  String get arithmancerDeck => 'STAPEL';
+
+  @override
+  String get arithmancerUsed => 'BENUTZT';
+
+  @override
+  String get arithmancerOpponentProcessing => 'GEGNER VERARBEITET...';
+
+  @override
+  String get arithmancerBonusPrime => 'PRIMZAHL';
+
+  @override
+  String get arithmancerBonusSquare => 'QUADRAT';
+
+  @override
+  String get arithmancerBonusFibonacci => 'FIBONACCI';
+
+  @override
+  String get arithmancerBonusBinary => 'BINÄR';
+
+  @override
+  String get arithmancerInstructionsGeneral =>
+      'Erstelle mathematische Ausdrücke um Schaden zu verursachen';
+
+  @override
+  String arithmancerInstructionsAiPlayer(String aiName) {
+    return 'Besiege $aiName mit cleverer Mathematik';
+  }
+
+  @override
+  String get arithmancerInstructionsPrimeShield =>
+      'Verwende Primzahlen um den Primzahl-Schild zu durchbrechen';
+
+  @override
+  String get arithmancerInstructionsSquareImmune =>
+      'Vermeide Quadratzahlen - dieser Gegner ist immun';
+
+  @override
+  String get arithmancerInstructionsFibonacciOnly =>
+      'Nur Fibonacci-Zahlen können Schaden verursachen';
+
+  @override
+  String get arithmancerInstructionsPowerOfTwoOnly =>
+      'Nur Zweierpotenzen durchdringen diese Verteidigung';
+
+  @override
+  String get arithmancerLadderProgressTitle => 'Leiter-Fortschritt';
+
+  @override
+  String arithmancerLadderProgressDesc(int step, int total) {
+    return 'Stufe $step von $total abgeschlossen! Klettere weiter die neurale Leiter hinauf.';
+  }
+
+  @override
+  String get arithmancerLadderContinue => 'Leiter fortsetzen';
+
+  @override
+  String get arithmancerLadderChampionTitle => 'Leiter-Champion!';
+
+  @override
+  String arithmancerLadderChampionDesc(int score) {
+    return 'Glückwunsch! Du hast die gesamte neurale Leiter erobert und $score Punkte verdient!';
+  }
+
+  @override
+  String get arithmancerTurnSkipped =>
+      'Zug übersprungen - Energie für nächste Runde gespeichert';
+
+  @override
+  String get arithmancerGameplayGuide => 'Gameplay-Leitfaden';
+
+  @override
+  String get arithmancerGuideBasics =>
+      '• Ziehe Karten aus deiner Hand in das Schlachtfeld um mathematische Ausdrücke zu erstellen\n• Klicke \'Ausführen\' um Schaden basierend auf dem Ergebnis zu verursachen';
+
+  @override
+  String get arithmancerGuideCards =>
+      '• Zahlenkarten (grün): Liefern Werte\n• Operatorkarten (gelb): +, -, ×, ÷\n• Klammerkarten (rosa): Teile in ( und ) für Reihenfolge';
+
+  @override
+  String get arithmancerGuideCombat =>
+      '• Jede Karte kostet Energie zum Spielen\n• Höhere Zahlen verursachen mehr Schaden\n• Negative Ergebnisse gewähren Schild-Punkte';
+
+  @override
+  String get arithmancerGuideProperties =>
+      '• Primzahlen: 3× Schaden\n• Quadratzahlen: 2× Schaden\n• Fibonacci: 1.7× Schaden\n• Zweierpotenzen: 1.6× Schaden';
+
+  @override
+  String get arithmancerGuideShields =>
+      '• Gegner haben verschiedene mathematische Schilde\n• Einige blockieren spezifische Zahlentypen\n• Beobachte Feind-Beschreibungen für Hinweise';
+
+  @override
+  String get arithmancerGuideDiscard =>
+      '• Ziehe ungewollte Karten auf den BENUTZT-Stapel rechts\n• Verwende dies um deine Hand zu verwalten';
+
+  @override
+  String get arithmancerGuideSkip =>
+      '• Klicke den Überspringen-Button um deinen Zug zu beenden\n• Deine Energie wird für die nächste Runde verdoppelt';
+
+  @override
+  String get arithmancerModeSelectionSubtitle => 'Wähle dein Kampfprotokoll';
+
+  @override
+  String get arithmancerModeNeuralBreachDesc =>
+      'Bekämpfe feindliche KI-Programme in Sequenz';
+
+  @override
+  String get arithmancerModeAiDuelDesc =>
+      'Kämpfe gegen fortgeschrittene KI-Persönlichkeiten';
+
+  @override
+  String get arithmancerModeNeuralLadderDesc =>
+      'Klettere durch gemischte Programm- und KI-Herausforderungen';
+
+  @override
   String get arithmeticSquare => 'Rechenquadrat';
 
   @override

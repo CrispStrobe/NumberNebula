@@ -18,6 +18,21 @@ import '../../../core/services/sri_service.dart'; // Import SRI Service
 // ================================================================
 
 class GameConfig {
+  // RESPONSIVE AND LAYOUT CONSTANTS
+  
+  /// The desired screen area in pixels per asteroid.
+  /// A larger value means fewer, less crowded asteroids.
+  static const double pixelsPerAsteroid = 35000.0; 
+
+  /// A reference screen height to calculate responsive scaling from.
+  static const double baseScreenDimension = 800.0;
+
+  /// Safe area margin at the top of the screen to avoid the GameUI.
+  static const double topUIMargin = 120.0; 
+  
+  /// Safe area margin at the bottom for the spaceship and other UI.
+  static const double bottomUIMargin = 100.0; 
+
   // Animation and Performance
   static const double gameLoopFrameTime = 20.0; // milliseconds (50fps instead of 60fps)
   
@@ -190,10 +205,16 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     final random = math.Random();
     final usedAnswers = <int>{};
 
-    int asteroidCount = difficulty.objectCount;
+    // RESPONSIVE ASTEROID COUNT
+    final screenArea = screenSize.width * screenSize.height;
+    // Calculate a dynamic asteroid count based on screen density
+    final densityBasedCount = (screenArea / GameConfig.pixelsPerAsteroid).round();
+    // Use the lower value between the difficulty setting and the density calculation
+    // to prevent overcrowding on small screens.
+    int asteroidCount = math.min(difficulty.objectCount, densityBasedCount);
+    
     final problems = <MathProblem>[];
-
-    final sriService = context.read<SriService>(); // Get the SRI service
+    final sriService = context.read<SriService>();
     final gameProvider = context.read<GameProvider>();
     
     // Generate math problems using your library
@@ -237,37 +258,44 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     for (int i = 0; i < problems.length; i++) {
       final problem = problems[i];
 
-      // Calculate a multiplier that grows from 1.0 to 1.4 as the level goes from 1 to 20
+      // RESPONSIVE ASTEROID SIZING & POSITIONING
+      // 1. Calculate a scale factor based on screen size
+      final avgScreenDim = (screenSize.width + screenSize.height) / 2;
+      final screenScaleFactor = avgScreenDim / GameConfig.baseScreenDimension;
+
+      // 2. Calculate level-based size multiplier
       final double progress = ((widget.level - 1) / (GameConfig.maxLevelForScaling - 1)).clamp(0.0, 1.0);
-      final double sizeMultiplier = 1.0 + (progress * (GameConfig.maxSizeMultiplier - 1.0));
-
-      final asteroidSize = (GameConfig.minAsteroidSize + random.nextDouble() * GameConfig.asteroidSizeVariation) * sizeMultiplier;
-
+      final double levelSizeMultiplier = 1.0 + (progress * (GameConfig.maxSizeMultiplier - 1.0));
+      
+      // 3. Combine base size, responsive scale, and level scale
+      final baseSize = GameConfig.minAsteroidSize + random.nextDouble() * GameConfig.asteroidSizeVariation;
+      // We clamp the size to avoid them getting too small or too large
+      final asteroidSize = (baseSize * screenScaleFactor * levelSizeMultiplier).clamp(GameConfig.minAsteroidSize, 150.0);
+      
       final asteroidSpeed = (GameConfig.baseAsteroidSpeed + (difficulty.gameSpeed * GameConfig.speedMultiplier));
 
       Offset position;
       int positionAttempts = 0;
       do {
+        // Use new UI margin constants for correct spawning area
+        final spawnableWidth = screenSize.width - asteroidSize;
+        final spawnableHeight = screenSize.height - GameConfig.topUIMargin - GameConfig.bottomUIMargin - asteroidSize;
+        
         position = Offset(
-          random.nextDouble() * (screenSize.width - asteroidSize),
-          random.nextDouble() * (screenSize.height - asteroidSize - 220) + 100,
+          random.nextDouble() * spawnableWidth + (asteroidSize / 2),
+          random.nextDouble() * spawnableHeight + GameConfig.topUIMargin + (asteroidSize / 2),
         );
         positionAttempts++;
       } while (positionAttempts < 30 && _isPositionTooClose(position, asteroidSize));
 
       final asteroidType = AsteroidType.values[random.nextInt(AsteroidType.values.length)];
-
       final angle = random.nextDouble() * 2 * math.pi;
-      final speed = asteroidSpeed * (0.7 + random.nextDouble() * 0.3); // Speed is 70-100% of max
+      final speed = asteroidSpeed * (0.7 + random.nextDouble() * 0.3);
 
       asteroids.add(Asteroid(
         id: i,
         problem: problem,
         position: position,
-        /* velocity: Offset(
-          (random.nextDouble() - 0.5) * asteroidSpeed,
-          (random.nextDouble() - 0.5) * asteroidSpeed,
-        ), */
         velocity: Offset(math.cos(angle) * speed, math.sin(angle) * speed),
         size: asteroidSize,
         rotationSpeed: (random.nextDouble() - 0.5) * GameConfig.maxRotationSpeed * difficulty.animationSpeed,
@@ -295,17 +323,15 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     if (!mounted || !gameActive) return;
     final screenSize = MediaQuery.of(context).size;
 
-    // Update spaceship position
     spaceshipPosition = Offset(50, screenSize.height - 90);
 
     setState(() {
-      // Update asteroids with slower movement
       for (var asteroid in asteroids) {
         asteroid.position += asteroid.velocity * GameConfig.updateDeltaTime;
         asteroid.rotation += asteroid.rotationSpeed * GameConfig.updateDeltaTime;
 
-        // Smoother wall bouncing with improved damping
         final margin = asteroid.size / 2;
+        // Horizontal bounce (no change needed here)
         if (asteroid.position.dx <= margin || asteroid.position.dx >= screenSize.width - margin) {
           asteroid.velocity = Offset(-asteroid.velocity.dx * GameConfig.asteroidBounceDeceleration, asteroid.velocity.dy);
           asteroid.position = Offset(
@@ -313,16 +339,21 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
             asteroid.position.dy
           );
         }
-        if (asteroid.position.dy <= margin + 90 || asteroid.position.dy >= screenSize.height - margin - 90) {
+        
+        // Use UI margin constants for correct vertical bouncing
+        final topBound = margin + GameConfig.topUIMargin;
+        final bottomBound = screenSize.height - margin - GameConfig.bottomUIMargin;
+
+        if (asteroid.position.dy <= topBound || asteroid.position.dy >= bottomBound) {
           asteroid.velocity = Offset(asteroid.velocity.dx, -asteroid.velocity.dy * GameConfig.asteroidBounceDeceleration);
           asteroid.position = Offset(
             asteroid.position.dx,
-            asteroid.position.dy.clamp(margin + 90, screenSize.height - margin - 90)
+            asteroid.position.dy.clamp(topBound, bottomBound)
           );
         }
       }
 
-      // Update animations
+      // Update animations (no change needed here)
       explosions.removeWhere((e) => e.isComplete);
       laserBeams.removeWhere((l) => l.isComplete);
       floatingScores.removeWhere((s) => s.isComplete);

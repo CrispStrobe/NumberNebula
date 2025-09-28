@@ -1229,6 +1229,130 @@ class SEn extends S {
   String get arithmancerReturnToBridge => 'Return to Bridge';
 
   @override
+  String get arithmancerGameModeNeuralBreach => 'NEURAL BREACH';
+
+  @override
+  String get arithmancerGameModeAiDuel => 'AI COMBAT DUEL';
+
+  @override
+  String get arithmancerGameModeNeuralLadder => 'NEURAL LADDER';
+
+  @override
+  String get arithmancerDeck => 'DECK';
+
+  @override
+  String get arithmancerUsed => 'USED';
+
+  @override
+  String get arithmancerOpponentProcessing => 'OPPONENT PROCESSING...';
+
+  @override
+  String get arithmancerBonusPrime => 'PRIME';
+
+  @override
+  String get arithmancerBonusSquare => 'SQUARE';
+
+  @override
+  String get arithmancerBonusFibonacci => 'FIBONACCI';
+
+  @override
+  String get arithmancerBonusBinary => 'BINARY';
+
+  @override
+  String get arithmancerInstructionsGeneral =>
+      'Create mathematical expressions to deal damage';
+
+  @override
+  String arithmancerInstructionsAiPlayer(String aiName) {
+    return 'Defeat $aiName with clever mathematics';
+  }
+
+  @override
+  String get arithmancerInstructionsPrimeShield =>
+      'Use prime numbers to break through the prime shield';
+
+  @override
+  String get arithmancerInstructionsSquareImmune =>
+      'Avoid perfect squares - this enemy is immune';
+
+  @override
+  String get arithmancerInstructionsFibonacciOnly =>
+      'Only Fibonacci numbers can deal damage';
+
+  @override
+  String get arithmancerInstructionsPowerOfTwoOnly =>
+      'Only powers of two penetrate this defense';
+
+  @override
+  String get arithmancerLadderProgressTitle => 'Ladder Progress';
+
+  @override
+  String arithmancerLadderProgressDesc(int step, int total) {
+    return 'Step $step of $total complete! Continue climbing the neural ladder.';
+  }
+
+  @override
+  String get arithmancerLadderContinue => 'Continue Ladder';
+
+  @override
+  String get arithmancerLadderChampionTitle => 'Ladder Champion!';
+
+  @override
+  String arithmancerLadderChampionDesc(int score) {
+    return 'Congratulations! You\'ve conquered the entire neural ladder and earned $score points!';
+  }
+
+  @override
+  String get arithmancerTurnSkipped =>
+      'Turn skipped - energy saved for next round';
+
+  @override
+  String get arithmancerGameplayGuide => 'Gameplay Guide';
+
+  @override
+  String get arithmancerGuideBasics =>
+      '• Drag cards from your hand to the battlefield to create mathematical expressions\n• Click \'Execute\' to deal damage based on the result';
+
+  @override
+  String get arithmancerGuideCards =>
+      '• Number cards (green): Provide values\n• Operator cards (yellow): +, -, ×, ÷\n• Parentheses cards (pink): Split into ( and ) for order of operations';
+
+  @override
+  String get arithmancerGuideCombat =>
+      '• Each card costs energy to play\n• Higher numbers deal more damage\n• Negative results grant shield points';
+
+  @override
+  String get arithmancerGuideProperties =>
+      '• Prime numbers: 3× damage\n• Perfect squares: 2× damage\n• Fibonacci: 1.7× damage\n• Powers of two: 1.6× damage';
+
+  @override
+  String get arithmancerGuideShields =>
+      '• Enemies have various mathematical shields\n• Some block specific number types\n• Watch enemy descriptions for hints';
+
+  @override
+  String get arithmancerGuideDiscard =>
+      '• Drag unwanted cards to the USED pile on the right\n• Use this to manage your hand';
+
+  @override
+  String get arithmancerGuideSkip =>
+      '• Click the skip button to end your turn\n• Your energy will be doubled for the next round';
+
+  @override
+  String get arithmancerModeSelectionSubtitle => 'Choose your combat protocol';
+
+  @override
+  String get arithmancerModeNeuralBreachDesc =>
+      'Battle hostile AI programs in sequence';
+
+  @override
+  String get arithmancerModeAiDuelDesc =>
+      'Fight advanced AI personalities one-on-one';
+
+  @override
+  String get arithmancerModeNeuralLadderDesc =>
+      'Climb through mixed program and AI challenges';
+
+  @override
   String get arithmeticSquare => 'Arithmetic Square';
 
   @override

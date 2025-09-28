@@ -652,6 +652,65 @@
     "description": "Schaltfläche zum Hauptmenü zurückkehren"
   },
 
+  "arithmancerGameModeNeuralBreach": "NEURAL-DURCHBRUCH",
+  "arithmancerGameModeAiDuel": "KI-KAMPF-DUELL", 
+  "arithmancerGameModeNeuralLadder": "NEURAL-LEITER",
+
+  "arithmancerDeck": "STAPEL",
+  "arithmancerUsed": "BENUTZT",
+
+  "arithmancerOpponentProcessing": "GEGNER VERARBEITET...",
+
+  "arithmancerBonusPrime": "PRIMZAHL",
+  "arithmancerBonusSquare": "QUADRAT", 
+  "arithmancerBonusFibonacci": "FIBONACCI",
+  "arithmancerBonusBinary": "BINÄR",
+
+  "arithmancerInstructionsGeneral": "Erstelle mathematische Ausdrücke um Schaden zu verursachen",
+  "arithmancerInstructionsAiPlayer": "Besiege {aiName} mit cleverer Mathematik",
+  "@arithmancerInstructionsAiPlayer": {
+    "placeholders": {
+      "aiName": {"type": "String"}
+    }
+  },
+  "arithmancerInstructionsPrimeShield": "Verwende Primzahlen um den Primzahl-Schild zu durchbrechen", 
+  "arithmancerInstructionsSquareImmune": "Vermeide Quadratzahlen - dieser Gegner ist immun",
+  "arithmancerInstructionsFibonacciOnly": "Nur Fibonacci-Zahlen können Schaden verursachen",
+  "arithmancerInstructionsPowerOfTwoOnly": "Nur Zweierpotenzen durchdringen diese Verteidigung",
+
+  "arithmancerLadderProgressTitle": "Leiter-Fortschritt", 
+  "arithmancerLadderProgressDesc": "Stufe {step} von {total} abgeschlossen! Klettere weiter die neurale Leiter hinauf.",
+  "@arithmancerLadderProgressDesc": {
+    "placeholders": {
+      "step": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "arithmancerLadderContinue": "Leiter fortsetzen",
+  "arithmancerLadderChampionTitle": "Leiter-Champion!",
+  "arithmancerLadderChampionDesc": "Glückwunsch! Du hast die gesamte neurale Leiter erobert und {score} Punkte verdient!",
+  "@arithmancerLadderChampionDesc": {
+    "placeholders": {
+      "score": {"type": "int"}
+    }
+  },
+
+  "arithmancerTurnSkipped": "Zug übersprungen - Energie für nächste Runde gespeichert",
+
+  "arithmancerGameplayGuide": "Gameplay-Leitfaden",
+  "arithmancerGuideBasics": "• Ziehe Karten aus deiner Hand in das Schlachtfeld um mathematische Ausdrücke zu erstellen\n• Klicke 'Ausführen' um Schaden basierend auf dem Ergebnis zu verursachen",
+  "arithmancerGuideCards": "• Zahlenkarten (grün): Liefern Werte\n• Operatorkarten (gelb): +, -, ×, ÷\n• Klammerkarten (rosa): Teile in ( und ) für Reihenfolge",
+  "arithmancerGuideCombat": "• Jede Karte kostet Energie zum Spielen\n• Höhere Zahlen verursachen mehr Schaden\n• Negative Ergebnisse gewähren Schild-Punkte",
+  "arithmancerGuideProperties": "• Primzahlen: 3× Schaden\n• Quadratzahlen: 2× Schaden\n• Fibonacci: 1.7× Schaden\n• Zweierpotenzen: 1.6× Schaden",
+  "arithmancerGuideShields": "• Gegner haben verschiedene mathematische Schilde\n• Einige blockieren spezifische Zahlentypen\n• Beobachte Feind-Beschreibungen für Hinweise",
+  "arithmancerGuideDiscard": "• Ziehe ungewollte Karten auf den BENUTZT-Stapel rechts\n• Verwende dies um deine Hand zu verwalten",
+  "arithmancerGuideSkip": "• Klicke den Überspringen-Button um deinen Zug zu beenden\n• Deine Energie wird für die nächste Runde verdoppelt",
+
+  "arithmancerModeSelectionSubtitle": "Wähle dein Kampfprotokoll",
+  "arithmancerModeNeuralBreachDesc": "Bekämpfe feindliche KI-Programme in Sequenz",
+  "arithmancerModeAiDuelDesc": "Kämpfe gegen fortgeschrittene KI-Persönlichkeiten", 
+  "arithmancerModeNeuralLadderDesc": "Klettere durch gemischte Programm- und KI-Herausforderungen",
+
   "arithmeticSquare": "Rechenquadrat",
   "@arithmeticSquare": {
     "description": "Titel für das Rechenquadrat-Puzzle-Spiel"

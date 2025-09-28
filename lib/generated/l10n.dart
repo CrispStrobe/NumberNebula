@@ -2288,6 +2288,210 @@ abstract class S {
   /// **'Return to Bridge'**
   String get arithmancerReturnToBridge;
 
+  /// No description provided for @arithmancerGameModeNeuralBreach.
+  ///
+  /// In en, this message translates to:
+  /// **'NEURAL BREACH'**
+  String get arithmancerGameModeNeuralBreach;
+
+  /// No description provided for @arithmancerGameModeAiDuel.
+  ///
+  /// In en, this message translates to:
+  /// **'AI COMBAT DUEL'**
+  String get arithmancerGameModeAiDuel;
+
+  /// No description provided for @arithmancerGameModeNeuralLadder.
+  ///
+  /// In en, this message translates to:
+  /// **'NEURAL LADDER'**
+  String get arithmancerGameModeNeuralLadder;
+
+  /// No description provided for @arithmancerDeck.
+  ///
+  /// In en, this message translates to:
+  /// **'DECK'**
+  String get arithmancerDeck;
+
+  /// No description provided for @arithmancerUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'USED'**
+  String get arithmancerUsed;
+
+  /// No description provided for @arithmancerOpponentProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'OPPONENT PROCESSING...'**
+  String get arithmancerOpponentProcessing;
+
+  /// No description provided for @arithmancerBonusPrime.
+  ///
+  /// In en, this message translates to:
+  /// **'PRIME'**
+  String get arithmancerBonusPrime;
+
+  /// No description provided for @arithmancerBonusSquare.
+  ///
+  /// In en, this message translates to:
+  /// **'SQUARE'**
+  String get arithmancerBonusSquare;
+
+  /// No description provided for @arithmancerBonusFibonacci.
+  ///
+  /// In en, this message translates to:
+  /// **'FIBONACCI'**
+  String get arithmancerBonusFibonacci;
+
+  /// No description provided for @arithmancerBonusBinary.
+  ///
+  /// In en, this message translates to:
+  /// **'BINARY'**
+  String get arithmancerBonusBinary;
+
+  /// No description provided for @arithmancerInstructionsGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'Create mathematical expressions to deal damage'**
+  String get arithmancerInstructionsGeneral;
+
+  /// No description provided for @arithmancerInstructionsAiPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Defeat {aiName} with clever mathematics'**
+  String arithmancerInstructionsAiPlayer(String aiName);
+
+  /// No description provided for @arithmancerInstructionsPrimeShield.
+  ///
+  /// In en, this message translates to:
+  /// **'Use prime numbers to break through the prime shield'**
+  String get arithmancerInstructionsPrimeShield;
+
+  /// No description provided for @arithmancerInstructionsSquareImmune.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid perfect squares - this enemy is immune'**
+  String get arithmancerInstructionsSquareImmune;
+
+  /// No description provided for @arithmancerInstructionsFibonacciOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only Fibonacci numbers can deal damage'**
+  String get arithmancerInstructionsFibonacciOnly;
+
+  /// No description provided for @arithmancerInstructionsPowerOfTwoOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only powers of two penetrate this defense'**
+  String get arithmancerInstructionsPowerOfTwoOnly;
+
+  /// No description provided for @arithmancerLadderProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ladder Progress'**
+  String get arithmancerLadderProgressTitle;
+
+  /// No description provided for @arithmancerLadderProgressDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {step} of {total} complete! Continue climbing the neural ladder.'**
+  String arithmancerLadderProgressDesc(int step, int total);
+
+  /// No description provided for @arithmancerLadderContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue Ladder'**
+  String get arithmancerLadderContinue;
+
+  /// No description provided for @arithmancerLadderChampionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ladder Champion!'**
+  String get arithmancerLadderChampionTitle;
+
+  /// No description provided for @arithmancerLadderChampionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Congratulations! You\'ve conquered the entire neural ladder and earned {score} points!'**
+  String arithmancerLadderChampionDesc(int score);
+
+  /// No description provided for @arithmancerTurnSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn skipped - energy saved for next round'**
+  String get arithmancerTurnSkipped;
+
+  /// No description provided for @arithmancerGameplayGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Gameplay Guide'**
+  String get arithmancerGameplayGuide;
+
+  /// No description provided for @arithmancerGuideBasics.
+  ///
+  /// In en, this message translates to:
+  /// **'• Drag cards from your hand to the battlefield to create mathematical expressions\n• Click \'Execute\' to deal damage based on the result'**
+  String get arithmancerGuideBasics;
+
+  /// No description provided for @arithmancerGuideCards.
+  ///
+  /// In en, this message translates to:
+  /// **'• Number cards (green): Provide values\n• Operator cards (yellow): +, -, ×, ÷\n• Parentheses cards (pink): Split into ( and ) for order of operations'**
+  String get arithmancerGuideCards;
+
+  /// No description provided for @arithmancerGuideCombat.
+  ///
+  /// In en, this message translates to:
+  /// **'• Each card costs energy to play\n• Higher numbers deal more damage\n• Negative results grant shield points'**
+  String get arithmancerGuideCombat;
+
+  /// No description provided for @arithmancerGuideProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'• Prime numbers: 3× damage\n• Perfect squares: 2× damage\n• Fibonacci: 1.7× damage\n• Powers of two: 1.6× damage'**
+  String get arithmancerGuideProperties;
+
+  /// No description provided for @arithmancerGuideShields.
+  ///
+  /// In en, this message translates to:
+  /// **'• Enemies have various mathematical shields\n• Some block specific number types\n• Watch enemy descriptions for hints'**
+  String get arithmancerGuideShields;
+
+  /// No description provided for @arithmancerGuideDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'• Drag unwanted cards to the USED pile on the right\n• Use this to manage your hand'**
+  String get arithmancerGuideDiscard;
+
+  /// No description provided for @arithmancerGuideSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'• Click the skip button to end your turn\n• Your energy will be doubled for the next round'**
+  String get arithmancerGuideSkip;
+
+  /// No description provided for @arithmancerModeSelectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your combat protocol'**
+  String get arithmancerModeSelectionSubtitle;
+
+  /// No description provided for @arithmancerModeNeuralBreachDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Battle hostile AI programs in sequence'**
+  String get arithmancerModeNeuralBreachDesc;
+
+  /// No description provided for @arithmancerModeAiDuelDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Fight advanced AI personalities one-on-one'**
+  String get arithmancerModeAiDuelDesc;
+
+  /// No description provided for @arithmancerModeNeuralLadderDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Climb through mixed program and AI challenges'**
+  String get arithmancerModeNeuralLadderDesc;
+
   /// Title for the Arithmetic Square puzzle game
   ///
   /// In en, this message translates to:

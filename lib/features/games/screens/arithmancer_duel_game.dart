@@ -97,6 +97,11 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   String _statusMessage = "";
   Timer? _statusTimer;
 
+  // turn skip
+  bool _canSkipTurn = false;
+  int _accumulatedEnergy = 0;
+  bool _showInstructions = false;
+
   @override
   void initState() {
     super.initState();
@@ -275,6 +280,13 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       _currentEnemy = _game.currentEnemy;
       _battlefieldCards.clear();
       _showingResult = false;
+      _canSkipTurn = true; // Enable skip turn after sync
+
+      // Apply accumulated energy
+      if (_accumulatedEnergy > 0) {
+        _game.playerEnergy += _accumulatedEnergy;
+        _accumulatedEnergy = 0;
+      }
 
       // Remove Fibonacci Seed cards to simplify the game
       _handCards.removeWhere((card) => card.name.contains("Fibonacci"));
@@ -312,6 +324,13 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       _handCards = List.from(playerState.gameInstance.hand);
       _deckCards = List.from(playerState.gameInstance.drawPile);
       _discardCards = List.from(playerState.gameInstance.discardPile);
+      _canSkipTurn = true; // Enable skip turn
+      
+      // Apply accumulated energy
+      if (_accumulatedEnergy > 0) {
+        playerState.energy += _accumulatedEnergy;
+        _accumulatedEnergy = 0;
+      }
       
       // Remove Fibonacci Seed cards to simplify the game
       _handCards.removeWhere((card) => card.name.contains("Fibonacci"));
@@ -597,10 +616,10 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   void _createBonusEffects(MathResult result) {
     _bonusEffects.clear();
-    if (result.isPrime) _bonusEffects.add(BonusEffect(type: "PRIME", value: "x3", color: Colors.cyan));
-    if (result.isPerfectSquare) _bonusEffects.add(BonusEffect(type: "SQUARE", value: "x2", color: Colors.purple));
-    if (result.isFibonacci) _bonusEffects.add(BonusEffect(type: "FIBONACCI", value: "x1.7", color: Colors.orange));
-    if (result.isPowerOfTwo) _bonusEffects.add(BonusEffect(type: "BINARY", value: "x1.6", color: Colors.lightBlue));
+    if (result.isPrime) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusPrime, value: "x3", color: Colors.cyan));
+    if (result.isPerfectSquare) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusSquare, value: "x2", color: Colors.purple));
+    if (result.isFibonacci) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusFibonacci, value: "x1.7", color: Colors.orange));
+    if (result.isPowerOfTwo) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusBinary, value: "x1.6", color: Colors.lightBlue));
     
     if (_bonusEffects.isNotEmpty) {
       _bonusController.forward(from: 0.0);
@@ -931,11 +950,154 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                     }).toList(),
                   ),
                 ),
+
+                // info overlay
+                if (_showInstructions)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.8),
+                      child: Center(
+                        child: Container(
+                          margin: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple.withOpacity(0.3)],
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(color: SpaceTheme.alienGreen, width: 2),
+                          ),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      S.of(context)!.arithmancerGameplayGuide,
+                                      style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.alienGreen),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.close, color: Colors.white),
+                                      onPressed: () => setState(() => _showInstructions = false),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(S.of(context)!.arithmancerGuideBasics, style: SpaceTheme.bodyStyle),
+                                const SizedBox(height: 12),
+                                Text(S.of(context)!.arithmancerGuideCards, style: SpaceTheme.bodyStyle),
+                                const SizedBox(height: 12),
+                                Text(S.of(context)!.arithmancerGuideCombat, style: SpaceTheme.bodyStyle),
+                                const SizedBox(height: 12),
+                                Text(S.of(context)!.arithmancerGuideProperties, style: SpaceTheme.bodyStyle),
+                                const SizedBox(height: 12),
+                                Text(S.of(context)!.arithmancerGuideShields, style: SpaceTheme.bodyStyle),
+                                const SizedBox(height: 12),
+                                Text(S.of(context)!.arithmancerGuideDiscard, style: SpaceTheme.bodyStyle),
+                                const SizedBox(height: 12),
+                                Text(S.of(context)!.arithmancerGuideSkip, style: SpaceTheme.bodyStyle),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+
             ],
           ),
         ),
       ),
     );
+  }
+
+  String _getGameModeTitle() {
+    switch (widget.gameMode) {
+      case GameMode.vsPrograms:
+        return S.of(context)!.arithmancerGameModeNeuralBreach;
+      case GameMode.vsPlayers:
+        return S.of(context)!.arithmancerGameModeAiDuel;
+      case GameMode.ladder:
+        return S.of(context)!.arithmancerGameModeNeuralLadder;
+    }
+  }
+
+  String _getEnemyInstructions() {
+    if (_currentEnemy == null && _currentAIOpponent == null) {
+      return S.of(context)!.arithmancerInstructionsGeneral;
+    }
+    
+    if (_pvpGame != null && _currentAIOpponent != null) {
+      return S.of(context)!.arithmancerInstructionsAiPlayer(_currentAIOpponent!.name);
+    }
+    
+    if (_currentEnemy != null) {
+      // Get the dominant shield type to provide specific instructions
+      String? dominantShield;
+      if (_currentEnemy!.mathematicalShields.isNotEmpty) {
+        dominantShield = _currentEnemy!.mathematicalShields.keys.first;
+      }
+      
+      switch (dominantShield) {
+        case 'prime_shield':
+          return S.of(context)!.arithmancerInstructionsPrimeShield;
+        case 'square_immune':
+          return S.of(context)!.arithmancerInstructionsSquareImmune;
+        case 'fibonacci_only':
+          return S.of(context)!.arithmancerInstructionsFibonacciOnly;
+        case 'power_of_two_only':
+          return S.of(context)!.arithmancerInstructionsPowerOfTwoOnly;
+        default:
+          return S.of(context)!.arithmancerInstructionsGeneral;
+      }
+    }
+    
+    return S.of(context)!.arithmancerInstructionsGeneral;
+  }
+
+  void _skipTurn() {
+    if (_isOpponentTurn || _isCalculating) return;
+    
+    HapticFeedback.lightImpact();
+    
+    setState(() {
+      // Save current energy for next turn
+      int currentEnergy = _pvpGame?.player1State.energy ?? _game.playerEnergy;
+      _accumulatedEnergy += currentEnergy;
+      
+      // Clear battlefield cards back to hand
+      for (final card in _battlefieldCards) {
+        if (card.name == "Open Parenthesis" || card.name == "Close Parenthesis") {
+          // Reset parentheses usage
+          for (var handCard in _handCards) {
+            if (handCard.type == CardType.parentheses && handCard.name == "Parentheses") {
+              handCard.properties.remove('open_used');
+              handCard.properties.remove('close_used');
+              break;
+            }
+          }
+        } else {
+          _handCards.add(card);
+        }
+      }
+      _battlefieldCards.clear();
+      
+      // Fill hand back to 7 cards
+      _drawCardsFromDeck(7 - _handCards.length);
+    });
+    
+    _showStatus(S.of(context)!.arithmancerTurnSkipped);
+    
+    // Handle enemy turn
+    if (_pvpGame != null) {
+      _handleOpponentTurn();
+    } else {
+      _handleEnemyTurn();
+    }
   }
 
   Widget _buildHeader() {
@@ -955,12 +1117,37 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          const SizedBox(width: 16),
-          Text(
-            _getGameModeTitle(),
-            style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _getGameModeTitle(),
+                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 16),
+                ),
+                Text(
+                  _getEnemyInstructions(),
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 10, color: Colors.white70),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
-          const Spacer(),
+          // Info button
+          IconButton(
+            icon: const Icon(Icons.info_outline, color: Colors.white, size: 20),
+            onPressed: () => setState(() => _showInstructions = !_showInstructions),
+          ),
+          const SizedBox(width: 8),
+          // Skip turn button (only show if it's player's turn and not calculating)
+          if (!_isOpponentTurn && !_isCalculating && _canSkipTurn)
+            IconButton(
+              icon: const Icon(Icons.skip_next, color: SpaceTheme.starYellow, size: 20),
+              onPressed: _skipTurn,
+            ),
           if (widget.gameMode == GameMode.ladder)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -979,17 +1166,6 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     );
   }
 
-  String _getGameModeTitle() {
-    switch (widget.gameMode) {
-      case GameMode.vsPrograms:
-        return "NEURAL BREACH";
-      case GameMode.vsPlayers:
-        return "AI COMBAT DUEL";
-      case GameMode.ladder:
-        return "NEURAL LADDER";
-    }
-  }
-
   Widget _buildDeckArea() {
     return Container(
       margin: const EdgeInsets.all(8),
@@ -999,7 +1175,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
           _buildTronDeckPile(_deckCards.length),
           const SizedBox(height: 8),
           Text(
-            "DECK",
+            S.of(context)!.arithmancerDeck,
             style: SpaceTheme.titleStyle.copyWith(
               fontSize: 10,
               color: SpaceTheme.alienGreen,
@@ -1050,7 +1226,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             ),
           const SizedBox(height: 8),
           Text(
-            "USED",
+            S.of(context)!.arithmancerUsed,
             style: SpaceTheme.titleStyle.copyWith(
               fontSize: 10,
               color: SpaceTheme.nebulaPurple,
@@ -1328,7 +1504,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                   ),
                 ),
                 Text(
-                  "HEALTH: $currentHealth",
+                  "${S.of(context)!.arithmancerHealth}: $currentHealth",
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
@@ -1438,29 +1614,29 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                       Positioned.fill(
                         child: _battlefieldCards.isEmpty
                             ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      _isOpponentTurn ? Icons.hourglass_empty : Icons.memory,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    _isOpponentTurn ? Icons.hourglass_empty : Icons.memory,
+                                    color: Colors.white30,
+                                    size: 32,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _isOpponentTurn 
+                                        ? S.of(context)!.arithmancerOpponentProcessing
+                                        : S.of(context)!.arithmancerDragCards,
+                                    style: SpaceTheme.bodyStyle.copyWith(
                                       color: Colors.white30,
-                                      size: 32,
+                                      fontSize: 12,
+                                      letterSpacing: 1.2,
                                     ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      _isOpponentTurn 
-                                          ? "OPPONENT PROCESSING..."
-                                          : "DEPLOY COMBAT SEQUENCE",
-                                      style: SpaceTheme.bodyStyle.copyWith(
-                                        color: Colors.white30,
-                                        fontSize: 12,
-                                        letterSpacing: 1.2,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              )
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            )
                             : Padding(
                                 padding: const EdgeInsets.all(12),
                                 child: Row(
@@ -1644,34 +1820,31 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     return Container(
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.2), // Added a subtle background
+        color: Colors.black.withOpacity(0.2),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.5)),
       ),
       child: Column(
         children: [
-          // FIX: Give the title a fixed height to prevent it from consuming all the space.
           Container(
-            height: 28, // Give the title a predictable, fixed height
+            height: 28,
             alignment: Alignment.center,
             child: Text(
-              "NEURAL ARSENAL",
+              S.of(context)!.arithmancerHand,
               style: SpaceTheme.titleStyle.copyWith(
-                fontSize: 12, // Slightly smaller font
+                fontSize: 12,
                 color: SpaceTheme.nebulaPurple,
                 letterSpacing: 1.5,
               ),
             ),
           ),
-          // The SizedBox below the title is no longer needed.
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 0, 8, 8), // Add padding here instead
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  // This logic is now safe because the Expanded parent has a guaranteed height.
-                  final cardWidth = (constraints.maxWidth - (6 * 6)) / 7; // Adjusted spacing
-                  final double cardHeight = constraints.maxHeight; // Use all available height
+                  final cardWidth = (constraints.maxWidth - (6 * 6)) / 7;
+                  final double cardHeight = constraints.maxHeight;
 
                   if (cardHeight <= 0) return const SizedBox.shrink();
 
@@ -1688,7 +1861,6 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                         ),
                       );
                     } else {
-                      // Render empty slots for consistency
                       handSlots.add(
                         Container(
                           width: cardWidth,
@@ -1844,7 +2016,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                         size: 24,
                       ),
                       Text(
-                        "EXEC",
+                        S.of(context)!.arithmancerExecute,
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: 8,
@@ -2435,23 +2607,23 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
           const Icon(Icons.trending_up, color: SpaceTheme.starYellow, size: 30),
           const SizedBox(width: 10),
           Text(
-            "Ladder Progress",
+            S.of(context)!.arithmancerLadderProgressTitle,
             style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.starYellow),
           ),
         ],
       ),
       content: Text(
-        "Step ${_ladderProgress + 1} of $_totalLadderSteps complete! Continue climbing the neural ladder.",
+        S.of(context)!.arithmancerLadderProgressDesc(_ladderProgress + 1, _totalLadderSteps),
         style: SpaceTheme.bodyStyle,
       ),
       actions: [
         TextButton(
             onPressed: () {
             Navigator.of(context).pop();
-            _advanceToNextEnemy(); // Use new method
+            _advanceToNextEnemy();
             },
             child: Text(
-            "Continue Ladder",
+            S.of(context)!.arithmancerLadderContinue,
             style: const TextStyle(color: SpaceTheme.starYellow),
             ),
         ),
@@ -2471,13 +2643,13 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
           const Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: 30),
           const SizedBox(width: 10),
           Text(
-            "Ladder Champion!",
+            S.of(context)!.arithmancerLadderChampionTitle,
             style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.alienGreen),
           ),
         ],
       ),
       content: Text(
-        "Congratulations! You've conquered the entire neural ladder and earned $score points!",
+        S.of(context)!.arithmancerLadderChampionDesc(score),
         style: SpaceTheme.bodyStyle,
       ),
       actions: [
@@ -2724,7 +2896,7 @@ class ShieldEffect {
     switch (type) {
       case 'prime_shield':
         color = Colors.cyan;
-        symbol = "PRIME";
+        symbol = "PRM";
         break;
       case 'fibonacci_only':
         color = Colors.orange;
@@ -2878,4 +3050,203 @@ class CardPatternPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class ArithmancerModeSelection extends StatelessWidget {
+  final int grade;
+  final int level;
+
+  const ArithmancerModeSelection({
+    super.key,
+    required this.grade,
+    required this.level,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SpaceBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Container(
+                height: 80,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [SpaceTheme.deepSpace.withOpacity(0.9), Colors.transparent],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            S.of(context)!.arithmancerGameTitle,
+                            style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
+                          ),
+                          Text(
+                            S.of(context)!.arithmancerModeSelectionSubtitle,
+                            style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white70),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Mode selection cards
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildModeCard(
+                        context,
+                        title: S.of(context)!.arithmancerGameModeNeuralBreach,
+                        subtitle: S.of(context)!.arithmancerModeNeuralBreachDesc,
+                        icon: Icons.memory,
+                        color: SpaceTheme.alienGreen,
+                        onTap: () => _startGame(context, GameMode.vsPrograms),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildModeCard(
+                        context,
+                        title: S.of(context)!.arithmancerGameModeAiDuel,
+                        subtitle: S.of(context)!.arithmancerModeAiDuelDesc,
+                        icon: Icons.psychology,
+                        color: SpaceTheme.rocketRed,
+                        onTap: () => _startGame(context, GameMode.vsPlayers),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildModeCard(
+                        context,
+                        title: S.of(context)!.arithmancerGameModeNeuralLadder,
+                        subtitle: S.of(context)!.arithmancerModeNeuralLadderDesc,
+                        icon: Icons.trending_up,
+                        color: SpaceTheme.starYellow,
+                        onTap: () => _startGame(context, GameMode.ladder),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModeCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      width: double.infinity,
+      height: 120,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(15),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  color.withOpacity(0.2),
+                  SpaceTheme.deepSpace.withOpacity(0.9),
+                  color.withOpacity(0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: color, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.3),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: color.withOpacity(0.3),
+                    border: Border.all(color: color, width: 2),
+                  ),
+                  child: Icon(icon, color: color, size: 30),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        title,
+                        style: SpaceTheme.headlineStyle.copyWith(
+                          fontSize: 18,
+                          color: color,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: SpaceTheme.bodyStyle.copyWith(
+                          fontSize: 12,
+                          color: Colors.white70,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: color,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _startGame(BuildContext context, GameMode mode) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ArithmancerDuelGame(
+          grade: grade,
+          level: level,
+          gameMode: mode,
+        ),
+      ),
+    );
+  }
 }
