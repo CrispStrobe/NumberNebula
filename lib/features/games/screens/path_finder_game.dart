@@ -53,7 +53,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   // Current Problem State
   MathProblem? currentProblem;
   List<SpacePath> availablePaths = [];
-  bool choosingPath = false;
+  bool choosingPath = true;
 
   // Visual Effects
   List<SpaceParticle> particles = [];
@@ -476,6 +476,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
         height: bubbleRadius * 2,
         child: GestureDetector(
           onTap: () => _selectPath(path),
+          behavior: HitTestBehavior.opaque,
           child: Container(
             color: Colors.transparent,
           ),

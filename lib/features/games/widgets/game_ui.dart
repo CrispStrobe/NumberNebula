@@ -77,7 +77,11 @@ class GameUI extends StatelessWidget {
           ),
           
           // Game Stats
-          Row(
+          Wrap( // changed from Row!
+            spacing: 12.0, // Horizontal spacing between stats
+            runSpacing: 8.0, // Vertical spacing if stats wrap
+            alignment: WrapAlignment.end, // Keeps stats aligned to the right
+            
             children: [
               // Level
               _buildStatItem(
