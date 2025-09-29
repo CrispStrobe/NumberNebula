@@ -28,7 +28,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     with TickerProviderStateMixin {
   // --- Animation & Timers ---
   late AnimationController _gameController;
-  late AnimationController _gravityController; // NEW: For pulsing gravity effect
+  late AnimationController _gravityController; // For pulsing gravity effect
   late AnimationController _planetController;
   Timer? _hintTimer;
   Timer? _reLandingCooldown;
@@ -36,6 +36,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   // --- Game State ---
   List<Planet> planets = [];
   List<ParticleEffect> particles = [];
+  List<GravityWave> gravityWaves = []; // NEW: For visual gravity effects
   List<Star> backgroundStars = [];
   SpaceHopper hopper = SpaceHopper();
   List<int> targetSequence = [];
@@ -110,6 +111,9 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     }
     hopper.isLanded = true;
     hopper.velocity = Offset.zero;
+    hopper.isInTransit = false; // NEW: Reset transit state
+    hopper.transitTime = 0.0; // NEW: Reset transit timer
+    gravityWaves.clear(); // NEW: Clear gravity waves
   }
 
   void _startHintTimer() {
@@ -176,7 +180,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     }
   }
 
-  // This is the new helper function to prevent overlaps.
+  // This is the helper function to prevent overlaps.
   Offset _findNonOverlappingPosition(Size screenSize, double newPlanetRadius, List<Planet> existingPlanets) {
     final random = math.Random();
     const int maxAttempts = 100;
@@ -213,7 +217,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     );
   }
   // ### END: MODIFIED PLANET GENERATION LOGIC ###
-
 
   void _generateTargetSequence() {
     targetSequence = planets.map((p) => p.answer).toList();
@@ -260,6 +263,8 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       _addErrorParticles(planet);
       final bounceDirection = (hopper.position - planet.position).normalize();
       hopper.velocity = bounceDirection * 150;
+      hopper.isInTransit = false; // NEW: Reset transit state on incorrect landing
+      hopper.transitTime = 0.0; // NEW: Reset transit timer
       if (lives <= 0) _gameOver();
     }
     setState(() {});
@@ -273,24 +278,51 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     if (!hopper.isLanded) {
       hopper.velocity *= 0.998; // Air drag
       hopper.position += hopper.velocity * dt;
+      
+      // NEW: Check if hopper has slowed down enough to exit transit mode OR been in transit too long
+      if (hopper.isInTransit && (hopper.velocity.distance < 120 || hopper.transitTime > 2.0)) {
+        hopper.isInTransit = false;
+        debugPrint("[Physics] 🎯 Exiting transit mode - velocity: ${hopper.velocity.distance}, time: ${hopper.transitTime}");
+      }
+      
+      // Update transit timer
+      if (hopper.isInTransit) {
+        hopper.transitTime += dt;
+      }
     }
 
-    // --- Visual Gravitational Pull (Positional Drift) ---
+    // --- ENHANCED Gravitational Pull ---
     if (!hopper.isLanded) {
-      Offset gravityDrift = Offset.zero;
-      final gravityStrength = 0.2 + (_gravityController.value * 0.3); // Pulsating strength
+      Offset gravityForce = Offset.zero;
+      final baseGravityStrength = 0.8; // Increased from 0.2
+      final gravityStrength = baseGravityStrength + (_gravityController.value * 0.6); // More pronounced pulsation
 
       for (final planet in planets) {
         final distanceVector = planet.position - hopper.position;
         final distance = distanceVector.distance;
         
-        if (distance < (planet.radius + 120) && distance > 1) {
+        // Larger gravity field and stronger effect
+        if (distance < (planet.radius + 200) && distance > 1) {
           final direction = distanceVector.normalize();
-          final pullMagnitude = (gravityStrength * planet.mass) / (distance * 0.1);
-          gravityDrift += direction * pullMagnitude;
+          final pullMagnitude = (gravityStrength * planet.mass * 15) / (distance * 0.05); // Much stronger
+          gravityForce += direction * pullMagnitude;
+          
+          // NEW: Create visual gravity waves occasionally
+          if (math.Random().nextDouble() < 0.03) {
+            gravityWaves.add(GravityWave(
+              center: planet.position,
+              maxRadius: planet.radius + 80,
+              color: planet.color.withOpacity(0.3),
+            ));
+          }
         }
       }
-      hopper.position += gravityDrift;
+      
+      // Apply the gravitational force to velocity (more realistic physics)
+      hopper.velocity += gravityForce * dt;
+      
+      // Also add some position drift for immediate visual feedback
+      hopper.position += gravityForce * dt * 0.3;
     }
 
     // --- Boundary Checks ---
@@ -300,20 +332,32 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       if (hopper.position.dx < margin) {
         hopper.position = Offset(margin, hopper.position.dy);
         hopper.velocity = Offset(-hopper.velocity.dx * bounceDamping, hopper.velocity.dy);
+        hopper.isInTransit = false; // Exit transit mode on boundary hit
+        hopper.transitTime = 0.0;
       } else if (hopper.position.dx > _gameWidth - margin) {
         hopper.position = Offset(_gameWidth - margin, hopper.position.dy);
         hopper.velocity = Offset(-hopper.velocity.dx * bounceDamping, hopper.velocity.dy);
+        hopper.isInTransit = false;
+        hopper.transitTime = 0.0;
       }
       if (hopper.position.dy < margin) {
         hopper.position = Offset(hopper.position.dx, margin);
         hopper.velocity = Offset(hopper.velocity.dx, -hopper.velocity.dy * bounceDamping);
+        hopper.isInTransit = false;
+        hopper.transitTime = 0.0;
       } else if (hopper.position.dy > _gameHeight - margin) {
         hopper.position = Offset(hopper.position.dx, _gameHeight - margin);
         hopper.velocity = Offset(hopper.velocity.dx, -hopper.velocity.dy * bounceDamping);
+        hopper.isInTransit = false;
+        hopper.transitTime = 0.0;
       }
     }
     
+    // Update visual effects
     particles.removeWhere((p) => p.update(dt));
+    gravityWaves.removeWhere((wave) => wave.update(dt)); // NEW: Update gravity waves
+    
+    // Check for planet collisions
     for (final planet in planets) {
       if (_checkPlanetLanding(planet)) {
         _landOnPlanet(planet);
@@ -328,6 +372,12 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     if (hopper.isLanded || planet.visited || planet.id == _lastLandedPlanetId) {
       return false;
     }
+    
+    // NEW: Skip collision detection if hopper is in transit mode (avoids accidental landings)
+    if (hopper.isInTransit) {
+      return false;
+    }
+    
     final distance = (hopper.position - planet.position).distance;
     return distance < planet.radius;
   }
@@ -459,6 +509,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
   List<Widget> _buildBackgroundElements() {
     return [
+      // Background stars
       ...backgroundStars.map((star) => Positioned(
           left: star.position.dx,
           top: star.position.dy,
@@ -468,6 +519,14 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
               decoration: BoxDecoration(
                   color: Colors.white.withOpacity(star.brightness),
                   shape: BoxShape.circle)))),
+      
+      // NEW: Gravity wave effects
+      ...gravityWaves.map((wave) => Positioned(
+          left: wave.center.dx - wave.currentRadius,
+          top: wave.center.dy - wave.currentRadius,
+          child: GravityWaveWidget(wave: wave))),
+      
+      // Planets
       ...planets.asMap().entries.map((entry) => Positioned(
           left: entry.value.position.dx - entry.value.radius,
           top: entry.value.position.dy - entry.value.radius,
@@ -479,14 +538,20 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                       entry.value.answer == targetSequence[nextTargetIndex],
                   rotationAnimation:
                       _planetController.value + (entry.key * 0.3))))),
+      
+      // Space hopper
       Positioned(
           left: hopper.position.dx - 15,
           top: hopper.position.dy - 15,
           child: SpaceHopperWidget(hopper: hopper)),
+      
+      // Particles
       ...particles.map((particle) => Positioned(
           left: particle.position.dx,
           top: particle.position.dy,
           child: ParticleWidget(particle: particle))),
+      
+      // Instructions
       Positioned(
         bottom: 10,
         left: 0,
@@ -578,12 +643,12 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       lives = 3;
       nextTargetIndex = 0;
       particles.clear();
+      gravityWaves.clear(); // NEW: Clear gravity waves
       _showNextTargetHint = false;
     });
     // Re-initialize game state, which now includes non-overlapping planet generation
     _initializeGame();
   }
-
 
   Widget _buildWinDialog(int bonus) {
     return Dialog(
@@ -665,10 +730,14 @@ class SpaceHopper {
   Offset velocity = Offset.zero;
   final double mass = 5.0;
   bool isLanded = false;
+  bool isInTransit = false; // NEW: Tracks if hopper is in transit mode
+  double transitTime = 0.0; // NEW: Tracks how long hopper has been in transit
   int? landedOnPlanetId;
 
   void landOn(Planet planet) {
     isLanded = true;
+    isInTransit = false; // NEW: Exit transit mode when landed
+    transitTime = 0.0; // NEW: Reset transit timer
     landedOnPlanetId = planet.id;
     velocity = Offset.zero;
     position = planet.position;
@@ -677,10 +746,12 @@ class SpaceHopper {
   void takeOff(Offset tapPosition) {
     debugPrint("[Physics] 🚀 Hopper takeoff towards $tapPosition");
     isLanded = false;
+    isInTransit = true; // NEW: Enter transit mode immediately after takeoff
+    transitTime = 0.0; // NEW: Reset transit timer
     landedOnPlanetId = null;
     final direction = (tapPosition - position).normalize();
     velocity = direction * 450;
-    debugPrint("[Physics] 🚀 New velocity: $velocity");
+    debugPrint("[Physics] 🚀 New velocity: $velocity | Transit mode: ON");
   }
 }
 
@@ -726,6 +797,30 @@ class ParticleEffect {
   }
 }
 
+// NEW: Gravity wave effect class
+class GravityWave {
+  Offset center;
+  double currentRadius = 0;
+  double maxRadius;
+  Color color;
+  double life = 1.0;
+  double maxLife = 1.0;
+
+  GravityWave({
+    required this.center,
+    required this.maxRadius,
+    required this.color,
+  });
+
+  bool update(double dt) {
+    currentRadius += (maxRadius / maxLife) * dt;
+    life -= dt;
+    return life <= 0 || currentRadius >= maxRadius;
+  }
+
+  double get opacity => (life / maxLife).clamp(0.0, 1.0);
+}
+
 class Star {
   Offset position;
   double size, brightness;
@@ -743,13 +838,15 @@ class SpaceHopperWidget extends StatelessWidget {
         height: 30,
         decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: const RadialGradient(
-                colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange]),
+            gradient: RadialGradient(
+                colors: hopper.isInTransit 
+                    ? [SpaceTheme.cosmicPink, SpaceTheme.starYellow] // NEW: Different color in transit
+                    : [SpaceTheme.starYellow, SpaceTheme.planetOrange]),
             boxShadow: [
               BoxShadow(
-                  color: SpaceTheme.starYellow.withOpacity(0.6),
-                  blurRadius: 8,
-                  spreadRadius: 2)
+                  color: (hopper.isInTransit ? SpaceTheme.cosmicPink : SpaceTheme.starYellow).withOpacity(0.6),
+                  blurRadius: hopper.isInTransit ? 12 : 8, // NEW: More glow in transit
+                  spreadRadius: hopper.isInTransit ? 4 : 2)
             ]),
         child: const Icon(Icons.rocket_launch, color: Colors.white, size: 18));
   }
@@ -837,6 +934,27 @@ class ParticleWidget extends StatelessWidget {
         height: particle.size,
         decoration: BoxDecoration(
             color: particle.color.withOpacity(opacity), shape: BoxShape.circle));
+  }
+}
+
+// NEW: Gravity wave visual widget
+class GravityWaveWidget extends StatelessWidget {
+  final GravityWave wave;
+  const GravityWaveWidget({super.key, required this.wave});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: wave.currentRadius * 2,
+      height: wave.currentRadius * 2,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: wave.color.withOpacity(wave.opacity * 0.6),
+          width: 2,
+        ),
+      ),
+    );
   }
 }
 

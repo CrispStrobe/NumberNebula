@@ -1,175 +1,172 @@
-// lib/features/games/widgets/game_ui.dart:
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/space_theme.dart';
 import '../providers/game_provider.dart';
 
+/// A smart, responsive, and backward-compatible UI header for all mini-games.
+///
+/// This widget uses a [LayoutBuilder] to automatically detect the available
+/// width and switch between a full and a compact layout. It also supports
+/// an optional [customTitleWidget] for older games that require it.
 class GameUI extends StatelessWidget {
   final String title;
   final int level;
   final int? timeLeft;
   final VoidCallback onBack;
-  final Widget? customTitleWidget; 
-  
+  final Widget? customTitleWidget; // For backward compatibility
+
   const GameUI({
     super.key,
     required this.title,
     required this.level,
     this.timeLeft,
     required this.onBack,
-    this.customTitleWidget,
+    this.customTitleWidget, // Optional parameter
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF1E2235),
-            Colors.transparent,
-          ],
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center, // Align items vertically
-        children: [
-          // Back Button
-          IconButton(
-            onPressed: onBack,
-            icon: const Icon(
-              Icons.arrow_back_ios,
-              color: Colors.white,
-              size: 28,
-            ),
-            style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFF1A1A2E).withOpacity(0.8),
-              padding: const EdgeInsets.all(12),
-            ),
+    // LayoutBuilder allows this widget to be self-aware and responsive.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Define a "breakpoint". If the available width is less than this,
+        // we switch to the compact layout.
+        const double compactLayoutBreakpoint = 650.0;
+        final bool isCompact = constraints.maxWidth < compactLayoutBreakpoint;
+
+        return Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: isCompact ? 12 : 16,
+            vertical: 8,
           ),
-          
-          const SizedBox(width: 20),
-          
-          // Title Area
-          Expanded(
-            // FIX: Conditionally display the custom widget or the default title.
-            // This ensures backward compatibility with other games.
-            child: customTitleWidget ?? Text(
-              title,
-              style: const TextStyle(
-                fontFamily: 'SpaceGrotesk',
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                shadows: [
-                  Shadow(
-                    offset: Offset(2, 2),
-                    blurRadius: 4,
-                    color: Colors.black54,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          
-          // Game Stats
-          Wrap( // changed from Row!
-            spacing: 12.0, // Horizontal spacing between stats
-            runSpacing: 8.0, // Vertical spacing if stats wrap
-            alignment: WrapAlignment.end, // Keeps stats aligned to the right
-            
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Level
-              _buildStatItem(
-                icon: Icons.emoji_events,
-                label: 'Level',
-                value: level.toString(),
-                color: const Color(0xFFFFD700), // starYellow
-              ),
-              
-              const SizedBox(width: 20),
-              
-              // Score
-              Consumer<GameProvider>(
-                builder: (context, gameProvider, child) {
-                  return _buildStatItem(
-                    icon: Icons.star,
-                    label: 'Score',
-                    value: gameProvider.score.toString(),
-                    color: const Color(0xFF06FFA5), // alienGreen
-                  );
-                },
-              ),
-              
-              // Time (if provided)
-              if (timeLeft != null) ...[
-                const SizedBox(width: 20),
-                _buildStatItem(
-                  icon: Icons.timer,
-                  label: 'Time',
-                  value: _formatTime(timeLeft!),
-                  color: timeLeft! > 10 
-                      ? const Color(0xFFFF69B4) // cosmicPink
-                      : const Color(0xFFE63946), // rocketRed
+              // Back Button
+              IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios,
+                  color: Colors.white,
+                  size: isCompact ? 22 : 28,
                 ),
-              ],
+                onPressed: onBack,
+              ),
+              
+              SizedBox(width: isCompact ? 12 : 16),
+              
+              // Title Area
+              Expanded(
+                // Use the custom widget if provided; otherwise, use the default Text title.
+                child: customTitleWidget ?? Text(
+                  title,
+                  style: SpaceTheme.headlineStyle.copyWith(
+                    fontSize: isCompact ? 20 : 28,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+              
+              // Game Stats
+              _buildStatsRow(context, isCompact),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
-  
+
+  /// Helper method to build the row of stats.
+  Widget _buildStatsRow(BuildContext context, bool isCompact) {
+    return Row(
+      children: [
+        // Level
+        _buildStatItem(
+          icon: Icons.emoji_events,
+          label: isCompact ? '' : 'Level', // Hide label if compact
+          value: level.toString(),
+          color: SpaceTheme.starYellow,
+          isCompact: isCompact,
+        ),
+        
+        SizedBox(width: isCompact ? 8 : 12),
+        
+        // Score
+        Consumer<GameProvider>(
+          builder: (context, gameProvider, child) {
+            return _buildStatItem(
+              icon: Icons.star,
+              label: isCompact ? '' : 'Score', // Hide label if compact
+              value: gameProvider.score.toString(),
+              color: SpaceTheme.alienGreen,
+              isCompact: isCompact,
+            );
+          },
+        ),
+        
+        // Time (if provided)
+        if (timeLeft != null) ...[
+          SizedBox(width: isCompact ? 8 : 12),
+          _buildStatItem(
+            icon: Icons.timer,
+            label: isCompact ? '' : 'Time', // Hide label if compact
+            value: _formatTime(timeLeft!),
+            color: timeLeft! > 10 ? SpaceTheme.cosmicPink : SpaceTheme.rocketRed,
+            isCompact: isCompact,
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Helper method for rendering a single stat item, adapted for size.
   Widget _buildStatItem({
     required IconData icon,
     required String label,
     required String value,
     required Color color,
+    required bool isCompact,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 8 : 12,
+        vertical: isCompact ? 4 : 6,
+      ),
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A2E).withOpacity(0.8),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withOpacity(0.5),
-          width: 2,
-        ),
+        border: Border.all(color: color.withOpacity(0.6), width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.white70,
-                ),
+          Icon(icon, color: color, size: isCompact ? 18 : 20),
+          // Conditionally show the label text, hiding it if the label is empty.
+          if (label.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Text(
+              '$label: $value',
+              style: SpaceTheme.bodyStyle.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
               ),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                ),
+            ),
+          ] else ...[
+            const SizedBox(width: 6),
+            Text(
+              value,
+              style: SpaceTheme.bodyStyle.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
               ),
-            ],
-          ),
+            ),
+          ],
         ],
       ),
     );
   }
   
+  /// Formats the time from seconds into a M:SS string.
   String _formatTime(int seconds) {
     final minutes = seconds ~/ 60;
     final remainingSeconds = seconds % 60;

@@ -189,6 +189,8 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
       availablePaths = newPaths;
       choosingPath = true;
     });
+    
+    debugPrint("[TAP DEBUG] Generated ${newPaths.length} paths, choosingPath: $choosingPath");
   }
 
   SpacePathType _selectRandomPathType() {
@@ -203,8 +205,50 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     });
   }
 
+  // NEW: Enhanced tap detection with screen-wide gesture detection
+  void _handleScreenTap(Offset tapPosition) {
+    debugPrint("[TAP DEBUG] Screen tapped at: $tapPosition");
+    debugPrint("[TAP DEBUG] choosingPath: $choosingPath, followingPath: $followingPath");
+    debugPrint("[TAP DEBUG] availablePaths.length: ${availablePaths.length}");
+
+    if (!choosingPath || followingPath || availablePaths.isEmpty) {
+      debugPrint("[TAP DEBUG] -> Tap IGNORED due to game state");
+      return;
+    }
+
+    // Check which path (if any) was tapped
+    SpacePath? tappedPath;
+    double closestDistance = double.infinity;
+
+    for (final path in availablePaths) {
+      final bubblePosition = path.getPointAt(0.5);
+      final distance = (tapPosition - bubblePosition).distance;
+      
+      debugPrint("[TAP DEBUG] Path ${path.answer}: bubble at $bubblePosition, distance: ${distance.toStringAsFixed(1)}");
+      
+      // Increased tap radius for better responsiveness
+      if (distance < 70.0 && distance < closestDistance) {
+        closestDistance = distance;
+        tappedPath = path;
+      }
+    }
+
+    if (tappedPath != null) {
+      debugPrint("[TAP DEBUG] -> Tap ACCEPTED on path with answer: ${tappedPath.answer}");
+      _selectPath(tappedPath);
+    } else {
+      debugPrint("[TAP DEBUG] -> Tap MISSED (closest: ${closestDistance.toStringAsFixed(1)})");
+    }
+  }
+
   void _selectPath(SpacePath path) {
-    if (!choosingPath || followingPath) return;
+    debugPrint("State check: choosingPath is '$choosingPath', followingPath is '$followingPath'.");
+
+    if (!choosingPath || followingPath) {
+      debugPrint("-> Path selection IGNORED due to game state.");
+      return;
+    }
+    debugPrint("-> Path selection ACCEPTED. Processing...");
 
     final sriService = context.read<SriService>();
     sriService.recordResponse(currentProblem!, path.isCorrect);
@@ -415,36 +459,79 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    // The Scaffold now has a simple black background. The overlay is gone.
+    // If paths aren't generated yet, show a loading screen.
+    // Prevents race condition.
+    if (availablePaths.isEmpty) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: CircularProgressIndicator(color: Colors.cyan),
+        ),
+      );
+    }
+    
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         child: Stack(
           children: [
-            Transform.translate(
-              offset: screenShakeOffset,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  ..._buildBackground(),
-                  ..._buildVisualPaths(),
-                  ..._buildParticles(),
-                  _buildShip(),
-                ],
+            // MAIN GAME AREA WITH SCREEN-WIDE TAP DETECTION
+            GestureDetector(
+              onTapDown: (details) {
+                _handleScreenTap(details.localPosition);
+              },
+              behavior: HitTestBehavior.translucent,
+              child: Transform.translate(
+                offset: screenShakeOffset,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ..._buildBackground(),
+                    ..._buildVisualPaths(),
+                    ..._buildParticles(),
+                    _buildShip(),
+                    // Add visual debug indicators for tap areas in debug mode
+                    if (choosingPath) ..._buildDebugTapAreas(),
+                  ],
+                ),
               ),
             ),
             IgnorePointer(
-                child: Container(
-                    // The opacity is now directly tied to the animation's progress
-                    color: feedbackColor.withOpacity(feedbackColor.opacity * _feedbackController.value),
-                ),
+              child: Container(
+                color: feedbackColor.withOpacity(feedbackColor.opacity * _feedbackController.value),
+              ),
             ),
-            if (choosingPath) ..._buildTappableAreas(),
+            // UI elements that should not interfere with taps
             _buildUI(),
           ],
         ),
       ),
     );
+  }
+
+  // OPTIONAL: Visual debug indicators (remove in production)
+  List<Widget> _buildDebugTapAreas() {
+    // Uncomment the return below to see tap areas visually
+    return [];
+    
+    /* 
+    return availablePaths.map((path) {
+      final bubblePosition = path.getPointAt(0.5);
+      const tapRadius = 70.0;
+      return Positioned(
+        left: bubblePosition.dx - tapRadius,
+        top: bubblePosition.dy - tapRadius,
+        width: tapRadius * 2,
+        height: tapRadius * 2,
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.yellow, width: 1),
+            shape: BoxShape.circle,
+          ),
+        ),
+      );
+    }).toList();
+    */
   }
 
   List<Widget> _buildBackground() {
@@ -463,26 +550,6 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
         ),
       ),
     )).toList();
-  }
-  
-  List<Widget> _buildTappableAreas() {
-    return availablePaths.map((path) {
-      final bubblePosition = path.getPointAt(0.5);
-      const bubbleRadius = 45.0;
-      return Positioned(
-        left: bubblePosition.dx - bubbleRadius,
-        top: bubblePosition.dy - bubbleRadius,
-        width: bubbleRadius * 2,
-        height: bubbleRadius * 2,
-        child: GestureDetector(
-          onTap: () => _selectPath(path),
-          behavior: HitTestBehavior.opaque,
-          child: Container(
-            color: Colors.transparent,
-          ),
-        ),
-      );
-    }).toList();
   }
   
   List<Widget> _buildParticles() => particles.map((p) => p.build()).toList();

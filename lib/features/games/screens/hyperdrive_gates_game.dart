@@ -712,7 +712,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     context.read<GameProvider>().addScore(bonusPoints);
     
     setState(() {
-      _temporarySpeedBoost = 350.0 * bonusMultiplier;
+      _temporarySpeedBoost = 700.0 * bonusMultiplier;
     });
 
     effects.add(FloatingScore(

@@ -41,7 +41,7 @@ class _VisualConfig {
   
   // --- Animation & UI ---
   static const int rotationDurationSeconds = 15;
-  static const double containerHeight = 350.0;
+  // static const double containerHeight = 350.0;
   static const double containerBorderRadius = 16.0;
   
   // --- More vivid, saturated cube colors (adjusted for better contrast) ---
@@ -451,7 +451,23 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     bool isWide = constraints.maxWidth > 650;
-                    return isWide ? _buildWideLayout() : _buildTallLayout();
+
+                    // DYNAMIC CALCULATION:
+                    // Calculate height based on the available space from the LayoutBuilder.
+                    // This is more robust than using MediaQuery.
+                    final availableHeight = constraints.maxHeight;
+
+                    // For portrait (tall layout), use 45% of the available height.
+                    // For landscape (wide layout), use a larger portion (e.g., 75%).
+                    // We also clamp the value to ensure it's never too small or large.
+                    final double containerHeight = isWide
+                        ? (availableHeight * 0.75).clamp(300.0, 500.0)
+                        : (availableHeight * 0.45).clamp(250.0, 400.0);
+
+                    // Pass the calculated height to the layout methods.
+                    return isWide
+                        ? _buildWideLayout(containerHeight)
+                        : _buildTallLayout(containerHeight);
                   },
                 ),
               ),
@@ -462,13 +478,13 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
     );
   }
 
-  Widget _buildWideLayout() {
+  Widget _buildWideLayout(double containerHeight) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(flex: 3, child: _buildVisualizationArea()),
+          Expanded(flex: 3, child: _buildVisualizationArea(containerHeight)), // Pass parameter
           const SizedBox(width: 24),
           Expanded(flex: 2, child: _buildAnswerArea()),
         ],
@@ -476,32 +492,34 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
     );
   }
 
-  Widget _buildTallLayout() {
+  Widget _buildTallLayout(double containerHeight) {
     return SingleChildScrollView(
       physics: const ClampingScrollPhysics(), // Prevents overscroll glow
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0), // Reduced top padding
         child: Column(
           children: [
-            _buildVisualizationArea(),
-            const SizedBox(height: 16), // Reduced spacing
+            _buildVisualizationArea(containerHeight), // Pass parameter
+            const SizedBox(height: 16),
             _buildAnswerArea(),
-            const SizedBox(height: 24), // Bottom padding for safe area
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildVisualizationArea() {
+  Widget _buildVisualizationArea(double containerHeight) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(S.of(context)!.blockCounterQuestion, style: SpaceTheme.titleStyle.copyWith(fontSize: 18), textAlign: TextAlign.center),
-        const SizedBox(height: 16),
-        // FIX: Wrap the container in Expanded and remove the fixed height
+        SizedBox(
+          height: containerHeight, // Use the passed-in value
+        
+        // We wrap the container in Expanded with no the fixed height
         // to make it fill the available space instead of overflowing.
-        Expanded(
+        // Expanded(
           child: Container(
             decoration: SpaceTheme.cardDecoration.copyWith(
               borderRadius: BorderRadius.circular(_VisualConfig.containerBorderRadius),

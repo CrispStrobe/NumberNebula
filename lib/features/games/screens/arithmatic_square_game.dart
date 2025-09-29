@@ -148,6 +148,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         debugPrint("🎯 [ARITHMETIC SQUARE] UI state updated with new puzzle");
         debugPrint("🎯 [ARITHMETIC SQUARE] Number pool: ${numberPool.join(', ')}");
         debugPrint("🎯 [ARITHMETIC SQUARE] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+        debugPrint("🎯 [ARITHMETIC SQUARE] Player hints: ${generatedPuzzle.playerHints.keys.join(', ')}");
       }
     } catch (e, stackTrace) {
       debugPrint("❌ [ARITHMETIC SQUARE] Error generating puzzle: $e");
@@ -209,8 +210,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     debugPrint("🔢 SRI: Logging all solved problems for the completed square...");
     final sriService = context.read<SriService>();
     
-    // Create the complete grid with user solutions
+    // Create the complete grid with user solutions and player hints
     final completeGrid = Map<String, int>.from(puzzle!.clues);
+    completeGrid.addAll(puzzle!.playerHints);
     completeGrid.addAll(solution);
     
     // Log each row equation
@@ -605,9 +607,14 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   Widget _buildNumberCell(String cellId, double cellSize, bool isCompact) {
     final bool isEmpty = puzzle!.emptyCells.contains(cellId);
     final bool hasUserValue = userSolution.containsKey(cellId);
+    final bool isPlayerHint = puzzle!.playerHints.containsKey(cellId);
+    final bool isCSPClue = puzzle!.clues.containsKey(cellId);
+    
     final int? value = isEmpty 
         ? userSolution[cellId] 
-        : puzzle!.clues[cellId];
+        : isPlayerHint 
+            ? puzzle!.playerHints[cellId]
+            : puzzle!.clues[cellId];
     
     final bool isLastDropped = cellId == _lastDroppedPosition;
 
@@ -618,11 +625,24 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         borderRadius: BorderRadius.circular(8),
         gradient: isEmpty
             ? const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple])
-            : const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
+            : isPlayerHint
+                ? const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
+                : const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
         border: Border.all(
-          color: isEmpty ? SpaceTheme.nebulaPurple : SpaceTheme.alienGreen,
+          color: isEmpty 
+              ? SpaceTheme.nebulaPurple 
+              : isPlayerHint 
+                  ? SpaceTheme.starYellow
+                  : SpaceTheme.alienGreen,
           width: 2,
         ),
+        boxShadow: isPlayerHint ? [
+          BoxShadow(
+            color: SpaceTheme.starYellow.withOpacity(0.3),
+            blurRadius: 6,
+            spreadRadius: 1,
+          )
+        ] : null,
       ),
       child: Center(
         child: Text(
@@ -630,6 +650,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
           style: SpaceTheme.headlineStyle.copyWith(
             fontSize: isCompact ? 16 : 18,
             color: Colors.white,
+            fontWeight: isPlayerHint ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ),
@@ -891,13 +912,14 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
 }
 
 //##############################################################################
-// ARITHMETIC SQUARE PUZZLE GENERATION SYSTEM (Using actual CSP from gensq.dart)
+// ARITHMETIC SQUARE PUZZLE GENERATION SYSTEM (With Player Hints)
 //##############################################################################
 
-/// Represents an arithmetic square puzzle
+/// Represents an arithmetic square puzzle with player hints
 class ArithmeticSquarePuzzle {
   final int gridSize;
-  final Map<String, int> clues;
+  final Map<String, int> clues; // CSP clues for generation
+  final Map<String, int> playerHints; // Player-visible hints
   final Set<String> emptyCells;
   final List<List<String>> rowOperators;
   final List<List<String>> columnOperators;
@@ -907,6 +929,7 @@ class ArithmeticSquarePuzzle {
   ArithmeticSquarePuzzle({
     required this.gridSize,
     required this.clues,
+    required this.playerHints,
     required this.emptyCells,
     required this.rowOperators,
     required this.columnOperators,
@@ -943,8 +966,9 @@ class ArithmeticSquarePuzzle {
   bool validateSolution(Map<String, int> userSolution) {
     debugPrint("✅ [VALIDATION] Starting solution validation");
     
-    // Create complete grid
+    // Create complete grid with CSP clues, player hints, and user solution
     final completeGrid = Map<String, int>.from(clues);
+    completeGrid.addAll(playerHints);
     completeGrid.addAll(userSolution);
     
     // Validate all rows
@@ -1022,7 +1046,7 @@ class ArithmeticSquarePuzzle {
   }
 }
 
-/// Generator using the exact same CSP approach as gensq.dart
+/// Generator using the exact same CSP approach as gensq.dart, with strategic player hints
 class ArithmeticSquareGenerator {
   final int grade;
   final int level;
@@ -1092,9 +1116,9 @@ class ArithmeticSquareGenerator {
     
     debugPrint("🔧 [GENERATOR] Generated ${gridSize}x$gridSize grid with operators");
     
-    // Step 3: Generate clues (exactly like gensq.dart)
+    // Step 3: Generate CSP clues (minimal, just for solving)
     final clues = <String, int>{};
-    final numClues = _determineNumberOfClues(gridSize);
+    final numCSPClues = _determineNumberOfCSPClues(gridSize);
     final allCells = <String>[];
     for (int r = 0; r < gridSize; r++) {
       for (int c = 0; c < gridSize; c++) {
@@ -1102,18 +1126,18 @@ class ArithmeticSquareGenerator {
       }
     }
     
-    // Avoid result cells when possible (like gensq.dart does)
+    // Avoid result cells when possible for CSP clues
     final nonResultCells = allCells.where((cellId) => !_isResultCell(cellId, gridSize)).toList()..shuffle(_random);
-    final clueCells = nonResultCells.take(numClues).toList();
+    final cspClueCells = nonResultCells.take(numCSPClues).toList();
     
     final domain = _getNumberDomain();
-    for (final cellId in clueCells) {
+    for (final cellId in cspClueCells) {
       clues[cellId] = _randChoice(domain);
     }
     
-    debugPrint("🔧 [GENERATOR] Generated $numClues clues: $clues");
+    debugPrint("🔧 [GENERATOR] Generated $numCSPClues CSP clues: $clues");
     
-    // Step 4: Solve using CSP (exact same approach as gensq.dart)
+    // Step 4: Solve using CSP
     final solution = await _solveWithCSP(gridSize, rowOperators, columnOperators, clues);
     
     if (solution == null) {
@@ -1123,27 +1147,148 @@ class ArithmeticSquareGenerator {
     
     debugPrint("🔧 [GENERATOR] ✅ CSP solved successfully");
     
-    // Step 5: Create empty cells and number pool
+    // Step 5: PLAYER HINTS - Strategic selection for gameplay
+    final playerHints = _selectPlayerHints(gridSize, rowOperators, columnOperators, solution, clues);
+    debugPrint("🔧 [GENERATOR] 🎯 Selected ${playerHints.length} player hints: $playerHints");
+    
+    // Step 6: Create empty cells (excluding both CSP clues and player hints)
     final emptyCells = <String>{};
     for (final cellId in allCells) {
-      if (!clues.containsKey(cellId)) {
+      if (!clues.containsKey(cellId) && !playerHints.containsKey(cellId)) {
         emptyCells.add(cellId);
       }
     }
     
+    // Step 7: Generate number pool (removing unique hint numbers)
     final correctNumbers = emptyCells.map((cellId) => solution[cellId]!).toList();
-
-    final numberPool = _generateNumberPool(correctNumbers.cast<int>());
+    final numberPool = _generateNumberPool(correctNumbers.cast<int>(), playerHints.values.toList());
     
     return ArithmeticSquarePuzzle(
       gridSize: gridSize,
       clues: clues,
+      playerHints: playerHints,
       emptyCells: emptyCells,
       rowOperators: rowOperators,
       columnOperators: columnOperators,
       numberPool: numberPool,
       fullSolution: solution,
     );
+  }
+
+  /// NEW: Strategic player hint selection - STRICT max 1 per equation
+  Map<String, int> _selectPlayerHints(
+    int gridSize,
+    List<List<String>> rowOperators,
+    List<List<String>> columnOperators,
+    Map<String, int> solution,
+    Map<String, int> cspClues,
+  ) {
+    debugPrint("🎯 [PLAYER HINTS] Starting strategic hint selection");
+    
+    final playerHints = <String, int>{};
+    final allCells = <String>[];
+    
+    // Create list of all non-CSP-clue cells
+    for (int r = 0; r < gridSize; r++) {
+      for (int c = 0; c < gridSize; c++) {
+        final cellId = 'r${r}c$c';
+        if (!cspClues.containsKey(cellId)) {
+          allCells.add(cellId);
+        }
+      }
+    }
+    
+    // Track which equations already have hints (STRICT: max 1 per equation)
+    final rowsWithHints = <int>{};
+    final colsWithHints = <int>{};
+    
+    // Calculate target number of hints based on difficulty
+    final totalEquations = gridSize * 2; // rows + columns
+    final maxHints = math.min(totalEquations, _calculateTargetHints(gridSize, grade, level));
+    
+    debugPrint("🎯 [PLAYER HINTS] Target hints: $maxHints out of $totalEquations equations");
+    
+    // Priority 1: Add hints to equations with more complex operations
+    final candidates = <_HintCandidate>[];
+    
+    for (final cellId in allCells) {
+      final parts = cellId.split('c');
+      final row = int.parse(parts[0].substring(1));
+      final col = int.parse(parts[1]);
+      
+      // Skip result cells (last row and column)
+      if (_isResultCell(cellId, gridSize)) continue;
+      
+      // Calculate complexity score for this cell's equations
+      int complexity = 0;
+      complexity += _calculateOperationComplexity(rowOperators[row]);
+      complexity += _calculateOperationComplexity(columnOperators[col]);
+      
+      candidates.add(_HintCandidate(cellId, row, col, complexity));
+    }
+    
+    // Sort by complexity (highest first)
+    candidates.sort((a, b) => b.complexity.compareTo(a.complexity));
+    
+    // STRICT enforcement: only add hint if BOTH row AND column don't have hints yet
+    for (final candidate in candidates) {
+      if (playerHints.length >= maxHints) break;
+      
+      final canAddToRow = !rowsWithHints.contains(candidate.row);
+      final canAddToCol = !colsWithHints.contains(candidate.col);
+      
+      // CRITICAL: Both equations must not have hints yet
+      if (canAddToRow && canAddToCol) {
+        playerHints[candidate.cellId] = solution[candidate.cellId]!;
+        
+        // Mark BOTH equations as having hints now
+        rowsWithHints.add(candidate.row);
+        colsWithHints.add(candidate.col);
+        
+        debugPrint("🎯 [PLAYER HINTS] Added hint at ${candidate.cellId} (value: ${solution[candidate.cellId]}) - row ${ candidate.row}, col ${candidate.col}, complexity: ${candidate.complexity}");
+      }
+    }
+    
+    debugPrint("🎯 [PLAYER HINTS] Final selection: ${playerHints.length} hints placed");
+    debugPrint("🎯 [PLAYER HINTS] Rows with hints: $rowsWithHints");
+    debugPrint("🎯 [PLAYER HINTS] Columns with hints: $colsWithHints");
+    return playerHints;
+  }
+
+  int _calculateTargetHints(int gridSize, int grade, int level) {
+    // Base hints: smaller grids get more relative help
+    int baseHints = gridSize == 3 ? 2 : gridSize == 4 ? 3 : 4;
+    
+    // Adjust for grade/level
+    if (grade <= 2) baseHints += 1; // Younger students get more help
+    if (level <= 3) baseHints += 1; // Early levels get more help
+    
+    // Cap at reasonable maximum
+    return math.min(baseHints, gridSize * 2 - 2); // Don't hint every equation
+  }
+
+  int _calculateOperationComplexity(List<String> operators) {
+    int complexity = 0;
+    for (final op in operators) {
+      switch (op) {
+        case '+':
+          complexity += 1;
+          break;
+        case '−':
+        case '-':
+          complexity += 2;
+          break;
+        case '×':
+        case '*':
+          complexity += 3;
+          break;
+        case '÷':
+        case '/':
+          complexity += 4;
+          break;
+      }
+    }
+    return complexity;
   }
 
   int _determineGridSize() {
@@ -1180,10 +1325,10 @@ class ArithmeticSquareGenerator {
     return List<int>.generate(maxVal - minVal + 1, (i) => i + minVal);
   }
 
-  int _determineNumberOfClues(int gridSize) {
+  int _determineNumberOfCSPClues(int gridSize) {
     final totalCells = gridSize * gridSize;
     if (totalCells <= 9) return 0; // Let CSP solve without clues for small grids
-    return 1; // Minimal clues for larger grids
+    return 1; // Minimal CSP clues for larger grids
   }
 
   bool _isResultCell(String cellId, int gridSize) {
@@ -1293,19 +1438,39 @@ class ArithmeticSquareGenerator {
     return currentVal;
   }
 
-  List<int> _generateNumberPool(List<int> correctNumbers) {
+  List<int> _generateNumberPool(List<int> correctNumbers, List<int> hintNumbers) {
     final pool = <int>[];
     pool.addAll(correctNumbers);
+    
+    // Remove hint numbers from pool ONLY if they don't appear multiple times
+    final numberCounts = <int, int>{};
+    for (final num in [...correctNumbers, ...hintNumbers]) {
+      numberCounts[num] = (numberCounts[num] ?? 0) + 1;
+    }
+    
+    final numbersToRemove = <int>[];
+    for (final hintNum in hintNumbers) {
+      if (numberCounts[hintNum] == 1) {
+        // This hint number appears only once total, safe to remove from pool
+        numbersToRemove.add(hintNum);
+      }
+    }
+    
+    for (final num in numbersToRemove) {
+      pool.remove(num);
+    }
+    
+    debugPrint("🎯 [NUMBER POOL] Removed unique hint numbers: $numbersToRemove");
     
     final domain = _getNumberDomain();
     
     // Add some decoy numbers
-    final decoyCount = math.max(4, 8 - correctNumbers.length);
+    final decoyCount = math.max(4, 8 - pool.length);
     final decoys = <int>{};
     
     while (decoys.length < decoyCount) {
       final decoy = _randChoice(domain);
-      if (!correctNumbers.contains(decoy)) {
+      if (!pool.contains(decoy) && !hintNumbers.contains(decoy)) {
         decoys.add(decoy);
       }
     }
@@ -1313,8 +1478,19 @@ class ArithmeticSquareGenerator {
     pool.addAll(decoys);
     pool.shuffle(_random);
     
+    debugPrint("🎯 [NUMBER POOL] Final pool size: ${pool.length}, contents: $pool");
     return pool;
   }
 
   T _randChoice<T>(List<T> arr) => arr[_random.nextInt(arr.length)];
+}
+
+/// Helper class for hint candidate selection
+class _HintCandidate {
+  final String cellId;
+  final int row;
+  final int col;
+  final int complexity;
+  
+  _HintCandidate(this.cellId, this.row, this.col, this.complexity);
 }
