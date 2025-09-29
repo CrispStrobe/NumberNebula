@@ -1057,7 +1057,7 @@ class SDe extends S {
 
   @override
   String get signalTriangulationInstructions =>
-      'Ein schwaches Precursor-Signal wurde erkannt! Entschlüssele die Frequenzfolge durch Analyse der Echo-Antworten. Grüne Punkte = richtige Frequenz an richtiger Position, Orange Ringe = richtige Frequenz an falscher Position.';
+      'Ein schwaches Weltraum-Signal wurde erkannt! Entschlüssele die Folge durch Analyse der Echo-Antworten. Grüne Punkte = richtige Frequenz an richtiger Position, Orange Ringe = richtige Frequenz an falscher Position.';
 
   @override
   String signalTriangulationAttempts(int current, int max) {
@@ -1089,7 +1089,7 @@ class SDe extends S {
 
   @override
   String signalTriangulationWinDesc(int attempts, int totalScore, int bonus) {
-    return 'Ausgezeichnete Arbeit, Astro-Techniker! Du hast den Precursor-Speicher in $attempts Versuchen trianguliert und $totalScore Punkte verdient. Effizienz-Bonus: $bonus Punkte!';
+    return 'Ausgezeichnete Arbeit, Astro-Techniker! Du hast Signal in $attempts Versuchen trianguliert und $totalScore Punkte verdient. Effizienz-Bonus: $bonus Punkte!';
   }
 
   @override
@@ -1097,7 +1097,7 @@ class SDe extends S {
 
   @override
   String get signalTriangulationLoseDesc =>
-      'Das Signal ist jenseits der Erkennungsreichweite verblasst. Der Precursor-Speicher bleibt in der kosmischen Leere verborgen.';
+      'Das Signal ist jenseits der Erkennungsreichweite verblasst. Das Signal bleibt in der kosmischen Leere verborgen.';
 
   @override
   String signalTriangulationReveal(String sequence) {
@@ -1112,7 +1112,7 @@ class SDe extends S {
 
   @override
   String get cryptexLockBreakerInstructions =>
-      'Ein antikes Precursor-Kryptex versperrt deinen Weg! Dieser mechanische Tresor nutzt ineinandergreifende mathematische Gleichungen als Kombination. Drehe die Scheiben, um alle Gleichungen gleichzeitig zu erfüllen und die Geheimnisse darin zu entsperren.';
+      'Das Code-Kryptex nutzt ineinandergreifende Gleichungen als Kombination. Drehe die Scheiben, um alle Gleichungen gleichzeitig zu erfüllen.';
 
   @override
   String get cryptexLockBreakerControls =>
@@ -1127,7 +1127,7 @@ class SDe extends S {
   @override
   String cryptexLockBreakerWinDesc(
       int totalScore, int complexityBonus, int equationBonus) {
-    return 'Brillante Arbeit, Astro-Techniker! Du hast den Precursor-Schlossmechanismus geknackt und $totalScore Punkte verdient. Komplexitäts-Bonus: $complexityBonus • Gleichungs-Bonus: $equationBonus';
+    return 'Brillante Arbeit, Astro-Techniker! Du hast den Schlossmechanismus geknackt und $totalScore Punkte verdient. Komplexitäts-Bonus: $complexityBonus • Gleichungs-Bonus: $equationBonus';
   }
 
   @override

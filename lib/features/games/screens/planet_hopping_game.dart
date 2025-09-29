@@ -44,6 +44,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   int lives = 3;
   int nextTargetIndex = 0;
   int? _lastLandedPlanetId;
+  Planet? _targetPlanet; // NEW: Track which planet we're flying to
 
   // --- UI State ---
   bool _showInstructions = true;
@@ -111,8 +112,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     }
     hopper.isLanded = true;
     hopper.velocity = Offset.zero;
-    hopper.isInTransit = false; // NEW: Reset transit state
-    hopper.transitTime = 0.0; // NEW: Reset transit timer
+    _targetPlanet = null; // NEW: Reset target planet
     gravityWaves.clear(); // NEW: Clear gravity waves
   }
 
@@ -239,6 +239,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     _startHintTimer();
 
     _lastLandedPlanetId = planet.id;
+    _targetPlanet = null; // NEW: Clear target planet when landing
     _reLandingCooldown?.cancel();
     _reLandingCooldown = Timer(const Duration(milliseconds: 500), () => _lastLandedPlanetId = null);
 
@@ -263,8 +264,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       _addErrorParticles(planet);
       final bounceDirection = (hopper.position - planet.position).normalize();
       hopper.velocity = bounceDirection * 150;
-      hopper.isInTransit = false; // NEW: Reset transit state on incorrect landing
-      hopper.transitTime = 0.0; // NEW: Reset transit timer
       if (lives <= 0) _gameOver();
     }
     setState(() {});
@@ -278,17 +277,6 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     if (!hopper.isLanded) {
       hopper.velocity *= 0.998; // Air drag
       hopper.position += hopper.velocity * dt;
-      
-      // NEW: Check if hopper has slowed down enough to exit transit mode OR been in transit too long
-      if (hopper.isInTransit && (hopper.velocity.distance < 120 || hopper.transitTime > 2.0)) {
-        hopper.isInTransit = false;
-        debugPrint("[Physics] 🎯 Exiting transit mode - velocity: ${hopper.velocity.distance}, time: ${hopper.transitTime}");
-      }
-      
-      // Update transit timer
-      if (hopper.isInTransit) {
-        hopper.transitTime += dt;
-      }
     }
 
     // --- ENHANCED Gravitational Pull ---
@@ -332,24 +320,16 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       if (hopper.position.dx < margin) {
         hopper.position = Offset(margin, hopper.position.dy);
         hopper.velocity = Offset(-hopper.velocity.dx * bounceDamping, hopper.velocity.dy);
-        hopper.isInTransit = false; // Exit transit mode on boundary hit
-        hopper.transitTime = 0.0;
       } else if (hopper.position.dx > _gameWidth - margin) {
         hopper.position = Offset(_gameWidth - margin, hopper.position.dy);
         hopper.velocity = Offset(-hopper.velocity.dx * bounceDamping, hopper.velocity.dy);
-        hopper.isInTransit = false;
-        hopper.transitTime = 0.0;
       }
       if (hopper.position.dy < margin) {
         hopper.position = Offset(hopper.position.dx, margin);
         hopper.velocity = Offset(hopper.velocity.dx, -hopper.velocity.dy * bounceDamping);
-        hopper.isInTransit = false;
-        hopper.transitTime = 0.0;
       } else if (hopper.position.dy > _gameHeight - margin) {
         hopper.position = Offset(hopper.position.dx, _gameHeight - margin);
         hopper.velocity = Offset(hopper.velocity.dx, -hopper.velocity.dy * bounceDamping);
-        hopper.isInTransit = false;
-        hopper.transitTime = 0.0;
       }
     }
     
@@ -373,8 +353,8 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       return false;
     }
     
-    // NEW: Skip collision detection if hopper is in transit mode (avoids accidental landings)
-    if (hopper.isInTransit) {
+    // NEW: If we have a target planet, only allow landing on that specific planet
+    if (_targetPlanet != null && planet.id != _targetPlanet!.id) {
       return false;
     }
     
@@ -499,7 +479,27 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         onTapDown: (details) {
           if (!gameActive) return;
           final tapPosition = details.localPosition;
-          hopper.takeOff(tapPosition);
+          
+          // NEW: Check if player clicked on a planet
+          Planet? clickedPlanet;
+          for (final planet in planets) {
+            final distance = (tapPosition - planet.position).distance;
+            if (distance < planet.radius) {
+              clickedPlanet = planet;
+              break;
+            }
+          }
+          
+          if (clickedPlanet != null) {
+            // Player clicked on a planet - fly directly to it
+            _targetPlanet = clickedPlanet;
+            hopper.takeOff(clickedPlanet.position);
+            debugPrint("[Gameplay] 🎯 Flying to planet ${clickedPlanet.id} (${clickedPlanet.answer})");
+          } else {
+            // Player clicked on empty space - normal takeoff
+            _targetPlanet = null;
+            hopper.takeOff(tapPosition);
+          }
           setState(() {});
         },
         child: Container(color: Colors.transparent),
@@ -644,6 +644,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       nextTargetIndex = 0;
       particles.clear();
       gravityWaves.clear(); // NEW: Clear gravity waves
+      _targetPlanet = null; // NEW: Clear target planet
       _showNextTargetHint = false;
     });
     // Re-initialize game state, which now includes non-overlapping planet generation
@@ -730,14 +731,10 @@ class SpaceHopper {
   Offset velocity = Offset.zero;
   final double mass = 5.0;
   bool isLanded = false;
-  bool isInTransit = false; // NEW: Tracks if hopper is in transit mode
-  double transitTime = 0.0; // NEW: Tracks how long hopper has been in transit
   int? landedOnPlanetId;
 
   void landOn(Planet planet) {
     isLanded = true;
-    isInTransit = false; // NEW: Exit transit mode when landed
-    transitTime = 0.0; // NEW: Reset transit timer
     landedOnPlanetId = planet.id;
     velocity = Offset.zero;
     position = planet.position;
@@ -746,12 +743,10 @@ class SpaceHopper {
   void takeOff(Offset tapPosition) {
     debugPrint("[Physics] 🚀 Hopper takeoff towards $tapPosition");
     isLanded = false;
-    isInTransit = true; // NEW: Enter transit mode immediately after takeoff
-    transitTime = 0.0; // NEW: Reset transit timer
     landedOnPlanetId = null;
     final direction = (tapPosition - position).normalize();
     velocity = direction * 450;
-    debugPrint("[Physics] 🚀 New velocity: $velocity | Transit mode: ON");
+    debugPrint("[Physics] 🚀 New velocity: $velocity");
   }
 }
 
@@ -838,15 +833,13 @@ class SpaceHopperWidget extends StatelessWidget {
         height: 30,
         decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: RadialGradient(
-                colors: hopper.isInTransit 
-                    ? [SpaceTheme.cosmicPink, SpaceTheme.starYellow] // NEW: Different color in transit
-                    : [SpaceTheme.starYellow, SpaceTheme.planetOrange]),
+            gradient: const RadialGradient(
+                colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange]),
             boxShadow: [
               BoxShadow(
-                  color: (hopper.isInTransit ? SpaceTheme.cosmicPink : SpaceTheme.starYellow).withOpacity(0.6),
-                  blurRadius: hopper.isInTransit ? 12 : 8, // NEW: More glow in transit
-                  spreadRadius: hopper.isInTransit ? 4 : 2)
+                  color: SpaceTheme.starYellow.withOpacity(0.6),
+                  blurRadius: 8,
+                  spreadRadius: 2)
             ]),
         child: const Icon(Icons.rocket_launch, color: Colors.white, size: 18));
   }

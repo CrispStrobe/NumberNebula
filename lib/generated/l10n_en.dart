@@ -1049,7 +1049,7 @@ class SEn extends S {
 
   @override
   String get signalTriangulationInstructions =>
-      'A faint Precursor signal has been detected! Decode the frequency sequence by analyzing echo responses. Green dots = correct frequency in correct position, Orange rings = correct frequency in wrong position.';
+      'A faint signal has been detected! Decode the frequency sequence by analyzing echo responses. Green dots = correct frequency in correct position, Orange rings = correct frequency in wrong position.';
 
   @override
   String signalTriangulationAttempts(int current, int max) {
@@ -1081,7 +1081,7 @@ class SEn extends S {
 
   @override
   String signalTriangulationWinDesc(int attempts, int totalScore, int bonus) {
-    return 'Excellent work, Astro-Technician! You triangulated the Precursor cache in $attempts attempts, earning $totalScore points. Efficiency bonus: $bonus points!';
+    return 'Excellent work, Astro-Technician! You triangulated the sginal in $attempts attempts, earning $totalScore points. Efficiency bonus: $bonus points!';
   }
 
   @override
@@ -1089,7 +1089,7 @@ class SEn extends S {
 
   @override
   String get signalTriangulationLoseDesc =>
-      'The signal has faded beyond detection range. The Precursor cache remains hidden in the cosmic void.';
+      'The signal has faded beyond detection range. The result cache remains hidden in the cosmic void.';
 
   @override
   String signalTriangulationReveal(String sequence) {
@@ -1104,7 +1104,7 @@ class SEn extends S {
 
   @override
   String get cryptexLockBreakerInstructions =>
-      'An ancient Precursor Cryptex blocks your path! This mechanical vault uses interlocking mathematical equations as its combination. Rotate the dials to satisfy all equations simultaneously and unlock the secrets within.';
+      'A Code-Cryptex blocks your path! It uses interlocking mathematical equations as its combination. Rotate the dials to satisfy all equations simultaneously.';
 
   @override
   String get cryptexLockBreakerControls =>
@@ -1119,7 +1119,7 @@ class SEn extends S {
   @override
   String cryptexLockBreakerWinDesc(
       int totalScore, int complexityBonus, int equationBonus) {
-    return 'Brilliant work, Astro-Technician! You\'ve cracked the Precursor lock mechanism and earned $totalScore points. Complexity bonus: $complexityBonus • Equation bonus: $equationBonus';
+    return 'Brilliant work, Astro-Technician! You\'ve cracked the lock mechanism and earned $totalScore points. Complexity bonus: $complexityBonus • Equation bonus: $equationBonus';
   }
 
   @override

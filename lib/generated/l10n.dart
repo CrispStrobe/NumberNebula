@@ -1972,7 +1972,7 @@ abstract class S {
   /// No description provided for @signalTriangulationInstructions.
   ///
   /// In en, this message translates to:
-  /// **'A faint Precursor signal has been detected! Decode the frequency sequence by analyzing echo responses. Green dots = correct frequency in correct position, Orange rings = correct frequency in wrong position.'**
+  /// **'A faint signal has been detected! Decode the frequency sequence by analyzing echo responses. Green dots = correct frequency in correct position, Orange rings = correct frequency in wrong position.'**
   String get signalTriangulationInstructions;
 
   /// No description provided for @signalTriangulationAttempts.
@@ -2026,7 +2026,7 @@ abstract class S {
   /// No description provided for @signalTriangulationWinDesc.
   ///
   /// In en, this message translates to:
-  /// **'Excellent work, Astro-Technician! You triangulated the Precursor cache in {attempts} attempts, earning {totalScore} points. Efficiency bonus: {bonus} points!'**
+  /// **'Excellent work, Astro-Technician! You triangulated the sginal in {attempts} attempts, earning {totalScore} points. Efficiency bonus: {bonus} points!'**
   String signalTriangulationWinDesc(int attempts, int totalScore, int bonus);
 
   /// No description provided for @signalTriangulationLoseTitle.
@@ -2038,7 +2038,7 @@ abstract class S {
   /// No description provided for @signalTriangulationLoseDesc.
   ///
   /// In en, this message translates to:
-  /// **'The signal has faded beyond detection range. The Precursor cache remains hidden in the cosmic void.'**
+  /// **'The signal has faded beyond detection range. The result cache remains hidden in the cosmic void.'**
   String get signalTriangulationLoseDesc;
 
   /// No description provided for @signalTriangulationReveal.
@@ -2062,7 +2062,7 @@ abstract class S {
   /// No description provided for @cryptexLockBreakerInstructions.
   ///
   /// In en, this message translates to:
-  /// **'An ancient Precursor Cryptex blocks your path! This mechanical vault uses interlocking mathematical equations as its combination. Rotate the dials to satisfy all equations simultaneously and unlock the secrets within.'**
+  /// **'A Code-Cryptex blocks your path! It uses interlocking mathematical equations as its combination. Rotate the dials to satisfy all equations simultaneously.'**
   String get cryptexLockBreakerInstructions;
 
   /// No description provided for @cryptexLockBreakerControls.
@@ -2086,7 +2086,7 @@ abstract class S {
   /// No description provided for @cryptexLockBreakerWinDesc.
   ///
   /// In en, this message translates to:
-  /// **'Brilliant work, Astro-Technician! You\'ve cracked the Precursor lock mechanism and earned {totalScore} points. Complexity bonus: {complexityBonus} • Equation bonus: {equationBonus}'**
+  /// **'Brilliant work, Astro-Technician! You\'ve cracked the lock mechanism and earned {totalScore} points. Complexity bonus: {complexityBonus} • Equation bonus: {equationBonus}'**
   String cryptexLockBreakerWinDesc(
       int totalScore, int complexityBonus, int equationBonus);
 
