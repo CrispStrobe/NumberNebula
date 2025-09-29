@@ -418,7 +418,7 @@
     "progressMatrixDesc": "Die Farbe zeigt die Beherrschung (grün ist am besten). Die Zahl zeigt die Anzahl der Aufgaben in diesem Bereich.",
 
       "signalTriangulationGameTitle": "Signal-Triangulation",
-  "signalTriangulationInstructions": "Ein schwaches Precursor-Signal wurde erkannt! Entschlüssele die Frequenzfolge durch Analyse der Echo-Antworten. Grüne Punkte = richtige Frequenz an richtiger Position, Orange Ringe = richtige Frequenz an falscher Position.",
+  "signalTriangulationInstructions": "Ein schwaches Weltraum-Signal wurde erkannt! Entschlüssele die Folge durch Analyse der Echo-Antworten. Grüne Punkte = richtige Frequenz an richtiger Position, Orange Ringe = richtige Frequenz an falscher Position.",
   
   "signalTriangulationAttempts": "Versuche: {current}/{max}",
   "@signalTriangulationAttempts": {
@@ -443,7 +443,7 @@
   "signalTriangulationTransmit": "Senden",
   
   "signalTriangulationWinTitle": "Signalquelle lokalisiert!",
-  "signalTriangulationWinDesc": "Ausgezeichnete Arbeit, Astro-Techniker! Du hast den Precursor-Speicher in {attempts} Versuchen trianguliert und {totalScore} Punkte verdient. Effizienz-Bonus: {bonus} Punkte!",
+  "signalTriangulationWinDesc": "Ausgezeichnete Arbeit, Astro-Techniker! Du hast Signal in {attempts} Versuchen trianguliert und {totalScore} Punkte verdient. Effizienz-Bonus: {bonus} Punkte!",
   "@signalTriangulationWinDesc": {
     "placeholders": {
       "attempts": {"type": "int"},
@@ -453,7 +453,7 @@
   },
   
   "signalTriangulationLoseTitle": "Signal im Rauschen verloren",
-  "signalTriangulationLoseDesc": "Das Signal ist jenseits der Erkennungsreichweite verblasst. Der Precursor-Speicher bleibt in der kosmischen Leere verborgen.",
+  "signalTriangulationLoseDesc": "Das Signal ist jenseits der Erkennungsreichweite verblasst. Das Signal bleibt in der kosmischen Leere verborgen.",
   
   "signalTriangulationReveal": "Die korrekte Sequenz war: {sequence}",
   "@signalTriangulationReveal": {
@@ -465,13 +465,13 @@
   "nextSignal": "Nächstes Signal",
 
   "cryptexLockBreakerGameTitle": "Kryptex-Schloss-Knacker",
-  "cryptexLockBreakerInstructions": "Ein antikes Precursor-Kryptex versperrt deinen Weg! Dieser mechanische Tresor nutzt ineinandergreifende mathematische Gleichungen als Kombination. Drehe die Scheiben, um alle Gleichungen gleichzeitig zu erfüllen und die Geheimnisse darin zu entsperren.",
+  "cryptexLockBreakerInstructions": "Das Code-Kryptex nutzt ineinandergreifende Gleichungen als Kombination. Drehe die Scheiben, um alle Gleichungen gleichzeitig zu erfüllen.",
   
   "cryptexLockBreakerControls": "Tippe und ziehe Scheiben hoch/runter zum Drehen • Beobachte, wie Gleichungen grün werden, wenn gelöst",
   "cryptexLockBreakerEquations": "Schloss-Gleichungen",
   
   "cryptexLockBreakerWinTitle": "Kryptex entsperrt!",
-  "cryptexLockBreakerWinDesc": "Brillante Arbeit, Astro-Techniker! Du hast den Precursor-Schlossmechanismus geknackt und {totalScore} Punkte verdient. Komplexitäts-Bonus: {complexityBonus} • Gleichungs-Bonus: {equationBonus}",
+  "cryptexLockBreakerWinDesc": "Brillante Arbeit, Astro-Techniker! Du hast den Schlossmechanismus geknackt und {totalScore} Punkte verdient. Komplexitäts-Bonus: {complexityBonus} • Gleichungs-Bonus: {equationBonus}",
   "@cryptexLockBreakerWinDesc": {
     "placeholders": {
       "totalScore": {"type": "int"},

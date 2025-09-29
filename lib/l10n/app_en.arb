@@ -486,7 +486,7 @@
     "progressMatrixDesc": "Color shows mastery (green is best). Number shows problems tracked in that area.",
 
       "signalTriangulationGameTitle": "Signal Triangulation",
-  "signalTriangulationInstructions": "A faint Precursor signal has been detected! Decode the frequency sequence by analyzing echo responses. Green dots = correct frequency in correct position, Orange rings = correct frequency in wrong position.",
+  "signalTriangulationInstructions": "A faint signal has been detected! Decode the frequency sequence by analyzing echo responses. Green dots = correct frequency in correct position, Orange rings = correct frequency in wrong position.",
   
   "signalTriangulationAttempts": "Attempts: {current}/{max}",
   "@signalTriangulationAttempts": {
@@ -511,7 +511,7 @@
   "signalTriangulationTransmit": "Transmit",
   
   "signalTriangulationWinTitle": "Signal Source Located!",
-  "signalTriangulationWinDesc": "Excellent work, Astro-Technician! You triangulated the Precursor cache in {attempts} attempts, earning {totalScore} points. Efficiency bonus: {bonus} points!",
+  "signalTriangulationWinDesc": "Excellent work, Astro-Technician! You triangulated the sginal in {attempts} attempts, earning {totalScore} points. Efficiency bonus: {bonus} points!",
   "@signalTriangulationWinDesc": {
     "placeholders": {
       "attempts": {"type": "int"},
@@ -521,7 +521,7 @@
   },
   
   "signalTriangulationLoseTitle": "Signal Lost in Static",
-  "signalTriangulationLoseDesc": "The signal has faded beyond detection range. The Precursor cache remains hidden in the cosmic void.",
+  "signalTriangulationLoseDesc": "The signal has faded beyond detection range. The result cache remains hidden in the cosmic void.",
   
   "signalTriangulationReveal": "The correct sequence was: {sequence}",
   "@signalTriangulationReveal": {
@@ -533,13 +533,13 @@
   "nextSignal": "Next Signal",
 
   "cryptexLockBreakerGameTitle": "Cryptex Lock Breaker",
-  "cryptexLockBreakerInstructions": "An ancient Precursor Cryptex blocks your path! This mechanical vault uses interlocking mathematical equations as its combination. Rotate the dials to satisfy all equations simultaneously and unlock the secrets within.",
+  "cryptexLockBreakerInstructions": "A Code-Cryptex blocks your path! It uses interlocking mathematical equations as its combination. Rotate the dials to satisfy all equations simultaneously.",
   
   "cryptexLockBreakerControls": "Tap and drag dials up/down to rotate • Watch the equations turn green when solved",
   "cryptexLockBreakerEquations": "Lock Equations",
   
   "cryptexLockBreakerWinTitle": "Cryptex Unlocked!",
-  "cryptexLockBreakerWinDesc": "Brilliant work, Astro-Technician! You've cracked the Precursor lock mechanism and earned {totalScore} points. Complexity bonus: {complexityBonus} • Equation bonus: {equationBonus}",
+  "cryptexLockBreakerWinDesc": "Brilliant work, Astro-Technician! You've cracked the lock mechanism and earned {totalScore} points. Complexity bonus: {complexityBonus} • Equation bonus: {equationBonus}",
   "@cryptexLockBreakerWinDesc": {
     "placeholders": {
       "totalScore": {"type": "int"},

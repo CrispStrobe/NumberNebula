@@ -120,6 +120,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       _isGenerating = true;
       _successController.reset();
       userSolution.clear();
+      _loggedEquations.clear(); // Reset equation tracking for new puzzle
     });
 
     try {
@@ -142,11 +143,11 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       if (mounted) {
         setState(() {
           puzzle = generatedPuzzle;
-          numberPool = List.from(generatedPuzzle.numberPool);
+          numberPool = List.from(generatedPuzzle.numberPool)..sort(); // Always keep sorted
           _isGenerating = false;
         });
         debugPrint("🎯 [ARITHMETIC SQUARE] UI state updated with new puzzle");
-        debugPrint("🎯 [ARITHMETIC SQUARE] Number pool: ${numberPool.join(', ')}");
+        debugPrint("🎯 [ARITHMETIC SQUARE] Number pool (sorted): ${numberPool.join(', ')}");
         debugPrint("🎯 [ARITHMETIC SQUARE] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
         debugPrint("🎯 [ARITHMETIC SQUARE] Player hints: ${generatedPuzzle.playerHints.keys.join(', ')}");
       }
@@ -189,6 +190,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     debugPrint("✅ [ARITHMETIC SQUARE] User solution: $userSolution");
     debugPrint("✅ [ARITHMETIC SQUARE] Required cells: ${puzzle!.emptyCells.length}");
     
+    // Check for completed equations and log them to SRI immediately
+    _checkAndLogCompletedEquations();
+    
     if (userSolution.length == puzzle!.emptyCells.length) {
       debugPrint("✅ [ARITHMETIC SQUARE] All cells filled, validating solution");
       
@@ -196,7 +200,6 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       debugPrint("✅ [ARITHMETIC SQUARE] Solution validation result: $isValid");
       
       if (isValid) {
-        _logSolvedProblemsToSRI(userSolution);
         _handleSuccess();
       } else {
         _handleIncorrect();
@@ -205,102 +208,115 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       debugPrint("✅ [ARITHMETIC SQUARE] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
     }
   }
-
-  void _logSolvedProblemsToSRI(Map<String, int> solution) {
-    debugPrint("🔢 SRI: Logging all solved problems for the completed square...");
+  
+  // NEW: Track which equations have been logged to SRI
+  final Set<String> _loggedEquations = {};
+  
+  void _checkAndLogCompletedEquations() {
     final sriService = context.read<SriService>();
     
-    // Create the complete grid with user solutions and player hints
-    final completeGrid = Map<String, int>.from(puzzle!.clues);
-    completeGrid.addAll(puzzle!.playerHints);
-    completeGrid.addAll(solution);
+    // Create the current grid state with clues, hints, and user solutions
+    final currentGrid = Map<String, int>.from(puzzle!.clues);
+    currentGrid.addAll(puzzle!.playerHints);
+    currentGrid.addAll(userSolution);
     
-    // Log each row equation
+    // Check each row equation
     for (int r = 0; r < puzzle!.gridSize; r++) {
+      final equationId = 'row_$r';
+      if (_loggedEquations.contains(equationId)) continue;
+      
+      // Check if all cells in this row are filled
+      bool rowComplete = true;
       final values = <int>[];
       for (int c = 0; c < puzzle!.gridSize; c++) {
-        values.add(completeGrid['r${r}c$c']!);
+        final cellId = 'r${r}c$c';
+        if (!currentGrid.containsKey(cellId)) {
+          rowComplete = false;
+          break;
+        }
+        values.add(currentGrid[cellId]!);
       }
       
-      // Create math problems for each operation in the row
-      for (int opIndex = 0; opIndex < puzzle!.rowOperators[r].length; opIndex++) {
-        final operator = puzzle!.rowOperators[r][opIndex];
-        final operand1 = values[opIndex];
-        final operand2 = values[opIndex + 1];
-        
-        MathProblem? problem;
-        switch (operator) {
-          case '+':
-            problem = MathProblem.addition(operand1, operand2);
-            break;
-          case '−':
-          case '-':
-            problem = MathProblem.subtraction(math.max(operand1, operand2), math.min(operand1, operand2));
-            break;
-          case '×':
-          case '*':
-            problem = MathProblem.multiplication(operand1, operand2);
-            break;
-          case '÷':
-          case '/':
-            if (operand2 != 0 && operand1 % operand2 == 0) {
-              problem = MathProblem.division(operand1, operand2);
-            } else if (operand1 != 0 && operand2 % operand1 == 0) {
-              problem = MathProblem.division(operand2, operand1);
-            }
-            break;
+      if (rowComplete) {
+        // Log each operation in this row
+        for (int opIndex = 0; opIndex < puzzle!.rowOperators[r].length; opIndex++) {
+          final operator = puzzle!.rowOperators[r][opIndex];
+          final operand1 = values[opIndex];
+          final operand2 = values[opIndex + 1];
+          
+          final problem = _createMathProblem(operator, operand1, operand2);
+          if (problem != null) {
+            // The equation is complete - validate it
+            final isCorrect = puzzle!.validateSingleEquation(currentGrid, r, true);
+            sriService.recordResponse(problem, isCorrect);
+            debugPrint("🔢 SRI: Logged row $r problem -> ${problem.expression} (correct: $isCorrect)");
+          }
         }
-        
-        if (problem != null) {
-          sriService.recordResponse(problem, true);
-          debugPrint("🔢 SRI: Logged row problem -> ${problem.expression}");
-        }
+        _loggedEquations.add(equationId);
       }
     }
     
-    // Log each column equation
+    // Check each column equation
     for (int c = 0; c < puzzle!.gridSize; c++) {
+      final equationId = 'col_$c';
+      if (_loggedEquations.contains(equationId)) continue;
+      
+      // Check if all cells in this column are filled
+      bool colComplete = true;
       final values = <int>[];
       for (int r = 0; r < puzzle!.gridSize; r++) {
-        values.add(completeGrid['r${r}c$c']!);
+        final cellId = 'r${r}c$c';
+        if (!currentGrid.containsKey(cellId)) {
+          colComplete = false;
+          break;
+        }
+        values.add(currentGrid[cellId]!);
       }
       
-      // Create math problems for each operation in the column
-      for (int opIndex = 0; opIndex < puzzle!.columnOperators[c].length; opIndex++) {
-        final operator = puzzle!.columnOperators[c][opIndex];
-        final operand1 = values[opIndex];
-        final operand2 = values[opIndex + 1];
-        
-        MathProblem? problem;
-        switch (operator) {
-          case '+':
-            problem = MathProblem.addition(operand1, operand2);
-            break;
-          case '−':
-          case '-':
-            problem = MathProblem.subtraction(math.max(operand1, operand2), math.min(operand1, operand2));
-            break;
-          case '×':
-          case '*':
-            problem = MathProblem.multiplication(operand1, operand2);
-            break;
-          case '÷':
-          case '/':
-            if (operand2 != 0 && operand1 % operand2 == 0) {
-              problem = MathProblem.division(operand1, operand2);
-            } else if (operand1 != 0 && operand2 % operand1 == 0) {
-              problem = MathProblem.division(operand2, operand1);
-            }
-            break;
+      if (colComplete) {
+        // Log each operation in this column
+        for (int opIndex = 0; opIndex < puzzle!.columnOperators[c].length; opIndex++) {
+          final operator = puzzle!.columnOperators[c][opIndex];
+          final operand1 = values[opIndex];
+          final operand2 = values[opIndex + 1];
+          
+          final problem = _createMathProblem(operator, operand1, operand2);
+          if (problem != null) {
+            // The equation is complete - validate it
+            final isCorrect = puzzle!.validateSingleEquation(currentGrid, c, false);
+            sriService.recordResponse(problem, isCorrect);
+            debugPrint("🔢 SRI: Logged column $c problem -> ${problem.expression} (correct: $isCorrect)");
+          }
         }
-        
-        if (problem != null) {
-          sriService.recordResponse(problem, true);
-          debugPrint("🔢 SRI: Logged column problem -> ${problem.expression}");
-        }
+        _loggedEquations.add(equationId);
       }
     }
   }
+  
+  MathProblem? _createMathProblem(String operator, int operand1, int operand2) {
+    switch (operator) {
+      case '+':
+        return MathProblem.addition(operand1, operand2);
+      case '−':
+      case '-':
+        return MathProblem.subtraction(math.max(operand1, operand2), math.min(operand1, operand2));
+      case '×':
+      case '*':
+        return MathProblem.multiplication(operand1, operand2);
+      case '÷':
+      case '/':
+        if (operand2 != 0 && operand1 % operand2 == 0) {
+          return MathProblem.division(operand1, operand2);
+        } else if (operand1 != 0 && operand2 % operand1 == 0) {
+          return MathProblem.division(operand2, operand1);
+        }
+        return null;
+      default:
+        return null;
+    }
+  }
+
+
 
   void _handleSuccess() {
     debugPrint("🎉 [ARITHMETIC SQUARE] SUCCESS! Player solved the puzzle!");
@@ -314,7 +330,12 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     int totalScore = baseScore + complexityBonus + operationBonus;
     debugPrint("🎉 [ARITHMETIC SQUARE] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
     
-    context.read<GameProvider>().addScore(totalScore);
+    final gameProvider = context.read<GameProvider>();
+    gameProvider.addScore(totalScore);
+    
+    // Track game progress like PathFinderGame does
+    gameProvider.updateGameProgress('arithmetic_square', widget.level);
+    
     _successController.forward(from: 0.0);
     
     if (mounted) {
@@ -973,7 +994,7 @@ class ArithmeticSquarePuzzle {
     
     // Validate all rows
     for (int r = 0; r < gridSize; r++) {
-      if (!_validateEquation(completeGrid, r, true)) {
+      if (!validateSingleEquation(completeGrid, r, true)) {
         debugPrint("✅ [VALIDATION] ❌ Row $r validation failed");
         return false;
       }
@@ -981,7 +1002,7 @@ class ArithmeticSquarePuzzle {
     
     // Validate all columns
     for (int c = 0; c < gridSize; c++) {
-      if (!_validateEquation(completeGrid, c, false)) {
+      if (!validateSingleEquation(completeGrid, c, false)) {
         debugPrint("✅ [VALIDATION] ❌ Column $c validation failed");
         return false;
       }
@@ -990,18 +1011,29 @@ class ArithmeticSquarePuzzle {
     debugPrint("✅ [VALIDATION] ✅ Solution is valid!");
     return true;
   }
-
-  bool _validateEquation(Map<String, int> grid, int index, bool isRow) {
+  
+  /// NEW: Validate a single equation (row or column)
+  /// Used for real-time SRI logging as equations are completed
+  bool validateSingleEquation(Map<String, int> grid, int index, bool isRow) {
     final operators = isRow ? rowOperators[index] : columnOperators[index];
     final values = <int>[];
     
+    // Gather all values for this equation
     for (int i = 0; i < gridSize; i++) {
       final cellId = isRow ? 'r${index}c$i' : 'r${i}c$index';
-      values.add(grid[cellId]!);
+      final value = grid[cellId];
+      if (value == null) return false; // Can't validate incomplete equation
+      values.add(value);
     }
     
     // Calculate left side of equation using the exact same logic as gensq.dart
-    return _evaluateEquation(values, operators) == values.last;
+    final calculatedResult = _evaluateEquation(values.sublist(0, values.length - 1), operators);
+    final expectedResult = values.last;
+    
+    final isValid = calculatedResult == expectedResult;
+    debugPrint("✅ [VALIDATION] ${isRow ? 'Row' : 'Column'} $index: calculated=$calculatedResult, expected=$expectedResult, valid=$isValid");
+    
+    return isValid;
   }
 
   int? _evaluateEquation(List<int> operands, List<String> ops) {

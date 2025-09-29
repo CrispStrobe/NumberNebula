@@ -1,7 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'dart:math' as math;
+import 'dart:async';
+
 import 'package:dart_csp/dart_csp.dart';
 
 import '../../../core/theme/space_theme.dart';
@@ -167,6 +170,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
+  Set<int> correctNumbers = {};
+  Set<int> decoyNumbers = {};
+
   CrosswordPuzzle? puzzle;
   Map<String, int> userSolution = {};
   List<int> numberPool = [];
@@ -241,7 +247,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   void _generatePuzzle() async {
     if (currentDifficulty == null) return;
     
-    debugPrint("🎯 [ARITHMANCER CROSSWORDS] Starting puzzle generation process");
+    debugPrint("🎯 [GEN-START] ========================================");
+    debugPrint("🎯 [GEN-START] Starting puzzle generation process");
+    debugPrint("🎯 [GEN-START] Grade: ${widget.grade}, Level: ${widget.level}");
     
     setState(() {
       _isGenerating = true;
@@ -249,37 +257,201 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       userSolution.clear();
     });
 
-    try {
-      final gameProvider = context.read<GameProvider>();
-      final puzzleArgs = {
-        'grade': widget.grade,
-        'level': widget.level,
-        'difficulty': currentDifficulty!,
-        'useCustomSettings': gameProvider.useCustomProblemSettings,
-        'customOps': gameProvider.customOperations.toList(),
-        'customMin': gameProvider.customRangeMin,
-        'customMax': gameProvider.customRangeMax,
-      };
+    const int maxRetries = 3;
+    const int perAttemptTimeout = 8; // seconds per attempt
+    
+    CrosswordPuzzle? generatedPuzzle;
+    
+    for (int retry = 1; retry <= maxRetries; retry++) {
+      debugPrint("🎯 [GEN-RETRY-$retry] ========================================");
+      debugPrint("🎯 [GEN-RETRY-$retry] Starting generation attempt $retry/$maxRetries");
+      
+      try {
+        final gameProvider = context.read<GameProvider>();
+        final puzzleArgs = {
+          'grade': widget.grade,
+          'level': widget.level,
+          'difficulty': currentDifficulty!,
+          'useCustomSettings': gameProvider.useCustomProblemSettings,
+          'customOps': gameProvider.customOperations.toList(),
+          'customMin': gameProvider.customRangeMin,
+          'customMax': gameProvider.customRangeMax,
+          'attemptNumber': retry,
+        };
 
-      debugPrint("🎯 [ARITHMANCER CROSSWORDS] Calling compute function with args: $puzzleArgs");
-      final generatedPuzzle = await compute(CrosswordPuzzle.generate, puzzleArgs);
-      
-      debugPrint("🎯 [ARITHMANCER CROSSWORDS] Puzzle generation completed successfully");
-      
-      if (mounted) {
+        debugPrint("🎯 [GEN-RETRY-$retry] Prepared args: $puzzleArgs");
+        debugPrint("🎯 [GEN-RETRY-$retry] Calling compute() with ${perAttemptTimeout}s timeout...");
+        
+        final computeStart = DateTime.now();
+        
+        // Try to generate with per-attempt timeout
+        generatedPuzzle = await compute(CrosswordPuzzle.generate, puzzleArgs)
+            .timeout(
+              Duration(seconds: perAttemptTimeout),
+              onTimeout: () {
+                final elapsed = DateTime.now().difference(computeStart).inSeconds;
+                debugPrint("⏰ [GEN-RETRY-$retry] TIMEOUT after ${elapsed}s (limit: ${perAttemptTimeout}s)");
+                throw TimeoutException('Generation timeout at $elapsed seconds');
+              },
+            );
+        
+        final elapsed = DateTime.now().difference(computeStart).inMilliseconds;
+        debugPrint("✅ [GEN-RETRY-$retry] compute() returned successfully after ${elapsed}ms");
+        debugPrint("✅ [GEN-RETRY-$retry] Puzzle object received: ${generatedPuzzle != null}");
+        
+        if (generatedPuzzle != null) {
+          debugPrint("✅ [GEN-RETRY-$retry] Validating puzzle structure...");
+          debugPrint("✅ [GEN-RETRY-$retry]   - Clues: ${generatedPuzzle.clues.length}");
+          debugPrint("✅ [GEN-RETRY-$retry]   - Empty cells: ${generatedPuzzle.emptyCells.length}");
+          debugPrint("✅ [GEN-RETRY-$retry]   - Equations: ${generatedPuzzle.equations.length}");
+          debugPrint("✅ [GEN-RETRY-$retry]   - Number pool: ${generatedPuzzle.numberPool.length}");
+          debugPrint("✅ [GEN-RETRY-$retry]   - Number cells: ${generatedPuzzle.numberCells.length}");
+          debugPrint("✅ [GEN-RETRY-$retry]   - Operator cells: ${generatedPuzzle.operatorCells.length}");
+          debugPrint("✅ [GEN-RETRY-$retry] Puzzle structure looks valid!");
+        }
+        
+        debugPrint("✅ [GEN-RETRY-$retry] SUCCESS - Breaking out of retry loop");
+        break; // Success! Exit retry loop
+        
+      } on TimeoutException catch (e) {
+        debugPrint("⏰ [GEN-RETRY-$retry] CAUGHT TimeoutException: $e");
+        if (retry == maxRetries) {
+          debugPrint("❌ [GEN-RETRY-$retry] All $maxRetries retry attempts exhausted due to timeout");
+        } else {
+          debugPrint("🔄 [GEN-RETRY-$retry] Will retry (attempt ${retry + 1}/$maxRetries)");
+        }
+        continue; // Try again
+      } catch (e, stackTrace) {
+        debugPrint("❌ [GEN-RETRY-$retry] CAUGHT Exception: $e");
+        debugPrint("❌ [GEN-RETRY-$retry] Exception Type: ${e.runtimeType}");
+        debugPrint("❌ [GEN-RETRY-$retry] StackTrace: $stackTrace");
+        if (retry == maxRetries) {
+          debugPrint("❌ [GEN-RETRY-$retry] All $maxRetries retry attempts exhausted due to error");
+        } else {
+          debugPrint("🔄 [GEN-RETRY-$retry] Will retry (attempt ${retry + 1}/$maxRetries)");
+        }
+        continue; // Try again
+      }
+    }
+    
+    debugPrint("🎯 [GEN-RESULT] ========================================");
+    debugPrint("🎯 [GEN-RESULT] Generation complete. Result: ${generatedPuzzle != null ? 'SUCCESS' : 'FAILURE'}");
+    
+    if (!mounted) {
+      debugPrint("⚠️ [GEN-RESULT] Widget not mounted, aborting setState");
+      return;
+    }
+    
+    // Handle the result
+    if (generatedPuzzle != null) {
+      try {
+        debugPrint("🎯 [GEN-RESULT] Starting UI update...");
+        debugPrint("🎯 [GEN-RESULT] Calling _initializeNumberPool...");
+        
+        _initializeNumberPool(generatedPuzzle);
+        
+        debugPrint("🎯 [GEN-RESULT] _initializeNumberPool completed");
+        debugPrint("🎯 [GEN-RESULT] Calling setState...");
+        
         setState(() {
           puzzle = generatedPuzzle;
-          numberPool = List.from(generatedPuzzle.numberPool);
           _isGenerating = false;
         });
-        debugPrint("🎯 [ARITHMANCER CROSSWORDS] UI state updated with new puzzle");
-        debugPrint("🎯 [ARITHMANCER CROSSWORDS] Number pool: ${numberPool.join(', ')}");
-        debugPrint("🎯 [ARITHMANCER CROSSWORDS] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+        
+        debugPrint("✅ [GEN-RESULT] setState completed successfully");
+        debugPrint("✅ [GEN-RESULT] Number pool: ${numberPool.join(', ')}");
+        debugPrint("✅ [GEN-RESULT] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+        debugPrint("🎯 [GEN-END] ========================================");
+      } catch (e, stackTrace) {
+        debugPrint("❌ [GEN-RESULT] ERROR during UI update: $e");
+        debugPrint("❌ [GEN-RESULT] StackTrace: $stackTrace");
+        
+        setState(() {
+          _isGenerating = false;
+        });
+        
+        _showGenerationFailedDialog();
       }
-    } catch (e, stackTrace) {
-      debugPrint("❌ [ARITHMANCER CROSSWORDS] Error generating puzzle: $e");
-      debugPrint("❌ [ARITHMANCER CROSSWORDS] StackTrace: $stackTrace");
+    } else {
+      // Failed to generate puzzle - show error dialog
+      debugPrint("❌ [GEN-RESULT] No puzzle generated, showing error dialog");
+      setState(() {
+        _isGenerating = false;
+      });
+      
+      _showGenerationFailedDialog();
     }
+  }
+
+  void _showGenerationFailedDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: SpaceTheme.cardDecoration,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: SpaceTheme.rocketRed),
+              const SizedBox(height: 16),
+              Text(
+                'Puzzle Generation Failed',
+                style: SpaceTheme.headlineStyle,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Unable to generate a puzzle at this difficulty. Try again or return to the menu.',
+                style: SpaceTheme.bodyStyle,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close dialog
+                      Navigator.of(context).pop(); // Exit game
+                    },
+                    style: SpaceTheme.secondaryButtonStyle,
+                    child: Text(S.of(context)!.backToMenu),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close dialog
+                      _generatePuzzle(); // Try again
+                    },
+                    style: SpaceTheme.primaryButtonStyle,
+                    child: const Text('Try Again'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _initializeNumberPool(CrosswordPuzzle generatedPuzzle) {
+    // Identify which numbers are correct (in solution) vs decoys
+    correctNumbers = generatedPuzzle.emptyCells
+        .map((cellId) => generatedPuzzle.fullSolution[cellId]!)
+        .toSet();
+    
+    decoyNumbers = generatedPuzzle.numberPool
+        .where((n) => !correctNumbers.contains(n))
+        .toSet();
+    
+    numberPool = List.from(generatedPuzzle.numberPool)..sort();  // sorted!
+    
+    debugPrint("🎯 [POOL INIT] Correct numbers: $correctNumbers");
+    debugPrint("🎯 [POOL INIT] Decoy numbers: $decoyNumbers");
+    debugPrint("🎯 [POOL INIT] Initial pool (sorted): $numberPool");
   }
 
   void _placeNumber(int number, String cellId) {
@@ -287,23 +459,67 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     
     setState(() {
       userSolution[cellId] = number;
-      // DON'T remove number from pool - allow reuse!
       _lastDroppedPosition = cellId;
       _dropController.forward(from: 0.0);
+      _updateNumberPool();
     });
 
     debugPrint("🎮 [PLACE] User solution after: $userSolution");
-    debugPrint("🎮 [PLACE] Number pool remains: $numberPool");
+    debugPrint("🎮 [PLACE] Updated pool: $numberPool");
     _checkSolution();
   }
 
   void _removeNumber(String cellId) {
-    debugPrint("🗑️ [ARITHMANCER CROSSWORDS] Removing number from cell $cellId");
+    debugPrint("🗑️ [REMOVE] Removing number from cell $cellId");
     
     setState(() {
       userSolution.remove(cellId);
-      // No need to add back to pool since numbers aren't consumed
+      _updateNumberPool();
     });
+    
+    debugPrint("🗑️ [REMOVE] Updated pool: $numberPool");
+  }
+
+  void _updateNumberPool() {
+    if (puzzle == null) return;
+    
+    // Count how many of each number is needed in the solution
+    final solutionCounts = <int, int>{};
+    for (final cellId in puzzle!.emptyCells) {
+      final number = puzzle!.fullSolution[cellId]!;
+      solutionCounts[number] = (solutionCounts[number] ?? 0) + 1;
+    }
+    
+    // Count how many of each number has been placed by the user
+    final placedCounts = <int, int>{};
+    for (final number in userSolution.values) {
+      placedCounts[number] = (placedCounts[number] ?? 0) + 1;
+    }
+    
+    final newPool = <int>[];
+    
+    // For each correct number, add remaining needed instances
+    for (final number in solutionCounts.keys) {
+      final needed = solutionCounts[number]!;
+      final placed = placedCounts[number] ?? 0;
+      final remaining = needed - placed;
+      
+      for (int i = 0; i < remaining; i++) {
+        newPool.add(number);
+      }
+    }
+    
+    // Always keep all decoy numbers available (they can't be "used up")
+    newPool.addAll(decoyNumbers);
+    
+    // Shuffle to maintain visual randomness
+    newPool.sort();  // CHANGED FROM shuffle() to sort()
+    
+    numberPool = newPool;
+    
+    debugPrint("🔄 [POOL UPDATE] Solution needs: $solutionCounts");
+    debugPrint("🔄 [POOL UPDATE] User placed: $placedCounts");
+    debugPrint("🔄 [POOL UPDATE] New pool size: ${newPool.length}");
   }
 
   void _checkSolution() {
@@ -1314,47 +1530,55 @@ class AsciiRenderer {
   }
 }
 
-/// MAIN GENERATOR - EXACT COPY OF main() from gencw.dart with matching logs
+/// MAIN GENERATOR
 Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
-  debugPrint('--- MATH CROSSWORD PUZZLE GENERATOR & SOLVER ---');
-  debugPrint(
-      'Config: Range=${config.minN}-${config.maxN}, Ops=${config.ops}, Edges=${config.targetEdges}, Clues=${config.numClues}, NoDups=${config.noDups}, Timeout=${config.timeoutSeconds}s');
+  debugPrint('🔧 [GENERATOR] ========================================');
+  debugPrint('🔧 [GENERATOR] MATH CROSSWORD PUZZLE GENERATOR & SOLVER');
+  debugPrint('🔧 [GENERATOR] Config: Range=${config.minN}-${config.maxN}, Ops=${config.ops}, Edges=${config.targetEdges}, Clues=${config.numClues}, NoDups=${config.noDups}, Timeout=${config.timeoutSeconds}s');
 
   dynamic solution;
   PuzzleParser? successfulPuzzle;
   Map<String, int> finalClues = {};
-  const maxAttempts = 100;
+  const maxAttempts = 50; // Reduced from 100
+  
+  final totalStopwatch = Stopwatch()..start();
+  const maxTotalSeconds = 6; // Hard limit
 
   for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-    debugPrint('\n' + ('-' * 60));
-    debugPrint('--- ATTEMPT $attempt/$maxAttempts ---');
+    if (totalStopwatch.elapsed.inSeconds >= maxTotalSeconds) {
+      debugPrint("⏰ [GENERATOR] Hard timeout at ${totalStopwatch.elapsed.inSeconds}s (max: ${maxTotalSeconds}s)");
+      break;
+    }
+    
+    debugPrint('🔧 [GENERATOR] ------------------------------------------------------------');
+    debugPrint('🔧 [GENERATOR] ATTEMPT $attempt/$maxAttempts (elapsed: ${totalStopwatch.elapsed.inSeconds}s)');
 
     // STEP 1: Generate a valid pattern
-    debugPrint("[1] Generating pattern...");
-    PuzzleParser puzzle;
+    debugPrint("🔧 [GENERATOR] [1] Generating pattern...");
+    PuzzleParser? puzzle;
     int patternAttempt = 0;
     do {
       patternAttempt++;
+      if (patternAttempt > 20) { // Don't spend forever on pattern
+        debugPrint("🔧 [GENERATOR]   -> Pattern generation taking too long, restarting attempt");
+        break;
+      }
       final generator = GridPatternGenerator(targetEdges: config.targetEdges);
       final rawGrid = generator.generatePattern();
-      
-
-      
       puzzle = PuzzleParser(rawGrid, config);
-    } while (!puzzle.isPatternValid() && patternAttempt < 100);
+    } while (puzzle?.isPatternValid() != true && patternAttempt < 20);
 
-    if (!puzzle.isPatternValid()) {
-      debugPrint("  -> FAILED to generate a valid puzzle pattern. Retrying...");
-      continue; // Restart the main loop
+    if (puzzle == null || !puzzle.isPatternValid()) {
+      debugPrint("🔧 [GENERATOR]   -> FAILED to generate valid pattern, retrying...");
+      continue;
     }
 
     final allVarNames =
         puzzle.numberCellLocations.map((p) => 'C_${p.y}_${p.x}').toList();
-    debugPrint(
-        "  -> Pattern found with ${puzzle.equations.length} equations and ${allVarNames.length} cells.");
+    debugPrint("🔧 [GENERATOR]   -> Pattern OK: ${puzzle.equations.length} equations, ${allVarNames.length} cells");
 
-    // STEP 2: Generate intelligent clues
-    debugPrint("[2] Generating ${config.numClues} 'Power Position' clues...");
+    // STEP 2: Generate clues (keeping existing logic)
+    debugPrint("🔧 [GENERATOR] [2] Generating ${config.numClues} clues...");
     final clues = <String, int>{};
     final domain = List<int>.generate(config.maxN - config.minN + 1, (i) => i + config.minN);
 
@@ -1377,9 +1601,9 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
       if (candidates.isEmpty) break;
       final bestCandidate = candidates.first;
 
-      final chosenEquation = puzzle.equations.firstWhere(
+      final chosenEquation = puzzle!.equations.firstWhere(
         (eq) => eq.variableNames.contains(bestCandidate) && !disqualifiedEquations.contains(eq),
-        orElse: () => puzzle.equations.first,
+        orElse: () => puzzle!.equations.first,
       );
 
       String clueVariable;
@@ -1409,10 +1633,10 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
       clues[clueVar] = clueValue;
       if (config.noDups) usedClueValues.add(clueValue);
     }
-    debugPrint("  -> Clues placed: $clues");
+    debugPrint("🔧 [GENERATOR]   -> Clues: $clues");
 
-    // STEP 3: Formulate and solve the CSP with a timeout
-    debugPrint("[3] Solving puzzle (timeout in ${config.timeoutSeconds}s)...");
+    // STEP 3: Solve CSP
+    debugPrint("🔧 [GENERATOR] [3] Solving CSP (timeout: ${config.timeoutSeconds}s)...");
     final p = Problem();
     final fullDomain = List<int>.generate(config.maxN - config.minN + 1, (i) => i + config.minN);
     if (config.noDups) {
@@ -1425,7 +1649,7 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
         p.addVariable(varName, fullDomain);
       }
     }
-    for (final eq in puzzle.equations) {
+    for (final eq in puzzle!.equations) {
       p.addConstraint(eq.variableNames, (assignment) {
         final a = assignment[eq.variableNames[0]];
         final b = assignment[eq.variableNames[1]];
@@ -1449,50 +1673,58 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
       p.addAllDifferent(allVarNames);
     }
 
-    final stopwatch = Stopwatch()..start();
+    final solveStopwatch = Stopwatch()..start();
     try {
       final potentialSolution = await p
           .getSolution()
           .timeout(Duration(seconds: config.timeoutSeconds));
-      stopwatch.stop();
+      solveStopwatch.stop();
 
       if (potentialSolution != 'FAILURE') {
-        debugPrint(
-            "  -> SUCCESS! Solution found in ${stopwatch.elapsedMilliseconds}ms.");
+        debugPrint("🔧 [GENERATOR]   -> SOLVED in ${solveStopwatch.elapsedMilliseconds}ms");
         solution = potentialSolution;
-        successfulPuzzle = puzzle;
+        successfulPuzzle = puzzle!;
         finalClues = clues;
-        debugPrint("\n[4] Puzzle to be solved:");
-        final emptyRenderer = AsciiRenderer(puzzle, config, solution: clues);
+        
+        debugPrint("🔧 [GENERATOR] [4] Rendering ASCII preview...");
+        final emptyRenderer = AsciiRenderer(puzzle!, config, solution: clues);
         debugPrint(emptyRenderer.render());
         break;
       } else {
-        debugPrint(
-            "  -> UNSOLVABLE. The generated clues create a contradiction. Retrying...");
+        debugPrint("🔧 [GENERATOR]   -> UNSOLVABLE (contradiction in clues)");
       }
     } catch (e) {
-      stopwatch.stop();
-      debugPrint(
-          "  -> TIMEOUT. The puzzle is too complex to solve in ${stopwatch.elapsedMilliseconds}ms. Retrying...");
+      solveStopwatch.stop();
+      debugPrint("🔧 [GENERATOR]   -> TIMEOUT after ${solveStopwatch.elapsedMilliseconds}ms");
     }
   }
 
-  debugPrint('\n' + ('=' * 60));
-  // STEP 4: Display the final result
-  if (solution != null &&
-      solution != 'FAILURE' &&
-      successfulPuzzle != null) {
-    debugPrint("--- FINAL SOLUTION ---");
-    final solvedRenderer =
-        AsciiRenderer(successfulPuzzle, config, solution: solution);
-    debugPrint(solvedRenderer.render());
+  totalStopwatch.stop();
+  debugPrint('🔧 [GENERATOR] ========================================');
+  
+  if (solution != null && solution != 'FAILURE' && successfulPuzzle != null) {
+    debugPrint("🔧 [GENERATOR] SUCCESS - Converting to game format...");
     
-    // Convert to game format - fix type casting
-    final typedSolution = solution.cast<String, int>();
-    return _convertToGameFormat(successfulPuzzle, finalClues, typedSolution);
+    try {
+      final typedSolution = solution.cast<String, int>();
+      debugPrint("🔧 [GENERATOR] Solution cast successful");
+      
+      debugPrint("🔧 [GENERATOR] Calling _convertToGameFormat...");
+      final result = _convertToGameFormat(successfulPuzzle, finalClues, typedSolution);
+      
+      debugPrint("🔧 [GENERATOR] _convertToGameFormat returned successfully");
+      debugPrint("🔧 [GENERATOR] Result structure validated - ready to return");
+      
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint("❌ [GENERATOR] ERROR in conversion: $e");
+      debugPrint("❌ [GENERATOR] StackTrace: $stackTrace");
+      throw Exception("Puzzle generation succeeded but conversion failed: $e");
+    }
   } else {
-    throw Exception(
-        "Failed to generate a solvable puzzle after $maxAttempts attempts");
+    final msg = "Failed after ${totalStopwatch.elapsed.inSeconds}s";
+    debugPrint("❌ [GENERATOR] FAILURE: $msg");
+    throw Exception(msg);
   }
 }
 
@@ -1549,7 +1781,7 @@ List<int> _generateNumberPool(Set<int> correctNumbers) {
   }
   
   pool.addAll(decoys);
-  pool.shuffle(random);
+  pool.sort();  // CHANGED FROM pool.shuffle(random) to pool.sort()
   
   return pool;
 }
@@ -1605,12 +1837,19 @@ class CrosswordPuzzle {
   });
 
   static Future<CrosswordPuzzle> generate(Map<String, dynamic> args) async {
+    final attempt = args['attemptNumber'] as int? ?? 0;
+    debugPrint("🏭 [FACTORY-$attempt] ========================================");
+    debugPrint("🏭 [FACTORY-$attempt] CrosswordPuzzle.generate() called in isolate");
+    
     final grade = args['grade'] as int;
     final level = args['level'] as int;
     final useCustomSettings = args['useCustomSettings'] as bool? ?? false;
     final customOps = args['customOps'] as List<String>? ?? [];
     final customMin = args['customMin'] as int?;
     final customMax = args['customMax'] as int?;
+    
+    debugPrint("🏭 [FACTORY-$attempt] Grade: $grade, Level: $level");
+    debugPrint("🏭 [FACTORY-$attempt] Custom: $useCustomSettings");
     
     // Use the new scaling configuration system with custom settings support
     final config = CrosswordConfig.createConfig(
@@ -1622,8 +1861,7 @@ class CrosswordPuzzle {
       customMax: customMax,
     );
     
-    debugPrint("🎯 [CROSSWORD FACTORY] Starting puzzle generation with args: $args");
-    debugPrint("🎯 [CROSSWORD FACTORY] ${CrosswordConfig.debugConfig(
+    debugPrint("🏭 [FACTORY-$attempt] Config created: ${CrosswordConfig.debugConfig(
       grade, 
       level,
       useCustomSettings: useCustomSettings,
@@ -1632,7 +1870,15 @@ class CrosswordPuzzle {
       customMax: customMax,
     )}");
     
-    return await generateCrosswordPuzzle(config);
+    debugPrint("🏭 [FACTORY-$attempt] Calling generateCrosswordPuzzle()...");
+    
+    final result = await generateCrosswordPuzzle(config);
+    
+    debugPrint("🏭 [FACTORY-$attempt] generateCrosswordPuzzle() returned");
+    debugPrint("🏭 [FACTORY-$attempt] Result has ${result.equations.length} equations");
+    debugPrint("🏭 [FACTORY-$attempt] About to return from isolate...");
+    
+    return result;
   }
 
   bool validateSolution(Map<String, int> userSolution) {
