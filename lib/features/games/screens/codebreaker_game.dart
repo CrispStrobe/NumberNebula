@@ -676,97 +676,91 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     
     if (term is int) {
       // Numbers: Show as symbol with number overlay
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
+      return Container(
+        width: cellSize, 
+        height: cellSize,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
+          border: Border.all(color: SpaceTheme.alienGreen, width: 2),
+        ),
+        child: Stack(
+          children: [
+            Center(
+              child: Text(
+                "🔢",
+                style: TextStyle(fontSize: symbolSize * 0.7, color: SpaceTheme.alienGreen.withOpacity(0.3)),
+              ),
+            ),
+            Center(
+              child: Text(
+                term.toString(),
+                style: SpaceTheme.headlineStyle.copyWith(fontSize: fontSize),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      final symbol = term as String;
+      final isPositionVisible = puzzle!.isPositionVisible(positionId); // NEW: Check position, not symbol
+      final hasUserValue = userSolution.containsKey(positionId);
+      final isLastDropped = positionId == _lastDroppedPosition;
+      final shouldAcceptDrops = !isPositionVisible && !hasUserValue; // Can drop if not visible and no user value
+      
+      Widget cellContent;
+      
+      if (hasUserValue) {
+        // User has placed a number here
+        cellContent = GestureDetector(
+          onTap: () => _removeNumber(positionId),
+          child: Container(
             width: cellSize, 
             height: cellSize,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
-              border: Border.all(color: SpaceTheme.alienGreen, width: 2),
+              gradient: const LinearGradient(colors: [SpaceTheme.nebulaPurple, SpaceTheme.deepSpace]),
+              border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
             ),
             child: Stack(
               children: [
-                // Background symbol
                 Center(
                   child: Text(
-                    "🔢",
-                    style: TextStyle(fontSize: symbolSize * 0.7, color: SpaceTheme.alienGreen.withOpacity(0.3)),
+                    _getSymbolIcon(symbol),
+                    style: TextStyle(fontSize: symbolSize * 0.8, color: SpaceTheme.nebulaPurple.withOpacity(0.6)),
                   ),
                 ),
-                // Number overlay
                 Center(
-                  child: Text(
-                    term.toString(),
-                    style: SpaceTheme.headlineStyle.copyWith(fontSize: fontSize),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: Text(
+                      userSolution[positionId].toString(),
+                      style: SpaceTheme.headlineStyle.copyWith(
+                        fontSize: fontSize, 
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                          const Shadow(
+                            blurRadius: 2,
+                            color: Colors.black,
+                            offset: Offset(1, 1),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-        ],
-      );
-    } else {
-      final symbol = term as String;
-      final isHidden = puzzle!.hiddenSymbols.contains(symbol);
-      final hasUserValue = userSolution.containsKey(positionId);
-      final isLastDropped = positionId == _lastDroppedPosition;
-      final shouldAcceptDrops = isHidden && !hasUserValue;
-      
-      Widget cellContent;
-      
-      if (hasUserValue) {
-        // Hidden symbol with user number overlay - symbol shines through
-        cellContent = Container(
-          width: cellSize, 
-          height: cellSize,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            gradient: const LinearGradient(colors: [SpaceTheme.nebulaPurple, SpaceTheme.deepSpace]),
-            border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
-          ),
-          child: Stack(
-            children: [
-              // Background symbol (visible but muted)
-              Center(
-                child: Text(
-                  _getSymbolIcon(symbol),
-                  style: TextStyle(fontSize: symbolSize * 0.8, color: SpaceTheme.nebulaPurple.withOpacity(0.6)),
-                ),
-              ),
-              // Semi-transparent number overlay
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: Text(
-                    userSolution[positionId].toString(),
-                    style: SpaceTheme.headlineStyle.copyWith(
-                      fontSize: fontSize, 
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      shadows: [
-                        const Shadow(
-                          blurRadius: 2,
-                          color: Colors.black,
-                          offset: Offset(1, 1),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
         );
-      } else if (!isHidden) {
-        // Visible symbol with known value overlay - symbol shines through
-        final value = puzzle!.knownSymbolValues[symbol]!;
+      } else if (isPositionVisible) {
+        // This specific position is visible (given as a clue)
+        final value = puzzle!.getVisibleValue(positionId)!;
         cellContent = Container(
           width: cellSize, 
           height: cellSize,
@@ -777,14 +771,12 @@ class _CodebreakerGameState extends State<CodebreakerGame>
           ),
           child: Stack(
             children: [
-              // Background symbol (visible but muted)
               Center(
                 child: Text(
                   _getSymbolIcon(symbol),
                   style: TextStyle(fontSize: symbolSize * 0.8, color: SpaceTheme.alienGreen.withOpacity(0.6)),
                 ),
               ),
-              // Semi-transparent value overlay
               Center(
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
@@ -813,7 +805,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
           ),
         );
       } else {
-        // Empty hidden symbol - show symbol prominently waiting for number
+        // Empty hidden symbol - waiting for player input
         cellContent = Container(
           width: cellSize, 
           height: cellSize,
@@ -866,26 +858,21 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                       )
                     ] : null,
                   ),
-                  child: GestureDetector(
-                    onTap: hasUserValue ? () => _removeNumber(positionId) : null,
-                    child: Center(
-                      child: Text(
-                        _getSymbolIcon(symbol),
-                        style: TextStyle(
-                          fontSize: symbolSize, 
-                          color: isHovering 
-                              ? SpaceTheme.starYellow 
-                              : SpaceTheme.alienGreen.withOpacity(0.9)
-                        ),
+                  child: Center(
+                    child: Text(
+                      _getSymbolIcon(symbol),
+                      style: TextStyle(
+                        fontSize: symbolSize, 
+                        color: isHovering 
+                            ? SpaceTheme.starYellow 
+                            : SpaceTheme.alienGreen.withOpacity(0.9)
                       ),
                     ),
                   ),
                 ),
               );
             },
-            onWillAcceptWithDetails: (details) {
-              return true;
-            },
+            onWillAcceptWithDetails: (details) => true,
             onAcceptWithDetails: (details) {
               debugPrint("🎯 [DROPPED] ✅ ${details.data} → $positionId");
               _placeNumber(details.data, positionId);
@@ -1824,7 +1811,7 @@ class AdvancedPuzzleGenerator {
     
     final operators = params['operators'] as List<String>;
     
-    // Template 1: symbol op symbol = result (symbol or number)
+    // Generate ALL types of equations: symbol-symbol with ANY result
     for (final s1 in symbols) {
       for (final s2 in symbols) {
         for (final op in operators) {
@@ -1835,6 +1822,8 @@ class AdvancedPuzzleGenerator {
           if (op == '/' && (v2 == 0 || v1 % v2 != 0)) continue;
           
           final resVal = _calculateInt(v1, v2, op);
+          
+          // Result can be either a symbol OR a number - both are fine!
           final result = valueToSymbol[resVal] ?? resVal;
           
           final eq = PuzzleEquation(term1: s1, op: op, term2: s2, result: result);
@@ -1849,82 +1838,6 @@ class AdvancedPuzzleGenerator {
       }
     }
     
-    // Template 2: symbol op number = result (symbol or number)
-    for (final s1 in symbols) {
-      final v1 = solution[s1]!;
-      
-      for (int attempt = 0; attempt < 5; attempt++) {
-        final op = operators[_random.nextInt(operators.length)];
-        int? n2;
-        
-        switch (op) {
-          case '+':
-            n2 = _random.nextInt(params['valueRange'][1]) + 1;
-            break;
-          case '-':
-            if (v1 > 1) n2 = _random.nextInt(v1 - 1) + 1;
-            break;
-          case '*':
-            n2 = _random.nextInt(8) + 2; // 2-9
-            break;
-          case '/':
-            final divisors = <int>[];
-            for (int i = 2; i < v1; i++) {
-              if (v1 % i == 0) divisors.add(i);
-            }
-            if (divisors.isNotEmpty) n2 = divisors[_random.nextInt(divisors.length)];
-            break;
-        }
-        
-        if (n2 != null) {
-          final resVal = _calculateInt(v1, n2, op);
-          final result = valueToSymbol[resVal] ?? resVal;
-          
-          // Create symbol op number = result
-          final eq1 = PuzzleEquation(term1: s1, op: op, term2: n2, result: result);
-          final eq1Str = eq1.toString();
-          if (!eqStrings.contains(eq1Str)) {
-            pool.add(eq1);
-            eqStrings.add(eq1Str);
-            if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Added symbol-number: $eq1");
-          }
-          
-          // For commutative operations, also create number op symbol = result
-          if (op == '+' || op == '*') {
-            final eq2 = PuzzleEquation(term1: n2, op: op, term2: s1, result: result);
-            final eq2Str = eq2.toString();
-            if (!eqStrings.contains(eq2Str)) {
-              pool.add(eq2);
-              eqStrings.add(eq2Str);
-              if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Added number-symbol: $eq2");
-            }
-          }
-        }
-      }
-    }
-    
-    // Template 3: number op number = symbol (but only strategic ones)
-    for (final sRes in symbols) {
-      final vRes = solution[sRes]!;
-      
-      for (int attempt = 0; attempt < 5; attempt++) {
-        final op = operators[_random.nextInt(operators.length)];
-        
-        if (op == '+' && vRes > 1) {
-          final n1 = _random.nextInt(vRes - 1) + 1;
-          final n2 = vRes - n1;
-          
-          final eq = PuzzleEquation(term1: n1, op: op, term2: n2, result: sRes);
-          final eqStr = eq.toString();
-          if (!eqStrings.contains(eqStr)) {
-            pool.add(eq);
-            eqStrings.add(eqStr);
-            if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Added number-number-symbol: $eq");
-          }
-        }
-      }
-    }
-    
     if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Created equation pool with ${pool.length} equations");
     return pool;
   }
@@ -1933,41 +1846,53 @@ class AdvancedPuzzleGenerator {
     if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Assembling puzzle candidate with connectivity...");
     
     final pool = _createEquationPool();
-    pool.shuffle(_random);
+    
+    // Categorize equations by quality
+    // Best: Both operands are symbols (result can be anything)
+    final bestEquations = pool.where((eq) => 
+      eq.term1 is String && eq.term2 is String
+    ).toList();
+    
+    if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Available equations with symbol operands: ${bestEquations.length}");
+    
+    if (bestEquations.length < 4) {
+      if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Not enough good equations available");
+      return null;
+    }
+    
+    bestEquations.shuffle(_random);
     
     final puzzle = <PuzzleEquation>[];
     final knownSymbols = <String>{};
     
-    // Find valid entry points: equations with ≤1 symbols AND at least one symbol on the left side
-    final entryPoints = pool.where((eq) {
+    // Find entry points with at most 2 unknown symbols
+    final entryPoints = bestEquations.where((eq) {
       final symbolCount = eq.getSymbols().length;
-      final hasSymbolOnLeft = eq.term1 is String || eq.term2 is String;
-      return symbolCount <= 1 && hasSymbolOnLeft;
+      return symbolCount <= 2;
     }).toList();
     
     if (entryPoints.isEmpty) {
-      if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] No valid entry points found");
+      if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] No valid entry points");
       return null;
     }
     
     final firstEq = entryPoints[_random.nextInt(entryPoints.length)];
     puzzle.add(firstEq);
-    pool.remove(firstEq);
+    bestEquations.remove(firstEq);
     knownSymbols.addAll(firstEq.getSymbols());
     
     if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Starting with: $firstEq, known symbols: $knownSymbols");
     
-    // Build the chain by adding equations that introduce exactly one new symbol
+    // Build the chain
     final numSymbols = params['numSymbols'] as int;
     while (knownSymbols.length < numSymbols) {
       PuzzleEquation? nextLink;
       
-      for (final eq in pool) {
+      for (final eq in bestEquations) {
         final eqSymbols = eq.getSymbols().toSet();
         final newSymbols = eqSymbols.difference(knownSymbols.toSet());
         final connectingSymbols = eqSymbols.intersection(knownSymbols.toSet());
         
-        // Must introduce exactly one new symbol AND connect to known symbols
         if (newSymbols.length == 1 && connectingSymbols.isNotEmpty) {
           nextLink = eq;
           break;
@@ -1976,21 +1901,21 @@ class AdvancedPuzzleGenerator {
       
       if (nextLink != null) {
         puzzle.add(nextLink);
-        pool.remove(nextLink);
+        bestEquations.remove(nextLink);
         knownSymbols.addAll(nextLink.getSymbols());
         if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Added: $nextLink, known symbols: $knownSymbols");
       } else {
-        if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Dead end - no valid connecting equation found");
+        if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Could not find connecting equation");
         return null;
       }
     }
     
-    // Add filler equations that use only known symbols
+    // Add filler equations
     final numEquations = params['numEquations'] as int;
     while (puzzle.length < numEquations) {
       PuzzleEquation? filler;
       
-      for (final eq in pool) {
+      for (final eq in bestEquations) {
         final eqSymbols = eq.getSymbols().toSet();
         if (eqSymbols.difference(knownSymbols.toSet()).isEmpty) {
           filler = eq;
@@ -2000,7 +1925,7 @@ class AdvancedPuzzleGenerator {
       
       if (filler != null) {
         puzzle.add(filler);
-        pool.remove(filler);
+        bestEquations.remove(filler);
         if (verbose) debugPrint("🗂️ [ORIGINAL GENERATOR] Added filler: $filler");
       } else {
         break;
@@ -2025,13 +1950,15 @@ class AdvancedPuzzleGenerator {
 }
 
 /// Main puzzle data structure (unchanged)
+/// Main puzzle data structure - MODIFIED to track visible positions
 class AdvancedCodebreakerPuzzle {
-  final Map<String, int> knownSymbolValues;
+  final Map<String, int> knownSymbolValues; // Keep for backward compatibility but won't use much
   final List<PuzzleEquation> equations;
   final Set<String> hiddenSymbols;
   final List<int> numberPool;
   final List<String> hiddenPositions;
   final Map<String, int> _fullSolution;
+  final Set<String> visiblePositions; // NEW: Track specific visible positions
 
   AdvancedCodebreakerPuzzle({
     required this.knownSymbolValues,
@@ -2040,6 +1967,7 @@ class AdvancedCodebreakerPuzzle {
     required this.numberPool,
     required this.hiddenPositions,
     required Map<String, int> fullSolution,
+    required this.visiblePositions, // NEW parameter
   }) : _fullSolution = fullSolution;
 
   static Future<AdvancedCodebreakerPuzzle> generate(Map<String, dynamic> args) async {
@@ -2071,7 +1999,7 @@ class AdvancedCodebreakerPuzzle {
     
     final customSettings = {
       'useCustomSettings': args['useCustomSettings'] as bool,
-      'customOps': customOps, // Use the converted list
+      'customOps': customOps,
       'customMin': args['customMin'] as int,
       'customMax': args['customMax'] as int,
     };
@@ -2090,7 +2018,7 @@ class AdvancedCodebreakerPuzzle {
     final validationResult = testSolver.solve(puzzleEquations, generator.symbols);
     
     if (validationResult == null) {
-      throw Exception("Generated puzzle has no valid solution - this should not happen with CSP");
+      throw Exception("Generated puzzle has no valid solution");
     }
     
     // Verify the validation matches the generator's solution
@@ -2101,34 +2029,42 @@ class AdvancedCodebreakerPuzzle {
     }
     
     debugPrint("🎯 [PUZZLE FACTORY] Solution validation passed ✓");
-    
     debugPrint("🎯 [PUZZLE FACTORY] Generated ${puzzleEquations.length} equations");
     
     final allSymbols = generator.symbols;
     
-    // CSP approach: Strategic clue selection to ensure ≤1 given per equation
-    final (visibleSymbols, hiddenSymbols) = useCSP 
-        ? _selectCluesCSP(puzzleEquations, allSymbols)
-        : _selectCluesOriginal(allSymbols);
+    // NEW: Select visible positions (not symbols)
+    final visiblePositions = _selectVisiblePositions(puzzleEquations, allSymbols);
     
-    debugPrint("🎯 [PUZZLE FACTORY] Visible symbols: $visibleSymbols");
-    debugPrint("🎯 [PUZZLE FACTORY] Hidden symbols: $hiddenSymbols");
+    debugPrint("🎯 [PUZZLE FACTORY] Visible positions: $visiblePositions");
     
+    // Build known values map only for visible positions
     final knownValues = <String, int>{};
-    for (final symbol in visibleSymbols) {
-      knownValues[symbol] = generator.solution[symbol]!;
+    for (final pos in visiblePositions) {
+      final symbol = _getSymbolFromPosition(puzzleEquations, pos);
+      if (symbol != null) {
+        knownValues[pos] = generator.solution[symbol]!; // Store by position, not symbol
+      }
     }
     
+    // Determine which symbols are completely hidden (no visible positions)
+    final symbolsWithVisiblePositions = <String>{};
+    for (final pos in visiblePositions) {
+      final symbol = _getSymbolFromPosition(puzzleEquations, pos);
+      if (symbol != null) symbolsWithVisiblePositions.add(symbol);
+    }
+    final hiddenSymbols = allSymbols.toSet().difference(symbolsWithVisiblePositions);
+    
     final correctNumbersList = hiddenSymbols.map((s) => generator.solution[s]!).toList();
-    final correctNumbersSet = correctNumbersList.toSet(); // Use a Set for efficient decoy generation
+    final correctNumbersSet = correctNumbersList.toSet();
     final decoys = <int>{};
     final numberRange = generator.params['valueRange'] as List<int>;
     final maxVal = numberRange[1];
 
     debugPrint("🎯 [PUZZLE FACTORY] Correct numbers needed: ${correctNumbersList.join(', ')}");
 
-    // Generate strategic decoys (close to correct numbers)
-    for (final correct in correctNumbersSet) { // Iterate over the Set of unique numbers
+    // Generate strategic decoys
+    for (final correct in correctNumbersSet) {
       for (int i = 1; i <= 2; i++) {
         if (correct - i > 0) decoys.add(correct - i);
         if (correct + i <= maxVal) decoys.add(correct + i);
@@ -2148,26 +2084,31 @@ class AdvancedCodebreakerPuzzle {
     }
 
     final numberPool = <int>[];
-    numberPool.addAll(correctNumbersList); // Add the List, which contains duplicates
+    numberPool.addAll(correctNumbersList);
     numberPool.addAll(decoys.take(targetPoolSize - correctNumbersList.length));
 
     numberPool.shuffle();
     final finalPool = numberPool;
 
     debugPrint("🎯 [PUZZLE FACTORY] Final number pool: ${finalPool.join(', ')}");
-    debugPrint("🎯 [PUZZLE FACTORY] Verifying all correct numbers included: ${correctNumbersList.every((n) => finalPool.contains(n))}");
     
+    // Build hidden positions (all symbol positions except visible ones)
     final hiddenPositions = <String>[];
     for (int i = 0; i < puzzleEquations.length; i++) {
       final eq = puzzleEquations[i];
-      if (eq.term1 is String && hiddenSymbols.contains(eq.term1)) {
-        hiddenPositions.add('eq${i}_term1');
+      
+      final pos1 = 'eq${i}_term1';
+      final pos2 = 'eq${i}_term2';
+      final posR = 'eq${i}_result';
+      
+      if (eq.term1 is String && !visiblePositions.contains(pos1)) {
+        hiddenPositions.add(pos1);
       }
-      if (eq.term2 is String && hiddenSymbols.contains(eq.term2)) {
-        hiddenPositions.add('eq${i}_term2');
+      if (eq.term2 is String && !visiblePositions.contains(pos2)) {
+        hiddenPositions.add(pos2);
       }
-      if (eq.result is String && hiddenSymbols.contains(eq.result)) {
-        hiddenPositions.add('eq${i}_result');
+      if (eq.result is String && !visiblePositions.contains(posR)) {
+        hiddenPositions.add(posR);
       }
     }
     
@@ -2181,70 +2122,74 @@ class AdvancedCodebreakerPuzzle {
       numberPool: finalPool,
       hiddenPositions: hiddenPositions,
       fullSolution: generator.solution,
+      visiblePositions: visiblePositions,
     );
   }
 
-  /// CSP-based clue selection ensuring ≤1 given per equation
-  static (List<String>, Set<String>) _selectCluesCSP(List<PuzzleEquation> equations, List<String> allSymbols) {
-    // Analyze which symbols appear in each equation
-    final symbolToEquations = <String, List<int>>{};
+  /// Select which specific positions should be visible (max 1 per equation)
+  /// Never reveal symbols in equations that already have number literals
+  static Set<String> _selectVisiblePositions(List<PuzzleEquation> equations, List<String> allSymbols) {
+    final visiblePositions = <String>{};
+    final random = math.Random();
+    
+    // Find equations that are "pure" (all terms are symbols, no number literals)
+    final pureEquations = <int>[];
     for (int i = 0; i < equations.length; i++) {
-      for (final symbol in equations[i].getSymbols()) {
-        symbolToEquations.putIfAbsent(symbol, () => []);
-        symbolToEquations[symbol]!.add(i);
+      final eq = equations[i];
+      final hasNoNumbers = (eq.term1 is String) && (eq.term2 is String) && (eq.result is String);
+      if (hasNoNumbers) {
+        pureEquations.add(i);
       }
     }
     
-    // Select clues ensuring each equation has at most 1 visible symbol
-    final visibleSymbols = <String>[];
-    final equationsWithVisible = <int>{};
+    debugPrint("🎯 [CLUE SELECTION] Pure symbol equations: $pureEquations out of ${equations.length}");
     
-    // Sort symbols by how many equations they appear in (prefer symbols in multiple equations)
-    final sortedSymbols = allSymbols.toList()
-      ..sort((a, b) => symbolToEquations[b]!.length.compareTo(symbolToEquations[a]!.length));
-    
-    for (final symbol in sortedSymbols) {
-      final symbolEquations = symbolToEquations[symbol]!;
+    // Only reveal from pure equations, max 1 position total
+    if (pureEquations.isNotEmpty) {
+      final selectedEq = pureEquations[random.nextInt(pureEquations.length)];
+      final eq = equations[selectedEq];
       
-      // Check if adding this symbol would violate the ≤1 constraint
-      bool canAdd = true;
-      for (final eqIndex in symbolEquations) {
-        if (equationsWithVisible.contains(eqIndex)) {
-          canAdd = false;
-          break;
-        }
-      }
+      final symbolPositions = <String>[];
+      if (eq.term1 is String) symbolPositions.add('eq${selectedEq}_term1');
+      if (eq.term2 is String) symbolPositions.add('eq${selectedEq}_term2');
+      if (eq.result is String) symbolPositions.add('eq${selectedEq}_result');
       
-      if (canAdd && visibleSymbols.length < 2) { // Limit visible symbols
-        visibleSymbols.add(symbol);
-        equationsWithVisible.addAll(symbolEquations);
+      if (symbolPositions.isNotEmpty) {
+        final posToReveal = symbolPositions[random.nextInt(symbolPositions.length)];
+        visiblePositions.add(posToReveal);
+        debugPrint("🎯 [CLUE SELECTION] Revealing position: $posToReveal");
       }
+    } else {
+      debugPrint("🎯 [CLUE SELECTION] No pure equations available, puzzle will be harder!");
     }
     
-    // If we don't have any visible symbols, pick one carefully
-    if (visibleSymbols.isEmpty && allSymbols.isNotEmpty) {
-      visibleSymbols.add(allSymbols.first);
-    }
-    
-    final hiddenSymbols = allSymbols.toSet().difference(visibleSymbols.toSet());
-    return (visibleSymbols, hiddenSymbols);
+    return visiblePositions;
   }
 
-  /// Original clue selection (for comparison)
-  static (List<String>, Set<String>) _selectCluesOriginal(List<String> allSymbols) {
-    allSymbols.shuffle();
-    final visibleCount = 1; // Always show exactly 1 symbol to start
-    final visibleSymbols = allSymbols.take(visibleCount).toList();
-    final hiddenSymbols = allSymbols.toSet().difference(visibleSymbols.toSet());
-    return (visibleSymbols, hiddenSymbols);
+  static String? _getSymbolFromPosition(List<PuzzleEquation> equations, String positionId) {
+    final parts = positionId.split('_');
+    final eqIndex = int.parse(parts[0].substring(2));
+    final termType = parts[1];
+    
+    if (eqIndex >= equations.length) return null;
+    final equation = equations[eqIndex];
+    
+    switch (termType) {
+      case 'term1':
+        return equation.term1 is String ? equation.term1 as String : null;
+      case 'term2':
+        return equation.term2 is String ? equation.term2 as String : null;
+      case 'result':
+        return equation.result is String ? equation.result as String : null;
+      default:
+        return null;
+    }
   }
 
   bool validateSolution(Map<String, int> userSolution) {
     debugPrint("✅ [VALIDATION] Starting solution validation");
     debugPrint("✅ [VALIDATION] User solution: $userSolution");
     debugPrint("✅ [VALIDATION] Full solution: $_fullSolution");
-    
-    final completeValues = Map<String, int>.from(knownSymbolValues);
     
     for (final entry in userSolution.entries) {
       final symbol = getSymbolFromPosition(entry.key);
@@ -2257,13 +2202,12 @@ class AdvancedCodebreakerPuzzle {
         debugPrint("✅ [VALIDATION] ❌ Validation failed: $symbol should be $expectedValue but user provided $userValue");
         return false;
       }
-      
-      completeValues[symbol] = userValue;
     }
     
-    for (final symbol in _fullSolution.keys) {
-      if (completeValues[symbol] != _fullSolution[symbol]) {
-        debugPrint("✅ [VALIDATION] ❌ Missing or incorrect value for symbol $symbol");
+    // Check all hidden positions are filled
+    for (final pos in hiddenPositions) {
+      if (!userSolution.containsKey(pos)) {
+        debugPrint("✅ [VALIDATION] ❌ Missing value for position $pos");
         return false;
       }
     }
@@ -2289,5 +2233,17 @@ class AdvancedCodebreakerPuzzle {
       default:
         throw Exception("Invalid position ID: $positionId");
     }
+  }
+  
+  // NEW: Check if a specific position is visible
+  bool isPositionVisible(String positionId) {
+    return visiblePositions.contains(positionId);
+  }
+  
+  // NEW: Get value for a visible position
+  int? getVisibleValue(String positionId) {
+    if (!isPositionVisible(positionId)) return null;
+    final symbol = getSymbolFromPosition(positionId);
+    return _fullSolution[symbol];
   }
 }

@@ -11,7 +11,7 @@ import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
-import '../../../core/services/sri_service.dart'; // Import SRI Service
+import '../../../core/services/sri_service.dart';
 
 // ================================================================
 // GAME CONFIGURATION CONSTANTS
@@ -27,48 +27,45 @@ class GameConfig {
   /// A reference screen height to calculate responsive scaling from.
   static const double baseScreenDimension = 800.0;
 
-  /// Safe area margin at the top of the screen to avoid the GameUI.
-  static const double topUIMargin = 120.0; 
-  
-  /// Safe area margin at the bottom for the spaceship and other UI.
-  static const double bottomUIMargin = 100.0; 
+  /// Safe area margin - minimal now since we use actual playable area
+  static const double edgeMargin = 10.0; 
 
   // Animation and Performance
   static const double gameLoopFrameTime = 20.0; // milliseconds (50fps instead of 60fps)
   
   // Speed Settings
-  static const double baseAsteroidSpeed = 3.0; // Reduced from 8.0
-  static const double speedMultiplier = 1.8; // Reduced from 6.0
-  static const double asteroidBounceDeceleration = 0.9; // Increased from 0.8 for smoother bouncing
-  static const double maxRotationSpeed = 0.8; // Reduced from 1.5
+  static const double baseAsteroidSpeed = 3.0;
+  static const double speedMultiplier = 1.8;
+  static const double asteroidBounceDeceleration = 0.9;
+  static const double maxRotationSpeed = 0.8;
   
   // Hint System
-  static const int textHintDelaySeconds = 8; // When to show "Next Target: X" text
-  static const int visualHintDelaySeconds = 25; // When to highlight the correct asteroid
+  static const int textHintDelaySeconds = 8;
+  static const int visualHintDelaySeconds = 25;
   
   // Visual Effects
-  static const double screenShakeIntensity = 4.0; // Reduced from 8.0
-  static const int explosionParticleCount = 40; // Reduced from 60
-  static const int wrongAnswerParticleCount = 15; // Reduced from 25
-  static const double maxParticleSpeed = 120.0; // Reduced from 200
-  static const double laserBeamDuration = 0.4; // Increased from 0.3 for better visibility
-  static const double floatingScoreDuration = 2.0; // Increased from 1.5
+  static const double screenShakeIntensity = 4.0;
+  static const int explosionParticleCount = 40;
+  static const int wrongAnswerParticleCount = 15;
+  static const double maxParticleSpeed = 120.0;
+  static const double laserBeamDuration = 0.4;
+  static const double floatingScoreDuration = 2.0;
   
   // Asteroid Settings
-  static const double minAsteroidSize = 50.0; // Reduced from 60.0
-  static const double asteroidSizeVariation = 30.0; // Reduced from 40.0
-  static const double asteroidSpacing = 1.1; // For collision detection when spawning
+  static const double minAsteroidSize = 50.0;
+  static const double asteroidSizeVariation = 30.0;
+  static const double asteroidSpacing = 1.1;
 
-  static const double maxLevelForScaling = 20.0; // The level at which asteroids reach max size
-  static const double maxSizeMultiplier = 1.4;   // The max size multiplier (1.0 to 1.4)
+  static const double maxLevelForScaling = 20.0;
+  static const double maxSizeMultiplier = 1.4;
 
   // Game Timing
-  static const double updateDeltaTime = 0.02; // 50fps equivalent
+  static const double updateDeltaTime = 0.02;
   
   // Animation Durations
-  static const int explosionDurationMs = 1000; // Increased from 800
-  static const int screenShakeDurationMs = 300; // Reduced from 400
-  static const int spaceshipThrusterCycleSeconds = 3; // Increased from 2
+  static const int explosionDurationMs = 1000;
+  static const int screenShakeDurationMs = 300;
+  static const int spaceshipThrusterCycleSeconds = 3;
 }
 
 class AsteroidMathGame extends StatefulWidget {
@@ -107,8 +104,11 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   bool showVisualHint = false;
   DifficultyConfig? currentDifficulty;
 
+  // FIXED: Store the actual playable area dimensions
+  Size? playableArea;
+
   // Spaceship position for laser start point
-  Offset spaceshipPosition = const Offset(50, 0); // Will be updated in build
+  Offset spaceshipPosition = const Offset(50, 0);
 
   // Timers
   late Timer _gameTimer;
@@ -118,7 +118,6 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   @override
   void initState() {
     super.initState();
-    // Initialize controllers with improved timing
     _gameLoopController = AnimationController(
       duration: Duration(milliseconds: GameConfig.gameLoopFrameTime.round()),
       vsync: this,
@@ -134,14 +133,10 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     _spaceshipController = AnimationController(
         duration: Duration(seconds: GameConfig.spaceshipThrusterCycleSeconds), vsync: this)..repeat();
 
-    // Start the game after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        // Initialize difficulty using the provider from context
         final gameProvider = context.read<GameProvider>();
         currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level);
-
-        _resetGame();
         _gameLoopController.addListener(_updateGame);
       }
     });
@@ -173,23 +168,24 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       floatingScores.clear();
     });
     
-    _generateAsteroids();
-    _startGameTimer();
-    _startHintTimers();
+    // Wait for playable area to be set before generating asteroids
+    if (playableArea != null) {
+      _generateAsteroids();
+      _startGameTimer();
+      _startHintTimers();
+    }
   }
 
   void _startHintTimers() {
     _textHintTimer?.cancel();
     _visualHintTimer?.cancel();
     
-    // Start text hint timer
     _textHintTimer = Timer(Duration(seconds: GameConfig.textHintDelaySeconds), () {
       if (mounted && gameActive) {
         setState(() => showTextHint = true);
       }
     });
     
-    // Start visual hint timer (much longer delay)
     _visualHintTimer = Timer(Duration(seconds: GameConfig.visualHintDelaySeconds), () {
       if (mounted && gameActive) {
         setState(() => showVisualHint = true);
@@ -198,41 +194,35 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   }
 
   void _generateAsteroids() {
-    if (!mounted || currentDifficulty == null) return;
+    if (!mounted || currentDifficulty == null || playableArea == null) return;
     
-    final screenSize = MediaQuery.of(context).size;
+    // FIXED: Use playableArea instead of MediaQuery
+    final screenSize = playableArea!;
     final difficulty = currentDifficulty!;
     final random = math.Random();
     final usedAnswers = <int>{};
 
     // RESPONSIVE ASTEROID COUNT
     final screenArea = screenSize.width * screenSize.height;
-    // Calculate a dynamic asteroid count based on screen density
     final densityBasedCount = (screenArea / GameConfig.pixelsPerAsteroid).round();
-    // Use the lower value between the difficulty setting and the density calculation
-    // to prevent overcrowding on small screens.
     int asteroidCount = math.min(difficulty.objectCount, densityBasedCount);
     
     final problems = <MathProblem>[];
     final sriService = context.read<SriService>();
     final gameProvider = context.read<GameProvider>();
     
-    // Generate math problems using your library
     int attempts = 0;
     while (problems.length < asteroidCount && attempts < 100) {
       attempts++;
       
-      // Use the smart generator
       final problem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
       
-      // Ensure we don't have duplicate answers and answers are in reasonable range
       if (!usedAnswers.contains(problem.answer) && problem.answer > 0 && problem.answer < 1000) {
         problems.add(problem);
         usedAnswers.add(problem.answer);
       }
     }
     
-    // If we need more problems, fill with simple numbers
     while (problems.length < asteroidCount) {
       int plainNumber;
       do {
@@ -253,23 +243,18 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       usedAnswers.add(plainNumber);
     }
 
-  
     // Create asteroids from problems
     for (int i = 0; i < problems.length; i++) {
       final problem = problems[i];
 
-      // RESPONSIVE ASTEROID SIZING & POSITIONING
-      // 1. Calculate a scale factor based on screen size
+      // RESPONSIVE ASTEROID SIZING
       final avgScreenDim = (screenSize.width + screenSize.height) / 2;
       final screenScaleFactor = avgScreenDim / GameConfig.baseScreenDimension;
 
-      // 2. Calculate level-based size multiplier
       final double progress = ((widget.level - 1) / (GameConfig.maxLevelForScaling - 1)).clamp(0.0, 1.0);
       final double levelSizeMultiplier = 1.0 + (progress * (GameConfig.maxSizeMultiplier - 1.0));
       
-      // 3. Combine base size, responsive scale, and level scale
       final baseSize = GameConfig.minAsteroidSize + random.nextDouble() * GameConfig.asteroidSizeVariation;
-      // We clamp the size to avoid them getting too small or too large
       final asteroidSize = (baseSize * screenScaleFactor * levelSizeMultiplier).clamp(GameConfig.minAsteroidSize, 150.0);
       
       final asteroidSpeed = (GameConfig.baseAsteroidSpeed + (difficulty.gameSpeed * GameConfig.speedMultiplier));
@@ -277,13 +262,13 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       Offset position;
       int positionAttempts = 0;
       do {
-        // Use new UI margin constants for correct spawning area
+        // FIXED: Spawn anywhere in the playable area
         final spawnableWidth = screenSize.width - asteroidSize;
-        final spawnableHeight = screenSize.height - GameConfig.topUIMargin - GameConfig.bottomUIMargin - asteroidSize;
+        final spawnableHeight = screenSize.height - asteroidSize;
         
         position = Offset(
           random.nextDouble() * spawnableWidth + (asteroidSize / 2),
-          random.nextDouble() * spawnableHeight + GameConfig.topUIMargin + (asteroidSize / 2),
+          random.nextDouble() * spawnableHeight + (asteroidSize / 2),
         );
         positionAttempts++;
       } while (positionAttempts < 30 && _isPositionTooClose(position, asteroidSize));
@@ -320,44 +305,135 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   }
 
   void _updateGame() {
-    if (!mounted || !gameActive) return;
-    final screenSize = MediaQuery.of(context).size;
+    if (!mounted || !gameActive || playableArea == null) return;
+    
+    // FIXED: Use playableArea instead of MediaQuery
+    final screenSize = playableArea!;
 
     spaceshipPosition = Offset(50, screenSize.height - 90);
 
     setState(() {
       for (var asteroid in asteroids) {
+        // Store old values for comparison and logging
+        final oldPosition = asteroid.position;
+        final oldVelocity = asteroid.velocity;
+        
+        // Update position based on velocity
         asteroid.position += asteroid.velocity * GameConfig.updateDeltaTime;
         asteroid.rotation += asteroid.rotationSpeed * GameConfig.updateDeltaTime;
 
         final margin = asteroid.size / 2;
-        // Horizontal bounce (no change needed here)
+        bool bounced = false;
+        
+        // FIXED: Bounce at actual playable area edges - HORIZONTAL
         if (asteroid.position.dx <= margin || asteroid.position.dx >= screenSize.width - margin) {
-          asteroid.velocity = Offset(-asteroid.velocity.dx * GameConfig.asteroidBounceDeceleration, asteroid.velocity.dy);
-          asteroid.position = Offset(
-            asteroid.position.dx.clamp(margin, screenSize.width - margin),
-            asteroid.position.dy
+          bounced = true;
+          final side = asteroid.position.dx <= margin ? 'LEFT' : 'RIGHT';
+          final boundaryX = asteroid.position.dx <= margin ? margin : screenSize.width - margin;
+          final penetrationDepth = asteroid.position.dx <= margin 
+              ? margin - asteroid.position.dx 
+              : asteroid.position.dx - (screenSize.width - margin);
+          
+          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          print('🎯 HORIZONTAL BOUNCE - Asteroid #${asteroid.id}');
+          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          print('📝 Problem: ${asteroid.mathProblem} = ${asteroid.answer}');
+          print('🧱 Wall Hit: $side (boundary at ${boundaryX.toStringAsFixed(1)})');
+          print('📏 Penetration Depth: ${penetrationDepth.toStringAsFixed(2)} pixels');
+          print('📍 Position Before: (${oldPosition.dx.toStringAsFixed(1)}, ${oldPosition.dy.toStringAsFixed(1)})');
+          print('📍 Position After:  (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
+          print('🏃 Velocity Before: (${oldVelocity.dx.toStringAsFixed(2)}, ${oldVelocity.dy.toStringAsFixed(2)})');
+          
+          // Apply bounce physics
+          asteroid.velocity = Offset(
+            -asteroid.velocity.dx * GameConfig.asteroidBounceDeceleration, 
+            asteroid.velocity.dy
           );
+          
+          print('🏃 Velocity After:  (${asteroid.velocity.dx.toStringAsFixed(2)}, ${asteroid.velocity.dy.toStringAsFixed(2)})');
+          print('⚡ Speed Loss: ${((1.0 - GameConfig.asteroidBounceDeceleration) * 100).toStringAsFixed(1)}%');
+          print('🔄 New Speed: ${asteroid.velocity.distance.toStringAsFixed(2)} units/sec');
+          
+          // Clamp position to prevent getting stuck in walls
+          final newX = asteroid.position.dx.clamp(margin, screenSize.width - margin);
+          asteroid.position = Offset(newX, asteroid.position.dy);
+          
+          print('🔧 Position Clamped: (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
+          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         }
         
-        // Use UI margin constants for correct vertical bouncing
-        final topBound = margin + GameConfig.topUIMargin;
-        final bottomBound = screenSize.height - margin - GameConfig.bottomUIMargin;
-
-        if (asteroid.position.dy <= topBound || asteroid.position.dy >= bottomBound) {
-          asteroid.velocity = Offset(asteroid.velocity.dx, -asteroid.velocity.dy * GameConfig.asteroidBounceDeceleration);
-          asteroid.position = Offset(
-            asteroid.position.dx,
-            asteroid.position.dy.clamp(topBound, bottomBound)
+        // FIXED: Bounce at actual playable area edges - VERTICAL
+        if (asteroid.position.dy <= margin || asteroid.position.dy >= screenSize.height - margin) {
+          bounced = true;
+          final side = asteroid.position.dy <= margin ? 'TOP' : 'BOTTOM';
+          final boundaryY = asteroid.position.dy <= margin ? margin : screenSize.height - margin;
+          final penetrationDepth = asteroid.position.dy <= margin 
+              ? margin - asteroid.position.dy 
+              : asteroid.position.dy - (screenSize.height - margin);
+          
+          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          print('🎯 VERTICAL BOUNCE - Asteroid #${asteroid.id}');
+          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          print('📝 Problem: ${asteroid.mathProblem} = ${asteroid.answer}');
+          print('🧱 Wall Hit: $side (boundary at ${boundaryY.toStringAsFixed(1)})');
+          print('📏 Penetration Depth: ${penetrationDepth.toStringAsFixed(2)} pixels');
+          print('📍 Position Before: (${oldPosition.dx.toStringAsFixed(1)}, ${oldPosition.dy.toStringAsFixed(1)})');
+          print('📍 Position After:  (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
+          print('🏃 Velocity Before: (${oldVelocity.dx.toStringAsFixed(2)}, ${oldVelocity.dy.toStringAsFixed(2)})');
+          
+          // Apply bounce physics
+          asteroid.velocity = Offset(
+            asteroid.velocity.dx, 
+            -asteroid.velocity.dy * GameConfig.asteroidBounceDeceleration
           );
+          
+          print('🏃 Velocity After:  (${asteroid.velocity.dx.toStringAsFixed(2)}, ${asteroid.velocity.dy.toStringAsFixed(2)})');
+          print('⚡ Speed Loss: ${((1.0 - GameConfig.asteroidBounceDeceleration) * 100).toStringAsFixed(1)}%');
+          print('🔄 New Speed: ${asteroid.velocity.distance.toStringAsFixed(2)} units/sec');
+          
+          // Clamp position to prevent getting stuck in walls
+          final newY = asteroid.position.dy.clamp(margin, screenSize.height - margin);
+          asteroid.position = Offset(asteroid.position.dx, newY);
+          
+          print('🔧 Position Clamped: (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
+          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+        }
+        
+        // Log continuous movement every 100 frames for asteroids that didn't bounce
+        if (!bounced && asteroid.id == 0 && _gameLoopController.value < 0.05) {
+          print('📊 Asteroid #${asteroid.id} (${asteroid.answer}) - Cruising...');
+          print('   Pos: (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)}) | '
+                'Vel: (${asteroid.velocity.dx.toStringAsFixed(2)}, ${asteroid.velocity.dy.toStringAsFixed(2)}) | '
+                'Speed: ${asteroid.velocity.distance.toStringAsFixed(2)}');
         }
       }
 
-      // Update animations (no change needed here)
-      explosions.removeWhere((e) => e.isComplete);
-      laserBeams.removeWhere((l) => l.isComplete);
-      floatingScores.removeWhere((s) => s.isComplete);
+      // Update and clean up visual effects
+      explosions.removeWhere((e) {
+        final wasComplete = e.isComplete;
+        if (wasComplete) {
+          print('💥 Explosion completed and removed from scene');
+        }
+        return wasComplete;
+      });
       
+      laserBeams.removeWhere((l) {
+        final wasComplete = l.isComplete;
+        if (wasComplete) {
+          print('⚡ Laser beam faded and removed from scene');
+        }
+        return wasComplete;
+      });
+      
+      floatingScores.removeWhere((s) {
+        final wasComplete = s.isComplete;
+        if (wasComplete) {
+          print('✨ Floating score "${s.text}" completed animation and removed');
+        }
+        return wasComplete;
+      });
+      
+      // Update all active visual effects
       for(var e in explosions) { e.update(GameConfig.updateDeltaTime); }
       for(var l in laserBeams) { l.update(GameConfig.updateDeltaTime); }
       for(var s in floatingScores) { s.update(GameConfig.updateDeltaTime); }
@@ -381,15 +457,12 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   void _onAsteroidTapped(Asteroid asteroid) {
     if (!gameActive || currentTargetIndex >= targetOrder.length) return;
 
-    // Get the SRI service and record the result
     final sriService = context.read<SriService>();
     final expectedAnswer = targetOrder[currentTargetIndex];
     final bool isCorrect = asteroid.answer == expectedAnswer;
 
-    // Record the response in the SRI system
     sriService.recordResponse(asteroid.problem, isCorrect);
 
-    // Reset hints and restart timers on any interaction
     setState(() {
       showTextHint = false;
       showVisualHint = false;
@@ -397,7 +470,6 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     _startHintTimers();
 
     if (isCorrect) {
-      // Correct!
       _triggerScreenShake();
       
       final scoreToAdd = (15 * widget.grade * currentDifficulty!.difficultyMultiplier).round();
@@ -419,7 +491,6 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
         _endGame(isWin: true);
       }
     } else {
-      // Wrong!
       setState(() {
         explosions.add(ParticleExplosion(position: asteroid.position, isCorrect: false));
       });
@@ -519,9 +590,6 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    spaceshipPosition = Offset(50, screenSize.height - 90);
-
     final screenOffset = _screenShakeController.isAnimating
         ? Offset(
             math.sin(_screenShakeController.value * math.pi * 4) * GameConfig.screenShakeIntensity,
@@ -546,50 +614,78 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
                 ),
                 _buildTargetDisplay(),
                 Expanded(
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      // Game Objects
-                      CustomPaint(
-                        painter: GameObjectsPainter(
-                          asteroids: asteroids,
-                          explosions: explosions,
-                          laserBeams: laserBeams,
-                          floatingScores: floatingScores,
-                          showVisualHint: showVisualHint,
-                          targetAnswer: currentTargetIndex < targetOrder.length
-                              ? targetOrder[currentTargetIndex]
-                              : null,
-                        ),
-                        size: Size.infinite,
-                      ),
+                  // FIXED: Use LayoutBuilder to get actual playable area
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Update playable area if changed
+                      final newPlayableArea = Size(constraints.maxWidth, constraints.maxHeight);
+                      if (playableArea != newPlayableArea) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            setState(() {
+                              playableArea = newPlayableArea;
+                            });
+                            if (asteroids.isEmpty && gameActive) {
+                              _generateAsteroids();
+                              _startGameTimer();
+                              _startHintTimers();
+                            }
+                          }
+                        });
+                      }
+                      
+                      // Update spaceship position based on actual playable area
+                      if (playableArea != null) {
+                        spaceshipPosition = Offset(50, playableArea!.height - 90);
+                      }
 
-                      // Interaction Layer
-                      ...asteroids.map((asteroid) => Positioned(
-                            left: asteroid.position.dx - asteroid.size / 2,
-                            top: asteroid.position.dy - asteroid.size / 2,
-                            child: GestureDetector(
-                              onTap: () => _onAsteroidTapped(asteroid),
-                              behavior: HitTestBehavior.opaque,
-                              child: SizedBox(
-                                width: asteroid.size,
-                                height: asteroid.size,
-                              ),
+                      return Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          // Game Objects
+                          CustomPaint(
+                            painter: GameObjectsPainter(
+                              asteroids: asteroids,
+                              explosions: explosions,
+                              laserBeams: laserBeams,
+                              floatingScores: floatingScores,
+                              showVisualHint: showVisualHint,
+                              targetAnswer: currentTargetIndex < targetOrder.length
+                                  ? targetOrder[currentTargetIndex]
+                                  : null,
                             ),
-                          )),
-                          
-                      // Custom-drawn spaceship with thrusters
-                      Positioned(
-                        left: spaceshipPosition.dx - 40,
-                        bottom: 10,
-                        child: CustomPaint(
-                          painter: SpaceshipPainter(
-                            thrusterAnimation: _spaceshipController.value,
+                            size: Size.infinite,
                           ),
-                          size: const Size(80, 80),
-                        ),
-                      )
-                    ],
+
+                          // Interaction Layer
+                          ...asteroids.map((asteroid) => Positioned(
+                                left: asteroid.position.dx - asteroid.size / 2,
+                                top: asteroid.position.dy - asteroid.size / 2,
+                                child: GestureDetector(
+                                  onTap: () => _onAsteroidTapped(asteroid),
+                                  behavior: HitTestBehavior.opaque,
+                                  child: SizedBox(
+                                    width: asteroid.size,
+                                    height: asteroid.size,
+                                  ),
+                                ),
+                              )),
+                              
+                          // Spaceship
+                          if (playableArea != null)
+                            Positioned(
+                              left: spaceshipPosition.dx - 40,
+                              bottom: 10,
+                              child: CustomPaint(
+                                painter: SpaceshipPainter(
+                                  thrusterAnimation: _spaceshipController.value,
+                                ),
+                                size: const Size(80, 80),
+                              ),
+                            )
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],
@@ -653,7 +749,6 @@ class SpaceshipPainter extends CustomPainter {
     final paint = Paint()..style = PaintingStyle.fill;
     final center = Offset(size.width / 2, size.height / 2);
 
-    // Main ship body (triangular)
     paint.color = Colors.grey.shade300;
     final shipPath = Path()
       ..moveTo(center.dx, center.dy - 25)
@@ -662,11 +757,9 @@ class SpaceshipPainter extends CustomPainter {
       ..close();
     canvas.drawPath(shipPath, paint);
 
-    // Ship details
     paint.color = Colors.blue.shade400;
     canvas.drawCircle(Offset(center.dx, center.dy - 5), 8, paint);
 
-    // Animated thrusters with smoother animation
     final thrusterIntensity = 0.4 + 0.6 * math.sin(thrusterAnimation * math.pi * 6).abs();
     paint.color = Colors.orange.withOpacity(0.6 * thrusterIntensity);
     final thrusterSize = 10.0 + 6.0 * thrusterIntensity;
@@ -687,7 +780,6 @@ class SpaceshipPainter extends CustomPainter {
       paint,
     );
 
-    // Wing details
     paint.color = Colors.red.shade400;
     canvas.drawRect(Rect.fromLTWH(center.dx - 18, center.dy + 10, 6, 8), paint);
     canvas.drawRect(Rect.fromLTWH(center.dx + 12, center.dy + 10, 6, 8), paint);
@@ -740,7 +832,7 @@ class GameObjectsPainter extends CustomPainter {
 }
 
 // ================================================================
-// ENHANCED DATA MODELS (with improved performance)
+// ENHANCED DATA MODELS
 // ================================================================
 
 enum AsteroidType { rocky, icy, metallic, crystalline, volcanic }
@@ -768,7 +860,6 @@ class Asteroid {
     required this.hue,
   });
 
-  // Update getters to pull from the problem object
   String get mathProblem => problem.expression;
   int get answer => problem.answer;
 
@@ -804,19 +895,17 @@ class Asteroid {
         break;
     }
 
-    // Improved pulsating hint glow with reduced frequency
     if (isHintActive) {
       final time = DateTime.now().millisecondsSinceEpoch / 1000.0;
-      final pulseIntensity = (0.4 + 0.6 * math.sin(time * 2.5)).clamp(0.0, 1.0); // Slower pulse
+      final pulseIntensity = (0.4 + 0.6 * math.sin(time * 2.5)).clamp(0.0, 1.0);
       
       final glowPaint = Paint()
         ..color = SpaceTheme.starYellow.withOpacity(0.5 * pulseIntensity)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, 12 * pulseIntensity);
       canvas.drawOval(rect.inflate(6), glowPaint);
       
-      // Fewer hint particles for better performance
       for (int i = 0; i < 6; i++) {
-        final angle = (time * 1.5 + i * 1.047) * 2; // Slower rotation
+        final angle = (time * 1.5 + i * 1.047) * 2;
         final radius = size * 0.6;
         final sparklePos = Offset(
           math.cos(angle) * radius,
@@ -830,7 +919,6 @@ class Asteroid {
 
     canvas.restore();
     
-    // Draw math problem text
     final textStyle = TextStyle(
       color: Colors.white,
       fontSize: size * 0.2,
@@ -946,7 +1034,7 @@ class ParticleExplosion {
       particles.add(Particle(
         color: color.withOpacity(0.6 + random.nextDouble() * 0.4),
         velocity: velocity,
-        size: random.nextDouble() * 5 + 1.5, // Slightly smaller particles
+        size: random.nextDouble() * 5 + 1.5,
         type: ParticleType.values[random.nextInt(ParticleType.values.length)],
       ));
     }
@@ -957,7 +1045,7 @@ class ParticleExplosion {
   void draw(Canvas canvas) {
     final paint = Paint();
     for (final p in particles) {
-      final currentPos = position + p.velocity * _progress - Offset(0, 40 * _progress * _progress); // Reduced gravity
+      final currentPos = position + p.velocity * _progress - Offset(0, 40 * _progress * _progress);
       final opacity = ((1.0 - _progress) * (1.0 - _progress)).clamp(0.0, 1.0);
       paint.color = p.color.withOpacity(opacity);
       
@@ -1044,11 +1132,10 @@ class LaserBeam {
   void update(double dt) => _progress += dt / _duration;
 
   void draw(Canvas canvas) {
-    // FIX: Ensure opacity is always between 0.0 and 1.0
     final opacity = (math.sin(_progress * math.pi).abs()).clamp(0.0, 1.0);
     
     final glowPaint = Paint()
-      ..strokeWidth = 16.0 // Slightly thinner
+      ..strokeWidth = 16.0
       ..color = SpaceTheme.alienGreen.withOpacity(0.25 * opacity)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10)
       ..strokeCap = StrokeCap.round;
@@ -1083,14 +1170,13 @@ class FloatingScore {
   void update(double dt) => _progress += dt / _duration;
 
   void draw(Canvas canvas) {
-    final currentPosition = position - Offset(0, 50 * _progress); // Slower float up
-    final scale = 1.0 + 0.3 * math.sin(_progress * math.pi).abs(); // Less dramatic scaling
-    // FIX: Ensure opacity is always between 0.0 and 1.0
+    final currentPosition = position - Offset(0, 50 * _progress);
+    final scale = 1.0 + 0.3 * math.sin(_progress * math.pi).abs();
     final opacity = (math.sin(_progress * math.pi).abs()).clamp(0.0, 1.0);
     
     final textStyle = TextStyle(
       color: color.withOpacity(opacity),
-      fontSize: 26 * scale, // Slightly smaller
+      fontSize: 26 * scale,
       fontWeight: FontWeight.bold,
       shadows: [
         Shadow(
