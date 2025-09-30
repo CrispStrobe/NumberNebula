@@ -1,6 +1,6 @@
 # 🚀 Space Math Academy
 
-A space-themed math learning app for primary school students onwards, specifically optimized for iPads. Features engaging mini-games including Zauberdreiecke (Magic Triangles), floating bubble math, and visual puzzle games.
+A space-themed math learning app for primary school students onwards. Features engaging mini-games including Magic Triangles, arithmetic puzzles, and visual spatial games.
 
 ## ✨ Features
 
@@ -18,6 +18,9 @@ A space-themed math learning app for primary school students onwards, specifical
   - **Signal Triangulation**: A logic puzzle where players must deduce a secret sequence of colored and shaped glyphs using feedback from their guesses.
   - **Cryptex Lock Breaker**: Solve a system of mathematical equations to determine the correct combination for a series of rotating dials.
   - **Arithmancer Duel**: A turn-based card game where players craft mathematical expressions to defeat an AI opponent.
+   - **Arithmetic Square**: Fill a grid of empty cells with numbers from a pool to satisfy all horizontal and vertical equations (row/column constraints).
+  - **Arithmancer Crosswords**: Solve a math-based crossword puzzle by placing numbers in a grid to complete intersecting arithmetic equations.
+  - **Kenken**: Fill a grid such that no digit repeats in any row or column, while also satisfying the mathematical constraints within "cages."
 
 ### 🌟 Key Features
 - **Multi-language support**: English & German (i18n)
@@ -88,6 +91,9 @@ A space-themed math learning app for primary school students onwards, specifical
    │   │       │   ├── planet_hopping_game.dart
    │   │       │   ├── puzzle_math_game.dart
    │   │       │   ├── signal_triangulation_game.dart
+   │   │       │   ├── arithmatic_square_game.dart
+   │   │       │   ├── arithmancer_crosswords_game.dart
+   │   │       │   ├── kenken_game.dart   
    │   │       │   └── spatial_blocks_game.dart
    │       └── widgets/
    │           ├── space_background.dart
@@ -241,7 +247,7 @@ flutter pub run flutter_launcher_icons:main
 
 The app supports:
 - **English (en)**: Default language
-- **German (de)**: Deutsch, including "Zauberdreiecke"
+- **German (de)**: Deutsch
 
 ### Adding New Languages
 1. Create new `.arb` file in `lib/l10n/`

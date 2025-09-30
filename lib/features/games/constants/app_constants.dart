@@ -44,6 +44,8 @@ class AppConstants {
   static const String bubblePopperAchievement = 'bubble_popper';
   static const String puzzleSolverAchievement = 'puzzle_solver';
   static const String allRounderAchievement = 'all_rounder';
+  static const String arithmeticAceAchievement = 'arithmetic_ace';
+  static const String logicGridMasterAchievement = 'logic_grid_master';
   
   // Math Operation Symbols
   static const String additionSymbol = '+';

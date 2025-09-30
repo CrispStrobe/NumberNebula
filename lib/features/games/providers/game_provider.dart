@@ -230,6 +230,19 @@ class GameProvider extends ChangeNotifier {
     if (getGameProgress('number_walls') >= 3 && !hasAchievement('number_walls_pro')) { newAchievements.add(Achievement(id: 'number_walls_pro')); }
     if (getGameProgress('codebreaker') >= 3 && !hasAchievement('codebreaker_pro')) { newAchievements.add(Achievement(id: 'codebreaker_pro')); }
 
+    // Arithmetic Ace (Level 5 in both Arithmetic Square and Crosswords)
+    if (getGameProgress('arithmatic_square') >= 5 && // Assuming 'arithmatic_square' is the key
+        getGameProgress('arithmancer_crosswords') >= 5 &&
+        !hasAchievement('arithmetic_ace')) { 
+        newAchievements.add(Achievement(id: 'arithmetic_ace')); 
+    }
+
+    // Logic Grid Master (Level 5 in Kenken, indicating larger grid complexity)
+    if (getGameProgress('kenken') >= 5 && 
+        !hasAchievement('logic_grid_master')) { 
+        newAchievements.add(Achievement(id: 'logic_grid_master')); 
+    }
+
     final gamesCompleted = _gameProgress.values.where((level) => level >= 1).length;
     if (gamesCompleted >= 3 && !hasAchievement('all_rounder')) {
       newAchievements.add(Achievement(id: 'all_rounder'));
