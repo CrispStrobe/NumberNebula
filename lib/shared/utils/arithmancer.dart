@@ -76,38 +76,73 @@ class MathResult {
   final String expression;
   final List<String> mathematicalProperties;
 
+  final MathResult? leftResult;
+  final MathResult? rightResult;
+  final bool isChained;
+
   MathResult(
-      this.value, this.usedCards, this.expression, this.mathematicalProperties);
+    this.value,
+    this.usedCards,
+    this.expression,
+    this.mathematicalProperties, {
+    this.leftResult,
+    this.rightResult,
+  }) : isChained = (leftResult != null && rightResult != null);
 
-  // Mathematical property detection
-  bool get isPrime => _isPrime(value.round()) && value == value.round();
-  bool get isPerfectSquare => _isPerfectSquare(value);
-  bool get isFibonacci => _isFibonacci(value.round()) && value == value.round();
-  bool get isEven => value.round() % 2 == 0 && value == value.round();
-  bool get isOdd => value.round() % 2 == 1 && value == value.round();
-  bool get isNegative => value < 0;
-  bool get isFractional => value != value.round() && value > 0 && value < 1;
-  bool get isPerfectCube => _isPerfectCube(value);
-  bool get isTriangular =>
-      _isTriangular(value.round()) && value == value.round();
-  bool get isPowerOfTwo =>
-      _isPowerOfTwo(value.round()) && value == value.round();
-  bool get isPalindromic =>
-      _isPalindromic(value.round()) && value == value.round();
-  bool get isComposite => _isComposite(value.round()) && value == value.round();
-  bool get isPentagonal =>
-      _isPentagonal(value.round()) && value == value.round();
-  bool get isHexagonal => _isHexagonal(value.round()) && value == value.round();
-  bool get isMersennePrime =>
-      _isMersennePrime(value.round()) && value == value.round();
-  bool get isCatalan => _isCatalan(value.round()) && value == value.round();
-  bool get isDivisibleBy3 => value.round() % 3 == 0 && value == value.round();
-  bool get isDivisibleBy5 => value.round() % 5 == 0 && value == value.round();
-  bool get isDivisibleBy7 => value.round() % 7 == 0 && value == value.round();
+  factory MathResult.chained(
+    MathResult left,
+    MathResult right,
+    List<MathCard> allCards,
+  ) {
+    return MathResult(
+      left.value + right.value, // Combined value for display
+      allCards,
+      "${left.expression} && ${right.expression}",
+      ['chained_equation'], // Don't copy properties - they don't apply to sum
+      leftResult: left,
+      rightResult: right,
+    );
+  }
 
-  int get damage => isNegative ? 0 : value.round().clamp(0, 9999);
-  int get block => isNegative ? (-value).round().clamp(0, 9999) : 0;
-  double get damageReduction => isFractional ? value : 0.0;
+  // Mathematical property detection (only for non-chained)
+  bool get isPrime => !isChained && _isPrime(value.round()) && value == value.round();
+  bool get isPerfectSquare => !isChained && _isPerfectSquare(value);
+  bool get isFibonacci => !isChained && _isFibonacci(value.round()) && value == value.round();
+  bool get isEven => !isChained && value.round() % 2 == 0 && value == value.round();
+  bool get isOdd => !isChained && value.round() % 2 == 1 && value == value.round();
+  bool get isNegative => !isChained && value < 0;
+  bool get isFractional => !isChained && value != value.round() && value > 0 && value < 1;
+  bool get isPerfectCube => !isChained && _isPerfectCube(value);
+  bool get isTriangular => !isChained && _isTriangular(value.round()) && value == value.round();
+  bool get isPowerOfTwo => !isChained && _isPowerOfTwo(value.round()) && value == value.round();
+  bool get isPalindromic => !isChained && _isPalindromic(value.round()) && value == value.round();
+  bool get isComposite => !isChained && _isComposite(value.round()) && value == value.round();
+  bool get isPentagonal => !isChained && _isPentagonal(value.round()) && value == value.round();
+  bool get isHexagonal => !isChained && _isHexagonal(value.round()) && value == value.round();
+  bool get isMersennePrime => !isChained && _isMersennePrime(value.round()) && value == value.round();
+  bool get isCatalan => !isChained && _isCatalan(value.round()) && value == value.round();
+  bool get isDivisibleBy3 => !isChained && value.round() % 3 == 0 && value == value.round();
+  bool get isDivisibleBy5 => !isChained && value.round() % 5 == 0 && value == value.round();
+  bool get isDivisibleBy7 => !isChained && value.round() % 7 == 0 && value == value.round();
+
+  // Damage/block only for non-chained (chained results calculate separately)
+  int get damage {
+    if (isChained) {
+      // Return sum of both sides' damage
+      return (leftResult?.damage ?? 0) + (rightResult?.damage ?? 0);
+    }
+    return isNegative ? 0 : value.round().clamp(0, 9999);
+  }
+
+  int get block {
+    if (isChained) {
+      // Return sum of both sides' block
+      return (leftResult?.block ?? 0) + (rightResult?.block ?? 0);
+    }
+    return isNegative ? (-value).round().clamp(0, 9999) : 0;
+  }
+
+  double get damageReduction => isChained ? 0.0 : (isFractional ? value : 0.0);
 }
 
 class MathematicalEnemy {
@@ -130,16 +165,35 @@ class MathematicalEnemy {
         mathematicalShields = mathematicalShields ?? {};
 
   int takeDamage(MathResult result, ArithmancerGame game) {
+    print("🎯 [takeDamage] Called with: ${result.expression}");
+    print("🎯 [takeDamage] isChained: ${result.isChained}");
+    print("🎯 [takeDamage] leftResult: ${result.leftResult?.expression}");
+    print("🎯 [takeDamage] rightResult: ${result.rightResult?.expression}");
+    
+    // FIXED: Handle chained results by processing each side separately
+    if (result.isChained) {
+      print("🎯 [takeDamage] Processing CHAINED result");
+      int leftDamage = takeDamage(result.leftResult!, game);
+      print("🎯 [takeDamage] Left damage: $leftDamage");
+      int rightDamage = takeDamage(result.rightResult!, game);
+      print("🎯 [takeDamage] Right damage: $rightDamage");
+      int totalDamage = leftDamage + rightDamage;
+      print("🎯 [takeDamage] Total chained damage: $totalDamage");
+      // DON'T subtract health here - already done in recursive calls
+      return totalDamage;
+    }
+    
+    print("🎯 [takeDamage] Processing SINGLE result: ${result.value}");
+    
+    // Original single-result logic
     int baseDamage = result.damage;
     if (baseDamage <= 0) return 0;
 
-    // Apply mathematical shields
     int finalDamage = _applyMathematicalShields(baseDamage, result);
-
+    print("🎯 [takeDamage] After shields: $finalDamage");
     health -= finalDamage;
     return finalDamage;
   }
-
   
   int _applyMathematicalShields(int damage, MathResult result) {
     // Start with a double for more precise calculations with multipliers
@@ -183,14 +237,15 @@ class MathematicalEnemy {
     // Geometric Shields
     if (mathematicalShields.containsKey('square_immune')) {
         if (result.isPerfectSquare) {
-        finalDamage *= 1.6; // Big bonus
+        finalDamage *= 2.5; // Big bonus
         } else {
         finalDamage *= 0.2; // 80% reduction
         }
     }
+
     if (mathematicalShields.containsKey('cube_only')) {
         if (result.isPerfectCube) {
-        finalDamage *= 1.8; // Big bonus
+        finalDamage *= 2.5; // Big bonus
         } else {
         finalDamage *= 0.2; // 80% reduction
         }
@@ -1309,50 +1364,66 @@ class ArithmancerGame {
 
     // Remove used cards from hand
     for (MathCard card in result.usedCards) {
-        hand.removeWhere((c) => c.id == card.id);
+      hand.removeWhere((c) => c.id == card.id);
     }
 
-    // FIX: Use the 'playerName' parameter if it's provided, otherwise default to the AI's name.
     final String computeName = playerName ?? aiPersonality.name;
     log("$computeName computes: ${result.expression} = ${result.value}");
 
-    // Apply mathematical effects
-    if (result.damage > 0) {
+    // FIXED: Handle chained results
+    if (result.isChained) {
+      log("  Left side: ${result.leftResult!.expression} = ${result.leftResult!.value}");
+      log("  Right side: ${result.rightResult!.expression} = ${result.rightResult!.value}");
+      
+      // Log properties for each side
+      _logMathematicalProperties(result.leftResult!);
+      _logMathematicalProperties(result.rightResult!);
+      
+      // Calculate damage (enemy handles chaining internally)
+      int inflicted = currentEnemy!.takeDamage(result, this);
+      log("💥 Combined damage: $inflicted");
+    } else {
+      // Single result - original logic
+      if (result.damage > 0) {
         int inflicted = currentEnemy!.takeDamage(result, this);
         log("💥 Deals $inflicted damage!");
-
-        // Log mathematical properties detected
-        List<String> props = [];
-        if (result.isPrime) props.add("PRIME");
-        if (result.isPerfectSquare) props.add("PERFECT SQUARE");
-        if (result.isPerfectCube) props.add("PERFECT CUBE");
-        if (result.isFibonacci) props.add("FIBONNAVI"); // Note: Corrected spelling from 'FIBONNAVI' to 'FIBONACCI'
-        if (result.isTriangular) props.add("TRIANGULAR");
-        if (result.isPowerOfTwo) props.add("POWER OF 2");
-        if (result.isPalindromic) props.add("PALINDROMIC");
-        if (result.isPentagonal) props.add("PENTAGONAL");
-        if (result.isHexagonal) props.add("HEXAGONAL");
-        if (result.isMersennePrime) props.add("MERSENNE PRIME");
-        if (result.isCatalan) props.add("CATALAN");
-        if (result.isComposite) props.add("COMPOSITE");
-        if (result.isDivisibleBy3) props.add("÷3");
-        if (result.isDivisibleBy5) props.add("÷5");
-        if (result.isDivisibleBy7) props.add("÷7");
-
-        if (props.isNotEmpty) {
-        log("✨ Mathematical properties: ${props.join(', ')}");
-        }
+        _logMathematicalProperties(result);
+      }
     }
 
     if (result.block > 0) {
-        currentBlock += result.block;
-        log("🛡️ Gains ${result.block} block (negative result)!");
+      currentBlock += result.block;
+      log("🛡️ Gains ${result.block} block (negative result)!");
     }
 
     if (result.damageReduction > 0) {
-        log("🔀 Fractional result: ${(result.damageReduction * 100).toStringAsFixed(1)}% damage reduction!");
+      log("🔀 Fractional result: ${(result.damageReduction * 100).toStringAsFixed(1)}% damage reduction!");
     }
+  }
+
+  // NEW: Helper method to reduce duplication
+  void _logMathematicalProperties(MathResult result) {
+    List<String> props = [];
+    if (result.isPrime) props.add("PRIME");
+    if (result.isPerfectSquare) props.add("PERFECT SQUARE");
+    if (result.isPerfectCube) props.add("PERFECT CUBE");
+    if (result.isFibonacci) props.add("FIBONACCI");
+    if (result.isTriangular) props.add("TRIANGULAR");
+    if (result.isPowerOfTwo) props.add("POWER OF 2");
+    if (result.isPalindromic) props.add("PALINDROMIC");
+    if (result.isPentagonal) props.add("PENTAGONAL");
+    if (result.isHexagonal) props.add("HEXAGONAL");
+    if (result.isMersennePrime) props.add("MERSENNE PRIME");
+    if (result.isCatalan) props.add("CATALAN");
+    if (result.isComposite) props.add("COMPOSITE");
+    if (result.isDivisibleBy3) props.add("÷3");
+    if (result.isDivisibleBy5) props.add("÷5");
+    if (result.isDivisibleBy7) props.add("÷7");
+
+    if (props.isNotEmpty) {
+      log("  ✨ Properties: ${props.join(', ')}");
     }
+  }
 
   List<MathResult> _generateAllPossibleResults() {
     ExpressionEvaluator evaluator = ExpressionEvaluator();
@@ -1587,17 +1658,8 @@ class ExpressionEvaluator {
       
       if (result1 == null || result2 == null) return null;
       
-      // Combine results - sum the values
-      double combinedValue = result1.value + result2.value;
-      String combinedExpression = "${result1.expression} && ${result2.expression}";
-      
-      // Combine mathematical properties
-      List<String> combinedProperties = [];
-      combinedProperties.addAll(result1.mathematicalProperties);
-      combinedProperties.addAll(result2.mathematicalProperties);
-      combinedProperties.add("chained_equation");
-      
-      return MathResult(combinedValue, List.from(cards), combinedExpression, combinedProperties);
+      // FIXED: Return chained result that preserves both sides
+      return MathResult.chained(result1, result2, List.from(cards));
     }
 
     // Regular single expression handling (rest of your existing code)

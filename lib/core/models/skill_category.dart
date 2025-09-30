@@ -19,7 +19,7 @@ const Map<String, SkillCategory> gameSkillMap = {
   'planet_hopping': SkillCategory.arithmetic,
   'number_walls': SkillCategory.arithmetic,
   'codebreaker': SkillCategory.arithmetic,
-  'arithmancer_duel': SkillCategory.arithmetic,
+  // 'arithmancer_duel': SkillCategory.arithmetic,
   'arithmatic_square': SkillCategory.arithmetic,
   'arithmancer_crosswords': SkillCategory.arithmetic,
   'kenken': SkillCategory.arithmetic,
@@ -31,4 +31,8 @@ const Map<String, SkillCategory> gameSkillMap = {
   // Logic/Deduction games (use CognitiveProfileService)
   'signal_triangulation': SkillCategory.logicDeduction,
   'cryptex_lock_breaker': SkillCategory.logicDeduction,
+
+  // HYBRID: Arithmancer teaches BOTH arithmetic AND pattern recognition
+  // Primary skill is pattern recognition, but we also track arithmetic
+  'arithmancer_duel': SkillCategory.patternRecognition,
 };

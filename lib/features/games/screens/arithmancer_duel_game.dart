@@ -11,6 +11,11 @@ import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../../../shared/utils/arithmancer.dart';
 
+import '../constants/app_constants.dart';
+import '../constants/difficulty_manager.dart';
+import '../models/math_problem.dart';
+import '../../../core/services/sri_service.dart'; 
+
 enum GameMode {
   vsPrograms,  // Human vs AI programs (enemies)
   vsPlayers,   // Human vs AI players
@@ -480,25 +485,23 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     
     // Find the result that uses exactly our battlefield cards
     MathResult? result;
-    for (final r in allResults) {
-      if (r.usedCards.length == _battlefieldCards.length) {
-        final usedIds = r.usedCards.map((c) => c.id).toSet();
-        final battlefieldIds = _battlefieldCards.map((c) => c.id).toSet();
-        if (usedIds.containsAll(battlefieldIds) && battlefieldIds.containsAll(usedIds)) {
-          result = r;
-          break;
+      for (final r in allResults) {
+        if (r.usedCards.length == _battlefieldCards.length) {
+          final usedIds = r.usedCards.map((c) => c.id).toSet();
+          final battlefieldIds = _battlefieldCards.map((c) => c.id).toSet();
+          if (usedIds.containsAll(battlefieldIds) && battlefieldIds.containsAll(usedIds)) {
+            result = r;
+            break;
+          }
         }
       }
-    }
-    
-    if (result == null) {
-      _showStatus(S.of(context)!.arithmancerInvalidExpression);
-      setState(() {
-        _isCalculating = false;
-      });
-      _energyTransferController.reverse();
-      return;
-    }
+      
+      if (result == null) {
+        _showStatus(S.of(context)!.arithmancerInvalidExpression);
+        setState(() => _isCalculating = false);
+        _energyTransferController.reverse();
+        return;
+      }
 
     // Apply the result - using non-null result
     final nonNullResult = result;
@@ -506,16 +509,50 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     // Debug print the mathematical properties for troubleshooting
     // Enhanced debug logging for troubleshooting
     print("🔢 === DAMAGE CALCULATION DEBUG ===");
-    print("🔢 Expression: ${nonNullResult.expression} = ${nonNullResult.value}");
-    print("🔢 Raw damage: ${nonNullResult.damage}");
-    print("🔢 Mathematical properties:");
-    print("🔢   - isPrime: ${nonNullResult.isPrime}");
-    print("🔢   - isPerfectSquare: ${nonNullResult.isPerfectSquare}");
-    print("🔢   - isFibonacci: ${nonNullResult.isFibonacci}");
-    print("🔢   - isPowerOfTwo: ${nonNullResult.isPowerOfTwo}");
-    print("🔢   - isEven: ${nonNullResult.isEven}");
-    print("🔢   - isOdd: ${nonNullResult.isOdd}");
-    print("🔢 Block gained: ${nonNullResult.block}");
+    if (nonNullResult.isChained) {
+      print("🔢 CHAINED EXPRESSION: ${nonNullResult.expression}");
+      print("🔢 Left: ${nonNullResult.leftResult!.expression} = ${nonNullResult.leftResult!.value}");
+      print("🔢 Right: ${nonNullResult.rightResult!.expression} = ${nonNullResult.rightResult!.value}");
+      print("🔢 Combined display value: ${nonNullResult.value}");
+    } else {
+      print("🔢 Expression: ${nonNullResult.expression} = ${nonNullResult.value}");
+      print("🔢 Raw damage: ${nonNullResult.damage}");
+    }
+
+    if (_currentEnemy != null) {
+      print("🔢 Enemy: ${_currentEnemy!.name}");
+      print("🔢 Enemy health: ${_currentEnemy!.health}/${_currentEnemy!.maxHealth}");
+      print("🔢 Enemy shields: ${_currentEnemy!.mathematicalShields}");
+      
+      // FIXED: Check shields for each side of chained results
+      if (nonNullResult.isChained) {
+        print("🔢 Checking LEFT side (${nonNullResult.leftResult!.value}):");
+        _debugShieldCheck(nonNullResult.leftResult!, _currentEnemy!);
+        print("🔢 Checking RIGHT side (${nonNullResult.rightResult!.value}):");
+        _debugShieldCheck(nonNullResult.rightResult!, _currentEnemy!);
+      } else {
+        _debugShieldCheck(nonNullResult, _currentEnemy!);
+      }
+    }
+
+    // TRACK ARITHMETIC: Extract and record all math problems from the expression
+    final mathProblems = _extractMathProblemsFromExpression(result);
+    debugPrint('[ARITHMANCER] Expression: ${result.expression}');
+    debugPrint('[ARITHMANCER] Extracted ${mathProblems.length} math problems:');
+    for (final p in mathProblems) {
+      debugPrint('  - ${p.expression} = ${p.answer}');
+    }
+
+    final sriService = context.read<SriService>();
+
+    // Determine if this was a successful play based on damage dealt
+    bool wasSuccessful = result.damage > 0;
+
+    // Record each arithmetic operation with SRI
+    for (final problem in mathProblems) {
+      sriService.recordResponse(problem, wasSuccessful);
+      debugPrint('[ARITHMANCER] Tracked arithmetic: ${problem.expression} = ${problem.answer}');
+    }
 
     if (_currentEnemy != null) {
     print("🔢 Enemy: ${_currentEnemy!.name}");
@@ -614,12 +651,33 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     }
   }
 
+  void _debugShieldCheck(MathResult result, MathematicalEnemy enemy) {
+    enemy.mathematicalShields.forEach((shieldType, threshold) {
+      print("🔢 Shield check - $shieldType: threshold=$threshold");
+      switch (shieldType) {
+        case 'prime_shield':
+          print("🔢   - Value ${result.value} is prime: ${result.isPrime}");
+          print("🔢   - Threshold check: ${result.value} >= $threshold = ${result.value >= threshold}");
+          break;
+        case 'square_immune':
+          print("🔢   - Value ${result.value} is perfect square: ${result.isPerfectSquare}");
+          break;
+        case 'fibonacci_only':
+          print("🔢   - Value ${result.value} is fibonacci: ${result.isFibonacci}");
+          break;
+        case 'power_of_two_only':
+          print("🔢   - Value ${result.value} is power of two: ${result.isPowerOfTwo}");
+          break;
+      }
+    });
+  }
+
   void _createBonusEffects(MathResult result) {
     _bonusEffects.clear();
-    if (result.isPrime) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusPrime, value: "x3", color: Colors.cyan));
-    if (result.isPerfectSquare) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusSquare, value: "x2", color: Colors.purple));
-    if (result.isFibonacci) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusFibonacci, value: "x1.7", color: Colors.orange));
-    if (result.isPowerOfTwo) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusBinary, value: "x1.6", color: Colors.lightBlue));
+    if (result.isPrime) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusPrime, value: "", color: Colors.cyan));
+    if (result.isPerfectSquare) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusSquare, value: "", color: Colors.purple));
+    if (result.isFibonacci) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusFibonacci, value: "", color: Colors.orange));
+    if (result.isPowerOfTwo) _bonusEffects.add(BonusEffect(type: S.of(context)!.arithmancerBonusBinary, value: "", color: Colors.lightBlue));
     
     if (_bonusEffects.isNotEmpty) {
       _bonusController.forward(from: 0.0);
@@ -682,7 +740,18 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   void _handlePvPVictory() {
     final baseScore = 300 * widget.grade;
-    context.read<GameProvider>().addScore(baseScore);
+    // context.read<GameProvider>().addScore(baseScore);
+
+    // Pattern recognition victory tracking
+    // Arithmetic was already tracked during each _executeBattlefield() call
+    final didAdvance = context.read<GameProvider>().recordLevelWin(
+      gameType: 'arithmancer_duel',
+      scoreGained: baseScore,
+      difficulty: widget.level,
+      wasSuccessful: true,
+      // NO mathProblem - this tracks pattern recognition only
+      // Individual arithmetic operations were tracked in real-time
+    );
     
     if (widget.gameMode == GameMode.ladder) {
       _ladderProgress++;
@@ -752,6 +821,18 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     
     final baseScore = 200 * widget.grade;
     final bonusScore = (_game.playerHealth / _game.maxHealth * 100).round();
+    final totalScore = baseScore + bonusScore;
+
+    // DUAL TRACKING: Pattern recognition victory (no mathProblem needed)
+    // The arithmetic was already tracked during _executeBattlefield()
+    final didAdvance = context.read<GameProvider>().recordLevelWin(
+      gameType: 'arithmancer_duel',
+      scoreGained: totalScore,
+      difficulty: widget.level,
+      wasSuccessful: true,
+      // NO mathProblem - arithmetic already tracked per-calculation
+    );
+
     context.read<GameProvider>().addScore(baseScore + bonusScore);
     
     if (widget.gameMode == GameMode.ladder) {
@@ -843,6 +924,16 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   }
 
   void _handleDefeat() {
+    // Track pattern recognition failure
+    // Arithmetic tracking already happened during gameplay
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'arithmancer_duel',
+      scoreGained: 0,
+      difficulty: widget.level,
+      wasSuccessful: false,
+      // NO mathProblem - arithmetic was tracked per-calculation
+    );
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1098,6 +1189,94 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     } else {
       _handleEnemyTurn();
     }
+  }
+
+  List<MathProblem> _extractMathProblemsFromExpression(MathResult result) {
+    List<MathProblem> problems = [];
+    
+    // FIXED: Use the preserved chain structure
+    if (result.isChained) {
+      // Process left side
+      if (result.leftResult != null) {
+        problems.addAll(_extractMathProblemsFromExpression(result.leftResult!));
+      }
+      // Process right side
+      if (result.rightResult != null) {
+        problems.addAll(_extractMathProblemsFromExpression(result.rightResult!));
+      }
+    } else {
+      // Single expression - parse it
+      final problem = _parseExpressionToProblem(result.expression, widget.grade);
+      if (problem != null) problems.add(problem);
+    }
+    
+    return problems;
+  }
+
+  MathProblem? _parseExpressionToProblem(String expression, int difficulty) {
+    // Remove parentheses for simpler parsing
+    expression = expression.replaceAll('(', '').replaceAll(')', '').trim();
+    
+    // Try to parse simple binary operations: "a op b"
+    final operators = ['+', '-', '*', '/'];
+    
+    for (final opSymbol in operators) {
+      if (expression.contains(' $opSymbol ')) {
+        final parts = expression.split(' $opSymbol ');
+        if (parts.length == 2) {
+          final a = int.tryParse(parts[0].trim());
+          final b = int.tryParse(parts[1].trim());
+          
+          if (a != null && b != null) {
+            MathOperation operation;
+            switch (opSymbol) {
+              case '+':
+                operation = MathOperation.addition;
+                break;
+              case '-':
+                operation = MathOperation.subtraction;
+                break;
+              case '*':
+                operation = MathOperation.multiplication;
+                break;
+              case '/':
+                operation = MathOperation.division;
+                break;
+              default:
+                return null;
+            }
+            
+            // Calculate the answer
+            int answer;
+            switch (operation) {
+              case MathOperation.addition:
+                answer = a + b;
+                break;
+              case MathOperation.subtraction:
+                answer = a - b;
+                break;
+              case MathOperation.multiplication:
+                answer = a * b;
+                break;
+              case MathOperation.division:
+                answer = b != 0 ? (a ~/ b) : 0;
+                break;
+            }
+            
+            return MathProblem(
+              operandA: a,
+              operandB: b,
+              operation: operation,
+              answer: answer,
+              expression: expression,
+              difficulty: difficulty,
+            );
+          }
+        }
+      }
+    }
+    
+    return null; // Complex expression or single number - skip SRI tracking
   }
 
   Widget _buildHeader() {

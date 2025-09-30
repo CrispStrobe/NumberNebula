@@ -5,7 +5,6 @@ import 'dart:math' as math;
 import 'dart:async';
 import 'dart:ui' as ui;
 
-// Assuming these paths are correct for your project structure
 import '../constants/app_constants.dart';
 import '../constants/difficulty_manager.dart';
 import '../../../core/theme/space_theme.dart';
