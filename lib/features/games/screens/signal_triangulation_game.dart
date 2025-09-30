@@ -224,10 +224,10 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     });
     
     // Record response for SRI tracking
-    final sriService = context.read<SriService>();
+    // final sriService = context.read<SriService>();
     final isCorrect = result.correctPosition == sequenceLength;
     
-    // Create a simple problem for SRI tracking
+    /* Create a simple problem for SRI tracking
     final problem = MathProblem(
       operandA: previousGuesses.length,
       operandB: maxGuesses,           
@@ -236,7 +236,15 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       expression: 'Signal Triangulation Attempt ${previousGuesses.length}',
       difficulty: widget.grade,       // required parameter
     );
-    sriService.recordResponse(problem, isCorrect);
+    sriService.recordResponse(problem, isCorrect); */
+
+    final didAdvance = context.read<GameProvider>().recordLevelWin(
+      gameType: 'signal_triangulation',
+      scoreGained: 0, // We add score later in _handleSuccess
+      difficulty: widget.grade + (widget.level ~/ 5),
+      wasSuccessful: isCorrect,
+      // No mathProblem parameter - this is a logic game!
+    );
     
     _feedbackController.forward(from: 0.0);
     
@@ -318,9 +326,13 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     final efficiencyBonus = math.max(0, (maxGuesses - previousGuesses.length) * 50);
     final difficultyBonus = (sequenceLength - 3) * 100;
     final totalScore = baseScore + efficiencyBonus + difficultyBonus;
-    
+
+    // now handled by recordLevelWin:
+    // context.read<GameProvider>().addScore(totalScore);
+    // context.read<GameProvider>().updateGameProgress('signal_triangulation', widget.level);
+
+    // We just record the final score
     context.read<GameProvider>().addScore(totalScore);
-    context.read<GameProvider>().updateGameProgress('signal_triangulation', widget.level);
     
     // Add celebration particles
     for (int i = 0; i < 50; i++) {

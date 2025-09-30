@@ -10,7 +10,10 @@ import 'core/services/debug_provider.dart';
 import 'core/services/progress_service.dart';
 import 'core/services/purchase_service.dart';
 import 'core/services/puzzle_image_service.dart';
+
 import 'core/services/sri_service.dart';
+import 'core/services/cognitive_profile_service.dart';
+
 import 'core/theme/space_theme.dart';
 
 // --- PROVIDERS & MODELS ---
@@ -43,12 +46,20 @@ import 'package:dart_csp/dart_csp.dart';
 
 // --- GLOBAL INSTANCES & NAVIGATOR KEY ---
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-final ProgressService progressService = ProgressService(); // MOVE THIS UP
-final GameProvider gameProvider = GameProvider(progressService: progressService); // NOW PASS IT IN
+final ProgressService progressService = ProgressService(); // must be a singleton before GameProvider
+final CognitiveProfileService cognitiveProfileService = CognitiveProfileService();
+
+final GameProvider gameProvider = GameProvider(
+  progressService: progressService,
+  sriService: sriService,
+  cognitiveProfileService: cognitiveProfileService,
+);
+
 final SriService sriService = SriService();
 final PurchaseService purchaseService = PurchaseService();
 final DebugProvider debugProvider = DebugProvider();
 final AudioService audioService = AudioService();
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -68,6 +79,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: gameProvider),
         ChangeNotifierProvider.value(value: sriService),
+        ChangeNotifierProvider.value(value: cognitiveProfileService),
         ChangeNotifierProvider.value(value: purchaseService),
         ChangeNotifierProvider.value(value: debugProvider),
         Provider.value(value: progressService),
@@ -117,6 +129,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
       await _loadLanguagePreference();
       await progressService.loadProgress(gameProvider);
       await sriService.loadSriData();
+      await cognitiveProfileService.loadProfile();
       setState(() => _isInitialized = true);
     } catch (e, s) {
       debugPrint('Initialization Error: $e\n$s');
@@ -150,6 +163,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   Future<void> _saveAppState() async {
     await progressService.saveProgress(gameProvider);
     await sriService.saveSriData();
+    await cognitiveProfileService.saveProfile();
     try {
       final prefs = await SharedPreferences.getInstance();
       if (_locale != null) {

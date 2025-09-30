@@ -2,6 +2,11 @@
 import 'package:flutter/foundation.dart';
 import '../../../core/services/progress_service.dart';
 import '../../../core/config/app_config.dart';
+import '../../../core/models/skill_category.dart';
+import '../../../core/services/sri_service.dart';
+import '../../../core/services/cognitive_profile_service.dart';
+import '../models/math_problem.dart';
+import '../constants/app_constants.dart'; // For MathOperation and NumberRange
 
 // The Achievement data class. It should be at the top-level, NOT inside another class.
 class Achievement {
@@ -33,6 +38,9 @@ class Achievement {
 // The GameProvider class. There should only be ONE declaration of this.
 class GameProvider extends ChangeNotifier {
   final ProgressService _progressService;
+  final SriService _sriService;
+  final CognitiveProfileService _cognitiveProfileService;
+
   int _score = 0;
   int _level = 1;
   int _grade = 1;
@@ -50,13 +58,19 @@ class GameProvider extends ChangeNotifier {
   int _customRangeMin = 1;
   int _customRangeMax = 20;
 
-  GameProvider({required ProgressService progressService})
-      : _progressService = progressService {
-    // If IAPs are globally disabled, force the unlocked state on initialization.
+  GameProvider({
+    required ProgressService progressService,
+    required SriService sriService,
+    required CognitiveProfileService cognitiveProfileService,
+  }) : _progressService = progressService,
+       _sriService = sriService,
+       _cognitiveProfileService = cognitiveProfileService {
     if (!AppConfig.inapps_active) {
       _isFullVersionUnlocked = true;
     }
-   }
+  }
+
+  Map<String, int> _currentLevelWins = {};
 
   // Getter
   bool get isFullVersionUnlocked => _isFullVersionUnlocked;
@@ -92,6 +106,97 @@ class GameProvider extends ChangeNotifier {
   Future<void> _saveProgress() async {
     // This is a "fire and forget" call. We don't need to wait for it.
     _progressService.saveProgress(this);
+  }
+
+  bool recordLevelWin({
+    required String gameType,
+    required int scoreGained,
+    required int difficulty,
+    required bool wasSuccessful,
+    MathProblem? mathProblem,
+  }) {
+    debugPrint('[GAME_PROVIDER] 🎯 Recording $gameType result: ${wasSuccessful ? "WIN" : "LOSS"} at difficulty $difficulty');
+    
+    if (wasSuccessful) addScore(scoreGained);
+
+    _currentLevelWins[gameType] = (_currentLevelWins[gameType] ?? 0) + (wasSuccessful ? 1 : 0);
+
+    final skill = gameSkillMap[gameType];
+    if (skill == null) {
+      debugPrint('[GAME_PROVIDER] ⚠️ Unknown game type: $gameType');
+      return false;
+    }
+
+    if (skill == SkillCategory.arithmetic) {
+      if (mathProblem != null) {
+        _sriService.recordResponse(mathProblem, wasSuccessful);
+      } else {
+        debugPrint('[GAME_PROVIDER] ⚠️ Arithmetic game $gameType missing MathProblem');
+      }
+    } else {
+      _cognitiveProfileService.recordAttempt(skill, difficulty, wasSuccessful);
+    }
+
+    bool didAdvance = false;
+    if (wasSuccessful && canAdvanceToNextLevel(gameType, _gameProgress[gameType] ?? 1)) {
+       advanceLevel(gameType);
+       didAdvance = true;
+    }
+
+    _saveProgress();
+    return didAdvance;
+  }
+
+  bool canAdvanceToNextLevel(String gameType, int currentLevel) {
+    if ((_currentLevelWins[gameType] ?? 0) < 3) {
+      debugPrint('[GAME_PROVIDER] ❌ $gameType: Only ${_currentLevelWins[gameType] ?? 0}/3 wins');
+      return false;
+    }
+
+    final skill = gameSkillMap[gameType];
+    if (skill == null) return false;
+
+    if (skill == SkillCategory.arithmetic) {
+      return _checkArithmeticMastery(currentLevel);
+    } else {
+      return _cognitiveProfileService.hasMastery(skill, currentLevel);
+    }
+  }
+
+  void advanceLevel(String gameType) {
+    debugPrint('[GAME_PROVIDER] 📈 $gameType advancing to level ${(_gameProgress[gameType] ?? 1) + 1}');
+    updateGameProgress(gameType, (_gameProgress[gameType] ?? 1) + 1);
+    _currentLevelWins[gameType] = 0;
+  }
+
+  bool _checkArithmeticMastery(int difficulty) {
+    final breakdown = _sriService.getDetailedBreakdown();
+    
+    List<MathOperation> relevantOps;
+    if (difficulty <= 5) {
+      relevantOps = [MathOperation.addition, MathOperation.subtraction];
+    } else if (difficulty <= 10) {
+      relevantOps = [MathOperation.addition, MathOperation.subtraction, MathOperation.multiplication];
+    } else {
+      relevantOps = MathOperation.values.toList();
+    }
+
+    int totalTracked = 0;
+    int totalMastered = 0;
+    
+    for (var op in relevantOps) {
+      for (var range in NumberRange.values) {
+        final stat = breakdown[op]?[range];
+        if (stat != null && stat.tracked > 0) {
+          totalTracked += stat.tracked as int;
+          totalMastered += stat.mastered as int;
+        }
+      }
+    }
+    
+    final hasMastery = totalTracked >= 10 && (totalMastered / totalTracked) >= 0.7;
+    debugPrint('[GAME_PROVIDER] Arithmetic mastery @ $difficulty: $totalMastered/$totalTracked ${hasMastery ? "✓" : "✗"}');
+    return hasMastery;
   }
 
   // --- Setters for Custom Settings ---
@@ -327,6 +432,7 @@ class GameProvider extends ChangeNotifier {
       'customOperations': _customOperations.toList(), // Convert set to list for JSON
       'customRangeMin': _customRangeMin,
       'customRangeMax': _customRangeMax,
+      'currentLevelWins': _currentLevelWins,
     };
   }
 
@@ -357,6 +463,8 @@ class GameProvider extends ChangeNotifier {
           .map((a) => Achievement.fromJson(a))
           .toList();
     }
+
+    _currentLevelWins = Map<String, int>.from(json['currentLevelWins'] ?? {});
     
     notifyListeners();
   }
