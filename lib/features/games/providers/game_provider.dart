@@ -114,6 +114,7 @@ class GameProvider extends ChangeNotifier {
     required int difficulty,
     required bool wasSuccessful,
     MathProblem? mathProblem,
+    List<MathProblem>? mathProblems,  // NEW: Support multiple problems
   }) {
     debugPrint('[GAME_PROVIDER] 🎯 Recording $gameType result: ${wasSuccessful ? "WIN" : "LOSS"} at difficulty $difficulty');
     
@@ -128,12 +129,29 @@ class GameProvider extends ChangeNotifier {
     }
 
     if (skill == SkillCategory.arithmetic) {
+      // Collect all problems to record
+      final problemsToRecord = <MathProblem>[];
+      
       if (mathProblem != null) {
-        _sriService.recordResponse(mathProblem, wasSuccessful);
+        problemsToRecord.add(mathProblem);
+      }
+      
+      if (mathProblems != null) {
+        problemsToRecord.addAll(mathProblems);
+      }
+      
+      // Record all problems with SRI
+      if (problemsToRecord.isNotEmpty) {
+        for (final problem in problemsToRecord) {
+          _sriService.recordResponse(problem, wasSuccessful);
+        }
+        debugPrint('[GAME_PROVIDER] Recorded ${problemsToRecord.length} math problem(s) for $gameType');
       } else {
-        debugPrint('[GAME_PROVIDER] ⚠️ Arithmetic game $gameType missing MathProblem');
+        // Arithmetic game with no problems - this shouldn't happen
+        debugPrint('[GAME_PROVIDER] ⚠️ Arithmetic game $gameType missing MathProblem data');
       }
     } else {
+      // Non-arithmetic games use cognitive profile tracking
       _cognitiveProfileService.recordAttempt(skill, difficulty, wasSuccessful);
     }
 

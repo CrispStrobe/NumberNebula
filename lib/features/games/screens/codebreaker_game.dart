@@ -314,18 +314,6 @@ class _CodebreakerGameState extends State<CodebreakerGame>
       final isValid = puzzle!.validateSolution(userSolution);
       debugPrint("✅ [CODEBREAKER UI] Solution validation result: $isValid");
       
-      // Record the response with SRI service
-      final sriService = context.read<SriService>();
-      final dummyProblem = MathProblem(
-        expression: "codebreaker_${widget.level}",
-        answer: 1,
-        operation: MathOperation.addition,
-        operandA: 1,
-        operandB: 0,
-        difficulty: widget.grade,
-      );
-      sriService.recordResponse(dummyProblem, isValid);
-      
       if (isValid) {
         _handleSuccess();
       } else {
@@ -334,6 +322,65 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     } else {
       debugPrint("✅ [CODEBREAKER UI] Solution incomplete: ${userSolution.length}/${puzzle!.hiddenPositions.length} positions filled");
     }
+  }
+
+  List<MathProblem> _extractMathProblems() {
+    final problems = <MathProblem>[];
+    
+    for (final eq in puzzle!.equations) {
+      // Only extract problems where both operands are concrete numbers
+      // (either literals or solved symbols)
+      int? val1, val2, result;
+      
+      if (eq.term1 is int) {
+        val1 = eq.term1 as int;
+      } else if (eq.term1 is String) {
+        val1 = puzzle!._fullSolution[eq.term1 as String];
+      }
+      
+      if (eq.term2 is int) {
+        val2 = eq.term2 as int;
+      } else if (eq.term2 is String) {
+        val2 = puzzle!._fullSolution[eq.term2 as String];
+      }
+      
+      if (eq.result is int) {
+        result = eq.result as int;
+      } else if (eq.result is String) {
+        result = puzzle!._fullSolution[eq.result as String];
+      }
+      
+      if (val1 != null && val2 != null && result != null) {
+        MathOperation operation;
+        switch (eq.op) {
+          case '+':
+            operation = MathOperation.addition;
+            break;
+          case '-':
+            operation = MathOperation.subtraction;
+            break;
+          case '*':
+            operation = MathOperation.multiplication;
+            break;
+          case '/':
+            operation = MathOperation.division;
+            break;
+          default:
+            continue; // Skip unknown operators
+        }
+        
+        problems.add(MathProblem(
+          operandA: val1,
+          operandB: val2,
+          operation: operation,
+          answer: result,
+          expression: '$val1 ${eq.op} $val2',
+          difficulty: widget.grade,
+        ));
+      }
+    }
+    
+    return problems;
   }
 
   void _handleSuccess() {
@@ -348,7 +395,19 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     int totalScore = baseScore + complexityBonus + operationBonus;
     debugPrint("🎉 [CODEBREAKER UI] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
     
-    context.read<GameProvider>().addScore(totalScore);
+    // Extract all math problems from the puzzle
+    final mathProblems = _extractMathProblems();
+    debugPrint("🎉 [CODEBREAKER UI] Extracted ${mathProblems.length} math problems for SRI tracking");
+    
+    // SINGLE CALL to unified progression system
+    final didAdvance = context.read<GameProvider>().recordLevelWin(
+      gameType: 'codebreaker',
+      scoreGained: totalScore,
+      difficulty: widget.level,
+      wasSuccessful: true,
+      mathProblems: mathProblems, // Pass ALL the problems
+    );
+    
     _successController.forward(from: 0.0);
     
     if (mounted) {
@@ -358,6 +417,22 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         builder: (context) => _buildSuccessDialog(complexityBonus + operationBonus),
       );
     }
+  } // handleSuccess
+
+  void _handleFailure() {
+    debugPrint("❌ [CODEBREAKER UI] FAILURE! Player gave up or failed");
+    
+    // Extract problems for learning purposes
+    final mathProblems = _extractMathProblems();
+    
+    // Record the failure
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'codebreaker',
+      scoreGained: 0,
+      difficulty: widget.level,
+      wasSuccessful: false,
+      mathProblems: mathProblems,
+    );
   }
 
   int _getOperationBonus(String operation) {
