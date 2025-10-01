@@ -55,7 +55,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   void _startTimer() {
-    _timeLeft = 120;
+    _timeLeft = 120; // Or get from DifficultyManager
     _timer?.cancel();
     debugPrint("TIMER: Starting timer. Duration: $_timeLeft seconds.");
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -65,10 +65,48 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         timer.cancel();
         if (mounted) {
           debugPrint("TIMER: Timer finished.");
-          _showGameOverDialog("Time's up, space cadet!");
+          // CHANGED: Call the central endgame handler with a failure status.
+          _endGame(wasSuccessful: false); 
         }
       }
     });
+  }
+
+  void _endGame({required bool wasSuccessful}) {
+    _timer?.cancel(); // Stop the timer regardless of outcome.
+    
+    // 1. Collect all math problems from this level for reporting.
+    final List<MathProblem> allProblems = pieces.map((p) => p.problem).toList();
+
+    // 2. Calculate the final score.
+    int finalScore = 0;
+    if (wasSuccessful) {
+      int timeBonus = 0;
+      final gameProvider = context.read<GameProvider>();
+      if (gameProvider.puzzleTimerEnabled) {
+        timeBonus = (_timeLeft * 2); // Example bonus calculation
+      }
+      finalScore = 100 + timeBonus; // Base score + bonus
+    }
+    
+    debugPrint("--- GAME END ---");
+    debugPrint("Result: ${wasSuccessful ? 'WIN' : 'LOSS'} | Final Score: $finalScore");
+
+    // 3. Make the single, unified call to the GameProvider.
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'puzzle_math', // Unique identifier for this game
+      scoreGained: finalScore,
+      difficulty: widget.level,
+      wasSuccessful: wasSuccessful,
+      mathProblems: allProblems, // Report all problems for SRI and Cognitive tracking
+    );
+
+    // 4. Show the appropriate dialog to the user.
+    if (wasSuccessful) {
+      _showWinDialog(finalScore);
+    } else {
+      _showGameOverDialog("Time's up, space cadet!");
+    }
   }
 
   @override
@@ -436,21 +474,25 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                   debugPrint("DRAG: Piece ID $pieceId hovering over slot ${slotData.id}. Will Accept: $willAccept");
                   return willAccept;
                 },
+                // Inside the DragTarget's onAccept callback in _buildPuzzleBoard
                 onAccept: (pieceId) {
                   final pieceData = pieces.firstWhere((p) => p.id == pieceId);
+                  final slotData = pieces.firstWhere((p) => p.row == row && p.col == col);
                   final isCorrect = pieceData.answer == slotData.answer && pieceData.rotation == 0;
-        
+
                   debugPrint("DROP: Attempting place piece ID $pieceId (Ans: ${pieceData.answer}, Rot: ${pieceData.rotation}) -> slot ${slotData.id} (Ans: ${slotData.answer})");
                   
-                  final sriService = context.read<SriService>();
-                  sriService.recordResponse(pieceData.problem, isCorrect);
-                
+                  // REMOVED: Direct call to sriService.recordResponse. This will be handled at the end of the game.
+
                   if (isCorrect) {
                     debugPrint("DROP: SUCCESS! Correct placement.");
                     setState(() => placedPieces[slotData.id] = pieceId);
-                    context.read<GameProvider>().addScore(50);
+                    
+                    // REMOVED: Direct call to gameProvider.addScore. This is now part of the final score calculation.
+
+                    // CHANGED: Instead of showing the dialog directly, we call our new central handler.
                     if (placedPieces.length == pieces.length) {
-                      _showWinDialog();
+                      _endGame(wasSuccessful: true);
                     }
                   } else {
                     debugPrint("DROP: FAILURE! Incorrect. Reason: ${pieceData.answer != slotData.answer ? 'Wrong Answer' : 'Wrong Rotation'}");
@@ -789,18 +831,10 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     _initializeGame(); 
   }
 
-  void _showWinDialog() {
-    debugPrint("--- PUZZLE COMPLETE ---");
-    _timer?.cancel();
-    final gameProvider = context.read<GameProvider>();
-    int bonus = 0;
-    String message = S.of(context)!.puzzleMathWin;
-    if (gameProvider.puzzleTimerEnabled) {
-      bonus = (_timeLeft * 2);
-      message = S.of(context)!.puzzleMathWinBonus(bonus);
-    }
-    gameProvider.addScore(100 + bonus);
-    debugPrint("GAME: Awarding win bonus. Base: 100, Time Bonus: $bonus");
+  void _showWinDialog(int scoreGained) {
+    String message = scoreGained > 100
+        ? S.of(context)!.puzzleMathWinBonus(scoreGained - 100)
+        : S.of(context)!.puzzleMathWin;
 
     showDialog(
       context: context,
@@ -817,7 +851,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
           Text(S.of(context)!.excellent, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ]),
         content: Text(
-          message,
+          message, // Use the generated message
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [
@@ -838,7 +872,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   void _showGameOverDialog(String title) {
-     showDialog(
+    showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => SpaceDialog(
@@ -849,6 +883,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
               _initializeGame();
             }));
   }
+  
 }
 
 class PuzzlePieceData {

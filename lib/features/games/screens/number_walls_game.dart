@@ -200,32 +200,56 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _checkIfComplete() {
-    // Check if all slots are filled.
     if (userAnswers.every((answer) => answer != null)) {
       final isValid = currentPuzzle!.validateSolution(userAnswers.cast<int>());
-
-      // --- START: NEW AND CORRECTED LOGIC ---
+      
+      // 1. Get the list of problems the user was tested on in this puzzle.
+      final List<MathProblem> attemptedProblems = _getSolvedProblems();
+      
+      // 2. Report the outcome to the central GameProvider.
       if (isValid) {
-        // If the solution is valid, log each individual solved problem to SRI.
-        _logSolvedProblemsToSRI(userAnswers.cast<int>());
-        _handleSuccess();
+        // On SUCCESS, calculate the score and report it.
+        int baseScore = 120 * widget.grade;
+        int bonusScore = (baseScore * (currentPuzzle!.wallHeight / 3.0)).round();
+        int operationBonus = _getOperationBonus(currentPuzzle!.operation);
+        int totalScore = baseScore + bonusScore + operationBonus;
+
+        context.read<GameProvider>().recordLevelWin(
+          gameType: 'number_walls',
+          scoreGained: totalScore,
+          difficulty: widget.level,
+          wasSuccessful: true,
+          mathProblems: attemptedProblems,
+        );
+        
+        // 3. Trigger the success UI/animation.
+        _handleSuccess(totalScore);
+
       } else {
-        // If incorrect, show the failure message. No SRI logging is done.
+        // On FAILURE, report a loss with zero score.
+        context.read<GameProvider>().recordLevelWin(
+          gameType: 'number_walls',
+          scoreGained: 0,
+          difficulty: widget.level,
+          wasSuccessful: false,
+          mathProblems: attemptedProblems,
+        );
+
+        // 3. Trigger the failure UI.
         _handleIncorrect();
       }
-      // --- END: NEW AND CORRECTED LOGIC ---
     }
   }
 
-  void _logSolvedProblemsToSRI(List<int> solvedAnswers) {
-    debugPrint("🧱 SRI: Logging all solved problems for the completed wall...");
-    final sriService = context.read<SriService>();
+  List<MathProblem> _getSolvedProblems() {
+    debugPrint("🧱 Gathering all solved problems for the completed wall...");
+    // REMOVED: Direct access to sriService.
     final puzzle = currentPuzzle!;
+    final List<MathProblem> problemsToLog = [];
     
-    // 1. We use the puzzle's known full solution for accuracy.
+    // The rest of the logic for finding the problems is excellent and remains the same.
     final completeWall = puzzle.fullSolution;
 
-    // 2. Iterate through the wall to find the calculations the user solved.
     for (int row = 0; row < puzzle.wallHeight - 1; row++) {
       final cellsInCurrentRow = row + 1;
       final currentRowStart = row * (row + 1) ~/ 2;
@@ -234,7 +258,6 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       for (int col = 0; col < cellsInCurrentRow; col++) {
         final parentIndex = currentRowStart + col;
 
-        // 3. We only log problems for bricks the user had to fill in.
         if (puzzle.hiddenCells.contains(parentIndex)) {
           final leftChildIndex = nextRowStart + col;
           final rightChildIndex = nextRowStart + col + 1;
@@ -243,38 +266,37 @@ class _NumberWallsGameState extends State<NumberWallsGame>
             final leftValue = completeWall[leftChildIndex];
             final rightValue = completeWall[rightChildIndex];
             
-            MathProblem? problemToLog;
-
-            // 4. Create a specific MathProblem for the calculation and log it.
+            MathProblem? problem;
             switch (puzzle.operation) {
               case WallOperation.addition:
-                problemToLog = MathProblem.addition(leftValue, rightValue);
+                problem = MathProblem.addition(leftValue, rightValue);
                 break;
               case WallOperation.subtraction:
-                // For SRI, log the standard high-low subtraction.
-                problemToLog = MathProblem.subtraction(math.max(leftValue, rightValue), math.min(leftValue, rightValue));
+                problem = MathProblem.subtraction(math.max(leftValue, rightValue), math.min(leftValue, rightValue));
                 break;
               case WallOperation.multiplication:
-                problemToLog = MathProblem.multiplication(leftValue, rightValue);
+                problem = MathProblem.multiplication(leftValue, rightValue);
                 break;
               case WallOperation.division:
-                // For SRI, log the standard dividend/divisor problem.
                 if (leftValue > rightValue && rightValue != 0 && leftValue % rightValue == 0) {
-                  problemToLog = MathProblem.division(leftValue, rightValue);
+                  problem = MathProblem.division(leftValue, rightValue);
                 } else if (rightValue > leftValue && leftValue != 0 && rightValue % leftValue == 0) {
-                  problemToLog = MathProblem.division(rightValue, leftValue);
+                  problem = MathProblem.division(rightValue, leftValue);
                 }
                 break;
             }
             
-            if (problemToLog != null) {
-              sriService.recordResponse(problemToLog, true); // Always correct since the wall is valid.
-              debugPrint("🧱 SRI: Logged problem -> ${problemToLog.expression}");
+            if (problem != null) {
+              // CHANGED: Instead of calling sriService, add to our list.
+              problemsToLog.add(problem);
+              debugPrint("🧱 Found problem to log -> ${problem.expression}");
             }
           }
         }
       }
     }
+    // ADDED: Return the collected list of problems.
+    return problemsToLog;
   }
 
   MathOperation _convertWallOperationToMathOperation(WallOperation wallOp) {
@@ -286,24 +308,24 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     }
   }
 
-  void _handleSuccess() {
+  void _handleSuccess(int totalScoreGained) {
     setState(() => _isWarping = true);
     _warpController.forward();
 
     void listener(AnimationStatus status) {
       if (status == AnimationStatus.completed) {
         _warpController.removeStatusListener(listener);
-        int baseScore = 120 * widget.grade;
-        int bonusScore = (baseScore * (currentPuzzle!.wallHeight / 3.0)).round();
-        int operationBonus = _getOperationBonus(currentPuzzle!.operation);
-        context.read<GameProvider>().addScore(baseScore + bonusScore + operationBonus);
+        
+        // REMOVED: All scoring logic and provider calls. They are now in _checkIfComplete.
+        
         _successController.forward(from: 0.0);
         
         if (mounted) {
           showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (context) => _buildSuccessDialog(bonusScore + operationBonus),
+            // CHANGED: We pass the score bonus to the dialog for display.
+            builder: (context) => _buildSuccessDialog(totalScoreGained - (120 * widget.grade)),
           );
         }
       }

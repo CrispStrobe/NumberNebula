@@ -5,11 +5,12 @@ import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:ui';
 
+import '../constants/app_constants.dart';
 import '../../../core/theme/space_theme.dart';
+import '../../../core/services/sri_service.dart';
 import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
-import '../../../core/services/sri_service.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 
@@ -203,32 +204,42 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       isUnlocked = true;
       gameActive = false;
     });
-    
+
     _unlockController.forward();
     HapticFeedback.heavyImpact();
-    
-    // Record successful completion
-    final sriService = context.read<SriService>();
-    final gameProvider = context.read<GameProvider>();
-    final problem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
-    sriService.recordResponse(problem, true);
-    
-    // Calculate score
+
+    // 1. Convert the solved puzzle equations into a list of trackable MathProblem objects.
+    //    This uses a new helper method on the CryptexEquation class (defined below).
+    final List<MathProblem> solvedProblems = currentPuzzle.equations
+        .map((eq) => eq.toMathProblem(currentPuzzle.solution))
+        .toList();
+
+    // 2. Calculate score
     final baseScore = 250 * widget.grade;
     final complexityBonus = (currentPuzzle.dialCount - 2) * 100;
     final equationBonus = currentPuzzle.equations.length * 50;
     final totalScore = baseScore + complexityBonus + equationBonus;
-    
-    context.read<GameProvider>().addScore(totalScore);
-    context.read<GameProvider>().updateGameProgress('cryptex_lock_breaker', widget.level);
-    
+
+    // 3. Make a SINGLE, UNIFIED call to the GameProvider to record the win.
+    //    This centralizes progress tracking and dispatches data to both the
+    //    SRI and Cognitive Profile services automatically.
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'cryptex_lock_breaker', // Unique identifier for this game
+      scoreGained: totalScore,
+      difficulty: widget.grade + (widget.level ~/ 5), // A measure of the puzzle's difficulty
+      wasSuccessful: true,
+      mathProblems: solvedProblems, // The list of actual problems that were solved
+    );
+
+    // --- END: MODIFIED LOGIC ---
+
     // Add celebration particles
     for (int i = 0; i < 80; i++) {
       particles.add(CryptexParticle.celebration(
         MediaQuery.of(context).size.center(Offset.zero),
       ));
     }
-    
+
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) {
         showDialog(
@@ -238,6 +249,36 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
         );
       }
     });
+  }
+
+  void _handleFailure() {
+    if (!gameActive) return; // Prevent multiple calls
+
+    setState(() {
+      gameActive = false;
+      // Optionally, reveal the solution to the player here
+    });
+    
+    HapticFeedback.vibrate();
+
+    // Convert the puzzle equations into MathProblem objects to let the SRI
+    // system know which concepts the player struggled with on this attempt.
+    final List<MathProblem> attemptedProblems = currentPuzzle.equations
+        .map((eq) => eq.toMathProblem(currentPuzzle.solution))
+        .toList();
+
+    // Report the failure to the GameProvider.
+    // The provider will update the Cognitive Profile and tell the SRI service
+    // that these problems were answered incorrectly.
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'cryptex_lock_breaker',
+      scoreGained: 0, // No score for failing
+      difficulty: widget.grade + (widget.level ~/ 5),
+      wasSuccessful: false,
+      mathProblems: attemptedProblems,
+    );
+
+    // You would then show a "Try Again" or "Solution Revealed" dialog.
   }
 
   void _addProgressParticles(int satisfiedCount) {
@@ -823,6 +864,40 @@ class CryptexEquation {
 
   int getCurrentResult(List<int> dialValues) {
     return _calculateLeftSide(dialValues);
+  }
+
+  /// Converts this equation into a standard MathProblem object using the puzzle's solution.
+  /// This allows the SRI service to track the underlying math fact mastery.
+  MathProblem toMathProblem(List<int> solutionValues) {
+    // Ensure we have enough operands to create a valid problem
+    if (leftOperandIndices.length < 2) {
+      // Return a dummy problem if the equation is malformed
+      return MathProblem(
+        operandA: 0, operandB: 0, operation: MathOperation.addition, answer: 0, expression: 'error', difficulty: 1
+      );
+    }
+
+    final opA = solutionValues[leftOperandIndices[0]];
+    final opB = solutionValues[leftOperandIndices[1]];
+
+    MathOperation op;
+    switch (operator) {
+      case '+': op = MathOperation.addition; break;
+      case '-': op = MathOperation.subtraction; break;
+      case '*': op = MathOperation.multiplication; break;
+      case '/': op = MathOperation.division; break;
+      default:  op = MathOperation.addition;
+    }
+
+    return MathProblem(
+      operandA: opA,
+      operandB: opB,
+      operation: op,
+      answer: rightSide, // The equation's result is the problem's answer
+      expression: '${opA} ${operator} ${opB}',
+      // The difficulty can be based on the operator or number size
+      difficulty: (operator == '*' || operator == '/') ? 3 : 1,
+    );
   }
 
   int _calculateLeftSide(List<int> dialValues) {
