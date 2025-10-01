@@ -2114,6 +2114,12 @@ abstract class S {
   /// **'Health'**
   String get arithmancerHealth;
 
+  /// No description provided for @arithmancerSkipTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip turn'**
+  String get arithmancerSkipTurn;
+
   /// Energy stat label
   ///
   /// In en, this message translates to:

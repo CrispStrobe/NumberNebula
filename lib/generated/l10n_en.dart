@@ -1136,6 +1136,9 @@ class SEn extends S {
   String get arithmancerHealth => 'Health';
 
   @override
+  String get arithmancerSkipTurn => 'Skip turn';
+
+  @override
   String get arithmancerEnergy => 'Energy';
 
   @override

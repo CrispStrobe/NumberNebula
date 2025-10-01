@@ -1144,6 +1144,9 @@ class SDe extends S {
   String get arithmancerHealth => 'Gesundheit';
 
   @override
+  String get arithmancerSkipTurn => 'Zug überspringen';
+
+  @override
   String get arithmancerEnergy => 'Energie';
 
   @override

@@ -561,6 +561,8 @@
   "@arithmancerHealth": {
     "description": "Health stat label"
   },
+
+  "arithmancerSkipTurn": "Skip turn",
   
   "arithmancerEnergy": "Energy",
   "@arithmancerEnergy": {

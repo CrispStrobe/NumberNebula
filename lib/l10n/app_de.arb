@@ -494,6 +494,8 @@
   "@arithmancerHealth": {
     "description": "Gesundheits-Statusanzeige"
   },
+
+  "arithmancerSkipTurn": "Zug überspringen",
   
   "arithmancerEnergy": "Energie",
   "@arithmancerEnergy": {

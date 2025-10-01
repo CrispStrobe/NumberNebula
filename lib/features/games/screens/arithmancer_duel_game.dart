@@ -861,6 +861,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   void _advanceToNextEnemy() {
     final random = math.Random();
+
+    // Save current hand before advancing
+    final currentHand = List<MathCard>.from(_handCards);
     
     if (widget.gameMode == GameMode.ladder) {
         // Ladder mode: cycle through pattern
@@ -870,6 +873,10 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         _game = ArithmancerGame(aiPersonality, random, verbose: false);
         _game.enemiesDefeated = _enemiesDefeated; // Preserve progress
         _game.startNewBattle();
+
+        // Restore hand after battle start
+        _game.hand = currentHand;
+
         _syncGameState();
         _createShieldEffects();
         } else {
@@ -879,6 +886,10 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     } else if (widget.gameMode == GameMode.vsPrograms) {
         // Continue with existing game instance to preserve progress
         _game.startNewBattle();
+
+        // Restore hand after battle start
+        _game.hand = currentHand;
+
         _syncGameState();
         _createShieldEffects();
     } else {
@@ -1320,13 +1331,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             icon: const Icon(Icons.info_outline, color: Colors.white, size: 20),
             onPressed: () => setState(() => _showInstructions = !_showInstructions),
           ),
-          const SizedBox(width: 8),
-          // Skip turn button (only show if it's player's turn and not calculating)
-          if (!_isOpponentTurn && !_isCalculating && _canSkipTurn)
-            IconButton(
-              icon: const Icon(Icons.skip_next, color: SpaceTheme.starYellow, size: 20),
-              onPressed: _skipTurn,
-            ),
+          const SizedBox(width: 12), // ADD THIS SPACING
           if (widget.gameMode == GameMode.ladder)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -1707,97 +1712,93 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   Widget _buildBattlefield() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Column(
+      child: Stack( // Changed from Column to Stack
         children: [
           // Battle zone with TRON styling
-          Expanded(
-            child: DragTarget<MathCard>(
-              onWillAccept: (card) {
-                setState(() => _isDraggingCard = true);
-                return card != null && !_isOpponentTurn;
-              },
-              onLeave: (card) {
-                setState(() => _isDraggingCard = false);
-              },
-              onAccept: (card) {
-                HapticFeedback.lightImpact();
-                setState(() {
-                  _battlefieldCards.add(card);
-                  
-                  // Special handling for parentheses halves - DON'T remove the original card
-                  if (card.name == "Open Parenthesis" || card.name == "Close Parenthesis") {
-                    // Find the original parentheses card and mark which half was used
-                    for (var handCard in _handCards) {
-                      if (handCard.type == CardType.parentheses && handCard.name == "Parentheses") {
-                        if (card.name == "Open Parenthesis") {
-                          handCard.properties['open_used'] = true;
-                        } else {
-                          handCard.properties['close_used'] = true;
-                        }
-                        break;
+          DragTarget<MathCard>(
+            onWillAccept: (card) {
+              setState(() => _isDraggingCard = true);
+              return card != null && !_isOpponentTurn;
+            },
+            onLeave: (card) {
+              setState(() => _isDraggingCard = false);
+            },
+            onAccept: (card) {
+              HapticFeedback.lightImpact();
+              setState(() {
+                _battlefieldCards.add(card);
+                
+                if (card.name == "Open Parenthesis" || card.name == "Close Parenthesis") {
+                  for (var handCard in _handCards) {
+                    if (handCard.type == CardType.parentheses && handCard.name == "Parentheses") {
+                      if (card.name == "Open Parenthesis") {
+                        handCard.properties['open_used'] = true;
+                      } else {
+                        handCard.properties['close_used'] = true;
                       }
+                      break;
                     }
-                  } else {
-                    // Regular cards get removed from hand
-                    _handCards.remove(card);
                   }
-                  
-                  _isDraggingCard = false;
-                });
-              },
-              builder: (context, candidateData, rejectedData) {
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: _isDraggingCard 
-                          ? [
-                              SpaceTheme.starYellow.withOpacity(0.3),
-                              SpaceTheme.alienGreen.withOpacity(0.2),
-                              SpaceTheme.starYellow.withOpacity(0.3),
-                            ]
-                          : [
-                              SpaceTheme.deepSpace.withOpacity(0.4),
-                              SpaceTheme.nebulaPurple.withOpacity(0.2),
-                              SpaceTheme.deepSpace.withOpacity(0.4),
-                            ],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _isDraggingCard ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
-                      width: 2,
-                    ),
-                    boxShadow: _isDraggingCard ? [
-                      BoxShadow(
-                        color: SpaceTheme.starYellow.withOpacity(0.7),
-                        blurRadius: 15,
-                        spreadRadius: 3,
-                      ),
-                    ] : [],
+                } else {
+                  _handCards.remove(card);
+                }
+                
+                _isDraggingCard = false;
+              });
+            },
+            builder: (context, candidateData, rejectedData) {
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: _isDraggingCard 
+                        ? [
+                            SpaceTheme.starYellow.withOpacity(0.3),
+                            SpaceTheme.alienGreen.withOpacity(0.2),
+                            SpaceTheme.starYellow.withOpacity(0.3),
+                          ]
+                        : [
+                            SpaceTheme.deepSpace.withOpacity(0.4),
+                            SpaceTheme.nebulaPurple.withOpacity(0.2),
+                            SpaceTheme.deepSpace.withOpacity(0.4),
+                          ],
                   ),
-                  child: Stack(
-                    children: [
-                      // Battlefield grid pattern
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: double.infinity,
-                          child: CustomPaint(
-                            painter: TronGridPainter(),
-                            size: const Size(400, 200), // Fixed size
-                          ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _isDraggingCard ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
+                    width: 2,
+                  ),
+                  boxShadow: _isDraggingCard ? [
+                    BoxShadow(
+                      color: SpaceTheme.starYellow.withOpacity(0.7),
+                      blurRadius: 15,
+                      spreadRadius: 3,
+                    ),
+                  ] : [],
+                ),
+                child: Stack(
+                  children: [
+                    // Battlefield grid pattern
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: double.infinity,
+                        child: CustomPaint(
+                          painter: TronGridPainter(),
+                          size: const Size(400, 200),
                         ),
                       ),
-                      // Battlefield content
-                      Positioned.fill(
-                        child: _battlefieldCards.isEmpty
-                            ? Center(
+                    ),
+                    // Battlefield content
+                    Positioned.fill(
+                      child: _battlefieldCards.isEmpty
+                          ? Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
-                                    _isOpponentTurn ? Icons.hourglass_empty : Icons.memory,
+                                    _isOpponentTurn ? Icons.hourglass_empty : Icons.skip_next,
                                     color: Colors.white30,
                                     size: 32,
                                   ),
@@ -1813,184 +1814,250 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
+                                  // SKIP BUTTON when battlefield is empty
+                                  if (!_isOpponentTurn && !_isCalculating)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 16),
+                                      child: _buildTronSkipButton(),
+                                    ),
                                 ],
                               ),
                             )
-                            : Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Wrap(
-                                        spacing: 8,
-                                        runSpacing: 8,
-                                        children: _battlefieldCards.asMap().entries.map((entry) {
-                                          return GestureDetector(
-                                                onTap: () {
-                                                    if (!_isOpponentTurn) {
-                                                    HapticFeedback.lightImpact();
-                                                    setState(() {
-                                                        final card = _battlefieldCards.removeAt(entry.key);
-                                                        
-                                                        // Special handling for parentheses halves
-                                                        if (card.name == "Open Parenthesis" || card.name == "Close Parenthesis") {
-                                                        // Find if there's already a parentheses card in hand that this belongs to
-                                                        bool foundParenthesesCard = false;
-                                                        for (var handCard in _handCards) {
-                                                            if (handCard.type == CardType.parentheses && handCard.name == "Parentheses") {
-                                                            // Reset the used flags
-                                                            handCard.properties.remove('open_used');
-                                                            handCard.properties.remove('close_used');
-                                                            foundParenthesesCard = true;
-                                                            break;
-                                                            }
-                                                        }
-                                                        
-                                                        // If no parentheses card found, add a new one
-                                                        if (!foundParenthesesCard) {
-                                                            _handCards.add(MathCard(
-                                                            name: "Parentheses",
-                                                            type: CardType.parentheses,
-                                                            cost: 1,
-                                                            ));
-                                                        }
-                                                        } else {
-                                                        // Regular card - just add back to hand
-                                                        _handCards.add(card);
-                                                        }
-                                                    });
+                          : Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: _battlefieldCards.asMap().entries.map((entry) {
+                                        return GestureDetector(
+                                          onTap: () {
+                                            if (!_isOpponentTurn) {
+                                              HapticFeedback.lightImpact();
+                                              setState(() {
+                                                final card = _battlefieldCards.removeAt(entry.key);
+                                                
+                                                if (card.name == "Open Parenthesis" || card.name == "Close Parenthesis") {
+                                                  bool foundParenthesesCard = false;
+                                                  for (var handCard in _handCards) {
+                                                    if (handCard.type == CardType.parentheses && handCard.name == "Parentheses") {
+                                                      handCard.properties.remove('open_used');
+                                                      handCard.properties.remove('close_used');
+                                                      foundParenthesesCard = true;
+                                                      break;
                                                     }
-                                                },
-                                                child: _buildBattlefieldCard(entry.value),
-                                              ); // GestureDetector
-                                        }).toList(),
-                                      ),
+                                                  }
+                                                  
+                                                  if (!foundParenthesesCard) {
+                                                    _handCards.add(MathCard(
+                                                      name: "Parentheses",
+                                                      type: CardType.parentheses,
+                                                      cost: 1,
+                                                    ));
+                                                  }
+                                                } else {
+                                                  _handCards.add(card);
+                                                }
+                                              });
+                                            }
+                                          },
+                                          child: _buildBattlefieldCard(entry.value),
+                                        );
+                                      }).toList(),
                                     ),
-                                    // Execute button with TRON styling
-                                    if (_battlefieldCards.isNotEmpty && !_isOpponentTurn)
-                                      Container(
-                                        margin: const EdgeInsets.only(left: 12),
-                                        child: _buildTronExecuteButton(),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                      ),
-                      // Result overlay with enhanced visuals
-                      if (_showingResult)
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  SpaceTheme.alienGreen.withOpacity(0.9),
-                                  SpaceTheme.cosmicPink.withOpacity(0.7),
-                                  SpaceTheme.starYellow.withOpacity(0.9),
+                                  ),
+                                  // EXECUTE BUTTON when battlefield has cards
+                                  if (!_isOpponentTurn)
+                                    Container(
+                                      margin: const EdgeInsets.only(left: 12),
+                                      child: _buildTronExecuteButton(),
+                                    ),
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: SpaceTheme.alienGreen.withOpacity(0.7),
-                                  blurRadius: 20,
-                                  spreadRadius: 3,
-                                ),
+                            ),
+                    ),
+                    // Result overlay
+                    if (_showingResult)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                SpaceTheme.alienGreen.withOpacity(0.9),
+                                SpaceTheme.cosmicPink.withOpacity(0.7),
+                                SpaceTheme.starYellow.withOpacity(0.9),
                               ],
                             ),
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    _lastExpression,
-                                    style: SpaceTheme.headlineStyle.copyWith(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      shadows: [
-                                        Shadow(color: Colors.black, blurRadius: 3),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    "DAMAGE: $_lastDamage",
-                                    style: SpaceTheme.headlineStyle.copyWith(
-                                      fontSize: 24,
-                                      color: SpaceTheme.starYellow,
-                                      fontWeight: FontWeight.bold,
-                                      shadows: [
-                                        Shadow(color: SpaceTheme.starYellow, blurRadius: 8),
-                                      ],
-                                    ),
-                                  ),
-                                  if (_lastProperties.isNotEmpty) ...[
-                                    const SizedBox(height: 8),
-                                    Wrap(
-                                      spacing: 8,
-                                      children: _lastProperties.map((prop) => Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.8),
-                                          borderRadius: BorderRadius.circular(12),
-                                          border: Border.all(color: SpaceTheme.starYellow),
-                                        ),
-                                        child: Text(
-                                          prop.toUpperCase(),
-                                          style: SpaceTheme.bodyStyle.copyWith(
-                                            fontSize: 10,
-                                            color: SpaceTheme.starYellow,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      )).toList(),
-                                    ),
-                                  ],
-                                ],
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: SpaceTheme.alienGreen.withOpacity(0.7),
+                                blurRadius: 20,
+                                spreadRadius: 3,
                               ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  _lastExpression,
+                                  style: SpaceTheme.headlineStyle.copyWith(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    shadows: [
+                                      Shadow(color: Colors.black, blurRadius: 3),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  "DAMAGE: $_lastDamage",
+                                  style: SpaceTheme.headlineStyle.copyWith(
+                                    fontSize: 24,
+                                    color: SpaceTheme.starYellow,
+                                    fontWeight: FontWeight.bold,
+                                    shadows: [
+                                      Shadow(color: SpaceTheme.starYellow, blurRadius: 8),
+                                    ],
+                                  ),
+                                ),
+                                if (_lastProperties.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    children: _lastProperties.map((prop) => Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.8),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: SpaceTheme.starYellow),
+                                      ),
+                                      child: Text(
+                                        prop.toUpperCase(),
+                                        style: SpaceTheme.bodyStyle.copyWith(
+                                          fontSize: 10,
+                                          color: SpaceTheme.starYellow,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    )).toList(),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          // Status message with TRON styling
-          if (_statusMessage.isNotEmpty)
-            Container(
-              margin: const EdgeInsets.only(top: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    SpaceTheme.starYellow.withOpacity(0.3),
-                    SpaceTheme.deepSpace.withOpacity(0.9),
-                    SpaceTheme.starYellow.withOpacity(0.3),
+                      ),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: SpaceTheme.starYellow),
-                boxShadow: [
-                  BoxShadow(
-                    color: SpaceTheme.starYellow.withOpacity(0.6),
-                    blurRadius: 10,
-                    spreadRadius: 1,
+              );
+            },
+          ),
+          
+          // Status message - absolutely positioned at bottom
+          if (_statusMessage.isNotEmpty)
+            Positioned(
+              bottom: 8,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        SpaceTheme.starYellow.withOpacity(0.3),
+                        SpaceTheme.deepSpace.withOpacity(0.9),
+                        SpaceTheme.starYellow.withOpacity(0.3),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: SpaceTheme.starYellow),
+                    boxShadow: [
+                      BoxShadow(
+                        color: SpaceTheme.starYellow.withOpacity(0.6),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Text(
-                _statusMessage.toUpperCase(),
-                style: SpaceTheme.bodyStyle.copyWith(
-                  color: SpaceTheme.starYellow,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  child: Text(
+                    _statusMessage.toUpperCase(),
+                    style: SpaceTheme.bodyStyle.copyWith(
+                      color: SpaceTheme.starYellow,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTronSkipButton() {
+    return Container(
+      width: 80,  // Increased from 60
+      height: 80, // Increased from 60
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            SpaceTheme.nebulaPurple,
+            SpaceTheme.cosmicPink,
+            SpaceTheme.nebulaPurple.withOpacity(0.8),
+          ],
+        ),
+        border: Border.all(color: SpaceTheme.nebulaPurple, width: 3),
+        boxShadow: [
+          BoxShadow(
+            color: SpaceTheme.nebulaPurple.withOpacity(0.8),
+            blurRadius: 15,
+            spreadRadius: 3,
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _isCalculating ? null : _skipTurn,
+          customBorder: const CircleBorder(),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min, // Important for preventing overflow
+              children: [
+                Icon(
+                  Icons.skip_next,
+                  color: Colors.white,
+                  size: 28, // Slightly larger
+                ),
+                const SizedBox(height: 4),
+                Flexible( // Wrap text in Flexible to prevent overflow
+                  child: Text(
+                    S.of(context)!.arithmancerSkipTurn,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 9, // Slightly larger
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -2211,59 +2278,52 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   }
 
   Widget _buildTronDeckPile(int count) {
-    return GestureDetector(
-      onTap: () {
-        if (count > 0) {
-          _drawCardsFromDeck(1);
-          setState(() {});
-        }
-      },
-      child: AnimatedBuilder(
-        animation: _drawAnimation,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: 1.0 + (_drawAnimation.value * 0.1),
-            child: Container(
-              width: 60,
-              height: 80,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [SpaceTheme.alienGreen, SpaceTheme.cosmicPink],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+    // Removed GestureDetector wrapper because it is too easy if players can draw cards at will
+    return AnimatedBuilder(
+      animation: _drawAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: 1.0 + (_drawAnimation.value * 0.1),
+          child: Container(
+            width: 60,
+            height: 80,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [SpaceTheme.alienGreen, SpaceTheme.cosmicPink],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: SpaceTheme.alienGreen, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: SpaceTheme.alienGreen.withOpacity(0.7),
+                  blurRadius: 10,
+                  spreadRadius: 2,
                 ),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: SpaceTheme.alienGreen, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: SpaceTheme.alienGreen.withOpacity(0.7),
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.style,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    count.toString(),
-                    style: SpaceTheme.headlineStyle.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+              ],
             ),
-          );
-        },
-      ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.style,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  count.toString(),
+                  style: SpaceTheme.headlineStyle.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
