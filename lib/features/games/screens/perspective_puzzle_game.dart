@@ -421,6 +421,10 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   final cube.Object _sceneObject = cube.Object(name: 'world');
   final cube.Object _arrowObject = cube.Object(name: 'arrowContainer');
   cube.Scene? _scene;
+
+  int _correctAttempts = 0;
+  int _totalAttempts = 0;
+  int _lives = 3; // The player gets 3 chances for the whole puzzle.
   
   double _cameraRotationY = 0.0;
   static const double _maxRotation = 0.26; // ~15 degrees
@@ -453,6 +457,9 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
         _currentTurnIndex = 0;
         _isGenerating = false;
         _cameraRotationY = 0.0; // Reset rotation
+        _correctAttempts = 0;
+        _totalAttempts = 0;
+        _lives = 3;
         _createSceneObject(puzzle.structure);
         _setupTurn();
         });
@@ -557,20 +564,40 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
 
   void _selectAnswer(int index) {
     if (_answerState != AnswerState.unanswered) return;
-    setState(() => _selectedAnswerIndex = index);
+
+    setState(() {
+      _selectedAnswerIndex = index;
+      _totalAttempts++; // Track every guess as an attempt.
+    });
+
     if (index == _correctAnswerIndex) {
-      setState(() => _answerState = AnswerState.correct);
+      setState(() {
+        _correctAttempts++; // Track correct attempts.
+        _answerState = AnswerState.correct;
+      });
+      // Move to the next turn or win the game.
       Future.delayed(const Duration(milliseconds: 1000), _nextTurn);
     } else {
-      setState(() => _answerState = AnswerState.incorrect);
-      Future.delayed(const Duration(milliseconds: 1500), () {
-        if (mounted) {
-          setState(() {
-            _selectedAnswerIndex = -1;
-            _answerState = AnswerState.unanswered;
-          });
-        }
+      // On incorrect guess, lose a life.
+      setState(() {
+        _lives--;
+        _answerState = AnswerState.incorrect;
       });
+
+      // Check if the game is over.
+      if (_lives <= 0) {
+        Future.delayed(const Duration(milliseconds: 1500), _handleFailure);
+      } else {
+        // If not over, reset for another try on the same turn.
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) {
+            setState(() {
+              _selectedAnswerIndex = -1;
+              _answerState = AnswerState.unanswered;
+            });
+          }
+        });
+      }
     }
   }
   
@@ -587,10 +614,69 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
 
   void _handleSuccess() {
     if (!mounted) return;
-    int score = 250 * widget.grade + (currentPuzzle?.difficulty ?? 1) * 100;
-    context.read<GameProvider>().addScore(score);
+
+    // 1. Calculate a performance-based score.
+    int baseScore = 250 * widget.grade;
+    int difficultyBonus = (currentPuzzle?.difficulty ?? 1) * 100;
+    // Penalize for incorrect guesses.
+    int mistakes = _totalAttempts - _correctAttempts;
+    int penalty = mistakes * 50; 
+    int finalScore = (baseScore + difficultyBonus - penalty).clamp(50, 1000).toInt();
+
+    // 2. Make the single, unified call to the GameProvider.
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'perspective_puzzle', // Unique ID for this game
+      scoreGained: finalScore,
+      difficulty: currentPuzzle?.difficulty ?? 1,
+      wasSuccessful: true,
+      // NO mathProblems are sent because this is a spatial reasoning game.
+    );
+    
+    // 3. Trigger UI feedback.
     _successController.forward(from: 0.0);
-    showDialog(context: context, barrierDismissible: false, builder: (_) => _buildSuccessDialog(score));
+    showDialog(
+      context: context, 
+      barrierDismissible: false, 
+      builder: (_) => _buildSuccessDialog(finalScore)
+    );
+  }
+
+  void _handleFailure() {
+    if (!mounted) return;
+
+    debugPrint("Perspective Puzzle Failed: Ran out of lives.");
+
+    // Report the failure to the GameProvider.
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'perspective_puzzle',
+      scoreGained: 0,
+      difficulty: currentPuzzle?.difficulty ?? 1,
+      wasSuccessful: false,
+    );
+
+    // Show a failure dialog.
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: SpaceTheme.deepSpace.withOpacity(0.9),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: SpaceTheme.rocketRed, width: 2)
+        ),
+        title: Text("Mission Failed", style: SpaceTheme.headlineStyle),
+        content: Text("You've run out of attempts. Let's try a different structure.", style: SpaceTheme.bodyStyle),
+        actions: [
+          TextButton(
+            child: Text(S.of(context)!.tryAgain),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _generatePuzzle();
+            },
+          ),
+        ],
+      )
+    );
   }
   
   String _getTranslatedPerspective(BuildContext context, String perspective) {
