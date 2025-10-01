@@ -46,6 +46,9 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   int? _lastLandedPlanetId;
   Planet? _targetPlanet; // NEW: Track which planet we're flying to
 
+  // --- Progression Tracking ---
+  List<MathProblem> _attemptedProblems = []; // Track problems we've attempted
+
   // --- UI State ---
   bool _showInstructions = true;
   bool _showNextTargetHint = false;
@@ -239,15 +242,16 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     _startHintTimer();
 
     _lastLandedPlanetId = planet.id;
-    _targetPlanet = null; // NEW: Clear target planet when landing
+    _targetPlanet = null;
     _reLandingCooldown?.cancel();
     _reLandingCooldown = Timer(const Duration(milliseconds: 500), () => _lastLandedPlanetId = null);
 
-    final sriService = context.read<SriService>();
     final bool isCorrect = nextTargetIndex < targetSequence.length &&
                           planet.answer == targetSequence[nextTargetIndex];
 
-    sriService.recordResponse(planet.problem, isCorrect);
+    // Track this attempt - we'll report all attempts at the end
+    _attemptedProblems.add(planet.problem);
+    debugPrint("[Gameplay] 📝 Tracked problem: ${planet.problem.expression} (${isCorrect ? 'correct' : 'incorrect'})");
 
     if (isCorrect) {
       debugPrint("[Gameplay] ✅ CORRECT landing!");
@@ -617,12 +621,26 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     debugPrint("[Gameplay] 🎉 WIN! Game finished.");
     gameActive = false;
     _hintTimer?.cancel();
+    
     final bonus = lives * 200;
-    context.read<GameProvider>().addScore(bonus);
+    final totalScore = bonus + (100 * widget.grade * targetSequence.length);
+    
+    // UNIFIED PROGRESSION: Report all attempted problems
+    final didAdvance = context.read<GameProvider>().recordLevelWin(
+      gameType: 'planet_hopping',
+      scoreGained: totalScore,
+      difficulty: widget.level,
+      wasSuccessful: true,
+      mathProblems: _attemptedProblems,
+    );
+    
+    debugPrint("[Gameplay] 📊 Reported ${_attemptedProblems.length} attempted problems");
+    
     showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildWinDialog(bonus));
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _buildWinDialog(bonus),
+    );
   }
 
   void _gameOver() {
@@ -630,10 +648,23 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     debugPrint("[Gameplay] ☠️ GAME OVER! Ran out of lives.");
     gameActive = false;
     _hintTimer?.cancel();
+    
+    // UNIFIED PROGRESSION: Report failure with attempted problems for learning
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'planet_hopping',
+      scoreGained: 0,
+      difficulty: widget.level,
+      wasSuccessful: false,
+      mathProblems: _attemptedProblems,
+    );
+    
+    debugPrint("[Gameplay] 📊 Reported ${_attemptedProblems.length} attempted problems (loss)");
+    
     showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildGameOverDialog());
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _buildGameOverDialog(),
+    );
   }
 
   void _resetGame() {
@@ -643,9 +674,10 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       lives = 3;
       nextTargetIndex = 0;
       particles.clear();
-      gravityWaves.clear(); // NEW: Clear gravity waves
-      _targetPlanet = null; // NEW: Clear target planet
+      gravityWaves.clear(); // Clear gravity waves
+      _targetPlanet = null; // Clear target planet
       _showNextTargetHint = false;
+      _attemptedProblems.clear(); // Clear attempt history for fresh start
     });
     // Re-initialize game state, which now includes non-overlapping planet generation
     _initializeGame();

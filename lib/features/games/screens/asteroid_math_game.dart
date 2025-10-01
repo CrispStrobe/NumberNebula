@@ -104,7 +104,10 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   bool showVisualHint = false;
   DifficultyConfig? currentDifficulty;
 
-  // FIXED: Store the actual playable area dimensions
+  // Store all problems for the level
+  List<MathProblem> levelProblems = [];
+
+  // Store the actual playable area dimensions
   Size? playableArea;
 
   // Spaceship position for laser start point
@@ -166,6 +169,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       explosions.clear();
       laserBeams.clear();
       floatingScores.clear();
+      levelProblems.clear(); 
     });
     
     // Wait for playable area to be set before generating asteroids
@@ -242,6 +246,9 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       problems.add(simpleProblem);
       usedAnswers.add(plainNumber);
     }
+
+    // Store all problems for this level
+    levelProblems = List.from(problems);
 
     // Create asteroids from problems
     for (int i = 0; i < problems.length; i++) {
@@ -457,11 +464,11 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   void _onAsteroidTapped(Asteroid asteroid) {
     if (!gameActive || currentTargetIndex >= targetOrder.length) return;
 
-    final sriService = context.read<SriService>();
+    // final sriService = context.read<SriService>();
     final expectedAnswer = targetOrder[currentTargetIndex];
     final bool isCorrect = asteroid.answer == expectedAnswer;
 
-    sriService.recordResponse(asteroid.problem, isCorrect);
+    // sriService.recordResponse(asteroid.problem, isCorrect);
 
     setState(() {
       showTextHint = false;
@@ -517,16 +524,33 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     _textHintTimer?.cancel();
     _visualHintTimer?.cancel();
     
+    // Calculate final score
+    int finalScore = 0;
     if (isWin) {
       final timeBonus = timeLeft * (5 + widget.grade);
       context.read<GameProvider>().addScore(timeBonus);
+      finalScore = timeBonus;
+    }
+    
+    // SINGLE CALL to unified progression system
+    final didAdvance = context.read<GameProvider>().recordLevelWin(
+      gameType: 'asteroid_math',
+      scoreGained: finalScore,
+      difficulty: widget.level,
+      wasSuccessful: isWin,
+      mathProblems: levelProblems, // Pass all problems from this level
+    );
+    
+    if (isWin) {
       showDialog(
-        context: context, barrierDismissible: false,
-        builder: (context) => _buildGameEndDialog(isWin: true, timeBonus: timeBonus),
+        context: context, 
+        barrierDismissible: false,
+        builder: (context) => _buildGameEndDialog(isWin: true, timeBonus: finalScore),
       );
     } else {
       showDialog(
-        context: context, barrierDismissible: false,
+        context: context, 
+        barrierDismissible: false,
         builder: (context) => _buildGameEndDialog(isWin: false),
       );
     }
