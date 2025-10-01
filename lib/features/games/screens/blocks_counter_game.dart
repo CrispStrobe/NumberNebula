@@ -11,6 +11,7 @@ import '../providers/game_provider.dart';
 import '../widgets/game_ui.dart';
 import '../widgets/space_background.dart';
 import '../../../shared/utils/app_utilities.dart';
+import '../constants/difficulty_manager.dart';
 
 // =============================================================================
 // VISUAL CONFIGURATION - Tweak these parameters to adjust 3D rendering
@@ -254,6 +255,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
   cube.Object? _sceneObject;
   cube.Scene? _scene; 
   Key _cubeKey = UniqueKey();
+  DifficultyConfig? currentDifficulty;
 
   @override
   void initState() {
@@ -275,7 +277,15 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
       CurvedAnimation(parent: _rotationController, curve: Curves.linear),
     );
     
-    _generatePuzzle();
+    // Initialize difficulty from framework
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final gameProvider = context.read<GameProvider>();
+        currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level);
+        _generatePuzzle();
+      }
+    });
+    
     _rotationController.repeat();
   }
 
@@ -287,6 +297,11 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
   }
 
   void _generatePuzzle() async {
+    if (currentDifficulty == null) {
+      debugPrint("⚠️ [BLOCK_COUNTER] Difficulty not yet initialized, waiting...");
+      return;
+    }
+    
     setState(() {
       _isGenerating = true;
       _cubeKey = UniqueKey();
@@ -392,8 +407,19 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
     int baseScore = 150 * widget.grade;
     int difficultyBonus = (currentPuzzle?.difficulty ?? 1) * 50;
     int totalScore = baseScore + difficultyBonus;
-    context.read<GameProvider>().addScore(totalScore);
+    
+    // SINGLE CALL to unified progression system
+    // Block Counter is spatial3d, so no mathProblem needed
+    final didAdvance = context.read<GameProvider>().recordLevelWin(
+      gameType: 'block_counter',
+      scoreGained: totalScore,
+      difficulty: widget.level,
+      wasSuccessful: true,
+      // NO mathProblem - uses CognitiveProfileService for spatial reasoning
+    );
+    
     _successController.forward(from: 0.0);
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -402,6 +428,15 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
   }
 
   void _handleIncorrect() {
+    // Track the incorrect attempt
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'block_counter',
+      scoreGained: 0,
+      difficulty: widget.level,
+      wasSuccessful: false,
+      // NO mathProblem - spatial reasoning game
+    );
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(S.of(context)!.blockCounterFail),
@@ -409,6 +444,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
         duration: const Duration(seconds: 2),
       ),
     );
+    
     Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) {
         setState(() {

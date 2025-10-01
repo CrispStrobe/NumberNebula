@@ -10,6 +10,7 @@ import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../../../core/services/sri_service.dart';
+import '../../../core/models/skill_category.dart';
 
 // --- ENHANCED GAME CONFIGURATION ---
 const double BASE_GAME_SPEED = 160.0;
@@ -244,6 +245,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       hasShield = false;
       timeSlowActive = false;
       activePowerUps.clear();
+
       targetGatesForLevel = TARGET_GATES_TO_WIN + widget.level;
       gameSpeed = BASE_GAME_SPEED + (widget.grade * 15.0) + (widget.level * 5.0);
       spaceship.reset(screenSize);
@@ -629,6 +631,8 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   }
 
   void _handleGateCollision(Gate gate) {
+    
+    // Record with SRI immediately for adaptive difficulty
     final sriService = context.read<SriService>();
     sriService.recordResponse(currentProblem!, gate.isCorrect);
 
@@ -783,14 +787,42 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     if (!gameActive) return;
     setState(() => gameActive = false);
     _gameController.stop();
-    showDialog(context: context, barrierDismissible: false, builder: (ctx) => _buildEndGameDialog(isWin: true));
+    
+    // DON'T pass mathProblems - already recorded during gameplay
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'hyperdrive_gates',
+      scoreGained: 0, // Score already added incrementally
+      difficulty: widget.level,
+      wasSuccessful: true,
+      // NO mathProblems parameter
+    );
+    
+    showDialog(
+      context: context, 
+      barrierDismissible: false, 
+      builder: (ctx) => _buildEndGameDialog(isWin: true)
+    );
   }
 
   void _gameOver() {
     if (!gameActive) return;
     setState(() => gameActive = false);
     _gameController.stop();
-    showDialog(context: context, barrierDismissible: false, builder: (ctx) => _buildEndGameDialog(isWin: false));
+    
+    // DON'T pass mathProblems - already recorded during gameplay
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'hyperdrive_gates',
+      scoreGained: 0,
+      difficulty: widget.level,
+      wasSuccessful: false,
+      // NO mathProblems parameter
+    );
+    
+    showDialog(
+      context: context, 
+      barrierDismissible: false, 
+      builder: (ctx) => _buildEndGameDialog(isWin: false)
+    );
   }
   
   void _resetGame() {

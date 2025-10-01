@@ -190,8 +190,9 @@ class _KenkenGameState extends State<KenkenGame>
       debugPrint("✅ [KENKEN] Solution validation result: $isValid");
       
       if (isValid) {
-        _logSolvedProblemsToSRI(userSolution);
-        _handleSuccess();
+        // Extract problems ONCE for unified progression
+        final mathProblems = _extractMathProblems(userSolution);
+        _handleSuccess(mathProblems);
       } else {
         _handleIncorrect();
       }
@@ -200,59 +201,114 @@ class _KenkenGameState extends State<KenkenGame>
     }
   }
 
-  void _logSolvedProblemsToSRI(Map<String, int> solution) {
-    debugPrint("🔲 SRI: Logging all solved problems for the completed Kenken...");
-    final sriService = context.read<SriService>();
+  List<MathProblem> _extractMathProblems(Map<String, int> solution) {
+    debugPrint("🔲 [KENKEN] Extracting math problems from completed puzzle...");
+    final problems = <MathProblem>[];
     
     // Create the complete grid with user solutions
     final completeGrid = Map<String, int>.from(puzzle!.clues);
     completeGrid.addAll(solution);
     
-    // Log each cage equation
+    // Extract each cage equation as math problem(s)
     for (final cage in puzzle!.cages) {
-      if (cage.cells.length > 1 && cage.operation != null) {
-        final values = cage.cells.map((cell) => completeGrid[cell.id]!).toList();
-        
-        // Create math problems based on the operation
-        final operation = cage.operation!;
-        MathProblem? problem;
-        
-        switch (operation.symbol) {
-          case '+':
-            if (values.length == 2) {
-              problem = MathProblem.addition(values[0], values[1]);
+      if (cage.operation == null) {
+        // Single-cell cage, no operation to track
+        continue;
+      }
+      
+      final values = cage.cells.map((cell) => completeGrid[cell.id]!).toList();
+      final operation = cage.operation!;
+      
+      debugPrint("🔲 [KENKEN] Processing cage: ${cage.clue} with ${values.length} cells = $values");
+      
+      switch (operation.symbol) {
+        case '+':
+          // For addition, decompose multi-cell into binary operations
+          // Example: 2+3+1 becomes (2+3=5) and (5+1=6)
+          if (values.length >= 2) {
+            int accumulator = values[0];
+            for (int i = 1; i < values.length; i++) {
+              final problem = MathProblem(
+                operandA: accumulator,
+                operandB: values[i],
+                operation: MathOperation.addition,
+                answer: accumulator + values[i],
+                expression: '$accumulator + ${values[i]}',
+                difficulty: widget.grade,
+              );
+              problems.add(problem);
+              debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+              accumulator = problem.answer;
             }
-            break;
-          case '-':
-            if (values.length == 2) {
-              problem = MathProblem.subtraction(math.max(values[0], values[1]), math.min(values[0], values[1]));
+          }
+          break;
+          
+        case '-':
+          // Subtraction is always 2 cells in Kenken
+          if (values.length == 2) {
+            final a = math.max(values[0], values[1]);
+            final b = math.min(values[0], values[1]);
+            final problem = MathProblem(
+              operandA: a,
+              operandB: b,
+              operation: MathOperation.subtraction,
+              answer: a - b,
+              expression: '$a - $b',
+              difficulty: widget.grade,
+            );
+            problems.add(problem);
+            debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+          }
+          break;
+          
+        case '×':
+          // For multiplication, decompose multi-cell into binary operations
+          // Example: 2×3×2 becomes (2×3=6) and (6×2=12)
+          if (values.length >= 2) {
+            int accumulator = values[0];
+            for (int i = 1; i < values.length; i++) {
+              final problem = MathProblem(
+                operandA: accumulator,
+                operandB: values[i],
+                operation: MathOperation.multiplication,
+                answer: accumulator * values[i],
+                expression: '$accumulator × ${values[i]}',
+                difficulty: widget.grade,
+              );
+              problems.add(problem);
+              debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+              accumulator = problem.answer;
             }
-            break;
-          case '×':
-            if (values.length == 2) {
-              problem = MathProblem.multiplication(values[0], values[1]);
+          }
+          break;
+          
+        case '÷':
+          // Division is always 2 cells in Kenken
+          if (values.length == 2) {
+            final a = math.max(values[0], values[1]);
+            final b = math.min(values[0], values[1]);
+            if (b != 0 && a % b == 0) {
+              final problem = MathProblem(
+                operandA: a,
+                operandB: b,
+                operation: MathOperation.division,
+                answer: a ~/ b,
+                expression: '$a ÷ $b',
+                difficulty: widget.grade,
+              );
+              problems.add(problem);
+              debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
             }
-            break;
-          case '÷':
-            if (values.length == 2) {
-              final operand1 = math.max(values[0], values[1]);
-              final operand2 = math.min(values[0], values[1]);
-              if (operand2 != 0 && operand1 % operand2 == 0) {
-                problem = MathProblem.division(operand1, operand2);
-              }
-            }
-            break;
-        }
-        
-        if (problem != null) {
-          sriService.recordResponse(problem, true);
-          debugPrint("🔲 SRI: Logged cage problem -> ${problem.expression}");
-        }
+          }
+          break;
       }
     }
+    
+    debugPrint("🔲 [KENKEN] Extracted ${problems.length} math problems total");
+    return problems;
   }
 
-  void _handleSuccess() {
+  void _handleSuccess(List<MathProblem> mathProblems) {
     debugPrint("🎉 [KENKEN] SUCCESS! Player solved the puzzle!");
     
     int baseScore = 300 * widget.grade;
@@ -264,7 +320,15 @@ class _KenkenGameState extends State<KenkenGame>
     int totalScore = baseScore + complexityBonus + operationBonus;
     debugPrint("🎉 [KENKEN] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
     
-    context.read<GameProvider>().addScore(totalScore);
+    // SINGLE CALL to unified progression system
+    final didAdvance = context.read<GameProvider>().recordLevelWin(
+      gameType: 'kenken',
+      scoreGained: totalScore,
+      difficulty: widget.level,
+      wasSuccessful: true,
+      mathProblems: mathProblems, // Pass ALL the cage problems
+    );
+    
     _successController.forward(from: 0.0);
     
     if (mounted) {
