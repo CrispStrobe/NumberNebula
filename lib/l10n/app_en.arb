@@ -629,6 +629,10 @@
   "@arithmancerPropertySquare": {
     "description": "Perfect square mathematical property"
   },
+
+  "arithmeticSquareOutOfMoves": "Out of Moves!",
+  "arithmeticSquareOutOfMovesDesc": "Think carefully about each placement to solve the puzzle efficiently.",
+  "tryAgain": "Try Again",
   
   "arithmancerPropertyFibonacci": "Fibonacci",
   "@arithmancerPropertyFibonacci": {
@@ -832,6 +836,9 @@
   "@arithmancerCrosswordsError": {
     "description": "Error message when the crossword solution is incorrect"
   },
+
+  "arithmancerCrosswordsOutOfMoves": "Out of Moves!",
+  "arithmancerCrosswordsOutOfMovesDesc": "Plan your moves carefully to solve the crossword efficiently.",
   
   "arithmancerCrosswordsSelectNumbers": "Drag numbers to fill the crossword:",
   "@arithmancerCrosswordsSelectNumbers": {

@@ -98,7 +98,7 @@ class SDe extends S {
   String get good => 'Gut gemacht!';
 
   @override
-  String get tryAgain => 'Versuchen wir es nochmal!';
+  String get tryAgain => 'Nochmal versuchen!';
 
   @override
   String get gameOver => 'Mission abgeschlossen!';
@@ -1188,6 +1188,13 @@ class SDe extends S {
   String get arithmancerPropertySquare => 'Quadratzahl';
 
   @override
+  String get arithmeticSquareOutOfMoves => 'Alle Züge verbraucht!';
+
+  @override
+  String get arithmeticSquareOutOfMovesDesc =>
+      'Überlege dir jeden Zug genau, um das Rätsel zu lösen!';
+
+  @override
   String get arithmancerPropertyFibonacci => 'Fibonacci';
 
   @override
@@ -1398,6 +1405,13 @@ class SDe extends S {
   @override
   String get arithmancerCrosswordsError =>
       'Die Kreuzworträtsel-Gleichungen stimmen nicht! Überprüfe deine Mathematik und versuche es erneut.';
+
+  @override
+  String get arithmancerCrosswordsOutOfMoves => 'Alle Züge verbraucht.';
+
+  @override
+  String get arithmancerCrosswordsOutOfMovesDesc =>
+      'Plane deine Züge genau, um das Rätsel zu lösen!';
 
   @override
   String get arithmancerCrosswordsSelectNumbers =>

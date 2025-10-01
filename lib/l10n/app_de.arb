@@ -30,7 +30,7 @@
     "incorrect": "Neuberechnung...",
     "excellent": "Hervorragende Arbeit, Weltraum-Kommandant!",
     "good": "Gut gemacht!",
-    "tryAgain": "Versuchen wir es nochmal!",
+    "tryAgain": "Nochmal versuchen!",
     "gameOver": "Mission abgeschlossen!",
     "nextLevel": "Nächste Mission",
     "playAgain": "Nochmal spielen",
@@ -727,6 +727,9 @@
   "@arithmeticSquareError": {
     "description": "Fehlermeldung, wenn die Rechenquadrat-Lösung falsch ist"
   },
+
+  "arithmeticSquareOutOfMoves": "Alle Züge verbraucht!",
+  "arithmeticSquareOutOfMovesDesc": "Überlege dir jeden Zug genau, um das Rätsel zu lösen!",
   
   "arithmeticSquareSelectNumbers": "Ziehe Zahlen in die leeren Felder:",
   "@arithmeticSquareSelectNumbers": {
@@ -763,6 +766,9 @@
   "@arithmancerCrosswordsError": {
     "description": "Fehlermeldung, wenn die Kreuzworträtsel-Lösung falsch ist"
   },
+
+  "arithmancerCrosswordsOutOfMoves": "Alle Züge verbraucht.",
+  "arithmancerCrosswordsOutOfMovesDesc": "Plane deine Züge genau, um das Rätsel zu lösen!",
   
   "arithmancerCrosswordsSelectNumbers": "Ziehe Zahlen zum Ausfüllen des Kreuzworträtsels:",
   "@arithmancerCrosswordsSelectNumbers": {

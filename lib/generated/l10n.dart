@@ -268,7 +268,7 @@ abstract class S {
   /// No description provided for @tryAgain.
   ///
   /// In en, this message translates to:
-  /// **'Let\'s try again!'**
+  /// **'Try Again'**
   String get tryAgain;
 
   /// No description provided for @gameOver.
@@ -2192,6 +2192,18 @@ abstract class S {
   /// **'Perfect Square'**
   String get arithmancerPropertySquare;
 
+  /// No description provided for @arithmeticSquareOutOfMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of Moves!'**
+  String get arithmeticSquareOutOfMoves;
+
+  /// No description provided for @arithmeticSquareOutOfMovesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Think carefully about each placement to solve the puzzle efficiently.'**
+  String get arithmeticSquareOutOfMovesDesc;
+
   /// Fibonacci number mathematical property
   ///
   /// In en, this message translates to:
@@ -2551,6 +2563,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'The crossword equations don\'t balance! Check your math and try again.'**
   String get arithmancerCrosswordsError;
+
+  /// No description provided for @arithmancerCrosswordsOutOfMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of Moves!'**
+  String get arithmancerCrosswordsOutOfMoves;
+
+  /// No description provided for @arithmancerCrosswordsOutOfMovesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan your moves carefully to solve the crossword efficiently.'**
+  String get arithmancerCrosswordsOutOfMovesDesc;
 
   /// Instruction text above the number pool in arithmancer crosswords
   ///

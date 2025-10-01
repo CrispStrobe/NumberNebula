@@ -98,7 +98,7 @@ class SEn extends S {
   String get good => 'Good job!';
 
   @override
-  String get tryAgain => 'Let\'s try again!';
+  String get tryAgain => 'Try Again';
 
   @override
   String get gameOver => 'Mission Complete!';
@@ -1178,6 +1178,13 @@ class SEn extends S {
   String get arithmancerPropertySquare => 'Perfect Square';
 
   @override
+  String get arithmeticSquareOutOfMoves => 'Out of Moves!';
+
+  @override
+  String get arithmeticSquareOutOfMovesDesc =>
+      'Think carefully about each placement to solve the puzzle efficiently.';
+
+  @override
   String get arithmancerPropertyFibonacci => 'Fibonacci';
 
   @override
@@ -1388,6 +1395,13 @@ class SEn extends S {
   @override
   String get arithmancerCrosswordsError =>
       'The crossword equations don\'t balance! Check your math and try again.';
+
+  @override
+  String get arithmancerCrosswordsOutOfMoves => 'Out of Moves!';
+
+  @override
+  String get arithmancerCrosswordsOutOfMovesDesc =>
+      'Plan your moves carefully to solve the crossword efficiently.';
 
   @override
   String get arithmancerCrosswordsSelectNumbers =>

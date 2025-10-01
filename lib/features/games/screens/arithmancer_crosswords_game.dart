@@ -181,6 +181,11 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   String _lastDroppedPosition = '';
   DifficultyConfig? currentDifficulty;
 
+  int _movesRemaining = 0;
+  int _maxMoves = 0;
+  late AnimationController _moveWarningController;
+  late Animation<double> _moveWarningAnimation;
+
   @override
   void initState() {
     super.initState();
@@ -211,6 +216,14 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     )..repeat(reverse: true);
     _pulseAnimation = Tween<double>(begin: 0.7, end: 1.0)
         .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+
+    _moveWarningController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _moveWarningAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _moveWarningController, curve: Curves.easeInOut),
+    );
     
     // Initialize difficulty from the framework
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -231,11 +244,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     _successController.stop();
     _dropController.stop();
     _pulseController.stop();
-    
-    _glowController.dispose();
-    _successController.dispose();
-    _dropController.dispose();
-    _pulseController.dispose();
+
+    _moveWarningController.dispose();
     
     puzzle = null;
     userSolution.clear();
@@ -247,139 +257,96 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   void _generatePuzzle() async {
     if (currentDifficulty == null) return;
     
-    debugPrint("🎯 [GEN-START] ========================================");
-    debugPrint("🎯 [GEN-START] Starting puzzle generation process");
-    debugPrint("🎯 [GEN-START] Grade: ${widget.grade}, Level: ${widget.level}");
+    debugPrint("🎯 [ARITHMANCER CROSSWORDS] Starting puzzle generation process");
     
     setState(() {
       _isGenerating = true;
       _successController.reset();
       userSolution.clear();
+      
     });
 
-    const int maxRetries = 3;
-    const int perAttemptTimeout = 8; // seconds per attempt
-    
-    CrosswordPuzzle? generatedPuzzle;
-    
-    for (int retry = 1; retry <= maxRetries; retry++) {
-      debugPrint("🎯 [GEN-RETRY-$retry] ========================================");
-      debugPrint("🎯 [GEN-RETRY-$retry] Starting generation attempt $retry/$maxRetries");
-      
-      try {
-        final gameProvider = context.read<GameProvider>();
-        final puzzleArgs = {
-          'grade': widget.grade,
-          'level': widget.level,
-          'difficulty': currentDifficulty!,
-          'useCustomSettings': gameProvider.useCustomProblemSettings,
-          'customOps': gameProvider.customOperations.toList(),
-          'customMin': gameProvider.customRangeMin,
-          'customMax': gameProvider.customRangeMax,
-          'attemptNumber': retry,
-        };
+    try {
+      final gameProvider = context.read<GameProvider>();
+      final puzzleArgs = {
+        'grade': widget.grade,
+        'level': widget.level,
+        'difficulty': currentDifficulty!,
+        'useCustomSettings': gameProvider.useCustomProblemSettings,
+        'customOps': gameProvider.customOperations.toList(),
+        'customMin': gameProvider.customRangeMin,
+        'customMax': gameProvider.customRangeMax,
+      };
 
-        debugPrint("🎯 [GEN-RETRY-$retry] Prepared args: $puzzleArgs");
-        debugPrint("🎯 [GEN-RETRY-$retry] Calling compute() with ${perAttemptTimeout}s timeout...");
-        
-        final computeStart = DateTime.now();
-        
-        // Try to generate with per-attempt timeout
-        generatedPuzzle = await compute(CrosswordPuzzle.generate, puzzleArgs)
-            .timeout(
-              Duration(seconds: perAttemptTimeout),
-              onTimeout: () {
-                final elapsed = DateTime.now().difference(computeStart).inSeconds;
-                debugPrint("⏰ [GEN-RETRY-$retry] TIMEOUT after ${elapsed}s (limit: ${perAttemptTimeout}s)");
-                throw TimeoutException('Generation timeout at $elapsed seconds');
-              },
-            );
-        
-        final elapsed = DateTime.now().difference(computeStart).inMilliseconds;
-        debugPrint("✅ [GEN-RETRY-$retry] compute() returned successfully after ${elapsed}ms");
-        debugPrint("✅ [GEN-RETRY-$retry] Puzzle object received: ${generatedPuzzle != null}");
-        
-        if (generatedPuzzle != null) {
-          debugPrint("✅ [GEN-RETRY-$retry] Validating puzzle structure...");
-          debugPrint("✅ [GEN-RETRY-$retry]   - Clues: ${generatedPuzzle.clues.length}");
-          debugPrint("✅ [GEN-RETRY-$retry]   - Empty cells: ${generatedPuzzle.emptyCells.length}");
-          debugPrint("✅ [GEN-RETRY-$retry]   - Equations: ${generatedPuzzle.equations.length}");
-          debugPrint("✅ [GEN-RETRY-$retry]   - Number pool: ${generatedPuzzle.numberPool.length}");
-          debugPrint("✅ [GEN-RETRY-$retry]   - Number cells: ${generatedPuzzle.numberCells.length}");
-          debugPrint("✅ [GEN-RETRY-$retry]   - Operator cells: ${generatedPuzzle.operatorCells.length}");
-          debugPrint("✅ [GEN-RETRY-$retry] Puzzle structure looks valid!");
-        }
-        
-        debugPrint("✅ [GEN-RETRY-$retry] SUCCESS - Breaking out of retry loop");
-        break; // Success! Exit retry loop
-        
-      } on TimeoutException catch (e) {
-        debugPrint("⏰ [GEN-RETRY-$retry] CAUGHT TimeoutException: $e");
-        if (retry == maxRetries) {
-          debugPrint("❌ [GEN-RETRY-$retry] All $maxRetries retry attempts exhausted due to timeout");
-        } else {
-          debugPrint("🔄 [GEN-RETRY-$retry] Will retry (attempt ${retry + 1}/$maxRetries)");
-        }
-        continue; // Try again
-      } catch (e, stackTrace) {
-        debugPrint("❌ [GEN-RETRY-$retry] CAUGHT Exception: $e");
-        debugPrint("❌ [GEN-RETRY-$retry] Exception Type: ${e.runtimeType}");
-        debugPrint("❌ [GEN-RETRY-$retry] StackTrace: $stackTrace");
-        if (retry == maxRetries) {
-          debugPrint("❌ [GEN-RETRY-$retry] All $maxRetries retry attempts exhausted due to error");
-        } else {
-          debugPrint("🔄 [GEN-RETRY-$retry] Will retry (attempt ${retry + 1}/$maxRetries)");
-        }
-        continue; // Try again
-      }
-    }
-    
-    debugPrint("🎯 [GEN-RESULT] ========================================");
-    debugPrint("🎯 [GEN-RESULT] Generation complete. Result: ${generatedPuzzle != null ? 'SUCCESS' : 'FAILURE'}");
-    
-    if (!mounted) {
-      debugPrint("⚠️ [GEN-RESULT] Widget not mounted, aborting setState");
-      return;
-    }
-    
-    // Handle the result
-    if (generatedPuzzle != null) {
-      try {
-        debugPrint("🎯 [GEN-RESULT] Starting UI update...");
-        debugPrint("🎯 [GEN-RESULT] Calling _initializeNumberPool...");
+      debugPrint("🎯 [ARITHMANCER CROSSWORDS] Calling compute function");
+      
+      // STEP 1: Generate the puzzle (this is where the variable is declared and assigned)
+      CrosswordPuzzle? generatedPuzzle = await compute(CrosswordPuzzle.generate, puzzleArgs);
+      
+      debugPrint("🎯 [GEN-RESULT] Generation complete. Result: ${generatedPuzzle != null ? 'SUCCESS' : 'FAILURE'}");
+      
+      // STEP 2: Now we can use generatedPuzzle
+      if (generatedPuzzle != null) {
+        debugPrint("✅ [GEN-RESULT] Puzzle details:");
+        debugPrint("✅ [GEN-RESULT]   - Clues: ${generatedPuzzle.clues.length}");
+        debugPrint("✅ [GEN-RESULT]   - Empty cells: ${generatedPuzzle.emptyCells.length}");
+        debugPrint("✅ [GEN-RESULT]   - Equations: ${generatedPuzzle.equations.length}");
         
         _initializeNumberPool(generatedPuzzle);
         
-        debugPrint("🎯 [GEN-RESULT] _initializeNumberPool completed");
-        debugPrint("🎯 [GEN-RESULT] Calling setState...");
-        
-        setState(() {
-          puzzle = generatedPuzzle;
-          _isGenerating = false;
-        });
-        
-        debugPrint("✅ [GEN-RESULT] setState completed successfully");
-        debugPrint("✅ [GEN-RESULT] Number pool: ${numberPool.join(', ')}");
-        debugPrint("✅ [GEN-RESULT] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
-        debugPrint("🎯 [GEN-END] ========================================");
-      } catch (e, stackTrace) {
-        debugPrint("❌ [GEN-RESULT] ERROR during UI update: $e");
-        debugPrint("❌ [GEN-RESULT] StackTrace: $stackTrace");
-        
-        setState(() {
-          _isGenerating = false;
-        });
-        
-        _showGenerationFailedDialog();
+        // STEP 3: Now update the state with the generated puzzle
+        if (mounted) {
+          setState(() {
+            puzzle = generatedPuzzle;
+            
+            // Calculate max moves: 160% of empty cells, rounded up
+            final emptyCount = generatedPuzzle.emptyCells.length;
+            _maxMoves = (emptyCount * 1.6).ceil();
+            _movesRemaining = _maxMoves;
+            
+            _isGenerating = false;
+            
+            debugPrint("🎯 [ARITHMANCER CROSSWORDS] Max moves allowed: $_maxMoves for $emptyCount empty cells");
+            debugPrint("🎯 [ARITHMANCER CROSSWORDS] UI state updated with new puzzle");
+            debugPrint("🎯 [ARITHMANCER CROSSWORDS] Number pool: ${numberPool.join(', ')}");
+            debugPrint("✅ [GEN-RESULT] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+          });
+        }
+      } else {
+        throw Exception("Puzzle generation returned null");
       }
-    } else {
-      // Failed to generate puzzle - show error dialog
-      debugPrint("❌ [GEN-RESULT] No puzzle generated, showing error dialog");
-      setState(() {
-        _isGenerating = false;
-      });
+    } catch (e, stackTrace) {
+      debugPrint("❌ [ARITHMANCER CROSSWORDS] Error generating puzzle: $e");
+      debugPrint("❌ [ARITHMANCER CROSSWORDS] StackTrace: $stackTrace");
       
-      _showGenerationFailedDialog();
+      if (mounted) {
+        setState(() => _isGenerating = false);
+        // Show error dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: Text('Puzzle Generation Failed'),
+            content: Text('Unable to generate puzzle. Please try again.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _generatePuzzle();
+                },
+                child: Text('Retry'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                },
+                child: Text('Back to Menu'),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 
@@ -462,10 +429,28 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       _lastDroppedPosition = cellId;
       _dropController.forward(from: 0.0);
       _updateNumberPool();
+      
+      // Decrement moves
+      _movesRemaining--;
+      debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
+      
+      // Warning animation when low on moves
+      if (_movesRemaining <= 3 && _movesRemaining > 0) {
+        _moveWarningController.forward(from: 0.0).then((_) {
+          _moveWarningController.reverse();
+        });
+      }
     });
 
     debugPrint("🎮 [PLACE] User solution after: $userSolution");
     debugPrint("🎮 [PLACE] Updated pool: $numberPool");
+    
+    // Check if out of moves BEFORE checking solution
+    if (_movesRemaining <= 0 && userSolution.length < puzzle!.emptyCells.length) {
+      _handleOutOfMoves();
+      return;
+    }
+    
     _checkSolution();
   }
 
@@ -475,6 +460,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     setState(() {
       userSolution.remove(cellId);
       _updateNumberPool();
+      
+      // IMPORTANT: Removing doesn't restore moves (prevents abuse)
+      // Player learns to think before placing
     });
     
     debugPrint("🗑️ [REMOVE] Updated pool: $numberPool");
@@ -534,29 +522,28 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       debugPrint("✅ [ARITHMANCER CROSSWORDS] Solution validation result: $isValid");
       
       if (isValid) {
-        _logSolvedProblemsToSRI(userSolution);
-        _handleSuccess();
+        _handleSuccess(userSolution);
       } else {
-        _handleIncorrect();
+        _handleIncorrect(); // We keep this! ==> Error message...
       }
     } else {
       debugPrint("✅ [ARITHMANCER CROSSWORDS] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
     }
   }
 
-  void _logSolvedProblemsToSRI(Map<String, int> solution) {
-    debugPrint("📤 SRI: Logging all solved problems for the completed crossword...");
-    final sriService = context.read<SriService>();
+  List<MathProblem> _extractMathProblems(Map<String, int> solution) {
+    debugPrint("📤 [CROSSWORDS] Extracting all math problems from completed crossword...");
+    
+    final problems = <MathProblem>[];
     
     // Create the complete solution
     final completeGrid = Map<String, int>.from(puzzle!.clues);
     completeGrid.addAll(solution);
     
-    // Log each equation
+    // Extract a problem from each equation
     for (final equation in puzzle!.equations) {
       final values = equation.variableNames.map((varName) => completeGrid[varName]!).toList();
       
-      // Create math problems for the equation: a op b = c
       final operand1 = values[0];
       final operand2 = values[1];
       final result = values[2];
@@ -566,15 +553,15 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         case '+':
           problem = MathProblem.addition(operand1, operand2);
           break;
-        case '−': // Using proper minus symbol
+        case '−':
         case '-':
           problem = MathProblem.subtraction(math.max(operand1, operand2), math.min(operand1, operand2));
           break;
-        case '×': // Using proper multiplication symbol
+        case '×':
         case '*':
           problem = MathProblem.multiplication(operand1, operand2);
           break;
-        case '÷': // Using proper division symbol
+        case '÷':
         case '/':
           if (operand2 != 0 && operand1 % operand2 == 0) {
             problem = MathProblem.division(operand1, operand2);
@@ -585,13 +572,16 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       }
       
       if (problem != null) {
-        sriService.recordResponse(problem, true);
-        debugPrint("📤 SRI: Logged equation problem -> ${problem.expression}");
+        problems.add(problem);
+        debugPrint("📤 [CROSSWORDS] Extracted: ${problem.expression}");
       }
     }
+    
+    debugPrint("📤 [CROSSWORDS] Extracted ${problems.length} problems total");
+    return problems;
   }
 
-  void _handleSuccess() {
+  void _handleSuccess(Map<String, int> userSolution) {
     debugPrint("🎉 [ARITHMANCER CROSSWORDS] SUCCESS! Player solved the puzzle!");
     
     int baseScore = 250 * widget.grade;
@@ -603,7 +593,19 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     int totalScore = baseScore + complexityBonus + operationBonus;
     debugPrint("🎉 [ARITHMANCER CROSSWORDS] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
     
-    context.read<GameProvider>().addScore(totalScore);
+    // Extract all math problems from the solved crossword
+    final mathProblems = _extractMathProblems(userSolution);
+    debugPrint("🎉 [ARITHMANCER CROSSWORDS] Extracted ${mathProblems.length} math problems for tracking");
+    
+    // SINGLE CALL to unified progression system
+    final didAdvance = context.read<GameProvider>().recordLevelWin(
+      gameType: 'arithmancer_crosswords',
+      scoreGained: totalScore,
+      difficulty: widget.level,
+      wasSuccessful: true,
+      mathProblems: mathProblems, // Pass all problems at once
+    );
+    
     _successController.forward(from: 0.0);
     
     if (mounted) {
@@ -636,6 +638,140 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
       ),
+    );
+  }
+
+  void _handleOutOfMoves() {
+    debugPrint("❌ [ARITHMANCER CROSSWORDS] Out of moves! Game over.");
+    
+    // Call the failure handler
+    _handleFailure();
+    
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => _buildOutOfMovesDialog(),
+      );
+    }
+  }
+
+  Widget _buildOutOfMovesDialog() {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: SpaceTheme.cardDecoration.copyWith(
+          border: Border.all(color: SpaceTheme.rocketRed, width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
+            const SizedBox(height: 16),
+            Text(
+              S.of(context)!.arithmancerCrosswordsOutOfMoves,
+              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              S.of(context)!.arithmancerCrosswordsOutOfMovesDesc,
+              style: SpaceTheme.bodyStyle,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _generatePuzzle();
+                  },
+                  style: SpaceTheme.secondaryButtonStyle,
+                  child: Text(S.of(context)!.tryAgain),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  style: SpaceTheme.primaryButtonStyle,
+                  child: Text(S.of(context)!.backToMenu),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMovesIndicator({required bool isCompact}) {
+    final fontSize = isCompact ? 12.0 : 16.0;
+    final iconSize = isCompact ? 20.0 : 24.0;
+    
+    // Color changes based on remaining moves
+    Color indicatorColor;
+    if (_movesRemaining <= 3) {
+      indicatorColor = SpaceTheme.rocketRed;
+    } else if (_movesRemaining <= 5) {
+      indicatorColor = SpaceTheme.planetOrange;
+    } else {
+      indicatorColor = SpaceTheme.cosmicPink;
+    }
+    
+    return AnimatedBuilder(
+      animation: _moveWarningAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _movesRemaining <= 3 ? _moveWarningAnimation.value : 1.0,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isCompact ? 8 : 12,
+              vertical: isCompact ? 4 : 8,
+            ),
+            decoration: BoxDecoration(
+              color: SpaceTheme.deepSpace.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: indicatorColor),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.touch_app, color: indicatorColor, size: iconSize),
+                SizedBox(width: isCompact ? 4 : 8),
+                Text(
+                  '$_movesRemaining',
+                  style: SpaceTheme.titleStyle.copyWith(
+                    fontSize: fontSize,
+                    color: indicatorColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleFailure() {
+    debugPrint("❌ [ARITHMANCER CROSSWORDS] FAILURE! Player gave up");
+    
+    // Extract problems for learning purposes (using partial solution if any)
+    final mathProblems = userSolution.isNotEmpty 
+        ? _extractMathProblems(userSolution)
+        : <MathProblem>[];
+    
+    // Record the failure
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'arithmancer_crosswords',
+      scoreGained: 0,
+      difficulty: widget.level,
+      wasSuccessful: false,
+      mathProblems: mathProblems,
     );
   }
 
@@ -733,6 +869,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
           _buildLevelIndicator(isCompact: true),
           const SizedBox(width: 8),
           _buildScoreIndicator(isCompact: true),
+          const SizedBox(width: 8),
+          _buildMovesIndicator(isCompact: true),
         ],
       ),
     );

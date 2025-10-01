@@ -48,6 +48,11 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   String _lastDroppedPosition = '';
   DifficultyConfig? currentDifficulty;
 
+  int _movesRemaining = 0;
+  int _maxMoves = 0;
+  late AnimationController _moveWarningController;
+  late Animation<double> _moveWarningAnimation;
+
   @override
   void initState() {
     super.initState();
@@ -78,6 +83,14 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     )..repeat(reverse: true);
     _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
         .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+
+    _moveWarningController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _moveWarningAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _moveWarningController, curve: Curves.easeInOut),
+    );
     
     // Initialize difficulty from the framework
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -103,6 +116,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     _successController.dispose();
     _dropController.dispose();
     _pulseController.dispose();
+    _moveWarningController.dispose();
     
     puzzle = null;
     userSolution.clear();
@@ -143,8 +157,16 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       if (mounted) {
         setState(() {
           puzzle = generatedPuzzle;
-          numberPool = List.from(generatedPuzzle.numberPool)..sort(); // Always keep sorted
+          numberPool = List.from(generatedPuzzle.numberPool)..sort();
+          
+          // Calculate max moves: 160% of empty cells, rounded up
+          final emptyCount = generatedPuzzle.emptyCells.length;
+          _maxMoves = (emptyCount * 1.6).ceil();
+          _movesRemaining = _maxMoves;
+          
           _isGenerating = false;
+          
+          debugPrint("🎯 [ARITHMETIC SQUARE] Max moves allowed: $_maxMoves for $emptyCount empty cells");
         });
         debugPrint("🎯 [ARITHMETIC SQUARE] UI state updated with new puzzle");
         debugPrint("🎯 [ARITHMETIC SQUARE] Number pool (sorted): ${numberPool.join(', ')}");
@@ -165,11 +187,96 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       numberPool.remove(number);
       _lastDroppedPosition = cellId;
       _dropController.forward(from: 0.0);
+      
+      // Decrement moves
+      _movesRemaining--;
+      debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
+      
+      // Warning animation when low on moves
+      if (_movesRemaining <= 3 && _movesRemaining > 0) {
+        _moveWarningController.forward(from: 0.0).then((_) {
+          _moveWarningController.reverse();
+        });
+      }
     });
 
     debugPrint("🎮 [PLACE] User solution after: $userSolution");
     debugPrint("🎮 [PLACE] Number pool after: $numberPool");
+    
+    // Check if out of moves BEFORE checking solution
+    if (_movesRemaining <= 0 && userSolution.length < puzzle!.emptyCells.length) {
+      _handleOutOfMoves();
+      return;
+    }
+    
     _checkSolution();
+  }
+
+  void _handleOutOfMoves() {
+    debugPrint("❌ [ARITHMETIC SQUARE] Out of moves! Game over.");
+    
+    // Call the failure handler
+    _handleFailure();
+    
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => _buildOutOfMovesDialog(),
+      );
+    }
+  }
+
+  Widget _buildOutOfMovesDialog() {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: SpaceTheme.cardDecoration.copyWith(
+          border: Border.all(color: SpaceTheme.rocketRed, width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
+            const SizedBox(height: 16),
+            Text(
+              S.of(context)!.arithmeticSquareOutOfMoves,
+              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              S.of(context)!.arithmeticSquareOutOfMovesDesc,
+              style: SpaceTheme.bodyStyle,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _generatePuzzle();
+                  },
+                  style: SpaceTheme.secondaryButtonStyle,
+                  child: Text(S.of(context)!.tryAgain),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  style: SpaceTheme.primaryButtonStyle,
+                  child: Text(S.of(context)!.backToMenu),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _removeNumber(String cellId) {
@@ -181,6 +288,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         userSolution.remove(cellId);
         numberPool.add(number);
         numberPool.sort();
+        
+        // IMPORTANT: Removing doesn't restore moves (prevents abuse)
+        // Player learns to think before placing
+        debugPrint("🗑️ [ARITHMETIC SQUARE] Removed $number (moves not restored)");
       }
     });
   }
@@ -316,8 +427,6 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     }
   }
 
-
-
   void _handleSuccess() {
     debugPrint("🎉 [ARITHMETIC SQUARE] SUCCESS! Player solved the puzzle!");
     
@@ -330,11 +439,15 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     int totalScore = baseScore + complexityBonus + operationBonus;
     debugPrint("🎉 [ARITHMETIC SQUARE] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
     
-    final gameProvider = context.read<GameProvider>();
-    gameProvider.addScore(totalScore);
-    
-    // Track game progress like PathFinderGame does
-    gameProvider.updateGameProgress('arithmetic_square', widget.level);
+    // SINGLE CALL to unified progression system
+    // NO mathProblems parameter - already tracked in real-time via _checkAndLogCompletedEquations()
+    final didAdvance = context.read<GameProvider>().recordLevelWin(
+      gameType: 'arithmatic_square', // Note: keep the typo to match existing keys
+      scoreGained: totalScore,
+      difficulty: widget.level,
+      wasSuccessful: true,
+      // NO mathProblems - SRI already tracked each equation as it was completed
+    );
     
     _successController.forward(from: 0.0);
     
@@ -345,6 +458,19 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         builder: (context) => _buildSuccessDialog(complexityBonus + operationBonus),
       );
     }
+  }
+
+  void _handleFailure() {
+    debugPrint("❌ [ARITHMETIC SQUARE] Player gave up or failed");
+    
+    // Record the failure - equations were already tracked via SRI as they were completed
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'arithmatic_square',
+      scoreGained: 0,
+      difficulty: widget.level,
+      wasSuccessful: false,
+      // NO mathProblems - SRI already has the data from partial completion
+    );
   }
 
   int _getOperationBonus(String operation) {
@@ -465,8 +591,63 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
           _buildLevelIndicator(isCompact: true),
           const SizedBox(width: 8),
           _buildScoreIndicator(isCompact: true),
+
+          const SizedBox(width: 8),
+          _buildMovesIndicator(isCompact: true),
+
+          
+
         ],
       ),
+    );
+  }
+
+  Widget _buildMovesIndicator({required bool isCompact}) {
+    final fontSize = isCompact ? 12.0 : 16.0;
+    final iconSize = isCompact ? 20.0 : 24.0;
+    
+    // Color changes based on remaining moves
+    Color indicatorColor;
+    if (_movesRemaining <= 3) {
+      indicatorColor = SpaceTheme.rocketRed;
+    } else if (_movesRemaining <= 5) {
+      indicatorColor = SpaceTheme.planetOrange;
+    } else {
+      indicatorColor = SpaceTheme.nebulaPurple;
+    }
+    
+    return AnimatedBuilder(
+      animation: _moveWarningAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _movesRemaining <= 3 ? _moveWarningAnimation.value : 1.0,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isCompact ? 8 : 12,
+              vertical: isCompact ? 4 : 8,
+            ),
+            decoration: BoxDecoration(
+              color: SpaceTheme.deepSpace.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: indicatorColor),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.touch_app, color: indicatorColor, size: iconSize),
+                SizedBox(width: isCompact ? 4 : 8),
+                Text(
+                  '$_movesRemaining',
+                  style: SpaceTheme.titleStyle.copyWith(
+                    fontSize: fontSize,
+                    color: indicatorColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
