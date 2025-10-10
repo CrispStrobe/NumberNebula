@@ -895,7 +895,123 @@
         "description": "The bonus points earned"
       }
     }
-  }
+  },
 
+  "asteroidFieldTitle": "Asteroid Field Navigator",
+  "asteroidFieldInstructions": "Reveal safe sectors, avoid asteroids! Long-press or use flag mode to mark dangers.",
+  "asteroidFieldRevealMode": "Reveal Mode",
+  "asteroidFieldFlagMode": "Flag Mode",
+  "asteroidFieldWinTitle": "Field Cleared!",
+  "asteroidFieldWinDesc": "Navigation complete in {time}!\n\nTotal Score: {score}\nSpeed Bonus: +{speedBonus}\nEfficiency Bonus: +{efficiencyBonus}",
+  "@asteroidFieldWinDesc": {
+      "description": "Victory message with time, score, and bonuses",
+      "placeholders": {
+          "time": {
+              "type": "String",
+              "description": "Time taken to complete the field"
+          },
+          "score": {
+              "type": "int",
+              "description": "Total score achieved"
+          },
+          "speedBonus": {
+              "type": "int",
+              "description": "Bonus points for fast completion"
+          },
+          "efficiencyBonus": {
+              "type": "int",
+              "description": "Bonus points for accurate flagging"
+          }
+      }
+  },
+  "asteroidFieldLoseTitle": "Asteroid Impact!",
+  "asteroidFieldLoseDesc": "Your ship hit an asteroid. The field has been revealed.",
+  "nextField": "Next Field",
+
+  "cargoBayTitle": "Cargo Bay Arranger",
+  "cargoBayInstructions": "Fill rows to match the target sum! Tap buttons to move/rotate. Wrong sums lock the row!",
+  "cargoBayNext": "Next",
+  "cargoBayWinTitle": "Cargo Bay Organized!",
+  "cargoBayWinDesc": "Perfect logistics! You cleared {rows} rows!\n\nTotal Score: {score}\nRow Bonus: +{rowBonus}",
+  "@cargoBayWinDesc": {
+      "description": "Victory message with rows cleared and score",
+      "placeholders": {
+          "rows": {
+              "type": "int",
+              "description": "Number of rows cleared"
+          },
+          "score": {
+              "type": "int",
+              "description": "Total score achieved"
+          },
+          "rowBonus": {
+              "type": "int",
+              "description": "Bonus points for extra rows"
+          }
+      }
+  },
+  "cargoBayLoseTitle": "Bay Overloaded!",
+  "cargoBayLoseDesc": "The cargo bay has reached maximum capacity!\nReorganize and try again, Commander!",
+  "nextShipment": "Next Shipment",
+
+  "moleculeBuilderTitle": "Quantum Molecule Builder",
+  "moleculeBuilderInstructions": "Slide atoms to match the target molecule! Atoms slide until they hit a wall or another atom.",
+  "moleculeBuilderAtoms": "Atoms",
+  "moleculeBuilderTarget": "Target Molecule",
+  "moleculeBuilderSelected": "Selected",
+  "moleculeBuilderWinTitle": "Molecule Assembled!",
+  "moleculeBuilderWinDesc": "Perfect molecular structure!\nMoves used: {moves}\n\nTotal Score: {score}\nEfficiency Bonus: +{efficiencyBonus}",
+  "@moleculeBuilderWinDesc": {
+      "description": "Victory message with moves and score",
+      "placeholders": {
+          "moves": {
+              "type": "int",
+              "description": "Number of moves used"
+          },
+          "score": {
+              "type": "int",
+              "description": "Total score achieved"
+          },
+          "efficiencyBonus": {
+              "type": "int",
+              "description": "Bonus points for efficient solution"
+          }
+      }
+  },
+  "moleculeBuilderLoseTitle": "Assembly Failed!",
+  "moleculeBuilderLoseDesc": "Move limit exceeded! The molecular structure remains unstable.\nStudy the pattern and try again, Scientist!",
+  "nextMolecule": "Next Molecule",
+
+  "spaceGridlockTitle": "Space Station Gridlock",
+  "spaceGridlockInstructions": "Drag ships to clear a path! Guide your ship to the exit on the right.",
+  "spaceGridlockReset": "Reset Puzzle",
+  "spaceGridlockWinTitle": "Docking Complete!",
+  "spaceGridlockWinDesc": "Ship docked in {moves} moves!\nOptimal: {minMoves} moves\nPerformance: {performance}\n\nTotal Score: {score}\nEfficiency Bonus: +{bonus}",
+  "@spaceGridlockWinDesc": {
+      "description": "Victory message with moves, score, and performance rating",
+      "placeholders": {
+          "moves": {
+              "type": "int",
+              "description": "Number of moves taken"
+          },
+          "minMoves": {
+              "type": "int",
+              "description": "Minimum possible moves"
+          },
+          "performance": {
+              "type": "String",
+              "description": "Performance rating (Perfect/Great/Good)"
+          },
+          "score": {
+              "type": "int",
+              "description": "Total score achieved"
+          },
+          "bonus": {
+              "type": "int",
+              "description": "Efficiency bonus points"
+          }
+      }
+  },
+  "nextPuzzle": "Next Puzzle"
 
 }

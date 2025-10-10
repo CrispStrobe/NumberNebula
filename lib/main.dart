@@ -38,6 +38,10 @@ import 'features/games/screens/cryptex_lock_breaker_game.dart';
 import 'features/games/screens/arithmancer_duel_game.dart'; 
 import 'features/games/screens/arithmatic_square_game.dart'; 
 import 'features/games/screens/arithmancer_crosswords_game.dart'; 
+import 'features/games/screens/asteroid_field_navigator_game.dart';
+import 'features/games/screens/cargo_bay_arranger_game.dart';
+import 'features/games/screens/quantum_molecule_builder_game.dart';
+import 'features/games/screens/space_station_gridlock_game.dart';
 
 // --- UTILS & GENERATED ---
 import 'shared/utils/app_utilities.dart';
@@ -259,7 +263,11 @@ class AppRoutes {
   static const String arithmancerDuel = '/games/arithmancer-duel';
   static const String arithmaticSquare = '/games/arithmatic-square';
   static const String arithmancerCrosswords = '/games/arithmancer-crosswords';
-  
+  static const String asteroidFieldNavigator = '/games/asteroid-field-navigator';
+  static const String cargoBayArranger = '/games/cargo-bay-arranger';
+  static const String quantumMoleculeBuilder = '/games/quantum-molecule-builder';
+  static const String spaceStationGridlock = '/games/space-station-gridlock';
+
   static const String settings = '/settings';
   static const String achievements = '/achievements';
   static const String loading = '/loading';
@@ -347,6 +355,26 @@ class AppRoutes {
             final grade = args?['grade'] as int? ?? 3;
             final level = args?['level'] as int? ?? 1;
             return _createRoute(ArithmancerCrosswordsGame(grade: grade, level: level));  
+
+        case asteroidFieldNavigator:
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(AsteroidFieldNavigatorGame(grade: grade, level: level));
+        
+        case cargoBayArranger:
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(CargoBayArrangerGame(grade: grade, level: level));
+        
+        case quantumMoleculeBuilder:
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(QuantumMoleculeBuilderGame(grade: grade, level: level));
+
+        case spaceStationGridlock:
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(SpaceStationGridlockGame(grade: grade, level: level));
       
         case AppRoutes.settings:
           return _createRoute(const SettingsScreen());

@@ -825,7 +825,123 @@
         "description": "Die verdienten Bonuspunkte"
       }
     }
-  }
-  
+  },
+
+  "asteroidFieldTitle": "Asteroiden-Navigator",
+  "asteroidFieldInstructions": "Zeige sichere Sektoren auf, vermeide Asteroiden! Langes Drücken oder Flaggen-Modus zum Markieren von Gefahren.",
+  "asteroidFieldRevealMode": "Aufdeckmodus",
+  "asteroidFieldFlagMode": "Flaggenmodus",
+  "asteroidFieldWinTitle": "Feld geräumt!",
+  "asteroidFieldWinDesc": "Navigation abgeschlossen in {time}!\n\nGesamtpunktzahl: {score}\nGeschwindigkeitsbonus: +{speedBonus}\nEffizienzbonus: +{efficiencyBonus}",
+  "@asteroidFieldWinDesc": {
+      "description": "Siegesnachricht mit Zeit, Punktzahl und Boni",
+      "placeholders": {
+          "time": {
+              "type": "String",
+              "description": "Benötigte Zeit für das Feld"
+          },
+          "score": {
+              "type": "int",
+              "description": "Erreichte Gesamtpunktzahl"
+          },
+          "speedBonus": {
+              "type": "int",
+              "description": "Bonuspunkte für schnelle Fertigstellung"
+          },
+          "efficiencyBonus": {
+              "type": "int",
+              "description": "Bonuspunkte für genaues Markieren"
+          }
+      }
+  },
+  "asteroidFieldLoseTitle": "Asteroiden-Einschlag!",
+  "asteroidFieldLoseDesc": "Dein Schiff hat einen Asteroiden getroffen. Das Feld wurde aufgedeckt.",
+  "nextField": "Nächstes Feld",
+
+  "cargoBayTitle": "Frachtraum-Organisator",
+  "cargoBayInstructions": "Fülle Reihen für die Zielsumme! Tippe zum Bewegen/Drehen. Falsche Summen sperren die Reihe!",
+  "cargoBayNext": "Nächste",
+  "cargoBayWinTitle": "Frachtraum organisiert!",
+  "cargoBayWinDesc": "Perfekte Logistik! Du hast {rows} Reihen geräumt!\n\nGesamtpunktzahl: {score}\nReihenbonus: +{rowBonus}",
+  "@cargoBayWinDesc": {
+      "description": "Siegesnachricht mit geräumten Reihen und Punktzahl",
+      "placeholders": {
+          "rows": {
+              "type": "int",
+              "description": "Anzahl der geräumten Reihen"
+          },
+          "score": {
+              "type": "int",
+              "description": "Erreichte Gesamtpunktzahl"
+          },
+          "rowBonus": {
+              "type": "int",
+              "description": "Bonuspunkte für zusätzliche Reihen"
+          }
+      }
+  },
+  "cargoBayLoseTitle": "Frachtraum überlastet!",
+  "cargoBayLoseDesc": "Der Frachtraum hat die maximale Kapazität erreicht!\nOrganisiere neu und versuche es erneut, Kommandant!",
+  "nextShipment": "Nächste Ladung",
+
+  "moleculeBuilderTitle": "Quanten-Molekül-Baumeister",
+  "moleculeBuilderInstructions": "Schiebe Atome zum Zielmolekül! Atome gleiten bis zu einer Wand oder einem anderen Atom.",
+  "moleculeBuilderAtoms": "Atome",
+  "moleculeBuilderTarget": "Zielmolekül",
+  "moleculeBuilderSelected": "Ausgewählt",
+  "moleculeBuilderWinTitle": "Molekül zusammengebaut!",
+  "moleculeBuilderWinDesc": "Perfekte Molekülstruktur!\nVerwendete Züge: {moves}\n\nGesamtpunktzahl: {score}\nEffizienzbonus: +{efficiencyBonus}",
+  "@moleculeBuilderWinDesc": {
+      "description": "Siegesnachricht mit Zügen und Punktzahl",
+      "placeholders": {
+          "moves": {
+              "type": "int",
+              "description": "Anzahl verwendeter Züge"
+          },
+          "score": {
+              "type": "int",
+              "description": "Erreichte Gesamtpunktzahl"
+          },
+          "efficiencyBonus": {
+              "type": "int",
+              "description": "Bonuspunkte für effiziente Lösung"
+          }
+      }
+  },
+  "moleculeBuilderLoseTitle": "Zusammenbau fehlgeschlagen!",
+  "moleculeBuilderLoseDesc": "Zuglimit überschritten! Die Molekülstruktur bleibt instabil.\nStudiere das Muster und versuche es erneut, Wissenschaftler!",
+  "nextMolecule": "Nächstes Molekül",
+
+  "spaceGridlockTitle": "Raumstation-Stau",
+  "spaceGridlockInstructions": "Ziehe Schiffe, um einen Weg freizumachen! Führe dein Schiff zum Ausgang rechts.",
+  "spaceGridlockReset": "Puzzle zurücksetzen",
+  "spaceGridlockWinTitle": "Andocken abgeschlossen!",
+  "spaceGridlockWinDesc": "Schiff angedockt in {moves} Zügen!\nOptimal: {minMoves} Züge\nLeistung: {performance}\n\nGesamtpunktzahl: {score}\nEffizienzbonus: +{bonus}",
+  "@spaceGridlockWinDesc": {
+      "description": "Siegesnachricht mit Zügen, Punktzahl und Leistungsbewertung",
+      "placeholders": {
+          "moves": {
+              "type": "int",
+              "description": "Anzahl der verwendeten Züge"
+          },
+          "minMoves": {
+              "type": "int",
+              "description": "Minimal mögliche Züge"
+          },
+          "performance": {
+              "type": "String",
+              "description": "Leistungsbewertung (Perfekt/Großartig/Gut)"
+          },
+          "score": {
+              "type": "int",
+              "description": "Erreichte Gesamtpunktzahl"
+          },
+          "bonus": {
+              "type": "int",
+              "description": "Effizienz-Bonuspunkte"
+          }
+      }
+  },
+  "nextPuzzle": "Nächstes Puzzle"  
 
 }

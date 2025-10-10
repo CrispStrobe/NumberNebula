@@ -2629,6 +2629,206 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Incredible logical thinking! You\'ve solved this KenKen puzzle perfectly and earned {bonusScore} bonus points for your mathematical prowess!'**
   String kenkenWinDesc(int bonusScore);
+
+  /// No description provided for @asteroidFieldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Asteroid Field Navigator'**
+  String get asteroidFieldTitle;
+
+  /// No description provided for @asteroidFieldInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Reveal safe sectors, avoid asteroids! Long-press or use flag mode to mark dangers.'**
+  String get asteroidFieldInstructions;
+
+  /// No description provided for @asteroidFieldRevealMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Reveal Mode'**
+  String get asteroidFieldRevealMode;
+
+  /// No description provided for @asteroidFieldFlagMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Flag Mode'**
+  String get asteroidFieldFlagMode;
+
+  /// No description provided for @asteroidFieldWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Field Cleared!'**
+  String get asteroidFieldWinTitle;
+
+  /// Victory message with time, score, and bonuses
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation complete in {time}!\n\nTotal Score: {score}\nSpeed Bonus: +{speedBonus}\nEfficiency Bonus: +{efficiencyBonus}'**
+  String asteroidFieldWinDesc(
+      String time, int score, int speedBonus, int efficiencyBonus);
+
+  /// No description provided for @asteroidFieldLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Asteroid Impact!'**
+  String get asteroidFieldLoseTitle;
+
+  /// No description provided for @asteroidFieldLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your ship hit an asteroid. The field has been revealed.'**
+  String get asteroidFieldLoseDesc;
+
+  /// No description provided for @nextField.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Field'**
+  String get nextField;
+
+  /// No description provided for @cargoBayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cargo Bay Arranger'**
+  String get cargoBayTitle;
+
+  /// No description provided for @cargoBayInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill rows to match the target sum! Tap buttons to move/rotate. Wrong sums lock the row!'**
+  String get cargoBayInstructions;
+
+  /// No description provided for @cargoBayNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get cargoBayNext;
+
+  /// No description provided for @cargoBayWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cargo Bay Organized!'**
+  String get cargoBayWinTitle;
+
+  /// Victory message with rows cleared and score
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect logistics! You cleared {rows} rows!\n\nTotal Score: {score}\nRow Bonus: +{rowBonus}'**
+  String cargoBayWinDesc(int rows, int score, int rowBonus);
+
+  /// No description provided for @cargoBayLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bay Overloaded!'**
+  String get cargoBayLoseTitle;
+
+  /// No description provided for @cargoBayLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The cargo bay has reached maximum capacity!\nReorganize and try again, Commander!'**
+  String get cargoBayLoseDesc;
+
+  /// No description provided for @nextShipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Shipment'**
+  String get nextShipment;
+
+  /// No description provided for @moleculeBuilderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantum Molecule Builder'**
+  String get moleculeBuilderTitle;
+
+  /// No description provided for @moleculeBuilderInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Slide atoms to match the target molecule! Atoms slide until they hit a wall or another atom.'**
+  String get moleculeBuilderInstructions;
+
+  /// No description provided for @moleculeBuilderAtoms.
+  ///
+  /// In en, this message translates to:
+  /// **'Atoms'**
+  String get moleculeBuilderAtoms;
+
+  /// No description provided for @moleculeBuilderTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Molecule'**
+  String get moleculeBuilderTarget;
+
+  /// No description provided for @moleculeBuilderSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected'**
+  String get moleculeBuilderSelected;
+
+  /// No description provided for @moleculeBuilderWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Molecule Assembled!'**
+  String get moleculeBuilderWinTitle;
+
+  /// Victory message with moves and score
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect molecular structure!\nMoves used: {moves}\n\nTotal Score: {score}\nEfficiency Bonus: +{efficiencyBonus}'**
+  String moleculeBuilderWinDesc(int moves, int score, int efficiencyBonus);
+
+  /// No description provided for @moleculeBuilderLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Assembly Failed!'**
+  String get moleculeBuilderLoseTitle;
+
+  /// No description provided for @moleculeBuilderLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Move limit exceeded! The molecular structure remains unstable.\nStudy the pattern and try again, Scientist!'**
+  String get moleculeBuilderLoseDesc;
+
+  /// No description provided for @nextMolecule.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Molecule'**
+  String get nextMolecule;
+
+  /// No description provided for @spaceGridlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Space Station Gridlock'**
+  String get spaceGridlockTitle;
+
+  /// No description provided for @spaceGridlockInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag ships to clear a path! Guide your ship to the exit on the right.'**
+  String get spaceGridlockInstructions;
+
+  /// No description provided for @spaceGridlockReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Puzzle'**
+  String get spaceGridlockReset;
+
+  /// No description provided for @spaceGridlockWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Docking Complete!'**
+  String get spaceGridlockWinTitle;
+
+  /// Victory message with moves, score, and performance rating
+  ///
+  /// In en, this message translates to:
+  /// **'Ship docked in {moves} moves!\nOptimal: {minMoves} moves\nPerformance: {performance}\n\nTotal Score: {score}\nEfficiency Bonus: +{bonus}'**
+  String spaceGridlockWinDesc(
+      int moves, int minMoves, String performance, int score, int bonus);
+
+  /// No description provided for @nextPuzzle.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Puzzle'**
+  String get nextPuzzle;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

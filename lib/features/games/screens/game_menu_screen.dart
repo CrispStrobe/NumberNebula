@@ -25,6 +25,10 @@ import 'arithmancer_duel_game.dart';
 import 'arithmatic_square_game.dart';
 import 'arithmancer_crosswords_game.dart';
 import 'kenken_game.dart';
+import 'asteroid_field_navigator_game.dart';
+import 'cargo_bay_arranger_game.dart';
+import 'quantum_molecule_builder_game.dart';
+import 'space_station_gridlock_game.dart';
 
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
@@ -46,7 +50,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   late Animation<double> _floatAnimation;
 
   // for new games, we must manually update game count
-  static const int _gameCount = 16;
+  static const int _gameCount = 20;
 
   @override
   void initState() {
@@ -371,6 +375,34 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
             icon: Icons.dashboard_customize, // Represents the "cages" in KenKen
             gradient: const LinearGradient(colors: [Color(0xFF00d2ff), Color(0xFF3a7bd5)]), // Cool blue ocean gradient
             onTap: () => _navigateToGame(KenkenGame(grade: gameProvider.grade, level: gameProvider.level)),
+        ),
+        GameInfo(
+            title: s.asteroidFieldTitle,
+            description: s.asteroidFieldInstructions,
+            icon: Icons.grid_4x4, // Minesweeper grid icon
+            gradient: const LinearGradient(colors: [Color(0xFF141E30), Color(0xFF243B55)]), // Dark space gradient
+            onTap: () => _navigateToGame(AsteroidFieldNavigatorGame(grade: gameProvider.grade, level: gameProvider.level)),
+        ),
+        GameInfo(
+            title: s.cargoBayTitle,
+            description: s.cargoBayInstructions,
+            icon: Icons.view_module, // Tetris blocks
+            gradient: const LinearGradient(colors: [Color(0xFF7F00FF), Color(0xFFE100FF)]), // Purple gradient
+            onTap: () => _navigateToGame(CargoBayArrangerGame(grade: gameProvider.grade, level: gameProvider.level)),
+        ),
+        GameInfo(
+            title: s.moleculeBuilderTitle,
+            description: s.moleculeBuilderInstructions,
+            icon: Icons.science, // Atom/molecule icon
+            gradient: const LinearGradient(colors: [Color(0xFF02AAB0), Color(0xFF00CDAC)]), // Cyan/teal science gradient
+            onTap: () => _navigateToGame(QuantumMoleculeBuilderGame(grade: gameProvider.grade, level: gameProvider.level)),
+        ),
+        GameInfo(
+            title: s.spaceGridlockTitle,
+            description: s.spaceGridlockInstructions,
+            icon: Icons.view_module, // Atom/molecule icon
+            gradient: const LinearGradient(colors: [Color(0xFF02AAB0), Color(0xFF00CDAC)]), // Cyan/teal science gradient
+            onTap: () => _navigateToGame(SpaceStationGridlockGame(grade: gameProvider.grade, level: gameProvider.level)),
         ),
     ];
 

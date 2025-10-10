@@ -1436,4 +1436,120 @@ class SEn extends S {
   String kenkenWinDesc(int bonusScore) {
     return 'Incredible logical thinking! You\'ve solved this KenKen puzzle perfectly and earned $bonusScore bonus points for your mathematical prowess!';
   }
+
+  @override
+  String get asteroidFieldTitle => 'Asteroid Field Navigator';
+
+  @override
+  String get asteroidFieldInstructions =>
+      'Reveal safe sectors, avoid asteroids! Long-press or use flag mode to mark dangers.';
+
+  @override
+  String get asteroidFieldRevealMode => 'Reveal Mode';
+
+  @override
+  String get asteroidFieldFlagMode => 'Flag Mode';
+
+  @override
+  String get asteroidFieldWinTitle => 'Field Cleared!';
+
+  @override
+  String asteroidFieldWinDesc(
+      String time, int score, int speedBonus, int efficiencyBonus) {
+    return 'Navigation complete in $time!\n\nTotal Score: $score\nSpeed Bonus: +$speedBonus\nEfficiency Bonus: +$efficiencyBonus';
+  }
+
+  @override
+  String get asteroidFieldLoseTitle => 'Asteroid Impact!';
+
+  @override
+  String get asteroidFieldLoseDesc =>
+      'Your ship hit an asteroid. The field has been revealed.';
+
+  @override
+  String get nextField => 'Next Field';
+
+  @override
+  String get cargoBayTitle => 'Cargo Bay Arranger';
+
+  @override
+  String get cargoBayInstructions =>
+      'Fill rows to match the target sum! Tap buttons to move/rotate. Wrong sums lock the row!';
+
+  @override
+  String get cargoBayNext => 'Next';
+
+  @override
+  String get cargoBayWinTitle => 'Cargo Bay Organized!';
+
+  @override
+  String cargoBayWinDesc(int rows, int score, int rowBonus) {
+    return 'Perfect logistics! You cleared $rows rows!\n\nTotal Score: $score\nRow Bonus: +$rowBonus';
+  }
+
+  @override
+  String get cargoBayLoseTitle => 'Bay Overloaded!';
+
+  @override
+  String get cargoBayLoseDesc =>
+      'The cargo bay has reached maximum capacity!\nReorganize and try again, Commander!';
+
+  @override
+  String get nextShipment => 'Next Shipment';
+
+  @override
+  String get moleculeBuilderTitle => 'Quantum Molecule Builder';
+
+  @override
+  String get moleculeBuilderInstructions =>
+      'Slide atoms to match the target molecule! Atoms slide until they hit a wall or another atom.';
+
+  @override
+  String get moleculeBuilderAtoms => 'Atoms';
+
+  @override
+  String get moleculeBuilderTarget => 'Target Molecule';
+
+  @override
+  String get moleculeBuilderSelected => 'Selected';
+
+  @override
+  String get moleculeBuilderWinTitle => 'Molecule Assembled!';
+
+  @override
+  String moleculeBuilderWinDesc(int moves, int score, int efficiencyBonus) {
+    return 'Perfect molecular structure!\nMoves used: $moves\n\nTotal Score: $score\nEfficiency Bonus: +$efficiencyBonus';
+  }
+
+  @override
+  String get moleculeBuilderLoseTitle => 'Assembly Failed!';
+
+  @override
+  String get moleculeBuilderLoseDesc =>
+      'Move limit exceeded! The molecular structure remains unstable.\nStudy the pattern and try again, Scientist!';
+
+  @override
+  String get nextMolecule => 'Next Molecule';
+
+  @override
+  String get spaceGridlockTitle => 'Space Station Gridlock';
+
+  @override
+  String get spaceGridlockInstructions =>
+      'Drag ships to clear a path! Guide your ship to the exit on the right.';
+
+  @override
+  String get spaceGridlockReset => 'Reset Puzzle';
+
+  @override
+  String get spaceGridlockWinTitle => 'Docking Complete!';
+
+  @override
+  String spaceGridlockWinDesc(
+      int moves, int minMoves, String performance, int score, int bonus) {
+    return 'Ship docked in $moves moves!\nOptimal: $minMoves moves\nPerformance: $performance\n\nTotal Score: $score\nEfficiency Bonus: +$bonus';
+  }
+
+  @override
+  String get nextPuzzle => 'Next Puzzle';
 }

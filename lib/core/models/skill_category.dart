@@ -24,15 +24,22 @@ const Map<String, SkillCategory> gameSkillMap = {
   'arithmancer_crosswords': SkillCategory.arithmetic,
   'kenken': SkillCategory.arithmetic,
   'asteroid_math': SkillCategory.arithmetic,
+
+  'cargo_bay_arranger': SkillCategory.arithmetic,
   
-  // Spatial 3D games (use CognitiveProfileService)
+  // Spatial games (use CognitiveProfileService)
   'perspective_puzzle': SkillCategory.spatial3d,
   'block_counter': SkillCategory.spatial3d,
+
+  'quantum_molecule_builder': SkillCategory.spatial2d,
+  'space_station_gridlock': SkillCategory.spatial2d,
   
   // Logic/Deduction games (use CognitiveProfileService)
   'signal_triangulation': SkillCategory.logicDeduction,
   'cryptex_lock_breaker': SkillCategory.logicDeduction,
 
+  'asteroid_field_navigator': SkillCategory.logicDeduction,
+  
   // HYBRID: Arithmancer teaches BOTH arithmetic AND pattern recognition
   // Primary skill is pattern recognition, but we also track arithmetic
   'arithmancer_duel': SkillCategory.patternRecognition,
