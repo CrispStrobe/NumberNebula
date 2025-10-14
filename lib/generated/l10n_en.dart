@@ -1474,62 +1474,137 @@ class SEn extends S {
 
   @override
   String get cargoBayInstructions =>
-      'Fill rows to match the target sum! Tap buttons to move/rotate. Wrong sums lock the row!';
+      'Arrange cargo and watch for number patterns!';
 
   @override
   String get cargoBayNext => 'Next';
 
   @override
-  String get cargoBayWinTitle => 'Cargo Bay Organized!';
+  String get cargoBayHold => 'Hold';
+
+  @override
+  String get cargoBayPressC => 'Press C';
+
+  @override
+  String get cargoBayBonuses => 'Bonuses';
+
+  @override
+  String get cargoBayKeyboardHints =>
+      'Arrow Keys: Move | ↑: Rotate | Space: Drop | C: Hold';
+
+  @override
+  String get cargoBayWinTitle => 'Mission Complete!';
 
   @override
   String cargoBayWinDesc(int rows, int score, int rowBonus) {
-    return 'Perfect logistics! You cleared $rows rows!\n\nTotal Score: $score\nRow Bonus: +$rowBonus';
+    return 'Perfect! $rows rows cleared!\n\nScore: $score\nBonus Total: +$rowBonus';
   }
 
   @override
-  String get cargoBayLoseTitle => 'Bay Overloaded!';
+  String get cargoBayLoseTitle => 'Cargo Bay Overloaded!';
 
   @override
-  String get cargoBayLoseDesc =>
-      'The cargo bay has reached maximum capacity!\nReorganize and try again, Commander!';
+  String get cargoBayLoseDesc => 'The cargo bay is full!\nTry again!';
 
   @override
   String get nextShipment => 'Next Shipment';
 
   @override
-  String get moleculeBuilderTitle => 'Quantum Molecule Builder';
+  String get bonusTargetSum => 'Target Sum';
+
+  @override
+  String bonusTargetSumDesc(int target) {
+    return 'Full row/column = $target';
+  }
+
+  @override
+  String get bonusFibonacciTitle => 'Fibonacci';
+
+  @override
+  String get bonusDoublingTitle => 'Doubling';
+
+  @override
+  String get bonusConsecutiveTitle => 'Consecutive';
+
+  @override
+  String get bonusSquareTitle => 'Square Sum';
+
+  @override
+  String get moleculeBuilderTitle => 'Molecule Builder';
 
   @override
   String get moleculeBuilderInstructions =>
-      'Slide atoms to match the target molecule! Atoms slide until they hit a wall or another atom.';
+      'Slide atoms to form the target molecule! Atoms glide until hitting a wall or another atom.';
+
+  @override
+  String get moleculeBuilderMoves => 'Moves';
 
   @override
   String get moleculeBuilderAtoms => 'Atoms';
 
   @override
-  String get moleculeBuilderTarget => 'Target Molecule';
+  String get moleculeBuilderTarget => 'Target';
 
   @override
   String get moleculeBuilderSelected => 'Selected';
 
   @override
-  String get moleculeBuilderWinTitle => 'Molecule Assembled!';
+  String get moleculeBuilderNone => 'None';
+
+  @override
+  String get moleculeBuilderPrevious => 'Previous';
+
+  @override
+  String get moleculeBuilderNext => 'Next';
+
+  @override
+  String get moleculeBuilderRestart => 'Restart';
+
+  @override
+  String get moleculeBuilderLevel => 'Level';
+
+  @override
+  String get moleculeBuilderWinTitle => 'Molecule Complete!';
 
   @override
   String moleculeBuilderWinDesc(int moves, int score, int efficiencyBonus) {
-    return 'Perfect molecular structure!\nMoves used: $moves\n\nTotal Score: $score\nEfficiency Bonus: +$efficiencyBonus';
+    return 'Solved in $moves moves\nScore: $score (+$efficiencyBonus bonus)';
   }
 
   @override
-  String get moleculeBuilderLoseTitle => 'Assembly Failed!';
+  String get moleculeBuilderLoseTitle => 'Out of Moves!';
 
   @override
   String get moleculeBuilderLoseDesc =>
-      'Move limit exceeded! The molecular structure remains unstable.\nStudy the pattern and try again, Scientist!';
+      'Move limit exceeded! The molecular structure remains incomplete.\nStudy the pattern and try again, scientist!';
 
   @override
-  String get nextMolecule => 'Next Molecule';
+  String get moleculeBuilderNextMolecule => 'Next Molecule';
+
+  @override
+  String get moleculeBuilderUndo => 'Undo';
+
+  @override
+  String get moleculeBuilderHelp => 'Help / Instructions';
+
+  @override
+  String get moleculeBuilderInfoTitle => 'How to Play';
+
+  @override
+  String get moleculeBuilderInfoGoal =>
+      'Goal: Arrange the loose atoms on the grid to perfectly match the target molecule structure shown on the left.';
+
+  @override
+  String get moleculeBuilderInfoHowTo =>
+      'How to Play: Tap an atom to select it. Then, use the arrow buttons or swipe on the atom to slide it. Atoms will slide in a straight line until they hit a wall or another atom.';
+
+  @override
+  String get moleculeBuilderInfoMoves =>
+      'Moves: Each slide costs one move. Try to build the molecule before you run out of moves!';
+
+  @override
+  String get moleculeBuilderInfoUndo =>
+      'Undo: The \'Undo\' button will revert your last move, but it costs 2 moves as a penalty.';
 
   @override
   String get spaceGridlockTitle => 'Space Station Gridlock';
@@ -1543,6 +1618,15 @@ class SEn extends S {
 
   @override
   String get spaceGridlockWinTitle => 'Docking Complete!';
+
+  @override
+  String get spaceGridlockPerfect => 'Perfect!';
+
+  @override
+  String get spaceGridlockGreat => 'Great!';
+
+  @override
+  String get spaceGridlockGood => 'Good!';
 
   @override
   String spaceGridlockWinDesc(

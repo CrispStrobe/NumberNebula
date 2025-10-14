@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import '../../../core/theme/space_theme.dart';
+import '../../../core/services/debug_provider.dart';
 import '../constants/app_constants.dart';
 import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
@@ -37,65 +38,72 @@ AtomType getAtomTypeFromIndex(int index) {
   }
   return AtomType.hydrogen;
 }
-
-enum BondDirection { left, right, up, down }
+enum BondDirection {
+  left,
+  right,
+  up,
+  down,
+  upLeft,
+  upRight,
+  downLeft,
+  downRight,
+}
 
 Set<BondDirection> getBondingDirections(int atomIndex) {
   // Hydrogen (valency 1)
   const hydrogenBonds = {
-    0: {BondDirection.down},   // Corrected from right
-    1: {BondDirection.down},   // Correct
-    2: {BondDirection.left},   // Correct
-    3: {BondDirection.up},     // Correct
-    4: {BondDirection.up},     // Corrected from down
-    5: {BondDirection.up},     // Corrected from right
-    6: {BondDirection.right},  // Correct
-    7: {BondDirection.down},   // Corrected from up
-    9: {BondDirection.up},     // Corrected from down
+    0: {BondDirection.down},
+    1: {BondDirection.downLeft}, // Diagonal in ETHENE, BUTENE
+    2: {BondDirection.left},
+    3: {BondDirection.upLeft}, // Diagonal in ETHENE, BUTENE
+    4: {BondDirection.up},
+    5: {BondDirection.upRight}, // Diagonal in ETHENE, BUTENE
+    6: {BondDirection.right},
+    7: {BondDirection.downRight}, // Diagonal in ETHENE, BUTENE
+    9: {BondDirection.up, BondDirection.down},
   };
 
   // Oxygen (valency 2)
   const oxygenBonds = {
-    8: {BondDirection.left, BondDirection.right}, // Correct
-    10: {BondDirection.left},                      // Corrected from up, down
-    11: {BondDirection.up},                        // Corrected from up, down
-    19: {BondDirection.down},                      // Corrected from up, down
-    // Atom 26 (Q) was removed, as it represents Carbon in Methanal (L23)
+    8: {BondDirection.left, BondDirection.right},
+    10: {BondDirection.left},
+    11: {BondDirection.up},
+    19: {BondDirection.down, BondDirection.left, BondDirection.right},
   };
 
   // Sulfur (valency 2)
   const sulfurBonds = {
-    12: {BondDirection.down},                      // Corrected from left, right
-    13: {BondDirection.right},                     // Corrected from up, down
-    18: {BondDirection.left, BondDirection.right, BondDirection.up}, // Corrected from left, right
-    24: {BondDirection.left, BondDirection.right}, // Corrected from up, down
-    25: {BondDirection.left, BondDirection.right}, // Correct
+    12: {BondDirection.down},
+    13: {BondDirection.right},
+    18: {BondDirection.left, BondDirection.right, BondDirection.up},
+    24: {BondDirection.left, BondDirection.right, BondDirection.down},
+    25: {BondDirection.left, BondDirection.right, BondDirection.down},
   };
 
   // Carbon (valency 4)
   const carbonBonds = {
-    14: {BondDirection.left, BondDirection.right, BondDirection.up, BondDirection.down}, // Correct
-    15: {BondDirection.left, BondDirection.right, BondDirection.down}, // Kept original, based on trans-butene
-    16: {BondDirection.left, BondDirection.right, BondDirection.up},   // Kept original, based on trans-butene
-    17: {BondDirection.left, BondDirection.right, BondDirection.up},   // Corrected from left, up, down
-    20: {BondDirection.left, BondDirection.right, BondDirection.up, BondDirection.down}, // Corrected from right, up, down
-    21: {BondDirection.left, BondDirection.right, BondDirection.up, BondDirection.down}, // Corrected from left, right
-    23: {BondDirection.left, BondDirection.right, BondDirection.up, BondDirection.down}, // Corrected from up, down
-    26: {BondDirection.right, BondDirection.up, BondDirection.down},  // Added, represents Carbon in Methanal
-    27: {BondDirection.left, BondDirection.right},                    // Corrected from left, right, up
-    28: {BondDirection.left, BondDirection.right},                    // Corrected from left, right, down
+    14: {BondDirection.left, BondDirection.right, BondDirection.up, BondDirection.down},
+    15: {BondDirection.left, BondDirection.upRight, BondDirection.downRight}, // F in ETHENE/BUTENE - diagonal bonds
+    16: {BondDirection.right, BondDirection.upLeft, BondDirection.downLeft}, // G in ETHENE/BUTENE - diagonal bonds
+    17: {BondDirection.left, BondDirection.right, BondDirection.up},
+    20: {BondDirection.upLeft, BondDirection.upRight, BondDirection.downLeft, BondDirection.downRight}, // K in BUTENE - diagonal bonds
+    21: {BondDirection.upLeft, BondDirection.upRight, BondDirection.down, BondDirection.up}, // L in METHYL compounds - diagonal bonds
+    23: {BondDirection.right, BondDirection.up, BondDirection.down},
+    26: {BondDirection.right, BondDirection.up, BondDirection.down},
+    27: {BondDirection.left, BondDirection.right},
+    28: {BondDirection.left, BondDirection.right, BondDirection.up}, // C in ETHINE
   };
 
   // Fluorine (valency 1)
   const fluorineBonds = {
-    22: {BondDirection.up},    // Corrected from left
-    29: {BondDirection.down},  // Corrected from left
-    30: {BondDirection.right}, // Corrected from up
+    22: {BondDirection.left},
+    29: {BondDirection.up},
+    30: {BondDirection.down},
   };
 
   // Nitrogen (valency 3)
   const nitrogenBonds = {
-    31: {BondDirection.left, BondDirection.up, BondDirection.down}, // Corrected from left, right, up
+    31: {BondDirection.left, BondDirection.upRight, BondDirection.downRight}, // V in Ammonia
   };
 
   if (hydrogenBonds.containsKey(atomIndex)) return hydrogenBonds[atomIndex]!;
@@ -194,8 +202,19 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   Atom? slidingAtom;
   Offset? slideStartPos;
   Offset? slideEndPos;
+
+  Offset? _panStartPosition;
+  Offset? _panCurrentPosition;
+  Atom? _panningAtom;
+
+  Set<int> _levelsWonThisSession = {}; // Track which levels won in current session
+  int _startingLevel = 1; // The level we started at (based on persistent progress)
   
   List<MoleculeParticle> particles = [];
+
+  List<Map<String, dynamic>> _moveHistory = [];
+
+  bool _showInstructions = false;
   
   // Keyboard focus node
   final FocusNode _focusNode = FocusNode();
@@ -206,15 +225,37 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     debugPrint("\n${"=" * 60}\n⚛️  QUANTUM MOLECULE BUILDER\n   Grade: ${widget.grade}, Level: ${widget.level}\n${"=" * 60}");
     
     _setupAnimationControllers();
-    _currentLevel = widget.level;
-    _loadLevel();
+    
+    // Initialize with default values first to prevent LateInitializationError
+    levelName = 'H₂O';
+    targetPattern = MoleculePattern.water();
+    moveLimit = 40;
+    grid = List.generate(gridSize, (i) => List.filled(gridSize, CellType.empty));
+    atoms = [];
+    
+    // Initialize starting level: highest level won at least 2 times
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+        final gameProvider = context.read<GameProvider>();
+        
+        // Find the highest level won at least twice by checking GameProvider's progress
+        // The gameProgress value represents the current level after achieving 2+ wins
+        final savedProgress = gameProvider.getGameProgress('quantum_molecule_builder');
+        _startingLevel = savedProgress > 0 ? savedProgress : 1;
+        _currentLevel = _startingLevel;
+        
+        debugPrint("🎮 Starting at level $_startingLevel (last level with 2+ wins)");
+        _loadLevel();
+        }
+    });
+    
     _startParticleTimer();
     
     // Request focus for keyboard input
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
+        _focusNode.requestFocus();
     });
-  }
+    }
 
   void _setupAnimationControllers() {
     _pulseController = AnimationController(
@@ -309,6 +350,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       });
       
       atoms = [];
+      int atomIdCounter = 0; // CHANGE: Initialize a unique ID counter.
       for (int y = 0; y < gridSize; y++) {
         for (int x = 0; x < gridSize; x++) {
           final tile = level.playfield[y][x];
@@ -319,7 +361,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
               type: atomType,
               row: y,
               col: x,
-              id: 'atom_$atomIndex',
+              id: 'atom_${atomIdCounter++}', // CHANGE: Use the counter for a unique ID.
               atomixIndex: atomIndex,
             ));
           }
@@ -446,6 +488,68 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     HapticFeedback.selectionClick();
   }
 
+  void _handleAtomPanStart(Atom atom, DragStartDetails details) {
+    if (!gameActive || slidingAtom != null) return;
+    
+    setState(() {
+        _panStartPosition = details.localPosition;
+        _panCurrentPosition = details.localPosition;
+        _panningAtom = atom;
+    });
+    }
+
+  void _handleAtomPanUpdate(DragUpdateDetails details) {
+    if (_panStartPosition == null) return;
+    
+    setState(() {
+        _panCurrentPosition = details.localPosition;
+    });
+    }
+
+  void _handleAtomPanEnd(Atom atom) {
+    if (_panStartPosition == null || _panCurrentPosition == null || _panningAtom == null) {
+        return;
+    }
+    
+    final delta = _panCurrentPosition! - _panStartPosition!;
+    final distance = delta.distance;
+    
+    // Threshold for distinguishing swipe from tap (in logical pixels)
+    const swipeThreshold = 30.0;
+    
+    if (distance > swipeThreshold) {
+        // It's a swipe - determine the primary direction
+        Direction direction;
+        if (delta.dx.abs() > delta.dy.abs()) {
+        // Horizontal swipe
+        direction = delta.dx > 0 ? Direction.right : Direction.left;
+        } else {
+        // Vertical swipe
+        direction = delta.dy > 0 ? Direction.down : Direction.up;
+        }
+        
+        // Ensure the atom is selected before moving
+        if (selectedAtom?.id != _panningAtom!.id) {
+        setState(() {
+            selectedAtom = _panningAtom;
+        });
+        }
+        
+        // Perform the slide movement
+        _moveAtom(direction);
+    } else {
+        // It's a tap - just select the atom
+        _selectAtom(_panningAtom!);
+    }
+    
+    // Reset pan tracking state
+    setState(() {
+        _panStartPosition = null;
+        _panCurrentPosition = null;
+        _panningAtom = null;
+    });
+    }
+
   void _moveAtom(Direction direction) {
     if (selectedAtom == null || !gameActive || slidingAtom != null) return;
     
@@ -470,6 +574,12 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     
     if (newRow != atom.row || newCol != atom.col) {
       HapticFeedback.lightImpact();
+
+      _moveHistory.add({
+        'atomId': atom.id,
+        'fromRow': atom.row,
+        'fromCol': atom.col,
+      });
       
       setState(() {
         slidingAtom = atom;
@@ -511,6 +621,29 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     }
   }
 
+  void _undoLastMove() {
+    if (_moveHistory.isEmpty || !gameActive) return;
+
+    HapticFeedback.mediumImpact();
+
+    final lastMove = _moveHistory.removeLast();
+    final atomToUndo = atoms.firstWhere(
+      (a) => a.id == lastMove['atomId'],
+      // Provide a fallback, though it should never be needed
+      orElse: () => Atom(type: AtomType.hydrogen, row: -1, col: -1, id: 'null', atomixIndex: -1),
+    );
+
+    if (atomToUndo.id != 'null') {
+      setState(() {
+        atomToUndo.row = lastMove['fromRow'] as int;
+        atomToUndo.col = lastMove['fromCol'] as int;
+        movesMade += 2; // Apply the 2-move penalty
+        selectedAtom = null; // Deselect to avoid confusion
+      });
+      _checkLoseCondition(); // Re-check if the penalty caused a loss
+    }
+  }
+
   bool _checkPatternAt(int startRow, int startCol) {
     for (int i = 0; i < targetPattern.size; i++) {
       for (int j = 0; j < targetPattern.size; j++) {
@@ -543,6 +676,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       gameActive = false;
       hasWon = true;
     });
+    
+    // Mark this level as won in current session
+    _levelsWonThisSession.add(_currentLevel);
     
     _successController.forward();
     HapticFeedback.heavyImpact();
@@ -603,6 +739,175 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     });
   }
 
+  void _navigateToLevel(int newLevel) {
+    if (newLevel < 1 || newLevel > levelsData.length) return;
+    
+    setState(() {
+      _currentLevel = newLevel;
+      gameActive = true;
+      hasWon = false;
+      hasLost = false;
+      movesMade = 0;
+      selectedAtom = null;
+      slidingAtom = null;
+      slideStartPos = null;
+      slideEndPos = null;
+      particles.clear();
+    });
+    
+    _loadLevel(levelToLoad: newLevel);
+    _successController.reset();
+    _focusNode.requestFocus();
+  }
+
+  void _goToPreviousLevel() {
+    if (_canNavigateBackward()) {
+      _navigateToLevel(_currentLevel - 1);
+      HapticFeedback.selectionClick();
+    }
+  }
+
+  void _goToNextLevel() {
+    if (_canNavigateForward()) {
+      _navigateToLevel(_currentLevel + 1);
+      HapticFeedback.selectionClick();
+    }
+  }
+
+  bool _canNavigateForward() {
+    // Can't go beyond available levels
+    // This check should always be first, even in debug mode.
+    if (_currentLevel >= levelsData.length) return false;
+
+    // Access the debug provider and check the flag.
+    final debugProvider = context.read<DebugProvider>();
+    if (debugProvider.isPaidUnlockedForced) {
+      return true; // If debug unlock is on, always allow moving forward.
+    }
+    
+    // Can go forward if:
+    // 1. We've won the current level this session, OR
+    // 2. The next level is within our already-unlocked levels (at or below starting level)
+    return _levelsWonThisSession.contains(_currentLevel) || 
+           (_currentLevel + 1) <= _startingLevel;
+  }
+
+  bool _canNavigateBackward() {
+    return _currentLevel > 1;
+  }
+
+  Widget _buildInfoButton() {
+    return IconButton(
+      icon: Icon(Icons.info_outline, color: SpaceTheme.alienGreen.withOpacity(0.8)),
+      onPressed: () {
+        setState(() {
+          _showInstructions = true;
+        });
+        HapticFeedback.selectionClick();
+      },
+      tooltip: S.of(context)!.moleculeBuilderHelp,
+    );
+  }
+
+  Widget _buildInstructionsOverlay() {
+    return Positioned.fill(
+      child: GestureDetector(
+        onTap: () => setState(() => _showInstructions = false), // Tap background to close
+        child: Container(
+          color: Colors.black.withOpacity(0.85),
+          child: Center(
+            child: Container(
+              margin: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    SpaceTheme.deepSpace,
+                    SpaceTheme.nebulaPurple.withOpacity(0.4)
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: SpaceTheme.alienGreen, width: 2),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          S.of(context)!.moleculeBuilderInfoTitle,
+                          style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.alienGreen),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () => setState(() => _showInstructions = false),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(S.of(context)!.moleculeBuilderInfoGoal, style: SpaceTheme.bodyStyle),
+                    const SizedBox(height: 12),
+                    Text(S.of(context)!.moleculeBuilderInfoHowTo, style: SpaceTheme.bodyStyle),
+                    const SizedBox(height: 12),
+                    Text(S.of(context)!.moleculeBuilderInfoMoves, style: SpaceTheme.bodyStyle),
+                    const SizedBox(height: 12),
+                    Text(S.of(context)!.moleculeBuilderInfoUndo, style: SpaceTheme.bodyStyle),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavigationButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onPressed,
+  }) {
+    final isEnabled = onPressed != null;
+    
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isEnabled 
+            ? SpaceTheme.nebulaPurple.withOpacity(0.8)
+            : SpaceTheme.deepSpace.withOpacity(0.4),
+        foregroundColor: isEnabled 
+            ? SpaceTheme.alienGreen 
+            : Colors.grey,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(
+            color: isEnabled 
+                ? SpaceTheme.alienGreen.withOpacity(0.5) 
+                : Colors.grey.withOpacity(0.3),
+            width: 2,
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -638,9 +943,65 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                   Column(
                     children: [
                       GameUI(
-                        title: 'Molecule Builder',
-                        level: widget.level,
+                        title: S.of(context)!.moleculeBuilderTitle,
+                        level: _currentLevel,
                         onBack: () => Navigator.of(context).pop(),
+                        ),
+
+                      // Add level navigation buttons
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildNavigationButton(
+                                icon: Icons.arrow_back_ios,
+                                label: S.of(context)!.moleculeBuilderPrevious,
+                                onPressed: _canNavigateBackward() ? _goToPreviousLevel : null,
+                                ),
+                            const SizedBox(width: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: SpaceTheme.deepSpace.withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: SpaceTheme.starYellow, width: 2),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: 18),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '${S.of(context)!.moleculeBuilderLevel} $_currentLevel/${levelsData.length}',
+                                    style: const TextStyle(
+                                        color: SpaceTheme.starYellow,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                    ),
+                                    ),
+                                  if (_levelsWonThisSession.contains(_currentLevel)) ...[
+                                    const SizedBox(width: 8),
+                                    const Icon(
+                                      Icons.check_circle,
+                                      color: SpaceTheme.alienGreen,
+                                      size: 16,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 4), // ADD a little space
+                            _buildInfoButton(),
+                            const SizedBox(width: 4), // ADD a little space
+                            const SizedBox(width: 12),
+                            _buildNavigationButton(
+                                icon: Icons.arrow_forward_ios,
+                                label: S.of(context)!.moleculeBuilderNext,
+                                onPressed: _canNavigateForward() ? _goToNextLevel : null,
+                                ),
+                          ],
+                        ),
                       ),
                       
                       Expanded(
@@ -648,6 +1009,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                       ),
                     ],
                   ),
+
+                  if (_showInstructions) _buildInstructionsOverlay(),
+
                 ],
               ),
             ),
@@ -686,7 +1050,15 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                 _buildCompactControls(),
                 const SizedBox(height: 12),
               ],
-              if (gameActive) _buildRestartButton(),
+              if (gameActive)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildUndoButton(),
+                    const SizedBox(height: 8),
+                    _buildRestartButton(),
+                  ],
+                ),
             ],
           ),
         ),
@@ -697,6 +1069,36 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildUndoButton() {
+    bool canUndo = _moveHistory.isNotEmpty;
+
+    return ElevatedButton.icon(
+      onPressed: canUndo ? _undoLastMove : null,
+      icon: const Icon(Icons.undo, size: 16),
+      label: Text(''), // Text(S.of(context)!.moleculeBuilderUndo, style: const TextStyle(fontSize: 12)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: canUndo
+            // CHANGE: Resolve the MaterialStateProperty to get the Color.
+            ? SpaceTheme.secondaryButtonStyle.backgroundColor?.resolve({})
+            : SpaceTheme.deepSpace.withOpacity(0.4),
+        foregroundColor: canUndo
+            // CHANGE: Resolve the MaterialStateProperty to get the Color.
+            ? SpaceTheme.secondaryButtonStyle.foregroundColor?.resolve({})
+            : Colors.grey,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(
+            color: canUndo
+                ? SpaceTheme.cosmicPink.withOpacity(0.5)
+                : Colors.grey.withOpacity(0.3),
+            width: 2,
+          ),
+        ),
+      ),
     );
   }
 
@@ -748,12 +1150,21 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
             children: [
               _buildCompactControls(),
               const SizedBox(width: 12),
+              _buildUndoButton(), 
+              const SizedBox(width: 8), 
               _buildRestartButton(),
             ],
           ),
         ] else if (gameActive) ...[
           const SizedBox(height: 8),
-          _buildRestartButton(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildUndoButton(),
+              const SizedBox(width: 8),
+              _buildRestartButton(),
+            ],
+          ),
         ],
         
         const SizedBox(height: 12),
@@ -779,7 +1190,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         _successController.reset();
       },
       icon: const Icon(Icons.refresh, size: 16),
-      label: const Text('Restart', style: TextStyle(fontSize: 12)),
+      label: Text(S.of(context)!.moleculeBuilderRestart, style: const TextStyle(fontSize: 12)),
       style: ElevatedButton.styleFrom(
         backgroundColor: SpaceTheme.nebulaPurple.withOpacity(0.6),
         foregroundColor: SpaceTheme.starYellow,
@@ -793,6 +1204,18 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   }
 
   Widget _buildCompactTargetDisplay() {
+    // Define a maximum width for the preview area to ensure it doesn't overflow.
+    const double maxPreviewWidth = 96.0;
+    
+    // Calculate the size of each atom cell to fit the molecule within the max width.
+    // If the molecule is wider (targetPattern.size > 5), the atoms will be smaller.
+    final double atomSize = (targetPattern.size > 0)
+        ? (maxPreviewWidth / targetPattern.size)
+        : 16.0; // Fallback size
+
+    // The total size of the container is the number of atoms multiplied by their calculated size.
+    final double containerSize = atomSize * targetPattern.size;
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -803,14 +1226,14 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            'TARGET',
-            style: TextStyle(
-              color: SpaceTheme.alienGreen,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
+          Text(
+            S.of(context)!.moleculeBuilderTarget.toUpperCase(),
+            style: const TextStyle(
+                color: SpaceTheme.alienGreen,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
             ),
-          ),
+            ),
           const SizedBox(height: 4),
           Text(
             levelName,
@@ -821,11 +1244,12 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
             ),
           ),
           const SizedBox(height: 8),
+          // Use the dynamically calculated containerSize and atomSize.
           SizedBox(
-            width: 80,
-            height: 80,
+            width: containerSize,
+            height: containerSize,
             child: Stack(
-              children: _buildTargetAtomsCompact(16.0),
+              children: _buildTargetAtomsCompact(atomSize),
             ),
           ),
         ],
@@ -855,9 +1279,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   Widget _buildStats() {
     return Column(
       children: [
-        _buildStatRow(Icons.swap_horiz, 'Moves', '$movesMade/$moveLimit', SpaceTheme.alienGreen),
+        _buildStatRow(Icons.swap_horiz, S.of(context)!.moleculeBuilderMoves, '$movesMade/$moveLimit', SpaceTheme.alienGreen),
         const SizedBox(height: 8),
-        _buildStatRow(Icons.science, 'Atoms', '${atoms.length}', SpaceTheme.cosmicPink),
+        _buildStatRow(Icons.science, S.of(context)!.moleculeBuilderAtoms, '${atoms.length}', SpaceTheme.cosmicPink),
       ],
     );
   }
@@ -916,14 +1340,14 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.5)),
       ),
       child: Text(
-        'Selected: ${selectedAtom?.type.name ?? "None"}',
+        '${S.of(context)!.moleculeBuilderSelected}: ${selectedAtom?.type.name ?? S.of(context)!.moleculeBuilderNone}',
         style: const TextStyle(
-          color: SpaceTheme.starYellow,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
+            color: SpaceTheme.starYellow,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
         ),
         textAlign: TextAlign.center,
-      ),
+        ),
     );
   }
 
@@ -962,83 +1386,128 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   Widget _buildAtomVisual(AtomType atomType, double size, bool isSelected, Set<BondDirection> bonds) {
     final isLightAtom = atomType == AtomType.hydrogen || atomType == AtomType.fluorine;
     
+    // Define stub properties relative to cell size
+    final stubLength = size * 0.28;
+    final diagonalStubLength = size * 0.65;
+    final stubThickness = size * 0.15;
+    final halfStubThickness = stubThickness / 2;
+    final stubColor = Colors.white.withOpacity(0.8);
+    
+    // Base container for the bond stub, before rotation/positioning
+    Widget _buildStub(double width, double height, BorderRadius radius) {
+      return Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: stubColor,
+          borderRadius: radius,
+        ),
+      );
+    }
+    
+    // Helper to build a vertical/horizontal stub
+    Widget _buildCardinalStub(BondDirection dir) {
+        switch (dir) {
+            case BondDirection.left:
+            case BondDirection.right:
+                return _buildStub(stubLength, stubThickness, 
+                    dir == BondDirection.left 
+                        ? BorderRadius.horizontal(left: Radius.circular(halfStubThickness))
+                        : BorderRadius.horizontal(right: Radius.circular(halfStubThickness))
+                );
+            case BondDirection.up:
+            case BondDirection.down:
+                return _buildStub(stubThickness, stubLength, 
+                    dir == BondDirection.up 
+                        ? BorderRadius.vertical(top: Radius.circular(halfStubThickness))
+                        : BorderRadius.vertical(bottom: Radius.circular(halfStubThickness))
+                );
+            // Should not happen for cardinal stubs
+            default:
+                return const SizedBox.shrink();
+        }
+    }
+    
+    // Helper to build a diagonal stub using rotation
+    Widget _buildDiagonalStub(double angle, double translateX, double translateY, double length) {
+        return Transform.translate(
+            offset: Offset(translateX, translateY),
+            child: Transform.rotate(
+                angle: angle,
+                alignment: Alignment.center,
+                child: _buildStub(length, stubThickness, // Uses the passed-in length
+                    BorderRadius.horizontal(left: Radius.circular(halfStubThickness))
+                ),
+            ),
+        );
+    }
+    
     return SizedBox(
       width: size,
       height: size,
       child: Stack(
         children: [
-          // Bond stubs - FIXED: Position each direction correctly!
+          // Bond stubs - ADDED: Diagonal Bond Drawing
           ...bonds.map((dir) {
-            final stubLength = size * 0.28;
-            final stubThickness = size * 0.15;
-            
             switch (dir) {
               case BondDirection.left:
                 return Positioned(
                   left: 0,
                   top: (size - stubThickness) / 2,
-                  child: Container(
-                    width: stubLength,
-                    height: stubThickness,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(stubThickness / 2),
-                        bottomLeft: Radius.circular(stubThickness / 2),
-                      ),
-                    ),
-                  ),
+                  child: _buildCardinalStub(dir),
                 );
               
               case BondDirection.right:
                 return Positioned(
                   right: 0,
                   top: (size - stubThickness) / 2,
-                  child: Container(
-                    width: stubLength,
-                    height: stubThickness,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(stubThickness / 2),
-                        bottomRight: Radius.circular(stubThickness / 2),
-                      ),
-                    ),
-                  ),
+                  child: _buildCardinalStub(dir),
                 );
               
               case BondDirection.up:
                 return Positioned(
                   top: 0,
                   left: (size - stubThickness) / 2,
-                  child: Container(
-                    width: stubThickness,
-                    height: stubLength,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(stubThickness / 2),
-                        topRight: Radius.circular(stubThickness / 2),
-                      ),
-                    ),
-                  ),
+                  child: _buildCardinalStub(dir),
                 );
               
               case BondDirection.down:
                 return Positioned(
                   bottom: 0,
                   left: (size - stubThickness) / 2,
-                  child: Container(
-                    width: stubThickness,
-                    height: stubLength,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(stubThickness / 2),
-                        bottomRight: Radius.circular(stubThickness / 2),
-                      ),
-                    ),
-                  ),
+                  child: _buildCardinalStub(dir),
+                );
+                
+              case BondDirection.upLeft:
+                return _buildDiagonalStub(
+                    -3 * math.pi / 4,  // Fixed angle
+                    size * 0.25 - diagonalStubLength / 2,  // Original positioning
+                    size * 0.25 - halfStubThickness,       // Original positioning
+                    diagonalStubLength
+                );
+                
+              case BondDirection.upRight:
+                return _buildDiagonalStub(
+                    -math.pi / 4,  // Fixed angle
+                    size * 0.75 - diagonalStubLength / 2,
+                    size * 0.25 - halfStubThickness,
+                    diagonalStubLength
+                );
+                
+              case BondDirection.downLeft:
+                return _buildDiagonalStub(
+                    3 * math.pi / 4,  // Fixed angle
+                    size * 0.25 - diagonalStubLength / 2,
+                    size * 0.75 - halfStubThickness,
+                    diagonalStubLength
+                );
+                
+              case BondDirection.downRight:
+                return _buildDiagonalStub(
+                    math.pi / 4,
+                    size * 0.75 - diagonalStubLength / 2,
+                    size * 0.75 - halfStubThickness,
+                    diagonalStubLength
                 );
             }
           }).toList(),
@@ -1225,184 +1694,193 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   List<Widget> _buildAtoms(double cellSize) {
     return atoms.map((atom) {
-      final isSelected = selectedAtom?.id == atom.id;
-      final isSliding = slidingAtom?.id == atom.id;
-      
-      double localX = (atom.col - gridOffsetX).toDouble();
-      double localY = (atom.row - gridOffsetY).toDouble();
-      
-      if (isSliding && slideStartPos != null && slideEndPos != null) {
+        final isSelected = selectedAtom?.id == atom.id;
+        final isSliding = slidingAtom?.id == atom.id;
+        
+        double localX = (atom.col - gridOffsetX).toDouble();
+        double localY = (atom.row - gridOffsetY).toDouble();
+        
+        if (isSliding && slideStartPos != null && slideEndPos != null) {
         localX = slideStartPos!.dx - gridOffsetX + 
-                 (slideEndPos!.dx - slideStartPos!.dx) * _slideAnimation.value;
+                (slideEndPos!.dx - slideStartPos!.dx) * _slideAnimation.value;
         localY = slideStartPos!.dy - gridOffsetY + 
-                 (slideEndPos!.dy - slideStartPos!.dy) * _slideAnimation.value;
-      }
-      
-      final bonds = getBondingDirections(atom.atomixIndex);
-      
-      return AnimatedBuilder(
+                (slideEndPos!.dy - slideStartPos!.dy) * _slideAnimation.value;
+        }
+        
+        final bonds = getBondingDirections(atom.atomixIndex);
+        
+        return AnimatedBuilder(
         animation: _pulseAnimation,
         builder: (context, child) {
-          return Positioned(
+            return Positioned(
             left: localX * cellSize,
             top: localY * cellSize,
             child: GestureDetector(
-              onTap: () => _selectAtom(atom),
-              child: _buildAtomVisual(atom.type, cellSize, isSelected, bonds),
+                onTap: () => _selectAtom(atom),
+                // Add pan gesture handlers for touch sliding
+                onPanStart: (details) => _handleAtomPanStart(atom, details),
+                onPanUpdate: _handleAtomPanUpdate,
+                onPanEnd: (details) => _handleAtomPanEnd(atom),
+                behavior: HitTestBehavior.opaque, // Ensure gesture detection works
+                child: _buildAtomVisual(atom.type, cellSize, isSelected, bonds),
             ),
-          );
+            );
         },
-      );
+        );
     }).toList();
-  }
+    }
 
   Widget _buildSuccessDialog(int totalScore, int efficiencyBonus) {
     return AnimatedBuilder(
-      animation: _successAnimation,
-      builder: (context, child) {
+        animation: _successAnimation,
+        builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
-          child: Dialog(
+            scale: _successAnimation.value,
+            child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(
-              padding: const EdgeInsets.all(22),
-              decoration: SpaceTheme.cardDecoration.copyWith(
+                padding: const EdgeInsets.all(22),
+                decoration: SpaceTheme.cardDecoration.copyWith(
                 border: Border.all(color: SpaceTheme.alienGreen, width: 3),
-              ),
-              child: Column(
+                ),
+                child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.science, size: 54, color: SpaceTheme.alienGreen),
-                  const SizedBox(height: 8),
-                  Text(
+                    const Icon(Icons.science, size: 54, color: SpaceTheme.alienGreen),
+                    const SizedBox(height: 8),
+                    Text(
                     levelName,
                     style: const TextStyle(
-                      color: SpaceTheme.alienGreen,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                        color: SpaceTheme.alienGreen,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Molecule Complete!',
-                    style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                    S.of(context)!.moleculeBuilderWinTitle,
+                    style: const TextStyle(color: Colors.white, fontSize: 20),
                     textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Solved in $movesMade moves\nScore: $totalScore (+$efficiencyBonus bonus)',
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                    S.of(context)!.moleculeBuilderWinDesc(movesMade, totalScore, efficiencyBonus),
                     style: const TextStyle(color: Colors.white70, fontSize: 13),
                     textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Flexible(
+                        Flexible(
                         child: ElevatedButton(
-                          onPressed: () {
+                            onPressed: () {
                             Navigator.of(context).pop();
-                            // Pass the next level number to the reset function
                             _resetGame(nextLevel: _currentLevel + 1); 
-                          },
-                          style: SpaceTheme.secondaryButtonStyle,
-                          child: const Text('Next', style: TextStyle(fontSize: 13)),
+                            },
+                            style: SpaceTheme.secondaryButtonStyle,
+                            child: Text(S.of(context)!.moleculeBuilderNextMolecule, style: const TextStyle(fontSize: 13)),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Flexible(
+                        ),
+                        const SizedBox(width: 10),
+                        Flexible(
                         child: ElevatedButton(
-                          onPressed: () {
+                            onPressed: () {
                             Navigator.of(context).pop();
                             Navigator.of(context).pop();
-                          },
-                          style: SpaceTheme.primaryButtonStyle,
-                          child: const Text('Exit', style: TextStyle(fontSize: 13)),
+                            },
+                            style: SpaceTheme.primaryButtonStyle,
+                            child: Text(S.of(context)!.toTheBridge, style: const TextStyle(fontSize: 13)),
                         ),
-                      ),
+                        ),
                     ],
-                  ),
+                    ),
                 ],
-              ),
+                ),
             ),
-          ),
+            ),
         );
-      },
+        },
     );
   }
 
   Widget _buildFailureDialog() {
     return Dialog(
-      backgroundColor: Colors.transparent,
-      child: Container(
+        backgroundColor: Colors.transparent,
+        child: Container(
         padding: const EdgeInsets.all(22),
         decoration: SpaceTheme.cardDecoration.copyWith(
-          border: Border.all(color: SpaceTheme.rocketRed, width: 2),
+            border: Border.all(color: SpaceTheme.rocketRed, width: 2),
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+            mainAxisSize: MainAxisSize.min,
+            children: [
             const Icon(Icons.warning, size: 54, color: SpaceTheme.rocketRed),
             const SizedBox(height: 12),
-            const Text(
-              'Out of Moves!',
-              style: TextStyle(color: Colors.white, fontSize: 20),
-              textAlign: TextAlign.center,
+            Text(
+                S.of(context)!.moleculeBuilderLoseTitle,
+                style: const TextStyle(color: Colors.white, fontSize: 20),
+                textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Try again with fewer moves',
-              style: TextStyle(color: Colors.white70, fontSize: 13),
-              textAlign: TextAlign.center,
+            Text(
+                S.of(context)!.moleculeBuilderLoseDesc,
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+                textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
                 Flexible(
-                  child: ElevatedButton(
+                    child: ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
-                      _resetGame();
+                        Navigator.of(context).pop();
+                        _resetGame();
                     },
                     style: SpaceTheme.secondaryButtonStyle,
-                    child: const Text('Try Again', style: TextStyle(fontSize: 13)),
-                  ),
+                    child: Text(S.of(context)!.tryAgain, style: const TextStyle(fontSize: 13)),
+                    ),
                 ),
                 const SizedBox(width: 10),
                 Flexible(
-                  child: ElevatedButton(
+                    child: ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
                     },
                     style: SpaceTheme.primaryButtonStyle,
-                    child: const Text('Exit', style: TextStyle(fontSize: 13)),
-                  ),
+                    child: Text(S.of(context)!.toTheBridge, style: const TextStyle(fontSize: 13)),
+                    ),
                 ),
-              ],
+                ],
             ),
-          ],
+            ],
         ),
-      ),
+        ),
     );
   }
 
   void _resetGame({int? nextLevel}) {
     setState(() {
-      gameActive = true;
-      hasWon = false;
-      hasLost = false;
-      movesMade = 0;
-      selectedAtom = null;
-      slidingAtom = null;
-      slideStartPos = null;
-      slideEndPos = null;
-      particles.clear();
+        _moveHistory.clear();
+        gameActive = true;
+        hasWon = false;
+        hasLost = false;
+        movesMade = 0;
+        selectedAtom = null;
+        slidingAtom = null;
+        slideStartPos = null;
+        slideEndPos = null;
+        particles.clear();
+        // Reset pan gesture tracking
+        _panStartPosition = null;
+        _panCurrentPosition = null;
+        _panningAtom = null;
     });
     _loadLevel(levelToLoad: nextLevel);
     _successController.reset();
-  }
+    }
 
   @override
   void dispose() {

@@ -859,38 +859,51 @@
   "nextField": "Nächstes Feld",
 
   "cargoBayTitle": "Frachtraum-Organisator",
-  "cargoBayInstructions": "Fülle Reihen für die Zielsumme! Tippe zum Bewegen/Drehen. Falsche Summen sperren die Reihe!",
+  "cargoBayInstructions": "Sortiere das Frachtgut und beachte dabei die Zahlenverhältnisse!",
   "cargoBayNext": "Nächste",
-  "cargoBayWinTitle": "Frachtraum organisiert!",
-  "cargoBayWinDesc": "Perfekte Logistik! Du hast {rows} Reihen geräumt!\n\nGesamtpunktzahl: {score}\nReihenbonus: +{rowBonus}",
+  "cargoBayHold": "Halten",
+  "cargoBayPressC": "Drücke C",
+  "cargoBayBonuses": "Boni",
+  "cargoBayKeyboardHints": "Pfeiltasten: Bewegen | ↑: Drehen | Leertaste: Fallen | C: Halten",
+  
+  "cargoBayWinTitle": "Mission erfolgreich!",
+  "cargoBayWinDesc": "Perfekt! {rows} Reihen geräumt!\n\nPunktzahl: {score}\nBoni-Bonus: +{rowBonus}",
   "@cargoBayWinDesc": {
-      "description": "Siegesnachricht mit geräumten Reihen und Punktzahl",
-      "placeholders": {
-          "rows": {
-              "type": "int",
-              "description": "Anzahl der geräumten Reihen"
-          },
-          "score": {
-              "type": "int",
-              "description": "Erreichte Gesamtpunktzahl"
-          },
-          "rowBonus": {
-              "type": "int",
-              "description": "Bonuspunkte für zusätzliche Reihen"
-          }
-      }
+    "placeholders": {
+      "rows": {"type": "int"},
+      "score": {"type": "int"},
+      "rowBonus": {"type": "int"}
+    }
   },
+  
   "cargoBayLoseTitle": "Frachtraum überlastet!",
-  "cargoBayLoseDesc": "Der Frachtraum hat die maximale Kapazität erreicht!\nOrganisiere neu und versuche es erneut, Kommandant!",
+  "cargoBayLoseDesc": "Der Frachtraum ist voll!\nVersuche es erneut!",
   "nextShipment": "Nächste Ladung",
+  
+  "bonusTargetSum": "Zielsumme",
+  "bonusTargetSumDesc": "Volle Reihe/Spalte = {target}",
+  "@bonusTargetSumDesc": {
+    "placeholders": {"target": {"type": "int"}}
+  },
+  
+  "bonusFibonacciTitle": "Fibonacci",
+  "bonusDoublingTitle": "Verdopplung",
+  "bonusConsecutiveTitle": "Aufsteigend",
+  "bonusSquareTitle": "Quadrat-Summe",
 
-  "moleculeBuilderTitle": "Quanten-Molekül-Baumeister",
+  "moleculeBuilderTitle": "Molekül-Labor",
   "moleculeBuilderInstructions": "Schiebe Atome zum Zielmolekül! Atome gleiten bis zu einer Wand oder einem anderen Atom.",
+  "moleculeBuilderMoves": "Züge",
   "moleculeBuilderAtoms": "Atome",
-  "moleculeBuilderTarget": "Zielmolekül",
+  "moleculeBuilderTarget": "Ziel",
   "moleculeBuilderSelected": "Ausgewählt",
+  "moleculeBuilderNone": "Keins",
+  "moleculeBuilderPrevious": "Zurück",
+  "moleculeBuilderNext": "Weiter",
+  "moleculeBuilderRestart": "Neustart",
+  "moleculeBuilderLevel": "Level",
   "moleculeBuilderWinTitle": "Molekül zusammengebaut!",
-  "moleculeBuilderWinDesc": "Perfekte Molekülstruktur!\nVerwendete Züge: {moves}\n\nGesamtpunktzahl: {score}\nEffizienzbonus: +{efficiencyBonus}",
+  "moleculeBuilderWinDesc": "Gelöst in {moves} Zügen\nPunktzahl: {score} (+{efficiencyBonus} Bonus)",
   "@moleculeBuilderWinDesc": {
       "description": "Siegesnachricht mit Zügen und Punktzahl",
       "placeholders": {
@@ -908,14 +921,26 @@
           }
       }
   },
-  "moleculeBuilderLoseTitle": "Zusammenbau fehlgeschlagen!",
-  "moleculeBuilderLoseDesc": "Zuglimit überschritten! Die Molekülstruktur bleibt instabil.\nStudiere das Muster und versuche es erneut, Wissenschaftler!",
-  "nextMolecule": "Nächstes Molekül",
+  "moleculeBuilderLoseTitle": "Züge aufgebraucht!",
+  "moleculeBuilderLoseDesc": "Zuglimit überschritten! Die Molekülstruktur bleibt unvollständig.\nStudiere das Muster und versuche es erneut, Wissenschaftler!",
+  "moleculeBuilderNextMolecule": "Nächstes Molekül",
+
+  "moleculeBuilderUndo": "Zurück",
+
+  "moleculeBuilderHelp": "Hilfe / Anleitung",
+  "moleculeBuilderInfoTitle": "Spielanleitung",
+  "moleculeBuilderInfoGoal": "Ziel: Ordne die losen Atome auf dem Gitter an, um die links gezeigte Zielmolekülstruktur perfekt nachzubilden.",
+  "moleculeBuilderInfoHowTo": "Spielanleitung: Tippe ein Atom an, um es auszuwählen. Benutze dann die Pfeiltasten oder wische über das Atom, um es zu verschieben. Atome gleiten geradlinig, bis sie auf eine Wand oder ein anderes Atom treffen.",
+  "moleculeBuilderInfoMoves": "Züge: Jede Verschiebung kostet einen Zug. Versuche, das Molekül zu bauen, bevor dir die Züge ausgehen!",
+  "moleculeBuilderInfoUndo": "Rückgängig: Die 'Rückgängig'-Schaltfläche macht deinen letzten Zug rückgängig, kostet aber als Strafe 2 Züge.",
 
   "spaceGridlockTitle": "Raumstation-Stau",
   "spaceGridlockInstructions": "Ziehe Schiffe, um einen Weg freizumachen! Führe dein Schiff zum Ausgang rechts.",
   "spaceGridlockReset": "Puzzle zurücksetzen",
   "spaceGridlockWinTitle": "Andocken abgeschlossen!",
+  "spaceGridlockPerfect": "Prefekt!",
+  "spaceGridlockGreat": "Großartig!",
+  "spaceGridlockGood": "Gut!",
   "spaceGridlockWinDesc": "Schiff angedockt in {moves} Zügen!\nOptimal: {minMoves} Züge\nLeistung: {performance}\n\nGesamtpunktzahl: {score}\nEffizienzbonus: +{bonus}",
   "@spaceGridlockWinDesc": {
       "description": "Siegesnachricht mit Zügen, Punktzahl und Leistungsbewertung",

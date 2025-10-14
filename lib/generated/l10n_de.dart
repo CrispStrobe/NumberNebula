@@ -1484,17 +1484,30 @@ class SDe extends S {
 
   @override
   String get cargoBayInstructions =>
-      'Fülle Reihen für die Zielsumme! Tippe zum Bewegen/Drehen. Falsche Summen sperren die Reihe!';
+      'Sortiere das Frachtgut und beachte dabei die Zahlenverhältnisse!';
 
   @override
   String get cargoBayNext => 'Nächste';
 
   @override
-  String get cargoBayWinTitle => 'Frachtraum organisiert!';
+  String get cargoBayHold => 'Halten';
+
+  @override
+  String get cargoBayPressC => 'Drücke C';
+
+  @override
+  String get cargoBayBonuses => 'Boni';
+
+  @override
+  String get cargoBayKeyboardHints =>
+      'Pfeiltasten: Bewegen | ↑: Drehen | Leertaste: Fallen | C: Halten';
+
+  @override
+  String get cargoBayWinTitle => 'Mission erfolgreich!';
 
   @override
   String cargoBayWinDesc(int rows, int score, int rowBonus) {
-    return 'Perfekte Logistik! Du hast $rows Reihen geräumt!\n\nGesamtpunktzahl: $score\nReihenbonus: +$rowBonus';
+    return 'Perfekt! $rows Reihen geräumt!\n\nPunktzahl: $score\nBoni-Bonus: +$rowBonus';
   }
 
   @override
@@ -1502,44 +1515,107 @@ class SDe extends S {
 
   @override
   String get cargoBayLoseDesc =>
-      'Der Frachtraum hat die maximale Kapazität erreicht!\nOrganisiere neu und versuche es erneut, Kommandant!';
+      'Der Frachtraum ist voll!\nVersuche es erneut!';
 
   @override
   String get nextShipment => 'Nächste Ladung';
 
   @override
-  String get moleculeBuilderTitle => 'Quanten-Molekül-Baumeister';
+  String get bonusTargetSum => 'Zielsumme';
+
+  @override
+  String bonusTargetSumDesc(int target) {
+    return 'Volle Reihe/Spalte = $target';
+  }
+
+  @override
+  String get bonusFibonacciTitle => 'Fibonacci';
+
+  @override
+  String get bonusDoublingTitle => 'Verdopplung';
+
+  @override
+  String get bonusConsecutiveTitle => 'Aufsteigend';
+
+  @override
+  String get bonusSquareTitle => 'Quadrat-Summe';
+
+  @override
+  String get moleculeBuilderTitle => 'Molekül-Labor';
 
   @override
   String get moleculeBuilderInstructions =>
       'Schiebe Atome zum Zielmolekül! Atome gleiten bis zu einer Wand oder einem anderen Atom.';
 
   @override
+  String get moleculeBuilderMoves => 'Züge';
+
+  @override
   String get moleculeBuilderAtoms => 'Atome';
 
   @override
-  String get moleculeBuilderTarget => 'Zielmolekül';
+  String get moleculeBuilderTarget => 'Ziel';
 
   @override
   String get moleculeBuilderSelected => 'Ausgewählt';
+
+  @override
+  String get moleculeBuilderNone => 'Keins';
+
+  @override
+  String get moleculeBuilderPrevious => 'Zurück';
+
+  @override
+  String get moleculeBuilderNext => 'Weiter';
+
+  @override
+  String get moleculeBuilderRestart => 'Neustart';
+
+  @override
+  String get moleculeBuilderLevel => 'Level';
 
   @override
   String get moleculeBuilderWinTitle => 'Molekül zusammengebaut!';
 
   @override
   String moleculeBuilderWinDesc(int moves, int score, int efficiencyBonus) {
-    return 'Perfekte Molekülstruktur!\nVerwendete Züge: $moves\n\nGesamtpunktzahl: $score\nEffizienzbonus: +$efficiencyBonus';
+    return 'Gelöst in $moves Zügen\nPunktzahl: $score (+$efficiencyBonus Bonus)';
   }
 
   @override
-  String get moleculeBuilderLoseTitle => 'Zusammenbau fehlgeschlagen!';
+  String get moleculeBuilderLoseTitle => 'Züge aufgebraucht!';
 
   @override
   String get moleculeBuilderLoseDesc =>
-      'Zuglimit überschritten! Die Molekülstruktur bleibt instabil.\nStudiere das Muster und versuche es erneut, Wissenschaftler!';
+      'Zuglimit überschritten! Die Molekülstruktur bleibt unvollständig.\nStudiere das Muster und versuche es erneut, Wissenschaftler!';
 
   @override
-  String get nextMolecule => 'Nächstes Molekül';
+  String get moleculeBuilderNextMolecule => 'Nächstes Molekül';
+
+  @override
+  String get moleculeBuilderUndo => 'Zurück';
+
+  @override
+  String get moleculeBuilderHelp => 'Hilfe / Anleitung';
+
+  @override
+  String get moleculeBuilderInfoTitle => 'Spielanleitung';
+
+  @override
+  String get moleculeBuilderInfoGoal =>
+      'Ziel: Ordne die losen Atome auf dem Gitter an, um die links gezeigte Zielmolekülstruktur perfekt nachzubilden.';
+
+  @override
+  String get moleculeBuilderInfoHowTo =>
+      'Spielanleitung: Tippe ein Atom an, um es auszuwählen. Benutze dann die Pfeiltasten oder wische über das Atom, um es zu verschieben. Atome gleiten geradlinig, bis sie auf eine Wand oder ein anderes Atom treffen.';
+
+  @override
+  String get moleculeBuilderInfoMoves =>
+      'Züge: Jede Verschiebung kostet einen Zug. Versuche, das Molekül zu bauen, bevor dir die Züge ausgehen!';
+
+  @override
+  String get moleculeBuilderInfoUndo =>
+      'Rückgängig: Die \'Rückgängig\'-Schaltfläche macht deinen letzten Zug rückgängig, kostet aber als Strafe 2 Züge.';
 
   @override
   String get spaceGridlockTitle => 'Raumstation-Stau';
@@ -1553,6 +1629,15 @@ class SDe extends S {
 
   @override
   String get spaceGridlockWinTitle => 'Andocken abgeschlossen!';
+
+  @override
+  String get spaceGridlockPerfect => 'Prefekt!';
+
+  @override
+  String get spaceGridlockGreat => 'Großartig!';
+
+  @override
+  String get spaceGridlockGood => 'Gut!';
 
   @override
   String spaceGridlockWinDesc(

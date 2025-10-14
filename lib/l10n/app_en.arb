@@ -929,38 +929,51 @@
   "nextField": "Next Field",
 
   "cargoBayTitle": "Cargo Bay Arranger",
-  "cargoBayInstructions": "Fill rows to match the target sum! Tap buttons to move/rotate. Wrong sums lock the row!",
+  "cargoBayInstructions": "Arrange cargo and watch for number patterns!",
   "cargoBayNext": "Next",
-  "cargoBayWinTitle": "Cargo Bay Organized!",
-  "cargoBayWinDesc": "Perfect logistics! You cleared {rows} rows!\n\nTotal Score: {score}\nRow Bonus: +{rowBonus}",
+  "cargoBayHold": "Hold",
+  "cargoBayPressC": "Press C",
+  "cargoBayBonuses": "Bonuses",
+  "cargoBayKeyboardHints": "Arrow Keys: Move | ↑: Rotate | Space: Drop | C: Hold",
+  
+  "cargoBayWinTitle": "Mission Complete!",
+  "cargoBayWinDesc": "Perfect! {rows} rows cleared!\n\nScore: {score}\nBonus Total: +{rowBonus}",
   "@cargoBayWinDesc": {
-      "description": "Victory message with rows cleared and score",
-      "placeholders": {
-          "rows": {
-              "type": "int",
-              "description": "Number of rows cleared"
-          },
-          "score": {
-              "type": "int",
-              "description": "Total score achieved"
-          },
-          "rowBonus": {
-              "type": "int",
-              "description": "Bonus points for extra rows"
-          }
-      }
+    "placeholders": {
+      "rows": {"type": "int"},
+      "score": {"type": "int"},
+      "rowBonus": {"type": "int"}
+    }
   },
-  "cargoBayLoseTitle": "Bay Overloaded!",
-  "cargoBayLoseDesc": "The cargo bay has reached maximum capacity!\nReorganize and try again, Commander!",
+  
+  "cargoBayLoseTitle": "Cargo Bay Overloaded!",
+  "cargoBayLoseDesc": "The cargo bay is full!\nTry again!",
   "nextShipment": "Next Shipment",
+  
+  "bonusTargetSum": "Target Sum",
+  "bonusTargetSumDesc": "Full row/column = {target}",
+  "@bonusTargetSumDesc": {
+    "placeholders": {"target": {"type": "int"}}
+  },
+  
+  "bonusFibonacciTitle": "Fibonacci",
+  "bonusDoublingTitle": "Doubling",
+  "bonusConsecutiveTitle": "Consecutive",
+  "bonusSquareTitle": "Square Sum",
 
-  "moleculeBuilderTitle": "Quantum Molecule Builder",
-  "moleculeBuilderInstructions": "Slide atoms to match the target molecule! Atoms slide until they hit a wall or another atom.",
+  "moleculeBuilderTitle": "Molecule Builder",
+  "moleculeBuilderInstructions": "Slide atoms to form the target molecule! Atoms glide until hitting a wall or another atom.",
+  "moleculeBuilderMoves": "Moves",
   "moleculeBuilderAtoms": "Atoms",
-  "moleculeBuilderTarget": "Target Molecule",
+  "moleculeBuilderTarget": "Target",
   "moleculeBuilderSelected": "Selected",
-  "moleculeBuilderWinTitle": "Molecule Assembled!",
-  "moleculeBuilderWinDesc": "Perfect molecular structure!\nMoves used: {moves}\n\nTotal Score: {score}\nEfficiency Bonus: +{efficiencyBonus}",
+  "moleculeBuilderNone": "None",
+  "moleculeBuilderPrevious": "Previous",
+  "moleculeBuilderNext": "Next",
+  "moleculeBuilderRestart": "Restart",
+  "moleculeBuilderLevel": "Level",
+  "moleculeBuilderWinTitle": "Molecule Complete!",
+  "moleculeBuilderWinDesc": "Solved in {moves} moves\nScore: {score} (+{efficiencyBonus} bonus)",
   "@moleculeBuilderWinDesc": {
       "description": "Victory message with moves and score",
       "placeholders": {
@@ -978,14 +991,26 @@
           }
       }
   },
-  "moleculeBuilderLoseTitle": "Assembly Failed!",
-  "moleculeBuilderLoseDesc": "Move limit exceeded! The molecular structure remains unstable.\nStudy the pattern and try again, Scientist!",
-  "nextMolecule": "Next Molecule",
+  "moleculeBuilderLoseTitle": "Out of Moves!",
+  "moleculeBuilderLoseDesc": "Move limit exceeded! The molecular structure remains incomplete.\nStudy the pattern and try again, scientist!",
+  "moleculeBuilderNextMolecule": "Next Molecule",
+
+  "moleculeBuilderUndo": "Undo",
+
+  "moleculeBuilderHelp": "Help / Instructions",
+  "moleculeBuilderInfoTitle": "How to Play",
+  "moleculeBuilderInfoGoal": "Goal: Arrange the loose atoms on the grid to perfectly match the target molecule structure shown on the left.",
+  "moleculeBuilderInfoHowTo": "How to Play: Tap an atom to select it. Then, use the arrow buttons or swipe on the atom to slide it. Atoms will slide in a straight line until they hit a wall or another atom.",
+  "moleculeBuilderInfoMoves": "Moves: Each slide costs one move. Try to build the molecule before you run out of moves!",
+  "moleculeBuilderInfoUndo": "Undo: The 'Undo' button will revert your last move, but it costs 2 moves as a penalty.",
 
   "spaceGridlockTitle": "Space Station Gridlock",
   "spaceGridlockInstructions": "Drag ships to clear a path! Guide your ship to the exit on the right.",
   "spaceGridlockReset": "Reset Puzzle",
   "spaceGridlockWinTitle": "Docking Complete!",
+  "spaceGridlockPerfect": "Perfect!",
+  "spaceGridlockGreat": "Great!",
+  "spaceGridlockGood": "Good!",
   "spaceGridlockWinDesc": "Ship docked in {moves} moves!\nOptimal: {minMoves} moves\nPerformance: {performance}\n\nTotal Score: {score}\nEfficiency Bonus: +{bonus}",
   "@spaceGridlockWinDesc": {
       "description": "Victory message with moves, score, and performance rating",

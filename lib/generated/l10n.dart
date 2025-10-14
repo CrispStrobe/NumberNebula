@@ -2694,7 +2694,7 @@ abstract class S {
   /// No description provided for @cargoBayInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Fill rows to match the target sum! Tap buttons to move/rotate. Wrong sums lock the row!'**
+  /// **'Arrange cargo and watch for number patterns!'**
   String get cargoBayInstructions;
 
   /// No description provided for @cargoBayNext.
@@ -2703,28 +2703,52 @@ abstract class S {
   /// **'Next'**
   String get cargoBayNext;
 
+  /// No description provided for @cargoBayHold.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold'**
+  String get cargoBayHold;
+
+  /// No description provided for @cargoBayPressC.
+  ///
+  /// In en, this message translates to:
+  /// **'Press C'**
+  String get cargoBayPressC;
+
+  /// No description provided for @cargoBayBonuses.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonuses'**
+  String get cargoBayBonuses;
+
+  /// No description provided for @cargoBayKeyboardHints.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrow Keys: Move | ↑: Rotate | Space: Drop | C: Hold'**
+  String get cargoBayKeyboardHints;
+
   /// No description provided for @cargoBayWinTitle.
   ///
   /// In en, this message translates to:
-  /// **'Cargo Bay Organized!'**
+  /// **'Mission Complete!'**
   String get cargoBayWinTitle;
 
-  /// Victory message with rows cleared and score
+  /// No description provided for @cargoBayWinDesc.
   ///
   /// In en, this message translates to:
-  /// **'Perfect logistics! You cleared {rows} rows!\n\nTotal Score: {score}\nRow Bonus: +{rowBonus}'**
+  /// **'Perfect! {rows} rows cleared!\n\nScore: {score}\nBonus Total: +{rowBonus}'**
   String cargoBayWinDesc(int rows, int score, int rowBonus);
 
   /// No description provided for @cargoBayLoseTitle.
   ///
   /// In en, this message translates to:
-  /// **'Bay Overloaded!'**
+  /// **'Cargo Bay Overloaded!'**
   String get cargoBayLoseTitle;
 
   /// No description provided for @cargoBayLoseDesc.
   ///
   /// In en, this message translates to:
-  /// **'The cargo bay has reached maximum capacity!\nReorganize and try again, Commander!'**
+  /// **'The cargo bay is full!\nTry again!'**
   String get cargoBayLoseDesc;
 
   /// No description provided for @nextShipment.
@@ -2733,17 +2757,59 @@ abstract class S {
   /// **'Next Shipment'**
   String get nextShipment;
 
+  /// No description provided for @bonusTargetSum.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Sum'**
+  String get bonusTargetSum;
+
+  /// No description provided for @bonusTargetSumDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Full row/column = {target}'**
+  String bonusTargetSumDesc(int target);
+
+  /// No description provided for @bonusFibonacciTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fibonacci'**
+  String get bonusFibonacciTitle;
+
+  /// No description provided for @bonusDoublingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Doubling'**
+  String get bonusDoublingTitle;
+
+  /// No description provided for @bonusConsecutiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Consecutive'**
+  String get bonusConsecutiveTitle;
+
+  /// No description provided for @bonusSquareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Square Sum'**
+  String get bonusSquareTitle;
+
   /// No description provided for @moleculeBuilderTitle.
   ///
   /// In en, this message translates to:
-  /// **'Quantum Molecule Builder'**
+  /// **'Molecule Builder'**
   String get moleculeBuilderTitle;
 
   /// No description provided for @moleculeBuilderInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Slide atoms to match the target molecule! Atoms slide until they hit a wall or another atom.'**
+  /// **'Slide atoms to form the target molecule! Atoms glide until hitting a wall or another atom.'**
   String get moleculeBuilderInstructions;
+
+  /// No description provided for @moleculeBuilderMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves'**
+  String get moleculeBuilderMoves;
 
   /// No description provided for @moleculeBuilderAtoms.
   ///
@@ -2754,7 +2820,7 @@ abstract class S {
   /// No description provided for @moleculeBuilderTarget.
   ///
   /// In en, this message translates to:
-  /// **'Target Molecule'**
+  /// **'Target'**
   String get moleculeBuilderTarget;
 
   /// No description provided for @moleculeBuilderSelected.
@@ -2763,35 +2829,107 @@ abstract class S {
   /// **'Selected'**
   String get moleculeBuilderSelected;
 
+  /// No description provided for @moleculeBuilderNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get moleculeBuilderNone;
+
+  /// No description provided for @moleculeBuilderPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get moleculeBuilderPrevious;
+
+  /// No description provided for @moleculeBuilderNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get moleculeBuilderNext;
+
+  /// No description provided for @moleculeBuilderRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart'**
+  String get moleculeBuilderRestart;
+
+  /// No description provided for @moleculeBuilderLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get moleculeBuilderLevel;
+
   /// No description provided for @moleculeBuilderWinTitle.
   ///
   /// In en, this message translates to:
-  /// **'Molecule Assembled!'**
+  /// **'Molecule Complete!'**
   String get moleculeBuilderWinTitle;
 
   /// Victory message with moves and score
   ///
   /// In en, this message translates to:
-  /// **'Perfect molecular structure!\nMoves used: {moves}\n\nTotal Score: {score}\nEfficiency Bonus: +{efficiencyBonus}'**
+  /// **'Solved in {moves} moves\nScore: {score} (+{efficiencyBonus} bonus)'**
   String moleculeBuilderWinDesc(int moves, int score, int efficiencyBonus);
 
   /// No description provided for @moleculeBuilderLoseTitle.
   ///
   /// In en, this message translates to:
-  /// **'Assembly Failed!'**
+  /// **'Out of Moves!'**
   String get moleculeBuilderLoseTitle;
 
   /// No description provided for @moleculeBuilderLoseDesc.
   ///
   /// In en, this message translates to:
-  /// **'Move limit exceeded! The molecular structure remains unstable.\nStudy the pattern and try again, Scientist!'**
+  /// **'Move limit exceeded! The molecular structure remains incomplete.\nStudy the pattern and try again, scientist!'**
   String get moleculeBuilderLoseDesc;
 
-  /// No description provided for @nextMolecule.
+  /// No description provided for @moleculeBuilderNextMolecule.
   ///
   /// In en, this message translates to:
   /// **'Next Molecule'**
-  String get nextMolecule;
+  String get moleculeBuilderNextMolecule;
+
+  /// No description provided for @moleculeBuilderUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get moleculeBuilderUndo;
+
+  /// No description provided for @moleculeBuilderHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Help / Instructions'**
+  String get moleculeBuilderHelp;
+
+  /// No description provided for @moleculeBuilderInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How to Play'**
+  String get moleculeBuilderInfoTitle;
+
+  /// No description provided for @moleculeBuilderInfoGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal: Arrange the loose atoms on the grid to perfectly match the target molecule structure shown on the left.'**
+  String get moleculeBuilderInfoGoal;
+
+  /// No description provided for @moleculeBuilderInfoHowTo.
+  ///
+  /// In en, this message translates to:
+  /// **'How to Play: Tap an atom to select it. Then, use the arrow buttons or swipe on the atom to slide it. Atoms will slide in a straight line until they hit a wall or another atom.'**
+  String get moleculeBuilderInfoHowTo;
+
+  /// No description provided for @moleculeBuilderInfoMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves: Each slide costs one move. Try to build the molecule before you run out of moves!'**
+  String get moleculeBuilderInfoMoves;
+
+  /// No description provided for @moleculeBuilderInfoUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo: The \'Undo\' button will revert your last move, but it costs 2 moves as a penalty.'**
+  String get moleculeBuilderInfoUndo;
 
   /// No description provided for @spaceGridlockTitle.
   ///
@@ -2816,6 +2954,24 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Docking Complete!'**
   String get spaceGridlockWinTitle;
+
+  /// No description provided for @spaceGridlockPerfect.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect!'**
+  String get spaceGridlockPerfect;
+
+  /// No description provided for @spaceGridlockGreat.
+  ///
+  /// In en, this message translates to:
+  /// **'Great!'**
+  String get spaceGridlockGreat;
+
+  /// No description provided for @spaceGridlockGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good!'**
+  String get spaceGridlockGood;
 
   /// Victory message with moves, score, and performance rating
   ///

@@ -38,6 +38,8 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   late Animation<double> _clearAnimation;
   late AnimationController _lockController;
   late Animation<double> _lockAnimation;
+  late AnimationController _bonusController;
+  late Animation<double> _bonusAnimation;
   
   // Game Constants
   static const int gridRows = 18;
@@ -47,26 +49,38 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   late List<List<CargoCube?>> grid;
   CargoPiece? currentPiece;
   CargoPiece? nextPiece;
-  late int targetSum;
+  CargoPiece? heldPiece;
+  bool hasUsedHold = false;
+  
   late int numberMin;
   late int numberMax;
-  late int dropSpeed; // milliseconds
+  late int targetSum;
+  late int dropSpeed;
   late int rowsToWin;
   
   int score = 0;
   int rowsCleared = 0;
+  int bonusesEarned = 0;
   int combo = 0;
   bool gameActive = true;
   bool hasWon = false;
   bool hasLost = false;
   Timer? dropTimer;
   
+  // Bonus tracking
+  Map<BonusType, int> bonusCount = {};
+  List<BonusEffect> activeEffects = [];
+  Set<String> awardedBonuses = {}; // Track already awarded bonus patterns
+  
   // Visual Effects
   List<CargoParticle> particles = [];
   Set<int> clearingRows = {};
-
+  List<BonusNotification> bonusNotifications = [];
   Ticker? _particleTicker;
   double _lastTickTime = 0;
+  
+  // Keyboard
+  FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -76,11 +90,16 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     _setupAnimationControllers();
     _initializeGameParameters();
     _initializeGrid();
+    _initializeBonusTracking();
 
     _particleTicker = createTicker(_updateParticles)..start();
 
     _spawnNewPiece();
     _startDropTimer();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
   }
 
   void _setupAnimationControllers() {
@@ -104,26 +123,36 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     );
     _lockAnimation =
         CurvedAnimation(parent: _lockController, curve: Curves.easeInOut);
+        
+    _bonusController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    _bonusAnimation =
+        CurvedAnimation(parent: _bonusController, curve: Curves.elasticOut);
   }
 
   void _initializeGameParameters() {
     final complexity = widget.grade + (widget.level / 5.0);
     
-    if (complexity <= 2.5) {
-      numberMin = 1; numberMax = 5; targetSum = 12; dropSpeed = 800; rowsToWin = 10;
-    } else if (complexity <= 3.5) {
-      numberMin = 1; numberMax = 7; targetSum = 18; dropSpeed = 700; rowsToWin = 12;
-    } else if (complexity <= 4.5) {
-      numberMin = 1; numberMax = 9; targetSum = 24; dropSpeed = 600; rowsToWin = 15;
-    } else if (complexity <= 5.5) {
-      numberMin = 2; numberMax = 12; targetSum = 32; dropSpeed = 500; rowsToWin = 18;
-    } else if (complexity <= 6.5) {
-      numberMin = 3; numberMax = 15; targetSum = 40; dropSpeed = 400; rowsToWin = 20;
+    // Progressive difficulty
+    if (complexity <= 2.0) {
+      numberMin = 1; numberMax = 5; targetSum = 15; dropSpeed = 1000; rowsToWin = 8;
+    } else if (complexity <= 3.0) {
+      numberMin = 1; numberMax = 7; targetSum = 21; dropSpeed = 900; rowsToWin = 10;
+    } else if (complexity <= 4.0) {
+      numberMin = 1; numberMax = 9; targetSum = 28; dropSpeed = 800; rowsToWin = 12;
+    } else if (complexity <= 5.0) {
+      numberMin = 1; numberMax = 12; targetSum = 36; dropSpeed = 700; rowsToWin = 14;
+    } else if (complexity <= 6.0) {
+      numberMin = 2; numberMax = 15; targetSum = 48; dropSpeed = 600; rowsToWin = 16;
+    } else if (complexity <= 7.0) {
+      numberMin = 3; numberMax = 18; targetSum = 60; dropSpeed = 500; rowsToWin = 18;
     } else {
-      numberMin = 5; numberMax = 20; targetSum = 50; dropSpeed = 350; rowsToWin = 25;
+      numberMin = 5; numberMax = 20; targetSum = 75; dropSpeed = 400; rowsToWin = 20;
     }
     
-    debugPrint("📦 [CargoBay] Numbers: $numberMin-$numberMax, Target Sum: $targetSum, Rows to Win: $rowsToWin");
+    debugPrint("📦 [CargoBay] Numbers: $numberMin-$numberMax, Target: $targetSum, Speed: ${dropSpeed}ms, Rows: $rowsToWin");
   }
 
   void _initializeGrid() {
@@ -133,8 +162,15 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     );
   }
 
+  void _initializeBonusTracking() {
+    for (var type in BonusType.values) {
+      bonusCount[type] = 0;
+    }
+  }
+
   void _spawnNewPiece() {
     setState(() {
+      hasUsedHold = false;
       if (nextPiece == null) {
         currentPiece = CargoPiece.random(numberMin, numberMax, gridCols);
         nextPiece = CargoPiece.random(numberMin, numberMax, gridCols);
@@ -159,6 +195,25 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   }
 
   // #region Game Actions & Controls
+
+  void _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent || !gameActive) return;
+    
+    if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+      _movePieceLeft();
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+      _movePieceRight();
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+      _movePieceDown();
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      _rotatePiece();
+    } else if (event.logicalKey == LogicalKeyboardKey.space) {
+      _hardDrop();
+    } else if (event.logicalKey == LogicalKeyboardKey.keyC || 
+               event.logicalKey == LogicalKeyboardKey.shift) {
+      _holdPiece();
+    }
+  }
 
   void _movePieceDown() {
     if (currentPiece == null || !gameActive) return;
@@ -204,7 +259,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     }
     
     setState(() {
-      score += cellsDropped;
+      score += cellsDropped * 2;
     });
 
     _lockPiece();
@@ -237,6 +292,30 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       }
     }
   }
+
+  void _holdPiece() {
+    if (currentPiece == null || !gameActive || hasUsedHold) return;
+    
+    setState(() {
+      if (heldPiece == null) {
+        heldPiece = currentPiece;
+        heldPiece!.x = (gridCols ~/ 2) - (heldPiece!.shape[0].length ~/ 2);
+        heldPiece!.y = -2;
+        _spawnNewPiece();
+      } else {
+        var temp = currentPiece;
+        currentPiece = heldPiece;
+        currentPiece!.x = (gridCols ~/ 2) - (currentPiece!.shape[0].length ~/ 2);
+        currentPiece!.y = -2;
+        heldPiece = temp;
+        heldPiece!.x = (gridCols ~/ 2) - (heldPiece!.shape[0].length ~/ 2);
+        heldPiece!.y = -2;
+      }
+      hasUsedHold = true;
+    });
+    HapticFeedback.lightImpact();
+  }
+
   // #endregion
 
   // #region Core Game Logic
@@ -260,10 +339,19 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     return false;
   }
 
+  int _getGhostY() {
+    if (currentPiece == null) return 0;
+    
+    int ghostY = currentPiece!.y;
+    while (!_checkCollision(currentPiece!.x, ghostY + 1, currentPiece!.shape)) {
+      ghostY++;
+    }
+    return ghostY;
+  }
+
   void _lockPiece() {
     if (currentPiece == null) return;
     
-    debugPrint("📦 [Lock] Piece locked at (${currentPiece!.x}, ${currentPiece!.y}).");
     _lockController.forward(from: 0.0);
     
     bool toppedOut = false;
@@ -280,10 +368,13 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     }
 
     if (toppedOut) {
-        debugPrint("📦 [GameOver] Game over due to topping out.");
         _handleGameOver();
         return;
     }
+
+    // Track affected rows and columns
+    final affectedRows = <int>{};
+    final affectedCols = <int>{};
 
     setState(() {
       for (int i = 0; i < currentPiece!.shape.length; i++) {
@@ -293,6 +384,8 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
             final gridY = currentPiece!.y + i;
             if (gridY >= 0 && gridY < gridRows && gridX >= 0 && gridX < gridCols) {
               grid[gridY][gridX] = currentPiece!.cubes[i][j];
+              affectedRows.add(gridY);
+              affectedCols.add(gridX);
             }
           }
         }
@@ -300,7 +393,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       currentPiece = null;
     });
     
-    _checkAndClearRows();
+    _checkBonusesAndClearRows(affectedRows, affectedCols);
     
     if (gameActive) {
       Future.delayed(const Duration(milliseconds: 100), () {
@@ -309,7 +402,308 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     }
   }
 
-  /// NEW GAME LOGIC: Any full row is cleared. Bonuses are checked.
+  void _checkBonusesAndClearRows(Set<int> affectedRows, Set<int> affectedCols) {
+    final foundBonuses = _scanForBonuses(affectedRows, affectedCols);
+    
+    if (foundBonuses.isNotEmpty) {
+      _handleBonuses(foundBonuses);
+    }
+    
+    _checkAndClearRows();
+  }
+
+  List<BonusMatch> _scanForBonuses(Set<int> affectedRows, Set<int> affectedCols) {
+    final bonuses = <BonusMatch>[];
+    
+    // Check only affected horizontal lines
+    for (final row in affectedRows) {
+      // Full row for target sum
+      if (grid[row].every((cell) => cell != null)) {
+        final values = grid[row].map((c) => c!.value).toList();
+        if (values.reduce((a, b) => a + b) == targetSum) {
+          final positions = List.generate(gridCols, (col) => Position(col, row));
+          bonuses.add(BonusMatch(BonusType.targetSum, positions, values));
+        }
+      }
+      
+      // Scan for sequences in this row
+      for (int startCol = 0; startCol < gridCols; startCol++) {
+        for (int len = 4; len <= gridCols - startCol; len++) {
+          final result = _checkLineForSequences(row, startCol, 1, 0, len);
+          if (result != null) bonuses.add(result);
+        }
+      }
+    }
+    
+    // Check only affected vertical lines
+    for (final col in affectedCols) {
+      // Full column for target sum
+      if (grid.every((row) => row[col] != null)) {
+        final values = grid.map((row) => row[col]!.value).toList();
+        if (values.reduce((a, b) => a + b) == targetSum) {
+          final positions = List.generate(gridRows, (row) => Position(col, row));
+          bonuses.add(BonusMatch(BonusType.targetSum, positions, values));
+        }
+      }
+      
+      // Scan for sequences in this column
+      for (int startRow = 0; startRow < gridRows; startRow++) {
+        for (int len = 4; len <= gridRows - startRow; len++) {
+          final result = _checkLineForSequences(startRow, col, 0, 1, len);
+          if (result != null) bonuses.add(result);
+        }
+      }
+    }
+    
+    // Check squares that overlap with affected cells
+    for (final row in affectedRows) {
+      for (final col in affectedCols) {
+        // Check all possible 3x3 and 4x4 squares that include this cell
+        for (int size = 3; size <= 4; size++) {
+          for (int startRow = math.max(0, row - size + 1); startRow <= math.min(gridRows - size, row); startRow++) {
+            for (int startCol = math.max(0, col - size + 1); startCol <= math.min(gridCols - size, col); startCol++) {
+              final result = _checkSquareForSum(startRow, startCol, size);
+              if (result != null) bonuses.add(result);
+            }
+          }
+        }
+      }
+    }
+    
+    return _deduplicateBonuses(bonuses);
+  }
+
+  List<BonusMatch> _deduplicateBonuses(List<BonusMatch> bonuses) {
+    final seen = <String>{};
+    final unique = <BonusMatch>[];
+    
+    for (final bonus in bonuses) {
+      final key = '${bonus.type.name}_${bonus.positions.map((p) => '${p.x},${p.y}').join('_')}';
+      if (!seen.contains(key)) {
+        seen.add(key);
+        unique.add(bonus);
+      }
+    }
+    
+    return unique;
+  }
+
+  BonusMatch? _checkLineForSequences(int startRow, int startCol, int deltaCol, int deltaRow, int length) {
+    final values = <int>[];
+    final positions = <Position>[];
+    
+    for (int i = 0; i < length; i++) {
+      final row = startRow + i * deltaRow;
+      final col = startCol + i * deltaCol;
+      
+      if (row < 0 || row >= gridRows || col < 0 || col >= gridCols) return null;
+      if (grid[row][col] == null) return null;
+      
+      values.add(grid[row][col]!.value);
+      positions.add(Position(col, row));
+    }
+    
+    // Check Fibonacci sequences
+    if (_isFibonacci(values)) {
+      if (length >= 6) return BonusMatch(BonusType.fibonacci6, positions, values);
+      if (length >= 5) return BonusMatch(BonusType.fibonacci5, positions, values);
+      if (length >= 4) return BonusMatch(BonusType.fibonacci4, positions, values);
+    }
+    
+    // Check doubling sequences
+    if (_isDoubling(values)) {
+      if (length >= 5) return BonusMatch(BonusType.doubling5, positions, values);
+      if (length >= 4) return BonusMatch(BonusType.doubling4, positions, values);
+      if (length >= 3) return BonusMatch(BonusType.doubling3, positions, values);
+    }
+    
+    // Check consecutive sequences
+    if (_isConsecutive(values)) {
+      if (length >= 7) return BonusMatch(BonusType.consecutive7, positions, values);
+      if (length >= 6) return BonusMatch(BonusType.consecutive6, positions, values);
+      if (length >= 5) return BonusMatch(BonusType.consecutive5, positions, values);
+      if (length >= 4) return BonusMatch(BonusType.consecutive4, positions, values);
+    }
+    
+    return null;
+  }
+
+  BonusMatch? _checkSquareForSum(int startRow, int startCol, int size) {
+    final values = <int>[];
+    final positions = <Position>[];
+    
+    for (int row = startRow; row < startRow + size; row++) {
+      for (int col = startCol; col < startCol + size; col++) {
+        if (grid[row][col] == null) return null;
+        values.add(grid[row][col]!.value);
+        positions.add(Position(col, row));
+      }
+    }
+    
+    if (values.reduce((a, b) => a + b) == targetSum) {
+      return BonusMatch(
+        size == 3 ? BonusType.square3 : BonusType.square4, 
+        positions, 
+        values
+      );
+    }
+    
+    return null;
+  }
+
+  bool _isFibonacci(List<int> numbers) {
+    if (numbers.length < 4) return false;
+    
+    // The actual Fibonacci sequence up to reasonable game values
+    final fibSequence = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
+    
+    // Find where the sequence starts in the Fibonacci sequence
+    int startIndex = -1;
+    for (int i = 0; i <= fibSequence.length - numbers.length; i++) {
+      if (fibSequence[i] == numbers[0] && fibSequence[i + 1] == numbers[1]) {
+        startIndex = i;
+        break;
+      }
+    }
+    
+    if (startIndex == -1) return false;
+    
+    // Verify all numbers match consecutive Fibonacci numbers
+    for (int i = 0; i < numbers.length; i++) {
+      if (numbers[i] != fibSequence[startIndex + i]) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  bool _isDoubling(List<int> numbers) {
+    if (numbers.length < 3) return false;
+    for (int i = 1; i < numbers.length; i++) {
+      if (numbers[i] != numbers[i-1] * 2) return false;
+    }
+    return true;
+  }
+
+  bool _isConsecutive(List<int> numbers) {
+    if (numbers.length < 4) return false;
+    for (int i = 1; i < numbers.length; i++) {
+      if (numbers[i] != numbers[i-1] + 1) return false;
+    }
+    return true;
+  }
+
+  void _handleBonuses(List<BonusMatch> bonuses) {
+    if (bonuses.isEmpty) return;
+    
+    debugPrint("🎯 [Bonuses] Found ${bonuses.length} bonus patterns!");
+    
+    int totalBonus = 0;
+    int newBonusesFound = 0;
+    
+    for (final bonus in bonuses) {
+      // Create unique key for this bonus pattern
+      final posKey = bonus.positions.map((p) => '${p.x},${p.y}').toList()..sort();
+      final bonusKey = '${bonus.type.name}_${posKey.join('_')}';
+      
+      // Skip if already awarded
+      if (awardedBonuses.contains(bonusKey)) {
+        debugPrint("   Skipping already awarded: ${bonus.type.name}");
+        continue;
+      }
+      
+      // Award the bonus
+      awardedBonuses.add(bonusKey);
+      newBonusesFound++;
+      
+      final points = _getBonusPoints(bonus.type);
+      totalBonus += points;
+      
+      bonusCount[bonus.type] = (bonusCount[bonus.type] ?? 0) + 1;
+      
+      final centerPos = _getCenterPosition(bonus.positions);
+      activeEffects.add(BonusEffect(
+        type: bonus.type,
+        position: centerPos,
+        createdAt: DateTime.now(),
+      ));
+      
+      // Add notification
+      bonusNotifications.add(BonusNotification(
+        type: bonus.type,
+        points: points,
+        createdAt: DateTime.now(),
+      ));
+      
+      // Particles
+      for (int i = 0; i < 20; i++) {
+        particles.add(CargoParticle.bonus(centerPos, _getBonusColor(bonus.type)));
+      }
+      
+      debugPrint("   ${bonus.type.name}: +$points (${bonus.values.join(',')})");
+    }
+    
+    if (newBonusesFound == 0) return;
+    
+    setState(() {
+      score += totalBonus;
+      bonusesEarned += newBonusesFound;
+    });
+    
+    _bonusController.forward(from: 0.0);
+    HapticFeedback.heavyImpact();
+  }
+
+  int _getBonusPoints(BonusType type) {
+    switch (type) {
+      case BonusType.targetSum: return 400;
+      case BonusType.fibonacci4: return 300;
+      case BonusType.fibonacci5: return 500;
+      case BonusType.fibonacci6: return 1000;
+      case BonusType.doubling3: return 250;
+      case BonusType.doubling4: return 600;
+      case BonusType.doubling5: return 1200;
+      case BonusType.consecutive4: return 200;
+      case BonusType.consecutive5: return 350;
+      case BonusType.consecutive6: return 550;
+      case BonusType.consecutive7: return 800;
+      case BonusType.square3: return 500;
+      case BonusType.square4: return 700;
+    }
+  }
+
+  Color _getBonusColor(BonusType type) {
+    if (type.name.startsWith('fibonacci')) return Colors.pink.shade300;
+    if (type.name.startsWith('doubling')) return Colors.red.shade300;
+    if (type.name.startsWith('consecutive')) return Colors.green.shade300;
+    if (type.name.startsWith('square')) return Colors.purple.shade300;
+    return Colors.blue.shade300;
+  }
+
+  String _getBonusName(BonusType type) {
+    switch (type) {
+      case BonusType.fibonacci4: return 'Fibonacci ×4';
+      case BonusType.fibonacci5: return 'Fibonacci ×5';
+      case BonusType.fibonacci6: return 'Fibonacci ×6';
+      case BonusType.doubling3: return '2× ×3';
+      case BonusType.doubling4: return '2× ×4';
+      case BonusType.doubling5: return '2× ×5';
+      case BonusType.consecutive4: return '1,2,3,4...';
+      case BonusType.consecutive5: return '1,2,3,4,5...';
+      case BonusType.consecutive6: return '1,2,3,4,5,6...';
+      case BonusType.consecutive7: return '1,2,3,4,5,6,7...';
+      default: return type.name;
+    }
+  }
+
+  Offset _getCenterPosition(List<Position> positions) {
+    if (positions.isEmpty) return Offset.zero;
+    final avgX = positions.map((p) => p.x).reduce((a, b) => a + b) / positions.length;
+    final avgY = positions.map((p) => p.y).reduce((a, b) => a + b) / positions.length;
+    return Offset(avgX * 30, avgY * 30);
+  }
+
   void _checkAndClearRows() {
     final fullRows = <int>[];
     for (int row = gridRows - 1; row >= 0; row--) {
@@ -323,35 +717,12 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       return;
     }
     
-    // --- NEW LOGIC STARTS HERE ---
     combo++;
-    int totalBonus = 0;
-
-    for (final row in fullRows) {
-      final numbers = grid[row].map((cube) => cube!.value).toList();
-      int rowBonus = 0;
-
-      // Check for different math bonuses
-      if (_isTargetSum(numbers)) {
-        debugPrint("📦 [Evaluate] Row $row got TARGET SUM bonus!");
-        rowBonus += 500;
-      }
-      if (_isSequence(numbers)) {
-        debugPrint("📦 [Evaluate] Row $row got SEQUENCE bonus!");
-        rowBonus += 800;
-      }
-      if (_isPrimeRow(numbers)) {
-        debugPrint("📦 [Evaluate] Row $row got PRIME bonus!");
-        rowBonus += 1200;
-      }
-      totalBonus += rowBonus;
-    }
-
     final basePoints = 100 * fullRows.length * fullRows.length;
     final comboBonus = combo > 1 ? (combo - 1) * 50 * fullRows.length : 0;
     
     setState(() {
-      score += basePoints + comboBonus + totalBonus;
+      score += basePoints + comboBonus;
       rowsCleared += fullRows.length;
       clearingRows.addAll(fullRows);
     });
@@ -368,39 +739,14 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
             grid.insert(0, List.filled(gridCols, null));
           }
           clearingRows.clear();
+          
+          // Clear awarded bonuses since grid has changed
+          awardedBonuses.clear();
         });
         _checkWinCondition();
       }
     });
   }
-
-  // #region Bonus Check Functions
-  bool _isTargetSum(List<int> numbers) {
-    return numbers.reduce((a, b) => a + b) == targetSum;
-  }
-
-  bool _isSequence(List<int> numbers) {
-    List<int> sorted = List.from(numbers)..sort();
-    for (int i = 0; i < sorted.length - 1; i++) {
-      if (sorted[i+1] != sorted[i] + 1) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool _isPrime(int n) {
-    if (n <= 1) return false;
-    for (int i = 2; i * i <= n; i++) {
-      if (n % i == 0) return false;
-    }
-    return true;
-  }
-
-  bool _isPrimeRow(List<int> numbers) {
-    return numbers.every(_isPrime);
-  }
-  // #endregion
 
   List<List<T>> _rotateMatrix<T>(List<List<T>> matrix) {
     if (matrix.isEmpty || matrix[0].isEmpty) return matrix;
@@ -417,7 +763,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
 
   // #endregion
 
-  // #region Game State Management (Win/Loss)
+  // #region Game State Management
 
   void _checkWinCondition() {
     if (rowsCleared >= rowsToWin && gameActive) {
@@ -427,13 +773,13 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
 
   void _handleSuccess() {
     if (!gameActive) return;
-    debugPrint("🎉 [CargoBay] Success! All cargo organized!");
     
     setState(() { gameActive = false; hasWon = true; });
     dropTimer?.cancel();
     HapticFeedback.heavyImpact();
     
-    final totalScore = score + (200 * widget.grade) + ((rowsCleared - rowsToWin) * 50);
+    final bonusTotal = bonusesEarned * 100;
+    final totalScore = score + (300 * widget.grade) + bonusTotal;
     
     context.read<GameProvider>().recordLevelWin(
       gameType: 'cargo_bay_arranger', scoreGained: totalScore,
@@ -443,7 +789,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) {
         showDialog(context: context, barrierDismissible: false,
-          builder: (context) => _buildSuccessDialog(totalScore, (rowsCleared - rowsToWin) * 50),
+          builder: (context) => _buildSuccessDialog(totalScore, bonusTotal),
         );
       }
     });
@@ -451,7 +797,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
 
   void _handleGameOver() {
     if (!gameActive) return;
-    debugPrint("❌ [CargoBay] Game Over - Bay overloaded");
 
     setState(() { gameActive = false; hasLost = true; currentPiece = null; });
     dropTimer?.cancel();
@@ -474,8 +819,12 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   void _resetGame() {
     setState(() {
       gameActive = true; hasWon = false; hasLost = false;
-      score = 0; rowsCleared = 0; combo = 0;
+      score = 0; rowsCleared = 0; bonusesEarned = 0; combo = 0;
       particles.clear(); clearingRows.clear();
+      heldPiece = null; hasUsedHold = false;
+      activeEffects.clear(); bonusNotifications.clear();
+      awardedBonuses.clear();
+      _initializeBonusTracking();
     });
     
     _initializeGrid();
@@ -498,134 +847,166 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       particles.removeWhere((p) => p.update(dt));
       setState(() {});
     }
+    
+    activeEffects.removeWhere((e) => 
+      DateTime.now().difference(e.createdAt).inMilliseconds > 2000
+    );
+    
+    bonusNotifications.removeWhere((n) =>
+      DateTime.now().difference(n.createdAt).inMilliseconds > 2500
+    );
   }
   // #endregion
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SpaceBackground(
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: AnimatedBuilder(
-                  animation: _pulseController,
-                  builder: (context, child) => CustomPaint(
-                    painter: CargoBayPainter(
-                        pulseIntensity: _pulseAnimation.value,
-                        gameWon: hasWon,
-                        gameLost: hasLost),
-                  ),
-                ),
-              ),
-              
-              ...particles.map((p) => p.build()).toList(),
-              
-              Column(
-                children: [
-                  GameUI(
-                    title: S.of(context)!.cargoBayTitle,
-                    level: widget.level,
-                    onBack: () => Navigator.of(context).pop(),
-                  ),
-                  
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 8, runSpacing: 8,
-                      children: [
-                        _buildStat(Icons.flag_outlined, '$rowsCleared/$rowsToWin', SpaceTheme.alienGreen),
-                        _buildTargetStat(),
-                        _buildStat(Icons.star, score.toString(), SpaceTheme.starYellow),
-                        if (combo > 1)
-                          _buildStat(Icons.whatshot, '×$combo', SpaceTheme.cosmicPink),
-                      ],
+    return KeyboardListener(
+      focusNode: _focusNode,
+      onKeyEvent: _handleKeyEvent,
+      child: Scaffold(
+        body: SpaceBackground(
+          child: SafeArea(
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: AnimatedBuilder(
+                    animation: _pulseController,
+                    builder: (context, child) => CustomPaint(
+                      painter: CargoBayPainter(
+                          pulseIntensity: _pulseAnimation.value,
+                          gameWon: hasWon,
+                          gameLost: hasLost),
                     ),
                   ),
-                  
-                  const SizedBox(height: 8),
-                  
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final sidePanelWidth = 112.0;
-                        final maxCellW = (constraints.maxWidth - sidePanelWidth - 4) / gridCols; // ALIGNMENT FIX
-                        final maxCellH = (constraints.maxHeight - 4) / gridRows;
-                        final cellSize = math.min(maxCellW, maxCellH);
-
-                        if(kDebugMode) {
-                            if ( (cellSize - maxCellH).abs() > 2) { // Only log if constrained by width
-                              debugPrint("📦 [Layout] Constraints: ${constraints.maxWidth.toStringAsFixed(1)}x${constraints.maxHeight.toStringAsFixed(1)}");
-                              debugPrint("📦 [Layout] CellSize by Width: ${maxCellW.toStringAsFixed(1)}, by Height: ${maxCellH.toStringAsFixed(1)}");
-                              debugPrint("📦 [Layout] Final Cell Size: ${cellSize.toStringAsFixed(1)}");
-                            }
-                        }
-                        
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: cellSize * gridCols + 4,
-                              height: cellSize * gridRows + 4,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.5), width: 2),
-                                borderRadius: BorderRadius.circular(8),
-                                color: Colors.black.withOpacity(0.3)
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(6),
-                                child: Stack(
+                ),
+                
+                ...particles.map((p) => p.build()).toList(),
+                ..._buildBonusNotifications(),
+                
+                Column(
+                  children: [
+                    GameUI(
+                      title: S.of(context)!.cargoBayTitle,
+                      level: widget.level,
+                      onBack: () => Navigator.of(context).pop(),
+                    ),
+                    
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 8, runSpacing: 8,
+                        children: [
+                          _buildStat(Icons.flag_outlined, '$rowsCleared/$rowsToWin', SpaceTheme.alienGreen),
+                          _buildStat(Icons.stars, bonusesEarned.toString(), SpaceTheme.cosmicPink),
+                          _buildStat(Icons.star, score.toString(), SpaceTheme.starYellow),
+                          if (combo > 1)
+                            _buildStat(Icons.whatshot, '×$combo', Colors.orange.shade300),
+                        ],
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 8),
+                    
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final bonusPanelWidth = 140.0;
+                          final holdPanelWidth = 100.0;
+                          final totalSideWidth = bonusPanelWidth + holdPanelWidth + 24;
+                          final maxCellW = (constraints.maxWidth - totalSideWidth - 4) / gridCols;
+                          final maxCellH = (constraints.maxHeight - 4) / gridRows;
+                          final cellSize = math.min(maxCellW, maxCellH);
+                          
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: holdPanelWidth,
+                                child: Column(
                                   children: [
-                                    CustomPaint(
-                                      size: Size(cellSize * gridCols, cellSize * gridRows),
-                                      painter: GridPainter(cellSize: cellSize, intensity: _pulseAnimation.value),
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: SpaceTheme.cardDecoration,
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            S.of(context)!.cargoBayHold,
+                                            style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          _buildHeldPiecePreview(),
+                                        ],
+                                      ),
                                     ),
-                                    ..._buildPlacedCubes(cellSize),
-                                    ..._buildCurrentPiece(cellSize),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: SpaceTheme.cardDecoration,
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            S.of(context)!.cargoBayNext,
+                                            style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          _buildNextPiecePreview(),
+                                        ],
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            SizedBox(
-                              width: 100,
-                              child: Column(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: SpaceTheme.cardDecoration,
-                                    child: Column(
-                                      children: [
-                                        Text(
-                                          S.of(context)!.cargoBayNext,
-                                          style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        _buildNextPiecePreview(),
-                                      ],
-                                    ),
+                              const SizedBox(width: 12),
+                              
+                              Container(
+                                width: cellSize * gridCols + 4,
+                                height: cellSize * gridRows + 4,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.5), width: 2),
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: Colors.black.withOpacity(0.3)
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Stack(
+                                    children: [
+                                      CustomPaint(
+                                        size: Size(cellSize * gridCols, cellSize * gridRows),
+                                        painter: GridPainter(cellSize: cellSize, intensity: _pulseAnimation.value),
+                                      ),
+                                      ..._buildPlacedCubes(cellSize),
+                                      ..._buildGhostPiece(cellSize),
+                                      ..._buildCurrentPiece(cellSize),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ],
-                        );
-                      },
+                              const SizedBox(width: 12),
+                              
+                              SizedBox(
+                                width: bonusPanelWidth,
+                                child: _buildBonusPanel(),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  
-                  if (gameActive) ...[
-                    const SizedBox(height: 16),
-                    _buildControls(),
-                    const SizedBox(height: 16),
-                  ] else
-                    const SizedBox(height: 80),
-                ],
-              ),
-            ],
+                    
+                    if (gameActive) ...[
+                      const SizedBox(height: 8),
+                      _buildControls(),
+                      const SizedBox(height: 8),
+                      _buildKeyboardHints(),
+                      const SizedBox(height: 8),
+                    ] else
+                      const SizedBox(height: 80),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -633,6 +1014,216 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   }
 
   // #region Widget Builders
+
+  List<Widget> _buildBonusNotifications() {
+    return bonusNotifications.map((notif) {
+      final age = DateTime.now().difference(notif.createdAt).inMilliseconds;
+      final opacity = (1.0 - (age / 2500)).clamp(0.0, 1.0);
+      final yOffset = age / 10.0;
+      
+      return Positioned(
+        top: 100 + yOffset,
+        left: MediaQuery.of(context).size.width / 2 - 100,
+        child: IgnorePointer(
+          child: Opacity(
+            opacity: opacity,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: _getBonusColor(notif.type),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: _getBonusColor(notif.type).withOpacity(0.5),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _getBonusName(notif.type),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '+${notif.points}',
+                    style: const TextStyle(
+                      color: SpaceTheme.starYellow,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  Widget _buildBonusPanel() {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: SpaceTheme.cardDecoration,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            S.of(context)!.cargoBayBonuses,
+            style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
+          ),
+          const SizedBox(height: 8),
+          _buildTargetSumInfo(),
+          const SizedBox(height: 4),
+          Expanded(
+            child: ListView(
+              children: [
+                _buildBonusCategory(S.of(context)!.bonusFibonacciTitle, [
+                  BonusType.fibonacci4,
+                  BonusType.fibonacci5,
+                  BonusType.fibonacci6,
+                ]),
+                _buildBonusCategory(S.of(context)!.bonusDoublingTitle, [
+                  BonusType.doubling3,
+                  BonusType.doubling4,
+                  BonusType.doubling5,
+                ]),
+                _buildBonusCategory(S.of(context)!.bonusConsecutiveTitle, [
+                  BonusType.consecutive4,
+                  BonusType.consecutive5,
+                  BonusType.consecutive6,
+                  BonusType.consecutive7,
+                ]),
+                _buildBonusCategory(S.of(context)!.bonusSquareTitle, [
+                  BonusType.square3,
+                  BonusType.square4,
+                ]),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTargetSumInfo() {
+    final count = bonusCount[BonusType.targetSum] ?? 0;
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.blue.withOpacity(0.15),
+        border: Border.all(color: Colors.blue.shade300, width: 1.5),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.add_circle_outline, color: Colors.blue, size: 14),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  S.of(context)!.bonusTargetSum,
+                  style: const TextStyle(color: Colors.blue, fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+              ),
+              if (count > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(color: Colors.blue.shade300, borderRadius: BorderRadius.circular(8)),
+                  child: Text('$count', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(S.of(context)!.bonusTargetSumDesc(targetSum), style: const TextStyle(fontSize: 8, color: Colors.white60)),
+          const SizedBox(height: 2),
+          const Text('+400', style: TextStyle(color: SpaceTheme.starYellow, fontSize: 9, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBonusCategory(String title, List<BonusType> types) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 4),
+          child: Text(
+            title,
+            style: const TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.bold),
+          ),
+        ),
+        ...types.map((type) => _buildBonusItem(type)),
+      ],
+    );
+  }
+
+  Widget _buildBonusItem(BonusType type) {
+    final count = bonusCount[type] ?? 0;
+    final color = _getBonusColor(type);
+    final points = _getBonusPoints(type);
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        border: Border.all(color: color.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              _getBonusDescription(type),
+              style: TextStyle(color: color, fontSize: 8),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '+$points',
+            style: const TextStyle(color: SpaceTheme.starYellow, fontSize: 8, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(width: 4),
+          if (count > 0)
+            Container(
+              width: 14, height: 14,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              child: Center(child: Text('$count', style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold))),
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _getBonusDescription(BonusType type) {
+    switch (type) {
+      case BonusType.fibonacci4: return '1,1,2,3';
+      case BonusType.fibonacci5: return '1,1,2,3,5';
+      case BonusType.fibonacci6: return '1,1,2,3,5,8';
+      case BonusType.doubling3: return '1,2,4';
+      case BonusType.doubling4: return '1,2,4,8';
+      case BonusType.doubling5: return '1,2,4,8,16';
+      case BonusType.consecutive4: return '1,2,3,4';
+      case BonusType.consecutive5: return '1,2,3,4,5';
+      case BonusType.consecutive6: return '1,2,3,4,5,6';
+      case BonusType.consecutive7: return '1,2,3,4,5,6,7';
+      case BonusType.square3: return '3×3';
+      case BonusType.square4: return '4×4';
+      default: return '';
+    }
+  }
 
   List<Widget> _buildPlacedCubes(double cellSize) {
     List<Widget> cubes = [];
@@ -654,6 +1245,40 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       }
     }
     return cubes;
+  }
+
+  List<Widget> _buildGhostPiece(double cellSize) {
+    if (currentPiece == null || cellSize <= 0) return [];
+    
+    final ghostY = _getGhostY();
+    if (ghostY == currentPiece!.y) return [];
+    
+    List<Widget> pieceWidgets = [];
+    for (int i = 0; i < currentPiece!.shape.length; i++) {
+      for (int j = 0; j < currentPiece!.shape[i].length; j++) {
+        if (currentPiece!.shape[i][j]) {
+          pieceWidgets.add(
+            Positioned(
+              left: (currentPiece!.x + j) * cellSize,
+              top: (ghostY + i) * cellSize,
+              child: Container(
+                width: cellSize,
+                height: cellSize,
+                margin: const EdgeInsets.all(1.5),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: currentPiece!.cubes[i][j]!.color.withOpacity(0.3),
+                    width: 2,
+                  ),
+                  borderRadius: BorderRadius.circular(cellSize * 0.15),
+                ),
+              ),
+            ),
+          );
+        }
+      }
+    }
+    return pieceWidgets;
   }
 
   List<Widget> _buildCurrentPiece(double cellSize) {
@@ -702,10 +1327,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
                   stops: const [0.0, 0.5, 1.0],
                 ),
                 borderRadius: BorderRadius.circular(size * 0.15),
-                border: Border.all(
-                  color: Colors.black.withOpacity(0.2),
-                  width: 1.0,
-                ),
+                border: Border.all(color: Colors.black.withOpacity(0.2), width: 1.0),
                 boxShadow: isClearing ? [
                   BoxShadow(color: SpaceTheme.alienGreen.withOpacity(0.7), blurRadius: 12, spreadRadius: 3),
                 ] : [
@@ -730,14 +1352,45 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     );
   }
 
+  Widget _buildHeldPiecePreview() {
+    if (heldPiece == null) {
+      return SizedBox(
+        height: 80, width: 80,
+        child: Center(
+          child: Text(S.of(context)!.cargoBayPressC, style: const TextStyle(fontSize: 9, color: Colors.white54), textAlign: TextAlign.center),
+        ),
+      );
+    }
+    
+    final previewCellSize = 18.0;
+    
+    return SizedBox(
+      height: 80, width: 80,
+      child: Stack(
+        alignment: Alignment.center,
+        children: List.generate(heldPiece!.shape.length, (i) {
+          return List.generate(heldPiece!.shape[i].length, (j) {
+            if (heldPiece!.shape[i][j]) {
+              return Positioned(
+                left: j * previewCellSize + (40 - heldPiece!.shape[0].length / 2 * previewCellSize),
+                top: i * previewCellSize + (40 - heldPiece!.shape.length / 2 * previewCellSize),
+                child: _buildCube(heldPiece!.cubes[i][j]!, previewCellSize),
+              );
+            }
+            return const SizedBox.shrink();
+          });
+        }).expand((e) => e).toList(),
+      ),
+    );
+  }
+
   Widget _buildNextPiecePreview() {
     if (nextPiece == null) return const SizedBox(height: 80, width: 80);
     
-    final previewCellSize = 20.0;
+    final previewCellSize = 18.0;
     
     return SizedBox(
-      height: 80,
-      width: 80,
+      height: 80, width: 80,
       child: Stack(
         alignment: Alignment.center,
         children: List.generate(nextPiece!.shape.length, (i) {
@@ -771,21 +1424,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     );
   }
 
-  Widget _buildTargetStat() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SpaceTheme.planetOrange.withOpacity(0.3)),
-      ),
-      child: Row( mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.adjust, color: SpaceTheme.planetOrange, size: 16), const SizedBox(width: 4),
-          Text('∑=$targetSum', style: const TextStyle(color: SpaceTheme.planetOrange, fontSize: 13, fontWeight: FontWeight.bold)),
-      ]),
-    );
-  }
-
   Widget _buildControls() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -796,6 +1434,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
           _buildControlButton(Icons.arrow_downward, _hardDrop),
           _buildControlButton(Icons.arrow_forward, _movePieceRight),
           _buildControlButton(Icons.rotate_right, _rotatePiece),
+          _buildControlButton(Icons.swap_horiz, _holdPiece),
         ],
       ),
     );
@@ -807,17 +1446,28 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       style: ElevatedButton.styleFrom(
         backgroundColor: SpaceTheme.nebulaPurple.withOpacity(0.3),
         foregroundColor: SpaceTheme.alienGreen,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(color: SpaceTheme.alienGreen.withOpacity(0.3)),
         ),
       ),
-      child: Icon(icon, size: 24),
+      child: Icon(icon, size: 20),
     );
   }
 
-  Widget _buildSuccessDialog(int totalScore, int rowBonus) {
+  Widget _buildKeyboardHints() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Text(
+        S.of(context)!.cargoBayKeyboardHints,
+        style: const TextStyle(fontSize: 10, color: Colors.white54),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildSuccessDialog(int totalScore, int bonusTotal) {
     return Dialog(backgroundColor: Colors.transparent, child: Container(
         padding: const EdgeInsets.all(24), decoration: SpaceTheme.cardDecoration.copyWith(
           border: Border.all(color: SpaceTheme.alienGreen, width: 2),
@@ -825,7 +1475,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
         child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.check_circle, size: 60, color: SpaceTheme.alienGreen), const SizedBox(height: 16),
             Text(S.of(context)!.cargoBayWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center), const SizedBox(height: 16),
-            Text(S.of(context)!.cargoBayWinDesc(rowsCleared, totalScore, rowBonus), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center), const SizedBox(height: 24),
+            Text(S.of(context)!.cargoBayWinDesc(rowsCleared, totalScore, bonusTotal), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center), const SizedBox(height: 24),
             Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
                 Flexible(child: ElevatedButton(onPressed: () {Navigator.of(context).pop(); _resetGame();}, style: SpaceTheme.secondaryButtonStyle, child: Text(S.of(context)!.nextShipment, textAlign: TextAlign.center))),
                 const SizedBox(width: 12),
@@ -861,22 +1511,23 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     _pulseController.dispose();
     _clearController.dispose();
     _lockController.dispose();
+    _bonusController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 }
 
-// #region Data Models & Game Pieces
+// #region Data Models
 
 class CargoCube {
   final int value;
   final Color color;
-  bool isLocked;
 
-  CargoCube({required this.value, required this.color, this.isLocked = false});
+  CargoCube({required this.value, required this.color});
 }
 
 class CargoPiece {
-  int x; int y;
+  int x, y;
   List<List<bool>> shape;
   List<List<CargoCube?>> cubes;
 
@@ -919,9 +1570,47 @@ class CargoPiece {
     );
   }
 }
+
+enum BonusType {
+  targetSum,
+  fibonacci4, fibonacci5, fibonacci6,
+  doubling3, doubling4, doubling5,
+  consecutive4, consecutive5, consecutive6, consecutive7,
+  square3, square4,
+}
+
+class Position {
+  final int x, y;
+  Position(this.x, this.y);
+}
+
+class BonusMatch {
+  final BonusType type;
+  final List<Position> positions;
+  final List<int> values;
+
+  BonusMatch(this.type, this.positions, this.values);
+}
+
+class BonusEffect {
+  final BonusType type;
+  final Offset position;
+  final DateTime createdAt;
+
+  BonusEffect({required this.type, required this.position, required this.createdAt});
+}
+
+class BonusNotification {
+  final BonusType type;
+  final int points;
+  final DateTime createdAt;
+
+  BonusNotification({required this.type, required this.points, required this.createdAt});
+}
+
 // #endregion
 
-// #region Visual Effects & Particles
+// #region Visual Effects
 
 class CargoParticle {
   Offset position; Offset velocity; Color color;
@@ -929,29 +1618,19 @@ class CargoParticle {
 
   CargoParticle({required this.position, required this.velocity, required this.color, required this.size, required this.life}) : maxLife = life;
 
-  factory CargoParticle.success(Offset pos) {
+  factory CargoParticle.bonus(Offset pos, Color color) {
     final random = math.Random();
     return CargoParticle(
       position: pos,
-      velocity: Offset.fromDirection(random.nextDouble() * 2 * math.pi, 20 + random.nextDouble() * 40),
-      color: SpaceTheme.alienGreen, size: 2 + random.nextDouble() * 3,
-      life: 0.6 + random.nextDouble() * 0.4,
-    );
-  }
-
-  factory CargoParticle.warning(Offset pos) {
-    final random = math.Random();
-    return CargoParticle(
-      position: pos,
-      velocity: Offset.fromDirection(random.nextDouble() * 2 * math.pi - math.pi / 2, 15 + random.nextDouble() * 20),
-      color: SpaceTheme.rocketRed, size: 3 + random.nextDouble() * 2,
-      life: 0.5 + random.nextDouble() * 0.3,
+      velocity: Offset.fromDirection(random.nextDouble() * 2 * math.pi, 30 + random.nextDouble() * 50),
+      color: color, size: 3 + random.nextDouble() * 4,
+      life: 0.8 + random.nextDouble() * 0.5,
     );
   }
 
   bool update(double dt) {
     position += velocity * dt;
-    velocity = velocity.scale(1.0, 1.05); // Gravity
+    velocity = velocity.scale(1.0, 1.05);
     life -= dt;
     return life <= 0;
   }
@@ -972,13 +1651,14 @@ class CargoParticle {
     );
   }
 }
+
 // #endregion
 
 // #region Custom Painters
 
 class CargoBayPainter extends CustomPainter {
   final double pulseIntensity;
-  final bool gameWon; final bool gameLost;
+  final bool gameWon, gameLost;
 
   CargoBayPainter({required this.pulseIntensity, required this.gameWon, required this.gameLost});
 
@@ -988,10 +1668,7 @@ class CargoBayPainter extends CustomPainter {
       ..shader = RadialGradient(
         center: Alignment.center,
         radius: size.width * 0.7,
-        colors: const [
-          Color(0xFF333844),
-          Color(0xFF232834),
-        ],
+        colors: const [Color(0xFF333844), Color(0xFF232834)],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
 
@@ -1001,14 +1678,6 @@ class CargoBayPainter extends CustomPainter {
       ..strokeWidth = 35.0;
     canvas.drawLine(const Offset(-50, 50), Offset(size.width * 0.4, size.height + 50), beamPaint);
     canvas.drawLine(Offset(size.width + 50, 50), Offset(size.width * 0.6, size.height + 50), beamPaint);
-
-    final hazardPaint = Paint()..style = PaintingStyle.stroke..strokeWidth = 6;
-    for (int i = 0; i < 4; i++) {
-      hazardPaint.color = i.isEven ? Colors.yellow.shade600 : Colors.black.withOpacity(0.8);
-      final offset = i * 8.0;
-      canvas.drawLine(Offset(0, 40 + offset), Offset(40 + offset, 0), hazardPaint);
-      canvas.drawLine(Offset(size.width, size.height - 40 - offset), Offset(size.width - 40 - offset, size.height), hazardPaint);
-    }
   }
 
   @override
@@ -1016,7 +1685,7 @@ class CargoBayPainter extends CustomPainter {
 }
 
 class GridPainter extends CustomPainter {
-  final double cellSize; final double intensity;
+  final double cellSize, intensity;
 
   GridPainter({required this.cellSize, required this.intensity});
 
@@ -1040,4 +1709,5 @@ class GridPainter extends CustomPainter {
   @override
   bool shouldRepaint(GridPainter oldDelegate) => oldDelegate.cellSize != cellSize || oldDelegate.intensity != intensity;
 }
+
 // #endregion

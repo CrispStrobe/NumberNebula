@@ -719,8 +719,8 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     }
 
   Widget _buildSuccessDialog(int totalScore, int efficiencyBonus) {
-    final performance = moveCount <= minMoves ? 'Perfect!' : 
-                       moveCount <= minMoves + 3 ? 'Great!' : 'Good!';
+    final performance = moveCount <= minMoves ? S.of(context)!.spaceGridlockPerfect : 
+                       moveCount <= minMoves + 3 ? S.of(context)!.spaceGridlockGreat : S.of(context)!.spaceGridlockGood;
     
     return AnimatedBuilder(
       animation: _successAnimation,

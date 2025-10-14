@@ -1,0 +1,508 @@
+// convert_rush_database.dart
+// Converts Michael Fogleman's Rush Hour database to Dart puzzle format
+// Usage: dart run convert_rush_database.dart input.txt output.dart
+
+import 'dart:io';
+import 'dart:math' as math;
+
+const int gridSize = 6;
+
+// Configuration: puzzles per complexity level
+const int puzzlesPerLevel = 200;
+
+void main(List<String> args) async {
+  if (args.length < 2 || args.length > 3) {
+    print('Usage: dart run convert_rush_database.dart <input_file> <output_file> [puzzles_per_level]');
+    print('');
+    print('Example: dart run convert_rush_database.dart rush.txt gridlock_puzzles_data.dart 200');
+    print('');
+    print('Default puzzles_per_level: $puzzlesPerLevel');
+    exit(1);
+  }
+
+  final inputFile = args[0];
+  final outputFile = args[1];
+  final perLevel = args.length == 3 ? int.parse(args[2]) : puzzlesPerLevel;
+
+  print('🎮 Rush Hour Database Converter');
+  print('=' * 60);
+  print('Input:  $inputFile');
+  print('Output: $outputFile');
+  print('Target: $perLevel puzzles per complexity level\n');
+
+  // Check if input file exists
+  if (!await File(inputFile).exists()) {
+    print('❌ Error: Input file not found: $inputFile');
+    exit(1);
+  }
+
+  // Read and parse input
+  final lines = await File(inputFile).readAsLines();
+  print('📖 Reading ${lines.length} puzzles...\n');
+
+  final puzzles = <ParsedPuzzle>[];
+  int skipped = 0;
+  int wallCount = 0;
+
+  for (int i = 0; i < lines.length; i++) {
+    final line = lines[i].trim();
+    if (line.isEmpty) continue;
+
+    final puzzle = parseLine(line, i + 1);
+    if (puzzle != null) {
+      // Keep all puzzles now, even those with walls
+      if (puzzle.hasWalls) {
+        wallCount++;
+      }
+      puzzles.add(puzzle);
+    } else {
+      skipped++;
+    }
+
+    if ((i + 1) % 10000 == 0) {
+      print('  Processed ${i + 1} lines... (${puzzles.length} valid, $skipped skipped)');
+    }
+  }
+
+  print('\n✅ Parsed ${puzzles.length} valid puzzles');
+  print('   Skipped $skipped puzzles');
+  print('   Includes $wallCount puzzles with walls (converted to blocking pieces)\n');
+
+  // Map complexity based on moves
+  assignComplexity(puzzles);
+
+  // Filter to keep only the coolest puzzles
+  print('🎯 Selecting the coolest $perLevel puzzles per complexity level...');
+  final filtered = filterCoolestPuzzles(puzzles, perLevel);
+  print('   Selected ${filtered.length} total puzzles\n');
+
+  // Write output
+  print('💾 Writing to $outputFile...');
+  await writeDartFile(outputFile, filtered);
+
+  // Print statistics
+  printStatistics(filtered);
+
+  print('\n🎉 Conversion complete!');
+}
+
+ParsedPuzzle? parseLine(String line, int lineNumber) {
+  final parts = line.split(' ');
+  if (parts.length < 2) return null;
+
+  try {
+    final moves = int.parse(parts[0]);
+    final boardDesc = parts[1];
+    final clusterSize = parts.length > 2 ? int.parse(parts[2]) : 0;
+
+    if (boardDesc.length != gridSize * gridSize) {
+      print('⚠️  Line $lineNumber: Invalid board size (${boardDesc.length} chars)');
+      return null;
+    }
+
+    final ships = parseBoard(boardDesc);
+    if (ships.isEmpty) {
+      print('⚠️  Line $lineNumber: No ships found');
+      return null;
+    }
+
+    final hasWalls = boardDesc.contains('x');
+
+    return ParsedPuzzle(
+      moves: moves,
+      ships: ships,
+      clusterSize: clusterSize,
+      hasWalls: hasWalls,
+    );
+  } catch (e) {
+    print('⚠️  Line $lineNumber: Parse error: $e');
+    return null;
+  }
+}
+
+List<Map<String, dynamic>> parseBoard(String boardDesc) {
+  final ships = <Map<String, dynamic>>[];
+  final pieceChars = <String, List<int>>{};
+  final wallPositions = <int>[];
+
+  // Map character positions
+  for (int i = 0; i < boardDesc.length; i++) {
+    final char = boardDesc[i];
+    if (char == 'x') {
+      wallPositions.add(i);
+    } else if (char != '.' && char != 'o') {
+      pieceChars.putIfAbsent(char, () => []).add(i);
+    }
+  }
+
+  // Sort so 'A' (primary) comes first
+  final sortedChars = pieceChars.keys.toList()..sort();
+
+  for (final char in sortedChars) {
+    final positions = pieceChars[char]!;
+    if (positions.length < 2) continue; // Must be at least size 2
+
+    final ship = buildShip(positions, char == 'A');
+    if (ship != null) {
+      ships.add(ship);
+    }
+  }
+
+  // Convert walls to blocking pieces (2-square pieces)
+  // Group adjacent walls into pieces where possible
+  final usedWalls = <int>{};
+  for (final wallPos in wallPositions) {
+    if (usedWalls.contains(wallPos)) continue;
+
+    // Try horizontal pair
+    final rightPos = wallPos + 1;
+    if (wallPos % gridSize < gridSize - 1 && wallPositions.contains(rightPos)) {
+      usedWalls.add(wallPos);
+      usedWalls.add(rightPos);
+      ships.add({
+        'row': wallPos ~/ gridSize,
+        'col': wallPos % gridSize,
+        'length': 2,
+        'isHorizontal': true,
+        'isPlayer': false,
+      });
+      continue;
+    }
+
+    // Try vertical pair
+    final belowPos = wallPos + gridSize;
+    if (wallPos ~/ gridSize < gridSize - 1 && wallPositions.contains(belowPos)) {
+      usedWalls.add(wallPos);
+      usedWalls.add(belowPos);
+      ships.add({
+        'row': wallPos ~/ gridSize,
+        'col': wallPos % gridSize,
+        'length': 2,
+        'isHorizontal': false,
+        'isPlayer': false,
+      });
+      continue;
+    }
+
+    // Single wall: create a 2-square piece in available direction
+    final row = wallPos ~/ gridSize;
+    final col = wallPos % gridSize;
+    
+    // Try extending right
+    if (col < gridSize - 1 && !wallPositions.contains(rightPos) &&
+        !_isOccupied(pieceChars, rightPos)) {
+      usedWalls.add(wallPos);
+      ships.add({
+        'row': row,
+        'col': col,
+        'length': 2,
+        'isHorizontal': true,
+        'isPlayer': false,
+      });
+      continue;
+    }
+
+    // Try extending left
+    final leftPos = wallPos - 1;
+    if (col > 0 && !wallPositions.contains(leftPos) &&
+        !_isOccupied(pieceChars, leftPos)) {
+      usedWalls.add(wallPos);
+      ships.add({
+        'row': row,
+        'col': col - 1,
+        'length': 2,
+        'isHorizontal': true,
+        'isPlayer': false,
+      });
+      continue;
+    }
+
+    // Try extending down
+    if (row < gridSize - 1 && !wallPositions.contains(belowPos) &&
+        !_isOccupied(pieceChars, belowPos)) {
+      usedWalls.add(wallPos);
+      ships.add({
+        'row': row,
+        'col': col,
+        'length': 2,
+        'isHorizontal': false,
+        'isPlayer': false,
+      });
+      continue;
+    }
+
+    // Try extending up
+    final abovePos = wallPos - gridSize;
+    if (row > 0 && !wallPositions.contains(abovePos) &&
+        !_isOccupied(pieceChars, abovePos)) {
+      usedWalls.add(wallPos);
+      ships.add({
+        'row': row - 1,
+        'col': col,
+        'length': 2,
+        'isHorizontal': false,
+        'isPlayer': false,
+      });
+      continue;
+    }
+
+    // Can't convert this wall - skip it
+    usedWalls.add(wallPos);
+  }
+
+  return ships;
+}
+
+bool _isOccupied(Map<String, List<int>> pieceChars, int pos) {
+  for (final positions in pieceChars.values) {
+    if (positions.contains(pos)) return true;
+  }
+  return false;
+}
+
+Map<String, dynamic>? buildShip(List<int> positions, bool isPlayer) {
+  if (positions.isEmpty) return null;
+
+  positions.sort();
+  final first = positions.first;
+  final row = first ~/ gridSize;
+  final col = first % gridSize;
+
+  // Determine orientation and validate
+  bool isHorizontal;
+  if (positions.length == 1) {
+    return null; // Invalid single-cell piece
+  }
+
+  final stride = positions[1] - positions[0];
+  if (stride == 1) {
+    isHorizontal = true;
+  } else if (stride == gridSize) {
+    isHorizontal = false;
+  } else {
+    return null; // Invalid spacing
+  }
+
+  // Validate contiguous
+  for (int i = 1; i < positions.length; i++) {
+    if (positions[i] - positions[i - 1] != stride) {
+      return null; // Not contiguous
+    }
+  }
+
+  return {
+    'row': row,
+    'col': col,
+    'length': positions.length,
+    'isHorizontal': isHorizontal,
+    'isPlayer': isPlayer,
+  };
+}
+
+void assignComplexity(List<ParsedPuzzle> puzzles) {
+  print('📊 Assigning complexity levels...');
+
+  // Map moves to complexity to match your target levels:
+  // 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0
+  for (final puzzle in puzzles) {
+    final moves = puzzle.moves;
+    
+    if (moves <= 10) {
+      puzzle.complexity = 1.0; // Very easy
+    } else if (moves <= 14) {
+      puzzle.complexity = 1.5; // Easy
+    } else if (moves <= 18) {
+      puzzle.complexity = 2.0; // Easy+
+    } else if (moves <= 22) {
+      puzzle.complexity = 2.5; // Medium-
+    } else if (moves <= 26) {
+      puzzle.complexity = 3.0; // Medium
+    } else if (moves <= 30) {
+      puzzle.complexity = 3.5; // Medium+
+    } else if (moves <= 34) {
+      puzzle.complexity = 4.0; // Hard-
+    } else if (moves <= 38) {
+      puzzle.complexity = 4.5; // Hard
+    } else if (moves <= 42) {
+      puzzle.complexity = 5.0; // Hard+
+    } else if (moves <= 46) {
+      puzzle.complexity = 5.5; // Expert-
+    } else if (moves <= 50) {
+      puzzle.complexity = 6.0; // Expert
+    } else if (moves <= 54) {
+      puzzle.complexity = 6.5; // Expert+
+    } else if (moves <= 57) {
+      puzzle.complexity = 7.0; // Master-
+    } else if (moves <= 59) {
+      puzzle.complexity = 7.5; // Master
+    } else {
+      puzzle.complexity = 8.0; // Master+
+    }
+  }
+}
+
+List<ParsedPuzzle> filterCoolestPuzzles(List<ParsedPuzzle> puzzles, int perLevel) {
+  // Group by complexity
+  final byComplexity = <double, List<ParsedPuzzle>>{};
+  for (final puzzle in puzzles) {
+    byComplexity.putIfAbsent(puzzle.complexity, () => []).add(puzzle);
+  }
+
+  final filtered = <ParsedPuzzle>[];
+
+  for (final complexity in byComplexity.keys.toList()..sort()) {
+    final list = byComplexity[complexity]!;
+    
+    // Calculate "coolness" score for each puzzle
+    for (final puzzle in list) {
+      // Factors that make a puzzle "cool":
+      // 1. More moves = harder/more interesting (weight: 0.4)
+      // 2. More pieces = more complex (weight: 0.3)
+      // 3. Larger cluster size = more varied solutions (weight: 0.2)
+      // 4. Balanced piece distribution (weight: 0.1)
+      
+      final moveScore = puzzle.moves / 70.0; // Normalize to 0-1
+      final pieceScore = (puzzle.ships.length - 2) / 16.0; // 2-18 pieces normalized
+      final clusterScore = math.min(1.0, puzzle.clusterSize / 100000.0); // Normalize
+      
+      // Variety score: prefer mix of horizontal/vertical pieces
+      final horizontal = puzzle.ships.where((s) => s['isHorizontal'] == true).length;
+      final vertical = puzzle.ships.length - horizontal;
+      final balance = 1.0 - (horizontal - vertical).abs() / puzzle.ships.length;
+      
+      puzzle.coolness = moveScore * 0.4 + 
+                       pieceScore * 0.3 + 
+                       clusterScore * 0.2 +
+                       balance * 0.1;
+    }
+
+    // Sort by coolness (descending) and take top N
+    list.sort((a, b) => b.coolness.compareTo(a.coolness));
+    final selected = list.take(math.min(perLevel, list.length)).toList();
+    
+    print('  Complexity $complexity: Selected ${selected.length} from ${list.length} puzzles');
+    filtered.addAll(selected);
+  }
+
+  return filtered;
+}
+
+Future<void> writeDartFile(String outputFile, List<ParsedPuzzle> puzzles) async {
+  final sink = File(outputFile).openWrite();
+
+  // Write header
+  sink.writeln('// gridlock_puzzles_data.dart');
+  sink.writeln('// AUTO-GENERATED FROM RUSH HOUR DATABASE - DO NOT EDIT MANUALLY');
+  sink.writeln('// Converted: ${DateTime.now().toIso8601String()}');
+  sink.writeln('// Total puzzles: ${puzzles.length}');
+  sink.writeln('// Source: Michael Fogleman\'s Rush Hour Database\n');
+
+  // Write class definition
+  sink.writeln('class GridlockPuzzleData {');
+  sink.writeln('  final String id;');
+  sink.writeln('  final double complexity;');
+  sink.writeln('  final int minMoves;');
+  sink.writeln('  final List<Map<String, dynamic>> ships;\n');
+  
+  sink.writeln('  const GridlockPuzzleData({');
+  sink.writeln('    required this.id,');
+  sink.writeln('    required this.complexity,');
+  sink.writeln('    required this.minMoves,');
+  sink.writeln('    required this.ships,');
+  sink.writeln('  });');
+  sink.writeln('}\n');
+
+  // Sort by complexity then moves
+  puzzles.sort((a, b) {
+    final compCompare = a.complexity.compareTo(b.complexity);
+    if (compCompare != 0) return compCompare;
+    return a.moves.compareTo(b.moves);
+  });
+
+  // Write puzzle list
+  sink.writeln('const gridlockPuzzles = <GridlockPuzzleData>[');
+
+  for (int i = 0; i < puzzles.length; i++) {
+    final puzzle = puzzles[i];
+    final id = 'GRID_${i + 1}';
+
+    sink.writeln('  GridlockPuzzleData(');
+    sink.writeln('    id: \'$id\',');
+    sink.writeln('    complexity: ${puzzle.complexity},');
+    sink.writeln('    minMoves: ${puzzle.moves},');
+    sink.writeln('    ships: [');
+
+    for (final ship in puzzle.ships) {
+      sink.write('      {');
+      sink.write('\'row\': ${ship['row']}, ');
+      sink.write('\'col\': ${ship['col']}, ');
+      sink.write('\'length\': ${ship['length']}, ');
+      sink.write('\'isHorizontal\': ${ship['isHorizontal']}, ');
+      sink.write('\'isPlayer\': ${ship['isPlayer']}');
+      sink.writeln('},');
+    }
+
+    sink.writeln('    ],');
+    sink.writeln('  ),');
+  }
+
+  sink.writeln('];\n');
+
+  // Write helper function
+  sink.writeln('List<GridlockPuzzleData> getPuzzlesByComplexity(double complexity, {double tolerance = 0.3}) {');
+  sink.writeln('  return gridlockPuzzles');
+  sink.writeln('      .where((p) => (p.complexity - complexity).abs() <= tolerance)');
+  sink.writeln('      .toList();');
+  sink.writeln('}');
+
+  await sink.flush();
+  await sink.close();
+}
+
+void printStatistics(List<ParsedPuzzle> puzzles) {
+  print('\n📊 Puzzle Statistics:');
+  print('=' * 60);
+
+  final byComplexity = <double, List<ParsedPuzzle>>{};
+  for (final puzzle in puzzles) {
+    byComplexity.putIfAbsent(puzzle.complexity, () => []).add(puzzle);
+  }
+
+  final complexities = byComplexity.keys.toList()..sort();
+
+  for (final complexity in complexities) {
+    final list = byComplexity[complexity]!;
+    final avgMoves = list.map((p) => p.moves).reduce((a, b) => a + b) / list.length;
+    final minMoves = list.map((p) => p.moves).reduce(math.min);
+    final maxMoves = list.map((p) => p.moves).reduce(math.max);
+    final avgShips = list.map((p) => p.ships.length).reduce((a, b) => a + b) / list.length;
+
+    final difficulty = complexity <= 2.0 ? 'Easy  ' :
+                      complexity <= 4.0 ? 'Medium' :
+                      complexity <= 6.0 ? 'Hard  ' : 'Expert';
+
+    print('$difficulty $complexity: ${list.length.toString().padLeft(6)} puzzles | '
+          'Moves: ${minMoves.toString().padLeft(2)}-${maxMoves.toString().padLeft(2)} '
+          '(avg: ${avgMoves.toStringAsFixed(1).padLeft(4)}) | '
+          'Ships: ${avgShips.toStringAsFixed(1)}');
+  }
+
+  print('=' * 60);
+  print('Total: ${puzzles.length} puzzles');
+}
+
+class ParsedPuzzle {
+  final int moves;
+  final List<Map<String, dynamic>> ships;
+  final int clusterSize;
+  final bool hasWalls;
+  double complexity = 1.0;
+  double coolness = 0.0;
+
+  ParsedPuzzle({
+    required this.moves,
+    required this.ships,
+    required this.clusterSize,
+    required this.hasWalls,
+  });
+}
