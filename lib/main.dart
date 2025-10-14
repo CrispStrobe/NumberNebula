@@ -43,6 +43,8 @@ import 'features/games/screens/cargo_bay_arranger_game.dart';
 import 'features/games/screens/quantum_molecule_builder_game.dart';
 import 'features/games/screens/space_station_gridlock_game.dart';
 
+import 'features/games/services/gridlock_puzzle_tracker.dart';
+
 // --- UTILS & GENERATED ---
 import 'shared/utils/app_utilities.dart';
 import 'generated/l10n.dart';
@@ -60,6 +62,7 @@ final GameProvider gameProvider = GameProvider(
 );
 
 final SriService sriService = SriService();
+final GridlockPuzzleTracker gridlockPuzzleTracker = GridlockPuzzleTracker();
 final PurchaseService purchaseService = PurchaseService();
 final DebugProvider debugProvider = DebugProvider();
 final AudioService audioService = AudioService();
@@ -84,6 +87,7 @@ void main() async {
         ChangeNotifierProvider.value(value: gameProvider),
         ChangeNotifierProvider.value(value: sriService),
         ChangeNotifierProvider.value(value: cognitiveProfileService),
+        ChangeNotifierProvider.value(value: gridlockPuzzleTracker),
         ChangeNotifierProvider.value(value: purchaseService),
         ChangeNotifierProvider.value(value: debugProvider),
         Provider.value(value: progressService),
@@ -134,6 +138,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
       await progressService.loadProgress(gameProvider);
       await sriService.loadSriData();
       await cognitiveProfileService.loadProfile();
+      await gridlockPuzzleTracker.loadPlayedPuzzles(); 
       setState(() => _isInitialized = true);
     } catch (e, s) {
       debugPrint('Initialization Error: $e\n$s');
@@ -168,6 +173,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
     await progressService.saveProgress(gameProvider);
     await sriService.saveSriData();
     await cognitiveProfileService.saveProfile();
+    await gridlockPuzzleTracker.loadPlayedPuzzles();
     try {
       final prefs = await SharedPreferences.getInstance();
       if (_locale != null) {

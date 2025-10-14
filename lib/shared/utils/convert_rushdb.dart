@@ -70,8 +70,22 @@ void main(List<String> args) async {
 
   // Map complexity based on moves
   assignComplexity(puzzles);
+  
+  // Show distribution BEFORE filtering
+  print('');
+  print('📈 Distribution before filtering:');
+  final preFilterDist = <double, int>{};
+  for (final p in puzzles) {
+    preFilterDist[p.complexity] = (preFilterDist[p.complexity] ?? 0) + 1;
+  }
+  for (final key in [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]) {
+    if (preFilterDist.containsKey(key)) {
+      print('   Level $key: ${preFilterDist[key]} puzzles');
+    }
+  }
 
   // Filter to keep only the coolest puzzles
+  print('');
   print('🎯 Selecting the coolest $perLevel puzzles per complexity level...');
   final filtered = filterCoolestPuzzles(puzzles, perLevel);
   print('   Selected ${filtered.length} total puzzles\n');
@@ -144,6 +158,8 @@ List<Map<String, dynamic>> parseBoard(String boardDesc) {
 
     final ship = buildShip(positions, char == 'A');
     if (ship != null) {
+      // Regular ships are not blocking
+      ship['isBlocking'] = false;
       ships.add(ship);
     }
   }
@@ -165,6 +181,7 @@ List<Map<String, dynamic>> parseBoard(String boardDesc) {
         'length': 2,
         'isHorizontal': true,
         'isPlayer': false,
+        'isBlocking': true, // MARK AS BLOCKING
       });
       continue;
     }
@@ -180,6 +197,7 @@ List<Map<String, dynamic>> parseBoard(String boardDesc) {
         'length': 2,
         'isHorizontal': false,
         'isPlayer': false,
+        'isBlocking': true, // MARK AS BLOCKING
       });
       continue;
     }
@@ -198,6 +216,7 @@ List<Map<String, dynamic>> parseBoard(String boardDesc) {
         'length': 2,
         'isHorizontal': true,
         'isPlayer': false,
+        'isBlocking': true, // MARK AS BLOCKING
       });
       continue;
     }
@@ -213,6 +232,7 @@ List<Map<String, dynamic>> parseBoard(String boardDesc) {
         'length': 2,
         'isHorizontal': true,
         'isPlayer': false,
+        'isBlocking': true, // MARK AS BLOCKING
       });
       continue;
     }
@@ -227,6 +247,7 @@ List<Map<String, dynamic>> parseBoard(String boardDesc) {
         'length': 2,
         'isHorizontal': false,
         'isPlayer': false,
+        'isBlocking': true, // MARK AS BLOCKING
       });
       continue;
     }
@@ -242,6 +263,7 @@ List<Map<String, dynamic>> parseBoard(String boardDesc) {
         'length': 2,
         'isHorizontal': false,
         'isPlayer': false,
+        'isBlocking': true, // MARK AS BLOCKING
       });
       continue;
     }
@@ -300,45 +322,44 @@ Map<String, dynamic>? buildShip(List<int> positions, bool isPlayer) {
 }
 
 void assignComplexity(List<ParsedPuzzle> puzzles) {
-  print('📊 Assigning complexity levels...');
+  print('📊 Assigning complexity levels (7 BROAD LEVELS ONLY)...');
+  print('   Consolidating into levels: 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0');
 
-  // Map moves to complexity to match your target levels:
-  // 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0
+  // ONLY 7 LEVELS - broader ranges to ensure 100+ puzzles per level
   for (final puzzle in puzzles) {
     final moves = puzzle.moves;
     
-    if (moves <= 10) {
-      puzzle.complexity = 1.0; // Very easy
-    } else if (moves <= 14) {
-      puzzle.complexity = 1.5; // Easy
-    } else if (moves <= 18) {
-      puzzle.complexity = 2.0; // Easy+
-    } else if (moves <= 22) {
-      puzzle.complexity = 2.5; // Medium-
-    } else if (moves <= 26) {
-      puzzle.complexity = 3.0; // Medium
-    } else if (moves <= 30) {
-      puzzle.complexity = 3.5; // Medium+
-    } else if (moves <= 34) {
-      puzzle.complexity = 4.0; // Hard-
-    } else if (moves <= 38) {
-      puzzle.complexity = 4.5; // Hard
-    } else if (moves <= 42) {
-      puzzle.complexity = 5.0; // Hard+
-    } else if (moves <= 46) {
-      puzzle.complexity = 5.5; // Expert-
-    } else if (moves <= 50) {
-      puzzle.complexity = 6.0; // Expert
-    } else if (moves <= 54) {
-      puzzle.complexity = 6.5; // Expert+
-    } else if (moves <= 57) {
-      puzzle.complexity = 7.0; // Master-
-    } else if (moves <= 59) {
-      puzzle.complexity = 7.5; // Master
-    } else {
-      puzzle.complexity = 8.0; // Master+
+    // Level 1.0: Easy (7-12 moves)
+    if (moves <= 12) {
+      puzzle.complexity = 1.0;
+    } 
+    // Level 2.0: Easy+ (13-17 moves)
+    else if (moves <= 17) {
+      puzzle.complexity = 2.0;
+    } 
+    // Level 3.0: Medium (18-23 moves)
+    else if (moves <= 23) {
+      puzzle.complexity = 3.0;
+    } 
+    // Level 4.0: Medium+ (24-29 moves)
+    else if (moves <= 29) {
+      puzzle.complexity = 4.0;
+    } 
+    // Level 5.0: Hard (30-36 moves)
+    else if (moves <= 36) {
+      puzzle.complexity = 5.0;
+    } 
+    // Level 6.0: Hard+ (37-44 moves)
+    else if (moves <= 44) {
+      puzzle.complexity = 6.0;
+    } 
+    // Level 7.0: Expert (45+ moves) - ALL the super hard ones!
+    else {
+      puzzle.complexity = 7.0;
     }
   }
+  
+  print('   ✓ Complexity assignment complete');
 }
 
 List<ParsedPuzzle> filterCoolestPuzzles(List<ParsedPuzzle> puzzles, int perLevel) {
@@ -395,7 +416,17 @@ Future<void> writeDartFile(String outputFile, List<ParsedPuzzle> puzzles) async 
   sink.writeln('// AUTO-GENERATED FROM RUSH HOUR DATABASE - DO NOT EDIT MANUALLY');
   sink.writeln('// Converted: ${DateTime.now().toIso8601String()}');
   sink.writeln('// Total puzzles: ${puzzles.length}');
-  sink.writeln('// Source: Michael Fogleman\'s Rush Hour Database\n');
+  sink.writeln('// Source: Michael Fogleman\'s Rush Hour Database');
+  sink.writeln('//');
+  sink.writeln('// Difficulty Mapping (Grades 1-4, Levels 1-20 each):');
+  sink.writeln('//   1.0 (Easy):     7-12 moves  → Grade 1, Levels 1-6');
+  sink.writeln('//   2.0 (Easy+):    13-17 moves → Grade 1 L7-14, Grade 2 L1-4');
+  sink.writeln('//   3.0 (Medium):   18-23 moves → Grade 1 L15-20, Grade 2 L5-13');
+  sink.writeln('//   4.0 (Medium+):  24-29 moves → Grade 2 L14-20, Grade 3 L1-12');
+  sink.writeln('//   5.0 (Hard):     30-36 moves → Grade 3 L13-19, Grade 4 L1-9');
+  sink.writeln('//   6.0 (Hard+):    37-44 moves → Grade 3 L20, Grade 4 L10-17');
+  sink.writeln('//   7.0 (Expert):   45+ moves   → Grade 4, Levels 18-20');
+  sink.writeln('');
 
   // Write class definition
   sink.writeln('class GridlockPuzzleData {');
@@ -438,7 +469,8 @@ Future<void> writeDartFile(String outputFile, List<ParsedPuzzle> puzzles) async 
       sink.write('\'col\': ${ship['col']}, ');
       sink.write('\'length\': ${ship['length']}, ');
       sink.write('\'isHorizontal\': ${ship['isHorizontal']}, ');
-      sink.write('\'isPlayer\': ${ship['isPlayer']}');
+      sink.write('\'isPlayer\': ${ship['isPlayer']}, ');
+      sink.write('\'isBlocking\': ${ship['isBlocking'] ?? false}');
       sink.writeln('},');
     }
 
@@ -449,7 +481,7 @@ Future<void> writeDartFile(String outputFile, List<ParsedPuzzle> puzzles) async 
   sink.writeln('];\n');
 
   // Write helper function
-  sink.writeln('List<GridlockPuzzleData> getPuzzlesByComplexity(double complexity, {double tolerance = 0.3}) {');
+  sink.writeln('List<GridlockPuzzleData> getPuzzlesByComplexity(double complexity, {double tolerance = 0.0}) {');
   sink.writeln('  return gridlockPuzzles');
   sink.writeln('      .where((p) => (p.complexity - complexity).abs() <= tolerance)');
   sink.writeln('      .toList();');
@@ -489,6 +521,15 @@ void printStatistics(List<ParsedPuzzle> puzzles) {
 
   print('=' * 60);
   print('Total: ${puzzles.length} puzzles');
+  print('');
+  print('Expected distribution with 200 per level:');
+  print('  Level 1.0 (Easy):     ~${(puzzles.where((p) => p.complexity == 1.0).length).toString().padLeft(4)} available');
+  print('  Level 2.0 (Easy+):    ~${(puzzles.where((p) => p.complexity == 2.0).length).toString().padLeft(4)} available');
+  print('  Level 3.0 (Medium):   ~${(puzzles.where((p) => p.complexity == 3.0).length).toString().padLeft(4)} available');
+  print('  Level 4.0 (Medium+):  ~${(puzzles.where((p) => p.complexity == 4.0).length).toString().padLeft(4)} available');
+  print('  Level 5.0 (Hard):     ~${(puzzles.where((p) => p.complexity == 5.0).length).toString().padLeft(4)} available');
+  print('  Level 6.0 (Hard+):    ~${(puzzles.where((p) => p.complexity == 6.0).length).toString().padLeft(4)} available');
+  print('  Level 7.0 (Expert):   ~${(puzzles.where((p) => p.complexity == 7.0).length).toString().padLeft(4)} available');
 }
 
 class ParsedPuzzle {
