@@ -22,12 +22,22 @@ import 'levels.dart';
 // ============================================================================
 
 AtomType getAtomTypeFromIndex(int index) {
-  if (index >= 0 && index <= 7 || index == 9) return AtomType.hydrogen;
-  if (index == 8 || index == 10 || index == 11 || index == 19 || index == 26) return AtomType.oxygen;
-  if (index == 12 || index == 13 || index == 18 || index == 24 || index == 25) return AtomType.sulfur;
-  if ((index >= 14 && index <= 17) || index == 20 || index == 21 || index == 23 || index == 27 || index == 28) return AtomType.carbon;
-  if (index == 22 || index == 29 || index == 30) return AtomType.fluorine;
+  // Hydrogen (1 Bond)
+  if (index >= 0 && index <= 7) return AtomType.hydrogen;
+  
+  // Oxygen (2 Bonds)
+  if ((index >= 8 && index <= 13)) return AtomType.oxygen;
+  
+  // Carbon (3 or 4 Bonds, or special cases)
+  if ((index >= 14 && index <= 28)) return AtomType.carbon;
+  
+  // Fluorine (1 Bond)
+  if (index == 29 || index == 30) return AtomType.fluorine;
+  
+  // Nitrogen (3 Bonds)
   if (index == 31) return AtomType.nitrogen;
+  
+  // Bonus Stage "Atoms"
   if (index >= 32 && index <= 43) {
     const specials = [
       AtomType.special1, AtomType.special2, AtomType.special3, AtomType.special4,
@@ -36,7 +46,9 @@ AtomType getAtomTypeFromIndex(int index) {
     ];
     return specials[(index - 32) % specials.length];
   }
-  return AtomType.hydrogen;
+
+  // Fallback, though ideally this should not be reached.
+  return AtomType.hydrogen; 
 }
 enum BondDirection {
   left,
@@ -60,24 +72,17 @@ Set<BondDirection> getBondingDirections(int atomIndex) {
     5: {BondDirection.upRight}, // Diagonal in ETHENE, BUTENE
     6: {BondDirection.right},
     7: {BondDirection.downRight}, // Diagonal in ETHENE, BUTENE
-    9: {BondDirection.up, BondDirection.down},
+    
   };
 
   // Oxygen (valency 2)
   const oxygenBonds = {
     8: {BondDirection.left, BondDirection.right},
+    9: {BondDirection.up, BondDirection.down},
     10: {BondDirection.left},
     11: {BondDirection.up},
-    19: {BondDirection.down, BondDirection.left, BondDirection.right},
-  };
-
-  // Sulfur (valency 2)
-  const sulfurBonds = {
     12: {BondDirection.down},
     13: {BondDirection.right},
-    18: {BondDirection.left, BondDirection.right, BondDirection.up},
-    24: {BondDirection.left, BondDirection.right, BondDirection.down},
-    25: {BondDirection.left, BondDirection.right, BondDirection.down},
   };
 
   // Carbon (valency 4)
@@ -86,9 +91,14 @@ Set<BondDirection> getBondingDirections(int atomIndex) {
     15: {BondDirection.left, BondDirection.upRight, BondDirection.downRight}, // F in ETHENE/BUTENE - diagonal bonds
     16: {BondDirection.right, BondDirection.upLeft, BondDirection.downLeft}, // G in ETHENE/BUTENE - diagonal bonds
     17: {BondDirection.left, BondDirection.right, BondDirection.up},
+    18: {BondDirection.left, BondDirection.right, BondDirection.up},
+    19: {BondDirection.down, BondDirection.left, BondDirection.right},
     20: {BondDirection.upLeft, BondDirection.upRight, BondDirection.downLeft, BondDirection.downRight}, // K in BUTENE - diagonal bonds
     21: {BondDirection.upLeft, BondDirection.upRight, BondDirection.down, BondDirection.up}, // L in METHYL compounds - diagonal bonds
+    22: {BondDirection.left, BondDirection.up, BondDirection.down},
     23: {BondDirection.right, BondDirection.up, BondDirection.down},
+    24: {BondDirection.left, BondDirection.right, BondDirection.down},
+    25: {BondDirection.left, BondDirection.right, BondDirection.down},
     26: {BondDirection.right, BondDirection.up, BondDirection.down},
     27: {BondDirection.left, BondDirection.right},
     28: {BondDirection.left, BondDirection.right, BondDirection.up}, // C in ETHINE
@@ -96,7 +106,7 @@ Set<BondDirection> getBondingDirections(int atomIndex) {
 
   // Fluorine (valency 1)
   const fluorineBonds = {
-    22: {BondDirection.left},
+    
     29: {BondDirection.up},
     30: {BondDirection.down},
   };
@@ -108,7 +118,6 @@ Set<BondDirection> getBondingDirections(int atomIndex) {
 
   if (hydrogenBonds.containsKey(atomIndex)) return hydrogenBonds[atomIndex]!;
   if (oxygenBonds.containsKey(atomIndex)) return oxygenBonds[atomIndex]!;
-  if (sulfurBonds.containsKey(atomIndex)) return sulfurBonds[atomIndex]!;
   if (carbonBonds.containsKey(atomIndex)) return carbonBonds[atomIndex]!;
   if (fluorineBonds.containsKey(atomIndex)) return fluorineBonds[atomIndex]!;
   if (nitrogenBonds.containsKey(atomIndex)) return nitrogenBonds[atomIndex]!;
@@ -219,6 +228,16 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   // Keyboard focus node
   final FocusNode _focusNode = FocusNode();
 
+  bool _showMoleculeInfo = false; // For the molecule target info overlay
+
+  // This will hold the LOCALIZED name for the UI
+  String levelDisplayName = '';
+
+  // Store the final, translated strings for the UI
+  String _moleculeDescription = '';
+  String _moleculeFacts = '';
+  String _moleculeSpaceInfo = '';
+
   @override
   void initState() {
     super.initState();
@@ -325,32 +344,169 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     }
     }
 
-  void _loadLevel({int? levelToLoad}) { //
+  void _loadLevel({int? levelToLoad}) {
     if (levelsData.isEmpty) {
       _loadFallbackLevel();
       return;
     }
-    
+
     final levelNum = levelToLoad ?? _currentLevel;
-    final levelIndex = (levelNum - 1) % levelsData.length;
+    final levelMap = levelsData[(levelNum - 1) % levelsData.length];
 
     setState(() {
-        _currentLevel = levelNum; // Ensure state is up to date
+      _currentLevel = levelNum;
+      // Reset info strings before loading new ones
+      _moleculeDescription = '';
+      _moleculeFacts = '';
+      _moleculeSpaceInfo = '';
     });
-    
+
     try {
-      final level = AtomixLevel.fromMap(levelsData[levelIndex]);
-      levelName = level.name;
-      
+      final level = AtomixLevel.fromMap(levelMap);
+      final s = S.of(context)!; // Get localization delegate
+
+      // Helper to get the level label string
+      String getLevelLabel(int levelNum) {
+        switch (levelNum) {
+          case 1: return s.level01Label;
+          case 2: return s.level02Label;
+          case 3: return s.level03Label;
+          case 4: return s.level04Label;
+          case 5: return s.level05Label;
+          case 6: return s.level06Label;
+          case 7: return s.level07Label;
+          case 8: return s.level08Label;
+          case 9: return s.level09Label;
+          case 10: return s.level10Label;
+          case 11: return s.level11Label;
+          case 12: return s.level12Label;
+          case 13: return s.level13Label;
+          case 14: return s.level14Label;
+          case 15: return s.level15Label;
+          case 16: return s.level16Label;
+          case 17: return s.level17Label;
+          case 18: return s.level18Label;
+          case 19: return s.level19Label;
+          case 20: return s.level20Label;
+          case 21: return s.level21Label;
+          case 22: return s.level22Label;
+          case 23: return s.level23Label;
+          case 24: return s.level24Label;
+          case 25: return s.level25Label;
+          case 26: return s.level26Label;
+          case 27: return s.level27Label;
+          case 28: return s.level28Label;
+          case 29: return s.level29Label;
+          case 30: return s.level30Label;
+          default: return level.name; // Fallback
+        }
+      }
+
+      setState(() {
+        levelDisplayName = getLevelLabel(level.levelNumber);
+      });
+
+      if (level.name.toUpperCase() != 'BONUS STAGE') {
+        final levelKey = level.levelNumber.toString().padLeft(2, '0');
+        final descKey = 'level${levelKey}Desc';
+        final factsKey = 'level${levelKey}Facts';
+        final spaceKey = 'level${levelKey}Space';
+
+        String getInfoString(String key) {
+          // This switch maps the generated key to the actual S class getter
+          switch (key) {
+            case 'level01Desc': return s.level01Desc;
+            case 'level01Facts': return s.level01Facts;
+            case 'level01Space': return s.level01Space;
+            case 'level02Desc': return s.level02Desc;
+            case 'level02Facts': return s.level02Facts;
+            case 'level02Space': return s.level02Space;
+            case 'level03Desc': return s.level03Desc;
+            case 'level03Facts': return s.level03Facts;
+            case 'level03Space': return s.level03Space;
+            case 'level04Desc': return s.level04Desc;
+            case 'level04Facts': return s.level04Facts;
+            case 'level04Space': return s.level04Space;
+            case 'level05Desc': return s.level05Desc;
+            case 'level05Facts': return s.level05Facts;
+            case 'level05Space': return s.level05Space;
+            case 'level07Desc': return s.level07Desc;
+            case 'level07Facts': return s.level07Facts;
+            case 'level07Space': return s.level07Space;
+            case 'level08Desc': return s.level08Desc;
+            case 'level08Facts': return s.level08Facts;
+            case 'level08Space': return s.level08Space;
+            case 'level09Desc': return s.level09Desc;
+            case 'level09Facts': return s.level09Facts;
+            case 'level09Space': return s.level09Space;
+            case 'level10Desc': return s.level10Desc;
+            case 'level10Facts': return s.level10Facts;
+            case 'level10Space': return s.level10Space;
+            case 'level11Desc': return s.level11Desc;
+            case 'level11Facts': return s.level11Facts;
+            case 'level11Space': return s.level11Space;
+            case 'level13Desc': return s.level13Desc;
+            case 'level13Facts': return s.level13Facts;
+            case 'level13Space': return s.level13Space;
+            case 'level14Desc': return s.level14Desc;
+            case 'level14Facts': return s.level14Facts;
+            case 'level14Space': return s.level14Space;
+            case 'level15Desc': return s.level15Desc;
+            case 'level15Facts': return s.level15Facts;
+            case 'level15Space': return s.level15Space;
+            case 'level16Desc': return s.level16Desc;
+            case 'level16Facts': return s.level16Facts;
+            case 'level16Space': return s.level16Space;
+            case 'level17Desc': return s.level17Desc;
+            case 'level17Facts': return s.level17Facts;
+            case 'level17Space': return s.level17Space;
+            case 'level19Desc': return s.level19Desc;
+            case 'level19Facts': return s.level19Facts;
+            case 'level19Space': return s.level19Space;
+            case 'level20Desc': return s.level20Desc;
+            case 'level20Facts': return s.level20Facts;
+            case 'level20Space': return s.level20Space;
+            case 'level21Desc': return s.level21Desc;
+            case 'level21Facts': return s.level21Facts;
+            case 'level21Space': return s.level21Space;
+            case 'level22Desc': return s.level22Desc;
+            case 'level22Facts': return s.level22Facts;
+            case 'level22Space': return s.level22Space;
+            case 'level23Desc': return s.level23Desc;
+            case 'level23Facts': return s.level23Facts;
+            case 'level23Space': return s.level23Space;
+            case 'level25Desc': return s.level25Desc;
+            case 'level25Facts': return s.level25Facts;
+            case 'level25Space': return s.level25Space;
+            case 'level26Desc': return s.level26Desc;
+            case 'level26Facts': return s.level26Facts;
+            case 'level26Space': return s.level26Space;
+            case 'level27Desc': return s.level27Desc;
+            case 'level27Facts': return s.level27Facts;
+            case 'level27Space': return s.level27Space;
+            case 'level28Desc': return s.level28Desc;
+            case 'level28Facts': return s.level28Facts;
+            case 'level28Space': return s.level28Space;
+            case 'level29Desc': return s.level29Desc;
+            case 'level29Facts': return s.level29Facts;
+            case 'level29Space': return s.level29Space;
+            default: return ''; // Fallback
+          }
+        }
+        _moleculeDescription = getInfoString(descKey);
+        _moleculeFacts = getInfoString(factsKey);
+        _moleculeSpaceInfo = getInfoString(spaceKey);
+      }
+
       grid = List.generate(gridSize, (y) {
         return List.generate(gridSize, (x) {
           final tile = level.playfield[y][x];
           return tile['type'] == 'wall' ? CellType.wall : CellType.empty;
         });
       });
-      
+
       atoms = [];
-      int atomIdCounter = 0; // CHANGE: Initialize a unique ID counter.
+      int atomIdCounter = 0;
       for (int y = 0; y < gridSize; y++) {
         for (int x = 0; x < gridSize; x++) {
           final tile = level.playfield[y][x];
@@ -361,7 +517,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
               type: atomType,
               row: y,
               col: x,
-              id: 'atom_${atomIdCounter++}', // CHANGE: Use the counter for a unique ID.
+              id: 'atom_${atomIdCounter++}',
               atomixIndex: atomIndex,
             ));
           }
@@ -381,9 +537,17 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       debugPrint("✅ Level ${level.levelNumber}: $levelName loaded (${atoms.length} atoms, $moveLimit moves)");
       
     } catch (e) {
-      debugPrint("❌ Error: $e");
+      debugPrint("❌ Error loading level $_currentLevel: $e");
       _loadFallbackLevel();
     }
+  }
+
+  bool _isBonusLevel() {
+    // Check against the internal, non-localized name from the level data
+    if (levelsData.isEmpty || _currentLevel > levelsData.length) return false;
+    final levelMap = levelsData[(_currentLevel - 1)];
+    final internalName = levelMap['name'] as String? ?? '';
+    return internalName.toUpperCase().contains('BONUS');
   }
 
   void _calculateVisibleBounds() {
@@ -779,10 +943,12 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     // This check should always be first, even in debug mode.
     if (_currentLevel >= levelsData.length) return false;
 
-    // Access the debug provider and check the flag.
+    // Access the debug provider so that we can check the flag.
     final debugProvider = context.read<DebugProvider>();
-    if (debugProvider.isPaidUnlockedForced) {
-      return true; // If debug unlock is on, always allow moving forward.
+    
+    // Check if the debug menu has been enabled for this session.
+    if (debugProvider.isDebugMenuEnabled) {
+      return true; // If debug menu is on, always allow moving forward.
     }
     
     // Can go forward if:
@@ -912,7 +1078,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isWideScreen = screenSize.width > screenSize.height && screenSize.width > 600;
-    
+
     return Focus(
       focusNode: _focusNode,
       onKeyEvent: _handleKeyEvent,
@@ -937,9 +1103,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                       },
                     ),
                   ),
-                  
+
                   ...particles.map((p) => p.build()),
-                  
+
                   Column(
                     children: [
                       GameUI(
@@ -948,7 +1114,6 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                         onBack: () => Navigator.of(context).pop(),
                         ),
 
-                      // Add level navigation buttons
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         child: Row(
@@ -978,7 +1143,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                                         color: SpaceTheme.starYellow,
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
-                                    ),
+                                        ),
                                     ),
                                   if (_levelsWonThisSession.contains(_currentLevel)) ...[
                                     const SizedBox(width: 8),
@@ -991,9 +1156,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 4), // ADD a little space
+                            const SizedBox(width: 4),
                             _buildInfoButton(),
-                            const SizedBox(width: 4), // ADD a little space
+                            const SizedBox(width: 4),
                             const SizedBox(width: 12),
                             _buildNavigationButton(
                                 icon: Icons.arrow_forward_ios,
@@ -1003,7 +1168,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                           ],
                         ),
                       ),
-                      
+
                       Expanded(
                         child: isWideScreen ? _buildWideLayout() : _buildCompactLayout(),
                       ),
@@ -1011,6 +1176,8 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                   ),
 
                   if (_showInstructions) _buildInstructionsOverlay(),
+
+                  if (_showMoleculeInfo) _buildInfoOverlay(),
 
                 ],
               ),
@@ -1023,16 +1190,16 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   Widget _buildWideLayout() {
     final screenSize = MediaQuery.of(context).size;
-    
+
     final leftPanelWidth = screenSize.width * 0.25;
     final rightPanelWidth = screenSize.width * 0.75;
-    
+
     final availableHeight = screenSize.height - 120;
     final cellSize = math.min(
       rightPanelWidth / visibleWidth,
       availableHeight / visibleHeight,
     ).clamp(25.0, 55.0);
-    
+
     return Row(
       children: [
         Container(
@@ -1040,7 +1207,13 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           padding: const EdgeInsets.all(12),
           child: Column(
             children: [
-              _buildCompactTargetDisplay(),
+              GestureDetector(
+                onTap: () {
+                  setState(() => _showMoleculeInfo = true);
+                  HapticFeedback.selectionClick();
+                },
+                child: _buildCompactTargetDisplay(),
+              ),
               const SizedBox(height: 16),
               _buildStats(),
               const SizedBox(height: 16),
@@ -1062,7 +1235,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
             ],
           ),
         ),
-        
+
         Expanded(
           child: Center(
             child: _buildGameGrid(cellSize),
@@ -1104,22 +1277,30 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   Widget _buildCompactLayout() {
     final screenSize = MediaQuery.of(context).size;
-    
+
     final availableWidth = screenSize.width - 24;
     final availableHeight = screenSize.height - 280;
-    
+
     final cellSize = math.min(
       availableWidth / visibleWidth,
       availableHeight / visibleHeight,
     ).clamp(20.0, 45.0);
-    
+
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           child: Row(
             children: [
-              Expanded(child: _buildCompactTargetDisplay()),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() => _showMoleculeInfo = true);
+                    HapticFeedback.selectionClick();
+                  },
+                  child: _buildCompactTargetDisplay(),
+                ),
+              ),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -1132,15 +1313,15 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
             ],
           ),
         ),
-        
+
         const SizedBox(height: 8),
-        
+
         Expanded(
           child: Center(
             child: _buildGameGrid(cellSize),
           ),
         ),
-        
+
         if (gameActive && selectedAtom != null) ...[
           const SizedBox(height: 8),
           _buildSelectedInfo(),
@@ -1150,8 +1331,8 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
             children: [
               _buildCompactControls(),
               const SizedBox(width: 12),
-              _buildUndoButton(), 
-              const SizedBox(width: 8), 
+              _buildUndoButton(),
+              const SizedBox(width: 8),
               _buildRestartButton(),
             ],
           ),
@@ -1166,7 +1347,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
             ],
           ),
         ],
-        
+
         const SizedBox(height: 12),
       ],
     );
@@ -1229,14 +1410,14 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           Text(
             S.of(context)!.moleculeBuilderTarget.toUpperCase(),
             style: const TextStyle(
-                color: SpaceTheme.alienGreen,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
+              color: SpaceTheme.alienGreen,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
             ),
-            ),
+          ),
           const SizedBox(height: 4),
           Text(
-            levelName,
+            levelDisplayName,
             style: const TextStyle(
               color: SpaceTheme.starYellow,
               fontSize: 16,
@@ -1244,7 +1425,6 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
             ),
           ),
           const SizedBox(height: 8),
-          // Use the dynamically calculated containerSize and atomSize.
           SizedBox(
             width: containerSize,
             height: containerSize,
@@ -1255,6 +1435,186 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         ],
       ),
     );
+  }
+
+  Widget _buildMoleculeInfoOverlay() {
+    Widget buildInfoSection(String title, String content) {
+      if (content.isEmpty) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 18.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title.toUpperCase(),
+              style: SpaceTheme.bodyStyle.copyWith(
+                color: SpaceTheme.alienGreen,
+                letterSpacing: 1.5,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              ),
+              child: Text(
+                content,
+                style: SpaceTheme.bodyStyle.copyWith(height: 1.6, color: Colors.white.withOpacity(0.95)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final screenSize = MediaQuery.of(context).size;
+    final isCompact = screenSize.width < 600;
+    final previewSize = isCompact ? screenSize.width * 0.7 : screenSize.width * 0.35;
+    final atomSize = (targetPattern.size > 0) ? (previewSize / targetPattern.size) : 40.0;
+
+    return Positioned.fill(
+      child: GestureDetector(
+        onTap: () => setState(() => _showMoleculeInfo = false),
+        child: Container(
+          color: Colors.black.withOpacity(0.92),
+          child: Center(
+            child: Container(
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple.withOpacity(0.4)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: SpaceTheme.starYellow, width: 2),
+                boxShadow: [
+                  BoxShadow(color: SpaceTheme.starYellow.withOpacity(0.3), blurRadius: 20, spreadRadius: 2),
+                ],
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            S.of(context)!.moleculeBuilderMoleculeInfo,
+                            style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.starYellow),
+                          ),
+                        ),
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                          onPressed: () => setState(() => _showMoleculeInfo = false),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      levelDisplayName,
+                      style: SpaceTheme.headlineStyle.copyWith(fontSize: 26, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: previewSize,
+                      height: previewSize,
+                      child: Stack(
+                        children: _buildTargetAtomsCompact(atomSize),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    buildInfoSection(S.of(context)!.moleculeInfoNomenclature, _moleculeDescription),
+                    buildInfoSection(S.of(context)!.moleculeInfoKeyFacts, _moleculeFacts),
+                    buildInfoSection(S.of(context)!.moleculeInfoInSpace, _moleculeSpaceInfo),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBonusStageInfoOverlay() {
+    final screenSize = MediaQuery.of(context).size;
+    final isCompact = screenSize.width < 600;
+    final previewSize = isCompact ? screenSize.width * 0.75 : screenSize.width * 0.4;
+    final atomSize = (targetPattern.size > 0) ? (previewSize / targetPattern.size) : 40.0;
+
+    return Positioned.fill(
+      child: GestureDetector(
+        onTap: () => setState(() => _showMoleculeInfo = false),
+        child: Container(
+          color: Colors.black.withOpacity(0.92),
+          child: Center(
+            child: Container(
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple.withOpacity(0.4)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: SpaceTheme.alienGreen, width: 2),
+                 boxShadow: [
+                  BoxShadow(color: SpaceTheme.alienGreen.withOpacity(0.3), blurRadius: 20, spreadRadius: 2),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        S.of(context)!.moleculeBuilderBonusTitle,
+                        style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.alienGreen),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                        onPressed: () => setState(() => _showMoleculeInfo = false),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: previewSize,
+                    height: previewSize,
+                    child: Stack(
+                      children: _buildTargetAtomsCompact(atomSize),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoOverlay() {
+    if (_isBonusLevel()) {
+      return _buildBonusStageInfoOverlay();
+    } else {
+      return _buildMoleculeInfoOverlay();
+    }
   }
 
   List<Widget> _buildTargetAtomsCompact(double atomSize) {

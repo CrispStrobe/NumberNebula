@@ -1618,6 +1618,411 @@ class SDe extends S {
       'Rückgängig: Die \'Rückgängig\'-Schaltfläche macht deinen letzten Zug rückgängig, kostet aber als Strafe 2 Züge.';
 
   @override
+  String get level01Label => 'Wasser';
+
+  @override
+  String get level02Label => 'Methan';
+
+  @override
+  String get level03Label => 'Methanol';
+
+  @override
+  String get level04Label => 'Ethylen';
+
+  @override
+  String get level05Label => 'Propen';
+
+  @override
+  String get level06Label => 'Bonus-Sektion 1';
+
+  @override
+  String get level07Label => 'Ethanol';
+
+  @override
+  String get level08Label => 'Isopropanol';
+
+  @override
+  String get level09Label => 'Ethanal';
+
+  @override
+  String get level10Label => 'Aceton';
+
+  @override
+  String get level11Label => 'Ameisensäure';
+
+  @override
+  String get level12Label => 'Bonus-Sektion 2';
+
+  @override
+  String get level13Label => 'Essigsäure';
+
+  @override
+  String get level14Label => 'trans-Buten';
+
+  @override
+  String get level15Label => 'cis-Buten';
+
+  @override
+  String get level16Label => 'Dimethylether';
+
+  @override
+  String get level17Label => 'Butanol';
+
+  @override
+  String get level18Label => 'Bonus-Sektion 3';
+
+  @override
+  String get level19Label => '2-Methyl-2-Propanol';
+
+  @override
+  String get level20Label => 'Glycerin';
+
+  @override
+  String get level21Label => 'Polytetrafluorethylen';
+
+  @override
+  String get level22Label => 'Oxalsäure';
+
+  @override
+  String get level23Label => 'Formaldehyd';
+
+  @override
+  String get level24Label => 'Bonus-Sektion 4';
+
+  @override
+  String get level25Label => 'Essigsäureethylester';
+
+  @override
+  String get level26Label => 'Ammoniak';
+
+  @override
+  String get level27Label => '3-Methylpentan';
+
+  @override
+  String get level28Label => 'Propanal';
+
+  @override
+  String get level29Label => 'Propin';
+
+  @override
+  String get level30Label => 'Bonus-Sektion 5';
+
+  @override
+  String get moleculeBuilderMoleculeInfo => 'Molekül-Info';
+
+  @override
+  String get moleculeBuilderBonusTitle => 'Bonus-Ziel';
+
+  @override
+  String get moleculeInfoNomenclature => 'Nomenklatur & Beschreibung';
+
+  @override
+  String get moleculeInfoKeyFacts => 'Wichtige Fakten';
+
+  @override
+  String get moleculeInfoInSpace => 'Im Weltraum';
+
+  @override
+  String get level01Desc =>
+      'Wasser (H₂O) ist eine anorganische Verbindung, die für alle bekannten Lebensformen essentiell ist. Bei Standardtemperatur ist es eine geschmacks- und geruchlose Flüssigkeit und wird wegen seiner Fähigkeit, viele Stoffe zu lösen, als \'universelles Lösungsmittel\' bezeichnet.';
+
+  @override
+  String get level01Facts =>
+      '• Besteht aus zwei Wasserstoffatomen, die kovalent an ein Sauerstoffatom gebunden sind.\n• Aufgrund seiner Polarität bildet es starke Wasserstoffbrückenbindungen, was zu einem hohen Siedepunkt und hoher Oberflächenspannung führt.\n• Eis hat eine geringere Dichte als flüssiges Wasser, eine seltene Eigenschaft, die Wasserlebewesen unter gefrorenen Oberflächen überleben lässt.';
+
+  @override
+  String get level01Space =>
+      'Wasser ist in interstellaren Wolken, auf Kometen und auf Eismonden wie Europa reichlich vorhanden. Im Vakuum des Weltraums kann flüssiges Wasser nicht existieren; es gefriert entweder zu Eis oder verdampft. Auf dem Mars führt der niedrige atmosphärische Druck dazu, dass Wasser knapp über 0°C siedet.';
+
+  @override
+  String get level02Desc =>
+      'Methan (CH₄) ist das einfachste Alkan und der Hauptbestandteil von Erdgas. Es ist ein farb- und geruchloses Gas und ein starkes Treibhausgas.';
+
+  @override
+  String get level02Facts =>
+      '• Besitzt ein zentrales Kohlenstoffatom, das an vier Wasserstoffatome in einer tetraedrischen Geometrie gebunden ist.\n• Wird von anaeroben Bakterien in Umgebungen wie Feuchtgebieten und den Verdauungstrakten von Wiederkäuern produziert.\n• Eine wichtige Brennstoffquelle und ein Ausgangsstoff für die chemische Industrie.';
+
+  @override
+  String get level02Space =>
+      'Methan ist in unserem Sonnensystem weit verbreitet. Titan, der größte Mond des Saturns, hat eine dichte Methanatmosphäre mit Flüssen und Seen aus flüssigem Methan auf seiner Oberfläche, wo die Temperatur eisige -179°C beträgt.';
+
+  @override
+  String get level03Desc =>
+      'Methanol (CH₃OH), oder Holzgeist, ist der einfachste Alkohol. Es ist eine leichte, flüchtige, farblose und brennbare Flüssigkeit mit einem charakteristischen Geruch.';
+
+  @override
+  String get level03Facts =>
+      '• Besteht aus einer Methylgruppe (-CH₃), die mit einer Hydroxylgruppe (-OH) verbunden ist.\n• Bei Einnahme ist es hochgiftig und wird als Lösungsmittel, Frostschutzmittel und in der chemischen Synthese verwendet.\n• Ein wichtiger Treibstoff in einigen Spezialmotoren.';
+
+  @override
+  String get level03Space =>
+      'Riesige Wolken aus Methanol existieren in sternbildenden Regionen der Milchstraße. Es bildet sich auf der Oberfläche von eisigen Staubkörnern und gilt als wichtiger Baustein für komplexere organische Moleküle im Weltraum.';
+
+  @override
+  String get level04Desc =>
+      'Ethylen (C₂H₄), oder Ethen, ist das einfachste Alken, gekennzeichnet durch eine Kohlenstoff-Kohlenstoff-Doppelbindung. Es ist ein farbloses, brennbares Gas mit einem schwach süßlichen Geruch.';
+
+  @override
+  String get level04Facts =>
+      '• Die weltweit am meisten produzierte organische Verbindung, hauptsächlich zur Herstellung von Polyethylen-Kunststoff.\n• Wirkt als natürliches Pflanzenhormon und reguliert Prozesse wie Fruchtreifung, Blütenöffnung und Blattabwurf.\n• Die Doppelbindung macht es wesentlich reaktiver als Ethan.';
+
+  @override
+  String get level04Space =>
+      'Ethylen kommt in den Atmosphären von Gasriesen wie Jupiter und Saturn vor. Auf dem Titan zerlegt Sonnenlicht Methan in komplexere Kohlenwasserstoffe, einschließlich Ethylen, was zum orangefarbenen Dunst des Mondes beiträgt.';
+
+  @override
+  String get level05Desc =>
+      'Propen (C₃H₆), oder Propylen, ist ein Alken mit drei Kohlenstoffatomen und einer Doppelbindung. Es ist ein farbloses Gas mit einem schwachen, erdölähnlichen Geruch.';
+
+  @override
+  String get level05Facts =>
+      '• Ein wichtiger Ausgangsstoff in der petrochemischen Industrie, nach Ethylen an zweiter Stelle.\n• Hauptsächlich zur Herstellung von Polypropylen verwendet, einem vielseitigen Kunststoff für Verpackungen, Textilien und Autoteile.\n• Wird durch Dampfspaltung von Kohlenwasserstoffen hergestellt.';
+
+  @override
+  String get level05Space =>
+      'Die NASA-Sonde Cassini hat Propen auf dem Saturnmond Titan nachgewiesen. Seine Anwesenheit hilft Wissenschaftlern, die komplexe Atmosphärenchemie auf methanreichen Welten zu modellieren und zu verstehen, wie Bausteine des Lebens entstehen könnten.';
+
+  @override
+  String get level07Desc =>
+      'Ethanol (C₂H₅OH), oder Trinkalkohol, ist der Alkohol, der in alkoholischen Getränken enthalten ist. Es ist eine flüchtige, brennbare, farblose Flüssigkeit, die durch die Gärung von Zucker hergestellt wird.';
+
+  @override
+  String get level07Facts =>
+      '• Besteht aus einer Ethylgruppe (-C₂H₅), die an eine Hydroxylgruppe (-OH) gebunden ist.\n• Weit verbreitet als Lösungsmittel, Antiseptikum und als erneuerbarer Biokraftstoff zur Ergänzung von Benzin.\n• Es ist ein Depressivum des Zentralnervensystems.';
+
+  @override
+  String get level07Space =>
+      'Gigantische, Milliarden Kilometer breite Ethanolwolken wurden im interstellaren Raum entdeckt. Diese kosmischen Spirituosen bilden sich auf Staubkörnern und sind nicht trinkbar! Auf dem Mars würde der niedrige Druck Ethanol bereits bei 10°C zum Sieden bringen.';
+
+  @override
+  String get level08Desc =>
+      'Isopropanol ((CH₃)₂CHOH), oder Isopropylalkohol, ist ein gängiges Desinfektions- und Reinigungsmittel, weithin als Reinigungsalkohol bekannt. Es ist ein Isomer von Propanol.';
+
+  @override
+  String get level08Facts =>
+      '• Die Hydroxylgruppe (-OH) ist am mittleren Kohlenstoffatom der Dreikohlenstoffkette angebracht.\n• Seine Fähigkeit, Öle zu lösen, und seine schnelle Verdunstung machen es zu einem wirksamen Reiniger für Elektronik und zu einem Enteisungsmittel.\n• Die Einnahme ist giftig.';
+
+  @override
+  String get level08Space =>
+      'Isopropanol wurde eindeutig in einer sternbildenden Wolke nahe dem Zentrum unserer Galaxie, Sagittarius B2, nachgewiesen. Es ist der größte bisher gefundene Alkohol mit einer verzweigten Struktur, was Hinweise darauf gibt, wie komplexe organische Moleküle zwischen Sternen entstehen.';
+
+  @override
+  String get level09Desc =>
+      'Ethanal (CH₃CHO), allgemein als Acetaldehyd bekannt, ist eine reaktive, farblose Flüssigkeit mit einem stechenden, fruchtigen Geruch. Es ist ein wichtiges Zwischenprodukt in der organischen Synthese und im Stoffwechsel.';
+
+  @override
+  String get level09Facts =>
+      '• Kommt natürlich in Kaffee, Brot und reifen Früchten vor.\n• Im menschlichen Körper ist es ein Zwischenprodukt beim Abbau von Ethanol und eine Hauptursache für Katersymptome.\n• Wird zur Herstellung von Essigsäure, Parfums und Farbstoffen verwendet.';
+
+  @override
+  String get level09Space =>
+      'Acetaldehyd findet sich in Kometen und interstellaren Molekülwolken. Es gilt als wichtiges präbiotisches Molekül, da es unter weltraumähnlichen Bedingungen zu Aminosäuren wie Alanin reagieren kann, was darauf hindeutet, dass die Bausteine des Lebens einen außerirdischen Ursprung haben könnten.';
+
+  @override
+  String get level10Desc =>
+      'Aceton (CH₃COCH₃), oder Propanon, ist das einfachste Keton. Es ist eine farblose, flüchtige und brennbare Flüssigkeit mit einem charakteristischen süßlich-stechenden Geruch. Es ist ein gängiges Lösungsmittel, berühmt für seine Verwendung in Nagellackentfernern.';
+
+  @override
+  String get level10Facts =>
+      '• Besitzt eine zentrale Carbonylgruppe (C=O), die an zwei Methylgruppen gebunden ist.\n• Ist mit Wasser mischbar und dient als wichtiges Reinigungsmittel im Labor und in der Industrie.\n• Der menschliche Körper produziert auf natürliche Weise geringe Mengen Aceton während des Stoffwechsels.';
+
+  @override
+  String get level10Space =>
+      'Aceton wurde von der Raumsonde Rosetta in der Gaswolke um den Kometen 67P nachgewiesen. Seine Anwesenheit auf Kometen stützt die Theorie, dass diese \'schmutzigen Schneebälle\' einen Cocktail aus komplexen organischen Molekülen auf die frühe Erde gebracht haben könnten.';
+
+  @override
+  String get level11Desc =>
+      'Ameisensäure (HCOOH) ist die einfachste Carbonsäure. Es ist eine farblose Flüssigkeit mit einem stechenden, durchdringenden Geruch. Sie kommt natürlich im Gift von Ameisen und Bienen vor.';
+
+  @override
+  String get level11Facts =>
+      '• Ihr Name leitet sich vom lateinischen Wort für Ameise, \'formica\', ab, da sie erstmals aus Ameisenkörpern isoliert wurde.\n• Wird als Konservierungs- und antibakterielles Mittel in Tierfutter verwendet.\n• Sie ist ätzend und reizt die Haut.';
+
+  @override
+  String get level11Space =>
+      'Ameisensäure ist in interstellaren Wolken reichlich vorhanden und wurde in Kometen beobachtet. Sie ist ein Schlüsselmolekül für Astrochemiker, da sie die Carboxylgruppe (-COOH) enthält, die das entscheidende Merkmal aller Aminosäuren, den Bausteinen von Proteinen, ist.';
+
+  @override
+  String get level13Desc =>
+      'Essigsäure (CH₃COOH) ist eine Carbonsäure, die Essig seinen sauren Geschmack und stechenden Geruch verleiht. In ihrer reinen, wasserfreien Form wird sie Eisessig genannt.';
+
+  @override
+  String get level13Facts =>
+      '• Besteht aus einer Methylgruppe, die an eine Carboxylgruppe gebunden ist.\n• Ein grundlegendes chemisches Reagenz und eine Industriechemikalie, die bei der Herstellung von Kunststoffen, Fotofilmen und Textilien verwendet wird.\n• Als schwache Säure wird sie als Lebensmittelzusatzstoff (E260) zur Säureregulierung eingesetzt.';
+
+  @override
+  String get level13Space =>
+      'Essigsäure wurde in den heißen molekularen Kernen von sternbildenden Regionen wie Sagittarius B2 nachgewiesen. Ihre Anwesenheit deutet darauf hin, dass die Chemie in diesen stellaren Kinderstuben komplex genug ist, um die Schlüsselkomponenten der Biochemie zu bilden.';
+
+  @override
+  String get level14Desc =>
+      'trans-Buten ist ein Isomer von Buten (C₄H₈), bei dem die Hauptkohlenstoffketten auf gegenüberliegenden Seiten der Kohlenstoff-Kohlenstoff-Doppelbindung liegen. Diese \'trans\'-Konfiguration macht es stabiler als sein cis-Isomer.';
+
+  @override
+  String get level14Facts =>
+      '• Die starre Doppelbindung verhindert eine Rotation und erzeugt unterschiedliche geometrische Isomere.\n• Es ist bei Raumtemperatur ein farbloses, brennbares Gas.\n• Wird bei der Herstellung von synthetischem Kautschuk und anderen Chemikalien verwendet.';
+
+  @override
+  String get level14Space =>
+      'Das relative Vorkommen von cis- und trans-Isomeren im Weltraum kann Astronomen Aufschluss über die Bedingungen geben, unter denen sie sich gebildet haben. Eine Hochtemperatur-Gasphasenreaktion könnte ein anderes Isomerenverhältnis erzeugen als eine Niedertemperaturreaktion auf der Oberfläche eines Eiskorns.';
+
+  @override
+  String get level15Desc =>
+      'cis-Buten ist ein Isomer von Buten (C₄H₈), bei dem die Hauptkohlenstoffketten auf der gleichen Seite der Kohlenstoff-Kohlenstoff-Doppelbindung liegen. Diese Konfiguration ist aufgrund sterischer Hinderung weniger stabil als das trans-Isomer.';
+
+  @override
+  String get level15Facts =>
+      '• Hat aufgrund eines kleinen molekularen Dipolmoments einen etwas höheren Siedepunkt als sein trans-Isomer.\n• Die cis-trans-Isomerie ist in der Biologie von entscheidender Bedeutung, insbesondere bei der Funktion von Fettsäuren und im Sehvorgang (Retinal).';
+
+  @override
+  String get level15Space =>
+      'Der Nachweis spezifischer Isomere wie cis-Buten im Weltraum ist eine große Herausforderung für die Radioastronomie. Ein bestätigter Nachweis könnte tiefe Einblicke in die physikalischen und chemischen Prozesse in protoplanetaren Scheiben geben, wo neue Planeten geboren werden.';
+
+  @override
+  String get level16Desc =>
+      'Dimethylether (CH₃OCH₃) ist der einfachste Ether. Es ist ein farbloses Gas, das ein Isomer von Ethanol ist, aber aufgrund fehlender Wasserstoffbrückenbindungen sehr unterschiedliche Eigenschaften hat.';
+
+  @override
+  String get level16Facts =>
+      '• Es wird als sauber verbrennender Alternativkraftstoff für Dieselmotoren entwickelt, da es sehr geringe Emissionen von Partikeln und Stickoxiden erzeugt.\n• Wird als Treibmittel in Aerosolspraydosen verwendet und ersetzt FCKW.\n• Kann aus Erdgas, Kohle oder Biomasse hergestellt werden.';
+
+  @override
+  String get level16Space =>
+      'Dimethylether ist eines der am häufigsten vorkommenden großen organischen Moleküle, die in sternbildenden Wolken gefunden werden. Er dient Astronomen als entscheidender chemischer Indikator, der ihnen hilft, die Temperatur und Dichte der Regionen zu bestimmen, in denen Sterne und Planeten entstehen.';
+
+  @override
+  String get level17Desc =>
+      'Butanol (C₄H₉OH) ist ein Vier-Kohlenstoff-Alkohol mit mehreren Isomeren. Butan-1-ol, hier gezeigt, ist ein primärer Alkohol mit einem bananenartigen Geruch. Es wird als Lösungsmittel verwendet und als Biokraftstoff erforscht.';
+
+  @override
+  String get level17Facts =>
+      '• Als Biokraftstoff (\'Biobutanol\') hat es eine höhere Energiedichte als Ethanol und ist weniger korrosiv, was es zu einer attraktiveren Benzin-Alternative macht.\n• Wird in einer Vielzahl von Anwendungen eingesetzt, einschließlich als künstliches Aroma in Lebensmitteln und als Zutat in Parfums.\n• Zu seinen Isomeren gehören Isobutanol und tert-Butanol.';
+
+  @override
+  String get level17Space =>
+      'Komplexe Alkohole, die größer als Propanol sind, wurden im interstellaren Raum noch nicht eindeutig nachgewiesen. Die Suche nach Butanol dauert an, da seine Entdeckung die Grenzen der bekannten interstellaren Chemie erweitern und bestätigen würde, dass auch größere, komplexere organische Strukturen zwischen den Sternen entstehen können.';
+
+  @override
+  String get level19Desc =>
+      '2-Methyl-2-Propanol ((CH₃)₃COH), auch als tert-Butanol bekannt, ist der einfachste tertiäre Alkohol. Es ist bei Raumtemperatur ein farbloser Feststoff, der leicht schmilzt und einen kampferartigen Geruch hat.';
+
+  @override
+  String get level19Facts =>
+      '• Das \'tert\' (tertiär) bezieht sich darauf, dass der zentrale Kohlenstoff an drei andere Kohlenstoffatome gebunden ist.\n• Wird als Lösungsmittel, als Vergällungsmittel für Ethanol und als Oktanzahl-Booster für Benzin verwendet.\n• Seine sperrige Form verhindert, dass es auf die gleiche Weise wie andere Butanol-Isomere reagiert.';
+
+  @override
+  String get level19Space =>
+      'Einen verzweigten tertiären Alkohol wie diesen im Weltraum nachzuweisen, wäre eine monumentale Entdeckung. Es würde beweisen, dass nicht nur lange Ketten, sondern auch komplexe, verzweigte Strukturen in der rauen Umgebung interstellarer Wolken synthetisiert werden können, was das Inventar präbiotischer Moleküle erweitert.';
+
+  @override
+  String get level20Desc =>
+      'Glycerin (C₃H₈O₃), oder Glycerol, ist eine einfache Polyolverbindung. Es ist eine farblose, geruchlose, viskose und süß schmeckende Flüssigkeit. Es ist ungiftig und bildet das Rückgrat aller Triglyceride (Fette).';
+
+  @override
+  String get level20Facts =>
+      '• Die drei Hydroxylgruppen (-OH) machen es sehr gut wasserlöslich und hygroskopisch (es zieht Wassermoleküle an und hält sie fest).\n• Weit verbreitet in Lebensmitteln als Süßstoff, in Arzneimitteln und in Körperpflegeprodukten wie Seife und Feuchtigkeitscremes.\n• Ein natürliches Frostschutzmittel bei einigen arktischen und alpinen Insekten.';
+
+  @override
+  String get level20Space =>
+      'Glycerin ist ein Schlüsselmolekül bei der Suche nach außerirdischem Leben. Seine Fähigkeit, als Lösungsmittel zu wirken und den Gefrierpunkt von Wasser zu senken, könnte Flüssigkeiten auf ansonsten gefrorenen Welten stabil halten und potenziell bewohnbare Umgebungen auf Eismonden oder Exoplaneten schaffen.';
+
+  @override
+  String get level21Desc =>
+      'Polytetrafluorethylen ((C₂F₄)n), oder PTFE, ist ein synthetisches Polymer, das am besten unter dem Markennamen Teflon bekannt ist. Das Bild zeigt sein Monomer, Tetrafluorethylen.';
+
+  @override
+  String get level21Facts =>
+      '• Es hat einen der niedrigsten Reibungskoeffizienten aller Feststoffe, was es extrem antihaftbeschichtet macht.\n• Sehr beständig gegen chemische Angriffe und stabil über einen weiten Temperaturbereich.\n• Wird in antihaftbeschichtetem Kochgeschirr, Rohrauskleidungen und medizinischen Geräten verwendet.';
+
+  @override
+  String get level21Space =>
+      'Fluor ist im Kosmos ein relativ seltenes Element. Obwohl nicht erwartet wird, dass sich komplexe Fluorpolymere auf natürliche Weise im Weltraum bilden, machen die unglaubliche Haltbarkeit und die reibungsarmen Eigenschaften von PTFE es zu einem wichtigen Material für die Raumfahrt, das von Raumanzügen bis zu Rover-Komponenten verwendet wird.';
+
+  @override
+  String get level22Desc =>
+      'Oxalsäure ((COOH)₂) ist die einfachste Dicarbonsäure. Sie ist ein farbloser kristalliner Feststoff, der sich in Wasser zu einer farblosen Lösung auflöst. Sie ist eine viel stärkere Säure als Essigsäure.';
+
+  @override
+  String get level22Facts =>
+      '• Kommt natürlich in vielen Pflanzen vor, einschließlich Blattgemüse (wie Spinat), Gemüse, Obst und Nüssen.\n• Sie bindet sich mit Mineralien wie Kalzium zu Kristallen, die der Hauptbestandteil der häufigsten Art von Nierensteinen sind.\n• Wird als Reinigungs- und Bleichmittel verwendet, insbesondere zur Entfernung von Rost.';
+
+  @override
+  String get level22Space =>
+      'Auf dem Mars haben Instrumente an Bord von Rovern Mineralien entdeckt, die mit Oxalaten in Verbindung gebracht werden könnten. Die Anwesenheit dieser Salze deutet darauf hin, dass auf dem Roten Planeten Wasser und organische Chemie stattgefunden haben, was Hinweise auf seine frühere Bewohnbarkeit liefert.';
+
+  @override
+  String get level23Desc =>
+      'Formaldehyd (CH₂O), oder Methanal, ist das einfachste Aldehyd. Es ist ein farbloses Gas mit einem charakteristischen stechenden, reizenden Geruch. Es ist ein entscheidender Vorläufer für viele andere chemische Verbindungen.';
+
+  @override
+  String get level23Facts =>
+      '• Wird bei der Herstellung von Industrieharzen verwendet, z. B. für Spanplatten und Beschichtungen.\n• Ein wichtiges Konservierungs- und Desinfektionsmittel, obwohl seine Verwendung aufgrund seiner Karzinogenität heute eingeschränkt ist.\n• Es ist ein Verbrennungsprodukt und kommt im Tabakrauch vor.';
+
+  @override
+  String get level23Space =>
+      'Formaldehyd ist ein Eckpfeiler der Astrochemie. Es war eines der ersten organischen Moleküle, das im interstellaren Medium nachgewiesen wurde. Es bildet sich leicht auf kosmischen Eiskörnern und gilt als Ausgangspunkt für die Synthese komplexerer Moleküle, einschließlich Zuckern wie Ribose, einem Bestandteil der RNA.';
+
+  @override
+  String get level25Desc =>
+      'Essigsäureethylester (CH₃COOC₂H₅), oder Ethylacetat, ist ein gängiger Ester. Es ist eine farblose Flüssigkeit mit einem charakteristischen süßen, fruchtigen Geruch, der an Birnenbonbons oder Nagellackentferner erinnert.';
+
+  @override
+  String get level25Facts =>
+      '• Es ist ein ausgezeichnetes Lösungsmittel, das in Klebstoffen, Nagellackentfernern und zum Entkoffeinieren von Tee und Kaffee verwendet wird.\n• Wird als künstliches Fruchtaroma in Lebensmitteln, Parfums und Süßigkeiten verwendet.\n• Wird im großen Maßstab als Lösungsmittel hergestellt.';
+
+  @override
+  String get level25Space =>
+      'Ethylacetat wurde in der Staubwolke im Zentrum der Milchstraße nachgewiesen. Ester sind für viele der angenehmen Gerüche und Geschmäcker verantwortlich, die wir auf der Erde kennen (wie Früchte und Blumen). Ihre Entdeckung im Weltraum deutet darauf hin, dass das Universum ein chemisch reicher Ort ist, der in der Lage ist, die Moleküle zu erzeugen, die wir mit dem Leben verbinden.';
+
+  @override
+  String get level26Desc =>
+      'Ammoniak (NH₃) ist eine Verbindung aus Stickstoff und Wasserstoff. Es ist ein farbloses Gas mit einem sehr scharfen, stechenden Geruch. Es ist ein grundlegender Baustein für Düngemittel, Kunststoffe und Pharmazeutika.';
+
+  @override
+  String get level26Facts =>
+      '• Eine der am meisten produzierten anorganischen Chemikalien der Welt, hauptsächlich zur Verwendung in Stickstoffdüngern.\n• Seine Fähigkeit, Wasserstoffbrückenbindungen zu bilden, macht es sehr gut in Wasser löslich.\n• Eine Schlüsselverbindung im Stickstoffkreislauf, die für die Herstellung von Proteinen und Nukleinsäuren unerlässlich ist.';
+
+  @override
+  String get level26Space =>
+      'Ammoniak ist ein Hauptbestandteil der Atmosphären von Jupiter und Saturn, wo es brillante weiße Wolken aus Ammoniak-Eiskristallen bildet. Es ist auch in Kometen und auf Eismonden fest gefroren. Die Anwesenheit von Ammoniak ist ein wichtiger Indikator für die Verfügbarkeit von Stickstoff für die Chemie auf anderen Welten.';
+
+  @override
+  String get level27Desc =>
+      '3-Methylpentan (C₆H₁₄) ist ein verzweigtkettiges Alkan und ein Isomer von Hexan. Es ist eine farblose, brennbare Flüssigkeit und ein Bestandteil von Benzin.';
+
+  @override
+  String get level27Facts =>
+      '• Als verzweigtes Alkan hat es eine höhere Oktanzahl als geradkettiges Hexan, was es zu einer besseren Kraftstoffkomponente zur Verhinderung von Motorklopfen macht.\n• Es wird aus Rohöl raffiniert.\n• Es hat zwei Enantiomere, (3R)-Methylpentan und (3S)-Methylpentan, die Spiegelbilder voneinander sind.';
+
+  @override
+  String get level27Space =>
+      'Während einfache Alkane wie Methan häufig sind, sind größere verzweigte Alkane im Weltraum schwerer nachzuweisen. Sie werden jedoch in kohligen Chondrit-Meteoriten gefunden. Diese Meteoriten sind unberührte Proben aus dem frühen Sonnensystem und zeigen, dass komplexe organische Chemie, einschließlich der Bildung von Isomeren, aktiv war, als sich die Planeten bildeten.';
+
+  @override
+  String get level28Desc =>
+      'Propanal (CH₃CH₂CHO) ist ein Drei-Kohlenstoff-Aldehyd. Es ist eine farblose, brennbare Flüssigkeit mit einem fruchtigen, aber erstickenden Geruch. Es ist ein Isomer von Aceton.';
+
+  @override
+  String get level28Facts =>
+      '• Es wird hauptsächlich als Vorläufer zur Herstellung anderer Chemikalien wie Propanol und verschiedener Harze verwendet.\n• Wie andere Aldehyde ist es aufgrund seiner Carbonylgruppe eine reaktive Verbindung.\n• Es kann durch die Oxidation von Propan-1-ol gebildet werden.';
+
+  @override
+  String get level28Space =>
+      'Propanal wurde in der sternbildenden Region Sagittarius B2 nachgewiesen. Zusammen mit seinem Isomer Aceton hilft sein Nachweis Astronomen, die chemische Komplexität des interstellaren Mediums zu kartieren und die Bildungswege von Molekülen zu verstehen, die die wichtige Carbonyl-Funktionsgruppe enthalten.';
+
+  @override
+  String get level29Desc =>
+      'Propin (C₃H₄) ist ein Alkin mit drei Kohlenstoffatomen und einer Kohlenstoff-Kohlenstoff-Dreifachbindung. Es ist ein farbloses, brennbares Gas. Es ist eine praktische, bei Raumtemperatur flüssige Alternative zu Acetylen.';
+
+  @override
+  String get level29Facts =>
+      '• Die Dreifachbindung macht es sehr reaktiv und nützlich in der organischen Synthese.\n• Es ist ein Bestandteil von MAPP-Gas, einem Brenngas, das beim Schweißen und Löten wegen seiner hohen Flammentemperatur verwendet wird.\n• Es ist ein Isomer von sowohl Propadien als auch Cyclopropen.';
+
+  @override
+  String get level29Space =>
+      'Propin wurde im interstellaren Medium nachgewiesen, insbesondere in der Atmosphäre des Saturnmondes Titan. Auf Titan zerlegt komplexe Photochemie, angetrieben durch Sonnenlicht, Methan und Stickstoff und erzeugt eine reiche Suppe aus Kohlenwasserstoffen, einschließlich Propin, die zu seinem atmosphärischen Dunst beitragen.';
+
+  @override
   String get spaceGridlockTitle => 'Raumstation-Stau';
 
   @override

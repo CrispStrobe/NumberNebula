@@ -2931,6 +2931,666 @@ abstract class S {
   /// **'Undo: The \'Undo\' button will revert your last move, but it costs 2 moves as a penalty.'**
   String get moleculeBuilderInfoUndo;
 
+  /// No description provided for @level01Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Water'**
+  String get level01Label;
+
+  /// No description provided for @level02Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Methane'**
+  String get level02Label;
+
+  /// No description provided for @level03Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Methanol'**
+  String get level03Label;
+
+  /// No description provided for @level04Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Ethylene'**
+  String get level04Label;
+
+  /// No description provided for @level05Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Propene'**
+  String get level05Label;
+
+  /// No description provided for @level06Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus Section 1'**
+  String get level06Label;
+
+  /// No description provided for @level07Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Ethanol'**
+  String get level07Label;
+
+  /// No description provided for @level08Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Isopropanol'**
+  String get level08Label;
+
+  /// No description provided for @level09Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Ethanal'**
+  String get level09Label;
+
+  /// No description provided for @level10Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Acetone'**
+  String get level10Label;
+
+  /// No description provided for @level11Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Formic Acid'**
+  String get level11Label;
+
+  /// No description provided for @level12Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus Section 2'**
+  String get level12Label;
+
+  /// No description provided for @level13Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Acetic Acid'**
+  String get level13Label;
+
+  /// No description provided for @level14Label.
+  ///
+  /// In en, this message translates to:
+  /// **'trans-Butene'**
+  String get level14Label;
+
+  /// No description provided for @level15Label.
+  ///
+  /// In en, this message translates to:
+  /// **'cis-Butene'**
+  String get level15Label;
+
+  /// No description provided for @level16Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Dimethyl ether'**
+  String get level16Label;
+
+  /// No description provided for @level17Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Butanol'**
+  String get level17Label;
+
+  /// No description provided for @level18Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus Section 3'**
+  String get level18Label;
+
+  /// No description provided for @level19Label.
+  ///
+  /// In en, this message translates to:
+  /// **'2-Methyl-2-Propanol'**
+  String get level19Label;
+
+  /// No description provided for @level20Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Glycerin'**
+  String get level20Label;
+
+  /// No description provided for @level21Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Poly-Tetra-Fluoro-Ethene'**
+  String get level21Label;
+
+  /// No description provided for @level22Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxalic Acid'**
+  String get level22Label;
+
+  /// No description provided for @level23Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Formaldehyde'**
+  String get level23Label;
+
+  /// No description provided for @level24Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus Section 4'**
+  String get level24Label;
+
+  /// No description provided for @level25Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Acetic acid ethyl ester'**
+  String get level25Label;
+
+  /// No description provided for @level26Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Ammonia'**
+  String get level26Label;
+
+  /// No description provided for @level27Label.
+  ///
+  /// In en, this message translates to:
+  /// **'3-Methyl-Pentane'**
+  String get level27Label;
+
+  /// No description provided for @level28Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Propanal'**
+  String get level28Label;
+
+  /// No description provided for @level29Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Propyne'**
+  String get level29Label;
+
+  /// No description provided for @level30Label.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus Section 5'**
+  String get level30Label;
+
+  /// No description provided for @moleculeBuilderMoleculeInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Molecule Info'**
+  String get moleculeBuilderMoleculeInfo;
+
+  /// No description provided for @moleculeBuilderBonusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus Target'**
+  String get moleculeBuilderBonusTitle;
+
+  /// No description provided for @moleculeInfoNomenclature.
+  ///
+  /// In en, this message translates to:
+  /// **'Nomenclature & Description'**
+  String get moleculeInfoNomenclature;
+
+  /// No description provided for @moleculeInfoKeyFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Key Facts'**
+  String get moleculeInfoKeyFacts;
+
+  /// No description provided for @moleculeInfoInSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'In Space'**
+  String get moleculeInfoInSpace;
+
+  /// No description provided for @level01Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Water (H₂O) is an inorganic compound essential for all known forms of life. It is a tasteless, odorless liquid at standard temperature, often called the \'universal solvent\' for its ability to dissolve many substances.'**
+  String get level01Desc;
+
+  /// No description provided for @level01Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• Consists of two hydrogen atoms covalently bonded to a single oxygen atom.\n• Due to its polarity, it exhibits strong hydrogen bonds, leading to a high boiling point and surface tension.\n• Ice is less dense than liquid water, a rare property that allows aquatic life to survive under frozen surfaces.'**
+  String get level01Facts;
+
+  /// No description provided for @level01Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Water is abundant in interstellar clouds, on comets, and on icy moons like Europa. In the vacuum of space, liquid water cannot exist; it either freezes into ice or boils away into vapor. On Mars, its low atmospheric pressure means water boils at just above 0°C (32°F).'**
+  String get level01Space;
+
+  /// No description provided for @level02Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Methane (CH₄) is the simplest alkane and the primary component of natural gas. It is a colorless, odorless gas and a potent greenhouse gas.'**
+  String get level02Desc;
+
+  /// No description provided for @level02Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• Features a central carbon atom bonded to four hydrogen atoms in a tetrahedral geometry.\n• Produced by anaerobic bacteria in environments like wetlands and the digestive tracts of ruminants.\n• A key fuel source and a starting material for the chemical industry.'**
+  String get level02Facts;
+
+  /// No description provided for @level02Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Methane is common in our solar system. Titan, Saturn\'s largest moon, has a thick methane atmosphere with rivers and lakes of liquid methane on its surface, where the temperature is a frigid -179°C (-290°F).'**
+  String get level02Space;
+
+  /// No description provided for @level03Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Methanol (CH₃OH), or wood alcohol, is the simplest alcohol. It is a light, volatile, colorless, and flammable liquid with a distinctive odor.'**
+  String get level03Desc;
+
+  /// No description provided for @level03Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• Composed of a methyl group (-CH₃) linked to a hydroxyl group (-OH).\n• It is highly toxic if ingested and is used as a solvent, antifreeze, and in chemical synthesis.\n• An important fuel in some specialized engines.'**
+  String get level03Facts;
+
+  /// No description provided for @level03Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Vast clouds of methanol exist in star-forming regions of the Milky Way. It forms on the surface of icy dust grains and is considered a key building block for more complex organic molecules in space.'**
+  String get level03Space;
+
+  /// No description provided for @level04Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Ethylene (C₂H₄), or ethene, is the simplest alkene, characterized by a carbon-carbon double bond. It is a colorless flammable gas with a faint sweet odor.'**
+  String get level04Desc;
+
+  /// No description provided for @level04Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• The most produced organic compound in the world, primarily used to make polyethylene plastic.\n• Acts as a natural plant hormone, regulating processes like fruit ripening, flower opening, and leaf shedding.\n• The double bond makes it much more reactive than ethane.'**
+  String get level04Facts;
+
+  /// No description provided for @level04Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Ethylene is present in the atmospheres of gas giants like Jupiter and Saturn. On Titan, sunlight breaks down methane into more complex hydrocarbons, including ethylene, contributing to the moon\'s orange haze.'**
+  String get level04Space;
+
+  /// No description provided for @level05Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Propene (C₃H₆), or propylene, is an alkene with three carbon atoms and one double bond. It is a colorless gas with a faint petroleum-like odor.'**
+  String get level05Desc;
+
+  /// No description provided for @level05Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• A vital starting material in the petrochemical industry, second only to ethylene.\n• Primarily used to produce polypropylene, a versatile plastic used in packaging, textiles, and automotive parts.\n• Produced by steam cracking of hydrocarbon feedstocks.'**
+  String get level05Facts;
+
+  /// No description provided for @level05Space.
+  ///
+  /// In en, this message translates to:
+  /// **'NASA\'s Cassini spacecraft detected propene on Titan. Its presence helps scientists model the complex atmospheric chemistry on worlds rich in methane, providing insights into how building blocks for life might form.'**
+  String get level05Space;
+
+  /// No description provided for @level07Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Ethanol (C₂H₅OH), or grain alcohol, is the alcohol found in alcoholic beverages. It is a volatile, flammable, colorless liquid produced by the fermentation of sugars.'**
+  String get level07Desc;
+
+  /// No description provided for @level07Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• Composed of an ethyl group (-C₂H₅) bonded to a hydroxyl group (-OH).\n• Widely used as a solvent, antiseptic, and as a renewable biofuel to supplement gasoline.\n• It is a central nervous system depressant.'**
+  String get level07Facts;
+
+  /// No description provided for @level07Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Gigantic clouds of ethanol, billions of kilometers wide, have been found floating in interstellar space. These cosmic spirits are formed on dust grains and are not drinkable! On Mars, the low pressure would cause ethanol to boil at just 10°C (50°F).'**
+  String get level07Space;
+
+  /// No description provided for @level08Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Isopropanol ((CH₃)₂CHOH), or isopropyl alcohol, is a common disinfectant and cleaning agent, widely known as rubbing alcohol. It is an isomer of propanol.'**
+  String get level08Desc;
+
+  /// No description provided for @level08Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• The hydroxyl group (-OH) is attached to the middle carbon of the three-carbon chain.\n• Its ability to dissolve oils and its rapid evaporation make it an effective cleaner for electronics and a de-icing agent.\n• It is toxic to ingest.'**
+  String get level08Facts;
+
+  /// No description provided for @level08Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Isopropanol was definitively detected in a star-forming cloud near the center of our galaxy, Sagittarius B2. It is the largest alcohol found so far with a branched structure, giving clues about how complex organic molecules form between stars.'**
+  String get level08Space;
+
+  /// No description provided for @level09Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Ethanal (CH₃CHO), commonly known as acetaldehyde, is a reactive, colorless liquid with a pungent, fruity odor. It is an important intermediate in organic synthesis and metabolism.'**
+  String get level09Desc;
+
+  /// No description provided for @level09Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• Occurs naturally in coffee, bread, and ripe fruit.\n• In the human body, it is an intermediate in the breakdown of ethanol and is a major cause of hangover symptoms.\n• Used to produce acetic acid, perfumes, and dyes.'**
+  String get level09Facts;
+
+  /// No description provided for @level09Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Acetaldehyde is found in comets and interstellar molecular clouds. It is a key prebiotic molecule because it can react to form amino acids like alanine under space-like conditions, suggesting that life\'s building blocks may have extraterrestrial origins.'**
+  String get level09Space;
+
+  /// No description provided for @level10Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Acetone (CH₃COCH₃), or propanone, is the simplest ketone. It is a colorless, volatile, and flammable liquid with a distinctive sweet, pungent odor. It\'s a common solvent, famously used in nail polish remover.'**
+  String get level10Desc;
+
+  /// No description provided for @level10Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• Features a central carbonyl group (C=O) bonded to two methyl groups.\n• Miscible with water and serves as an important solvent for cleaning in laboratory and industrial settings.\n• The human body naturally produces small amounts of acetone during metabolism.'**
+  String get level10Facts;
+
+  /// No description provided for @level10Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Acetone has been detected in the gas cloud surrounding Comet 67P by the Rosetta spacecraft. Its presence on comets suggests that these \'dirty snowballs\' could have delivered a cocktail of complex organic molecules to the early Earth.'**
+  String get level10Space;
+
+  /// No description provided for @level11Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Formic Acid (HCOOH) is the simplest carboxylic acid. It is a colorless liquid with a pungent, penetrating odor. It is naturally found in the venom of ants and bees.'**
+  String get level11Desc;
+
+  /// No description provided for @level11Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• Its name comes from the Latin word for ant, \'formica\', as it was first isolated from ant bodies.\n• Used as a preservative and antibacterial agent in livestock feed.\n• It is corrosive and an irritant to the skin.'**
+  String get level11Facts;
+
+  /// No description provided for @level11Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Formic acid is abundant in interstellar clouds and has been observed in comets. It is a key molecule for astrochemists because it contains the carboxyl group (-COOH) that is the defining feature of all amino acids, the building blocks of proteins.'**
+  String get level11Space;
+
+  /// No description provided for @level13Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Acetic Acid (CH₃COOH) is a carboxylic acid that gives vinegar its sour taste and pungent smell. In its pure, water-free form, it is called glacial acetic acid.'**
+  String get level13Desc;
+
+  /// No description provided for @level13Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• Consists of a methyl group bonded to a carboxyl group.\n• A fundamental chemical reagent and industrial chemical, used in the production of plastics, photographic film, and textiles.\n• A weak acid, it is used as a food additive (E260) for acidity regulation.'**
+  String get level13Facts;
+
+  /// No description provided for @level13Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Acetic acid has been detected in the hot molecular cores of star-forming regions like Sagittarius B2. Its presence suggests that the chemistry in these stellar nurseries is complex enough to form the key components of biochemistry.'**
+  String get level13Space;
+
+  /// No description provided for @level14Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'trans-Butene is an isomer of butene (C₄H₈) where the main carbon chains are on opposite sides of the carbon-carbon double bond. This \'trans\' configuration makes it more stable than its cis-isomer.'**
+  String get level14Desc;
+
+  /// No description provided for @level14Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• The rigid double bond prevents rotation, creating distinct geometric isomers.\n• It is a colorless, flammable gas at room temperature.\n• Used in the production of synthetic rubber and other chemicals.'**
+  String get level14Facts;
+
+  /// No description provided for @level14Space.
+  ///
+  /// In en, this message translates to:
+  /// **'The relative abundance of cis and trans isomers in space can tell astronomers about the conditions under which they formed. A high-temperature, gas-phase reaction might produce a different ratio of isomers than a low-temperature reaction on the surface of an ice grain.'**
+  String get level14Space;
+
+  /// No description provided for @level15Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'cis-Butene is an isomer of butene (C₄H₈) where the main carbon chains are on the same side of the carbon-carbon double bond. This configuration is less stable than the trans-isomer due to steric strain.'**
+  String get level15Desc;
+
+  /// No description provided for @level15Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• Has a slightly higher boiling point than its trans-isomer due to a small molecular dipole moment.\n• The cis-trans isomerism is critically important in biology, especially in the function of fatty acids and vision (retinal).'**
+  String get level15Facts;
+
+  /// No description provided for @level15Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Detecting specific isomers like cis-butene in space is a major challenge for radio astronomy. A confirmed detection could provide deep insights into the physical and chemical processes occurring in protoplanetary disks, where new planets are born.'**
+  String get level15Space;
+
+  /// No description provided for @level16Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Dimethyl ether (CH₃OCH₃) is the simplest ether. It is a colorless gas that is an isomer of ethanol, but with very different properties due to the lack of hydrogen bonding.'**
+  String get level16Desc;
+
+  /// No description provided for @level16Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• It is being developed as a clean-burning alternative fuel for diesel engines, as it produces very low emissions of particulates and NOx.\n• Used as a propellant in aerosol spray cans, replacing CFCs.\n• Can be produced from natural gas, coal, or biomass.'**
+  String get level16Facts;
+
+  /// No description provided for @level16Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Dimethyl ether is one of the most abundant large organic molecules found in star-forming clouds. It serves as a crucial chemical tracer for astronomers, helping them gauge the temperature and density of the regions where stars and planets are forming.'**
+  String get level16Space;
+
+  /// No description provided for @level17Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Butanol (C₄H₉OH) is a four-carbon alcohol with several isomers. Butan-1-ol, shown here, is a primary alcohol with a banana-like odor. It is used as a solvent and is being researched as a biofuel.'**
+  String get level17Desc;
+
+  /// No description provided for @level17Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• As a biofuel (\'biobutanol\'), it has a higher energy density than ethanol and is less corrosive, making it a more attractive gasoline alternative.\n• Used in a wide range of applications, including as an artificial flavoring in food and an ingredient in perfumes.\n• Its isomers include isobutanol and tert-butanol.'**
+  String get level17Facts;
+
+  /// No description provided for @level17Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Complex alcohols larger than propanol have not yet been definitively found in interstellar space. The search for butanol is ongoing, as its discovery would push the boundary of known interstellar chemistry and confirm that larger, more complex organic structures can form between the stars.'**
+  String get level17Space;
+
+  /// No description provided for @level19Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'2-Methyl-2-Propanol ((CH₃)₃COH), also known as tert-Butanol, is the simplest tertiary alcohol. It is a colorless solid at room temperature, which melts easily and has a camphor-like odor.'**
+  String get level19Desc;
+
+  /// No description provided for @level19Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• The \'tert\' (tertiary) refers to the central carbon being attached to three other carbon atoms.\n• Used as a solvent, a denaturant for ethanol, and a gasoline octane booster.\n• Its bulky shape prevents it from reacting in the same way as other butanol isomers.'**
+  String get level19Facts;
+
+  /// No description provided for @level19Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Detecting a branched tertiary alcohol like this one in space would be a monumental discovery. It would prove that not only can long chains form, but complex, branched structures can also be synthesized in the harsh environment of interstellar clouds, expanding the inventory of prebiotic molecules.'**
+  String get level19Space;
+
+  /// No description provided for @level20Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Glycerin (C₃H₈O₃), or glycerol, is a simple polyol compound. It is a colorless, odorless, viscous, and sweet-tasting liquid. It is non-toxic and is the backbone of all triglycerides (fats).'**
+  String get level20Desc;
+
+  /// No description provided for @level20Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• The three hydroxyl (-OH) groups make it highly water-soluble and hygroscopic (it attracts and holds water molecules).\n• Widely used in food as a sweetener, in pharmaceuticals, and in personal care products like soap and moisturizers.\n• A natural antifreeze in some arctic and alpine insects.'**
+  String get level20Facts;
+
+  /// No description provided for @level20Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Glycerol is a key molecule in the search for extraterrestrial life. Its ability to act as a solvent and lower the freezing point of water could make liquids stable on otherwise frozen worlds, potentially creating habitable environments on icy moons or exoplanets.'**
+  String get level20Space;
+
+  /// No description provided for @level21Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Poly-Tetra-Fluoro-Ethene ((C₂F₄)n), or PTFE, is a synthetic polymer best known by the brand name Teflon. The image shows its monomer, tetrafluoroethene.'**
+  String get level21Desc;
+
+  /// No description provided for @level21Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• It has one of the lowest coefficients of friction of any solid, making it extremely non-stick.\n• Highly resistant to chemical attack and stable over a wide range of temperatures.\n• Used in non-stick cookware, pipe linings, and medical devices.'**
+  String get level21Facts;
+
+  /// No description provided for @level21Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluorine is a relatively rare element in the cosmos. While complex fluoropolymers are not expected to form naturally in space, PTFE\'s incredible durability and low-friction properties make it a vital material for space exploration, used in everything from spacesuits to rover components.'**
+  String get level21Space;
+
+  /// No description provided for @level22Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxalic Acid ((COOH)₂) is the simplest dicarboxylic acid. It is a colorless crystalline solid that dissolves in water to give a colorless solution. It is a much stronger acid than acetic acid.'**
+  String get level22Desc;
+
+  /// No description provided for @level22Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• Found naturally in many plants, including leafy greens (like spinach), vegetables, fruits, and nuts.\n• It binds with minerals like calcium to form crystals, which are the main component of the most common type of kidney stones.\n• Used as a cleaning and bleaching agent, especially for removing rust.'**
+  String get level22Facts;
+
+  /// No description provided for @level22Space.
+  ///
+  /// In en, this message translates to:
+  /// **'On Mars, instruments aboard rovers have detected minerals that could be associated with oxalates. The presence of these salts suggests that water and organic chemistry have occurred on the Red Planet, providing clues about its past habitability.'**
+  String get level22Space;
+
+  /// No description provided for @level23Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Formaldehyde (CH₂O), or methanal, is the simplest aldehyde. It is a colorless gas with a characteristic pungent, irritating odor. It\'s a crucial precursor to many other chemical compounds.'**
+  String get level23Desc;
+
+  /// No description provided for @level23Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• Used in the production of industrial resins, such as for particleboard and coatings.\n• An important preservative and disinfectant, though its use is now limited due to its carcinogenicity.\n• It is a product of combustion and is found in tobacco smoke.'**
+  String get level23Facts;
+
+  /// No description provided for @level23Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Formaldehyde is a cornerstone of astrochemistry. It was one of the first organic molecules detected in the interstellar medium. It forms readily on cosmic ice grains and is considered a starting point for the synthesis of more complex molecules, including sugars like ribose, a component of RNA.'**
+  String get level23Space;
+
+  /// No description provided for @level25Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Acetic acid ethyl ester (CH₃COOC₂H₅), or ethyl acetate, is a common ester. It is a colorless liquid with a characteristic sweet, fruity smell, reminiscent of pear drops or nail polish remover.'**
+  String get level25Desc;
+
+  /// No description provided for @level25Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• It is an excellent solvent used in glues, nail polish removers, and for decaffeinating tea and coffee.\n• Used as an artificial fruit flavoring in foods, perfumes, and candies.\n• Produced on a large scale for use as a solvent.'**
+  String get level25Facts;
+
+  /// No description provided for @level25Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Ethyl acetate has been detected in the dust cloud at the center of the Milky Way. Esters are responsible for many of the pleasant smells and tastes we know on Earth (like fruits and flowers). Finding them in space suggests that the universe is a chemically rich place, capable of creating the molecules we associate with life.'**
+  String get level25Space;
+
+  /// No description provided for @level26Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Ammonia (NH₃) is a compound of nitrogen and hydrogen. It\'s a colorless gas with a very sharp, pungent odor. It is a fundamental building block for fertilizers, plastics, and pharmaceuticals.'**
+  String get level26Desc;
+
+  /// No description provided for @level26Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• One of the most highly produced inorganic chemicals in the world, primarily for use in nitrogen fertilizers.\n• Its ability to form hydrogen bonds makes it very soluble in water.\n• A key compound in the nitrogen cycle, essential for making proteins and nucleic acids.'**
+  String get level26Facts;
+
+  /// No description provided for @level26Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Ammonia is a major component of the atmospheres of Jupiter and Saturn, where it forms brilliant white clouds of ammonia ice. It is also frozen solid in comets and on icy moons. The presence of ammonia is a key indicator of the availability of nitrogen for chemistry on other worlds.'**
+  String get level26Space;
+
+  /// No description provided for @level27Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'3-Methyl-Pentane (C₆H₁₄) is a branched-chain alkane and an isomer of hexane. It is a colorless, flammable liquid and a component of gasoline.'**
+  String get level27Desc;
+
+  /// No description provided for @level27Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• As a branched alkane, it has a higher octane rating than straight-chain hexane, making it a better fuel component for preventing engine knocking.\n• It is refined from crude oil.\n• It has two enantiomers, (3R)-methylpentane and (3S)-methylpentane, which are mirror images of each other.'**
+  String get level27Facts;
+
+  /// No description provided for @level27Space.
+  ///
+  /// In en, this message translates to:
+  /// **'While simple alkanes like methane are common, larger branched alkanes are harder to detect in space. However, they are found in carbonaceous chondrite meteorites. These meteorites are pristine samples from the early solar system and show that complex organic chemistry, including the formation of isomers, was active when the planets were forming.'**
+  String get level27Space;
+
+  /// No description provided for @level28Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Propanal (CH₃CH₂CHO) is a three-carbon aldehyde. It is a colorless, flammable liquid with a fruity yet suffocating odor. It is an isomer of acetone.'**
+  String get level28Desc;
+
+  /// No description provided for @level28Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• It is primarily used as a precursor to other chemicals, such as propanol and various resins.\n• Like other aldehydes, it is a reactive compound due to its carbonyl group.\n• It can be formed from the oxidation of propan-1-ol.'**
+  String get level28Facts;
+
+  /// No description provided for @level28Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Propanal has been detected in the Sagittarius B2 star-forming region. Along with its isomer acetone, its detection helps astronomers map the chemical complexity of the interstellar medium and understand the formation routes of molecules containing the important carbonyl functional group.'**
+  String get level28Space;
+
+  /// No description provided for @level29Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Propyne (C₃H₄) is an alkyne with three carbon atoms and a carbon-carbon triple bond. It is a colorless, flammable gas. It is a convenient, liquid-at-room-temperature alternative to acetylene.'**
+  String get level29Desc;
+
+  /// No description provided for @level29Facts.
+  ///
+  /// In en, this message translates to:
+  /// **'• The triple bond makes it highly reactive and useful in organic synthesis.\n• It is a component of MAPP gas, a fuel gas used in welding and brazing for its high flame temperature.\n• It is an isomer of both propadiene and cyclopropene.'**
+  String get level29Facts;
+
+  /// No description provided for @level29Space.
+  ///
+  /// In en, this message translates to:
+  /// **'Propyne has been detected in the interstellar medium, particularly in the atmosphere of Saturn\'s moon Titan. On Titan, complex photochemistry driven by sunlight breaks down methane and nitrogen, creating a rich soup of hydrocarbons, including propyne, which contribute to its atmospheric haze.'**
+  String get level29Space;
+
   /// No description provided for @spaceGridlockTitle.
   ///
   /// In en, this message translates to:
