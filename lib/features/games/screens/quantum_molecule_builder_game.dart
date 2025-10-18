@@ -523,19 +523,30 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           }
         }
       }
-      debugPrint("  - Found ${atoms.length} atoms on playfield:");
-      for (var atom in atoms) {
-        final bonds = getBondingDirections(atom.atomixIndex);
-        debugPrint("    - Atom ID: ${atom.id}, Type: ${atom.type.symbol}, "
-                    "Index: ${atom.atomixIndex}, Bonds: $bonds");
-        }
-      
+      debugPrint("  - Found ${atoms.length} atoms on playfield.");
+
       _calculateVisibleBounds();
       targetPattern = _buildPatternFromSolution(level);
-      moveLimit = ((level.duration / 4.5) + (atoms.length * 1.5)).round().clamp(20, 150);
+
+      // --- MODIFIED: Move limit calculation ---
+      double baseMoveLimit = ((level.duration / 4.5) + (atoms.length * 1.5));
       
-      debugPrint("✅ Level ${level.levelNumber}: $levelName loaded (${atoms.length} atoms, $moveLimit moves)");
-      
+      // Calculate modifier based on grade
+      double gradeModifier = 1.0;
+      if (widget.grade == 3) {
+        gradeModifier = 1.1;
+      } else if (widget.grade == 2) {
+        gradeModifier = 1.2;
+      } else if (widget.grade == 1) {
+        gradeModifier = 1.3;
+      }
+      // Grade 4 has modifier 1.0
+
+      moveLimit = (baseMoveLimit * gradeModifier).round().clamp(20, 150);
+      // --- End of modification ---
+
+      debugPrint("✅ Level ${level.levelNumber}: ${level.name} loaded (${atoms.length} atoms, $moveLimit moves [Grade: ${widget.grade}])");
+
     } catch (e) {
       debugPrint("❌ Error loading level $_currentLevel: $e");
       _loadFallbackLevel();
@@ -1108,66 +1119,8 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
                   Column(
                     children: [
-                      GameUI(
-                        title: S.of(context)!.moleculeBuilderTitle,
-                        level: _currentLevel,
-                        onBack: () => Navigator.of(context).pop(),
-                        ),
-
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildNavigationButton(
-                                icon: Icons.arrow_back_ios,
-                                label: S.of(context)!.moleculeBuilderPrevious,
-                                onPressed: _canNavigateBackward() ? _goToPreviousLevel : null,
-                                ),
-                            const SizedBox(width: 12),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: SpaceTheme.deepSpace.withOpacity(0.8),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: SpaceTheme.starYellow, width: 2),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: 18),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '${S.of(context)!.moleculeBuilderLevel} $_currentLevel/${levelsData.length}',
-                                    style: const TextStyle(
-                                        color: SpaceTheme.starYellow,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        ),
-                                    ),
-                                  if (_levelsWonThisSession.contains(_currentLevel)) ...[
-                                    const SizedBox(width: 8),
-                                    const Icon(
-                                      Icons.check_circle,
-                                      color: SpaceTheme.alienGreen,
-                                      size: 16,
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            _buildInfoButton(),
-                            const SizedBox(width: 4),
-                            const SizedBox(width: 12),
-                            _buildNavigationButton(
-                                icon: Icons.arrow_forward_ios,
-                                label: S.of(context)!.moleculeBuilderNext,
-                                onPressed: _canNavigateForward() ? _goToNextLevel : null,
-                                ),
-                          ],
-                        ),
-                      ),
+                      // REPLACED: The old GameUI and Padding rows are gone
+                      _buildTopBar(), 
 
                       Expanded(
                         child: isWideScreen ? _buildWideLayout() : _buildCompactLayout(),
@@ -1188,13 +1141,111 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     );
   }
 
+  Widget _buildTopBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withOpacity(0.5),
+        border: Border(
+          bottom: BorderSide(color: SpaceTheme.nebulaPurple.withOpacity(0.3), width: 1),
+        ),
+      ),
+      // Use LayoutBuilder to get the available width
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Define a breakpoint below which the title is hidden
+          const double titleBreakpoint = 450.0;
+          bool showTitle = constraints.maxWidth > titleBreakpoint;
+
+          return Row(
+            children: [
+              // Back Button (Always shown)
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+                onPressed: () => Navigator.of(context).pop(),
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+              ),
+
+              // Title (Conditionally shown)
+              if (showTitle)
+                Padding(
+                  // Add some padding when title is shown
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Text(
+                    S.of(context)!.moleculeBuilderTitle,
+                    style: SpaceTheme.headlineStyle.copyWith(fontSize: 18, color: Colors.white),
+                  ),
+                ),
+
+              const Spacer(), // Pushes remaining items to the right
+
+              // Previous Level
+              _buildNavigationButton(
+                icon: Icons.arrow_back_ios,
+                label: '',
+                onPressed: _canNavigateBackward() ? _goToPreviousLevel : null,
+              ),
+              const SizedBox(width: 8),
+
+              // Level Counter
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: SpaceTheme.deepSpace.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: SpaceTheme.starYellow, width: 1.5),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: 16),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${S.of(context)!.moleculeBuilderLevel} $_currentLevel/${levelsData.length}',
+                      style: const TextStyle(
+                        color: SpaceTheme.starYellow,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (_levelsWonThisSession.contains(_currentLevel)) ...[
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.check_circle,
+                        color: SpaceTheme.alienGreen,
+                        size: 14,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // Next Level
+              _buildNavigationButton(
+                icon: Icons.arrow_forward_ios,
+                label: '',
+                onPressed: _canNavigateForward() ? _goToNextLevel : null,
+              ),
+
+              // Info Button
+              _buildInfoButton(),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildWideLayout() {
     final screenSize = MediaQuery.of(context).size;
 
-    final leftPanelWidth = screenSize.width * 0.25;
-    final rightPanelWidth = screenSize.width * 0.75;
+    // Width calculations remain the same
+    final leftPanelWidth = screenSize.width * 0.22;
+    final rightPanelWidth = screenSize.width * 0.78;
 
-    final availableHeight = screenSize.height - 120;
+    // Height calculation adjusted slightly for the top bar
+    final availableHeight = screenSize.height - 60; // Adjusted for top bar height
     final cellSize = math.min(
       rightPanelWidth / visibleWidth,
       availableHeight / visibleHeight,
@@ -1204,38 +1255,59 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       children: [
         Container(
           width: leftPanelWidth,
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  setState(() => _showMoleculeInfo = true);
-                  HapticFeedback.selectionClick();
-                },
-                child: _buildCompactTargetDisplay(),
-              ),
-              const SizedBox(height: 16),
-              _buildStats(),
-              const SizedBox(height: 16),
-              if (gameActive && selectedAtom != null) ...[
-                _buildSelectedInfo(),
-                const SizedBox(height: 12),
-                _buildCompactControls(),
-                const SizedBox(height: 12),
-              ],
-              if (gameActive)
+          padding: const EdgeInsets.symmetric(horizontal: 12.0), // Vertical padding removed here
+          // --- MODIFIED: Added SingleChildScrollView ---
+          child: SingleChildScrollView(
+            // Padding moved inside scroll view
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribute space
+              children: [
+                // Top content group
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min, // Prevent this group from expanding unnecessarily
                   children: [
-                    _buildUndoButton(),
-                    const SizedBox(height: 8),
-                    _buildRestartButton(),
-                  ],
+                     GestureDetector(
+                       onTap: () {
+                         setState(() => _showMoleculeInfo = true);
+                         HapticFeedback.selectionClick();
+                       },
+                       child: _buildCompactTargetDisplay(),
+                     ),
+                     const SizedBox(height: 16),
+                     _buildStats(),
+                     const SizedBox(height: 16),
+                     if (gameActive && selectedAtom != null) ...[
+                       _buildSelectedInfo(),
+                       const SizedBox(height: 12),
+                       _buildCompactControls(),
+                       const SizedBox(height: 12), // Add some space after controls
+                     ],
+                  ]
                 ),
-            ],
-          ),
-        ),
 
+
+                // Spacer removed, Column layout handles spacing
+                
+                // Bottom content group (Undo/Restart)
+                if (gameActive)
+                  Padding(
+                    // Added padding to ensure space above buttons if controls are hidden
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Row(
+                      children: [
+                        Expanded(child: _buildUndoButton()),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildRestartButton()),
+                      ],
+                    ),
+                  ),
+                // Removed bottom SizedBox, padding handled by ScrollView/Container
+              ],
+            ),
+          ),
+          // --- End of modification ---
+        ),
         Expanded(
           child: Center(
             child: _buildGameGrid(cellSize),
@@ -1248,20 +1320,17 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   Widget _buildUndoButton() {
     bool canUndo = _moveHistory.isNotEmpty;
 
-    return ElevatedButton.icon(
+    return ElevatedButton(
       onPressed: canUndo ? _undoLastMove : null,
-      icon: const Icon(Icons.undo, size: 16),
-      label: Text(''), // Text(S.of(context)!.moleculeBuilderUndo, style: const TextStyle(fontSize: 12)),
       style: ElevatedButton.styleFrom(
         backgroundColor: canUndo
-            // CHANGE: Resolve the MaterialStateProperty to get the Color.
             ? SpaceTheme.secondaryButtonStyle.backgroundColor?.resolve({})
             : SpaceTheme.deepSpace.withOpacity(0.4),
         foregroundColor: canUndo
-            // CHANGE: Resolve the MaterialStateProperty to get the Color.
             ? SpaceTheme.secondaryButtonStyle.foregroundColor?.resolve({})
             : Colors.grey,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        // MODIFIED: Adjusted padding for a more square, icon-only button
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
           side: BorderSide(
@@ -1272,6 +1341,8 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           ),
         ),
       ),
+      // MODIFIED: Child is just the Icon
+      child: const Icon(Icons.undo, size: 16),
     );
   }
 
@@ -1279,7 +1350,8 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     final screenSize = MediaQuery.of(context).size;
 
     final availableWidth = screenSize.width - 24;
-    final availableHeight = screenSize.height - 280;
+    // Adjusted availableHeight to account for the new, slimmer top bar
+    final availableHeight = screenSize.height - 240; 
 
     final cellSize = math.min(
       availableWidth / visibleWidth,
@@ -1313,27 +1385,26 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
             ],
           ),
         ),
-
         const SizedBox(height: 8),
-
         Expanded(
           child: Center(
             child: _buildGameGrid(cellSize),
           ),
         ),
-
         if (gameActive && selectedAtom != null) ...[
           const SizedBox(height: 8),
           _buildSelectedInfo(),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _buildCompactControls(),
               const SizedBox(width: 12),
-              _buildUndoButton(),
+              // CHANGED: Wrapped buttons in Expanded
+              Expanded(child: _buildUndoButton()),
               const SizedBox(width: 8),
-              _buildRestartButton(),
+              Expanded(child: _buildRestartButton()),
             ],
           ),
         ] else if (gameActive) ...[
@@ -1341,20 +1412,20 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildUndoButton(),
+              // CHANGED: Wrapped buttons in Expanded
+              Expanded(child: _buildUndoButton()),
               const SizedBox(width: 8),
-              _buildRestartButton(),
+              Expanded(child: _buildRestartButton()),
             ],
           ),
         ],
-
         const SizedBox(height: 12),
       ],
     );
   }
 
   Widget _buildRestartButton() {
-    return ElevatedButton.icon(
+    return ElevatedButton(
       onPressed: () {
         setState(() {
           gameActive = true;
@@ -1366,35 +1437,31 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           slideStartPos = null;
           slideEndPos = null;
           particles.clear();
+          _moveHistory.clear(); // Ensure history is cleared on restart
         });
         _loadLevel();
         _successController.reset();
       },
-      icon: const Icon(Icons.refresh, size: 16),
-      label: Text(S.of(context)!.moleculeBuilderRestart, style: const TextStyle(fontSize: 12)),
       style: ElevatedButton.styleFrom(
         backgroundColor: SpaceTheme.nebulaPurple.withOpacity(0.6),
         foregroundColor: SpaceTheme.starYellow,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        // MODIFIED: Adjusted padding for a more square, icon-only button
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
           side: BorderSide(color: SpaceTheme.starYellow.withOpacity(0.5), width: 2),
         ),
       ),
+      // MODIFIED: Child is just the Icon
+      child: const Icon(Icons.refresh, size: 16),
     );
   }
 
   Widget _buildCompactTargetDisplay() {
-    // Define a maximum width for the preview area to ensure it doesn't overflow.
     const double maxPreviewWidth = 96.0;
-    
-    // Calculate the size of each atom cell to fit the molecule within the max width.
-    // If the molecule is wider (targetPattern.size > 5), the atoms will be smaller.
     final double atomSize = (targetPattern.size > 0)
         ? (maxPreviewWidth / targetPattern.size)
-        : 16.0; // Fallback size
-
-    // The total size of the container is the number of atoms multiplied by their calculated size.
+        : 16.0;
     final double containerSize = atomSize * targetPattern.size;
 
     return Container(
@@ -1407,15 +1474,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            S.of(context)!.moleculeBuilderTarget.toUpperCase(),
-            style: const TextStyle(
-              color: SpaceTheme.alienGreen,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
+          // REMOVED: "ZIEL" Text
           Text(
             levelDisplayName,
             style: const TextStyle(
@@ -1640,8 +1699,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     return Column(
       children: [
         _buildStatRow(Icons.swap_horiz, S.of(context)!.moleculeBuilderMoves, '$movesMade/$moveLimit', SpaceTheme.alienGreen),
-        const SizedBox(height: 8),
-        _buildStatRow(Icons.science, S.of(context)!.moleculeBuilderAtoms, '${atoms.length}', SpaceTheme.cosmicPink),
+        // REMOVED: "Atoms" stat row
       ],
     );
   }
@@ -1692,6 +1750,11 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   }
 
   Widget _buildSelectedInfo() {
+    // Get the localized name using the helper, pass context
+    final localizedName = selectedAtom != null 
+        ? getLocalizedAtomName(selectedAtom!.type, context) 
+        : S.of(context)!.moleculeBuilderNone; // Use ARB string for "None" too
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -1699,30 +1762,98 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.5)),
       ),
-      child: Text(
-        '${S.of(context)!.moleculeBuilderSelected}: ${selectedAtom?.type.name ?? S.of(context)!.moleculeBuilderNone}',
-        style: const TextStyle(
-            color: SpaceTheme.starYellow,
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-        ),
-        textAlign: TextAlign.center,
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Flexible(
+            child: Text(
+              // Use the localized name here
+              '${S.of(context)!.moleculeBuilderSelected}: $localizedName', 
+              style: const TextStyle(
+                color: SpaceTheme.starYellow,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+              softWrap: true, 
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildCompactControls() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildControlButton(Icons.arrow_back, () => _moveAtom(Direction.left)),
-        const SizedBox(width: 4),
-        _buildControlButton(Icons.arrow_upward, () => _moveAtom(Direction.up)),
-        const SizedBox(width: 4),
-        _buildControlButton(Icons.arrow_downward, () => _moveAtom(Direction.down)),
-        const SizedBox(width: 4),
-        _buildControlButton(Icons.arrow_forward, () => _moveAtom(Direction.right)),
-      ],
+    // Define the buttons first for clarity
+    Widget upButton = _buildControlButton(Icons.arrow_upward, () => _moveAtom(Direction.up));
+    Widget downButton = _buildControlButton(Icons.arrow_downward, () => _moveAtom(Direction.down));
+    Widget leftButton = _buildControlButton(Icons.arrow_back, () => _moveAtom(Direction.left));
+    Widget rightButton = _buildControlButton(Icons.arrow_forward, () => _moveAtom(Direction.right));
+    
+    // Use LayoutBuilder to decide between 1-3 and 2-2 layout
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Estimate the width needed for the 1-3 layout (approx 3 buttons + spacing)
+        // You might need to adjust this value based on your button size/padding
+        const double wideLayoutThreshold = 150.0; 
+
+        if (constraints.maxWidth >= wideLayoutThreshold) {
+          // Wider layout: Up on top, Left/Down/Right below
+          return Column(
+            mainAxisSize: MainAxisSize.min, // Take minimum space
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center, // Center the Up button
+                children: [
+                  // Spacer to push the up button to the center visually above the 3 buttons
+                  const SizedBox(width: 44 + 4), // Approx width of button + spacing
+                  upButton,
+                  const SizedBox(width: 44 + 4), // Approx width of button + spacing
+                ],
+              ),
+              const SizedBox(height: 4), // Spacing between rows
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center, // Center the bottom row
+                children: [
+                  leftButton,
+                  const SizedBox(width: 4),
+                  downButton,
+                  const SizedBox(width: 4),
+                  rightButton,
+                ],
+              ),
+            ],
+          );
+        } else {
+          // Narrower layout: 2x2 grid
+          return Column(
+            mainAxisSize: MainAxisSize.min, // Take minimum space
+             children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                 mainAxisAlignment: MainAxisAlignment.center,
+                 children: [
+                  upButton,
+                  const SizedBox(width: 4),
+                  downButton,
+                ],
+              ),
+              const SizedBox(height: 4), // Spacing between rows
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                 mainAxisAlignment: MainAxisAlignment.center,
+                 children: [
+                  leftButton,
+                  const SizedBox(width: 4),
+                  rightButton,
+                ],
+              ),
+            ],
+          );
+        }
+      },
     );
   }
 
@@ -2259,6 +2390,22 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
 enum CellType { empty, wall }
 enum Direction { up, down, left, right }
+
+String getLocalizedAtomName(AtomType type, BuildContext context) {
+  final s = S.of(context)!; // Get localization delegate
+
+  if (type == AtomType.hydrogen) return s.atomNameHydrogen;
+  if (type == AtomType.oxygen) return s.atomNameOxygen;
+  if (type == AtomType.carbon) return s.atomNameCarbon;
+  if (type == AtomType.nitrogen) return s.atomNameNitrogen;
+  if (type == AtomType.sulfur) return s.atomNameSulfur;
+  if (type == AtomType.fluorine) return s.atomNameFluorine;
+  // Handle all special types generically
+  if (type.symbol.length == 1 && !'HOCNSF'.contains(type.symbol)) return s.atomNameSpecial; 
+  
+  // Fallback if type is somehow unknown
+  return type.name; 
+}
 
 class AtomType {
   final String symbol;

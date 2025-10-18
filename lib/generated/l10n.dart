@@ -3111,6 +3111,48 @@ abstract class S {
   /// **'Bonus Section 5'**
   String get level30Label;
 
+  /// No description provided for @atomNameHydrogen.
+  ///
+  /// In en, this message translates to:
+  /// **'Hydrogen'**
+  String get atomNameHydrogen;
+
+  /// No description provided for @atomNameOxygen.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen'**
+  String get atomNameOxygen;
+
+  /// No description provided for @atomNameCarbon.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbon'**
+  String get atomNameCarbon;
+
+  /// No description provided for @atomNameNitrogen.
+  ///
+  /// In en, this message translates to:
+  /// **'Nitrogen'**
+  String get atomNameNitrogen;
+
+  /// No description provided for @atomNameSulfur.
+  ///
+  /// In en, this message translates to:
+  /// **'Sulfur'**
+  String get atomNameSulfur;
+
+  /// No description provided for @atomNameFluorine.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluorine'**
+  String get atomNameFluorine;
+
+  /// No description provided for @atomNameSpecial.
+  ///
+  /// In en, this message translates to:
+  /// **'Special'**
+  String get atomNameSpecial;
+
   /// No description provided for @moleculeBuilderMoleculeInfo.
   ///
   /// In en, this message translates to:

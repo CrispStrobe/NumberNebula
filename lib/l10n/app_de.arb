@@ -940,6 +940,14 @@
   "moleculeInfoKeyFacts": "Wichtige Fakten",
   "moleculeInfoInSpace": "Im Weltraum",
 
+  "atomNameHydrogen": "Wasserstoff",
+  "atomNameOxygen": "Sauerstoff",
+  "atomNameCarbon": "Kohlenstoff",
+  "atomNameNitrogen": "Stickstoff",
+  "atomNameSulfur": "Schwefel",
+  "atomNameFluorine": "Fluor",
+  "atomNameSpecial": "Spezial",
+
   "level01Label": "Wasser",
   "level02Label": "Methan",
   "level03Label": "Methanol",

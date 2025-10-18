@@ -1708,6 +1708,27 @@ class SDe extends S {
   String get level30Label => 'Bonus-Sektion 5';
 
   @override
+  String get atomNameHydrogen => 'Wasserstoff';
+
+  @override
+  String get atomNameOxygen => 'Sauerstoff';
+
+  @override
+  String get atomNameCarbon => 'Kohlenstoff';
+
+  @override
+  String get atomNameNitrogen => 'Stickstoff';
+
+  @override
+  String get atomNameSulfur => 'Schwefel';
+
+  @override
+  String get atomNameFluorine => 'Fluor';
+
+  @override
+  String get atomNameSpecial => 'Spezial';
+
+  @override
   String get moleculeBuilderMoleculeInfo => 'Molekül-Info';
 
   @override

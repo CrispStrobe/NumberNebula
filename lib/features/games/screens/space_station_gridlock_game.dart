@@ -1,4 +1,4 @@
-// space_station_gridlock_game.dart - COMPLETE REWRITE with walls support
+// space_station_gridlock_game.dart - Responsive UI Update
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -137,25 +137,22 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
 
     try {
       // Calculate complexity - Grades 1-4, Levels 1-20 each
-      // Raw range: 1.1 (G1L1) to 6.0 (G4L20)
       final rawComplexity = widget.grade + (widget.level / 10.0);
       
-      // Map to our 7-level system (1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0)
-      // Distribute across the full 4 grades × 20 levels = 80 total levels
       if (rawComplexity < 1.7) {
-        _currentComplexity = 1.0; // Easy: Grade 1, Levels 1-6
+        _currentComplexity = 1.0;
       } else if (rawComplexity < 2.4) {
-        _currentComplexity = 2.0; // Easy+: Grade 1 L7-14, Grade 2 L1-4
+        _currentComplexity = 2.0;
       } else if (rawComplexity < 3.3) {
-        _currentComplexity = 3.0; // Medium: Grade 1 L15-20, Grade 2 L5-13
+        _currentComplexity = 3.0;
       } else if (rawComplexity < 4.2) {
-        _currentComplexity = 4.0; // Medium+: Grade 2 L14-20, Grade 3 L1-12
+        _currentComplexity = 4.0;
       } else if (rawComplexity < 5.0) {
-        _currentComplexity = 5.0; // Hard: Grade 3 L13-19, Grade 4 L1-9
+        _currentComplexity = 5.0;
       } else if (rawComplexity < 5.7) {
-        _currentComplexity = 6.0; // Hard+: Grade 3 L20, Grade 4 L10-17
+        _currentComplexity = 6.0;
       } else {
-        _currentComplexity = 7.0; // Expert: Grade 4, Levels 18-20
+        _currentComplexity = 7.0;
       }
       
       _log('🎯 Target complexity calculated', {
@@ -170,8 +167,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       
       final tracker = context.read<GridlockPuzzleTracker>();
       
-      // Get available puzzles - exact match preferred
-      final tolerance = 0.0; // Exact match since we have broader ranges now
+      final tolerance = 0.0;
       final allPuzzlesAtLevel = getPuzzlesByComplexity(_currentComplexity, tolerance: tolerance);
       _log('🔍 Found puzzles in database', {
         'total_at_complexity': allPuzzlesAtLevel.length,
@@ -191,7 +187,6 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
         setState(() => _loadingStatus = 'Selecting puzzle...');
         await Future.delayed(const Duration(milliseconds: 100));
         
-        // Pick random puzzle
         final random = math.Random();
         final selectedPuzzle = availablePuzzles[random.nextInt(availablePuzzles.length)];
         
@@ -249,7 +244,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       for (int i = 0; i < puzzleData.ships.length; i++) {
         final config = puzzleData.ships[i];
         final isPlayer = config['isPlayer'] == true;
-        final isBlocking = config['isBlocking'] == true; // Read from data
+        final isBlocking = config['isBlocking'] == true;
         
         if (isBlocking) blockingCount++;
         
@@ -373,7 +368,6 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     
     final ship = ships[shipIndex];
     
-    // Prevent dragging blocking pieces
     if (ship.isBlocking) {
       _log('🚫 Attempted to drag blocking piece', {'index': shipIndex});
       return;
@@ -424,32 +418,26 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     final ship = ships[shipIndex];
     highlightedCells.clear();
     
-    // Highlight ship's current position
     for (int i = 0; i < ship.length; i++) {
       final r = ship.isHorizontal ? ship.row : ship.row + i;
       final c = ship.isHorizontal ? ship.col + i : ship.col;
       highlightedCells.add('$r-$c');
     }
     
-    // Highlight possible moves
     if (ship.isHorizontal) {
-      // Left
       for (int newCol = ship.col - 1; newCol >= 0; newCol--) {
         if (_isBlocked(ship.row, newCol)) break;
         highlightedCells.add('${ship.row}-$newCol');
       }
-      // Right
       for (int newCol = ship.col + ship.length; newCol < gridSize; newCol++) {
         if (_isBlocked(ship.row, newCol)) break;
         highlightedCells.add('${ship.row}-$newCol');
       }
     } else {
-      // Up
       for (int newRow = ship.row - 1; newRow >= 0; newRow--) {
         if (_isBlocked(newRow, ship.col)) break;
         highlightedCells.add('$newRow-${ship.col}');
       }
-      // Down
       for (int newRow = ship.row + ship.length; newRow < gridSize; newRow++) {
         if (_isBlocked(newRow, ship.col)) break;
         highlightedCells.add('$newRow-${ship.col}');
@@ -635,7 +623,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
               ...particles.map((p) => p.build()),
               
               if (!_isLoading) ...[
-                _buildGameUI(),
+                _buildResponsiveGameUI(),
               ],
               
               if (_isLoading) ...[
@@ -648,72 +636,284 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     );
   }
 
-  Widget _buildGameUI() {
+  Widget _buildResponsiveGameUI() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isSmallScreen = constraints.maxWidth < 380;
+        final isTinyScreen = constraints.maxWidth < 320;
+        final isLandscape = constraints.maxWidth > constraints.maxHeight;
+        
+        // Determine layout approach based on screen size
+        if (isLandscape && constraints.maxHeight < 400) {
+          return _buildCompactLandscapeLayout(constraints);
+        } else if (isSmallScreen) {
+          return _buildCompactPortraitLayout(constraints, isTinyScreen);
+        } else {
+          return _buildStandardLayout(constraints);
+        }
+      },
+    );
+  }
+
+  Widget _buildStandardLayout(BoxConstraints constraints) {
     return Column(
       children: [
-        GameUI(
-          title: S.of(context)!.spaceGridlockTitle,
-          level: widget.level,
-          onBack: () {
-            _log('⬅️  Back button pressed');
-            Navigator.of(context).pop();
-          },
-        ),
-        
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        // Compact header
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          color: SpaceTheme.deepSpace.withOpacity(0.8),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildStat(Icons.touch_app, '$moveCount', SpaceTheme.alienGreen),
-              _buildStat(Icons.flag, '$minMoves', SpaceTheme.starYellow),
-              _buildStat(Icons.rocket_launch, '${ships.length}', SpaceTheme.cosmicPink),
+              IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+              ),
+              Expanded(
+                child: Text(
+                  'Level ${widget.level}',
+                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 18),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(width: 40), // Balance the layout
             ],
           ),
         ),
         
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Text(
-            S.of(context)!.spaceGridlockInstructions,
-            style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        
-        const SizedBox(height: 12),
-        
-        Expanded(
-          child: _buildGrid(),
-        ),
-        
-        const SizedBox(height: 16),
-        
-        if (gameActive) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
+        // Stats and controls row
+        Container(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildCompactStat('Moves', '$moveCount', SpaceTheme.alienGreen),
+              _buildCompactStat('Target', '$minMoves', SpaceTheme.starYellow),
+              _buildCompactStat('Ships', '${ships.length}', SpaceTheme.cosmicPink),
+              if (gameActive) ...[
+                IconButton(
                   onPressed: () {
                     _log('🔄 Reset button pressed');
                     setState(() {
                       _loadPuzzleAsync();
                     });
                   },
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: Text(S.of(context)!.spaceGridlockReset),
-                  style: SpaceTheme.secondaryButtonStyle,
+                  icon: const Icon(Icons.refresh, color: SpaceTheme.nebulaPurple),
+                  tooltip: 'Reset Puzzle',
                 ),
               ],
+            ],
+          ),
+        ),
+        
+        // Help text
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'Drag the green ship to the exit',
+            style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white70),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        
+        const SizedBox(height: 8),
+        
+        // Grid takes remaining space
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: _buildGrid(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactPortraitLayout(BoxConstraints constraints, bool isTinyScreen) {
+    return Column(
+      children: [
+        // Ultra-compact header
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: isTinyScreen ? 4 : 6),
+          color: SpaceTheme.deepSpace.withOpacity(0.8),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.arrow_back, size: 20),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              ),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Lvl ${widget.level}',
+                      style: SpaceTheme.headlineStyle.copyWith(fontSize: isTinyScreen ? 14 : 16),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildTinyMoveCounter(),
+                  ],
+                ),
+              ),
+              if (gameActive) ...[
+                IconButton(
+                  onPressed: () => setState(() => _loadPuzzleAsync()),
+                  icon: const Icon(Icons.refresh, size: 20),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                ),
+              ],
+            ],
+          ),
+        ),
+        
+        // Grid with maximum space
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.all(isTinyScreen ? 8 : 12),
+            child: _buildGrid(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactLandscapeLayout(BoxConstraints constraints) {
+    return Row(
+      children: [
+        // Left sidebar with controls
+        Container(
+          width: 120,
+          color: SpaceTheme.deepSpace.withOpacity(0.8),
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Level ${widget.level}',
+                style: SpaceTheme.headlineStyle.copyWith(fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+              const Spacer(),
+              _buildVerticalStat('Moves', '$moveCount', SpaceTheme.alienGreen),
+              const SizedBox(height: 8),
+              _buildVerticalStat('Target', '$minMoves', SpaceTheme.starYellow),
+              const Spacer(),
+              if (gameActive) ...[
+                IconButton(
+                  onPressed: () => setState(() => _loadPuzzleAsync()),
+                  icon: const Icon(Icons.refresh, color: SpaceTheme.nebulaPurple),
+                ),
+              ],
+            ],
+          ),
+        ),
+        
+        // Grid area
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: _buildGrid(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTinyMoveCounter() {
+    final isOptimal = moveCount <= minMoves;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isOptimal ? SpaceTheme.alienGreen.withOpacity(0.5) : SpaceTheme.starYellow.withOpacity(0.5),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$moveCount',
+            style: TextStyle(
+              color: isOptimal ? SpaceTheme.alienGreen : SpaceTheme.starYellow,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            '/$minMoves',
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: 12,
             ),
           ),
         ],
-        
-        const SizedBox(height: 16),
+      ),
+    );
+  }
+
+  Widget _buildCompactStat(String label, String value, Color color) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white54,
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: SpaceTheme.deepSpace.withOpacity(0.6),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: color.withOpacity(0.3)),
+          ),
+          child: Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVerticalStat(String label, String value, Color color) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white54,
+            fontSize: 10,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }
@@ -721,16 +921,15 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
   Widget _buildGrid() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final availableWidth = constraints.maxWidth - 40;
-        final availableHeight = constraints.maxHeight - 40;
+        final availableSize = math.min(constraints.maxWidth, constraints.maxHeight);
         
         const borderWidth = 3.0;
-        final maxGridSize = (availableWidth < availableHeight 
-            ? availableWidth 
-            : availableHeight).clamp(200.0, 580.0);
+        const minCellSize = 30.0; // Minimum size for playability
         
-        final gridPixelSize = maxGridSize;
-        final cellSize = (gridPixelSize - (borderWidth * 2)) / gridSize;
+        // Calculate optimal grid size
+        final maxGridSize = availableSize - (borderWidth * 2);
+        final cellSize = (maxGridSize / gridSize).clamp(minCellSize, 100.0);
+        final gridPixelSize = (cellSize * gridSize) + (borderWidth * 2);
         
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && _cellSize != cellSize) {
@@ -790,6 +989,22 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                       ),
                     ),
                     
+                    // Exit arrow indicator
+                    if (_cellSize > 40) Positioned(
+                      right: cellSize * 0.1,
+                      top: exitRow * cellSize + (cellSize / 2) - 12,
+                      child: AnimatedBuilder(
+                        animation: _pulseAnimation,
+                        builder: (context, child) {
+                          return Icon(
+                            Icons.arrow_forward,
+                            color: SpaceTheme.alienGreen.withOpacity(_pulseAnimation.value * 0.7),
+                            size: 24,
+                          );
+                        },
+                      ),
+                    ),
+                    
                     // Ships
                     ...ships.asMap().entries.map((entry) {
                       final index = entry.key;
@@ -803,6 +1018,78 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildShip(int index, SpaceShip ship, double cellSize) {
+    final isDragging = draggingShipIndex == index;
+    const double padding = 3.0;
+    
+    final shipWidth = ship.isHorizontal 
+        ? (cellSize * ship.length) - (padding * 2)
+        : cellSize - (padding * 2);
+    final shipHeight = ship.isHorizontal 
+        ? cellSize - (padding * 2)
+        : (cellSize * ship.length) - (padding * 2);
+
+    return Positioned(
+      left: ship.col * cellSize + padding,
+      top: ship.row * cellSize + padding,
+      child: GestureDetector(
+        onPanStart: (details) => _onPanStart(details, index),
+        onPanUpdate: (details) => _onPanUpdate(details, index),
+        onPanEnd: _onPanEnd,
+        child: AnimatedBuilder(
+          animation: ship.isPlayer ? _exitAnimation : _slideAnimation,
+          builder: (context, child) {
+            final exitOffset = ship.isPlayer && hasWon 
+                ? _exitAnimation.value * cellSize * 2 
+                : 0.0;
+
+            return Transform.translate(
+              offset: Offset(exitOffset, 0),
+              child: Container(
+                width: shipWidth,
+                height: shipHeight,
+                decoration: BoxDecoration(
+                  color: ship.isBlocking 
+                      ? Colors.grey.shade800.withOpacity(0.9)
+                      : ship.color.withOpacity(isDragging ? 0.9 : 0.75),
+                  borderRadius: BorderRadius.circular(cellSize < 40 ? 4 : 6),
+                  border: Border.all(
+                    color: ship.isPlayer 
+                        ? SpaceTheme.alienGreen 
+                        : ship.isBlocking
+                        ? Colors.grey.shade600
+                        : Colors.white.withOpacity(0.6),
+                    width: ship.isPlayer ? 2.0 : ship.isBlocking ? 1.5 : 1.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: ship.isBlocking
+                          ? Colors.black.withOpacity(0.5)
+                          : ship.color.withOpacity(isDragging ? 0.6 : 0.3),
+                      blurRadius: isDragging ? 12 : 6,
+                      spreadRadius: isDragging ? 2 : 0,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Icon(
+                    ship.isPlayer 
+                        ? Icons.rocket_launch 
+                        : ship.isBlocking
+                        ? Icons.block
+                        : Icons.local_shipping,
+                    color: ship.isBlocking ? Colors.grey.shade500 : Colors.white,
+                    size: (cellSize * 0.4).clamp(14.0, 28.0),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -852,100 +1139,14 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     );
   }
 
-  Widget _buildStat(IconData icon, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 18),
-          const SizedBox(width: 6),
-          Text(value, style: TextStyle(color: color, fontSize: 14, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShip(int index, SpaceShip ship, double cellSize) {
-    final isDragging = draggingShipIndex == index;
-    const double padding = 3.0;
-    
-    final shipWidth = ship.isHorizontal 
-        ? (cellSize * ship.length) - (padding * 2)
-        : cellSize - (padding * 2);
-    final shipHeight = ship.isHorizontal 
-        ? cellSize - (padding * 2)
-        : (cellSize * ship.length) - (padding * 2);
-
-    return Positioned(
-      left: ship.col * cellSize + padding,
-      top: ship.row * cellSize + padding,
-      child: GestureDetector(
-        onPanStart: (details) => _onPanStart(details, index),
-        onPanUpdate: (details) => _onPanUpdate(details, index),
-        onPanEnd: _onPanEnd,
-        child: AnimatedBuilder(
-          animation: ship.isPlayer ? _exitAnimation : _slideAnimation,
-          builder: (context, child) {
-            final exitOffset = ship.isPlayer && hasWon 
-                ? _exitAnimation.value * cellSize * 2 
-                : 0.0;
-
-            return Transform.translate(
-              offset: Offset(exitOffset, 0),
-              child: Container(
-                width: shipWidth,
-                height: shipHeight,
-                decoration: BoxDecoration(
-                  color: ship.isBlocking 
-                      ? Colors.grey.shade800.withOpacity(0.9)
-                      : ship.color.withOpacity(isDragging ? 0.9 : 0.75),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: ship.isPlayer 
-                        ? SpaceTheme.alienGreen 
-                        : ship.isBlocking
-                        ? Colors.grey.shade600
-                        : Colors.white.withOpacity(0.6),
-                    width: ship.isPlayer ? 2.5 : ship.isBlocking ? 2.0 : 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: ship.isBlocking
-                          ? Colors.black.withOpacity(0.5)
-                          : ship.color.withOpacity(isDragging ? 0.6 : 0.3),
-                      blurRadius: isDragging ? 12 : 6,
-                      spreadRadius: isDragging ? 2 : 0,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Icon(
-                    ship.isPlayer 
-                        ? Icons.rocket_launch 
-                        : ship.isBlocking
-                        ? Icons.block
-                        : Icons.local_shipping,
-                    color: ship.isBlocking ? Colors.grey.shade500 : Colors.white,
-                    size: (cellSize * 0.35).clamp(16.0, 32.0),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
   Widget _buildSuccessDialog(int totalScore, int efficiencyBonus) {
     final performance = moveCount <= minMoves ? S.of(context)!.spaceGridlockPerfect : 
                        moveCount <= minMoves + 3 ? S.of(context)!.spaceGridlockGreat : S.of(context)!.spaceGridlockGood;
+    
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenHeight < 700 || screenWidth < 380;
+    final isTinyScreen = screenHeight < 600 || screenWidth < 320;
     
     return AnimatedBuilder(
       animation: _successAnimation,
@@ -954,65 +1155,117 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
           scale: _successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
+            insetPadding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 16 : 40,
+              vertical: isSmallScreen ? 24 : 60,
+            ),
             child: Container(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(isTinyScreen ? 16 : isSmallScreen ? 20 : 24),
+              constraints: BoxConstraints(
+                maxHeight: screenHeight * (isSmallScreen ? 0.85 : 0.7),
+                maxWidth: 400,
+              ),
               decoration: SpaceTheme.cardDecoration.copyWith(
                 border: Border.all(color: SpaceTheme.alienGreen, width: 2),
               ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.flight_takeoff, size: 60, color: SpaceTheme.alienGreen),
-                    const SizedBox(height: 16),
-                    Text(
-                      S.of(context)!.spaceGridlockWinTitle,
-                      style: SpaceTheme.headlineStyle,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      S.of(context)!.spaceGridlockWinDesc(
-                        moveCount,
-                        minMoves,
-                        performance,
-                        totalScore,
-                        efficiencyBonus,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Content section with scroll if needed
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.flight_takeoff, 
+                            size: isTinyScreen ? 40 : isSmallScreen ? 50 : 60, 
+                            color: SpaceTheme.alienGreen,
+                          ),
+                          SizedBox(height: isTinyScreen ? 8 : isSmallScreen ? 12 : 16),
+                          Text(
+                            S.of(context)!.spaceGridlockWinTitle,
+                            style: SpaceTheme.headlineStyle.copyWith(
+                              fontSize: isTinyScreen ? 20 : isSmallScreen ? 22 : 24,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: isTinyScreen ? 8 : isSmallScreen ? 12 : 16),
+                          Text(
+                            S.of(context)!.spaceGridlockWinDesc(
+                              moveCount,
+                              minMoves,
+                              performance,
+                              totalScore,
+                              efficiencyBonus,
+                            ),
+                            style: SpaceTheme.bodyStyle.copyWith(
+                              fontSize: isTinyScreen ? 12 : isSmallScreen ? 13 : 14,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
-                      style: SpaceTheme.bodyStyle,
-                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Flexible(
+                  ),
+                  
+                  // Always visible button section
+                  SizedBox(height: isTinyScreen ? 12 : isSmallScreen ? 16 : 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Flexible(
+                        child: SizedBox(
+                          height: isTinyScreen ? 36 : 44,
                           child: ElevatedButton(
                             onPressed: () {
                               _log('➡️  Next puzzle requested');
                               Navigator.of(context).pop();
                               _resetGame();
                             },
-                            style: SpaceTheme.secondaryButtonStyle,
-                            child: Text(S.of(context)!.nextPuzzle, textAlign: TextAlign.center),
+                            style: SpaceTheme.secondaryButtonStyle.copyWith(
+                              padding: WidgetStateProperty.all(
+                                EdgeInsets.symmetric(
+                                  horizontal: isTinyScreen ? 12 : 16,
+                                  vertical: isTinyScreen ? 8 : 12,
+                                ),
+                              ),
+                            ),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(S.of(context)!.nextPuzzle),
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Flexible(
+                      ),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: SizedBox(
+                          height: isTinyScreen ? 36 : 44,
                           child: ElevatedButton(
                             onPressed: () {
                               _log('🏠 Returning to bridge');
                               Navigator.of(context).pop();
                               Navigator.of(context).pop();
                             },
-                            style: SpaceTheme.primaryButtonStyle,
-                            child: Text(S.of(context)!.toTheBridge, textAlign: TextAlign.center),
+                            style: SpaceTheme.primaryButtonStyle.copyWith(
+                              padding: WidgetStateProperty.all(
+                                EdgeInsets.symmetric(
+                                  horizontal: isTinyScreen ? 12 : 16,
+                                  vertical: isTinyScreen ? 8 : 12,
+                                ),
+                              ),
+                            ),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(S.of(context)!.toTheBridge),
+                            ),
                           ),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
@@ -1053,7 +1306,7 @@ class SpaceShip {
   final int length;
   final bool isHorizontal;
   final bool isPlayer;
-  final bool isBlocking; // NEW: prevents moving
+  final bool isBlocking;
   final Color color;
 
   SpaceShip({
@@ -1062,7 +1315,7 @@ class SpaceShip {
     required this.length,
     required this.isHorizontal,
     required this.isPlayer,
-    this.isBlocking = false, // NEW
+    this.isBlocking = false,
     required this.color,
   });
 }
@@ -1235,14 +1488,13 @@ class GridPainter extends CustomPainter {
       oldDelegate.highlightedCells != highlightedCells;
 }
 
-// Fallback generator (same as before, omitted for brevity)
+// Fallback generator 
 class PuzzleGenerator {
   static const int gridSize = 6;
   static const int targetCarRow = 2;
   static final _random = math.Random();
 
   static Future<PuzzleConfiguration> generate(int grade, int level) async {
-    // Same implementation as original
     return PuzzleConfiguration(
       minMoves: 10,
       ships: [

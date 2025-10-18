@@ -1697,6 +1697,27 @@ class SEn extends S {
   String get level30Label => 'Bonus Section 5';
 
   @override
+  String get atomNameHydrogen => 'Hydrogen';
+
+  @override
+  String get atomNameOxygen => 'Oxygen';
+
+  @override
+  String get atomNameCarbon => 'Carbon';
+
+  @override
+  String get atomNameNitrogen => 'Nitrogen';
+
+  @override
+  String get atomNameSulfur => 'Sulfur';
+
+  @override
+  String get atomNameFluorine => 'Fluorine';
+
+  @override
+  String get atomNameSpecial => 'Special';
+
+  @override
   String get moleculeBuilderMoleculeInfo => 'Molecule Info';
 
   @override

@@ -1035,6 +1035,14 @@
   "level29Label": "Propyne",
   "level30Label": "Bonus Section 5",
 
+  "atomNameHydrogen": "Hydrogen",
+  "atomNameOxygen": "Oxygen",
+  "atomNameCarbon": "Carbon",
+  "atomNameNitrogen": "Nitrogen",
+  "atomNameSulfur": "Sulfur",
+  "atomNameFluorine": "Fluorine",
+  "atomNameSpecial": "Special",
+
   "moleculeBuilderMoleculeInfo": "Molecule Info",
   "moleculeBuilderBonusTitle": "Bonus Target",
   "moleculeInfoNomenclature": "Nomenclature & Description",
