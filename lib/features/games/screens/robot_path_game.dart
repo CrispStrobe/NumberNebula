@@ -43,6 +43,8 @@ class _RobotPathGameState extends State<RobotPathGame>
 
   // Game state
   late PathLevel currentLevel;
+  late List<List<CellType>> pristineGrid;
+
   List<ProgramCommand> commandSequence = [];
   bool isExecuting = false;
   bool hasWon = false;
@@ -135,6 +137,10 @@ class _RobotPathGameState extends State<RobotPathGame>
   void _generateLevel() {
     setState(() {
       currentLevel = PathLevel.generate(widget.grade, widget.level);
+      
+      // Save a copy of the original grid
+      pristineGrid = currentLevel.grid.map((row) => List<CellType>.from(row)).toList();
+
       currentRobotRow = currentLevel.startRow;
       currentRobotCol = currentLevel.startCol;
       currentRobotDirection = currentLevel.startDirection;
@@ -178,6 +184,9 @@ class _RobotPathGameState extends State<RobotPathGame>
     if (isExecuting || commandSequence.isEmpty) return;
 
     setState(() {
+      // Restore the grid to its original state before running
+      currentLevel.grid = pristineGrid.map((row) => List<CellType>.from(row)).toList();
+
       isExecuting = true;
       showingError = false;
       currentRobotRow = currentLevel.startRow;
@@ -1491,6 +1500,7 @@ class _RobotPathGameState extends State<RobotPathGame>
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
+            // ... (The Row with "Programm" and "7/20" is unchanged)
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
@@ -1546,52 +1556,68 @@ class _RobotPathGameState extends State<RobotPathGame>
           ),
           const SizedBox(height: 10),
           Flexible(
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0A0E27).withOpacity(0.6),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFF00E5FF).withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: commandSequence.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.touch_app,
-                            color: Colors.white.withOpacity(0.3),
-                            size: 32,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            S.of(context)!.emptyProgram,
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.5),
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  // *** THIS IS THE FIX: Reverted to SingleChildScrollView + Wrap ***
-                  : SingleChildScrollView(
-                      child: Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          for (int i = 0; i < commandSequence.length; i++)
-                            _buildProgramCommandChip(
-                              commandSequence[i],
-                              i,
-                            ),
-                        ],
-                      ),
+            // *** THIS IS THE FIX ***
+            // Wrap the main program container in a DragTarget
+            child: DragTarget<RobotCommand>(
+              onWillAccept: (data) => !isExecuting,
+              onAccept: (command) {
+                // This target only fires when dropping on empty space,
+                // so we just add to the end.
+                _addCommand(command);
+              },
+              builder: (context, candidateData, rejectedData) {
+                // This container is the original 'Flexible' child
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0A0E27).withOpacity(0.6),
+                    // Show a glow if a command is being dragged over
+                    border: Border.all(
+                      color: candidateData.isNotEmpty
+                          ? Colors.white
+                          : const Color(0xFF00E5FF).withOpacity(0.3),
+                      width: candidateData.isNotEmpty ? 2 : 1,
                     ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: commandSequence.isEmpty
+                      ? Center(
+                          // ... (Empty Program placeholder is unchanged)
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.touch_app,
+                                color: Colors.white.withOpacity(0.3),
+                                size: 32,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                S.of(context)!.emptyProgram,
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.5),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : SingleChildScrollView(
+                          child: Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              for (int i = 0; i < commandSequence.length; i++)
+                                _buildProgramCommandChip(
+                                  commandSequence[i],
+                                  i,
+                                ),
+                            ],
+                          ),
+                        ),
+                );
+              },
             ),
           ),
         ],
@@ -1604,9 +1630,8 @@ class _RobotPathGameState extends State<RobotPathGame>
     final command = programCommand.command;
     final commandInfo = _getCommandInfo(command);
 
-    // *** THIS IS THE FIX: Reverted to the simple Stack ***
-    // This allows the "X" to draw outside the bounds.
-    return Stack(
+    // This is the chip's UI
+    final Widget chipUI = Stack(
       clipBehavior: Clip.none,
       children: [
         Container(
@@ -1694,6 +1719,46 @@ class _RobotPathGameState extends State<RobotPathGame>
         ),
       ],
     );
+
+    // *** THIS IS THE FIX ***
+    // Wrap the chip in BOTH a DragTarget and a Draggable
+    return DragTarget<Object>(
+      onWillAccept: (data) => !isExecuting,
+      onAccept: (data) {
+        if (data is RobotCommand) {
+          // This is a new command from the palette, insert it
+          _insertCommand(data, index);
+        } else if (data is int) {
+          // This is another chip, reorder it
+          _reorderCommand(data, index);
+        }
+      },
+      builder: (context, candidateData, rejectedData) {
+        // Show a "drop here" indicator
+        final isTarget = candidateData.isNotEmpty;
+
+        return Draggable<int>(
+          data: index, // This chip carries its own index
+          feedback: chipUI, // Show the chip while dragging
+          childWhenDragging: Opacity(
+            // Leave a faded version behind
+            opacity: 0.4,
+            child: chipUI,
+          ),
+          child: Container(
+            // This container highlights when a drag is over it
+            padding: isTarget ? const EdgeInsets.all(2) : EdgeInsets.zero,
+            decoration: isTarget
+                ? BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.white, width: 2),
+                  )
+                : null,
+            child: chipUI,
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildCommandPalette() {
@@ -1763,64 +1828,79 @@ class _RobotPathGameState extends State<RobotPathGame>
     );
   }
 
+  // REPLACE this method
   Widget _buildCommandButton(RobotCommand command) {
     final commandInfo = _getCommandInfo(command);
 
-    return GestureDetector(
-      onTap: isExecuting ? null : () => _addCommand(command),
-      child: Container(
-        width: 72,
-        height: 72,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              commandInfo.color.withOpacity(isExecuting ? 0.3 : 0.8),
-              commandInfo.color.withOpacity(isExecuting ? 0.2 : 0.5),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: commandInfo.color.withOpacity(isExecuting ? 0.3 : 1.0),
-            width: 2,
-          ),
-          boxShadow: isExecuting
-              ? []
-              : [
-                  BoxShadow(
-                    color: commandInfo.color.withOpacity(0.5),
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                  ),
-                ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              commandInfo.icon,
-              color: Colors.white.withOpacity(isExecuting ? 0.5 : 1.0),
-              size: 30,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              commandInfo.label,
-              style: TextStyle(
-                color: Colors.white.withOpacity(isExecuting ? 0.5 : 0.95),
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
+    // This is the small tile UI used for feedback and the button itself
+    final Widget tileUI = Container(
+      width: 72,
+      height: 72,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            commandInfo.color.withOpacity(isExecuting ? 0.3 : 0.8),
+            commandInfo.color.withOpacity(isExecuting ? 0.2 : 0.5),
           ],
         ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: commandInfo.color.withOpacity(isExecuting ? 0.3 : 1.0),
+          width: 2,
+        ),
+        boxShadow: isExecuting
+            ? []
+            : [
+                BoxShadow(
+                  color: commandInfo.color.withOpacity(0.5),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ),
+              ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            commandInfo.icon,
+            color: Colors.white.withOpacity(isExecuting ? 0.5 : 1.0),
+            size: 30,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            commandInfo.label,
+            style: TextStyle(
+              color: Colors.white.withOpacity(isExecuting ? 0.5 : 0.95),
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+
+    // Wrap the button in a Draggable
+    return Draggable<RobotCommand>(
+      data: command,
+      feedback: tileUI, // Show the button UI while dragging
+      childWhenDragging: Opacity(
+        // Leave a faded version behind
+        opacity: 0.4,
+        child: tileUI,
+      ),
+      child: GestureDetector(
+        onTap: isExecuting ? null : () => _addCommand(command),
+        child: tileUI, // The normal button
       ),
     );
   }
 
   void _reorderCommand(int oldIndex, int newIndex) {
     if (isExecuting) return;
+    if (oldIndex == newIndex) return;
 
     setState(() {
       if (newIndex > oldIndex) {
@@ -1828,6 +1908,19 @@ class _RobotPathGameState extends State<RobotPathGame>
       }
       final ProgramCommand item = commandSequence.removeAt(oldIndex);
       commandSequence.insert(newIndex, item);
+    });
+  }
+
+  void _insertCommand(RobotCommand command, int index) {
+    if (isExecuting || commandSequence.length >= maxCommands) return;
+    setState(() {
+      commandSequence.insert(
+          index,
+          ProgramCommand(
+            command: command,
+            id: DateTime.now().millisecondsSinceEpoch.toString() +
+                commandSequence.length.toString(),
+          ));
     });
   }
 
@@ -1978,7 +2071,7 @@ enum CellType {
 // REPLACE the entire 'PathLevel' class
 class PathLevel {
   final int gridSize;
-  final List<List<CellType>> grid;
+  List<List<CellType>> grid;
   final int startRow;
   final int startCol;
   final int startDirection;
@@ -1998,7 +2091,6 @@ class PathLevel {
   });
 
   // This is the new generator logic
-  // REPLACE this method
   static PathLevel generate(int grade, int level) {
     final generator = gen.RobotPathGenerator();
 
