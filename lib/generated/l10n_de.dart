@@ -2102,6 +2102,21 @@ class SDe extends S {
   String get jump => 'jump';
 
   @override
+  String get robotPathJump => 'Jump';
+
+  @override
+  String get robotPathDestroy => 'Destroy';
+
+  @override
+  String get robotPathWait => 'Wait';
+
+  @override
+  String get robotPathPush => 'Push';
+
+  @override
+  String get robotPathPull => 'Pull';
+
+  @override
   String get robotPathTitle => 'Roboterpfad';
 
   @override

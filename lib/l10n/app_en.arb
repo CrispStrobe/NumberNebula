@@ -1209,6 +1209,11 @@
   "reset": "reset",
   "shoot": "shoot",
   "jump": "jump",
+  "robotPathJump": "Jump",
+  "robotPathDestroy": "Destroy",
+  "robotPathWait": "Wait",
+  "robotPathPush": "Push",
+  "robotPathPull": "Pull",
 
   "robotPathTitle": "Robot Path",
   "robotPathDesc": "Program the robot to reach the goal!",

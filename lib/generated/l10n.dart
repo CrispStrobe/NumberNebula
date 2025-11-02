@@ -3742,6 +3742,36 @@ abstract class S {
   /// **'jump'**
   String get jump;
 
+  /// No description provided for @robotPathJump.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump'**
+  String get robotPathJump;
+
+  /// No description provided for @robotPathDestroy.
+  ///
+  /// In en, this message translates to:
+  /// **'Destroy'**
+  String get robotPathDestroy;
+
+  /// No description provided for @robotPathWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait'**
+  String get robotPathWait;
+
+  /// No description provided for @robotPathPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Push'**
+  String get robotPathPush;
+
+  /// No description provided for @robotPathPull.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull'**
+  String get robotPathPull;
+
   /// No description provided for @robotPathTitle.
   ///
   /// In en, this message translates to:

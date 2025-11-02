@@ -1166,6 +1166,11 @@
   "reset": "reset",
   "shoot": "shoot",
   "jump": "jump",
+  "robotPathJump": "Jump",
+  "robotPathDestroy": "Destroy",
+  "robotPathWait": "Wait",
+  "robotPathPush": "Push",
+  "robotPathPull": "Pull",
 
   "imprint": "Impressum",
   "imprintServiceProvider": "Diensteanbieter",
