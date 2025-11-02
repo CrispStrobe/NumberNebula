@@ -32,7 +32,7 @@ class _RobotPathGameState extends State<RobotPathGame>
   late AnimationController _robotMoveController;
   late AnimationController _pulseController;
   late AnimationController _particleController;
-  late AnimationController _warpController;
+  late AnimationController _roverWheelController;
 
   late Animation<double> _glowAnimation;
   late Animation<double> _successAnimation;
@@ -48,18 +48,14 @@ class _RobotPathGameState extends State<RobotPathGame>
   int currentRobotDirection = 0; // 0=up, 1=right, 2=down, 3=left
   List<Offset> robotTrail = [];
 
-  final int maxCommands = 30;
+  final int maxCommands = 20;
   bool showingError = false;
   String errorMessage = '';
-
-  // Drag state
-  int? draggedCommandIndex;
-  int? draggedOverIndex;
-  ProgramCommand? pendingCommand;
 
   // Particles
   List<SpaceParticle> particles = [];
   List<ExplosionParticle> explosions = [];
+  List<DustParticle> dustParticles = [];
 
   @override
   void initState() {
@@ -69,15 +65,15 @@ class _RobotPathGameState extends State<RobotPathGame>
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
+    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+        CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
 
     _successController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    _successAnimation = CurvedAnimation(
-        parent: _successController, curve: Curves.elasticOut);
+    _successAnimation =
+        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
 
     _robotMoveController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -88,20 +84,20 @@ class _RobotPathGameState extends State<RobotPathGame>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
+        CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
     _particleController = AnimationController(
       duration: const Duration(milliseconds: 16),
       vsync: this,
     )..repeat();
 
-    _particleController.addListener(_updateParticles);
-
-    _warpController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
+    _roverWheelController = AnimationController(
+      duration: const Duration(milliseconds: 800),
       vsync: this,
-    );
+    )..repeat();
+
+    _particleController.addListener(_updateParticles);
 
     _generateLevel();
     _generateStarfield();
@@ -109,15 +105,15 @@ class _RobotPathGameState extends State<RobotPathGame>
 
   void _generateStarfield() {
     final random = math.Random();
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 30; i++) {
       particles.add(SpaceParticle(
         position: Offset(
           random.nextDouble() * 1000,
           random.nextDouble() * 1000,
         ),
         velocity: Offset(
-          (random.nextDouble() - 0.5) * 20,
-          (random.nextDouble() - 0.5) * 20,
+          (random.nextDouble() - 0.5) * 10,
+          (random.nextDouble() - 0.5) * 10,
         ),
         size: 1 + random.nextDouble() * 2,
         opacity: 0.3 + random.nextDouble() * 0.7,
@@ -130,6 +126,7 @@ class _RobotPathGameState extends State<RobotPathGame>
     setState(() {
       particles.removeWhere((p) => p.update());
       explosions.removeWhere((e) => e.update());
+      dustParticles.removeWhere((d) => d.update());
     });
   }
 
@@ -159,28 +156,10 @@ class _RobotPathGameState extends State<RobotPathGame>
     }
   }
 
-  void _insertCommand(ProgramCommand command, int index) {
-    if (commandSequence.length < maxCommands && !isExecuting) {
-      setState(() {
-        commandSequence.insert(index, command);
-      });
-    }
-  }
-
   void _removeCommand(int index) {
     if (!isExecuting) {
       setState(() {
         commandSequence.removeAt(index);
-      });
-    }
-  }
-
-  void _moveCommand(int fromIndex, int toIndex) {
-    if (!isExecuting && fromIndex != toIndex) {
-      setState(() {
-        final command = commandSequence.removeAt(fromIndex);
-        final insertIndex = toIndex > fromIndex ? toIndex - 1 : toIndex;
-        commandSequence.insert(insertIndex, command);
       });
     }
   }
@@ -203,7 +182,8 @@ class _RobotPathGameState extends State<RobotPathGame>
       currentRobotCol = currentLevel.startCol;
       currentRobotDirection = currentLevel.startDirection;
       robotTrail.clear();
-      robotTrail.add(Offset(currentRobotCol.toDouble(), currentRobotRow.toDouble()));
+      robotTrail.add(
+          Offset(currentRobotCol.toDouble(), currentRobotRow.toDouble()));
     });
 
     for (int i = 0; i < commandSequence.length; i++) {
@@ -213,7 +193,8 @@ class _RobotPathGameState extends State<RobotPathGame>
       bool success = await _executeCommand(command);
 
       if (!success) {
-        _createExplosion(currentRobotCol.toDouble(), currentRobotRow.toDouble());
+        _createExplosion(
+            currentRobotCol.toDouble(), currentRobotRow.toDouble());
         setState(() {
           showingError = true;
           errorMessage = S.of(context)!.robotPathError;
@@ -259,40 +240,17 @@ class _RobotPathGameState extends State<RobotPathGame>
   }
 
   Future<bool> _executeCommand(RobotCommand command) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 350));
 
     switch (command) {
       case RobotCommand.forward:
-        int newRow = currentRobotRow;
-        int newCol = currentRobotCol;
+        return _moveForward(1);
 
-        switch (currentRobotDirection) {
-          case 0: newRow--; break; // up
-          case 1: newCol++; break; // right
-          case 2: newRow++; break; // down
-          case 3: newCol--; break; // left
-        }
-
-        if (newRow < 0 || newRow >= currentLevel.gridSize ||
-            newCol < 0 || newCol >= currentLevel.gridSize) {
-          return false;
-        }
-
-        final cellType = currentLevel.grid[newRow][newCol];
-        if (cellType == CellType.asteroid || cellType == CellType.blackHole) {
-          return false;
-        }
-
-        setState(() {
-          currentRobotRow = newRow;
-          currentRobotCol = newCol;
-          robotTrail.add(Offset(currentRobotCol.toDouble(), currentRobotRow.toDouble()));
-          _createTrailParticles(currentRobotCol.toDouble(), currentRobotRow.toDouble());
-        });
-        return true;
+      case RobotCommand.jump:
+        return _moveForward(2);
 
       case RobotCommand.turnLeft:
-        await Future.delayed(const Duration(milliseconds: 200));
+        await Future.delayed(const Duration(milliseconds: 150));
         setState(() {
           currentRobotDirection = (currentRobotDirection - 1) % 4;
           if (currentRobotDirection < 0) currentRobotDirection = 3;
@@ -300,40 +258,165 @@ class _RobotPathGameState extends State<RobotPathGame>
         return true;
 
       case RobotCommand.turnRight:
-        await Future.delayed(const Duration(milliseconds: 200));
+        await Future.delayed(const Duration(milliseconds: 150));
         setState(() {
           currentRobotDirection = (currentRobotDirection + 1) % 4;
         });
         return true;
+
+      case RobotCommand.destroy:
+        return _destroyObstacle();
+
+      case RobotCommand.wait:
+        await Future.delayed(const Duration(milliseconds: 300));
+        return true;
     }
   }
 
-  void _createTrailParticles(double x, double y) {
+  Future<bool> _moveForward(int distance) async {
+    int newRow = currentRobotRow;
+    int newCol = currentRobotCol;
+
+    // Calculate target position
+    for (int i = 0; i < distance; i++) {
+      switch (currentRobotDirection) {
+        case 0:
+          newRow--;
+          break; // up
+        case 1:
+          newCol++;
+          break; // right
+        case 2:
+          newRow++;
+          break; // down
+        case 3:
+          newCol--;
+          break; // left
+      }
+    }
+
+    // Check bounds
+    if (newRow < 0 ||
+        newRow >= currentLevel.gridSize ||
+        newCol < 0 ||
+        newCol >= currentLevel.gridSize) {
+      return false;
+    }
+
+    // Check intermediate cells for jump
+    if (distance == 2) {
+      int midRow = currentRobotRow;
+      int midCol = currentRobotCol;
+      switch (currentRobotDirection) {
+        case 0:
+          midRow--;
+          break;
+        case 1:
+          midCol++;
+          break;
+        case 2:
+          midRow++;
+          break;
+        case 3:
+          midCol--;
+          break;
+      }
+
+      // Can only jump over asteroids or craters
+      if (midRow >= 0 &&
+          midRow < currentLevel.gridSize &&
+          midCol >= 0 &&
+          midCol < currentLevel.gridSize) {
+        final midCell = currentLevel.grid[midRow][midCol];
+        if (midCell != CellType.asteroid && midCell != CellType.crater) {
+          return false;
+        }
+      }
+    }
+
+    final cellType = currentLevel.grid[newRow][newCol];
+    if (cellType == CellType.asteroid ||
+        cellType == CellType.blackHole ||
+        cellType == CellType.crater ||
+        cellType == CellType.energyField) {
+      return false;
+    }
+
+    setState(() {
+      currentRobotRow = newRow;
+      currentRobotCol = newCol;
+      robotTrail
+          .add(Offset(currentRobotCol.toDouble(), currentRobotRow.toDouble()));
+      _createDustParticles(
+          currentRobotCol.toDouble(), currentRobotRow.toDouble());
+    });
+    return true;
+  }
+
+  Future<bool> _destroyObstacle() async {
+    int targetRow = currentRobotRow;
+    int targetCol = currentRobotCol;
+
+    switch (currentRobotDirection) {
+      case 0:
+        targetRow--;
+        break;
+      case 1:
+        targetCol++;
+        break;
+      case 2:
+        targetRow++;
+        break;
+      case 3:
+        targetCol--;
+        break;
+    }
+
+    if (targetRow < 0 ||
+        targetRow >= currentLevel.gridSize ||
+        targetCol < 0 ||
+        targetCol >= currentLevel.gridSize) {
+      return false;
+    }
+
+    final cellType = currentLevel.grid[targetRow][targetCol];
+    if (cellType == CellType.asteroid || cellType == CellType.crater) {
+      setState(() {
+        currentLevel.grid[targetRow][targetCol] = CellType.empty;
+      });
+      _createExplosion(targetCol.toDouble(), targetRow.toDouble(), small: true);
+      await Future.delayed(const Duration(milliseconds: 300));
+      return true;
+    }
+
+    return false;
+  }
+
+  void _createDustParticles(double x, double y) {
     final random = math.Random();
-    for (int i = 0; i < 5; i++) {
-      particles.add(SpaceParticle(
+    for (int i = 0; i < 8; i++) {
+      dustParticles.add(DustParticle(
         position: Offset(x, y),
         velocity: Offset(
-          (random.nextDouble() - 0.5) * 40,
-          (random.nextDouble() - 0.5) * 40,
+          (random.nextDouble() - 0.5) * 30,
+          (random.nextDouble() - 0.5) * 30,
         ),
         size: 2 + random.nextDouble() * 3,
-        opacity: 0.8,
-        color: SpaceTheme.alienGreen,
-        lifetime: 0.5,
+        color: Colors.brown.withOpacity(0.6),
       ));
     }
   }
 
-  void _createExplosion(double x, double y) {
+  void _createExplosion(double x, double y, {bool small = false}) {
     final random = math.Random();
-    for (int i = 0; i < 20; i++) {
+    int count = small ? 10 : 20;
+    for (int i = 0; i < count; i++) {
       final angle = random.nextDouble() * 2 * math.pi;
-      final speed = 50 + random.nextDouble() * 100;
+      final speed = (small ? 30 : 50) + random.nextDouble() * (small ? 50 : 100);
       explosions.add(ExplosionParticle(
         position: Offset(x, y),
         velocity: Offset.fromDirection(angle, speed),
-        size: 3 + random.nextDouble() * 5,
+        size: (small ? 2 : 3) + random.nextDouble() * (small ? 3 : 5),
         color: [Colors.red, Colors.orange, Colors.yellow][random.nextInt(3)],
       ));
     }
@@ -357,22 +440,27 @@ class _RobotPathGameState extends State<RobotPathGame>
     });
 
     _successController.forward(from: 0.0);
-    _warpController.forward(from: 0.0);
 
     final random = math.Random();
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 40; i++) {
       final angle = random.nextDouble() * 2 * math.pi;
       final speed = 50 + random.nextDouble() * 150;
       explosions.add(ExplosionParticle(
-        position: Offset(currentRobotCol.toDouble(), currentRobotRow.toDouble()),
+        position:
+            Offset(currentRobotCol.toDouble(), currentRobotRow.toDouble()),
         velocity: Offset.fromDirection(angle, speed),
         size: 3 + random.nextDouble() * 6,
-        color: [SpaceTheme.alienGreen, SpaceTheme.starYellow, Colors.cyan][random.nextInt(3)],
+        color: [
+          SpaceTheme.alienGreen,
+          SpaceTheme.starYellow,
+          Colors.cyan
+        ][random.nextInt(3)],
       ));
     }
 
     final int baseScore = 100 * widget.grade;
-    final int efficiency = (currentLevel.optimalMoves / commandSequence.length * 100).round();
+    final int efficiency =
+        (currentLevel.optimalMoves / commandSequence.length * 100).round();
     final int bonusScore = (baseScore * (efficiency / 100.0)).round();
     final int totalScore = baseScore + bonusScore;
 
@@ -388,7 +476,8 @@ class _RobotPathGameState extends State<RobotPathGame>
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => _buildSuccessDialog(baseScore, bonusScore, efficiency),
+          builder: (context) =>
+              _buildSuccessDialog(baseScore, bonusScore, efficiency),
         );
       }
     });
@@ -479,7 +568,8 @@ class _RobotPathGameState extends State<RobotPathGame>
               ),
               child: Column(
                 children: [
-                  _buildScoreRow(S.of(context)!.baseScore, '+$baseScore', SpaceTheme.alienGreen),
+                  _buildScoreRow(S.of(context)!.baseScore, '+$baseScore',
+                      SpaceTheme.alienGreen),
                   const SizedBox(height: 8),
                   _buildScoreRow(
                     S.of(context)!.efficiencyBonus,
@@ -510,7 +600,7 @@ class _RobotPathGameState extends State<RobotPathGame>
                   },
                 ),
                 _buildDialogButton(
-                  S.of(context)!.nextLevel,
+                  S.of(context)!.toTheBridge,
                   Icons.arrow_forward,
                   SpaceTheme.nebulaPurple,
                   () {
@@ -526,7 +616,8 @@ class _RobotPathGameState extends State<RobotPathGame>
     );
   }
 
-  Widget _buildScoreRow(String label, String value, Color color, {bool bold = false}) {
+  Widget _buildScoreRow(String label, String value, Color color,
+      {bool bold = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -550,7 +641,8 @@ class _RobotPathGameState extends State<RobotPathGame>
     );
   }
 
-  Widget _buildDialogButton(String text, IconData icon, Color color, VoidCallback onPressed) {
+  Widget _buildDialogButton(
+      String text, IconData icon, Color color, VoidCallback onPressed) {
     return ElevatedButton.icon(
       onPressed: onPressed,
       icon: Icon(icon, size: 20),
@@ -570,12 +662,10 @@ class _RobotPathGameState extends State<RobotPathGame>
 
   @override
   Widget build(BuildContext context) {
-    // FIXED: Add ! null assertion
     final s = S.of(context)!;
 
     return Scaffold(
       body: SpaceBackground(
-        // FIXED: Replaced GameUI wrapper with Scaffold > SpaceBackground
         child: Stack(
           children: [
             // Animated background
@@ -583,10 +673,9 @@ class _RobotPathGameState extends State<RobotPathGame>
               animation: _glowAnimation,
               builder: (context, child) {
                 return CustomPaint(
-                  painter: SpaceBackgroundPainter(
+                  painter: MoonSurfacePainter(
                     glowIntensity: _glowAnimation.value,
                     time: _particleController.value,
-                    hasWon: hasWon,
                   ),
                   size: Size.infinite,
                 );
@@ -596,13 +685,15 @@ class _RobotPathGameState extends State<RobotPathGame>
             // Particles
             ...particles.map((p) => p.build()),
             ...explosions.map((e) => e.build()),
+            ...dustParticles.map((d) => d.build()),
 
             SafeArea(
               child: OrientationBuilder(
                 builder: (context, orientation) {
                   return LayoutBuilder(
                     builder: (context, constraints) {
-                      final isLandscape = orientation == Orientation.landscape;
+                      final isLandscape =
+                          orientation == Orientation.landscape;
 
                       if (isLandscape) {
                         return _buildLandscapeLayout(constraints);
@@ -615,7 +706,6 @@ class _RobotPathGameState extends State<RobotPathGame>
               ),
             ),
 
-            // FIXED: Add GameUI as a header inside the Stack
             SafeArea(
               child: GameUI(
                 title: s.robotPathTitle,
@@ -630,22 +720,67 @@ class _RobotPathGameState extends State<RobotPathGame>
   }
 
   Widget _buildPortraitLayout(BoxConstraints constraints) {
+    final s = S.of(context)!;
     final double availableHeight = constraints.maxHeight;
     final double availableWidth = constraints.maxWidth;
 
     final double maxGridSize = math.min(
       availableWidth * 0.92,
-      availableHeight * 0.45,
+      availableHeight * 0.40,
     );
     final double cellSize = maxGridSize / currentLevel.gridSize;
 
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(12.0).copyWith(top: 80), // Push content below header
+        padding: const EdgeInsets.all(12.0).copyWith(top: 80),
         child: Column(
           children: [
-            // FIXED: Removed _buildHeader(), GameUI is now the header
-            _buildGrid(cellSize, maxGridSize),
+            // Grid and controls side by side
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Grid
+                Expanded(
+                  flex: 6,
+                  child: _buildGrid(cellSize, maxGridSize),
+                ),
+                const SizedBox(width: 8),
+                // Control buttons
+                Expanded(
+                  flex: 4,
+                  child: Column(
+                    children: [
+                      _buildControlButton(
+                        s.run,
+                        Icons.play_arrow,
+                        Colors.green,
+                        _executeProgram,
+                        enabled: !isExecuting && commandSequence.isNotEmpty,
+                        compact: true,
+                      ),
+                      const SizedBox(height: 6),
+                      _buildControlButton(
+                        s.clear,
+                        Icons.clear_all,
+                        Colors.orange,
+                        _clearCommands,
+                        enabled: !isExecuting && commandSequence.isNotEmpty,
+                        compact: true,
+                      ),
+                      const SizedBox(height: 6),
+                      _buildControlButton(
+                        s.reset,
+                        Icons.refresh,
+                        Colors.blue,
+                        _resetRobot,
+                        enabled: isExecuting || showingError,
+                        compact: true,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             if (showingError) ...[
               _buildErrorMessage(),
@@ -654,8 +789,6 @@ class _RobotPathGameState extends State<RobotPathGame>
             _buildProgramArea(constraints.maxWidth),
             const SizedBox(height: 12),
             _buildCommandPalette(),
-            const SizedBox(height: 12),
-            _buildControlButtons(),
           ],
         ),
       ),
@@ -663,54 +796,83 @@ class _RobotPathGameState extends State<RobotPathGame>
   }
 
   Widget _buildLandscapeLayout(BoxConstraints constraints) {
+    final s = S.of(context)!;
     final double availableHeight = constraints.maxHeight;
     final double availableWidth = constraints.maxWidth;
 
     final double maxGridSize = math.min(
-      availableWidth * 0.45,
-      availableHeight * 0.85,
+      availableWidth * 0.42,
+      availableHeight * 0.80,
     );
     final double cellSize = maxGridSize / currentLevel.gridSize;
 
     return Row(
       children: [
-        // Left side - Grid
+        // Left side - Grid and controls
         Expanded(
           flex: 5,
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(12.0).copyWith(top: 80), // Push content below header
+              padding: const EdgeInsets.all(12.0).copyWith(top: 80),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _buildGrid(cellSize, maxGridSize),
+                  const SizedBox(height: 12),
                   if (showingError) ...[
-                    const SizedBox(height: 12),
                     _buildErrorMessage(),
+                    const SizedBox(height: 12),
                   ],
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildControlButton(
+                        s.run,
+                        Icons.play_arrow,
+                        Colors.green,
+                        _executeProgram,
+                        enabled: !isExecuting && commandSequence.isNotEmpty,
+                        compact: true,
+                      ),
+                      const SizedBox(width: 8),
+                      _buildControlButton(
+                        s.clear,
+                        Icons.clear_all,
+                        Colors.orange,
+                        _clearCommands,
+                        enabled: !isExecuting && commandSequence.isNotEmpty,
+                        compact: true,
+                      ),
+                      const SizedBox(width: 8),
+                      _buildControlButton(
+                        s.reset,
+                        Icons.refresh,
+                        Colors.blue,
+                        _resetRobot,
+                        enabled: isExecuting || showingError,
+                        compact: true,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
           ),
         ),
 
-        // --- UPDATED Right side - Controls ---
+        // Right side - Program and Commands
         Expanded(
           flex: 5,
           child: Padding(
-            padding: const EdgeInsets.all(12.0).copyWith(top: 80), // Push content below header
-            // Use a Column to stack Program, Palette, and Controls
+            padding: const EdgeInsets.all(12.0).copyWith(top: 80),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Program Area is now Expanded to fill available space
                 Expanded(
                   child: _buildProgramArea(availableWidth * 0.45),
                 ),
                 const SizedBox(height: 12),
                 _buildCommandPalette(),
-                const SizedBox(height: 12),
-                _buildControlButtons(),
               ],
             ),
           ),
@@ -718,8 +880,6 @@ class _RobotPathGameState extends State<RobotPathGame>
       ],
     );
   }
-
-  // FIXED: _buildHeader() is removed, as GameUI provides it.
 
   Widget _buildGrid(double cellSize, double maxGridSize) {
     return Center(
@@ -729,18 +889,18 @@ class _RobotPathGameState extends State<RobotPathGame>
         decoration: BoxDecoration(
           gradient: RadialGradient(
             colors: [
-              SpaceTheme.deepSpace.withOpacity(0.4),
-              SpaceTheme.deepSpace.withOpacity(0.8),
+              const Color(0xFF2C1810).withOpacity(0.4),
+              const Color(0xFF1A0F08).withOpacity(0.8),
             ],
           ),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: SpaceTheme.alienGreen.withOpacity(0.5),
+            color: Colors.brown.withOpacity(0.5),
             width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: SpaceTheme.alienGreen.withOpacity(0.3),
+              color: Colors.brown.withOpacity(0.3),
               blurRadius: 20,
               spreadRadius: 3,
             ),
@@ -772,11 +932,11 @@ class _RobotPathGameState extends State<RobotPathGame>
 
               // Robot
               AnimatedPositioned(
-                duration: const Duration(milliseconds: 400),
+                duration: const Duration(milliseconds: 350),
                 curve: Curves.easeInOut,
                 left: currentRobotCol * cellSize,
                 top: currentRobotRow * cellSize,
-                child: _buildRobot(cellSize),
+                child: _buildRover(cellSize),
               ),
             ],
           ),
@@ -793,7 +953,7 @@ class _RobotPathGameState extends State<RobotPathGame>
       height: cellSize,
       decoration: BoxDecoration(
         border: Border.all(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.brown.withOpacity(0.1),
           width: 0.5,
         ),
       ),
@@ -811,35 +971,44 @@ class _RobotPathGameState extends State<RobotPathGame>
           animation: _pulseAnimation,
           builder: (context, child) {
             return Transform.scale(
-              scale: _pulseAnimation.value * 0.9,
+              scale: _pulseAnimation.value * 0.85,
               child: Container(
-                margin: EdgeInsets.all(cellSize * 0.1),
+                margin: EdgeInsets.all(cellSize * 0.15),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.grey[800]!,
+                      Colors.grey[700]!,
                       Colors.grey[900]!,
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
-                      blurRadius: 8,
-                      spreadRadius: 2,
+                      color: Colors.black.withOpacity(0.6),
+                      blurRadius: 6,
+                      spreadRadius: 1,
                     ),
                   ],
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.circle,
-                    color: Colors.grey[700],
-                    size: cellSize * 0.4,
-                  ),
                 ),
               ),
             );
           },
+        );
+
+      case CellType.crater:
+        return Container(
+          margin: EdgeInsets.all(cellSize * 0.1),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                Colors.black,
+                Colors.brown[900]!,
+                Colors.brown[700]!,
+              ],
+              stops: const [0.0, 0.6, 1.0],
+            ),
+          ),
         );
 
       case CellType.blackHole:
@@ -853,16 +1022,42 @@ class _RobotPathGameState extends State<RobotPathGame>
                 gradient: RadialGradient(
                   colors: [
                     SpaceTheme.nebulaPurple.withOpacity(_glowAnimation.value),
-                    Colors.black,
+                    Colors.deepPurple.withOpacity(0.5),
                     Colors.black,
                   ],
-                  stops: const [0.0, 0.5, 1.0],
+                  stops: const [0.0, 0.4, 1.0],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: SpaceTheme.nebulaPurple.withOpacity(_glowAnimation.value * 0.8),
+                    color: SpaceTheme.nebulaPurple
+                        .withOpacity(_glowAnimation.value * 0.8),
                     blurRadius: 15,
                     spreadRadius: 3,
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+
+      case CellType.energyField:
+        return AnimatedBuilder(
+          animation: _glowAnimation,
+          builder: (context, child) {
+            return Container(
+              margin: EdgeInsets.all(cellSize * 0.15),
+              decoration: BoxDecoration(
+                color: Colors.cyan.withOpacity(0.3 * _glowAnimation.value),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: Colors.cyan.withOpacity(_glowAnimation.value),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.cyan.withOpacity(_glowAnimation.value * 0.5),
+                    blurRadius: 10,
+                    spreadRadius: 2,
                   ),
                 ],
               ),
@@ -875,16 +1070,16 @@ class _RobotPathGameState extends State<RobotPathGame>
           decoration: BoxDecoration(
             gradient: RadialGradient(
               colors: [
-                SpaceTheme.alienGreen.withOpacity(0.4),
+                SpaceTheme.alienGreen.withOpacity(0.3),
                 SpaceTheme.alienGreen.withOpacity(0.1),
               ],
             ),
           ),
           child: Center(
             child: Icon(
-              Icons.flight_takeoff,
+              Icons.flag,
               color: SpaceTheme.alienGreen,
-              size: cellSize * 0.6,
+              size: cellSize * 0.5,
             ),
           ),
         );
@@ -897,7 +1092,8 @@ class _RobotPathGameState extends State<RobotPathGame>
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   colors: [
-                    SpaceTheme.starYellow.withOpacity(0.4 * _pulseAnimation.value),
+                    SpaceTheme.starYellow
+                        .withOpacity(0.4 * _pulseAnimation.value),
                     SpaceTheme.starYellow.withOpacity(0.1),
                   ],
                 ),
@@ -906,7 +1102,7 @@ class _RobotPathGameState extends State<RobotPathGame>
                 scale: _pulseAnimation.value,
                 child: Center(
                   child: Icon(
-                    Icons.stars,
+                    Icons.star,
                     color: SpaceTheme.starYellow,
                     size: cellSize * 0.6,
                   ),
@@ -918,7 +1114,7 @@ class _RobotPathGameState extends State<RobotPathGame>
     }
   }
 
-  Widget _buildRobot(double cellSize) {
+  Widget _buildRover(double cellSize) {
     return Container(
       width: cellSize,
       height: cellSize,
@@ -929,21 +1125,53 @@ class _RobotPathGameState extends State<RobotPathGame>
             return Transform.rotate(
               angle: currentRobotDirection * math.pi / 2,
               child: Container(
+                width: cellSize * 0.8,
+                height: cellSize * 0.8,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
+                  color: hasWon
+                      ? SpaceTheme.starYellow.withOpacity(0.2)
+                      : Colors.cyan.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: hasWon ? SpaceTheme.starYellow : Colors.cyan,
+                    width: 2,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: (hasWon ? SpaceTheme.starYellow : Colors.cyan)
                           .withOpacity(_glowAnimation.value * 0.8),
-                      blurRadius: 15,
-                      spreadRadius: 3,
+                      blurRadius: 12,
+                      spreadRadius: 2,
                     ),
                   ],
                 ),
-                child: Icon(
-                  Icons.smart_toy,
-                  color: hasWon ? SpaceTheme.starYellow : Colors.cyan,
-                  size: cellSize * 0.7,
+                child: Stack(
+                  children: [
+                    // Rover body
+                    Center(
+                      child: Container(
+                        width: cellSize * 0.5,
+                        height: cellSize * 0.4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[800],
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                    // Front indicator
+                    Positioned(
+                      top: cellSize * 0.15,
+                      left: cellSize * 0.35,
+                      child: Container(
+                        width: cellSize * 0.1,
+                        height: cellSize * 0.2,
+                        decoration: BoxDecoration(
+                          color: hasWon ? SpaceTheme.starYellow : Colors.cyan,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -955,7 +1183,7 @@ class _RobotPathGameState extends State<RobotPathGame>
 
   Widget _buildErrorMessage() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -969,14 +1197,14 @@ class _RobotPathGameState extends State<RobotPathGame>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, color: Colors.red, size: 20),
+          const Icon(Icons.error_outline, color: Colors.red, size: 18),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
               errorMessage,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
@@ -990,7 +1218,7 @@ class _RobotPathGameState extends State<RobotPathGame>
   Widget _buildProgramArea(double width) {
     return Container(
       width: width,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -1000,53 +1228,39 @@ class _RobotPathGameState extends State<RobotPathGame>
             SpaceTheme.nebulaPurple.withOpacity(0.6),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: SpaceTheme.alienGreen.withOpacity(0.3),
           width: 2,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: SpaceTheme.alienGreen.withOpacity(0.2),
-            blurRadius: 15,
-            spreadRadius: 2,
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // ... (Program title row - no change here) ...
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: SpaceTheme.alienGreen.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.code,
-                      color: SpaceTheme.alienGreen,
-                      size: 20,
-                    ),
+                  Icon(
+                    Icons.code,
+                    color: SpaceTheme.alienGreen,
+                    size: 18,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Text(
                     S.of(context)!.program,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: commandSequence.length >= maxCommands
                       ? Colors.red.withOpacity(0.3)
@@ -1063,171 +1277,148 @@ class _RobotPathGameState extends State<RobotPathGame>
                   '${commandSequence.length}/$maxCommands',
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 14,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-
-          // --- REPLACED ReorderableListView with Expanded > ScrollView > Wrap ---
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: draggedOverIndex != null
-                      ? SpaceTheme.alienGreen
-                      : Colors.white.withOpacity(0.1),
-                  width: draggedOverIndex != null ? 2 : 1,
-                ),
+          const SizedBox(height: 10),
+          Container(
+            height: 160,
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.1),
+                width: 1,
               ),
-              child: commandSequence.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.add_circle_outline,
-                            color: Colors.white.withOpacity(0.3),
-                            size: 32,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            S.of(context)!.emptyProgram,
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.5),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  // Use a ScrollView in case the commands overflow
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                      child: Wrap(
-                        spacing: 8, // Horizontal space
-                        runSpacing: 8, // Vertical space
-                        children: [
-                          // Map the commands to chips
-                          for (int i = 0; i < commandSequence.length; i++)
-                            _buildProgramCommandChip(
-                              commandSequence[i],
-                              i,
-                              // Key is still useful for widget identity
-                              key: ValueKey(commandSequence[i].id), 
-                            ),
-                        ],
-                      ),
-                    ),
             ),
+            child: commandSequence.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.add_circle_outline,
+                          color: Colors.white.withOpacity(0.3),
+                          size: 28,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          S.of(context)!.emptyProgram,
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.5),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.all(8),
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (int i = 0; i < commandSequence.length; i++)
+                          _buildProgramCommandChip(
+                            commandSequence[i],
+                            i,
+                          ),
+                      ],
+                    ),
+                  ),
           ),
-          // --- END REPLACEMENT ---
         ],
       ),
     );
   }
 
-  Widget _buildProgramCommandChip(ProgramCommand programCommand, int index, {required Key key}) {
+  Widget _buildProgramCommandChip(ProgramCommand programCommand, int index) {
     final command = programCommand.command;
     final commandInfo = _getCommandInfo(command);
 
-    return Padding(
-      key: key,
-      padding: const EdgeInsets.only(right: 8),
-      // OLD GestureDetector wrapper is removed.
-      // ReorderableListView handles dragging.
-      child: Container(
-        width: 70,
-        height: 70,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              commandInfo.color.withOpacity(0.8),
-              commandInfo.color.withOpacity(0.4),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                commandInfo.color.withOpacity(0.8),
+                commandInfo.color.withOpacity(0.4),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: commandInfo.color,
+              width: 2,
+            ),
+          ),
+          child: Stack(
+            children: [
+              Center(
+                child: Icon(
+                  commandInfo.icon,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              Positioned(
+                bottom: 2,
+                right: 2,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    '${index + 1}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: commandInfo.color,
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: commandInfo.color.withOpacity(0.4),
-              blurRadius: 8,
-              spreadRadius: 2,
-            ),
-          ],
         ),
-        child: Stack(
-          // Set clipBehavior to none to allow the 'X' to pop out
-          clipBehavior: Clip.none, 
-          children: [
-            Center(
-              child: Icon(
-                commandInfo.icon,
+        Positioned(
+          top: -6,
+          right: -6,
+          child: GestureDetector(
+            onTap: !isExecuting ? () => _removeCommand(index) : null,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 1.5),
+              ),
+              child: const Icon(
+                Icons.close,
                 color: Colors.white,
-                size: 32,
+                size: 12,
               ),
             ),
-            Positioned(
-              top: 4,
-              right: 4,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  '${index + 1}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-
-            // --- ADDED: REMOVE BUTTON ---
-            Positioned(
-              top: -8, // Positioned slightly outside the top-left
-              left: -8,
-              child: GestureDetector(
-                onTap: !isExecuting ? () => _removeCommand(index) : null,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5),
-                  ),
-                  child: const Icon(
-                    Icons.close,
-                    color: Colors.white,
-                    size: 14,
-                  ),
-                ),
-              ),
-            ),
-            // --- END ADDED SECTION ---
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
   Widget _buildCommandPalette() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -1235,7 +1426,7 @@ class _RobotPathGameState extends State<RobotPathGame>
             SpaceTheme.deepSpace.withOpacity(0.9),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: SpaceTheme.alienGreen.withOpacity(0.3),
           width: 1,
@@ -1246,43 +1437,36 @@ class _RobotPathGameState extends State<RobotPathGame>
         children: [
           Row(
             children: [
-              // ... (Commands title - no change here) ...
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: SpaceTheme.nebulaPurple.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.apps,
-                  color: SpaceTheme.nebulaPurple,
-                  size: 20,
-                ),
+              Icon(
+                Icons.apps,
+                color: SpaceTheme.nebulaPurple,
+                size: 18,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Text(
                 S.of(context)!.commands,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // --- REPLACED Wrap with Row ---
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center, // Center the buttons
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
             children: [
               _buildCommandButton(RobotCommand.forward),
-              const SizedBox(width: 12), // Use SizedBox for spacing
               _buildCommandButton(RobotCommand.turnLeft),
-              const SizedBox(width: 12),
               _buildCommandButton(RobotCommand.turnRight),
+              if (widget.grade >= 2) _buildCommandButton(RobotCommand.jump),
+              if (widget.grade >= 3) _buildCommandButton(RobotCommand.destroy),
+              if (widget.grade >= 4) _buildCommandButton(RobotCommand.wait),
             ],
           ),
-          // --- END REPLACEMENT ---
         ],
       ),
     );
@@ -1293,57 +1477,53 @@ class _RobotPathGameState extends State<RobotPathGame>
 
     return GestureDetector(
       onTap: isExecuting ? null : () => _addCommand(command),
-      child: AnimatedBuilder(
-        animation: _pulseAnimation,
-        builder: (context, child) {
-          return Container(
-            // width: 90,
-            // height: 90,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  commandInfo.color.withOpacity(isExecuting ? 0.3 : 0.7),
-                  commandInfo.color.withOpacity(isExecuting ? 0.2 : 0.4),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: commandInfo.color.withOpacity(isExecuting ? 0.3 : 1.0),
-                width: 2,
-              ),
-              boxShadow: isExecuting ? [] : [
-                BoxShadow(
-                  color: commandInfo.color.withOpacity(0.4),
-                  blurRadius: 12,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  commandInfo.icon,
-                  color: Colors.white.withOpacity(isExecuting ? 0.5 : 1.0),
-                  size: 36,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  commandInfo.label,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(isExecuting ? 0.5 : 0.9),
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+      child: Container(
+        width: 70,
+        height: 70,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              commandInfo.color.withOpacity(isExecuting ? 0.3 : 0.7),
+              commandInfo.color.withOpacity(isExecuting ? 0.2 : 0.4),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: commandInfo.color.withOpacity(isExecuting ? 0.3 : 1.0),
+            width: 2,
+          ),
+          boxShadow: isExecuting
+              ? []
+              : [
+                  BoxShadow(
+                    color: commandInfo.color.withOpacity(0.4),
+                    blurRadius: 8,
+                    spreadRadius: 1,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              commandInfo.icon,
+              color: Colors.white.withOpacity(isExecuting ? 0.5 : 1.0),
+              size: 28,
             ),
-          );
-        },
+            const SizedBox(height: 4),
+            Text(
+              commandInfo.label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(isExecuting ? 0.5 : 0.9),
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1355,6 +1535,12 @@ class _RobotPathGameState extends State<RobotPathGame>
           icon: Icons.arrow_upward,
           color: SpaceTheme.alienGreen,
           label: S.of(context)!.forward,
+        );
+      case RobotCommand.jump:
+        return CommandInfo(
+          icon: Icons.redo,
+          color: Colors.teal,
+          label: 'Jump',
         );
       case RobotCommand.turnLeft:
         return CommandInfo(
@@ -1368,38 +1554,19 @@ class _RobotPathGameState extends State<RobotPathGame>
           color: SpaceTheme.starYellow,
           label: S.of(context)!.turnRight,
         );
+      case RobotCommand.destroy:
+        return CommandInfo(
+          icon: Icons.clear,
+          color: Colors.red,
+          label: 'Destroy',
+        );
+      case RobotCommand.wait:
+        return CommandInfo(
+          icon: Icons.pause,
+          color: Colors.blue,
+          label: 'Wait',
+        );
     }
-  }
-
-  Widget _buildControlButtons() {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      alignment: WrapAlignment.center,
-      children: [
-        _buildControlButton(
-          S.of(context)!.run,
-          Icons.play_arrow,
-          Colors.green,
-          _executeProgram,
-          enabled: !isExecuting && commandSequence.isNotEmpty,
-        ),
-        _buildControlButton(
-          S.of(context)!.clear,
-          Icons.clear_all,
-          Colors.orange,
-          _clearCommands,
-          enabled: !isExecuting && commandSequence.isNotEmpty,
-        ),
-        _buildControlButton(
-          S.of(context)!.reset,
-          Icons.refresh,
-          Colors.blue,
-          _resetRobot,
-          enabled: isExecuting || showingError,
-        ),
-      ],
-    );
   }
 
   Widget _buildControlButton(
@@ -1408,25 +1575,29 @@ class _RobotPathGameState extends State<RobotPathGame>
     Color color,
     VoidCallback onPressed, {
     bool enabled = true,
+    bool compact = false,
   }) {
     return ElevatedButton.icon(
       onPressed: enabled ? onPressed : null,
-      icon: Icon(icon, size: 22),
+      icon: Icon(icon, size: compact ? 18 : 20),
       label: Text(
         label,
-        style: const TextStyle(
-          fontSize: 16,
+        style: TextStyle(
+          fontSize: compact ? 13 : 15,
           fontWeight: FontWeight.bold,
         ),
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: enabled ? color : Colors.grey,
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 16 : 20,
+          vertical: compact ? 10 : 12,
         ),
-        elevation: enabled ? 8 : 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        elevation: enabled ? 6 : 2,
         shadowColor: enabled ? color.withOpacity(0.5) : Colors.transparent,
       ),
     );
@@ -1439,7 +1610,7 @@ class _RobotPathGameState extends State<RobotPathGame>
     _robotMoveController.dispose();
     _pulseController.dispose();
     _particleController.dispose();
-    _warpController.dispose();
+    _roverWheelController.dispose();
     super.dispose();
   }
 }
@@ -1467,9 +1638,17 @@ class CommandInfo {
   });
 }
 
-enum RobotCommand { forward, turnLeft, turnRight }
+enum RobotCommand { forward, jump, turnLeft, turnRight, destroy, wait }
 
-enum CellType { empty, asteroid, blackHole, start, goal }
+enum CellType {
+  empty,
+  asteroid,
+  crater,
+  blackHole,
+  energyField,
+  start,
+  goal
+}
 
 class PathLevel {
   final int gridSize;
@@ -1493,62 +1672,47 @@ class PathLevel {
   });
 
   static PathLevel generate(int grade, int level) {
-    // Calculate complexity based on grade and level
-    // Grades 1-4, Levels 1-20 each = 80 unique levels
     final complexity = (grade - 1) * 20 + level;
-    
-    // Determine grid size based on complexity
+    final random = math.Random();
+
+    // Determine grid size
     int gridSize;
     if (complexity <= 20) {
-      gridSize = 5; // Grade 1: 5x5 grid
+      gridSize = 5 + (level ~/ 4);
     } else if (complexity <= 40) {
-      gridSize = 6; // Grade 2: 6x6 grid
+      gridSize = 6 + (level ~/ 4);
     } else if (complexity <= 60) {
-      gridSize = 7; // Grade 3: 7x7 grid
+      gridSize = 7 + (level ~/ 4);
     } else {
-      gridSize = 8; // Grade 4: 8x8 grid
+      gridSize = 8 + (level ~/ 4);
     }
+    gridSize = gridSize.clamp(5, 10);
 
-    // Generate level based on complexity
-    // final random = math.Random(complexity);
-    final random = math.Random();
-    
-    // Initialize empty grid
+    // Initialize grid
     final grid = List.generate(
       gridSize,
       (i) => List.generate(gridSize, (j) => CellType.empty),
     );
 
-    // Place start (top-left area)
-    int startRow = random.nextInt(2);
-    int startCol = random.nextInt(2);
+    // Place start - varied positions
+    int startRow = level % 2 == 0 ? 0 : gridSize - 1;
+    int startCol = random.nextInt(gridSize);
     grid[startRow][startCol] = CellType.start;
 
-    // Place goal (bottom-right area)
-    int goalRow = gridSize - 1 - random.nextInt(2);
-    int goalCol = gridSize - 1 - random.nextInt(2);
+    // Place goal - opposite corner area
+    int goalRow = startRow == 0 ? gridSize - 1 : 0;
+    int goalCol = random.nextInt(gridSize);
     grid[goalRow][goalCol] = CellType.goal;
 
-    // Add obstacles based on complexity
-    int numObstacles = (complexity / 4).floor() + 2;
-    numObstacles = math.min(numObstacles, (gridSize * gridSize * 0.3).floor());
+    // Create interesting path with obstacles
+    _createMazePath(grid, startRow, startCol, goalRow, goalCol, complexity, grade);
 
-    for (int i = 0; i < numObstacles; i++) {
-      int wallRow = random.nextInt(gridSize);
-      int wallCol = random.nextInt(gridSize);
-      
-      // Don't place walls on start, goal, or adjacent to them
-      if (grid[wallRow][wallCol] == CellType.empty &&
-          !_isAdjacent(wallRow, wallCol, startRow, startCol) &&
-          !_isAdjacent(wallRow, wallCol, goalRow, goalCol)) {
-        // FIXED: Changed CellType.wall to CellType.asteroid
-        grid[wallRow][wallCol] = CellType.asteroid;
-      }
-    }
+    // Add obstacles based on grade
+    _addObstacles(grid, complexity, grade, startRow, startCol, goalRow, goalCol);
 
-    // Calculate optimal moves (Manhattan distance + adjustments)
-    int optimalMoves = (goalRow - startRow).abs() + (goalCol - startCol).abs();
-    optimalMoves += (complexity / 10).floor(); // Add turns based on complexity
+    // Calculate optimal moves
+    int optimalMoves = _calculateOptimalPath(
+        grid, startRow, startCol, goalRow, goalCol, grade);
 
     return PathLevel(
       gridSize: gridSize,
@@ -1562,8 +1726,207 @@ class PathLevel {
     );
   }
 
-  static bool _isAdjacent(int row1, int col1, int row2, int col2) {
-    return (row1 - row2).abs() <= 1 && (col1 - col2).abs() <= 1;
+  static void _createMazePath(List<List<CellType>> grid, int startRow,
+      int startCol, int goalRow, int goalCol, int complexity, int grade) {
+    final random = math.Random();
+    int currentRow = startRow;
+    int currentCol = startCol;
+
+    // Create a winding path
+    while (currentRow != goalRow || currentCol != goalCol) {
+      // Move towards goal with some randomness
+      if (random.nextDouble() < 0.7) {
+        if (currentRow < goalRow) {
+          currentRow++;
+        } else if (currentRow > goalRow) {
+          currentRow--;
+        } else if (currentCol < goalCol) {
+          currentCol++;
+        } else if (currentCol > goalCol) {
+          currentCol--;
+        }
+      } else {
+        // Random direction
+        int dir = random.nextInt(4);
+        switch (dir) {
+          case 0:
+            if (currentRow > 0) currentRow--;
+            break;
+          case 1:
+            if (currentCol < grid[0].length - 1) currentCol++;
+            break;
+          case 2:
+            if (currentRow < grid.length - 1) currentRow++;
+            break;
+          case 3:
+            if (currentCol > 0) currentCol--;
+            break;
+        }
+      }
+
+      if (grid[currentRow][currentCol] == CellType.empty) {
+        grid[currentRow][currentCol] = CellType.empty; // Keep as path
+      }
+    }
+  }
+
+  static void _addObstacles(List<List<CellType>> grid, int complexity,
+      int grade, int startRow, int startCol, int goalRow, int goalCol) {
+    final random = math.Random();
+    
+    // Number of obstacles increases with complexity
+    int numAsteroids = (complexity / 8).floor() + 2;
+    int numCraters = grade >= 2 ? (complexity / 12).floor() + 1 : 0;
+    int numBlackHoles = grade >= 3 ? (complexity / 20).floor() : 0;
+    int numEnergyFields = grade >= 4 ? (complexity / 15).floor() : 0;
+
+    // Add asteroids
+    for (int i = 0; i < numAsteroids; i++) {
+      int row = random.nextInt(grid.length);
+      int col = random.nextInt(grid[0].length);
+
+      if (grid[row][col] == CellType.empty &&
+          !_isNearStartOrGoal(row, col, startRow, startCol, goalRow, goalCol)) {
+        grid[row][col] = CellType.asteroid;
+      }
+    }
+
+    // Add craters
+    for (int i = 0; i < numCraters; i++) {
+      int row = random.nextInt(grid.length);
+      int col = random.nextInt(grid[0].length);
+
+      if (grid[row][col] == CellType.empty &&
+          !_isNearStartOrGoal(row, col, startRow, startCol, goalRow, goalCol)) {
+        grid[row][col] = CellType.crater;
+      }
+    }
+
+    // Add black holes
+    for (int i = 0; i < numBlackHoles; i++) {
+      int row = random.nextInt(grid.length);
+      int col = random.nextInt(grid[0].length);
+
+      if (grid[row][col] == CellType.empty &&
+          !_isNearStartOrGoal(row, col, startRow, startCol, goalRow, goalCol)) {
+        grid[row][col] = CellType.blackHole;
+      }
+    }
+
+    // Add energy fields
+    for (int i = 0; i < numEnergyFields; i++) {
+      int row = random.nextInt(grid.length);
+      int col = random.nextInt(grid[0].length);
+
+      if (grid[row][col] == CellType.empty &&
+          !_isNearStartOrGoal(row, col, startRow, startCol, goalRow, goalCol)) {
+        grid[row][col] = CellType.energyField;
+      }
+    }
+  }
+
+  static bool _isNearStartOrGoal(int row, int col, int startRow, int startCol,
+      int goalRow, int goalCol) {
+    return (row - startRow).abs() <= 1 && (col - startCol).abs() <= 1 ||
+        (row - goalRow).abs() <= 1 && (col - goalCol).abs() <= 1;
+  }
+
+  static int _calculateOptimalPath(List<List<CellType>> grid, int startRow,
+      int startCol, int goalRow, int goalCol, int grade) {
+    // Simple BFS to find shortest path considering available commands
+    final queue = <PathState>[];
+    final visited = <String>{};
+
+    queue.add(PathState(startRow, startCol, 1, 0));
+    visited.add('$startRow,$startCol,1');
+
+    while (queue.isNotEmpty) {
+      final state = queue.removeAt(0);
+
+      if (state.row == goalRow && state.col == goalCol) {
+        return state.moves;
+      }
+
+      // Try all possible moves
+      for (int newDir = 0; newDir < 4; newDir++) {
+        int turnCost = (state.direction - newDir).abs();
+        if (turnCost > 2) turnCost = 4 - turnCost;
+
+        // Try forward move
+        int newRow = state.row;
+        int newCol = state.col;
+        switch (newDir) {
+          case 0:
+            newRow--;
+            break;
+          case 1:
+            newCol++;
+            break;
+          case 2:
+            newRow++;
+            break;
+          case 3:
+            newCol--;
+            break;
+        }
+
+        if (newRow >= 0 &&
+            newRow < grid.length &&
+            newCol >= 0 &&
+            newCol < grid[0].length) {
+          final cell = grid[newRow][newCol];
+          if (cell != CellType.asteroid &&
+              cell != CellType.blackHole &&
+              cell != CellType.crater &&
+              cell != CellType.energyField) {
+            String key = '$newRow,$newCol,$newDir';
+            if (!visited.contains(key)) {
+              visited.add(key);
+              queue.add(PathState(newRow, newCol, newDir, state.moves + turnCost + 1));
+            }
+          }
+        }
+
+        // Try jump (grade 2+)
+        if (grade >= 2) {
+          int jumpRow = state.row;
+          int jumpCol = state.col;
+          for (int i = 0; i < 2; i++) {
+            switch (newDir) {
+              case 0:
+                jumpRow--;
+                break;
+              case 1:
+                jumpCol++;
+                break;
+              case 2:
+                jumpRow++;
+                break;
+              case 3:
+                jumpCol--;
+                break;
+            }
+          }
+
+          if (jumpRow >= 0 &&
+              jumpRow < grid.length &&
+              jumpCol >= 0 &&
+              jumpCol < grid[0].length) {
+            final cell = grid[jumpRow][jumpCol];
+            if (cell != CellType.blackHole && cell != CellType.energyField) {
+              String key = '$jumpRow,$jumpCol,$newDir';
+              if (!visited.contains(key)) {
+                visited.add(key);
+                queue.add(PathState(jumpRow, jumpCol, newDir, state.moves + turnCost + 1));
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Fallback
+    return (goalRow - startRow).abs() + (goalCol - startCol).abs() + 5;
   }
 }
 
@@ -1673,6 +2036,46 @@ class ExplosionParticle {
   }
 }
 
+class DustParticle {
+  Offset position;
+  Offset velocity;
+  double size;
+  Color color;
+  double life;
+
+  DustParticle({
+    required this.position,
+    required this.velocity,
+    required this.size,
+    required this.color,
+    this.life = 0.8,
+  });
+
+  bool update() {
+    position = position + velocity * 0.016;
+    velocity = velocity * 0.92;
+    life -= 0.025;
+    return life <= 0;
+  }
+
+  Widget build() {
+    return Positioned(
+      left: position.dx,
+      top: position.dy,
+      child: IgnorePointer(
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: color.withOpacity(life.clamp(0.0, 1.0)),
+            shape: BoxShape.circle,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class TrailPainter extends CustomPainter {
   final List<Offset> trail;
   final double cellSize;
@@ -1689,11 +2092,11 @@ class TrailPainter extends CustomPainter {
     if (trail.length < 2) return;
 
     final paint = Paint()
-      ..color = SpaceTheme.alienGreen.withOpacity(0.6 * glowIntensity)
-      ..strokeWidth = 3
+      ..color = Colors.cyan.withOpacity(0.4 * glowIntensity)
+      ..strokeWidth = 2.5
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
 
     final path = Path();
     final first = trail.first;
@@ -1719,59 +2122,47 @@ class TrailPainter extends CustomPainter {
       oldDelegate.glowIntensity != glowIntensity;
 }
 
-class SpaceBackgroundPainter extends CustomPainter {
+class MoonSurfacePainter extends CustomPainter {
   final double glowIntensity;
   final double time;
-  final bool hasWon;
 
-  SpaceBackgroundPainter({
+  MoonSurfacePainter({
     required this.glowIntensity,
     required this.time,
-    required this.hasWon,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
+    // Draw some distant stars
+    final starPaint = Paint()..color = Colors.white.withOpacity(0.3);
+    final random = math.Random(42);
 
-    // Nebula effect
-    final nebulaPaint = Paint()
-      ..shader = RadialGradient(
-        colors: hasWon
-            ? [
-                SpaceTheme.starYellow.withOpacity(0.3 * glowIntensity),
-                SpaceTheme.alienGreen.withOpacity(0.2 * glowIntensity),
-                Colors.transparent,
-              ]
-            : [
-                SpaceTheme.nebulaPurple.withOpacity(0.2 * glowIntensity),
-                SpaceTheme.alienGreen.withOpacity(0.1 * glowIntensity),
-                Colors.transparent,
-              ],
-        stops: const [0.0, 0.5, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: size.width * 0.6));
-
-    canvas.drawCircle(center, size.width * 0.6, nebulaPaint);
-
-    // Grid lines
-    final gridPaint = Paint()
-      ..color = SpaceTheme.alienGreen.withOpacity(0.05 * glowIntensity)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-
-    for (double y = 0; y < size.height; y += 60) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    for (int i = 0; i < 50; i++) {
+      canvas.drawCircle(
+        Offset(random.nextDouble() * size.width, random.nextDouble() * size.height),
+        random.nextDouble() * 1.5,
+        starPaint,
+      );
     }
 
-    for (double x = 0; x < size.width; x += 60) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
-    }
+    // Draw horizon
+    final horizonPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.transparent,
+          Colors.brown.withOpacity(0.1 * glowIntensity),
+        ],
+      ).createShader(Rect.fromLTWH(0, size.height * 0.7, size.width, size.height * 0.3));
+
+    canvas.drawRect(
+      Rect.fromLTWH(0, size.height * 0.7, size.width, size.height * 0.3),
+      horizonPaint,
+    );
   }
 
   @override
-  bool shouldRepaint(SpaceBackgroundPainter oldDelegate) =>
-      oldDelegate.glowIntensity != glowIntensity ||
-      oldDelegate.time != time ||
-      oldDelegate.hasWon != hasWon;
+  bool shouldRepaint(MoonSurfacePainter oldDelegate) =>
+      oldDelegate.glowIntensity != glowIntensity || oldDelegate.time != time;
 }
-

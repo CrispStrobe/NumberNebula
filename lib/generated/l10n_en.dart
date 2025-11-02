@@ -2079,6 +2079,18 @@ class SEn extends S {
   String get undo => 'Undo';
 
   @override
+  String get run => 'Run';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get shoot => 'shoot';
+
+  @override
+  String get jump => 'jump';
+
+  @override
   String get robotPathTitle => 'Robot Path';
 
   @override
@@ -2109,12 +2121,6 @@ class SEn extends S {
 
   @override
   String get turnRight => 'Turn Right';
-
-  @override
-  String get run => 'Run';
-
-  @override
-  String get clear => 'Clear';
 
   @override
   String get starLoaderGameTitle => 'Star-Loader';

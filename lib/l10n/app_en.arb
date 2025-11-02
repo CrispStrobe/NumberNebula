@@ -1204,6 +1204,12 @@
   "toTheBridge": "To Bridge",
   "congratulations": "Congratulations!",
 
+  "run": "run",
+  "clear": "clear",
+  "reset": "reset",
+  "shoot": "shoot",
+  "jump": "jump",
+
   "robotPathTitle": "Robot Path",
   "robotPathDesc": "Program the robot to reach the goal!",
   "robotPathError": "Crash! Robot hit an obstacle.",

@@ -1161,6 +1161,12 @@
   "efficiency": "Effizienz",
   "movesVsOptimal": "Züge / Optimal",
 
+  "run": "run",
+  "clear": "clear",
+  "reset": "reset",
+  "shoot": "shoot",
+  "jump": "jump",
+
   "imprint": "Impressum",
   "imprintServiceProvider": "Diensteanbieter",
   "imprintProviderAddress": "Christian Ströbele\nNikolausstr. 5\n70190 Stuttgart\nDeutschland/Germany",

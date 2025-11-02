@@ -3718,6 +3718,30 @@ abstract class S {
   /// **'Undo'**
   String get undo;
 
+  /// No description provided for @run.
+  ///
+  /// In en, this message translates to:
+  /// **'Run'**
+  String get run;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @shoot.
+  ///
+  /// In en, this message translates to:
+  /// **'shoot'**
+  String get shoot;
+
+  /// No description provided for @jump.
+  ///
+  /// In en, this message translates to:
+  /// **'jump'**
+  String get jump;
+
   /// No description provided for @robotPathTitle.
   ///
   /// In en, this message translates to:
@@ -3777,18 +3801,6 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Turn Right'**
   String get turnRight;
-
-  /// No description provided for @run.
-  ///
-  /// In en, this message translates to:
-  /// **'Run'**
-  String get run;
-
-  /// No description provided for @clear.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear'**
-  String get clear;
 
   /// No description provided for @starLoaderGameTitle.
   ///

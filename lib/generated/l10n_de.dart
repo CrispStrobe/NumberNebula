@@ -332,7 +332,7 @@ class SDe extends S {
   String get progressResetSuccess => 'Fortschritt erfolgreich zurückgesetzt!';
 
   @override
-  String get reset => 'Zurücksetzen';
+  String get reset => 'reset';
 
   @override
   String get playToUnlock => 'Spielen zum Freischalten!';
@@ -2090,6 +2090,18 @@ class SDe extends S {
   String get undo => 'Zurück';
 
   @override
+  String get run => 'run';
+
+  @override
+  String get clear => 'clear';
+
+  @override
+  String get shoot => 'shoot';
+
+  @override
+  String get jump => 'jump';
+
+  @override
   String get robotPathTitle => 'Roboterpfad';
 
   @override
@@ -2120,12 +2132,6 @@ class SDe extends S {
 
   @override
   String get turnRight => 'Rechts drehen';
-
-  @override
-  String get run => 'Start';
-
-  @override
-  String get clear => 'Löschen';
 
   @override
   String get starLoaderGameTitle => 'Sternenlader';
