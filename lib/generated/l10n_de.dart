@@ -238,7 +238,7 @@ class SDe extends S {
   String get developer => 'Entwickler';
 
   @override
-  String get developerName => 'Space Math Academy Team';
+  String get developerName => 'CrispStrobe';
 
   @override
   String get targetAge => 'Zielalter';
@@ -2159,4 +2159,34 @@ class SDe extends S {
 
   @override
   String get movesVsOptimal => 'Züge / Optimal';
+
+  @override
+  String get imprint => 'Impressum';
+
+  @override
+  String get imprintServiceProvider => 'Diensteanbieter';
+
+  @override
+  String get imprintProviderAddress =>
+      'Christian Ströbele\nNikolausstr. 5\n70190 Stuttgart\nDeutschland/Germany';
+
+  @override
+  String get imprintContact => 'Kontakt';
+
+  @override
+  String get imprintContactDetails =>
+      'Email: postmaster@crispstro.be\nPhone: 0049 176 6421 8601';
+
+  @override
+  String get imprintContentResponsible => 'Verantwortlich für den Inhalt';
+
+  @override
+  String get imprintDisclaimer => 'Haftungsausschluss';
+
+  @override
+  String get imprintDisclaimerText =>
+      'Diese App wird \'as is\' (so wie sie ist) ausschließlich zu Bildungs- und kreativen Zwecken bereitgestellt, ohne jegliche Haftung.';
+
+  @override
+  String get imprintWebsite => 'www.crispstro.be';
 }

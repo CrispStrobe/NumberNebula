@@ -91,7 +91,7 @@
     "about": "About",
     "appVersion": "App Version",
     "developer": "Developer",
-    "developerName": "Space Math Academy Team",
+    "developerName": "CrispStrobe",
     "targetAge": "Target Age",
     "targetAgeRange": "8-12 years (Grades 3-6)",
     "aboutApp": "Space Math Academy helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.",
@@ -1238,6 +1238,17 @@
     }
   },
   "efficiency": "Efficiency",
-  "movesVsOptimal": "Moves / Optimal"
+  "movesVsOptimal": "Moves / Optimal",
+
+  "imprint": "Imprint / Legal",
+  "imprintServiceProvider": "Service Provider",
+  "imprintProviderAddress": "Christian Ströbele\nNikolausstr. 5\n70190 Stuttgart\nDeutschland/Germany",
+  "imprintContact": "Contact",
+  "imprintContactDetails": "Email: postmaster@crispstro.be\nPhone: 0049 176 6421 8601",
+  "imprintContentResponsible": "Responsible for Content",
+  "imprintDisclaimer": "Disclaimer",
+  "imprintDisclaimerText": "This app is provided as is, exclusively for educational and creative purposes, without any liability.",
+  "imprintWebsite": "www.crispstro.be",
+  "close": "Close"
 
 }

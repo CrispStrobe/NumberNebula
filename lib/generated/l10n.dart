@@ -538,7 +538,7 @@ abstract class S {
   /// No description provided for @developerName.
   ///
   /// In en, this message translates to:
-  /// **'Space Math Academy Team'**
+  /// **'CrispStrobe'**
   String get developerName;
 
   /// No description provided for @targetAge.
@@ -3849,6 +3849,60 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Moves / Optimal'**
   String get movesVsOptimal;
+
+  /// No description provided for @imprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Imprint / Legal'**
+  String get imprint;
+
+  /// No description provided for @imprintServiceProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Provider'**
+  String get imprintServiceProvider;
+
+  /// No description provided for @imprintProviderAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Christian Ströbele\nNikolausstr. 5\n70190 Stuttgart\nDeutschland/Germany'**
+  String get imprintProviderAddress;
+
+  /// No description provided for @imprintContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get imprintContact;
+
+  /// No description provided for @imprintContactDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Email: postmaster@crispstro.be\nPhone: 0049 176 6421 8601'**
+  String get imprintContactDetails;
+
+  /// No description provided for @imprintContentResponsible.
+  ///
+  /// In en, this message translates to:
+  /// **'Responsible for Content'**
+  String get imprintContentResponsible;
+
+  /// No description provided for @imprintDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Disclaimer'**
+  String get imprintDisclaimer;
+
+  /// No description provided for @imprintDisclaimerText.
+  ///
+  /// In en, this message translates to:
+  /// **'This app is provided as is, exclusively for educational and creative purposes, without any liability.'**
+  String get imprintDisclaimerText;
+
+  /// No description provided for @imprintWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'www.crispstro.be'**
+  String get imprintWebsite;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

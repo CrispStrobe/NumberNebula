@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:space_math_academy/core/services/debug_provider.dart';
 
 import 'dart:async';
-import 'package:flutter/material.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -16,6 +15,7 @@ import '../widgets/stats_card.dart';
 import '../../games/screens/game_menu_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../games/widgets/debug_panel.dart';
+import '../../../shared/widgets/imprint_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -203,18 +203,45 @@ class _HomeScreenState extends State<HomeScreen>
             ),
         ),
         
-        IconButton(
-            onPressed: _navigateToSettings,
-            icon: const Icon(
-            Icons.settings,
-            color: Colors.white,
-            size: 28,
+        // --- UPDATED ROW ---
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // --- IMPRINT BUTTON ADDED ---
+            IconButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => ImprintDialog(),
+                );
+              },
+              icon: const Icon(
+                Icons.gavel, // Legal / Gavel icon
+                color: Colors.white,
+                size: 24,
+              ),
+              tooltip: S.of(context)!.imprint,
+              style: IconButton.styleFrom(
+                backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8),
+                padding: const EdgeInsets.all(12),
+              ),
             ),
-            style: IconButton.styleFrom(
-            backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8),
-            padding: const EdgeInsets.all(12),
+            const SizedBox(width: 8), // Spacing
+            IconButton(
+              onPressed: _navigateToSettings,
+              icon: const Icon(
+              Icons.settings,
+              color: Colors.white,
+              size: 28,
+              ),
+              style: IconButton.styleFrom(
+              backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8),
+              padding: const EdgeInsets.all(12),
+              ),
             ),
+          ],
         ),
+        // --- END UPDATED ROW ---
         ],
     );
   }

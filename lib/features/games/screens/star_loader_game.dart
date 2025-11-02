@@ -1,17 +1,17 @@
-// star_loader_game.dart:
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
+import 'dart:ui'; // Import for MaskFilter
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
-import '../services/starloader_level_generator.dart';
-
+import '../services/starloader_level_generator.dart'; // We can leave this filename for now
 
 // --- Enums for Game Logic ---
 
@@ -52,6 +52,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     with TickerProviderStateMixin {
   // --- Game State ---
   late final LevelGenerator _levelGenerator;
+  late LevelData _currentLevelData; // <-- FIX: Cache for current level
   late List<List<CellType>> _grid;
   late Offset _playerPos;
   late int _playerDirection; // 0=up, 1=right, 2=down, 3=left
@@ -90,7 +91,10 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   void initState() {
     super.initState();
 
-    _levelGenerator = LevelGenerator(); 
+    _levelGenerator = LevelGenerator();
+    // --- FIX: Generate and cache the level ONCE ---
+    _currentLevelData = _getLevelData(widget.grade, widget.level);
+    // ---
 
     _winPulseController = AnimationController(
       duration: const Duration(milliseconds: 1000),
@@ -129,7 +133,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
         }
       });
 
-    _loadLevel();
+    _loadLevel(); // Load the cached level
     _generateStarfield();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -165,8 +169,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   void _showTutorialHint() {
     setState(() {
       _showingHint = true;
-      // FIXED: Added ! null assertion
-      _hintMessage = S.of(context)!.starLoaderHint;
+      _hintMessage = S.of(context)!.starLoaderHint; // Name will be updated
     });
     Future.delayed(const Duration(seconds: 4), () {
       if (mounted) {
@@ -175,65 +178,76 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     });
   }
 
-  void _loadLevel() {
-        final levelData = _getLevelData(widget.grade, widget.level);
+  // --- FIX: Renamed to _resetCurrentLevel ---
+  // This method resets the state using the cached _currentLevelData.
+  void _resetCurrentLevel() {
+    final levelData = _currentLevelData; // Use cached data
 
-        setState(() {
-        _grid = [];
-        _boxPositions = [];
-        _targetPositions = [];
-        _moveHistory.clear();
-        _moveCount = 0;
-        _hasWon = false;
-        _optimalMoves = levelData.optimalMoves;
-        _trails.clear();
-        _celebrationParticles.clear();
-        _playerDirection = 2; // Default to facing down
+    setState(() {
+      _grid = [];
+      _boxPositions = [];
+      _targetPositions = [];
+      _moveHistory.clear();
+      _moveCount = 0;
+      _hasWon = false;
+      _optimalMoves = levelData.optimalMoves;
+      _trails.clear();
+      _celebrationParticles.clear();
+      _playerDirection = 2; // Default to facing down
 
-        // Parse the level layout string
-        for (int y = 0; y < levelData.layout.length; y++) {
-            final rowStr = levelData.layout[y];
-            final row = <CellType>[];
-            for (int x = 0; x < rowStr.length; x++) {
-            final char = rowStr[x];
-            final pos = Offset(x.toDouble(), y.toDouble());
+      // Parse the level layout string
+      for (int y = 0; y < levelData.layout.length; y++) {
+        final rowStr = levelData.layout[y];
+        final row = <CellType>[];
+        for (int x = 0; x < rowStr.length; x++) {
+          final char = rowStr[x];
+          final pos = Offset(x.toDouble(), y.toDouble());
 
-            switch (char) {
-                case 'W':
-                row.add(CellType.wall);
-                break;
-                case 'P':
-                _playerPos = pos;
-                row.add(CellType.floor);
-                break;
-                case 'B':
-                _boxPositions.add(pos);
-                row.add(CellType.floor);
-                break;
-                case 'T':
-                _targetPositions.add(pos);
-                row.add(CellType.target);
-                break;
-                case 'X': // Box on target
-                _boxPositions.add(pos);
-                _targetPositions.add(pos);
-                row.add(CellType.target);
-                break;
-                case ' ':
-                default:
-                row.add(CellType.floor);
-                break;
-            }
-            }
-            _grid.add(row);
+          switch (char) {
+            case 'W':
+              row.add(CellType.wall);
+              break;
+            case 'P':
+              _playerPos = pos;
+              row.add(CellType.floor);
+              break;
+            case 'B':
+              _boxPositions.add(pos);
+              row.add(CellType.floor);
+              break;
+            case 'T':
+              _targetPositions.add(pos);
+              row.add(CellType.target);
+              break;
+            case 'X': // Box on target
+              _boxPositions.add(pos);
+              _targetPositions.add(pos);
+              row.add(CellType.target);
+              break;
+            case ' ':
+            default:
+              row.add(CellType.floor);
+              break;
+          }
         }
-        });
+        _grid.add(row);
+      }
+    });
 
-        _stopwatch.reset();
-        _stopwatch.start();
-        _focusNode.requestFocus();
-    }
+    _stopwatch.reset();
+    _stopwatch.start();
+    _focusNode.requestFocus();
+  }
+  
+  // --- FIX: This method now generates a NEW level ---
+  // It's called by the "Play Again" button.
+  void _loadLevel() {
+    // Generate new data and cache it
+    _currentLevelData = _getLevelData(widget.grade, widget.level);
+    _resetCurrentLevel(); // Load the newly cached data
+  }
 
+    // Pre-designed solvable levels with progressive difficulty
     LevelData _getLevelData(int grade, int level) {
     // Calculate difficulty
     final complexity = (grade - 1) * 5 + level;
@@ -260,7 +274,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     }
 
     // Generate level
-    final generatedLevel = _levelGenerator.generateLevel( // <-- This line also works now
+    final generatedLevel = _levelGenerator.generateLevel(
         dimX: dimX,
         dimY: dimY,
         numBoxes: numBoxes,
@@ -297,7 +311,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
         layout: layout,
         optimalMoves: math.max(generatedLevel.optimalMoves, numBoxes * 3),
     );
-  }
+    }
 
   @override
   void dispose() {
@@ -326,7 +340,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
         event.logicalKey == LogicalKeyboardKey.backspace) {
       _undoMove();
     } else if (event.logicalKey == LogicalKeyboardKey.keyR) {
-      _loadLevel();
+      _resetCurrentLevel(); // <-- FIX: Call reset, not new level
     }
   }
 
@@ -427,39 +441,16 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     final lastMove = _moveHistory.removeLast();
 
     setState(() {
-      // --- START FIX ---
-
       if (lastMove.pushedBoxOrigin != null) {
-        // This was a push move.
-        // We must find the box *before* moving the player.
-        
-        // _playerPos is the player's CURRENT position (e.g., (3,2))
-        // lastMove.playerPos is the player's OLD position (e.g., (2,2))
-        
-        // 1. Find the direction of the last move:
-        // (3,2) - (2,2) = (1,0)
         final dx = _playerPos.dx - lastMove.playerPos.dx;
         final dy = _playerPos.dy - lastMove.playerPos.dy;
-
-        // 2. Find the box's CURRENT position:
-        // It's at its origin + the push direction
-        // lastMove.pushedBoxOrigin (e.g., (3,2)) + (1,0) = (4,2)
         final boxCurrentPos = lastMove.pushedBoxOrigin!.translate(dx, dy);
-
-        // 3. Get the index of the box at that position (4,2)
         final boxIndex = _getBoxIndexAt(boxCurrentPos);
-
         if (boxIndex != -1) {
-          // 4. Move the box back to its origin (3,2)
           _boxPositions[boxIndex] = lastMove.pushedBoxOrigin!;
         }
       }
-
-      // 5. NOW move the player back (to (2,2))
       _playerPos = lastMove.playerPos;
-
-      // --- END FIX ---
-
       _moveCount--;
     });
 
@@ -500,13 +491,14 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     }
   }
 
+  // --- FIX: Add this method to handle quitting ---
   void _handleQuit() {
     // If they already won or didn't make a single move, don't record a failure.
     if (_hasWon || _moveCount == 0) return; 
 
     _stopwatch.stop();
     context.read<GameProvider>().recordLevelWin(
-          gameType: 'star_loader_game', 
+          gameType: 'star_loader_game', // <-- Use the new ID
           scoreGained: 0,
           difficulty: widget.level,
           wasSuccessful: false, // <-- Mark as a failed attempt
@@ -532,7 +524,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
     // Use the correct framework method
     context.read<GameProvider>().recordLevelWin(
-          gameType: 'star_loader_game', // game id as in lib/core/models/skill_category.dart
+          gameType: 'star_loader_game', // <-- FIX: Use new ID
           scoreGained: totalScore,
           difficulty: widget.level,
           wasSuccessful: true,
@@ -563,20 +555,16 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   Widget build(BuildContext context) {
     final s = S.of(context)!;
 
-    // Use the SpaceBackground widget from your other game for a consistent
-    // animated background, and set the Scaffold color to deep space.
     return Scaffold(
-      backgroundColor: SpaceTheme.deepSpace, // 1. Fix for "harsh white"
-      body: SpaceBackground( // 2. Use the proper background widget
+      backgroundColor: SpaceTheme.deepSpace, 
+      body: SpaceBackground( 
         child: KeyboardListener(
           focusNode: _focusNode,
           onKeyEvent: _handleKeyEvent,
           autofocus: true,
-          // This Stack is the main layout.
-          // We draw the game *first*, then the UI *on top*.
           child: Stack(
             children: [
-              // --- 3. GAME AREA (drawn first) ---
+              // --- GAME AREA ---
               OrientationBuilder(
                 builder: (context, orientation) {
                   if (orientation == Orientation.portrait) {
@@ -587,19 +575,20 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                 },
               ),
 
-              // --- STATIC PARTICLES (drawn on top of background, under UI) ---
+              // --- STATIC PARTICLES ---
               ..._particles.map((p) => p.build()),
 
-              // --- 4. UI AREA (drawn last, on top of everything) ---
+              // --- UI AREA (ON TOP) ---
               Positioned(
                 top: 0,
                 left: 0,
                 right: 0,
                 child: SafeArea(
                   child: GameUI(
-                    title: S.of(context)!.starLoaderTitle,
+                    title: S.of(context)!.starLoaderTitle, // Will be updated
                     level: widget.level,
-                    onBack: () {
+                    // --- FIX: Call _handleQuit on back ---
+                    onBack: () { 
                       _handleQuit();
                       Navigator.of(context).pop();
                     },
@@ -607,13 +596,13 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                 ),
               ),
 
-              // --- HINT OVERLAY (drawn on top) ---
+              // --- HINT OVERLAY ---
               if (_showingHint)
                 Positioned(
-                  top: 80,
-                  left: 20,
-                  right: 20,
-                  child: _buildHintBanner(),
+                    top: 80,
+                    left: 20,
+                    right: 20,
+                    child: _buildHintBanner(),
                 ),
             ],
           ),
@@ -664,7 +653,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   Widget _buildPortraitLayout(BuildContext context, S s) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8.0).copyWith(top: 60), // Space for GameUI
         child: Column(
           children: [
             _buildGameStats(s),
@@ -683,7 +672,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   Widget _buildLandscapeLayout(BuildContext context, S s) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0).copyWith(top: 60), // Space for GameUI
         child: Row(
           children: [
             Expanded(
@@ -782,7 +771,6 @@ class _StarLoaderGameState extends State<StarLoaderGame>
       runSpacing: 12,
       alignment: WrapAlignment.center,
       children: [
-        // --- UNDO BUTTON ---
         ElevatedButton.icon(
           onPressed: _moveHistory.isEmpty || _hasWon ? null : _undoMove,
           icon: const Icon(Icons.undo, size: 20),
@@ -797,12 +785,11 @@ class _StarLoaderGameState extends State<StarLoaderGame>
             elevation: 8,
           ),
         ),
-
-        // --- RESET BUTTON (NEW) ---
+        // --- FIX: Call _resetCurrentLevel ---
         ElevatedButton.icon(
-          onPressed: _hasWon ? null : _loadLevel, // Disable if won
+          onPressed: _hasWon ? null : _resetCurrentLevel, // Disable if won
           icon: const Icon(Icons.refresh, size: 20),
-          label: Text(s.reset), // Assumes you have a 'reset' string in S
+          label: Text(s.reset),
           style: ElevatedButton.styleFrom(
             backgroundColor: SpaceTheme.rocketRed.withOpacity(0.8),
             foregroundColor: Colors.white,
@@ -986,11 +973,11 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                     child: ElevatedButton.icon(
                       onPressed: () {
                         Navigator.of(context).pop();
-                        _loadLevel();
+                        _loadLevel(); // <-- FIX: This generates a NEW level
                       },
                       icon: const Icon(Icons.refresh),
-                      // FIXED: s.nextLevel was here, but s.playAgain is more appropriate
-                      label: Text(s.playAgain, textAlign: TextAlign.center),
+                      // This label should be "New Level" or "Next Level"
+                      label: Text(s.nextLevel, textAlign: TextAlign.center), 
                       style: ElevatedButton.styleFrom(
                         backgroundColor: SpaceTheme.alienGreen,
                         foregroundColor: Colors.white,
@@ -1127,8 +1114,6 @@ class CelebrationParticle {
 
 // --- Custom Painter ---
 
-// --- Custom Painter ---
-
 class StarLoaderPainter extends CustomPainter {
   final List<List<CellType>> grid;
   final Offset playerPos;
@@ -1141,53 +1126,22 @@ class StarLoaderPainter extends CustomPainter {
   final double winPulse;
   final double pushAnimValue;
 
-  // --- NEW: Upgraded Paint objects ---
-
-  // Floor is now transparent to show the animated nebula background
   final Paint _floorPaint = Paint()..color = Colors.transparent;
+  
+  // --- FIX: Updated Wall Paint ---
+  final Paint _wallPaint = Paint(); // Shader will be set in paint()
 
-  // Wall has a 3D-effect gradient
-  final Paint _wallPaint = Paint()
-    ..shader = const LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [Color(0xFF6B3A9B), Color(0xFF381B42)],
-    ).createShader(Rect.zero); // Shader will be re-created in paint
-
-  // Wall "top" highlight
-  final Paint _wallTopPaint = Paint()
-    ..color = const Color(0xFF8E5AA3);
-
-  // Target has a glow effect
   final Paint _targetPaint = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = 3;
-  
-  // Target fill is more vibrant
   final Paint _targetFillPaint = Paint()
-    ..style = PaintingStyle.fill;
-  
-  // Box has a radial gradient for a "shiny" look
-  final Paint _boxPaint = Paint();
+    ..color = SpaceTheme.alienGreen.withOpacity(0.2);
+  final Paint _boxPaint = Paint(); // Will use gradient
   final Paint _boxShadowPaint = Paint()
     ..color = Colors.black.withOpacity(0.4)
     ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-
-  // Player (rocket) has a metallic gradient
-  final Paint _playerPaint = Paint()
-    ..shader = const LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [Color(0xFFE57373), Color(0xFFD32F2F), Color(0xFFB71C1C)],
-    ).createShader(Rect.zero); // Shader will be re-created in paint
-
-  // Player window
-  final Paint _playerWindowPaint = Paint()
-    ..color = Colors.cyan.shade200
-    ..shader = RadialGradient(
-      colors: [Colors.white, Colors.cyan.shade200, Colors.cyan.shade600],
-    ).createShader(Rect.zero); // Shader will be re-created in paint
-
+  final Paint _playerPaint = Paint(); // Will use gradient
+  final Paint _playerWindowPaint = Paint(); // Will use gradient
   final Paint _trailPaint = Paint()..style = PaintingStyle.fill;
   final Paint _celebrationPaint = Paint()..style = PaintingStyle.fill;
 
@@ -1219,28 +1173,29 @@ class StarLoaderPainter extends CustomPainter {
 
         switch (cell) {
           case CellType.floor:
-            canvas.drawRect(rect, _floorPaint); // Transparent floor
+            canvas.drawRect(rect, _floorPaint);
             break;
+
+          // --- FIX: Updated Wall Painting ---
           case CellType.wall:
             final wallRect = rect.deflate(padding / 3);
-            final topRect = Rect.fromLTWH(
-                wallRect.left, wallRect.top, wallRect.width, wallRect.height * 0.2);
             
             _wallPaint.shader = LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [SpaceTheme.nebulaPurple, const Color(0xFF381B42)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF5A3A7B), // Darker, uniform purple
+                const Color(0xFF381B42), // Even darker
+              ],
             ).createShader(wallRect);
 
-            canvas.drawRRect( // Draw 3D wall body
-                RRect.fromRectAndRadius(wallRect, Radius.circular(cellSize * 0.1)), 
+            canvas.drawRRect( 
+                RRect.fromRectAndRadius(wallRect, Radius.circular(cellSize * 0.1)),
                 _wallPaint
             );
-            canvas.drawRRect( // Draw 3D wall top
-                RRect.fromRectAndCorners(topRect, topLeft: Radius.circular(cellSize * 0.1), topRight: Radius.circular(cellSize * 0.1)),
-                _wallTopPaint
-            );
             break;
+          // --- END FIX ---
+
           case CellType.target:
             canvas.drawRect(rect, _floorPaint); // Transparent floor
             
@@ -1281,7 +1236,6 @@ class StarLoaderPainter extends CustomPainter {
         innerSize,
       );
 
-      // Check if this box is being pushed
       final bool isPushedBox = (playerPos.dx.round() == pos.dx.round() ||
               playerPos.dy.round() == pos.dy.round()) &&
           (playerPos - pos).distance.abs() < 1.1 &&
@@ -1297,14 +1251,11 @@ class StarLoaderPainter extends CustomPainter {
 
       final rrect = RRect.fromRectAndRadius(rect, Radius.circular(cellSize * 0.1));
       
-      // Draw shadow
-      // <-- FIXED: Use .shift() with an Offset, not .translate()
       canvas.drawRRect(rrect.shift(const Offset(2, 2)), _boxShadowPaint);
 
       final bool onTarget = targetPositions.contains(pos);
       final color = onTarget ? SpaceTheme.alienGreen : SpaceTheme.planetOrange;
 
-      // Draw box with gradient
       _boxPaint.shader = RadialGradient(
         center: const Alignment(-0.5, -0.5),
         radius: 1.0,
@@ -1325,7 +1276,6 @@ class StarLoaderPainter extends CustomPainter {
       innerSize,
     );
     
-    // Apply push animation scaling
     if (playerDirection == 1 || playerDirection == 3) { // Horizontal move
       playerRect = Rect.fromCenter(center: playerRect.center, width: innerSize * playerStretch, height: innerSize * playerSquash);
     } else { // Vertical move
@@ -1338,7 +1288,6 @@ class StarLoaderPainter extends CustomPainter {
     path.lineTo(playerRect.left, playerRect.bottom);
     path.close();
 
-    // Rotate player
     canvas.save();
     canvas.translate(
         playerPos.dx * cellSize + cellSize / 2,
@@ -1350,7 +1299,6 @@ class StarLoaderPainter extends CustomPainter {
         -(playerPos.dy * cellSize + cellSize / 2)
     );
 
-    // Update shader rect
     _playerPaint.shader = const LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
@@ -1366,7 +1314,6 @@ class StarLoaderPainter extends CustomPainter {
       colors: [Colors.white, Colors.cyan.shade200, Colors.cyan.shade600],
     ).createShader(windowRect);
 
-    // Draw rocket body and window
     canvas.drawPath(path, _playerPaint);
     canvas.drawCircle(
       windowRect.center,
@@ -1405,56 +1352,3 @@ class StarLoaderPainter extends CustomPainter {
     return true;
   }
 }
-
-// --- Background Painter ---
-
-class SpaceBackgroundPainter extends CustomPainter {
-  final double glowIntensity;
-  final bool hasWon;
-
-  SpaceBackgroundPainter({
-    required this.glowIntensity,
-    required this.hasWon,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-
-    final nebulaPaint = Paint()
-      ..shader = RadialGradient(
-        colors: hasWon
-            ? [
-                SpaceTheme.alienGreen.withOpacity(0.3 * glowIntensity),
-                SpaceTheme.starYellow.withOpacity(0.2 * glowIntensity),
-                Colors.transparent,
-              ]
-            : [
-                SpaceTheme.nebulaPurple.withOpacity(0.2 * glowIntensity),
-                SpaceTheme.alienGreen.withOpacity(0.1 * glowIntensity),
-                Colors.transparent,
-              ],
-        stops: const [0.0, 0.5, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: size.width * 0.6));
-
-    canvas.drawCircle(center, size.width * 0.6, nebulaPaint);
-
-    final gridPaint = Paint()
-      ..color = SpaceTheme.alienGreen.withOpacity(0.05 * glowIntensity)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-
-    for (double y = 0; y < size.height; y += 60) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-    }
-
-    for (double x = 0; x < size.width; x += 60) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(SpaceBackgroundPainter oldDelegate) =>
-      oldDelegate.glowIntensity != glowIntensity || oldDelegate.hasWon != hasWon;
-}
-

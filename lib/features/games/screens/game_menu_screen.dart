@@ -37,6 +37,7 @@ import '../../settings/screens/settings_screen.dart';
 import '../../achievements/screens/achievements_screen.dart';
 import '../../../shared/widgets/purchase_dialog.dart';
 import '../../../shared/widgets/parental_gate.dart';
+import '../../../shared/widgets/imprint_dialog.dart';
 
 class GameMenuScreen extends StatefulWidget {
   const GameMenuScreen({super.key});
@@ -145,7 +146,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
     );
   }
   
-  // Header remains the same... (Code omitted for brevity)
   Widget _buildHeader() {
     final debugProvider = context.watch<DebugProvider>();
     return Container(
@@ -218,6 +218,20 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
                 style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
               ),
               const SizedBox(width: 4),
+              // --- IMPRINT BUTTON ADDED ---
+              IconButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => ImprintDialog(),
+                  );
+                },
+                icon: const Icon(Icons.gavel), // Legal / Gavel icon
+                color: SpaceTheme.moonSilver,
+                tooltip: S.of(context)!.imprint,
+                style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
+              ),
+              const SizedBox(width: 4),
               IconButton(
                 onPressed: _navigateToSettings,
                 icon: const Icon(Icons.settings),
@@ -243,7 +257,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
       ),
     );
   }
-
 
   Widget _buildLandscapeGrid() {
     return GridView.builder(
