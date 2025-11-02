@@ -42,6 +42,8 @@ import 'features/games/screens/asteroid_field_navigator_game.dart';
 import 'features/games/screens/cargo_bay_arranger_game.dart';
 import 'features/games/screens/quantum_molecule_builder_game.dart';
 import 'features/games/screens/space_station_gridlock_game.dart';
+import 'features/games/screens/star_loader_game.dart';
+import 'features/games/screens/robot_path_game.dart';
 
 import 'features/games/services/gridlock_puzzle_tracker.dart';
 
@@ -273,6 +275,8 @@ class AppRoutes {
   static const String cargoBayArranger = '/games/cargo-bay-arranger';
   static const String quantumMoleculeBuilder = '/games/quantum-molecule-builder';
   static const String spaceStationGridlock = '/games/space-station-gridlock';
+  static const String starLoader = '/games/star-loader';
+  static const String robotPath = '/games/robot-path';
 
   static const String settings = '/settings';
   static const String achievements = '/achievements';
@@ -381,6 +385,17 @@ class AppRoutes {
           final grade = args?['grade'] as int? ?? 3;
           final level = args?['level'] as int? ?? 1;
           return _createRoute(SpaceStationGridlockGame(grade: grade, level: level));
+
+        case starLoader:
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(StarLoaderGame(grade: grade, level: level));
+        
+        case robotPath:
+          final grade = args?['grade'] as int? ?? 3;
+          final level = args?['level'] as int? ?? 1;
+          return _createRoute(RobotPathGame(grade: grade, level: level));
+      
       
         case AppRoutes.settings:
           return _createRoute(const SettingsScreen());

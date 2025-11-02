@@ -88,6 +88,18 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     }
   }
 
+  void _debugPrintOriginalBoard(String? originalBoard) {
+    if (originalBoard == null) return;
+    
+    _log('🗺️  ORIGINAL BOARD:');
+    for (int row = 0; row < gridSize; row++) {
+      final rowStr = originalBoard.substring(row * gridSize, (row + 1) * gridSize);
+      debugPrint('    $rowStr');
+    }
+    debugPrint('');
+    debugPrint('    Legend: A=player, x=wall, .=empty, o=empty');
+  }
+
   void _setupAnimationControllers() {
     _log('🎬 Setting up animation controllers');
     
@@ -236,6 +248,8 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
 
   void _loadPuzzleFromData(GridlockPuzzleData puzzleData) {
     _log('🔧 Building ship configuration from puzzle data');
+
+    _debugPrintOriginalBoard(puzzleData.originalBoard);
     
     try {
       ships = [];
@@ -1025,12 +1039,18 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     final isDragging = draggingShipIndex == index;
     const double padding = 3.0;
     
-    final shipWidth = ship.isHorizontal 
-        ? (cellSize * ship.length) - (padding * 2)
-        : cellSize - (padding * 2);
-    final shipHeight = ship.isHorizontal 
+    // Handle 1x1 blocking pieces (walls)
+    final shipWidth = ship.length == 1 
         ? cellSize - (padding * 2)
-        : (cellSize * ship.length) - (padding * 2);
+        : ship.isHorizontal 
+            ? (cellSize * ship.length) - (padding * 2)
+            : cellSize - (padding * 2);
+            
+    final shipHeight = ship.length == 1
+        ? cellSize - (padding * 2)
+        : ship.isHorizontal 
+            ? cellSize - (padding * 2)
+            : (cellSize * ship.length) - (padding * 2);
 
     return Positioned(
       left: ship.col * cellSize + padding,
@@ -1055,7 +1075,9 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                   color: ship.isBlocking 
                       ? Colors.grey.shade800.withOpacity(0.9)
                       : ship.color.withOpacity(isDragging ? 0.9 : 0.75),
-                  borderRadius: BorderRadius.circular(cellSize < 40 ? 4 : 6),
+                  borderRadius: BorderRadius.circular(
+                    ship.length == 1 ? 2 : (cellSize < 40 ? 4 : 6)
+                  ),
                   border: Border.all(
                     color: ship.isPlayer 
                         ? SpaceTheme.alienGreen 
@@ -1074,17 +1096,19 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Icon(
-                    ship.isPlayer 
-                        ? Icons.rocket_launch 
-                        : ship.isBlocking
-                        ? Icons.block
-                        : Icons.local_shipping,
-                    color: ship.isBlocking ? Colors.grey.shade500 : Colors.white,
-                    size: (cellSize * 0.4).clamp(14.0, 28.0),
-                  ),
-                ),
+                child: ship.length == 1 
+                    ? null  // No icon for 1x1 walls to keep them minimal
+                    : Center(
+                        child: Icon(
+                          ship.isPlayer 
+                              ? Icons.rocket_launch 
+                              : ship.isBlocking
+                              ? Icons.block
+                              : Icons.local_shipping,
+                          color: ship.isBlocking ? Colors.grey.shade500 : Colors.white,
+                          size: (cellSize * 0.4).clamp(14.0, 28.0),
+                        ),
+                      ),
               ),
             );
           },

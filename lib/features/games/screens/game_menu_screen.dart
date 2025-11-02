@@ -29,6 +29,8 @@ import 'asteroid_field_navigator_game.dart';
 import 'cargo_bay_arranger_game.dart';
 import 'quantum_molecule_builder_game.dart';
 import 'space_station_gridlock_game.dart';
+import 'star_loader_game.dart';
+import 'robot_path_game.dart';
 
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
@@ -50,7 +52,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   late Animation<double> _floatAnimation;
 
   // for new games, we must manually update game count
-  static const int _gameCount = 20;
+  static const int _gameCount = 22;
 
   @override
   void initState() {
@@ -403,6 +405,20 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
             icon: Icons.view_module, // Atom/molecule icon
             gradient: const LinearGradient(colors: [Color(0xFF02AAB0), Color(0xFF00CDAC)]), // Cyan/teal science gradient
             onTap: () => _navigateToGame(SpaceStationGridlockGame(grade: gameProvider.grade, level: gameProvider.level)),
+        ),
+        GameInfo(
+            title: s.starLoaderGameTitle, // NOTE: Add this to your S.of(context) strings
+            description: s.starLoaderGameDesc, // NOTE: Add this to your S.of(context) strings
+            icon: Icons.move_down, // Icon for Sokoban
+            gradient: const LinearGradient(colors: [Color(0xFFf9a825), Color(0xFFc66900)]), // Brown/yellow
+            onTap: () => _navigateToGame(StarLoaderGame(grade: gameProvider.grade, level: gameProvider.level)),
+        ),
+        GameInfo(
+            title: s.robotPathTitle, // NOTE: Add this to your S.of(context) strings
+            description: s.robotPathDesc, // NOTE: Add this to your S.of(context) strings
+            icon: Icons.smart_toy_outlined, // Icon for robot
+            gradient: const LinearGradient(colors: [Color(0xFF00bcd4), Color(0xFF00838f)]), // Cyan
+            onTap: () => _navigateToGame(RobotPathGame(grade: gameProvider.grade, level: gameProvider.level)),
         ),
     ];
 

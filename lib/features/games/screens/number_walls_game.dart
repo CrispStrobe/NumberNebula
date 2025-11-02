@@ -203,7 +203,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     if (userAnswers.every((answer) => answer != null)) {
       final isValid = currentPuzzle!.validateSolution(userAnswers.cast<int>());
       
-      // 1. Get the list of problems the user was tested on in this puzzle.
+      // 1. Get the list of problems the user was tested on in in this puzzle.
       final List<MathProblem> attemptedProblems = _getSolvedProblems();
       
       // 2. Report the outcome to the central GameProvider.
@@ -372,7 +372,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                   Expanded(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        bool isWide = constraints.maxWidth > 650;
+                        // MODIFIED: Lowered breakpoint from 650 to 600
+                        bool isWide = constraints.maxWidth > 600;
                         return isWide ? _buildWideLayout() : _buildCompactTallLayout();
                       },
                     ),
@@ -391,7 +392,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   Widget _buildFloatingOperationIndicator() {
     return Positioned(
-      top: 80,
+      // MODIFIED: Changed from 80 to 60 to move it up
+      top: 60,
       right: 16,
       child: AnimatedBuilder(
         animation: _fadeAnimation,
@@ -399,7 +401,11 @@ class _NumberWallsGameState extends State<NumberWallsGame>
           return Opacity(
             opacity: _shouldShowOperationHint ? 1.0 : _fadeAnimation.value,
             child: Container(
-              width: MediaQuery.of(context).size.width * 0.75,
+              // MODIFIED: Replaced fixed width with a responsive constraint
+              // width: MediaQuery.of(context).size.width * 0.75, // <--- OLD
+              constraints: BoxConstraints(
+                maxWidth: math.min(MediaQuery.of(context).size.width * 0.6, 280), // <--- NEW
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 gradient: _getOperationGradient(currentPuzzle!.operation),
@@ -489,7 +495,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   Widget _buildCompactHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      // MODIFIED: Reduced vertical padding to save space
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         children: [
           IconButton(
@@ -505,13 +512,15 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                   style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
                   textAlign: TextAlign.center,
                 ),
-                Text(
-                  S.of(context)!.numberWallsInstructions,
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 11), 
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                // MODIFIED: Removed instruction text to save vertical space.
+                // The floating hint provides the necessary context.
+                // Text(
+                //   S.of(context)!.numberWallsInstructions,
+                //   style: SpaceTheme.bodyStyle.copyWith(fontSize: 11), 
+                //   textAlign: TextAlign.center,
+                //   maxLines: 2,
+                //   overflow: TextOverflow.ellipsis,
+                // ),
               ],
             ),
           ),
@@ -726,13 +735,16 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Column(
         children: [
+          // MODIFIED: Changed flex from 3 to 3
           Flexible(
             flex: 3,
             child: _buildWallArea(),
           ),
-          const SizedBox(height: 12),
+          // MODIFIED: Changed height from 12 to 8
+          const SizedBox(height: 8),
+          // MODIFIED: Changed flex from 2 to 1
           Flexible(
-            flex: 2,
+            flex: 1,
             child: _buildCompactNumberPad(),
           ),
         ],
@@ -743,7 +755,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   Widget _buildWallArea() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final size = math.min(constraints.maxWidth, constraints.maxHeight).clamp(300.0, 500.0);
+        // MODIFIED: Removed the .clamp(300.0, 500.0) to allow scaling
+        final size = math.min(constraints.maxWidth, constraints.maxHeight);
         
         return Center(
           child: DragTarget<int>(
@@ -962,7 +975,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         borderRadius: BorderRadius.circular(8),
         gradient: _getCellGradient(isHidden, isSelected),
         border: Border.all(
-          color: isSelected ? SpaceTheme.starYellow : currentPuzzle != null ? _getOperationColor(currentPuzzle!.operation) : SpaceTheme.alienGreen,
+          // MODIFIED: Changed SpaceTheme.alien to SpaceTheme.alienGreen
+          color: isSelected ? SpaceTheme.starYellow : currentPuzzle != null ? _getOperationColor(currentPuzzle!.operation) : SpaceTheme.alienGreen.withOpacity(0.5),
           width: isSelected ? 3 : 2,
         ),
         boxShadow: _getCellShadow(isSelected),
@@ -1002,6 +1016,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 crossAxisCount: math.min(5, numberPool.length), 
                 crossAxisSpacing: 6, 
                 mainAxisSpacing: 6,
+                // MODIFIED: Changed aspect ratio from 1.5 back to 1.0 (square)
                 childAspectRatio: 1.0,
               ),
               itemCount: numberPool.length,
@@ -1066,7 +1081,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   List<BoxShadow> _getCellShadow(bool isSelected) {
     return [
       BoxShadow(
-        color: isSelected ? SpaceTheme.starYellow : currentPuzzle != null ? _getOperationColor(currentPuzzle!.operation) : SpaceTheme.alienGreen,
+        // MODIFIED: Changed SpaceTheme.alien to SpaceTheme.alienGreen
+        color: isSelected ? SpaceTheme.starYellow : currentPuzzle != null ? _getOperationColor(currentPuzzle!.operation) : SpaceTheme.alienGreen.withOpacity(0.5),
         blurRadius: isSelected ? 20 : 10,
         spreadRadius: isSelected ? 3 : 1,
       ),

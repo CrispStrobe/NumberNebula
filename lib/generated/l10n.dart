@@ -280,7 +280,7 @@ abstract class S {
   /// No description provided for @nextLevel.
   ///
   /// In en, this message translates to:
-  /// **'Next Mission'**
+  /// **'Next Level'**
   String get nextLevel;
 
   /// No description provided for @playAgain.
@@ -358,7 +358,7 @@ abstract class S {
   /// No description provided for @congratulations.
   ///
   /// In en, this message translates to:
-  /// **'Congratulations, Commander!'**
+  /// **'Congratulations!'**
   String get congratulations;
 
   /// Number of missions completed
@@ -3687,6 +3687,168 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Next Puzzle'**
   String get nextPuzzle;
+
+  /// No description provided for @baseScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Base Score'**
+  String get baseScore;
+
+  /// No description provided for @efficiencyBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Efficiency Bonus'**
+  String get efficiencyBonus;
+
+  /// No description provided for @grade.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade'**
+  String get grade;
+
+  /// No description provided for @emptyProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag commands here'**
+  String get emptyProgram;
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
+
+  /// No description provided for @robotPathTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Robot Path'**
+  String get robotPathTitle;
+
+  /// No description provided for @robotPathDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Program the robot to reach the goal!'**
+  String get robotPathDesc;
+
+  /// No description provided for @robotPathError.
+  ///
+  /// In en, this message translates to:
+  /// **'Crash! Robot hit an obstacle.'**
+  String get robotPathError;
+
+  /// No description provided for @robotPathNotComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Path incomplete. The robot did not reach the goal.'**
+  String get robotPathNotComplete;
+
+  /// No description provided for @robotPathSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Acquired! Robot has reached the destination.'**
+  String get robotPathSuccess;
+
+  /// No description provided for @program.
+  ///
+  /// In en, this message translates to:
+  /// **'Program'**
+  String get program;
+
+  /// No description provided for @commands.
+  ///
+  /// In en, this message translates to:
+  /// **'Commands'**
+  String get commands;
+
+  /// No description provided for @forward.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward'**
+  String get forward;
+
+  /// No description provided for @turnLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn Left'**
+  String get turnLeft;
+
+  /// No description provided for @turnRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn Right'**
+  String get turnRight;
+
+  /// No description provided for @run.
+  ///
+  /// In en, this message translates to:
+  /// **'Run'**
+  String get run;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @starLoaderGameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Star-Loader'**
+  String get starLoaderGameTitle;
+
+  /// No description provided for @starLoaderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Star-Loader'**
+  String get starLoaderTitle;
+
+  /// No description provided for @starLoaderGameDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Push the crates onto the green targets.'**
+  String get starLoaderGameDesc;
+
+  /// No description provided for @starLoaderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use arrows or swipe to move. Get all crates to the targets!'**
+  String get starLoaderHint;
+
+  /// No description provided for @moves.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves'**
+  String get moves;
+
+  /// No description provided for @optimal.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimal'**
+  String get optimal;
+
+  /// No description provided for @starLoaderWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cargo Loaded!'**
+  String get starLoaderWinTitle;
+
+  /// No description provided for @starLoaderWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed in {moves} moves, {time}s. Score: {score}'**
+  String starLoaderWinDesc(int moves, int time, int score);
+
+  /// No description provided for @efficiency.
+  ///
+  /// In en, this message translates to:
+  /// **'Efficiency'**
+  String get efficiency;
+
+  /// No description provided for @movesVsOptimal.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves / Optimal'**
+  String get movesVsOptimal;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

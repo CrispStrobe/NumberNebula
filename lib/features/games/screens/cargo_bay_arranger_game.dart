@@ -51,6 +51,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   CargoPiece? nextPiece;
   CargoPiece? heldPiece;
   bool hasUsedHold = false;
+  bool showBonusPanel = false;
   
   late int numberMin;
   late int numberMax;
@@ -67,10 +68,16 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   bool hasLost = false;
   Timer? dropTimer;
   
+  // Touch controls
+  Offset? _dragStartPosition;
+  int _dragStartX = 0;
+  int _dragStartY = 0;
+  bool _isDragging = false;
+  
   // Bonus tracking
   Map<BonusType, int> bonusCount = {};
   List<BonusEffect> activeEffects = [];
-  Set<String> awardedBonuses = {}; // Track already awarded bonus patterns
+  Set<String> awardedBonuses = {};
   
   // Visual Effects
   List<CargoParticle> particles = [];
@@ -188,14 +195,94 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   void _startDropTimer() {
     dropTimer?.cancel();
     dropTimer = Timer.periodic(Duration(milliseconds: dropSpeed), (timer) {
-      if (gameActive) {
+      if (gameActive && !_isDragging) {
         _movePieceDown();
       }
     });
   }
 
-  // #region Game Actions & Controls
+  // Touch Control Methods
+  void _handleTapOnGrid(Offset localPosition, double cellSize) {
+    if (!gameActive || currentPiece == null) return;
+    
+    // Calculate grid position
+    final gridX = (localPosition.dx / cellSize).floor();
+    final gridY = (localPosition.dy / cellSize).floor();
+    
+    // Check if tap is on current piece
+    bool tappedOnPiece = false;
+    for (int i = 0; i < currentPiece!.shape.length; i++) {
+      for (int j = 0; j < currentPiece!.shape[i].length; j++) {
+        if (currentPiece!.shape[i][j]) {
+          final pieceX = currentPiece!.x + j;
+          final pieceY = currentPiece!.y + i;
+          if (pieceX == gridX && pieceY == gridY) {
+            tappedOnPiece = true;
+            break;
+          }
+        }
+      }
+      if (tappedOnPiece) break;
+    }
+    
+    if (tappedOnPiece) {
+      _rotatePiece();
+    }
+  }
 
+  void _handlePanStart(DragStartDetails details, double cellSize) {
+    if (!gameActive || currentPiece == null) return;
+    
+    _dragStartPosition = details.localPosition;
+    _dragStartX = currentPiece!.x;
+    _dragStartY = currentPiece!.y;
+    _isDragging = true;
+  }
+
+  void _handlePanUpdate(DragUpdateDetails details, double cellSize) {
+    if (!gameActive || currentPiece == null || _dragStartPosition == null) return;
+    
+    final delta = details.localPosition - _dragStartPosition!;
+    final cellsMoved = (delta.dx / cellSize).round();
+    final cellsDropped = (delta.dy / cellSize).floor();
+    
+    // Horizontal movement
+    if (cellsMoved != 0) {
+      final newX = _dragStartX + cellsMoved;
+      if (!_checkCollision(newX, currentPiece!.y, currentPiece!.shape)) {
+        setState(() {
+          currentPiece!.x = newX;
+        });
+      }
+    }
+    
+    // Vertical movement (only down)
+    if (cellsDropped > 0) {
+      final newY = _dragStartY + cellsDropped;
+      if (!_checkCollision(currentPiece!.x, newY, currentPiece!.shape)) {
+        setState(() {
+          currentPiece!.y = newY;
+          score += cellsDropped; // Soft drop points
+        });
+      } else {
+        // Hit bottom, lock piece
+        _lockPiece();
+        _isDragging = false;
+      }
+    }
+  }
+
+  void _handlePanEnd(DragEndDetails details) {
+    _isDragging = false;
+    _dragStartPosition = null;
+    
+    // If swiped down fast, do hard drop
+    if (details.velocity.pixelsPerSecond.dy > 500 && currentPiece != null) {
+      _hardDrop();
+    }
+  }
+
+  // Game Actions
   void _handleKeyEvent(KeyEvent event) {
     if (event is! KeyDownEvent || !gameActive) return;
     
@@ -316,10 +403,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     HapticFeedback.lightImpact();
   }
 
-  // #endregion
-
-  // #region Core Game Logic
-
+  // Core Game Logic
   bool _checkCollision(int x, int y, List<List<bool>> shape) {
     for (int shapeY = 0; shapeY < shape.length; shapeY++) {
       for (int shapeX = 0; shapeX < shape[shapeY].length; shapeX++) {
@@ -372,7 +456,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
         return;
     }
 
-    // Track affected rows and columns
     final affectedRows = <int>{};
     final affectedCols = <int>{};
 
@@ -417,7 +500,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     
     // Check only affected horizontal lines
     for (final row in affectedRows) {
-      // Full row for target sum
       if (grid[row].every((cell) => cell != null)) {
         final values = grid[row].map((c) => c!.value).toList();
         if (values.reduce((a, b) => a + b) == targetSum) {
@@ -426,7 +508,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
         }
       }
       
-      // Scan for sequences in this row
       for (int startCol = 0; startCol < gridCols; startCol++) {
         for (int len = 4; len <= gridCols - startCol; len++) {
           final result = _checkLineForSequences(row, startCol, 1, 0, len);
@@ -437,7 +518,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     
     // Check only affected vertical lines
     for (final col in affectedCols) {
-      // Full column for target sum
       if (grid.every((row) => row[col] != null)) {
         final values = grid.map((row) => row[col]!.value).toList();
         if (values.reduce((a, b) => a + b) == targetSum) {
@@ -446,7 +526,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
         }
       }
       
-      // Scan for sequences in this column
       for (int startRow = 0; startRow < gridRows; startRow++) {
         for (int len = 4; len <= gridRows - startRow; len++) {
           final result = _checkLineForSequences(startRow, col, 0, 1, len);
@@ -458,7 +537,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     // Check squares that overlap with affected cells
     for (final row in affectedRows) {
       for (final col in affectedCols) {
-        // Check all possible 3x3 and 4x4 squares that include this cell
         for (int size = 3; size <= 4; size++) {
           for (int startRow = math.max(0, row - size + 1); startRow <= math.min(gridRows - size, row); startRow++) {
             for (int startCol = math.max(0, col - size + 1); startCol <= math.min(gridCols - size, col); startCol++) {
@@ -503,21 +581,18 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       positions.add(Position(col, row));
     }
     
-    // Check Fibonacci sequences
     if (_isFibonacci(values)) {
       if (length >= 6) return BonusMatch(BonusType.fibonacci6, positions, values);
       if (length >= 5) return BonusMatch(BonusType.fibonacci5, positions, values);
       if (length >= 4) return BonusMatch(BonusType.fibonacci4, positions, values);
     }
     
-    // Check doubling sequences
     if (_isDoubling(values)) {
       if (length >= 5) return BonusMatch(BonusType.doubling5, positions, values);
       if (length >= 4) return BonusMatch(BonusType.doubling4, positions, values);
       if (length >= 3) return BonusMatch(BonusType.doubling3, positions, values);
     }
     
-    // Check consecutive sequences
     if (_isConsecutive(values)) {
       if (length >= 7) return BonusMatch(BonusType.consecutive7, positions, values);
       if (length >= 6) return BonusMatch(BonusType.consecutive6, positions, values);
@@ -554,10 +629,8 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   bool _isFibonacci(List<int> numbers) {
     if (numbers.length < 4) return false;
     
-    // The actual Fibonacci sequence up to reasonable game values
     final fibSequence = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
     
-    // Find where the sequence starts in the Fibonacci sequence
     int startIndex = -1;
     for (int i = 0; i <= fibSequence.length - numbers.length; i++) {
       if (fibSequence[i] == numbers[0] && fibSequence[i + 1] == numbers[1]) {
@@ -568,7 +641,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     
     if (startIndex == -1) return false;
     
-    // Verify all numbers match consecutive Fibonacci numbers
     for (int i = 0; i < numbers.length; i++) {
       if (numbers[i] != fibSequence[startIndex + i]) {
         return false;
@@ -603,17 +675,14 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     int newBonusesFound = 0;
     
     for (final bonus in bonuses) {
-      // Create unique key for this bonus pattern
       final posKey = bonus.positions.map((p) => '${p.x},${p.y}').toList()..sort();
       final bonusKey = '${bonus.type.name}_${posKey.join('_')}';
       
-      // Skip if already awarded
       if (awardedBonuses.contains(bonusKey)) {
         debugPrint("   Skipping already awarded: ${bonus.type.name}");
         continue;
       }
       
-      // Award the bonus
       awardedBonuses.add(bonusKey);
       newBonusesFound++;
       
@@ -629,14 +698,12 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
         createdAt: DateTime.now(),
       ));
       
-      // Add notification
       bonusNotifications.add(BonusNotification(
         type: bonus.type,
         points: points,
         createdAt: DateTime.now(),
       ));
       
-      // Particles
       for (int i = 0; i < 20; i++) {
         particles.add(CargoParticle.bonus(centerPos, _getBonusColor(bonus.type)));
       }
@@ -740,7 +807,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
           }
           clearingRows.clear();
           
-          // Clear awarded bonuses since grid has changed
           awardedBonuses.clear();
         });
         _checkWinCondition();
@@ -760,10 +826,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   
   List<List<bool>> _rotateShape(List<List<bool>> shape) => _rotateMatrix(shape);
   List<List<CargoCube?>> _rotateCubes(List<List<CargoCube?>> cubes) => _rotateMatrix(cubes);
-
-  // #endregion
-
-  // #region Game State Management
 
   void _checkWinCondition() {
     if (rowsCleared >= rowsToWin && gameActive) {
@@ -832,9 +894,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     _startDropTimer();
   }
 
-  // #endregion
-
-  // #region Particle System
   void _updateParticles(Duration elapsed) {
     if (_lastTickTime == 0) {
       _lastTickTime = elapsed.inMilliseconds.toDouble();
@@ -856,7 +915,53 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       DateTime.now().difference(n.createdAt).inMilliseconds > 2500
     );
   }
-  // #endregion
+
+  Widget _buildCompactPiecePreview(CargoPiece? piece, bool disabled, double size) {
+    final cellSize = size / 6; // Smaller cells for compact view
+    
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: disabled ? Colors.grey.shade800.withOpacity(0.5) : SpaceTheme.deepSpace.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: disabled ? Colors.grey.shade600 : SpaceTheme.nebulaPurple.withOpacity(0.3),
+          width: 0.5,
+        ),
+      ),
+      child: piece == null
+          ? Center(
+              child: Text(
+                disabled ? '—' : '?',
+                style: TextStyle(
+                  color: disabled ? Colors.grey.shade600 : Colors.white24,
+                  fontSize: size / 3,
+                ),
+              ),
+            )
+          : Stack(
+              alignment: Alignment.center,
+              children: [
+                for (int i = 0; i < piece.shape.length; i++)
+                  for (int j = 0; j < piece.shape[i].length; j++)
+                    if (piece.shape[i][j])
+                      Positioned(
+                        left: (size / 2) - (piece.shape[0].length * cellSize / 2) + j * cellSize,
+                        top: (size / 2) - (piece.shape.length * cellSize / 2) + i * cellSize,
+                        child: Container(
+                          width: cellSize - 0.5,
+                          height: cellSize - 0.5,
+                          decoration: BoxDecoration(
+                            color: piece.cubes[i][j]!.color,
+                            borderRadius: BorderRadius.circular(1),
+                          ),
+                        ),
+                      ),
+              ],
+            ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -864,156 +969,572 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       focusNode: _focusNode,
       onKeyEvent: _handleKeyEvent,
       child: Scaffold(
-        body: SpaceBackground(
-          child: SafeArea(
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: AnimatedBuilder(
-                    animation: _pulseController,
-                    builder: (context, child) => CustomPaint(
-                      painter: CargoBayPainter(
-                          pulseIntensity: _pulseAnimation.value,
-                          gameWon: hasWon,
-                          gameLost: hasLost),
-                    ),
+        body: Stack(
+          children: [
+            // Background
+            Positioned.fill(
+              child: SpaceBackground(
+                child: AnimatedBuilder(
+                  animation: _pulseController,
+                  builder: (context, child) => CustomPaint(
+                    painter: CargoBayPainter(
+                        pulseIntensity: _pulseAnimation.value,
+                        gameWon: hasWon,
+                        gameLost: hasLost),
                   ),
                 ),
+              ),
+            ),
+            
+            // Particles
+            ...particles.map((p) => p.build()).toList(),
+            
+            // Bonus notifications
+            ..._buildBonusNotifications(),
+            
+            // Main game layout
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth > 600;
+                final sidebarWidth = isWide ? 120.0 : 70.0; // Reduced mobile sidebar to 70px
                 
-                ...particles.map((p) => p.build()).toList(),
-                ..._buildBonusNotifications(),
-                
-                Column(
+                return Row(
                   children: [
-                    GameUI(
-                      title: S.of(context)!.cargoBayTitle,
-                      level: widget.level,
-                      onBack: () => Navigator.of(context).pop(),
+                    // Left sidebar - ALWAYS visible
+                    SizedBox(
+                      width: sidebarWidth,
+                      child: Container(
+                        color: SpaceTheme.deepSpace.withOpacity(0.8),
+                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: isWide ? 8 : 4),
+                        child: Column(
+                          children: [
+                            // Back button
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                              onPressed: () => Navigator.of(context).pop(),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                            ),
+                            
+                            const SizedBox(height: 12),
+                            
+                            // Progress counter - more compact
+                            Column(
+                              children: [
+                                Text(
+                                  '$rowsCleared',
+                                  style: TextStyle(
+                                    color: SpaceTheme.alienGreen,
+                                    fontSize: isWide ? 24 : 20,
+                                    fontWeight: FontWeight.bold,
+                                    height: 1.0,
+                                  ),
+                                ),
+                                Container(
+                                  width: 20,
+                                  height: 1,
+                                  color: SpaceTheme.alienGreen.withOpacity(0.5),
+                                  margin: const EdgeInsets.symmetric(vertical: 2),
+                                ),
+                                Text(
+                                  '$rowsToWin',
+                                  style: TextStyle(
+                                    color: SpaceTheme.alienGreen.withOpacity(0.7),
+                                    fontSize: isWide ? 18 : 16,
+                                    height: 1.0,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            
+                            const SizedBox(height: 12),
+                            
+                            // Hold piece
+                            Text(
+                              'HOLD',
+                              style: TextStyle(fontSize: 9, color: Colors.white54),
+                            ),
+                            const SizedBox(height: 2),
+                            _buildCompactPiecePreview(heldPiece, hasUsedHold, isWide ? 60 : 45),
+                            
+                            const SizedBox(height: 8),
+                            
+                            // Next piece  
+                            Text(
+                              'NEXT',
+                              style: TextStyle(fontSize: 9, color: Colors.white54),
+                            ),
+                            const SizedBox(height: 2),
+                            _buildCompactPiecePreview(nextPiece, false, isWide ? 60 : 45),
+                            
+                            const Spacer(),
+                            
+                            // Compact controls
+                            if (gameActive) ...[
+                              IconButton(
+                                icon: const Icon(Icons.rotate_right, size: 18),
+                                onPressed: _rotatePiece,
+                                color: SpaceTheme.alienGreen,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.arrow_downward, size: 18),
+                                onPressed: _hardDrop,
+                                color: SpaceTheme.alienGreen,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              ),
+                            ],
+                            
+                            const SizedBox(height: 4),
+                          ],
+                        ),
+                      ),
                     ),
                     
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 8, runSpacing: 8,
+                    // Game grid - takes all remaining space
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2), // Minimal padding
+                        child: Center(
+                          child: LayoutBuilder(
+                            builder: (context, gridConstraints) {
+                              final maxCellW = (gridConstraints.maxWidth - 4) / gridCols;
+                              final maxCellH = (gridConstraints.maxHeight - 4) / gridRows;
+                              final cellSize = math.min(maxCellW, maxCellH).clamp(15.0, 35.0);
+                              
+                              final gridWidth = cellSize * gridCols;
+                              final gridHeight = cellSize * gridRows;
+                              
+                              return GestureDetector(
+                                onTapDown: (details) => _handleTapOnGrid(details.localPosition, cellSize),
+                                onPanStart: (details) => _handlePanStart(details, cellSize),
+                                onPanUpdate: (details) => _handlePanUpdate(details, cellSize),
+                                onPanEnd: _handlePanEnd,
+                                child: Container(
+                                  width: gridWidth + 2, // Reduced border space
+                                  height: gridHeight + 2,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.5), width: 1),
+                                    borderRadius: BorderRadius.circular(4),
+                                    color: Colors.black.withOpacity(0.3),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(3),
+                                    child: Stack(
+                                      children: [
+                                        CustomPaint(
+                                          size: Size(gridWidth, gridHeight),
+                                          painter: GridPainter(cellSize: cellSize, intensity: _pulseAnimation.value),
+                                        ),
+                                        ..._buildPlacedCubes(cellSize),
+                                        ..._buildGhostPiece(cellSize),
+                                        ..._buildCurrentPiece(cellSize),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    // Right sidebar (wide screens only)
+                    if (isWide)
+                      SizedBox(
+                        width: sidebarWidth,
+                        child: _buildRightSidebar(),
+                      ),
+                  ],
+                );
+              },
+            ),
+            
+            // Bonus panel overlay
+            if (showBonusPanel)
+              GestureDetector(
+                onTap: () => setState(() => showBonusPanel = false),
+                child: Container(
+                  color: Colors.black.withOpacity(0.7),
+                  child: Center(
+                    child: Container(
+                      margin: const EdgeInsets.all(32),
+                      constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
+                      decoration: SpaceTheme.cardDecoration.copyWith(
+                        border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
+                      ),
+                      child: Column(
                         children: [
-                          _buildStat(Icons.flag_outlined, '$rowsCleared/$rowsToWin', SpaceTheme.alienGreen),
-                          _buildStat(Icons.stars, bonusesEarned.toString(), SpaceTheme.cosmicPink),
-                          _buildStat(Icons.star, score.toString(), SpaceTheme.starYellow),
-                          if (combo > 1)
-                            _buildStat(Icons.whatshot, '×$combo', Colors.orange.shade300),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  S.of(context)!.cargoBayBonuses,
+                                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
+                                ),
+                                IconButton(
+                                  onPressed: () => setState(() => showBonusPanel = false),
+                                  icon: const Icon(Icons.close, color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.all(16),
+                              child: _buildFullBonusPanel(),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    
-                    const SizedBox(height: 8),
-                    
-                    Expanded(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final bonusPanelWidth = 140.0;
-                          final holdPanelWidth = 100.0;
-                          final totalSideWidth = bonusPanelWidth + holdPanelWidth + 24;
-                          final maxCellW = (constraints.maxWidth - totalSideWidth - 4) / gridCols;
-                          final maxCellH = (constraints.maxHeight - 4) / gridRows;
-                          final cellSize = math.min(maxCellW, maxCellH);
-                          
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: holdPanelWidth,
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: SpaceTheme.cardDecoration,
-                                      child: Column(
-                                        children: [
-                                          Text(
-                                            S.of(context)!.cargoBayHold,
-                                            style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          _buildHeldPiecePreview(),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: SpaceTheme.cardDecoration,
-                                      child: Column(
-                                        children: [
-                                          Text(
-                                            S.of(context)!.cargoBayNext,
-                                            style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          _buildNextPiecePreview(),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              
-                              Container(
-                                width: cellSize * gridCols + 4,
-                                height: cellSize * gridRows + 4,
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.5), width: 2),
-                                  borderRadius: BorderRadius.circular(8),
-                                  color: Colors.black.withOpacity(0.3)
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(6),
-                                  child: Stack(
-                                    children: [
-                                      CustomPaint(
-                                        size: Size(cellSize * gridCols, cellSize * gridRows),
-                                        painter: GridPainter(cellSize: cellSize, intensity: _pulseAnimation.value),
-                                      ),
-                                      ..._buildPlacedCubes(cellSize),
-                                      ..._buildGhostPiece(cellSize),
-                                      ..._buildCurrentPiece(cellSize),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              
-                              SizedBox(
-                                width: bonusPanelWidth,
-                                child: _buildBonusPanel(),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                    
-                    if (gameActive) ...[
-                      const SizedBox(height: 8),
-                      _buildControls(),
-                      const SizedBox(height: 8),
-                      _buildKeyboardHints(),
-                      const SizedBox(height: 8),
-                    ] else
-                      const SizedBox(height: 80),
-                  ],
+                  ),
                 ),
-              ],
-            ),
-          ),
+              ),
+          ],
         ),
       ),
     );
   }
 
-  // #region Widget Builders
+  Widget _buildGameArea(BoxConstraints constraints) {
+    return LayoutBuilder(
+      builder: (context, gameConstraints) {
+        final maxCellW = (gameConstraints.maxWidth - 20) / gridCols;
+        final maxCellH = (gameConstraints.maxHeight - 20) / gridRows;
+        final cellSize = math.min(maxCellW, maxCellH).clamp(20.0, 40.0);
+        
+        final gridWidth = cellSize * gridCols;
+        final gridHeight = cellSize * gridRows;
+        
+        return Center(
+          child: GestureDetector(
+            onTapDown: (details) => _handleTapOnGrid(details.localPosition, cellSize),
+            onPanStart: (details) => _handlePanStart(details, cellSize),
+            onPanUpdate: (details) => _handlePanUpdate(details, cellSize),
+            onPanEnd: _handlePanEnd,
+            child: Container(
+              width: gridWidth + 4,
+              height: gridHeight + 4,
+              decoration: BoxDecoration(
+                border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.5), width: 2),
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.black.withOpacity(0.3),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: Stack(
+                  children: [
+                    CustomPaint(
+                      size: Size(gridWidth, gridHeight),
+                      painter: GridPainter(cellSize: cellSize, intensity: _pulseAnimation.value),
+                    ),
+                    ..._buildPlacedCubes(cellSize),
+                    ..._buildGhostPiece(cellSize),
+                    ..._buildCurrentPiece(cellSize),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLeftSidebar() {
+    return Container(
+      color: SpaceTheme.deepSpace.withOpacity(0.8),
+      padding: const EdgeInsets.all(12), // Reduced from 16
+      child: Column(
+        children: [
+          const SizedBox(height: 40), // Reduced from 50
+          
+          // Hold piece
+          Text(
+            'HOLD',
+            style: SpaceTheme.titleStyle.copyWith(fontSize: 12), // Reduced from 14
+          ),
+          const SizedBox(height: 4),
+          _buildPiecePreview(heldPiece, hasUsedHold),
+          
+          const SizedBox(height: 16), // Reduced from 24
+          
+          // Next piece
+          Text(
+            'NEXT',
+            style: SpaceTheme.titleStyle.copyWith(fontSize: 12),
+          ),
+          const SizedBox(height: 4),
+          _buildPiecePreview(nextPiece, false),
+          
+          const Spacer(),
+          
+          // Controls
+          if (gameActive) ...[
+            _buildSideButton(Icons.rotate_right, _rotatePiece),
+            const SizedBox(height: 6),
+            _buildSideButton(Icons.arrow_downward, _hardDrop),
+            const SizedBox(height: 6),
+            _buildSideButton(Icons.swap_horiz, _holdPiece),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRightSidebar() {
+    return Container(
+      color: SpaceTheme.deepSpace.withOpacity(0.8),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          const SizedBox(height: 50),
+          
+          // Score
+          Text(
+            'SCORE',
+            style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            score.toString(),
+            style: SpaceTheme.headlineStyle.copyWith(
+              fontSize: 24,
+              color: SpaceTheme.starYellow,
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Bonuses
+          Text(
+            'BONUSES',
+            style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            bonusesEarned.toString(),
+            style: SpaceTheme.headlineStyle.copyWith(
+              fontSize: 20,
+              color: SpaceTheme.cosmicPink,
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Target sum
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue.withOpacity(0.5)),
+            ),
+            child: Column(
+              children: [
+                const Text(
+                  'TARGET',
+                  style: TextStyle(fontSize: 12, color: Colors.blue),
+                ),
+                Text(
+                  targetSum.toString(),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Combo
+          if (combo > 1) ...[
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.whatshot, color: Colors.orange, size: 20),
+                  const SizedBox(width: 4),
+                  Text(
+                    '×$combo',
+                    style: const TextStyle(
+                      color: Colors.orange,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          
+          const Spacer(),
+          
+          // Info button
+          IconButton(
+            icon: const Icon(Icons.info_outline, color: SpaceTheme.starYellow),
+            onPressed: () => setState(() => showBonusPanel = true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPiecePreview(CargoPiece? piece, bool disabled) {
+    final size = 80.0; // Reduced from 100
+    final cellSize = 16.0; // Reduced from 20
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: disabled ? Colors.grey.shade800.withOpacity(0.5) : SpaceTheme.deepSpace.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: disabled ? Colors.grey.shade600 : SpaceTheme.nebulaPurple.withOpacity(0.3),
+        ),
+      ),
+      child: piece == null
+          ? Center(
+              child: Text(
+                disabled ? 'USED' : '?',
+                style: TextStyle(
+                  color: disabled ? Colors.grey.shade600 : Colors.white24,
+                  fontSize: 20,
+                ),
+              ),
+            )
+          : Stack(
+              alignment: Alignment.center,
+              children: [
+                for (int i = 0; i < piece.shape.length; i++)
+                  for (int j = 0; j < piece.shape[i].length; j++)
+                    if (piece.shape[i][j])
+                      Positioned(
+                        left: (size / 2) - (piece.shape[0].length * cellSize / 2) + j * cellSize,
+                        top: (size / 2) - (piece.shape.length * cellSize / 2) + i * cellSize,
+                        child: _buildMiniCube(piece.cubes[i][j]!, cellSize),
+                      ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildMobileHoldPreview() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          const Text('HOLD:', style: TextStyle(color: Colors.white54, fontSize: 12)),
+          const SizedBox(width: 8),
+          _buildTinyPiecePreview(heldPiece),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileNextPreview() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          const Text('NEXT:', style: TextStyle(color: Colors.white54, fontSize: 12)),
+          const SizedBox(width: 8),
+          _buildTinyPiecePreview(nextPiece),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTinyPiecePreview(CargoPiece? piece) {
+    final size = 40.0;
+    final cellSize = 8.0;
+    
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.3)),
+      ),
+      child: piece == null
+          ? const Center(
+              child: Text('?', style: TextStyle(color: Colors.white24, fontSize: 14)),
+            )
+          : Stack(
+              alignment: Alignment.center,
+              children: [
+                for (int i = 0; i < piece.shape.length; i++)
+                  for (int j = 0; j < piece.shape[i].length; j++)
+                    if (piece.shape[i][j])
+                      Positioned(
+                        left: (size / 2) - (piece.shape[0].length * cellSize / 2) + j * cellSize,
+                        top: (size / 2) - (piece.shape.length * cellSize / 2) + i * cellSize,
+                        child: Container(
+                          width: cellSize - 1,
+                          height: cellSize - 1,
+                          decoration: BoxDecoration(
+                            color: piece.cubes[i][j]!.color,
+                            borderRadius: BorderRadius.circular(1),
+                          ),
+                        ),
+                      ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildSideButton(IconData icon, VoidCallback onPressed) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: SpaceTheme.nebulaPurple.withOpacity(0.3),
+        foregroundColor: SpaceTheme.alienGreen,
+        padding: const EdgeInsets.all(12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      child: Icon(icon, size: 24),
+    );
+  }
+
+  Widget _buildMiniCube(CargoCube cube, double size) {
+    return Container(
+      width: size - 2,
+      height: size - 2,
+      margin: const EdgeInsets.all(1),
+      decoration: BoxDecoration(
+        color: cube.color,
+        borderRadius: BorderRadius.circular(size * 0.15),
+      ),
+      child: Center(
+        child: Text(
+          cube.value.toString(),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: size * 0.5,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
 
   List<Widget> _buildBonusNotifications() {
     return bonusNotifications.map((notif) {
@@ -1069,85 +1590,73 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     }).toList();
   }
 
-  Widget _buildBonusPanel() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: SpaceTheme.cardDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            S.of(context)!.cargoBayBonuses,
-            style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
-          ),
-          const SizedBox(height: 8),
-          _buildTargetSumInfo(),
-          const SizedBox(height: 4),
-          Expanded(
-            child: ListView(
-              children: [
-                _buildBonusCategory(S.of(context)!.bonusFibonacciTitle, [
-                  BonusType.fibonacci4,
-                  BonusType.fibonacci5,
-                  BonusType.fibonacci6,
-                ]),
-                _buildBonusCategory(S.of(context)!.bonusDoublingTitle, [
-                  BonusType.doubling3,
-                  BonusType.doubling4,
-                  BonusType.doubling5,
-                ]),
-                _buildBonusCategory(S.of(context)!.bonusConsecutiveTitle, [
-                  BonusType.consecutive4,
-                  BonusType.consecutive5,
-                  BonusType.consecutive6,
-                  BonusType.consecutive7,
-                ]),
-                _buildBonusCategory(S.of(context)!.bonusSquareTitle, [
-                  BonusType.square3,
-                  BonusType.square4,
-                ]),
-              ],
-            ),
-          ),
-        ],
-      ),
+  Widget _buildFullBonusPanel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildTargetSumInfo(),
+        const SizedBox(height: 16),
+        _buildBonusCategory(S.of(context)!.bonusFibonacciTitle, [
+          BonusType.fibonacci4,
+          BonusType.fibonacci5,
+          BonusType.fibonacci6,
+        ]),
+        const SizedBox(height: 16),
+        _buildBonusCategory(S.of(context)!.bonusDoublingTitle, [
+          BonusType.doubling3,
+          BonusType.doubling4,
+          BonusType.doubling5,
+        ]),
+        const SizedBox(height: 16),
+        _buildBonusCategory(S.of(context)!.bonusConsecutiveTitle, [
+          BonusType.consecutive4,
+          BonusType.consecutive5,
+          BonusType.consecutive6,
+          BonusType.consecutive7,
+        ]),
+        const SizedBox(height: 16),
+        _buildBonusCategory(S.of(context)!.bonusSquareTitle, [
+          BonusType.square3,
+          BonusType.square4,
+        ]),
+      ],
     );
   }
 
   Widget _buildTargetSumInfo() {
     final count = bonusCount[BonusType.targetSum] ?? 0;
     return Container(
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.blue.withOpacity(0.15),
         border: Border.all(color: Colors.blue.shade300, width: 1.5),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.add_circle_outline, color: Colors.blue, size: 14),
-              const SizedBox(width: 4),
+              const Icon(Icons.add_circle_outline, color: Colors.blue, size: 20),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   S.of(context)!.bonusTargetSum,
-                  style: const TextStyle(color: Colors.blue, fontSize: 10, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Colors.blue, fontSize: 14, fontWeight: FontWeight.bold),
                 ),
               ),
               if (count > 0)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                  decoration: BoxDecoration(color: Colors.blue.shade300, borderRadius: BorderRadius.circular(8)),
-                  child: Text('$count', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(color: Colors.blue.shade300, borderRadius: BorderRadius.circular(12)),
+                  child: Text('$count', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                 ),
             ],
           ),
-          const SizedBox(height: 2),
-          Text(S.of(context)!.bonusTargetSumDesc(targetSum), style: const TextStyle(fontSize: 8, color: Colors.white60)),
-          const SizedBox(height: 2),
-          const Text('+400', style: TextStyle(color: SpaceTheme.starYellow, fontSize: 9, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(S.of(context)!.bonusTargetSumDesc(targetSum), style: const TextStyle(fontSize: 12, color: Colors.white60)),
+          const SizedBox(height: 4),
+          const Text('+400', style: TextStyle(color: SpaceTheme.starYellow, fontSize: 14, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -1157,13 +1666,11 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 8, bottom: 4),
-          child: Text(
-            title,
-            style: const TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.bold),
-          ),
+        Text(
+          title,
+          style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
         ),
+        const SizedBox(height: 8),
         ...types.map((type) => _buildBonusItem(type)),
       ],
     );
@@ -1175,32 +1682,32 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     final points = _getBonusPoints(type);
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         border: Border.all(color: color.withOpacity(0.3)),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         children: [
           Expanded(
             child: Text(
               _getBonusDescription(type),
-              style: TextStyle(color: color, fontSize: 8),
+              style: TextStyle(color: color, fontSize: 12),
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
           Text(
             '+$points',
-            style: const TextStyle(color: SpaceTheme.starYellow, fontSize: 8, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: SpaceTheme.starYellow, fontSize: 12, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
           if (count > 0)
             Container(
-              width: 14, height: 14,
+              width: 20, height: 20,
               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-              child: Center(child: Text('$count', style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold))),
+              child: Center(child: Text('$count', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
             ),
         ],
       ),
@@ -1352,121 +1859,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     );
   }
 
-  Widget _buildHeldPiecePreview() {
-    if (heldPiece == null) {
-      return SizedBox(
-        height: 80, width: 80,
-        child: Center(
-          child: Text(S.of(context)!.cargoBayPressC, style: const TextStyle(fontSize: 9, color: Colors.white54), textAlign: TextAlign.center),
-        ),
-      );
-    }
-    
-    final previewCellSize = 18.0;
-    
-    return SizedBox(
-      height: 80, width: 80,
-      child: Stack(
-        alignment: Alignment.center,
-        children: List.generate(heldPiece!.shape.length, (i) {
-          return List.generate(heldPiece!.shape[i].length, (j) {
-            if (heldPiece!.shape[i][j]) {
-              return Positioned(
-                left: j * previewCellSize + (40 - heldPiece!.shape[0].length / 2 * previewCellSize),
-                top: i * previewCellSize + (40 - heldPiece!.shape.length / 2 * previewCellSize),
-                child: _buildCube(heldPiece!.cubes[i][j]!, previewCellSize),
-              );
-            }
-            return const SizedBox.shrink();
-          });
-        }).expand((e) => e).toList(),
-      ),
-    );
-  }
-
-  Widget _buildNextPiecePreview() {
-    if (nextPiece == null) return const SizedBox(height: 80, width: 80);
-    
-    final previewCellSize = 18.0;
-    
-    return SizedBox(
-      height: 80, width: 80,
-      child: Stack(
-        alignment: Alignment.center,
-        children: List.generate(nextPiece!.shape.length, (i) {
-          return List.generate(nextPiece!.shape[i].length, (j) {
-            if (nextPiece!.shape[i][j]) {
-              return Positioned(
-                left: j * previewCellSize + (40 - nextPiece!.shape[0].length / 2 * previewCellSize),
-                top: i * previewCellSize + (40 - nextPiece!.shape.length / 2 * previewCellSize),
-                child: _buildCube(nextPiece!.cubes[i][j]!, previewCellSize),
-              );
-            }
-            return const SizedBox.shrink();
-          });
-        }).expand((e) => e).toList(),
-      ),
-    );
-  }
-
-  Widget _buildStat(IconData icon, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Row( mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, color: color, size: 16), const SizedBox(width: 4),
-          Text(value, style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.bold)),
-      ]),
-    );
-  }
-
-  Widget _buildControls() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildControlButton(Icons.arrow_back, _movePieceLeft),
-          _buildControlButton(Icons.arrow_downward, _hardDrop),
-          _buildControlButton(Icons.arrow_forward, _movePieceRight),
-          _buildControlButton(Icons.rotate_right, _rotatePiece),
-          _buildControlButton(Icons.swap_horiz, _holdPiece),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildControlButton(IconData icon, VoidCallback onPressed) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: SpaceTheme.nebulaPurple.withOpacity(0.3),
-        foregroundColor: SpaceTheme.alienGreen,
-        padding: const EdgeInsets.all(14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: SpaceTheme.alienGreen.withOpacity(0.3)),
-        ),
-      ),
-      child: Icon(icon, size: 20),
-    );
-  }
-
-  Widget _buildKeyboardHints() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Text(
-        S.of(context)!.cargoBayKeyboardHints,
-        style: const TextStyle(fontSize: 10, color: Colors.white54),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-
   Widget _buildSuccessDialog(int totalScore, int bonusTotal) {
     return Dialog(backgroundColor: Colors.transparent, child: Container(
         padding: const EdgeInsets.all(24), decoration: SpaceTheme.cardDecoration.copyWith(
@@ -1502,7 +1894,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
         ])),
     ));
   }
-  // #endregion
 
   @override
   void dispose() {
@@ -1517,8 +1908,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   }
 }
 
-// #region Data Models
-
+// Data Models
 class CargoCube {
   final int value;
   final Color color;
@@ -1608,10 +1998,7 @@ class BonusNotification {
   BonusNotification({required this.type, required this.points, required this.createdAt});
 }
 
-// #endregion
-
-// #region Visual Effects
-
+// Visual Effects
 class CargoParticle {
   Offset position; Offset velocity; Color color;
   double size; double life; final double maxLife;
@@ -1652,10 +2039,7 @@ class CargoParticle {
   }
 }
 
-// #endregion
-
-// #region Custom Painters
-
+// Custom Painters
 class CargoBayPainter extends CustomPainter {
   final double pulseIntensity;
   final bool gameWon, gameLost;
@@ -1709,5 +2093,3 @@ class GridPainter extends CustomPainter {
   @override
   bool shouldRepaint(GridPainter oldDelegate) => oldDelegate.cellSize != cellSize || oldDelegate.intensity != intensity;
 }
-
-// #endregion

@@ -1,0 +1,1460 @@
+// star_loader_game.dart:
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'dart:math' as math;
+import 'dart:async';
+
+import '../../../core/theme/space_theme.dart';
+import '../../../generated/l10n.dart';
+import '../providers/game_provider.dart';
+import '../widgets/space_background.dart';
+import '../widgets/game_ui.dart';
+import '../services/starloader_level_generator.dart';
+
+
+// --- Enums for Game Logic ---
+
+enum CellType { floor, wall, target }
+
+class MoveHistory {
+  final Offset playerPos;
+  final Offset? pushedBoxOrigin;
+
+  MoveHistory({required this.playerPos, this.pushedBoxOrigin});
+}
+
+// --- Level Data Structure ---
+class LevelData {
+  final List<String> layout;
+  final int optimalMoves;
+
+  LevelData({required this.layout, required this.optimalMoves});
+}
+
+// --- Main Game Widget ---
+
+class StarLoaderGame extends StatefulWidget {
+  final int grade;
+  final int level;
+
+  const StarLoaderGame({
+    super.key,
+    required this.grade,
+    required this.level,
+  });
+
+  @override
+  State<StarLoaderGame> createState() => _StarLoaderGameState();
+}
+
+class _StarLoaderGameState extends State<StarLoaderGame>
+    with TickerProviderStateMixin {
+  // --- Game State ---
+  late final LevelGenerator _levelGenerator;
+  late List<List<CellType>> _grid;
+  late Offset _playerPos;
+  late int _playerDirection; // 0=up, 1=right, 2=down, 3=left
+  late List<Offset> _boxPositions;
+  late List<Offset> _targetPositions;
+  late int _optimalMoves;
+
+  final List<MoveHistory> _moveHistory = [];
+  int _moveCount = 0;
+  bool _hasWon = false;
+  final Stopwatch _stopwatch = Stopwatch();
+
+  // --- Animation & Controls ---
+  late AnimationController _winPulseController;
+  late AnimationController _glowController;
+  late AnimationController _particleController;
+  late AnimationController _celebrationController;
+  late AnimationController _pushController; // For squash/stretch
+
+  late Animation<double> _winPulseAnimation;
+  late Animation<double> _glowAnimation;
+  late Animation<double> _pushAnimation; // Squash/stretch animation
+
+  final FocusNode _focusNode = FocusNode();
+
+  // Particles
+  List<StarParticle> _particles = [];
+  List<TrailParticle> _trails = [];
+  List<CelebrationParticle> _celebrationParticles = [];
+
+  // Hints
+  bool _showingHint = false;
+  String _hintMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+
+    _levelGenerator = LevelGenerator(); 
+
+    _winPulseController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _winPulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
+        CurvedAnimation(parent: _winPulseController, curve: Curves.easeInOut));
+
+    _glowController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+        CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
+
+    _particleController = AnimationController(
+      duration: const Duration(milliseconds: 16),
+      vsync: this,
+    )..repeat();
+
+    _particleController.addListener(_updateParticles);
+
+    _celebrationController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
+      vsync: this,
+    );
+
+    _pushController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _pushAnimation = CurvedAnimation(parent: _pushController, curve: Curves.elasticOut)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _pushController.reverse();
+        }
+      });
+
+    _loadLevel();
+    _generateStarfield();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+      if (widget.level == 1) {
+        _showTutorialHint();
+      }
+    });
+  }
+
+  void _generateStarfield() {
+    final random = math.Random();
+    for (int i = 0; i < 30; i++) {
+      _particles.add(StarParticle(
+        position: Offset(
+          random.nextDouble() * 1000,
+          random.nextDouble() * 1000,
+        ),
+        size: 1 + random.nextDouble() * 2,
+        opacity: 0.3 + random.nextDouble() * 0.5,
+      ));
+    }
+  }
+
+  void _updateParticles() {
+    if (!mounted) return;
+    setState(() {
+      _trails.removeWhere((p) => p.update());
+      _celebrationParticles.removeWhere((p) => p.update());
+    });
+  }
+
+  void _showTutorialHint() {
+    setState(() {
+      _showingHint = true;
+      // FIXED: Added ! null assertion
+      _hintMessage = S.of(context)!.starLoaderHint;
+    });
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) {
+        setState(() => _showingHint = false);
+      }
+    });
+  }
+
+  void _loadLevel() {
+        final levelData = _getLevelData(widget.grade, widget.level);
+
+        setState(() {
+        _grid = [];
+        _boxPositions = [];
+        _targetPositions = [];
+        _moveHistory.clear();
+        _moveCount = 0;
+        _hasWon = false;
+        _optimalMoves = levelData.optimalMoves;
+        _trails.clear();
+        _celebrationParticles.clear();
+        _playerDirection = 2; // Default to facing down
+
+        // Parse the level layout string
+        for (int y = 0; y < levelData.layout.length; y++) {
+            final rowStr = levelData.layout[y];
+            final row = <CellType>[];
+            for (int x = 0; x < rowStr.length; x++) {
+            final char = rowStr[x];
+            final pos = Offset(x.toDouble(), y.toDouble());
+
+            switch (char) {
+                case 'W':
+                row.add(CellType.wall);
+                break;
+                case 'P':
+                _playerPos = pos;
+                row.add(CellType.floor);
+                break;
+                case 'B':
+                _boxPositions.add(pos);
+                row.add(CellType.floor);
+                break;
+                case 'T':
+                _targetPositions.add(pos);
+                row.add(CellType.target);
+                break;
+                case 'X': // Box on target
+                _boxPositions.add(pos);
+                _targetPositions.add(pos);
+                row.add(CellType.target);
+                break;
+                case ' ':
+                default:
+                row.add(CellType.floor);
+                break;
+            }
+            }
+            _grid.add(row);
+        }
+        });
+
+        _stopwatch.reset();
+        _stopwatch.start();
+        _focusNode.requestFocus();
+    }
+
+    LevelData _getLevelData(int grade, int level) {
+    // Calculate difficulty
+    final complexity = (grade - 1) * 5 + level;
+    
+    // Determine room size based on grade
+    int dimX, dimY, numBoxes;
+    
+    if (grade == 1) {
+        dimX = 7;
+        dimY = 7;
+        numBoxes = 2 + (level ~/ 5).clamp(0, 1);
+    } else if (grade == 2) {
+        dimX = 8;
+        dimY = 8;
+        numBoxes = 2 + (level ~/ 4).clamp(0, 2);
+    } else if (grade == 3) {
+        dimX = 10;
+        dimY = 10;
+        numBoxes = 3 + (level ~/ 3).clamp(0, 2);
+    } else {
+        dimX = 12;
+        dimY = 11;
+        numBoxes = 4 + (level ~/ 3).clamp(0, 2);
+    }
+
+    // Generate level
+    final generatedLevel = _levelGenerator.generateLevel( // <-- This line also works now
+        dimX: dimX,
+        dimY: dimY,
+        numBoxes: numBoxes,
+    );
+
+    // Convert to layout strings
+    List<String> layout = [];
+    for (int i = 0; i < generatedLevel.roomState.length; i++) {
+        String line = '';
+        for (int j = 0; j < generatedLevel.roomState[i].length; j++) {
+        final state = generatedLevel.roomState[i][j];
+        final structure = generatedLevel.roomStructure[i][j];
+        
+        if (state == LevelGenerator.WALL) {
+            line += 'W';
+        } else if (state == LevelGenerator.PLAYER) {
+            line += 'P';
+        } else if (state == LevelGenerator.BOX) {
+            if (structure == LevelGenerator.TARGET) {
+            line += 'X'; // Box on target (shouldn't happen in initial state)
+            } else {
+            line += 'B';
+            }
+        } else if (structure == LevelGenerator.TARGET) {
+            line += 'T';
+        } else {
+            line += ' ';
+        }
+        }
+        layout.add(line);
+    }
+
+    return LevelData(
+        layout: layout,
+        optimalMoves: math.max(generatedLevel.optimalMoves, numBoxes * 3),
+    );
+  }
+
+  @override
+  void dispose() {
+    _winPulseController.dispose();
+    _glowController.dispose();
+    _particleController.dispose();
+    _celebrationController.dispose();
+    _pushController.dispose();
+    _focusNode.dispose();
+    _stopwatch.stop();
+    super.dispose();
+  }
+
+  void _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent || _hasWon) return;
+
+    if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+      _movePlayer(-1, 0);
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+      _movePlayer(1, 0);
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      _movePlayer(0, -1);
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+      _movePlayer(0, 1);
+    } else if (event.logicalKey == LogicalKeyboardKey.keyZ ||
+        event.logicalKey == LogicalKeyboardKey.backspace) {
+      _undoMove();
+    } else if (event.logicalKey == LogicalKeyboardKey.keyR) {
+      _loadLevel();
+    }
+  }
+
+  void _handleSwipe(DragEndDetails details) {
+    if (_hasWon) return;
+    final velocity = details.velocity.pixelsPerSecond;
+
+    if (velocity.dx.abs() > velocity.dy.abs()) {
+        if (velocity.dx > 0) {
+        _movePlayer(1, 0); // Right
+        } else {
+        _movePlayer(-1, 0); // Left
+        }
+    } else {
+        if (velocity.dy > 0) {
+        _movePlayer(0, 1); // Down
+        } else {
+        _movePlayer(0, -1); // Up
+        }
+    }
+    }
+
+  void _movePlayer(int dx, int dy) {
+    if (_hasWon) return;
+
+    final newPlayerPos = _playerPos.translate(dx.toDouble(), dy.toDouble());
+    int newDirection = _playerDirection;
+    if (dy == -1) newDirection = 0; // Up
+    if (dx == 1) newDirection = 1; // Right
+    if (dy == 1) newDirection = 2; // Down
+    if (dx == -1) newDirection = 3; // Left
+
+    if (_getCellTypeAt(newPlayerPos) == CellType.wall) {
+      HapticFeedback.lightImpact();
+      return;
+    }
+
+    final boxIndex = _getBoxIndexAt(newPlayerPos);
+    if (boxIndex != -1) {
+      final newBoxPos = newPlayerPos.translate(dx.toDouble(), dy.toDouble());
+
+      if (_getCellTypeAt(newBoxPos) == CellType.wall ||
+          _getBoxIndexAt(newBoxPos) != -1) {
+        HapticFeedback.lightImpact();
+        return;
+      }
+
+      final oldPlayerPos = _playerPos;
+      final oldBoxPos = _boxPositions[boxIndex];
+      _moveHistory
+          .add(MoveHistory(playerPos: oldPlayerPos, pushedBoxOrigin: oldBoxPos));
+
+      setState(() {
+        _playerPos = newPlayerPos;
+        _playerDirection = newDirection;
+        _boxPositions[boxIndex] = newBoxPos;
+        _moveCount++;
+        _createTrailParticle(_playerPos);
+      });
+
+      _pushController.forward(from: 0.0);
+      HapticFeedback.mediumImpact();
+    } else {
+      final oldPlayerPos = _playerPos;
+      _moveHistory.add(MoveHistory(playerPos: oldPlayerPos));
+
+      setState(() {
+        _playerPos = newPlayerPos;
+        _playerDirection = newDirection;
+        _moveCount++;
+        _createTrailParticle(_playerPos);
+      });
+
+      HapticFeedback.lightImpact();
+    }
+
+    _checkWinCondition();
+  }
+
+  void _createTrailParticle(Offset gridPos) {
+    final random = math.Random();
+    for (int i = 0; i < 3; i++) {
+      _trails.add(TrailParticle(
+        position: gridPos, // Store grid position
+        velocity: Offset(
+          (random.nextDouble() - 0.5) * 2, // Slower velocity in grid units
+          (random.nextDouble() - 0.5) * 2,
+        ),
+        size: 2 + random.nextDouble() * 2,
+        color: SpaceTheme.alienGreen,
+      ));
+    }
+  }
+
+  void _undoMove() {
+    if (_moveHistory.isEmpty || _hasWon) return;
+
+    final lastMove = _moveHistory.removeLast();
+
+    setState(() {
+      // --- START FIX ---
+
+      if (lastMove.pushedBoxOrigin != null) {
+        // This was a push move.
+        // We must find the box *before* moving the player.
+        
+        // _playerPos is the player's CURRENT position (e.g., (3,2))
+        // lastMove.playerPos is the player's OLD position (e.g., (2,2))
+        
+        // 1. Find the direction of the last move:
+        // (3,2) - (2,2) = (1,0)
+        final dx = _playerPos.dx - lastMove.playerPos.dx;
+        final dy = _playerPos.dy - lastMove.playerPos.dy;
+
+        // 2. Find the box's CURRENT position:
+        // It's at its origin + the push direction
+        // lastMove.pushedBoxOrigin (e.g., (3,2)) + (1,0) = (4,2)
+        final boxCurrentPos = lastMove.pushedBoxOrigin!.translate(dx, dy);
+
+        // 3. Get the index of the box at that position (4,2)
+        final boxIndex = _getBoxIndexAt(boxCurrentPos);
+
+        if (boxIndex != -1) {
+          // 4. Move the box back to its origin (3,2)
+          _boxPositions[boxIndex] = lastMove.pushedBoxOrigin!;
+        }
+      }
+
+      // 5. NOW move the player back (to (2,2))
+      _playerPos = lastMove.playerPos;
+
+      // --- END FIX ---
+
+      _moveCount--;
+    });
+
+    HapticFeedback.selectionClick();
+  }
+
+  void _checkWinCondition() {
+    if (_targetPositions.isEmpty) return;
+
+    for (final target in _targetPositions) {
+      if (_getBoxIndexAt(target) == -1) {
+        return;
+      }
+    }
+
+    _stopwatch.stop();
+    setState(() => _hasWon = true);
+
+    _celebrationController.forward(from: 0.0);
+    _createCelebrationParticles();
+
+    HapticFeedback.heavyImpact();
+    _handleSuccess();
+  }
+
+  void _createCelebrationParticles() {
+    final random = math.Random();
+    for (int i = 0; i < 50; i++) {
+      final angle = random.nextDouble() * 2 * math.pi;
+      final speed = 2 + random.nextDouble() * 5; // Speed in grid units/sec
+      _celebrationParticles.add(CelebrationParticle(
+        position: _playerPos, // Store grid position
+        velocity: Offset.fromDirection(angle, speed),
+        size: 3 + random.nextDouble() * 5,
+        color: [SpaceTheme.alienGreen, SpaceTheme.starYellow, Colors.cyan]
+            [random.nextInt(3)],
+      ));
+    }
+  }
+
+  void _handleQuit() {
+    // If they already won or didn't make a single move, don't record a failure.
+    if (_hasWon || _moveCount == 0) return; 
+
+    _stopwatch.stop();
+    context.read<GameProvider>().recordLevelWin(
+          gameType: 'star_loader_game', 
+          scoreGained: 0,
+          difficulty: widget.level,
+          wasSuccessful: false, // <-- Mark as a failed attempt
+        );
+  }
+
+  void _handleSuccess() {
+    final s = S.of(context)!;
+    final timeTaken = _stopwatch.elapsed.inSeconds;
+
+    int baseScore = 200 * widget.grade;
+    int timeBonus = math.max(0, 1000 - (timeTaken * 5));
+    int moveBonus = math.max(0, 500 - (_moveCount * 2));
+
+    // Efficiency bonus for near-optimal solutions
+    final efficiency = _optimalMoves > 0
+        ? (_optimalMoves / _moveCount * 100).round()
+        : 100;
+    int efficiencyBonus =
+        efficiency >= 90 ? 500 : (efficiency >= 80 ? 300 : 0);
+
+    int totalScore = baseScore + timeBonus + moveBonus + efficiencyBonus;
+
+    // Use the correct framework method
+    context.read<GameProvider>().recordLevelWin(
+          gameType: 'star_loader_game', // game id as in lib/core/models/skill_category.dart
+          scoreGained: totalScore,
+          difficulty: widget.level,
+          wasSuccessful: true,
+        );
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) =>
+          _buildSuccessDialog(s, totalScore, timeTaken, efficiency),
+    );
+  }
+
+  CellType _getCellTypeAt(Offset pos) {
+    final x = pos.dx.toInt();
+    final y = pos.dy.toInt();
+    if (y < 0 || y >= _grid.length || x < 0 || x >= _grid[y].length) {
+      return CellType.wall;
+    }
+    return _grid[y][x];
+  }
+
+  int _getBoxIndexAt(Offset pos) {
+    return _boxPositions.indexWhere((boxPos) => boxPos == pos);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context)!;
+
+    // Use the SpaceBackground widget from your other game for a consistent
+    // animated background, and set the Scaffold color to deep space.
+    return Scaffold(
+      backgroundColor: SpaceTheme.deepSpace, // 1. Fix for "harsh white"
+      body: SpaceBackground( // 2. Use the proper background widget
+        child: KeyboardListener(
+          focusNode: _focusNode,
+          onKeyEvent: _handleKeyEvent,
+          autofocus: true,
+          // This Stack is the main layout.
+          // We draw the game *first*, then the UI *on top*.
+          child: Stack(
+            children: [
+              // --- 3. GAME AREA (drawn first) ---
+              OrientationBuilder(
+                builder: (context, orientation) {
+                  if (orientation == Orientation.portrait) {
+                    return _buildPortraitLayout(context, s);
+                  } else {
+                    return _buildLandscapeLayout(context, s);
+                  }
+                },
+              ),
+
+              // --- STATIC PARTICLES (drawn on top of background, under UI) ---
+              ..._particles.map((p) => p.build()),
+
+              // --- 4. UI AREA (drawn last, on top of everything) ---
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  child: GameUI(
+                    title: S.of(context)!.starLoaderTitle,
+                    level: widget.level,
+                    onBack: () {
+                      _handleQuit();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ),
+              ),
+
+              // --- HINT OVERLAY (drawn on top) ---
+              if (_showingHint)
+                Positioned(
+                  top: 80,
+                  left: 20,
+                  right: 20,
+                  child: _buildHintBanner(),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHintBanner() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            SpaceTheme.alienGreen.withOpacity(0.9),
+            SpaceTheme.alienGreen.withOpacity(0.7),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: SpaceTheme.starYellow, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: SpaceTheme.alienGreen.withOpacity(0.5),
+            blurRadius: 15,
+            spreadRadius: 3,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.lightbulb, color: SpaceTheme.starYellow, size: 28),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _hintMessage,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPortraitLayout(BuildContext context, S s) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            _buildGameStats(s),
+            const SizedBox(height: 16),
+            Expanded(
+              child: _buildGameGrid(),
+            ),
+            const SizedBox(height: 16),
+            _buildControls(s),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLandscapeLayout(BuildContext context, S s) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: _buildGameGrid(),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              flex: 2,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildGameStats(s),
+                  const SizedBox(height: 32),
+                  _buildControls(s),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGameStats(S s) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            SpaceTheme.deepSpace.withOpacity(0.9),
+            SpaceTheme.nebulaPurple.withOpacity(0.8),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: SpaceTheme.alienGreen.withOpacity(0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: SpaceTheme.alienGreen.withOpacity(0.2),
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildStatItem(Icons.compare_arrows, '$_moveCount', s.moves),
+          Container(width: 1, height: 30, color: Colors.white24),
+          _buildStatItem(Icons.flag, '$_optimalMoves', s.optimal),
+          Container(width: 1, height: 30, color: Colors.white24),
+          StreamBuilder(
+            stream: Stream.periodic(const Duration(seconds: 1)),
+            builder: (context, snapshot) {
+              final time = _stopwatch.elapsed;
+              final formattedTime =
+                  '${time.inMinutes.toString().padLeft(2, '0')}:${(time.inSeconds % 60).toString().padLeft(2, '0')}';
+              return _buildStatItem(Icons.timer, formattedTime, s.time);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(IconData icon, String value, String label) {
+    return Column(
+      children: [
+        Icon(icon, color: SpaceTheme.alienGreen, size: 24),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            color: SpaceTheme.starYellow,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 11,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildControls(S s) {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      alignment: WrapAlignment.center,
+      children: [
+        // --- UNDO BUTTON ---
+        ElevatedButton.icon(
+          onPressed: _moveHistory.isEmpty || _hasWon ? null : _undoMove,
+          icon: const Icon(Icons.undo, size: 20),
+          label: Text(s.undo),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: SpaceTheme.nebulaPurple,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 8,
+          ),
+        ),
+
+        // --- RESET BUTTON (NEW) ---
+        ElevatedButton.icon(
+          onPressed: _hasWon ? null : _loadLevel, // Disable if won
+          icon: const Icon(Icons.refresh, size: 20),
+          label: Text(s.reset), // Assumes you have a 'reset' string in S
+          style: ElevatedButton.styleFrom(
+            backgroundColor: SpaceTheme.rocketRed.withOpacity(0.8),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 8,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGameGrid() {
+    return Center(
+      child: GestureDetector(
+        onVerticalDragEnd: _handleSwipe,
+        onHorizontalDragEnd: _handleSwipe,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            if (_grid.isEmpty || _grid[0].isEmpty) return Container();
+
+            final maxW = constraints.maxWidth / _grid[0].length;
+            final maxH = constraints.maxHeight / _grid.length;
+            final cellSize = math.min(maxW, maxH).floorToDouble();
+            final gridWidth = cellSize * _grid[0].length;
+            final gridHeight = cellSize * _grid.length;
+
+            if (cellSize <= 0) return Container();
+
+            return Container(
+              width: gridWidth,
+              height: gridHeight,
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  colors: [
+                    SpaceTheme.deepSpace.withOpacity(0.5),
+                    SpaceTheme.deepSpace.withOpacity(0.9),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: SpaceTheme.alienGreen.withOpacity(0.5),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: SpaceTheme.alienGreen.withOpacity(0.3),
+                    blurRadius: 20,
+                    spreadRadius: 3,
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: AnimatedBuilder(
+                  // Repaint painter when push animation runs or particles update
+                  animation: Listenable.merge([_pushAnimation, _particleController]),
+                  builder: (context, child) {
+                    return CustomPaint(
+                      painter: StarLoaderPainter(
+                        grid: _grid,
+                        playerPos: _playerPos,
+                        playerDirection: _playerDirection,
+                        boxPositions: _boxPositions,
+                        targetPositions: _targetPositions,
+                        trails: _trails, // Pass particles
+                        celebrationParticles:
+                            _celebrationParticles, // Pass particles
+                        cellSize: cellSize,
+                        winPulse: _hasWon ? _winPulseAnimation.value : 1.0,
+                        pushAnimValue: _pushAnimation.value,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSuccessDialog(
+      S s, int totalScore, int timeTaken, int efficiency) {
+    // Borrowing the superior style from RobotPathGame
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              SpaceTheme.deepSpace.withOpacity(0.95),
+              SpaceTheme.nebulaPurple.withOpacity(0.95),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: SpaceTheme.alienGreen, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: SpaceTheme.alienGreen.withOpacity(0.5),
+              blurRadius: 30,
+              spreadRadius: 5,
+            ),
+          ],
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ScaleTransition(
+                scale: _winPulseAnimation, // Use existing win pulse
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        SpaceTheme.alienGreen,
+                        SpaceTheme.alienGreen.withOpacity(0.5),
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: SpaceTheme.alienGreen.withOpacity(0.6),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.check_circle,
+                    size: 60,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                s.starLoaderWinTitle,
+                style: SpaceTheme.headlineStyle.copyWith(fontSize: 28),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                s.starLoaderWinDesc(totalScore, _moveCount, timeTaken),
+                style: SpaceTheme.bodyStyle.copyWith(fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    _buildScoreRow(
+                        s.efficiency,
+                        '$efficiency%',
+                        efficiency >= 90
+                            ? SpaceTheme.alienGreen
+                            : SpaceTheme.starYellow),
+                    const SizedBox(height: 8),
+                    _buildScoreRow(s.movesVsOptimal, '$_moveCount / $_optimalMoves',
+                        Colors.white70),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Flexible(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _loadLevel();
+                      },
+                      icon: const Icon(Icons.refresh),
+                      // FIXED: s.nextLevel was here, but s.playAgain is more appropriate
+                      label: Text(s.playAgain, textAlign: TextAlign.center),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: SpaceTheme.alienGreen,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      },
+                      icon: const Icon(Icons.home),
+                      label: Text(s.toTheBridge, textAlign: TextAlign.center),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: SpaceTheme.nebulaPurple,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScoreRow(String label, String value, Color color) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+        Text(
+          value,
+          style:
+              TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+}
+
+// --- Particle Classes ---
+// (No build() method, they are just data containers now)
+
+class StarParticle {
+  final Offset position;
+  final double size;
+  final double opacity;
+
+  StarParticle({
+    required this.position,
+    required this.size,
+    required this.opacity,
+  });
+
+  Widget build() {
+    return Positioned(
+      left: position.dx,
+      top: position.dy,
+      child: IgnorePointer(
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(opacity),
+            shape: BoxShape.circle,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class TrailParticle {
+  Offset position;
+  Offset velocity;
+  double size;
+  Color color;
+  double life;
+
+  TrailParticle({
+    required this.position,
+    required this.velocity,
+    required this.size,
+    required this.color,
+    this.life = 1.0,
+  });
+
+  bool update() {
+    // Update position based on grid units
+    position = position + velocity * 0.016;
+    velocity = velocity * 0.95; // Dampen velocity
+    life -= 0.03; // Fade faster
+    return life <= 0;
+  }
+}
+
+class CelebrationParticle {
+  Offset position;
+  Offset velocity;
+  double size;
+  Color color;
+  double life;
+
+  CelebrationParticle({
+    required this.position,
+    required this.velocity,
+    required this.size,
+    required this.color,
+    this.life = 1.0,
+  });
+
+  bool update() {
+    position = position + velocity * 0.016;
+    velocity = velocity * 0.98; // Slower dampening
+    life -= 0.016;
+    return life <= 0;
+  }
+}
+
+// --- Custom Painter ---
+
+// --- Custom Painter ---
+
+class StarLoaderPainter extends CustomPainter {
+  final List<List<CellType>> grid;
+  final Offset playerPos;
+  final int playerDirection;
+  final List<Offset> boxPositions;
+  final List<Offset> targetPositions;
+  final List<TrailParticle> trails;
+  final List<CelebrationParticle> celebrationParticles;
+  final double cellSize;
+  final double winPulse;
+  final double pushAnimValue;
+
+  // --- NEW: Upgraded Paint objects ---
+
+  // Floor is now transparent to show the animated nebula background
+  final Paint _floorPaint = Paint()..color = Colors.transparent;
+
+  // Wall has a 3D-effect gradient
+  final Paint _wallPaint = Paint()
+    ..shader = const LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0xFF6B3A9B), Color(0xFF381B42)],
+    ).createShader(Rect.zero); // Shader will be re-created in paint
+
+  // Wall "top" highlight
+  final Paint _wallTopPaint = Paint()
+    ..color = const Color(0xFF8E5AA3);
+
+  // Target has a glow effect
+  final Paint _targetPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 3;
+  
+  // Target fill is more vibrant
+  final Paint _targetFillPaint = Paint()
+    ..style = PaintingStyle.fill;
+  
+  // Box has a radial gradient for a "shiny" look
+  final Paint _boxPaint = Paint();
+  final Paint _boxShadowPaint = Paint()
+    ..color = Colors.black.withOpacity(0.4)
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+
+  // Player (rocket) has a metallic gradient
+  final Paint _playerPaint = Paint()
+    ..shader = const LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0xFFE57373), Color(0xFFD32F2F), Color(0xFFB71C1C)],
+    ).createShader(Rect.zero); // Shader will be re-created in paint
+
+  // Player window
+  final Paint _playerWindowPaint = Paint()
+    ..color = Colors.cyan.shade200
+    ..shader = RadialGradient(
+      colors: [Colors.white, Colors.cyan.shade200, Colors.cyan.shade600],
+    ).createShader(Rect.zero); // Shader will be re-created in paint
+
+  final Paint _trailPaint = Paint()..style = PaintingStyle.fill;
+  final Paint _celebrationPaint = Paint()..style = PaintingStyle.fill;
+
+  StarLoaderPainter({
+    required this.grid,
+    required this.playerPos,
+    required this.playerDirection,
+    required this.boxPositions,
+    required this.targetPositions,
+    required this.trails,
+    required this.celebrationParticles,
+    required this.cellSize,
+    required this.winPulse,
+    required this.pushAnimValue,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (cellSize <= 0) return;
+
+    final double padding = cellSize * 0.1;
+    final double innerSize = cellSize - (padding * 2);
+
+    // 1. Draw grid cells
+    for (int y = 0; y < grid.length; y++) {
+      for (int x = 0; x < grid[y].length; x++) {
+        final rect = Rect.fromLTWH(x * cellSize, y * cellSize, cellSize, cellSize);
+        final cell = grid[y][x];
+
+        switch (cell) {
+          case CellType.floor:
+            canvas.drawRect(rect, _floorPaint); // Transparent floor
+            break;
+          case CellType.wall:
+            final wallRect = rect.deflate(padding / 3);
+            final topRect = Rect.fromLTWH(
+                wallRect.left, wallRect.top, wallRect.width, wallRect.height * 0.2);
+            
+            _wallPaint.shader = LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [SpaceTheme.nebulaPurple, const Color(0xFF381B42)],
+            ).createShader(wallRect);
+
+            canvas.drawRRect( // Draw 3D wall body
+                RRect.fromRectAndRadius(wallRect, Radius.circular(cellSize * 0.1)), 
+                _wallPaint
+            );
+            canvas.drawRRect( // Draw 3D wall top
+                RRect.fromRectAndCorners(topRect, topLeft: Radius.circular(cellSize * 0.1), topRight: Radius.circular(cellSize * 0.1)),
+                _wallTopPaint
+            );
+            break;
+          case CellType.target:
+            canvas.drawRect(rect, _floorPaint); // Transparent floor
+            
+            final targetPulse = (winPulse - 0.8) * 2.5; // Remap 0.8-1.2 to 0-1.0
+            final glowColor = SpaceTheme.alienGreen.withOpacity(0.5 + targetPulse * 0.5);
+            
+            // Draw outer glow
+            _targetPaint
+              ..color = glowColor
+              ..maskFilter = MaskFilter.blur(BlurStyle.normal, (10 * targetPulse) + 5);
+            
+            // Draw inner fill
+            _targetFillPaint.color = SpaceTheme.alienGreen.withOpacity(0.1 + targetPulse * 0.2);
+
+            canvas.drawCircle(rect.center, innerSize / 2, _targetFillPaint);
+            canvas.drawCircle(rect.center, innerSize / 2, _targetPaint);
+            break;
+        }
+      }
+    }
+
+    // 2. Draw trail particles
+    for (final p in trails) {
+      final center = p.position * cellSize + Offset(cellSize / 2, cellSize / 2);
+      _trailPaint.color = p.color.withOpacity(p.life.clamp(0.0, 1.0));
+      canvas.drawCircle(center, p.size * (p.life + 0.5), _trailPaint);
+    }
+
+    // 3. Draw boxes
+    final double boxSquash = 1.0 + (pushAnimValue * 0.3);
+    final double boxStretch = 1.0 - (pushAnimValue * 0.3);
+
+    for (final pos in boxPositions) {
+      Rect rect = Rect.fromLTWH(
+        pos.dx * cellSize + padding,
+        pos.dy * cellSize + padding,
+        innerSize,
+        innerSize,
+      );
+
+      // Check if this box is being pushed
+      final bool isPushedBox = (playerPos.dx.round() == pos.dx.round() ||
+              playerPos.dy.round() == pos.dy.round()) &&
+          (playerPos - pos).distance.abs() < 1.1 &&
+          pushAnimValue > 0.0;
+
+      if (isPushedBox) {
+        if (playerDirection == 1 || playerDirection == 3) { // Horizontal push
+          rect = Rect.fromCenter(center: rect.center, width: innerSize * boxSquash, height: innerSize * boxStretch);
+        } else { // Vertical push
+          rect = Rect.fromCenter(center: rect.center, width: innerSize * boxStretch, height: innerSize * boxSquash);
+        }
+      }
+
+      final rrect = RRect.fromRectAndRadius(rect, Radius.circular(cellSize * 0.1));
+      
+      // Draw shadow
+      // <-- FIXED: Use .shift() with an Offset, not .translate()
+      canvas.drawRRect(rrect.shift(const Offset(2, 2)), _boxShadowPaint);
+
+      final bool onTarget = targetPositions.contains(pos);
+      final color = onTarget ? SpaceTheme.alienGreen : SpaceTheme.planetOrange;
+
+      // Draw box with gradient
+      _boxPaint.shader = RadialGradient(
+        center: const Alignment(-0.5, -0.5),
+        radius: 1.0,
+        colors: [Color.lerp(color, Colors.white, 0.4)!, color],
+      ).createShader(rect);
+
+      canvas.drawRRect(rrect, _boxPaint);
+    }
+
+    // 4. Draw player (as a rocket)
+    final double playerSquash = 1.0 - (pushAnimValue * 0.3);
+    final double playerStretch = 1.0 + (pushAnimValue * 0.3);
+
+    Rect playerRect = Rect.fromLTWH(
+      playerPos.dx * cellSize + padding,
+      playerPos.dy * cellSize + padding,
+      innerSize,
+      innerSize,
+    );
+    
+    // Apply push animation scaling
+    if (playerDirection == 1 || playerDirection == 3) { // Horizontal move
+      playerRect = Rect.fromCenter(center: playerRect.center, width: innerSize * playerStretch, height: innerSize * playerSquash);
+    } else { // Vertical move
+      playerRect = Rect.fromCenter(center: playerRect.center, width: innerSize * playerSquash, height: innerSize * playerStretch);
+    }
+
+    final path = Path();
+    path.moveTo(playerRect.center.dx, playerRect.top);
+    path.lineTo(playerRect.right, playerRect.bottom);
+    path.lineTo(playerRect.left, playerRect.bottom);
+    path.close();
+
+    // Rotate player
+    canvas.save();
+    canvas.translate(
+        playerPos.dx * cellSize + cellSize / 2,
+        playerPos.dy * cellSize + cellSize / 2
+    );
+    canvas.rotate(playerDirection * math.pi / 2);
+    canvas.translate(
+        -(playerPos.dx * cellSize + cellSize / 2),
+        -(playerPos.dy * cellSize + cellSize / 2)
+    );
+
+    // Update shader rect
+    _playerPaint.shader = const LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0xFFE57373), Color(0xFFD32F2F), Color(0xFFB71C1C)],
+    ).createShader(playerRect);
+
+    final windowRect = Rect.fromCircle(
+      center: playerRect.center.translate(0, innerSize * 0.15),
+      radius: innerSize * 0.15 * playerSquash
+    );
+
+    _playerWindowPaint.shader = RadialGradient(
+      colors: [Colors.white, Colors.cyan.shade200, Colors.cyan.shade600],
+    ).createShader(windowRect);
+
+    // Draw rocket body and window
+    canvas.drawPath(path, _playerPaint);
+    canvas.drawCircle(
+      windowRect.center,
+      windowRect.width / 2,
+      _playerWindowPaint,
+    );
+
+    canvas.restore();
+    
+    // 5. Draw celebration particles
+    for (final p in celebrationParticles) {
+      final center = p.position * cellSize + Offset(cellSize / 2, cellSize / 2);
+      _celebrationPaint.color = p.color.withOpacity(p.life.clamp(0.0, 1.0));
+      canvas.drawCircle(center, p.size * (p.life + 0.5), _celebrationPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant StarLoaderPainter oldDelegate) {
+    return oldDelegate.playerPos != playerPos ||
+        oldDelegate.playerDirection != playerDirection ||
+        !listEquals(oldDelegate.boxPositions, boxPositions) ||
+        oldDelegate.winPulse != winPulse ||
+        oldDelegate.cellSize != cellSize ||
+        oldDelegate.pushAnimValue != pushAnimValue ||
+        oldDelegate.trails.length != trails.length ||
+        oldDelegate.celebrationParticles.length != celebrationParticles.length;
+  }
+
+  bool listEquals<T>(List<T>? a, List<T>? b) {
+    if (a == null) return b == null;
+    if (b == null || a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+}
+
+// --- Background Painter ---
+
+class SpaceBackgroundPainter extends CustomPainter {
+  final double glowIntensity;
+  final bool hasWon;
+
+  SpaceBackgroundPainter({
+    required this.glowIntensity,
+    required this.hasWon,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+
+    final nebulaPaint = Paint()
+      ..shader = RadialGradient(
+        colors: hasWon
+            ? [
+                SpaceTheme.alienGreen.withOpacity(0.3 * glowIntensity),
+                SpaceTheme.starYellow.withOpacity(0.2 * glowIntensity),
+                Colors.transparent,
+              ]
+            : [
+                SpaceTheme.nebulaPurple.withOpacity(0.2 * glowIntensity),
+                SpaceTheme.alienGreen.withOpacity(0.1 * glowIntensity),
+                Colors.transparent,
+              ],
+        stops: const [0.0, 0.5, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: size.width * 0.6));
+
+    canvas.drawCircle(center, size.width * 0.6, nebulaPaint);
+
+    final gridPaint = Paint()
+      ..color = SpaceTheme.alienGreen.withOpacity(0.05 * glowIntensity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    for (double y = 0; y < size.height; y += 60) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+
+    for (double x = 0; x < size.width; x += 60) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(SpaceBackgroundPainter oldDelegate) =>
+      oldDelegate.glowIntensity != glowIntensity || oldDelegate.hasWon != hasWon;
+}
+

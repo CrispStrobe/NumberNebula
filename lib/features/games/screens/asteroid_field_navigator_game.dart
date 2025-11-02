@@ -448,95 +448,87 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final cellSize = _calculateCellSize(screenSize);
-    
+    // Determine if we're in landscape or portrait based on aspect ratio
+    final bool isLandscape = screenSize.width > screenSize.height;
+
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
-          child: Stack(
+          // Use Row for side-by-side layout
+          child: Row(
             children: [
-              Positioned.fill(
-                child: AnimatedBuilder(
-                  animation: Listenable.merge([_pulseController, _scanController]),
-                  builder: (context, child) {
-                    return CustomPaint(
-                      painter: AsteroidFieldPainter(
-                        pulseIntensity: _pulseAnimation.value,
-                        scanProgress: _scanAnimation.value,
-                        gameWon: hasWon,
-                        gameLost: hasLost,
-                      ),
-                    );
-                  },
-                ),
-              ),
-              
-              ...particles.map((p) => p.build(context)),
-              
-              Column(
-                children: [
-                  GameUI(
-                    title: S.of(context)!.asteroidFieldTitle,
-                    level: widget.level,
-                    onBack: () => Navigator.of(context).pop(),
-                  ),
-                  
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 8.0,
-                      runSpacing: 8.0,
-                      children: [
-                        _buildStat(Icons.timer, _formatTime(elapsedSeconds), SpaceTheme.alienGreen),
-                        _buildStat(Icons.flag, '$flagsPlaced/$mineCount', SpaceTheme.starYellow),
-                        _buildStat(Icons.grid_on, '$cellsRevealed/${gridRows * gridCols - mineCount}', SpaceTheme.cosmicPink),
-                      ],
-                    ),
-                  ),
-                  
-                  // --- FIXED: Restored original robust layout for centering and scrolling ---
-                  Expanded(
-                    child: Center(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Container(
-                            width: cellSize * gridCols,
-                            height: cellSize * gridRows,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
-                              borderRadius: BorderRadius.circular(8),
+              // --- Side Panel ---
+              _buildSidePanel(isLandscape),
+
+              // --- Expanded Game Grid Area ---
+              Expanded(
+                child: Stack( // Stack for background painter and particles
+                  children: [
+                    // Background Painter
+                    Positioned.fill(
+                      child: AnimatedBuilder(
+                        animation: Listenable.merge([_pulseController, _scanController]),
+                        builder: (context, child) {
+                          return CustomPaint(
+                            painter: AsteroidFieldPainter(
+                              pulseIntensity: _pulseAnimation.value,
+                              scanProgress: _scanAnimation.value,
+                              gameWon: hasWon,
+                              gameLost: hasLost,
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(6),
+                          );
+                        },
+                      ),
+                    ),
+
+                    // Particles (need positioning relative to the grid)
+                    // This part needs adjustment - particles might need grid offset info
+                    // For now, let's keep them in the stack, they might appear over the whole area
+                    ...particles.map((p) => p.build(context)),
+
+                    // Grid Layout within the Expanded area
+                    Padding(
+                      padding: const EdgeInsets.all(8.0), // Padding around grid
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          // Calculate cellSize based on available space in Expanded area
+                          final availableWidth = constraints.maxWidth;
+                          final availableHeight = constraints.maxHeight;
+
+                          final cellSize = math.min(
+                            availableWidth / gridCols,
+                            availableHeight / gridRows,
+                          ).clamp(18.0, 55.0);
+
+                          final gridWidth = cellSize * gridCols;
+                          final gridHeight = cellSize * gridRows;
+
+                          return Center( // Center the grid within the available space
+                            child: SizedBox(
+                              width: gridWidth,
+                              height: gridHeight,
                               child: GridView.builder(
                                 physics: const NeverScrollableScrollPhysics(),
                                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: gridCols,
+                                  mainAxisSpacing: 0,
+                                  crossAxisSpacing: 0,
                                 ),
+                                clipBehavior: Clip.hardEdge,
                                 itemCount: gridRows * gridCols,
                                 itemBuilder: (context, index) {
                                   final row = index ~/ gridCols;
                                   final col = index % gridCols;
-                                  return _buildCell(row, col);
+                                  return _buildCell(row, col, cellSize);
                                 },
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ),
-                  ),
-                  
-                  if (gameActive) ...[
-                    const SizedBox(height: 12),
-                    _buildControls(),
                   ],
-                  
-                  const SizedBox(height: 12),
-                ],
+                ),
               ),
             ],
           ),
@@ -545,8 +537,60 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
     );
   }
 
-  // All other `_build` methods, dialogs, models, and painters remain the same as the previous fix.
-  // I am including them for completeness.
+  Widget _buildSidePanel(bool isLandscape) {
+    // Adjust width based on orientation or screen size if needed
+    double panelWidth = isLandscape ? 150.0 : 120.0; // Example fixed widths
+
+    return Container(
+      width: panelWidth,
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withOpacity(0.7), // Semi-transparent background
+        border: Border(
+          // Add a border to visually separate it from the grid
+          right: BorderSide(color: SpaceTheme.nebulaPurple.withOpacity(0.5), width: 1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch, // Make children fill width
+        children: [
+          // Back Button
+          Align(
+            alignment: Alignment.topLeft,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+              onPressed: () => Navigator.of(context).pop(),
+              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Level Display - CORRECTED: Use widget.level
+          _buildStat(Icons.emoji_events, '${S.of(context)!.level} ${widget.level}', SpaceTheme.starYellow),
+          const SizedBox(height: 8),
+
+          // Score Display (assuming you have a score variable)
+          // Replace 'currentScore' with your actual score variable
+          // _buildStat(Icons.star, '$currentScore', SpaceTheme.starYellow),
+          // const SizedBox(height: 16),
+
+          // Game Stats
+          _buildStat(Icons.timer, _formatTime(elapsedSeconds), SpaceTheme.alienGreen),
+          const SizedBox(height: 8),
+          _buildStat(Icons.flag, '$flagsPlaced/$mineCount', SpaceTheme.starYellow),
+          const SizedBox(height: 8),
+          _buildStat(Icons.grid_on, '$cellsRevealed/${gridRows * gridCols - mineCount}', SpaceTheme.cosmicPink),
+
+          const Spacer(), // Pushes the mode button to the bottom
+
+          // Mode Switch Button (now compact)
+          if (gameActive) _buildCompactControls(), // Use the compact version
+
+          const SizedBox(height: 8), // Padding at the bottom
+        ],
+      ),
+    );
+  }
   
   Widget _buildStat(IconData icon, String value, Color color) {
     return Container(
@@ -567,42 +611,46 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
     );
   }
 
-  Widget _buildCell(int row, int col) {
+  Widget _buildCell(int row, int col, double cellSize) {
     final cell = grid[row][col];
     final isAnimating = animatingCells.contains('$row-$col');
-    
-    final screenSize = MediaQuery.of(context).size;
-    final cellSize = _calculateCellSize(screenSize);
-    
+
     return GestureDetector(
+      // Keep primary tap and long press here
       onTap: () => _onCellTap(row, col),
       onLongPress: () => _onCellLongPress(row, col),
-      onSecondaryTap: () => _onCellLongPress(row, col),
-      child: AnimatedBuilder(
-        animation: Listenable.merge([isAnimating ? _revealAnimation : _pulseController, _explosionController]),
-        builder: (context, child) {
-          return Container(
-            margin: const EdgeInsets.all(1),
-            decoration: BoxDecoration(
-              color: _getCellColor(cell),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color: _getCellBorderColor(cell),
-                width: cell.isExploded ? 3 : 2,
-              ),
-              boxShadow: cell.isExploded ? [
-                BoxShadow(
-                  color: SpaceTheme.rocketRed.withOpacity(0.8),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                ),
-              ] : null,
-            ),
-            child: Center(
-              child: _getCellContent(cell, isAnimating, cellSize),
-            ),
-          );
-        },
+      // --- ADDED: Secondary tap handler here ---
+      onSecondaryTapUp: (_) => _onCellLongPress(row, col), // Simulate long press for right-click
+      // --- End of addition ---
+      child: MouseRegion(
+         cursor: SystemMouseCursors.click,
+         // REMOVED: onSecondaryTapUp from here
+         child: AnimatedBuilder(
+           animation: Listenable.merge([isAnimating ? _revealAnimation : _pulseController, _explosionController]),
+           builder: (context, child) {
+             return Container(
+               margin: const EdgeInsets.all(0.5),
+               decoration: BoxDecoration(
+                 color: _getCellColor(cell),
+                 borderRadius: BorderRadius.circular(cellSize * 0.1),
+                 border: Border.all(
+                   color: _getCellBorderColor(cell),
+                   width: math.max(1.0, cellSize * 0.05),
+                 ),
+                 boxShadow: cell.isExploded ? [
+                   BoxShadow(
+                     color: SpaceTheme.rocketRed.withOpacity(0.8),
+                     blurRadius: cellSize * 0.2,
+                     spreadRadius: cellSize * 0.05,
+                   ),
+                 ] : null,
+               ),
+               child: Center(
+                 child: _getCellContent(cell, isAnimating, cellSize),
+               ),
+             );
+           },
+         ),
       ),
     );
   }
@@ -672,35 +720,24 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
     }
   }
 
-  Widget _buildControls() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () {
-                setState(() => isFlagMode = !isFlagMode);
-                HapticFeedback.selectionClick();
-              },
-              icon: Icon(
-                isFlagMode ? Icons.flag : Icons.touch_app,
-                size: 20,
-              ),
-              label: Text(
-                isFlagMode 
-                    ? S.of(context)!.asteroidFieldRevealMode 
-                    : S.of(context)!.asteroidFieldFlagMode,
-              ),
-              style: (isFlagMode ? SpaceTheme.primaryButtonStyle : SpaceTheme.secondaryButtonStyle).copyWith(
-                padding: MaterialStateProperty.all(
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
-            ),
-          ),
-        ],
+  Widget _buildCompactControls() { // Renamed from _buildControls
+    return ElevatedButton( // Changed from ElevatedButton.icon
+      onPressed: () {
+        setState(() => isFlagMode = !isFlagMode);
+        HapticFeedback.selectionClick();
+      },
+      style: (isFlagMode ? SpaceTheme.primaryButtonStyle : SpaceTheme.secondaryButtonStyle).copyWith(
+        padding: MaterialStateProperty.all(
+          // Reduced padding for a smaller button
+          const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        ),
+        // Make it slightly smaller if needed
+        minimumSize: MaterialStateProperty.all(const Size(60, 36)), 
+      ),
+       // Use only the icon
+      child: Icon( 
+        isFlagMode ? Icons.flag : Icons.touch_app,
+        size: 18, // Slightly smaller icon
       ),
     );
   }

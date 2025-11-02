@@ -1113,6 +1113,52 @@
           }
       }
   },
-  "nextPuzzle": "Nächstes Puzzle"  
+  "nextPuzzle": "Nächstes Puzzle",
+
+  "starLoaderGameTitle": "Sternenlader",
+  "starLoaderTitle": "Sternenlader",
+  "starLoaderGameDesc": "Schiebe die Kisten auf die grünen Ziele.",
+  "starLoaderHint": "Bewege dich mit Pfeiltasten oder Wischen. Bringe alle Kisten auf die Ziele!",
+  "moves": "Züge",
+  "optimal": "Optimal",
+  "time": "Zeit",
+  "undo": "Zurück",
+  "starLoaderWinTitle": "Fracht geladen!",
+  "starLoaderWinDesc": "Abgeschlossen in {moves} Zügen, {time}s. Punkte: {score}",
+  "@starLoaderWinDesc": {
+    "placeholders": {
+      "moves": {"type": "int"},
+      "time": {"type": "int"},
+      "score": {"type": "int"}
+    }
+  },
+  
+  "robotPathTitle": "Roboterpfad",
+  "robotPathDesc": "Programmiere den Roboter, um das Ziel zu erreichen!",
+  "robotPathError": "Crash! Roboter hat ein Hindernis getroffen.",
+  "robotPathNotComplete": "Pfad unvollständig. Der Roboter hat das Ziel nicht erreicht.",
+  "robotPathSuccess": "Ziel erfasst! Roboter hat das Ziel erreicht.",
+  "program": "Programm",
+  "emptyProgram": "Befehle hier ablegen",
+  "commands": "Befehle",
+  "forward": "Vorwärts",
+  "turnLeft": "Links drehen",
+  "turnRight": "Rechts drehen",
+  "run": "Start",
+  "clear": "Löschen",
+  "reset": "Zurücksetzen",
+  "emptyProgram": "Befehle hierher ziehen",
+  
+  "congratulations": "Glückwunsch!",
+  "baseScore": "Basispunkte",
+  "efficiencyBonus": "Effizienzbonus",
+  "totalScore": "Gesamtpunkte",
+  "playAgain": "Nochmal",
+  "nextLevel": "Nächstes Level",
+  "grade": "Klasse",
+  "level": "Level",
+  "toTheBridge": "Zur Brücke",
+  "efficiency": "Effizienz",
+  "movesVsOptimal": "Züge / Optimal"
 
 }

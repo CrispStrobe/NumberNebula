@@ -799,14 +799,15 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final bool isCompact = constraints.maxHeight < 500;
-              final bool isWide = constraints.maxWidth > 750;
+              // MODIFIED: Use aspect ratio for landscape, and smallest dim for compact
+              final bool isLandscape = constraints.maxWidth > constraints.maxHeight;
+              final bool isCompact = math.min(constraints.maxWidth, constraints.maxHeight) < 500;
 
               return Column(
                 children: [
-                  _buildAdaptiveHeader(isCompact: isCompact),
+                  _buildAdaptiveHeader(isCompact: isCompact), // MODIFIED: Header now just uses isCompact
                   Expanded(
-                    child: isWide
+                    child: isLandscape // MODIFIED: Swaps layout based on orientation
                         ? _buildWideLayout(isCompact: isCompact)
                         : _buildCompactLayout(isCompact: isCompact),
                   ),
@@ -820,7 +821,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   Widget _buildAdaptiveHeader({required bool isCompact}) {
-    if (!isCompact) {
+    if (!isCompact) { // Portrait, tall screen
       return Column(
         children: [
           GameUI(
@@ -830,18 +831,31 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text(
-              S.of(context)!.arithmancerCrosswordsInstructions,
-              style: SpaceTheme.bodyStyle,
-              textAlign: TextAlign.center,
+            child: Row( // MODIFIED: Put instructions and moves on one line
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    S.of(context)!.arithmancerCrosswordsInstructions,
+                    style: SpaceTheme.bodyStyle,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                _buildMovesIndicator(isCompact: false), // Full size moves
+              ],
             ),
           ),
         ],
       );
     }
 
+    // MODIFIED: Compact (landscape phone, or small screen)
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 4, 16, 8),
+      padding: const EdgeInsets.fromLTRB(8, 4, 16, 4), // Reduced vertical padding
       child: Row(
         children: [
           IconButton(
@@ -849,27 +863,18 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
             onPressed: () => Navigator.of(context).pop(),
           ),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  S.of(context)!.arithmancerCrosswords,
-                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 18),
-                ),
-                Text(
-                  S.of(context)!.arithmancerCrosswordsInstructions,
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: Colors.white70),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            child: Text( // Just the title
+              S.of(context)!.arithmancerCrosswords,
+              style: SpaceTheme.headlineStyle.copyWith(fontSize: 16), // Smaller font
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           _buildLevelIndicator(isCompact: true),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4), // Tighter spacing
           _buildScoreIndicator(isCompact: true),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4), // Tighter spacing
           _buildMovesIndicator(isCompact: true),
         ],
       ),
@@ -902,12 +907,12 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       child: Column(
         children: [
           Expanded(
-            flex: 3,
+            flex: 5, // MODIFIED: More space for grid
             child: _buildCrosswordArea(isCompact: isCompact),
           ),
           SizedBox(height: isCompact ? 8 : 16),
           Expanded(
-            flex: 2,
+            flex: 2, // MODIFIED: Less space for numpad
             child: _buildNumberPad(isCompact: isCompact),
           ),
         ],
@@ -921,7 +926,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         animation: _glowAnimation,
         builder: (context, child) {
           return Container(
-            padding: EdgeInsets.all(isCompact ? 12 : 16),
+            width: double.infinity,
+            height: double.infinity,
+            padding: EdgeInsets.all(isCompact ? 8 : 12), // MODIFIED: Reduced padding
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
@@ -935,6 +942,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
                 width: 2,
               ),
             ),
+            // MODIFIED: Swapped static child for dynamic LayoutBuilder
             child: _buildCrossword(isCompact: isCompact),
           );
         },
@@ -945,10 +953,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   Widget _buildCrossword({required bool isCompact}) {
     if (puzzle == null) return Container();
     
-    final cellSize = isCompact ? 35.0 : 45.0;
-    final operatorSize = isCompact ? 20.0 : 25.0;
-    
-    // Calculate the bounding box of all cells
+    // Calculate the bounding box of all cells in *grid units*
     final allPositions = <math.Point<int>>[
       ...puzzle!.numberCells.keys,
       ...puzzle!.operatorCells.keys,
@@ -961,61 +966,78 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     final minY = allPositions.map((p) => p.y).reduce(math.min);
     final maxY = allPositions.map((p) => p.y).reduce(math.max);
     
-    final width = (maxX - minX + 1) * (cellSize + 4);
-    final height = (maxY - minY + 1) * (cellSize + 4);
-    
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Container(
-          width: width,
-          height: height,
-          child: Stack(
-            children: [
-              // Draw number cells
-              ...puzzle!.numberCells.entries.map((entry) {
-                final pos = entry.key;
-                final cellId = entry.value;
-                final x = (pos.x - minX) * (cellSize + 4);
-                final y = (pos.y - minY) * (cellSize + 4);
-                
-                return Positioned(
-                  left: x,
-                  top: y,
-                  child: _buildNumberCell(cellId, cellSize, isCompact),
-                );
-              }),
-              
-              // Draw operator cells
-              ...puzzle!.operatorCells.entries.map((entry) {
-                final pos = entry.key;
-                final operator = entry.value;
-                final x = (pos.x - minX) * (cellSize + 4);
-                final y = (pos.y - minY) * (cellSize + 4);
-                
-                return Positioned(
-                  left: x,
-                  top: y,
-                  child: _buildOperatorCell(operator, cellSize, operatorSize),
-                );
-              }),
-              
-              // Draw equals signs
-              ...puzzle!.equalsCells.map((pos) {
-                final x = (pos.x - minX) * (cellSize + 4);
-                final y = (pos.y - minY) * (cellSize + 4);
-                
-                return Positioned(
-                  left: x,
-                  top: y,
-                  child: _buildEqualsCell(cellSize, operatorSize),
-                );
-              }),
-            ],
+    final gridUnitsWidth = (maxX - minX + 1);
+    final gridUnitsHeight = (maxY - minY + 1);
+
+    // MODIFIED: Use LayoutBuilder to determine cell size dynamically
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate cell size based on available space
+        // (cellSize + 4) is the space per cell.
+        final maxCellSizeW = (constraints.maxWidth - (gridUnitsWidth * 4)) / gridUnitsWidth;
+        final maxCellSizeH = (constraints.maxHeight - (gridUnitsHeight * 4)) / gridUnitsHeight;
+        // Use the smallest dimension and clamp the size
+        final cellSize = math.min(maxCellSizeW, maxCellSizeH).clamp(25.0, 45.0);
+        
+        final operatorSize = cellSize * 0.6; // Scale operator size
+        
+        final totalWidth = gridUnitsWidth * (cellSize + 4);
+        final totalHeight = gridUnitsHeight * (cellSize + 4);
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Container(
+              width: totalWidth,
+              height: totalHeight,
+              child: Stack(
+                children: [
+                  // Draw number cells
+                  ...puzzle!.numberCells.entries.map((entry) {
+                    final pos = entry.key;
+                    final cellId = entry.value;
+                    final x = (pos.x - minX) * (cellSize + 4);
+                    final y = (pos.y - minY) * (cellSize + 4);
+                    
+                    return Positioned(
+                      left: x,
+                      top: y,
+                      child: _buildNumberCell(cellId, cellSize, isCompact), // Pass new cell size
+                    );
+                  }),
+                  
+                  // Draw operator cells
+                  ...puzzle!.operatorCells.entries.map((entry) {
+                    final pos = entry.key;
+                    final operator = entry.value;
+                    final x = (pos.x - minX) * (cellSize + 4);
+                    final y = (pos.y - minY) * (cellSize + 4);
+                    
+                    return Positioned(
+                      left: x,
+                      top: y,
+                      child: _buildOperatorCell(operator, cellSize, operatorSize), // Pass new sizes
+                    );
+                  }),
+                  
+                  // Draw equals signs
+                  ...puzzle!.equalsCells.map((pos) {
+                    final x = (pos.x - minX) * (cellSize + 4);
+                    final y = (pos.y - minY) * (cellSize + 4);
+                    
+                    return Positioned(
+                      left: x,
+                      top: y,
+                      child: _buildEqualsCell(cellSize, operatorSize), // Pass new sizes
+                    );
+                  }),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -1161,38 +1183,42 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
 
   Widget _buildNumberPad({required bool isCompact}) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.min, // Keep this
       children: [
         if (!isCompact)
           Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: Text(S.of(context)!.arithmancerCrosswordsSelectNumbers, style: SpaceTheme.bodyStyle),
           ),
-        Container(
-          padding: EdgeInsets.all(isCompact ? 8 : 12),
-          decoration: SpaceTheme.cardDecoration.copyWith(
-            border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
-          ),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: isCompact ? 5 : 4,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              childAspectRatio: 1.0,
+        // MODIFIED: Wrap GridView in Flexible/Expanded
+        Flexible(
+          child: Container(
+            padding: EdgeInsets.all(isCompact ? 8 : 12),
+            decoration: SpaceTheme.cardDecoration.copyWith(
+              border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
             ),
-            itemCount: numberPool.length,
-            itemBuilder: (context, index) {
-              if (index >= numberPool.length) return Container();
-              final number = numberPool[index];
-              return Draggable<int>(
-                data: number,
-                feedback: _buildDraggableFeedback(number),
-                childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
-                child: _buildNumberTile(number, isCompact: isCompact),
-              );
-            },
+            child: GridView.builder(
+              shrinkWrap: true, // Keep shrinkWrap because parent is Flexible
+              physics: const BouncingScrollPhysics(), // MODIFIED: Allow scrolling
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: isCompact ? 6 : 5, // MODIFIED: More columns
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 1.0,
+              ),
+              itemCount: numberPool.length,
+              itemBuilder: (context, index) {
+                if (index >= numberPool.length) return Container();
+                 final number = numberPool[index];
+                return Draggable<int>(
+                  data: number,
+                  feedback: _buildDraggableFeedback(number),
+                  childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
+                  child: _buildNumberTile(number, isCompact: isCompact),
+                  // MODIFIED: Removed the extra line below this comment
+                );
+              },
+            ),
           ),
         ),
       ],

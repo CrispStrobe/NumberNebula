@@ -1183,6 +1183,61 @@
           }
       }
   },
-  "nextPuzzle": "Next Puzzle"
+  "nextPuzzle": "Next Puzzle",
+
+  "congratulations": "Congratulations!",
+  "baseScore": "Base Score",
+  "efficiencyBonus": "Efficiency Bonus",
+  "totalScore": "Total Score",
+  "playAgain": "Play Again",
+  "nextLevel": "Next Level",
+  "grade": "Grade",
+  "level": "Level",
+  "toTheBridge": "To the Bridge",
+  "emptyProgram": "Drag commands here",
+  "baseScore": "Base Score",
+  "efficiencyBonus": "Efficiency Bonus",
+  "totalScore": "Total Score",
+  "undo": "Undo",
+  "nextLevel": "Next Level",
+  "playAgain": "Play Again",
+  "toTheBridge": "To Bridge",
+  "congratulations": "Congratulations!",
+
+  "robotPathTitle": "Robot Path",
+  "robotPathDesc": "Program the robot to reach the goal!",
+  "robotPathError": "Crash! Robot hit an obstacle.",
+  "robotPathNotComplete": "Path incomplete. The robot did not reach the goal.",
+  "robotPathSuccess": "Target Acquired! Robot has reached the destination.",
+  "program": "Program",
+  "emptyProgram": "Drag commands here",
+  "commands": "Commands",
+  "forward": "Forward",
+  "turnLeft": "Turn Left",
+  "turnRight": "Turn Right",
+  "run": "Run",
+  "clear": "Clear",
+  "reset": "Reset",
+
+  "starLoaderGameTitle": "Star-Loader",
+  "starLoaderTitle": "Star-Loader",
+  "starLoaderGameDesc": "Push the crates onto the green targets.",
+  "starLoaderHint": "Use arrows or swipe to move. Get all crates to the targets!",
+  "moves": "Moves",
+  "optimal": "Optimal",
+  "time": "Time",
+  "undo": "Undo",
+  "starLoaderWinTitle": "Cargo Loaded!",
+  
+  "starLoaderWinDesc": "Completed in {moves} moves, {time}s. Score: {score}",
+  "@starLoaderWinDesc": {
+    "placeholders": {
+      "moves": {"type": "int"},
+      "time": {"type": "int"},
+      "score": {"type": "int"}
+    }
+  },
+  "efficiency": "Efficiency",
+  "movesVsOptimal": "Moves / Optimal"
 
 }

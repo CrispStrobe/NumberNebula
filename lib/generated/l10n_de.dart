@@ -104,10 +104,10 @@ class SDe extends S {
   String get gameOver => 'Mission abgeschlossen!';
 
   @override
-  String get nextLevel => 'Nächste Mission';
+  String get nextLevel => 'Nächstes Level';
 
   @override
-  String get playAgain => 'Nochmal spielen';
+  String get playAgain => 'Nochmal';
 
   @override
   String get backToMenu => 'Zurück zur Missionskontrolle';
@@ -143,7 +143,7 @@ class SDe extends S {
   String get mathOperationsDivision => 'Division';
 
   @override
-  String get congratulations => 'Herzlichen Glückwunsch, Kommandant!';
+  String get congratulations => 'Glückwunsch!';
 
   @override
   String missionsCompleted(int count) {
@@ -220,7 +220,7 @@ class SDe extends S {
   String get difficultyDescGrade6 => 'Fortgeschrittene Herausforderungen';
 
   @override
-  String get totalScore => 'Gesamtpunktzahl';
+  String get totalScore => 'Gesamtpunkte';
 
   @override
   String get gamesPlayed => 'Gespielte Spiele';
@@ -2073,4 +2073,90 @@ class SDe extends S {
 
   @override
   String get nextPuzzle => 'Nächstes Puzzle';
+
+  @override
+  String get baseScore => 'Basispunkte';
+
+  @override
+  String get efficiencyBonus => 'Effizienzbonus';
+
+  @override
+  String get grade => 'Klasse';
+
+  @override
+  String get emptyProgram => 'Befehle hierher ziehen';
+
+  @override
+  String get undo => 'Zurück';
+
+  @override
+  String get robotPathTitle => 'Roboterpfad';
+
+  @override
+  String get robotPathDesc =>
+      'Programmiere den Roboter, um das Ziel zu erreichen!';
+
+  @override
+  String get robotPathError => 'Crash! Roboter hat ein Hindernis getroffen.';
+
+  @override
+  String get robotPathNotComplete =>
+      'Pfad unvollständig. Der Roboter hat das Ziel nicht erreicht.';
+
+  @override
+  String get robotPathSuccess => 'Ziel erfasst! Roboter hat das Ziel erreicht.';
+
+  @override
+  String get program => 'Programm';
+
+  @override
+  String get commands => 'Befehle';
+
+  @override
+  String get forward => 'Vorwärts';
+
+  @override
+  String get turnLeft => 'Links drehen';
+
+  @override
+  String get turnRight => 'Rechts drehen';
+
+  @override
+  String get run => 'Start';
+
+  @override
+  String get clear => 'Löschen';
+
+  @override
+  String get starLoaderGameTitle => 'Sternenlader';
+
+  @override
+  String get starLoaderTitle => 'Sternenlader';
+
+  @override
+  String get starLoaderGameDesc => 'Schiebe die Kisten auf die grünen Ziele.';
+
+  @override
+  String get starLoaderHint =>
+      'Bewege dich mit Pfeiltasten oder Wischen. Bringe alle Kisten auf die Ziele!';
+
+  @override
+  String get moves => 'Züge';
+
+  @override
+  String get optimal => 'Optimal';
+
+  @override
+  String get starLoaderWinTitle => 'Fracht geladen!';
+
+  @override
+  String starLoaderWinDesc(int moves, int time, int score) {
+    return 'Abgeschlossen in $moves Zügen, ${time}s. Punkte: $score';
+  }
+
+  @override
+  String get efficiency => 'Effizienz';
+
+  @override
+  String get movesVsOptimal => 'Züge / Optimal';
 }

@@ -50,10 +50,7 @@ void main(List<String> args) async {
 
     final puzzle = parseLine(line, i + 1);
     if (puzzle != null) {
-      // Keep all puzzles now, even those with walls
-      if (puzzle.hasWalls) {
-        wallCount++;
-      }
+      // we KEEP puzzles with walls!
       puzzles.add(puzzle);
     } else {
       skipped++;
@@ -66,7 +63,7 @@ void main(List<String> args) async {
 
   print('\n✅ Parsed ${puzzles.length} valid puzzles');
   print('   Skipped $skipped puzzles');
-  print('   Includes $wallCount puzzles with walls (converted to blocking pieces)\n');
+  print('   Includes $wallCount puzzles with 1x1 walls (converted to blocking pieces)\n');
 
   // Map complexity based on moves
   assignComplexity(puzzles);
@@ -127,6 +124,7 @@ ParsedPuzzle? parseLine(String line, int lineNumber) {
       ships: ships,
       clusterSize: clusterSize,
       hasWalls: hasWalls,
+      originalBoard: boardDesc,
     );
   } catch (e) {
     print('⚠️  Line $lineNumber: Parse error: $e');
@@ -158,118 +156,21 @@ List<Map<String, dynamic>> parseBoard(String boardDesc) {
 
     final ship = buildShip(positions, char == 'A');
     if (ship != null) {
-      // Regular ships are not blocking
       ship['isBlocking'] = false;
       ships.add(ship);
     }
   }
 
-  // Convert walls to blocking pieces (2-square pieces)
-  // Group adjacent walls into pieces where possible
-  final usedWalls = <int>{};
+  // Convert each wall to a simple 1x1 blocking piece
   for (final wallPos in wallPositions) {
-    if (usedWalls.contains(wallPos)) continue;
-
-    // Try horizontal pair
-    final rightPos = wallPos + 1;
-    if (wallPos % gridSize < gridSize - 1 && wallPositions.contains(rightPos)) {
-      usedWalls.add(wallPos);
-      usedWalls.add(rightPos);
-      ships.add({
-        'row': wallPos ~/ gridSize,
-        'col': wallPos % gridSize,
-        'length': 2,
-        'isHorizontal': true,
-        'isPlayer': false,
-        'isBlocking': true, // MARK AS BLOCKING
-      });
-      continue;
-    }
-
-    // Try vertical pair
-    final belowPos = wallPos + gridSize;
-    if (wallPos ~/ gridSize < gridSize - 1 && wallPositions.contains(belowPos)) {
-      usedWalls.add(wallPos);
-      usedWalls.add(belowPos);
-      ships.add({
-        'row': wallPos ~/ gridSize,
-        'col': wallPos % gridSize,
-        'length': 2,
-        'isHorizontal': false,
-        'isPlayer': false,
-        'isBlocking': true, // MARK AS BLOCKING
-      });
-      continue;
-    }
-
-    // Single wall: create a 2-square piece in available direction
-    final row = wallPos ~/ gridSize;
-    final col = wallPos % gridSize;
-    
-    // Try extending right
-    if (col < gridSize - 1 && !wallPositions.contains(rightPos) &&
-        !_isOccupied(pieceChars, rightPos)) {
-      usedWalls.add(wallPos);
-      ships.add({
-        'row': row,
-        'col': col,
-        'length': 2,
-        'isHorizontal': true,
-        'isPlayer': false,
-        'isBlocking': true, // MARK AS BLOCKING
-      });
-      continue;
-    }
-
-    // Try extending left
-    final leftPos = wallPos - 1;
-    if (col > 0 && !wallPositions.contains(leftPos) &&
-        !_isOccupied(pieceChars, leftPos)) {
-      usedWalls.add(wallPos);
-      ships.add({
-        'row': row,
-        'col': col - 1,
-        'length': 2,
-        'isHorizontal': true,
-        'isPlayer': false,
-        'isBlocking': true, // MARK AS BLOCKING
-      });
-      continue;
-    }
-
-    // Try extending down
-    if (row < gridSize - 1 && !wallPositions.contains(belowPos) &&
-        !_isOccupied(pieceChars, belowPos)) {
-      usedWalls.add(wallPos);
-      ships.add({
-        'row': row,
-        'col': col,
-        'length': 2,
-        'isHorizontal': false,
-        'isPlayer': false,
-        'isBlocking': true, // MARK AS BLOCKING
-      });
-      continue;
-    }
-
-    // Try extending up
-    final abovePos = wallPos - gridSize;
-    if (row > 0 && !wallPositions.contains(abovePos) &&
-        !_isOccupied(pieceChars, abovePos)) {
-      usedWalls.add(wallPos);
-      ships.add({
-        'row': row - 1,
-        'col': col,
-        'length': 2,
-        'isHorizontal': false,
-        'isPlayer': false,
-        'isBlocking': true, // MARK AS BLOCKING
-      });
-      continue;
-    }
-
-    // Can't convert this wall - skip it
-    usedWalls.add(wallPos);
+    ships.add({
+      'row': wallPos ~/ gridSize,
+      'col': wallPos % gridSize,
+      'length': 1,  // 1x1 wall!
+      'isHorizontal': true,  // Doesn't matter for 1x1
+      'isPlayer': false,
+      'isBlocking': true,
+    });
   }
 
   return ships;
@@ -434,12 +335,14 @@ Future<void> writeDartFile(String outputFile, List<ParsedPuzzle> puzzles) async 
   sink.writeln('  final double complexity;');
   sink.writeln('  final int minMoves;');
   sink.writeln('  final List<Map<String, dynamic>> ships;\n');
+  sink.writeln('  final String? originalBoard;\n');
   
   sink.writeln('  const GridlockPuzzleData({');
   sink.writeln('    required this.id,');
   sink.writeln('    required this.complexity,');
   sink.writeln('    required this.minMoves,');
   sink.writeln('    required this.ships,');
+  sink.writeln('    this.originalBoard,');
   sink.writeln('  });');
   sink.writeln('}\n');
 
@@ -461,6 +364,7 @@ Future<void> writeDartFile(String outputFile, List<ParsedPuzzle> puzzles) async 
     sink.writeln('    id: \'$id\',');
     sink.writeln('    complexity: ${puzzle.complexity},');
     sink.writeln('    minMoves: ${puzzle.moves},');
+    sink.writeln('    originalBoard: \'${puzzle.originalBoard}\',');
     sink.writeln('    ships: [');
 
     for (final ship in puzzle.ships) {
@@ -537,6 +441,7 @@ class ParsedPuzzle {
   final List<Map<String, dynamic>> ships;
   final int clusterSize;
   final bool hasWalls;
+  final String originalBoard;
   double complexity = 1.0;
   double coolness = 0.0;
 
@@ -545,5 +450,6 @@ class ParsedPuzzle {
     required this.ships,
     required this.clusterSize,
     required this.hasWalls,
+    required this.originalBoard,
   });
 }

@@ -104,7 +104,7 @@ class SEn extends S {
   String get gameOver => 'Mission Complete!';
 
   @override
-  String get nextLevel => 'Next Mission';
+  String get nextLevel => 'Next Level';
 
   @override
   String get playAgain => 'Play Again';
@@ -143,7 +143,7 @@ class SEn extends S {
   String get mathOperationsDivision => 'Division';
 
   @override
-  String get congratulations => 'Congratulations, Commander!';
+  String get congratulations => 'Congratulations!';
 
   @override
   String missionsCompleted(int count) {
@@ -2062,4 +2062,90 @@ class SEn extends S {
 
   @override
   String get nextPuzzle => 'Next Puzzle';
+
+  @override
+  String get baseScore => 'Base Score';
+
+  @override
+  String get efficiencyBonus => 'Efficiency Bonus';
+
+  @override
+  String get grade => 'Grade';
+
+  @override
+  String get emptyProgram => 'Drag commands here';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String get robotPathTitle => 'Robot Path';
+
+  @override
+  String get robotPathDesc => 'Program the robot to reach the goal!';
+
+  @override
+  String get robotPathError => 'Crash! Robot hit an obstacle.';
+
+  @override
+  String get robotPathNotComplete =>
+      'Path incomplete. The robot did not reach the goal.';
+
+  @override
+  String get robotPathSuccess =>
+      'Target Acquired! Robot has reached the destination.';
+
+  @override
+  String get program => 'Program';
+
+  @override
+  String get commands => 'Commands';
+
+  @override
+  String get forward => 'Forward';
+
+  @override
+  String get turnLeft => 'Turn Left';
+
+  @override
+  String get turnRight => 'Turn Right';
+
+  @override
+  String get run => 'Run';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get starLoaderGameTitle => 'Star-Loader';
+
+  @override
+  String get starLoaderTitle => 'Star-Loader';
+
+  @override
+  String get starLoaderGameDesc => 'Push the crates onto the green targets.';
+
+  @override
+  String get starLoaderHint =>
+      'Use arrows or swipe to move. Get all crates to the targets!';
+
+  @override
+  String get moves => 'Moves';
+
+  @override
+  String get optimal => 'Optimal';
+
+  @override
+  String get starLoaderWinTitle => 'Cargo Loaded!';
+
+  @override
+  String starLoaderWinDesc(int moves, int time, int score) {
+    return 'Completed in $moves moves, ${time}s. Score: $score';
+  }
+
+  @override
+  String get efficiency => 'Efficiency';
+
+  @override
+  String get movesVsOptimal => 'Moves / Optimal';
 }
