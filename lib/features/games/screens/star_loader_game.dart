@@ -662,6 +662,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
               child: _buildGameGrid(),
             ),
             const SizedBox(height: 16),
+            _buildDirectionalPad(s), // NEW: Directional pad
+            const SizedBox(height: 12),
             _buildControls(s),
           ],
         ),
@@ -682,13 +684,17 @@ class _StarLoaderGameState extends State<StarLoaderGame>
             const SizedBox(width: 24),
             Expanded(
               flex: 2,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildGameStats(s),
-                  const SizedBox(height: 32),
-                  _buildControls(s),
-                ],
+              child: SingleChildScrollView( // NEW: Added scroll for better fit
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildGameStats(s),
+                    const SizedBox(height: 24),
+                    _buildDirectionalPad(s), // NEW: Directional pad
+                    const SizedBox(height: 24),
+                    _buildControls(s),
+                  ],
+                ),
               ),
             ),
           ],
@@ -801,6 +807,122 @@ class _StarLoaderGameState extends State<StarLoaderGame>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDirectionalPad(S s) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            SpaceTheme.deepSpace.withOpacity(0.8),
+            SpaceTheme.nebulaPurple.withOpacity(0.7),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: SpaceTheme.alienGreen.withOpacity(0.3),
+          width: 2,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Up button
+          _buildDirectionalButton(
+            icon: Icons.arrow_upward,
+            onPressed: () => _movePlayer(0, -1),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Left button
+              _buildDirectionalButton(
+                icon: Icons.arrow_back,
+                onPressed: () => _movePlayer(-1, 0),
+              ),
+              const SizedBox(width: 8),
+              // Center spacer
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: SpaceTheme.deepSpace.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: SpaceTheme.alienGreen.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Right button
+              _buildDirectionalButton(
+                icon: Icons.arrow_forward,
+                onPressed: () => _movePlayer(1, 0),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Down button
+          _buildDirectionalButton(
+            icon: Icons.arrow_downward,
+            onPressed: () => _movePlayer(0, 1),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDirectionalButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _hasWon ? null : onPressed,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: _hasWon
+                  ? [Colors.grey.shade700, Colors.grey.shade800]
+                  : [
+                      SpaceTheme.alienGreen.withOpacity(0.6),
+                      SpaceTheme.alienGreen.withOpacity(0.4),
+                    ],
+            ),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: _hasWon
+                  ? Colors.grey.shade600
+                  : SpaceTheme.alienGreen,
+              width: 2,
+            ),
+            boxShadow: _hasWon
+                ? []
+                : [
+                    BoxShadow(
+                      color: SpaceTheme.alienGreen.withOpacity(0.3),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ],
+          ),
+          child: Icon(
+            icon,
+            color: _hasWon ? Colors.grey.shade500 : Colors.white,
+            size: 32,
+          ),
+        ),
+      ),
     );
   }
 
