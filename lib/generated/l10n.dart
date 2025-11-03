@@ -3772,6 +3772,72 @@ abstract class S {
   /// **'Pull'**
   String get robotPathPull;
 
+  /// No description provided for @robotPathTooltipWall.
+  ///
+  /// In en, this message translates to:
+  /// **'Wall'**
+  String get robotPathTooltipWall;
+
+  /// No description provided for @robotPathTooltipJumpable.
+  ///
+  /// In en, this message translates to:
+  /// **'Jumpable Gap'**
+  String get robotPathTooltipJumpable;
+
+  /// No description provided for @robotPathTooltipDestructible.
+  ///
+  /// In en, this message translates to:
+  /// **'Destructible Rock'**
+  String get robotPathTooltipDestructible;
+
+  /// No description provided for @robotPathTooltipMovable.
+  ///
+  /// In en, this message translates to:
+  /// **'Movable Block'**
+  String get robotPathTooltipMovable;
+
+  /// No description provided for @robotPathTooltipStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get robotPathTooltipStart;
+
+  /// No description provided for @robotPathTooltipGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal'**
+  String get robotPathTooltipGoal;
+
+  /// No description provided for @robotPathErrorNotDestructible.
+  ///
+  /// In en, this message translates to:
+  /// **'Target is not destructible!'**
+  String get robotPathErrorNotDestructible;
+
+  /// No description provided for @robotPathErrorNotJumpable.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot jump over this!'**
+  String get robotPathErrorNotJumpable;
+
+  /// No description provided for @robotPathErrorNotMovable.
+  ///
+  /// In en, this message translates to:
+  /// **'Target is not movable!'**
+  String get robotPathErrorNotMovable;
+
+  /// No description provided for @robotPathErrorCannotPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot push! Destination is blocked.'**
+  String get robotPathErrorCannotPush;
+
+  /// No description provided for @robotPathErrorCannotPull.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot pull! Not enough space.'**
+  String get robotPathErrorCannotPull;
+
   /// No description provided for @robotPathTitle.
   ///
   /// In en, this message translates to:
@@ -3835,19 +3901,19 @@ abstract class S {
   /// No description provided for @starLoaderGameTitle.
   ///
   /// In en, this message translates to:
-  /// **'Star-Loader'**
+  /// **'Cargo-Loader'**
   String get starLoaderGameTitle;
 
   /// No description provided for @starLoaderTitle.
   ///
   /// In en, this message translates to:
-  /// **'Star-Loader'**
+  /// **'Cargo-Loader'**
   String get starLoaderTitle;
 
   /// No description provided for @starLoaderGameDesc.
   ///
   /// In en, this message translates to:
-  /// **'Push the crates onto the green targets.'**
+  /// **'Push the crates onto the indicated targets.'**
   String get starLoaderGameDesc;
 
   /// No description provided for @starLoaderHint.

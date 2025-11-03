@@ -247,7 +247,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     _resetCurrentLevel(); // Load the newly cached data
   }
 
-    // Pre-designed solvable levels with progressive difficulty
+    // solvable levels with progressive difficulty
     LevelData _getLevelData(int grade, int level) {
     // Calculate difficulty
     final complexity = (grade - 1) * 5 + level;
@@ -309,7 +309,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
     return LevelData(
         layout: layout,
-        optimalMoves: math.max(generatedLevel.optimalMoves, numBoxes * 3),
+        optimalMoves: generatedLevel.optimalMoves,
     );
     }
 
@@ -725,8 +725,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
         children: [
           _buildStatItem(Icons.compare_arrows, '$_moveCount', s.moves),
           Container(width: 1, height: 30, color: Colors.white24),
-          _buildStatItem(Icons.flag, '$_optimalMoves', s.optimal),
-          Container(width: 1, height: 30, color: Colors.white24),
+          //_buildStatItem(Icons.flag, '$_optimalMoves', s.optimal),
+          // Container(width: 1, height: 30, color: Colors.white24),
           StreamBuilder(
             stream: Stream.periodic(const Duration(seconds: 1)),
             builder: (context, snapshot) {
@@ -955,7 +955,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                   children: [
                     _buildScoreRow(
                         s.efficiency,
-                        '$efficiency%',
+                        '$efficiency',
                         efficiency >= 90
                             ? SpaceTheme.alienGreen
                             : SpaceTheme.starYellow),

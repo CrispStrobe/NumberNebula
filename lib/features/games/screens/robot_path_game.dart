@@ -1,3 +1,5 @@
+// robot_path_game.dart (MODIFIED)
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -53,7 +55,10 @@ class _RobotPathGameState extends State<RobotPathGame>
   int currentRobotDirection = 0;
   List<Offset> robotTrail = [];
 
-  final int maxCommands = 20;
+  // *** FIX 2: VISUAL INDICATOR ***
+  int? currentlyExecutingIndex;
+
+  int maxCommands = 20;
   bool showingError = false;
   String errorMessage = '';
 
@@ -138,6 +143,8 @@ class _RobotPathGameState extends State<RobotPathGame>
     setState(() {
       currentLevel = PathLevel.generate(widget.grade, widget.level);
       
+      maxCommands = (currentLevel.optimalMoves * 1.75).ceil().clamp(20, 40);
+
       // Save a copy of the original grid
       pristineGrid = currentLevel.grid.map((row) => List<CellType>.from(row)).toList();
 
@@ -189,6 +196,8 @@ class _RobotPathGameState extends State<RobotPathGame>
 
       isExecuting = true;
       showingError = false;
+      // *** FIX 1: BETTER ERRORS ***
+      errorMessage = ''; // Clear any previous specific errors
       currentRobotRow = currentLevel.startRow;
       currentRobotCol = currentLevel.startCol;
       currentRobotDirection = currentLevel.startDirection;
@@ -200,15 +209,30 @@ class _RobotPathGameState extends State<RobotPathGame>
     for (int i = 0; i < commandSequence.length; i++) {
       if (!mounted) return;
 
+      // *** FIX 2: VISUAL INDICATOR ***
+      // Set the currently executing index
+      setState(() {
+        currentlyExecutingIndex = i;
+      });
+
       final command = commandSequence[i].command;
       bool success = await _executeCommand(command);
 
       if (!success) {
         _createExplosion(
             currentRobotCol.toDouble(), currentRobotRow.toDouble());
+        
+        // *** FIX 1: BETTER ERRORS ***
+        // Check if a specific error was set. If not, use the generic crash message.
         setState(() {
           showingError = true;
-          errorMessage = S.of(context)!.robotPathError;
+          if (errorMessage.isEmpty) {
+            try {
+              errorMessage = S.of(context)!.robotPathError;
+            } catch (_) {
+              errorMessage = "Robot has crashed!";
+            }
+          }
         });
         await Future.delayed(const Duration(milliseconds: 1500));
 
@@ -234,7 +258,11 @@ class _RobotPathGameState extends State<RobotPathGame>
 
     setState(() {
       showingError = true;
-      errorMessage = S.of(context)!.robotPathNotComplete;
+      try {
+        errorMessage = S.of(context)!.robotPathNotComplete;
+      } catch (_) {
+        errorMessage = "Goal not reached!";
+      }
     });
     await Future.delayed(const Duration(milliseconds: 1500));
 
@@ -315,16 +343,15 @@ class _RobotPathGameState extends State<RobotPathGame>
         newRow >= currentLevel.gridSize ||
         newCol < 0 ||
         newCol >= currentLevel.gridSize) {
-      return false; // Hit outer boundary
+      return false; // Hit outer boundary (This is a crash, no specific error)
     }
-
-    // UPDATED: Check for new obstacle types
+    
     final cellType = currentLevel.grid[newRow][newCol];
     if (cellType == CellType.wall ||
         cellType == CellType.jumpableWall ||
         cellType == CellType.destructible ||
         cellType == CellType.movable) {
-      return false; // Hit a solid obstacle
+      return false; // Hit a solid obstacle (This is a crash)
     }
 
     setState(() {
@@ -337,15 +364,13 @@ class _RobotPathGameState extends State<RobotPathGame>
     });
     return true;
   }
-
-  // REPLACE this method
+  
   Future<bool> _jumpForward() async {
     int targetRow = currentRobotRow;
     int targetCol = currentRobotCol;
     int landingRow = currentRobotRow;
     int landingCol = currentRobotCol;
-
-    // Get target cell (1 tile ahead)
+    
     switch (currentRobotDirection) {
       case 0:
         targetRow--;
@@ -364,34 +389,38 @@ class _RobotPathGameState extends State<RobotPathGame>
         landingCol -= 2;
         break;
     }
-
-    // Check target cell bounds
+    
     if (targetRow < 0 ||
         targetRow >= currentLevel.gridSize ||
         targetCol < 0 ||
         targetCol >= currentLevel.gridSize) {
-      return false; // Trying to jump into a boundary
+      return false; // Trying to jump into a boundary (crash)
     }
-
-    // Check if target is a jumpable wall
+    
     if (currentLevel.grid[targetRow][targetCol] != CellType.jumpableWall) {
-      return false; // Not a jumpable wall
+      // *** FIX 1: BETTER ERRORS ***
+      setState(() {
+        try {
+          errorMessage = S.of(context)!.robotPathErrorNotJumpable;
+        } catch (_) {
+          errorMessage = "Cannot jump over this!";
+        }
+      });
+      return false; // Not a jumpable wall (logical error)
     }
-
-    // Check landing cell bounds
+    
     if (landingRow < 0 ||
         landingRow >= currentLevel.gridSize ||
         landingCol < 0 ||
         landingCol >= currentLevel.gridSize) {
-      return false; // Trying to land out of bounds
+      return false; // Trying to land out of bounds (crash)
     }
-
-    // Check if landing spot is clear
+    
     final landingCellType = currentLevel.grid[landingRow][landingCol];
     if (landingCellType != CellType.empty &&
         landingCellType != CellType.start &&
         landingCellType != CellType.goal) {
-      return false; // Cannot land on another obstacle
+      return false; // Cannot land on another obstacle (crash)
     }
 
     setState(() {
@@ -404,8 +433,7 @@ class _RobotPathGameState extends State<RobotPathGame>
     });
     return true;
   }
-
-  // REPLACE this method
+  
   Future<bool> _destroyObstacle() async {
     int targetRow = currentRobotRow;
     int targetCol = currentRobotCol;
@@ -429,10 +457,9 @@ class _RobotPathGameState extends State<RobotPathGame>
         targetRow >= currentLevel.gridSize ||
         targetCol < 0 ||
         targetCol >= currentLevel.gridSize) {
-      return false;
+      return false; // Target out of bounds (crash)
     }
-
-    // UPDATED: Check for 'destructible' type
+    
     final cellType = currentLevel.grid[targetRow][targetCol];
     if (cellType == CellType.destructible) {
       setState(() {
@@ -443,7 +470,16 @@ class _RobotPathGameState extends State<RobotPathGame>
       return true;
     }
 
-    return false; // Not a destructible obstacle
+    // *** FIX 1: BETTER ERRORS ***
+    // Target is not destructible (logical error)
+    setState(() {
+      try {
+        errorMessage = S.of(context)!.robotPathErrorNotDestructible;
+      } catch (_) {
+        errorMessage = "Target is not destructible!";
+      }
+    });
+    return false;
   }
 
   Future<bool> _push() async {
@@ -457,8 +493,19 @@ class _RobotPathGameState extends State<RobotPathGame>
       case 3: objCol--; break;
     }
 
-    if (objRow < 0 || objRow >= currentLevel.gridSize || objCol < 0 || objCol >= currentLevel.gridSize) return false;
-    if (currentLevel.grid[objRow][objCol] != CellType.movable) return false;
+    if (objRow < 0 || objRow >= currentLevel.gridSize || objCol < 0 || objCol >= currentLevel.gridSize) return false; // (crash)
+    
+    if (currentLevel.grid[objRow][objCol] != CellType.movable) {
+      // *** FIX 1: BETTER ERRORS ***
+      setState(() {
+        try {
+          errorMessage = S.of(context)!.robotPathErrorNotMovable;
+        } catch (_) {
+          errorMessage = "Target is not movable!";
+        }
+      });
+      return false; // (logical error)
+    }
 
     // 2. Find destination
     int destRow = objRow;
@@ -470,18 +517,16 @@ class _RobotPathGameState extends State<RobotPathGame>
       case 3: destCol--; break;
     }
 
-    if (destRow < 0 || destRow >= currentLevel.gridSize || destCol < 0 || destCol >= currentLevel.gridSize) return false;
+    if (destRow < 0 || destRow >= currentLevel.gridSize || destCol < 0 || destCol >= currentLevel.gridSize) return false; // (crash)
     
     // 3. Check if destination is clear
     final destCell = currentLevel.grid[destRow][destCol];
     if (destCell == CellType.empty || destCell == CellType.goal) {
       // 4. Perform push
       setState(() {
-        // Move object
+        // ... (push logic)
         currentLevel.grid[destRow][destCol] = CellType.movable;
         currentLevel.grid[objRow][objCol] = CellType.empty;
-        
-        // Move robot
         currentRobotRow = objRow;
         currentRobotCol = objCol;
         robotTrail.add(Offset(currentRobotCol.toDouble(), currentRobotRow.toDouble()));
@@ -491,7 +536,16 @@ class _RobotPathGameState extends State<RobotPathGame>
       return true;
     }
     
-    return false; // Can't push into a wall
+    // *** FIX 1: BETTER ERRORS ***
+    // Can't push into a wall (logical error)
+    setState(() {
+      try {
+        errorMessage = S.of(context)!.robotPathErrorCannotPush;
+      } catch (_) {
+        errorMessage = "Cannot push! Destination is blocked.";
+      }
+    });
+    return false;
   }
 
   Future<bool> _pull() async {
@@ -499,18 +553,26 @@ class _RobotPathGameState extends State<RobotPathGame>
     int robotDestRow = currentRobotRow;
     int robotDestCol = currentRobotCol;
     switch (currentRobotDirection) {
-      case 0: robotDestRow++; break; // Move Down to pull Up
-      case 1: robotDestCol--; break; // Move Left to pull Right
-      case 2: robotDestRow--; break; // Move Up to pull Down
-      case 3: robotDestCol++; break; // Move Right to pull Left
+      case 0: robotDestRow++; break;
+      case 1: robotDestCol--; break;
+      case 2: robotDestRow--; break;
+      case 3: robotDestCol++; break;
     }
     
-    if (robotDestRow < 0 || robotDestRow >= currentLevel.gridSize || robotDestCol < 0 || robotDestCol >= currentLevel.gridSize) return false;
+    if (robotDestRow < 0 || robotDestRow >= currentLevel.gridSize || robotDestCol < 0 || robotDestCol >= currentLevel.gridSize) return false; // (crash)
 
     // 2. Check if robot's destination is clear
     final robotDestCell = currentLevel.grid[robotDestRow][robotDestCol];
     if (robotDestCell != CellType.empty && robotDestCell != CellType.goal) {
-      return false; // Not enough space for robot to move
+      // *** FIX 1: BETTER ERRORS ***
+      setState(() {
+        try {
+          errorMessage = S.of(context)!.robotPathErrorCannotPull;
+        } catch (_) {
+          errorMessage = "Cannot pull! Not enough space.";
+        }
+      });
+      return false; // Not enough space for robot (logical error)
     }
 
     // 3. Find object (in front of robot)
@@ -523,17 +585,25 @@ class _RobotPathGameState extends State<RobotPathGame>
       case 3: objCol--; break;
     }
 
-    if (objRow < 0 || objRow >= currentLevel.gridSize || objCol < 0 || objCol >= currentLevel.gridSize) return false;
-    if (currentLevel.grid[objRow][objCol] != CellType.movable) return false;
+    if (objRow < 0 || objRow >= currentLevel.gridSize || objCol < 0 || objCol >= currentLevel.gridSize) return false; // (crash)
+    
+    if (currentLevel.grid[objRow][objCol] != CellType.movable) {
+      // *** FIX 1: BETTER ERRORS ***
+      setState(() {
+        try {
+          errorMessage = S.of(context)!.robotPathErrorNotMovable;
+        } catch (_) {
+          errorMessage = "Target is not movable!";
+        }
+      });
+      return false; // (logical error)
+    }
 
     // 4. Perform pull
     setState(() {
-      // Move object to robot's current spot
+      // ... (pull logic)
       currentLevel.grid[currentRobotRow][currentRobotCol] = CellType.movable;
-      // Clear object's old spot
       currentLevel.grid[objRow][objCol] = CellType.empty;
-      
-      // Move robot
       currentRobotRow = robotDestRow;
       currentRobotCol = robotDestCol;
       robotTrail.add(Offset(currentRobotCol.toDouble(), currentRobotRow.toDouble()));
@@ -594,12 +664,16 @@ class _RobotPathGameState extends State<RobotPathGame>
 
   void _resetRobot() {
     setState(() {
+      currentLevel.grid = pristineGrid.map((row) => List<CellType>.from(row)).toList();
+
       currentRobotRow = currentLevel.startRow;
       currentRobotCol = currentLevel.startCol;
       currentRobotDirection = currentLevel.startDirection;
       robotTrail.clear();
       isExecuting = false;
       showingError = false;
+      // *** FIX 2: VISUAL INDICATOR ***
+      currentlyExecutingIndex = null; // Clear the indicator
     });
   }
 
@@ -607,6 +681,8 @@ class _RobotPathGameState extends State<RobotPathGame>
     setState(() {
       hasWon = true;
       isExecuting = false;
+      // *** FIX 2: VISUAL INDICATOR ***
+      currentlyExecutingIndex = null; // Clear the indicator
     });
 
     _successController.forward(from: 0.0);
@@ -829,6 +905,45 @@ class _RobotPathGameState extends State<RobotPathGame>
       ),
     );
   }
+  
+  String _getTooltipForCell(CellType cellType, S s) {
+    try {
+      switch (cellType) {
+        case CellType.wall:
+          return s.robotPathTooltipWall;
+        case CellType.jumpableWall:
+          return s.robotPathTooltipJumpable;
+        case CellType.destructible:
+          return s.robotPathTooltipDestructible;
+        case CellType.movable:
+          return s.robotPathTooltipMovable;
+        case CellType.start:
+          return s.robotPathTooltipStart;
+        case CellType.goal:
+          return s.robotPathTooltipGoal;
+        case CellType.empty:
+          return '';
+      }
+    } catch (e) {
+      // Fallback if i18n keys don't exist
+      switch (cellType) {
+        case CellType.wall:
+          return "Wall";
+        case CellType.jumpableWall:
+          return "Jumpable Gap";
+        case CellType.destructible:
+          return "Destructible Rock";
+        case CellType.movable:
+          return "Movable Block";
+        case CellType.start:
+          return "Start";
+        case CellType.goal:
+          return "Goal";
+        default:
+          return '';
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -890,11 +1005,8 @@ class _RobotPathGameState extends State<RobotPathGame>
   Widget _buildPortraitLayout(BoxConstraints constraints) {
     final s = S.of(context)!;
     final double availableWidth = constraints.maxWidth;
-
-    final double maxGridSize = math.min(
-      availableWidth * 0.92,
-      constraints.maxHeight * 0.35,
-    );
+    
+    final double maxGridSize = availableWidth * 0.95;
     final double cellSize = maxGridSize / currentLevel.gridSize;
 
     return SingleChildScrollView(
@@ -902,41 +1014,8 @@ class _RobotPathGameState extends State<RobotPathGame>
         padding: const EdgeInsets.all(10.0).copyWith(top: 80),
         child: Column(
           children: [
-            // Grid and controls
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 6,
-                  child: _buildGrid(cellSize, maxGridSize),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  flex: 4,
-                  child: Column(
-                    children: [
-                      _buildControlButton(
-                        s.run,
-                        Icons.play_arrow,
-                        const Color(0xFF00C853),
-                        _executeProgram,
-                        enabled: !isExecuting && commandSequence.isNotEmpty,
-                        compact: true,
-                      ),
-                      const SizedBox(height: 8),
-                      _buildControlButton(
-                        s.clear,
-                        Icons.clear_all,
-                        const Color(0xFFFF6D00),
-                        _clearCommands,
-                        enabled: !isExecuting && commandSequence.isNotEmpty,
-                        compact: true,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            _buildGrid(cellSize, maxGridSize),
+            
             const SizedBox(height: 10),
             if (showingError) ...[
               _buildErrorMessage(),
@@ -953,17 +1032,17 @@ class _RobotPathGameState extends State<RobotPathGame>
 
   Widget _buildLandscapeLayout(BoxConstraints constraints) {
     final s = S.of(context)!;
-
+    
     final double maxGridSize = math.min(
-      constraints.maxWidth * 0.40,
-      constraints.maxHeight * 0.75,
+      constraints.maxWidth * 0.55,
+      constraints.maxHeight * 0.85,
     );
     final double cellSize = maxGridSize / currentLevel.gridSize;
 
     return Row(
       children: [
         Expanded(
-          flex: 5,
+          flex: 6,
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(10.0).copyWith(top: 80),
@@ -1005,7 +1084,7 @@ class _RobotPathGameState extends State<RobotPathGame>
         ),
 
         Expanded(
-          flex: 5,
+          flex: 4,
           child: Padding(
             padding: const EdgeInsets.all(10.0).copyWith(top: 80),
             child: Column(
@@ -1103,8 +1182,10 @@ class _RobotPathGameState extends State<RobotPathGame>
 
   Widget _buildCell(int row, int col, double cellSize) {
     final cellType = currentLevel.grid[row][col];
+    final s = S.of(context)!;
+    final tooltipMessage = _getTooltipForCell(cellType, s);
 
-    return Container(
+    Widget cellContent = Container(
       width: cellSize,
       height: cellSize,
       decoration: BoxDecoration(
@@ -1115,15 +1196,30 @@ class _RobotPathGameState extends State<RobotPathGame>
       ),
       child: _buildCellContent(cellType, cellSize),
     );
+
+    if (tooltipMessage.isEmpty) {
+      return cellContent; // Don't wrap empty space
+    }
+    
+    return Tooltip(
+      message: tooltipMessage,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      textStyle: const TextStyle(color: Colors.white, fontSize: 13),
+      preferBelow: false,
+      waitDuration: const Duration(milliseconds: 300),
+      child: cellContent,
+    );
   }
 
-  // REPLACE this method
   Widget _buildCellContent(CellType cellType, double cellSize) {
     switch (cellType) {
       case CellType.empty:
         return const SizedBox();
-
-      // UPDATED: Re-using asteroid painter for 'wall'
+        
       case CellType.wall:
         return AnimatedBuilder(
           animation: _rotateAnimation,
@@ -1157,8 +1253,7 @@ class _RobotPathGameState extends State<RobotPathGame>
             );
           },
         );
-
-      // UPDATED: Re-using crater painter for 'destructible'
+        
       case CellType.destructible:
         return Container(
           margin: EdgeInsets.all(cellSize * 0.1),
@@ -1182,8 +1277,7 @@ class _RobotPathGameState extends State<RobotPathGame>
             ],
           ),
         );
-
-      // NEW: 'jumpableWall'
+        
       case CellType.jumpableWall:
         return Container(
           margin: EdgeInsets.all(cellSize * 0.2),
@@ -1206,8 +1300,7 @@ class _RobotPathGameState extends State<RobotPathGame>
             ],
           ),
         );
-
-      // NEW: 'movable'
+        
       case CellType.movable:
         return Container(
           margin: EdgeInsets.all(cellSize * 0.15),
@@ -1463,8 +1556,7 @@ class _RobotPathGameState extends State<RobotPathGame>
       ),
     );
   }
-
-  // REPLACE this method
+  
   Widget _buildProgramArea(double width) {
     return Container(
       width: width,
@@ -1500,7 +1592,6 @@ class _RobotPathGameState extends State<RobotPathGame>
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
-            // ... (The Row with "Programm" and "7/20" is unchanged)
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
@@ -1556,23 +1647,17 @@ class _RobotPathGameState extends State<RobotPathGame>
           ),
           const SizedBox(height: 10),
           Flexible(
-            // *** THIS IS THE FIX ***
-            // Wrap the main program container in a DragTarget
             child: DragTarget<RobotCommand>(
               onWillAccept: (data) => !isExecuting,
               onAccept: (command) {
-                // This target only fires when dropping on empty space,
-                // so we just add to the end.
                 _addCommand(command);
               },
               builder: (context, candidateData, rejectedData) {
-                // This container is the original 'Flexible' child
                 return Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: const Color(0xFF0A0E27).withOpacity(0.6),
-                    // Show a glow if a command is being dragged over
                     border: Border.all(
                       color: candidateData.isNotEmpty
                           ? Colors.white
@@ -1583,7 +1668,6 @@ class _RobotPathGameState extends State<RobotPathGame>
                   ),
                   child: commandSequence.isEmpty
                       ? Center(
-                          // ... (Empty Program placeholder is unchanged)
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -1624,13 +1708,14 @@ class _RobotPathGameState extends State<RobotPathGame>
       ),
     );
   }
-
-  // REPLACE this method
+  
   Widget _buildProgramCommandChip(ProgramCommand programCommand, int index) {
     final command = programCommand.command;
     final commandInfo = _getCommandInfo(command);
+    
+    // *** FIX 2: VISUAL INDICATOR ***
+    final bool isCurrentlyExecuting = (currentlyExecutingIndex == index);
 
-    // This is the chip's UI
     final Widget chipUI = Stack(
       clipBehavior: Clip.none,
       children: [
@@ -1719,42 +1804,42 @@ class _RobotPathGameState extends State<RobotPathGame>
         ),
       ],
     );
-
-    // *** THIS IS THE FIX ***
-    // Wrap the chip in BOTH a DragTarget and a Draggable
+    
     return DragTarget<Object>(
       onWillAccept: (data) => !isExecuting,
       onAccept: (data) {
         if (data is RobotCommand) {
-          // This is a new command from the palette, insert it
           _insertCommand(data, index);
         } else if (data is int) {
-          // This is another chip, reorder it
           _reorderCommand(data, index);
         }
       },
       builder: (context, candidateData, rejectedData) {
-        // Show a "drop here" indicator
         final isTarget = candidateData.isNotEmpty;
 
         return Draggable<int>(
-          data: index, // This chip carries its own index
-          feedback: chipUI, // Show the chip while dragging
+          data: index,
+          feedback: chipUI,
           childWhenDragging: Opacity(
-            // Leave a faded version behind
             opacity: 0.4,
             child: chipUI,
           ),
-          child: Container(
-            // This container highlights when a drag is over it
-            padding: isTarget ? const EdgeInsets.all(2) : EdgeInsets.zero,
-            decoration: isTarget
-                ? BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white, width: 2),
-                  )
-                : null,
-            child: chipUI,
+          // *** FIX 2: VISUAL INDICATOR ***
+          // Wrap the child in an AnimatedScale
+          child: AnimatedScale(
+            scale: isCurrentlyExecuting ? 1.2 : 1.0,
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeInOut,
+            child: Container(
+              padding: isTarget ? const EdgeInsets.all(2) : EdgeInsets.zero,
+              decoration: isTarget
+                  ? BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.white, width: 2),
+                    )
+                  : null,
+              child: chipUI,
+            ),
           ),
         );
       },
@@ -1762,6 +1847,9 @@ class _RobotPathGameState extends State<RobotPathGame>
   }
 
   Widget _buildCommandPalette() {
+    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    final s = S.of(context)!;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1781,28 +1869,57 @@ class _RobotPathGameState extends State<RobotPathGame>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFD700).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.widgets,
-                  color: Color(0xFFFFD700),
-                  size: 18,
-                ),
+              // Title
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFD700).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.widgets,
+                      color: Color(0xFFFFD700),
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    s.commands,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Text(
-                S.of(context)!.commands,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+              
+              if (isPortrait)
+                Row(
+                  children: [
+                    _buildControlButton(
+                      s.run,
+                      Icons.play_arrow,
+                      const Color(0xFF00C853),
+                      _executeProgram,
+                      enabled: !isExecuting && commandSequence.isNotEmpty,
+                      compact: true,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildControlButton(
+                      s.clear,
+                      Icons.clear_all,
+                      const Color(0xFFFF6D00),
+                      _clearCommands,
+                      enabled: !isExecuting && commandSequence.isNotEmpty,
+                      compact: true,
+                    ),
+                  ],
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -1816,7 +1933,6 @@ class _RobotPathGameState extends State<RobotPathGame>
               _buildCommandButton(RobotCommand.turnRight),
               if (widget.grade >= 2) _buildCommandButton(RobotCommand.jump),
               if (widget.grade >= 3) _buildCommandButton(RobotCommand.destroy),
-              // ADD THESE
               if (widget.grade >= 4) ...[
                 _buildCommandButton(RobotCommand.push),
                 _buildCommandButton(RobotCommand.pull),
@@ -1827,12 +1943,10 @@ class _RobotPathGameState extends State<RobotPathGame>
       ),
     );
   }
-
-  // REPLACE this method
+  
   Widget _buildCommandButton(RobotCommand command) {
     final commandInfo = _getCommandInfo(command);
-
-    // This is the small tile UI used for feedback and the button itself
+    
     final Widget tileUI = Container(
       width: 72,
       height: 72,
@@ -1881,19 +1995,17 @@ class _RobotPathGameState extends State<RobotPathGame>
         ],
       ),
     );
-
-    // Wrap the button in a Draggable
+    
     return Draggable<RobotCommand>(
       data: command,
-      feedback: tileUI, // Show the button UI while dragging
+      feedback: tileUI,
       childWhenDragging: Opacity(
-        // Leave a faded version behind
         opacity: 0.4,
         child: tileUI,
       ),
       child: GestureDetector(
         onTap: isExecuting ? null : () => _addCommand(command),
-        child: tileUI, // The normal button
+        child: tileUI,
       ),
     );
   }
@@ -1962,7 +2074,6 @@ class _RobotPathGameState extends State<RobotPathGame>
           color: const Color(0xFF2196F3),
           label: S.of(context)!.robotPathWait,
         );
-      // FIX: Add the missing cases
       case RobotCommand.push:
         return CommandInfo(
           icon: Icons.arrow_circle_right_outlined,
@@ -2059,7 +2170,7 @@ enum RobotCommand {
 }
 
 enum CellType {
-  empty, // Represents a 'PATH' tile from the generator
+  empty,
   wall,
   start,
   goal,
@@ -2068,7 +2179,6 @@ enum CellType {
   movable
 }
 
-// REPLACE the entire 'PathLevel' class
 class PathLevel {
   final int gridSize;
   List<List<CellType>> grid;
@@ -2089,22 +2199,15 @@ class PathLevel {
     required this.goalCol,
     required this.optimalMoves,
   });
-
-  // This is the new generator logic
+  
   static PathLevel generate(int grade, int level) {
     final generator = gen.RobotPathGenerator();
-
-    // --- Derive generator parameters from game level/grade ---
+    
     final complexity = (grade - 1) * 5 + level;
     final int dim = (10 + (complexity * 0.5)).clamp(10, 17).toInt();
     final int pathLen = (9 + complexity).clamp(10, 25).toInt();
     final int obsCount = (1 + (complexity / 3)).clamp(1, 5).toInt();
-
-    // Use grade to control obstacle variety
-    // Grade 1: 0.0 (No special obstacles)
-    // Grade 2: 0.3 (Adds Jump/Destroy)
-    // Grade 3: 0.6 (More Jump/Destroy)
-    // Grade 4+: 0.9 (Adds Movable)
+    
     final double variety;
     if (grade == 1) {
       variety = 0.0;
@@ -2115,8 +2218,7 @@ class PathLevel {
     } else {
       variety = 0.9;
     }
-
-    // Generate the level
+    
     final robotLevel = generator.generateLevel(
       dimX: dim,
       dimY: dim,
@@ -2124,12 +2226,11 @@ class PathLevel {
       obstacleCount: obsCount,
       obstacleVariety: variety,
     );
-
-    // --- Convert the generated List<List<int>> to List<List<CellType>> ---
+    
     final int gridSize = robotLevel.grid.length;
     final grid = List.generate(
       gridSize,
-      (r) => List.generate(gridSize, (c) => CellType.wall), // Default to wall
+      (r) => List.generate(gridSize, (c) => CellType.wall),
     );
 
     for (int r = 0; r < gridSize; r++) {
@@ -2160,36 +2261,28 @@ class PathLevel {
         }
       }
     }
-
-    // *** THIS IS THE FIX FOR IMPOSSIBLE LEVELS ***
-    // After generating, loop through and remove any obstacles
-    // the player doesn't have the commands for.
+    
     for (int r = 0; r < gridSize; r++) {
       for (int c = 0; c < gridSize; c++) {
         final cell = grid[r][c];
         
-        // Remove Jumpable if grade < 2
         if (cell == CellType.jumpableWall && grade < 2) {
           grid[r][c] = CellType.empty;
         }
         
-        // Remove Destructible if grade < 3
         if (cell == CellType.destructible && grade < 3) {
           grid[r][c] = CellType.empty;
         }
         
-        // Remove Movable if grade < 4
         if (cell == CellType.movable && grade < 4) {
           grid[r][c] = CellType.empty;
         }
       }
     }
-
-    // Calculate optimal moves (heuristic: path length + 1 move per obstacle)
+    
     int optimalMoves = _calculateOptimalPath(robotLevel);
-
-    // Determine a valid start direction (e.g., facing an empty path)
-    int startDirection = 1; // Default Right
+    
+    int startDirection = 1;
     final startPos = robotLevel.start;
     if (_isValidGridPos(grid, startPos.x, startPos.y + 1)) {
       startDirection = 1; // Right
@@ -2220,8 +2313,6 @@ class PathLevel {
   }
 
   static int _calculateOptimalPath(gen.RobotLevel robotLevel) {
-    // Heuristic: path length + 1 move per obstacle
-    // (push/pull might be 2, but 1 is a good estimate)
     return robotLevel.optimalMoves + robotLevel.obstacles.length;
   }
 }

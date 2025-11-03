@@ -1,0 +1,15 @@
+# Ignore all native platform folders
+android/
+ios/
+linux/
+macos/
+windows/
+
+# Ignore Flutter/Dart/IDE tools
+.dart_tool/
+.pub-cache/
+.idea/
+
+# Ignore ALL build artifacts *except* the web output
+build/*
+!build/web/

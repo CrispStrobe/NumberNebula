@@ -2106,6 +2106,39 @@ class SEn extends S {
   String get robotPathPull => 'Pull';
 
   @override
+  String get robotPathTooltipWall => 'Wall';
+
+  @override
+  String get robotPathTooltipJumpable => 'Jumpable Gap';
+
+  @override
+  String get robotPathTooltipDestructible => 'Destructible Rock';
+
+  @override
+  String get robotPathTooltipMovable => 'Movable Block';
+
+  @override
+  String get robotPathTooltipStart => 'Start';
+
+  @override
+  String get robotPathTooltipGoal => 'Goal';
+
+  @override
+  String get robotPathErrorNotDestructible => 'Target is not destructible!';
+
+  @override
+  String get robotPathErrorNotJumpable => 'Cannot jump over this!';
+
+  @override
+  String get robotPathErrorNotMovable => 'Target is not movable!';
+
+  @override
+  String get robotPathErrorCannotPush => 'Cannot push! Destination is blocked.';
+
+  @override
+  String get robotPathErrorCannotPull => 'Cannot pull! Not enough space.';
+
+  @override
   String get robotPathTitle => 'Robot Path';
 
   @override
@@ -2138,13 +2171,14 @@ class SEn extends S {
   String get turnRight => 'Turn Right';
 
   @override
-  String get starLoaderGameTitle => 'Star-Loader';
+  String get starLoaderGameTitle => 'Cargo-Loader';
 
   @override
-  String get starLoaderTitle => 'Star-Loader';
+  String get starLoaderTitle => 'Cargo-Loader';
 
   @override
-  String get starLoaderGameDesc => 'Push the crates onto the green targets.';
+  String get starLoaderGameDesc =>
+      'Push the crates onto the indicated targets.';
 
   @override
   String get starLoaderHint =>

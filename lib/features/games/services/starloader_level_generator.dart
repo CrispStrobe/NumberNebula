@@ -334,7 +334,8 @@ class LevelGenerator {
       if (behindPos[0] >= 0 && behindPos[0] < newRoom.length &&
           behindPos[1] >= 0 && behindPos[1] < newRoom[0].length) {
         
-        if (newRoom[behindPos[0]][behindPos[1]] == BOX) {
+        // FIX: Check for both BOX and BOX_ON_TARGET
+        if ([BOX, BOX_ON_TARGET].contains(newRoom[behindPos[0]][behindPos[1]])) {
           newRoom[playerPos[0]][playerPos[1]] = BOX;
           newRoom[behindPos[0]][behindPos[1]] = roomStructure[behindPos[0]][behindPos[1]];
           

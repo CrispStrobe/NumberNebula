@@ -1215,6 +1215,19 @@
   "robotPathPush": "Push",
   "robotPathPull": "Pull",
 
+  "robotPathTooltipWall": "Wall",
+  "robotPathTooltipJumpable": "Jumpable Gap",
+  "robotPathTooltipDestructible": "Destructible Rock",
+  "robotPathTooltipMovable": "Movable Block",
+  "robotPathTooltipStart": "Start",
+  "robotPathTooltipGoal": "Goal",
+
+  "robotPathErrorNotDestructible": "Target is not destructible!",
+  "robotPathErrorNotJumpable": "Cannot jump over this!",
+  "robotPathErrorNotMovable": "Target is not movable!",
+  "robotPathErrorCannotPush": "Cannot push! Destination is blocked.",
+  "robotPathErrorCannotPull": "Cannot pull! Not enough space.",
+
   "robotPathTitle": "Robot Path",
   "robotPathDesc": "Program the robot to reach the goal!",
   "robotPathError": "Crash! Robot hit an obstacle.",
@@ -1230,9 +1243,9 @@
   "clear": "Clear",
   "reset": "Reset",
 
-  "starLoaderGameTitle": "Star-Loader",
-  "starLoaderTitle": "Star-Loader",
-  "starLoaderGameDesc": "Push the crates onto the green targets.",
+  "starLoaderGameTitle": "Cargo-Loader",
+  "starLoaderTitle": "Cargo-Loader",
+  "starLoaderGameDesc": "Push the crates onto the indicated targets.",
   "starLoaderHint": "Use arrows or swipe to move. Get all crates to the targets!",
   "moves": "Moves",
   "optimal": "Optimal",

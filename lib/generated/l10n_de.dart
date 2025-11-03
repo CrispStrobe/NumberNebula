@@ -2117,6 +2117,41 @@ class SDe extends S {
   String get robotPathPull => 'Pull';
 
   @override
+  String get robotPathTooltipWall => 'Mauer';
+
+  @override
+  String get robotPathTooltipJumpable => 'Springbare Lücke';
+
+  @override
+  String get robotPathTooltipDestructible => 'Zerstörbarer Fels';
+
+  @override
+  String get robotPathTooltipMovable => 'Beweglicher Block';
+
+  @override
+  String get robotPathTooltipStart => 'Start';
+
+  @override
+  String get robotPathTooltipGoal => 'Ziel';
+
+  @override
+  String get robotPathErrorNotDestructible => 'Ziel ist nicht zerstörbar!';
+
+  @override
+  String get robotPathErrorNotJumpable => 'Hier kann nicht gesprungen werden!';
+
+  @override
+  String get robotPathErrorNotMovable => 'Ziel ist nicht beweglich!';
+
+  @override
+  String get robotPathErrorCannotPush =>
+      'Schieben fehlgeschlagen! Ziel ist blockiert.';
+
+  @override
+  String get robotPathErrorCannotPull =>
+      'Ziehen fehlgeschlagen! Nicht genug Platz.';
+
+  @override
   String get robotPathTitle => 'Roboterpfad';
 
   @override
@@ -2124,14 +2159,15 @@ class SDe extends S {
       'Programmiere den Roboter, um das Ziel zu erreichen!';
 
   @override
-  String get robotPathError => 'Crash! Roboter hat ein Hindernis getroffen.';
+  String get robotPathError =>
+      'Wumms! Der Roboter hat ein Hindernis getroffen.';
 
   @override
   String get robotPathNotComplete =>
       'Pfad unvollständig. Der Roboter hat das Ziel nicht erreicht.';
 
   @override
-  String get robotPathSuccess => 'Ziel erfasst! Roboter hat das Ziel erreicht.';
+  String get robotPathSuccess => 'Ziel erfasst! Der Roboter ist angekommen.';
 
   @override
   String get program => 'Programm';
@@ -2149,17 +2185,17 @@ class SDe extends S {
   String get turnRight => 'Rechts drehen';
 
   @override
-  String get starLoaderGameTitle => 'Sternenlader';
+  String get starLoaderGameTitle => 'Frachtlader';
 
   @override
-  String get starLoaderTitle => 'Sternenlader';
+  String get starLoaderTitle => 'Frachtlader';
 
   @override
   String get starLoaderGameDesc => 'Schiebe die Kisten auf die grünen Ziele.';
 
   @override
   String get starLoaderHint =>
-      'Bewege dich mit Pfeiltasten oder Wischen. Bringe alle Kisten auf die Ziele!';
+      'Bewege dich mit Pfeiltasten oder Wischen. Bringe alle Frachtkisten auf die Ziele!';
 
   @override
   String get moves => 'Züge';
