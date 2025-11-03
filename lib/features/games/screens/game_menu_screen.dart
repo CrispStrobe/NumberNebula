@@ -46,11 +46,34 @@ class GameMenuScreen extends StatefulWidget {
   State<GameMenuScreen> createState() => _GameMenuScreenState();
 }
 
+// Helper class to store game data *before* creating the final GameInfo widget
+class _GameInfoData {
+  final String gameKey;
+  final String title;
+  final String description;
+  final IconData icon;
+  final Gradient gradient;
+  final Widget Function(int grade, int level) gameBuilder;
+
+  _GameInfoData({
+    required this.gameKey,
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.gradient,
+    required this.gameBuilder,
+  });
+}
+
 class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStateMixin {
   late AnimationController _slideController;
   late AnimationController _floatController;
   late List<Animation<Offset>> _cardAnimations;
   late Animation<double> _floatAnimation;
+
+  // This list now holds the raw data, including game keys and widget builders
+  late final List<_GameInfoData> _gamesData;
+  bool _isGamesDataInitialized = false;
 
   // for new games, we must manually update game count
   static const int _gameCount = 22;
@@ -80,10 +103,204 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Initialize the games list here to ensure S.of(context) is available
+    if (!_isGamesDataInitialized) {
+      _gamesData = _getGamesList(context);
+      _isGamesDataInitialized = true;
+    }
+  }
+
+  @override
   void dispose() {
     _slideController.dispose();
     _floatController.dispose();
     super.dispose();
+  }
+  
+  // This builds the list of game data, including the all-important gameKey
+  List<_GameInfoData> _getGamesList(BuildContext context) {
+    final s = S.of(context)!;
+    // These keys MUST match the keys used in game_provider.dart and gameSkillMap
+    return [
+      _GameInfoData(
+        gameKey: 'magic_triangles',
+        title: s.magicTriangles,
+        description: s.magicTrianglesDesc,
+        icon: Icons.change_history,
+        gradient: const LinearGradient(colors: [SpaceTheme.nebulaPurple, SpaceTheme.cosmicPink]),
+        gameBuilder: (grade, level) => MagicTrianglesGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'asteroid_math', // Game is titled "Asteroid Field Hunter"
+        title: s.asteroidMathHunter,
+        description: s.asteroidMathHunterDesc,
+        icon: Icons.bubble_chart,
+        gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.starYellow]),
+        gameBuilder: (grade, level) => AsteroidMathGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'puzzle_math',
+        title: s.puzzleMath,
+        description: s.puzzleMathDesc,
+        icon: Icons.extension,
+        gradient: const LinearGradient(colors: [SpaceTheme.planetOrange, SpaceTheme.rocketRed]),
+        gameBuilder: (grade, level) => PuzzleMathGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'hyperdrive_gates',
+        title: s.hyperdriveGates,
+        description: s.hyperdriveGatesDesc,
+        icon: Icons.rocket_launch,
+        gradient: const LinearGradient(colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)]),
+        gameBuilder: (grade, level) => HyperdriveGatesGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'pathfinder',
+        title: s.pathFinderTitle,
+        description: s.pathFinderDesc,
+        icon: Icons.map,
+        gradient: const LinearGradient(colors: [Colors.teal, Colors.cyan]),
+        gameBuilder: (grade, level) => PathFinderGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'planet_hopping',
+        title: s.planetHopping,
+        description: s.planetHoppingDesc,
+        icon: Icons.public,
+        gradient: const LinearGradient(colors: [Color(0xFF667eea), Color(0xFF764ba2)]),
+        gameBuilder: (grade, level) => PlanetHoppingGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'number_walls',
+        title: s.numberWalls,
+        description: s.numberWallsDesc,
+        icon: Icons.view_module,
+        gradient: const LinearGradient(colors: [Color(0xFFf97794), Color(0xFF623aa2)]),
+        gameBuilder: (grade, level) => NumberWallsGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'codebreaker',
+        title: s.codebreaker,
+        description: s.codebreakerDesc,
+        icon: Icons.vpn_key,
+        gradient: const LinearGradient(colors: [Color(0xFF00c6ff), Color(0xFF0072ff)]),
+        gameBuilder: (grade, level) => CodebreakerGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'perspective_puzzle',
+        title: s.perspectivePuzzleGameTitle,
+        description: s.perspectivePuzzleInstructions,
+        icon: Icons.grid_view_sharp,
+        gradient: const LinearGradient(colors: [Color(0xFFf5af19), Color(0xFFf12711)]),
+        gameBuilder: (grade, level) => PerspectivePuzzleGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'block_counter',
+        title: s.blockCounterGameTitle,
+        description: s.blockCounterInstructions,
+        icon: Icons.view_in_ar,
+        gradient: const LinearGradient(colors: [Color(0xFF00F260), Color(0xFF0575E6)]),
+        gameBuilder: (grade, level) => BlockCounterGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'signal_triangulation',
+        title: s.signalTriangulationGameTitle,
+        description: s.signalTriangulationInstructions,
+        icon: Icons.track_changes,
+        gradient: const LinearGradient(colors: [Color(0xFF00c6ff), Color(0xFF0072ff)]),
+        gameBuilder: (grade, level) => SignalTriangulationGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'cryptex_lock_breaker',
+        title: s.cryptexLockBreakerGameTitle,
+        description: s.cryptexLockBreakerInstructions,
+        icon: Icons.dialpad,
+        gradient: const LinearGradient(colors: [Color(0xFFED213A), Color(0xFF93291E)]),
+        gameBuilder: (grade, level) => CryptexLockBreakerGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'arithmancer_duel',
+        title: s.arithmancerGameTitle,
+        description: s.arithmancerGameInstructions,
+        icon: Icons.auto_awesome,
+        gradient: const LinearGradient(colors: [Color(0xFFcc2b5e), Color(0xFF753a88)]),
+        gameBuilder: (grade, level) => ArithmancerDuelGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'arithmatic_square',
+        title: s.arithmeticSquare,
+        description: s.arithmeticSquareInstructions,
+        icon: Icons.grid_on,
+        gradient: const LinearGradient(colors: [Color(0xFFa8e063), Color(0xFF56ab2f)]),
+        gameBuilder: (grade, level) => ArithmeticSquareGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'arithmancer_crosswords',
+        title: s.arithmancerCrosswords,
+        description: s.arithmancerCrosswordsInstructions,
+        icon: Icons.border_all,
+        gradient: const LinearGradient(colors: [Color(0xFFff8008), Color(0xFFffc837)]),
+        gameBuilder: (grade, level) => ArithmancerCrosswordsGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'kenken',
+        title: s.kenken,
+        description: s.kenkenInstructions,
+        icon: Icons.dashboard_customize,
+        gradient: const LinearGradient(colors: [Color(0xFF00d2ff), Color(0xFF3a7bd5)]),
+        gameBuilder: (grade, level) => KenkenGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'asteroid_field_navigator',
+        title: s.asteroidFieldTitle,
+        description: s.asteroidFieldInstructions,
+        icon: Icons.grid_4x4,
+        gradient: const LinearGradient(colors: [Color(0xFF141E30), Color(0xFF243B55)]),
+        gameBuilder: (grade, level) => AsteroidFieldNavigatorGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'cargo_bay_arranger',
+        title: s.cargoBayTitle,
+        description: s.cargoBayInstructions,
+        icon: Icons.view_module,
+        gradient: const LinearGradient(colors: [Color(0xFF7F00FF), Color(0xFFE100FF)]),
+        gameBuilder: (grade, level) => CargoBayArrangerGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'quantum_molecule_builder',
+        title: s.moleculeBuilderTitle,
+        description: s.moleculeBuilderInstructions,
+        icon: Icons.science,
+        gradient: const LinearGradient(colors: [Color(0xFF02AAB0), Color(0xFF00CDAC)]),
+        gameBuilder: (grade, level) => QuantumMoleculeBuilderGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'space_station_gridlock',
+        title: s.spaceGridlockTitle,
+        description: s.spaceGridlockInstructions,
+        icon: Icons.view_module,
+        gradient: const LinearGradient(colors: [Color(0xFF02AAB0), Color(0xFF00CDAC)]),
+        gameBuilder: (grade, level) => SpaceStationGridlockGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'star_loader_game',
+        title: s.starLoaderGameTitle,
+        description: s.starLoaderGameDesc,
+        icon: Icons.move_down,
+        gradient: const LinearGradient(colors: [Color(0xFFf9a825), Color(0xFFc66900)]),
+        gameBuilder: (grade, level) => StarLoaderGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'robot_path_game',
+        title: s.robotPathTitle,
+        description: s.robotPathDesc,
+        icon: Icons.smart_toy_outlined,
+        gradient: const LinearGradient(colors: [Color(0xFF00bcd4), Color(0xFF00838f)]),
+        gameBuilder: (grade, level) => RobotPathGame(grade: grade, level: level),
+      ),
+    ];
   }
 
   void _showDebugPanel() {
@@ -175,8 +392,10 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
                 Text(S.of(context)!.gameMenu, style: SpaceTheme.headlineStyle.copyWith(fontSize: 32)),
                 Consumer<GameProvider>(
                   builder: (context, gameProvider, child) {
+                    // This header now correctly shows the GLOBAL grade and level (which is 1)
+                    // but the cards will load their individual saved levels.
                     return Text(
-                      '${S.of(context)!.gradeN(gameProvider.grade)} • ${S.of(context)!.level} ${gameProvider.level}',
+                      '${S.of(context)!.gradeN(gameProvider.grade)}', // Simplified header
                       style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 16),
                     );
                   },
@@ -184,7 +403,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
               ],
             ),
           ),
-          Consumer<GameProvider>(
+          Consumer<GameProvider>( // This is the Score consumer
             builder: (context, gameProvider, child) {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -207,51 +426,54 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
             },
           ),
           const SizedBox(width: 8),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                onPressed: _navigateToAchievements,
-                icon: const Icon(Icons.emoji_events),
-                color: SpaceTheme.starYellow,
-                tooltip: S.of(context)!.achievements,
-                style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
-              ),
-              const SizedBox(width: 4),
-              // --- IMPRINT BUTTON ADDED ---
-              IconButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => ImprintDialog(),
-                  );
-                },
-                icon: const Icon(Icons.gavel), // Legal / Gavel icon
-                color: SpaceTheme.moonSilver,
-                tooltip: S.of(context)!.imprint,
-                style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                onPressed: _navigateToSettings,
-                icon: const Icon(Icons.settings),
-                color: SpaceTheme.moonSilver,
-                tooltip: S.of(context)!.settings,
-                style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
-              ),
-              if (debugProvider.isDebugMenuEnabled) ...[
-                const SizedBox(width: 4),
+          Flexible(
+            child: Row( // <-- FIX: Added 'child:' here
+              mainAxisAlignment: MainAxisAlignment.end, // Align buttons to the right
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 IconButton(
-                  onPressed: _showDebugPanel,
-                  icon: const Icon(Icons.bug_report),
-                  color: debugProvider.isPaidUnlockedForced
-                      ? SpaceTheme.alienGreen
-                      : SpaceTheme.moonSilver,
-                  tooltip: S.of(context)!.debugPanelTitle,
+                  onPressed: _navigateToAchievements,
+                  icon: const Icon(Icons.emoji_events),
+                  color: SpaceTheme.starYellow,
+                  tooltip: S.of(context)!.achievements,
                   style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
                 ),
-              ]
-            ],
+                const SizedBox(width: 4),
+                // --- IMPRINT BUTTON ADDED ---
+                IconButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => ImprintDialog(),
+                    );
+                  },
+                  icon: const Icon(Icons.gavel), // Legal / Gavel icon
+                  color: SpaceTheme.moonSilver,
+                  tooltip: S.of(context)!.imprint,
+                  style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  onPressed: _navigateToSettings,
+                  icon: const Icon(Icons.settings),
+                  color: SpaceTheme.moonSilver,
+                  tooltip: S.of(context)!.settings,
+                  style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
+                ),
+                if (debugProvider.isDebugMenuEnabled) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    onPressed: _showDebugPanel,
+                    icon: const Icon(Icons.bug_report),
+                    color: debugProvider.isPaidUnlockedForced
+                        ? SpaceTheme.alienGreen
+                        : SpaceTheme.moonSilver,
+                    tooltip: S.of(context)!.debugPanelTitle,
+                    style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
+                  ),
+                ]
+              ],
+            ),
           ),
         ],
       ),
@@ -281,168 +503,42 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
       itemBuilder: (context, index) => _buildGameCard(index),
     );
   }
-
+  
+  // --- COMPLETELY REFACTORED _buildGameCard ---
   Widget _buildGameCard(int index) {
     final gameProvider = context.read<GameProvider>();
     final debugProvider = context.read<DebugProvider>();
     final s = S.of(context)!;
 
-    final games = [
-        GameInfo(
-            title: s.magicTriangles,
-            description: s.magicTrianglesDesc,
-            icon: Icons.change_history,
-            gradient: const LinearGradient(colors: [SpaceTheme.nebulaPurple, SpaceTheme.cosmicPink]),
-            onTap: () => _navigateToGame(MagicTrianglesGame(grade: gameProvider.grade, level: gameProvider.level))),
-        GameInfo(
-            title: s.bubbleMath,
-            description: s.bubbleMathDesc,
-            icon: Icons.bubble_chart,
-            gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.starYellow]),
-            onTap: () => _navigateToGame(AsteroidMathGame(grade: gameProvider.grade, level: gameProvider.level))),
-        GameInfo(
-            title: s.puzzleMath,
-            description: s.puzzleMathDesc,
-            icon: Icons.extension,
-            gradient: const LinearGradient(colors: [SpaceTheme.planetOrange, SpaceTheme.rocketRed]),
-            onTap: () => _navigateToGame(PuzzleMathGame(grade: gameProvider.grade, level: gameProvider.level))),
-        GameInfo(
-            title: s.hyperdriveGates,
-            description: s.hyperdriveGatesDesc,
-            icon: Icons.rocket_launch,
-            gradient: const LinearGradient(colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)]),
-            onTap: () => _navigateToGame(HyperdriveGatesGame(grade: gameProvider.grade, level: gameProvider.level))),
-        GameInfo(
-            title: s.pathFinderTitle,
-            description: s.pathFinderDesc,
-            icon: Icons.map,
-            gradient: const LinearGradient(colors: [Colors.teal, Colors.cyan]),
-            onTap: () => _navigateToGame(PathFinderGame(grade: gameProvider.grade, level: gameProvider.level))),
-        GameInfo(
-            title: s.planetHopping,
-            description: s.planetHoppingDesc,
-            icon: Icons.public,
-            gradient: const LinearGradient(colors: [Color(0xFF667eea), Color(0xFF764ba2)]),
-            onTap: () => _navigateToGame(PlanetHoppingGame(grade: gameProvider.grade, level: gameProvider.level))),
-        GameInfo(
-            title: s.numberWalls,
-            description: s.numberWallsDesc,
-            icon: Icons.view_module,
-            gradient: const LinearGradient(colors: [Color(0xFFf97794), Color(0xFF623aa2)]),
-            onTap: () => _navigateToGame(NumberWallsGame(grade: gameProvider.grade, level: gameProvider.level))),
-        GameInfo(
-            title: s.codebreaker,
-            description: s.codebreakerDesc,
-            icon: Icons.vpn_key,
-            gradient: const LinearGradient(colors: [Color(0xFF00c6ff), Color(0xFF0072ff)]),
-            onTap: () => _navigateToGame(CodebreakerGame(grade: gameProvider.grade, level: gameProvider.level))),
-        GameInfo(
-            title: s.perspectivePuzzleGameTitle, // Use the correct string
-            description: s.perspectivePuzzleInstructions,
-            icon: Icons.grid_view_sharp,
-            gradient: const LinearGradient(colors: [Color(0xFFf5af19), Color(0xFFf12711)]),
-            onTap: () => _navigateToGame(PerspectivePuzzleGame(grade: gameProvider.grade, level: gameProvider.level))), // Use PerspectivePuzzleGame
+    // Safety check
+    if (index >= _gamesData.length || index >= _cardAnimations.length) {
+      return const SizedBox.shrink();
+    }
+  
+    final gameData = _gamesData[index];
 
-        GameInfo(
-            title: s.blockCounterGameTitle,
-            description: s.blockCounterInstructions,
-            icon: Icons.view_in_ar,
-            gradient: const LinearGradient(colors: [Color(0xFF00F260), Color(0xFF0575E6)]),
-            onTap: () => _navigateToGame(BlockCounterGame(grade: gameProvider.grade, level: gameProvider.level))),
-        GameInfo(
-            title: s.signalTriangulationGameTitle,
-            description: s.signalTriangulationInstructions,
-            icon: Icons.track_changes,
-            gradient: const LinearGradient(colors: [Color(0xFF00c6ff), Color(0xFF0072ff)]),
-            onTap: () => _navigateToGame(SignalTriangulationGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        GameInfo(
-          title: s.cryptexLockBreakerGameTitle,
-          description: s.cryptexLockBreakerInstructions,
-          icon: Icons.dialpad, // 🔐 Looks like a combination lock
-          gradient: const LinearGradient(colors: [Color(0xFFED213A), Color(0xFF93291E)]), // Intense red "danger" gradient
-          onTap: () => _navigateToGame(CryptexLockBreakerGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        GameInfo(
-            title: s.arithmancerGameTitle,
-            description: s.arithmancerGameInstructions,
-            icon: Icons.auto_awesome, // ✨ "Mancer" implies magic
-            gradient: const LinearGradient(colors: [Color(0xFFcc2b5e), Color(0xFF753a88)]), // Mystical purple/pink gradient
-            onTap: () => _navigateToGame(ArithmancerDuelGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        GameInfo(
-            title: s.arithmeticSquare,
-            description: s.arithmeticSquareInstructions,
-            icon: Icons.grid_on, // 🔢 Perfect for a grid-based puzzle
-            gradient: const LinearGradient(colors: [Color(0xFFa8e063), Color(0xFF56ab2f)]), // Fresh green gradient
-            onTap: () => _navigateToGame(ArithmeticSquareGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        GameInfo(
-            title: s.arithmancerCrosswords,
-            description: s.arithmancerCrosswordsInstructions,
-            icon: Icons.border_all, //  crossword-like grid
-            gradient: const LinearGradient(colors: [Color(0xFFff8008), Color(0xFFffc837)]), // Warm sunrise orange gradient
-            onTap: () => _navigateToGame(ArithmancerCrosswordsGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        GameInfo(
-            title: s.kenken,
-            description: s.kenkenInstructions, 
-            icon: Icons.dashboard_customize, // Represents the "cages" in KenKen
-            gradient: const LinearGradient(colors: [Color(0xFF00d2ff), Color(0xFF3a7bd5)]), // Cool blue ocean gradient
-            onTap: () => _navigateToGame(KenkenGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        GameInfo(
-            title: s.asteroidFieldTitle,
-            description: s.asteroidFieldInstructions,
-            icon: Icons.grid_4x4, // Minesweeper grid icon
-            gradient: const LinearGradient(colors: [Color(0xFF141E30), Color(0xFF243B55)]), // Dark space gradient
-            onTap: () => _navigateToGame(AsteroidFieldNavigatorGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        GameInfo(
-            title: s.cargoBayTitle,
-            description: s.cargoBayInstructions,
-            icon: Icons.view_module, // Tetris blocks
-            gradient: const LinearGradient(colors: [Color(0xFF7F00FF), Color(0xFFE100FF)]), // Purple gradient
-            onTap: () => _navigateToGame(CargoBayArrangerGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        GameInfo(
-            title: s.moleculeBuilderTitle,
-            description: s.moleculeBuilderInstructions,
-            icon: Icons.science, // Atom/molecule icon
-            gradient: const LinearGradient(colors: [Color(0xFF02AAB0), Color(0xFF00CDAC)]), // Cyan/teal science gradient
-            onTap: () => _navigateToGame(QuantumMoleculeBuilderGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        GameInfo(
-            title: s.spaceGridlockTitle,
-            description: s.spaceGridlockInstructions,
-            icon: Icons.view_module, // Atom/molecule icon
-            gradient: const LinearGradient(colors: [Color(0xFF02AAB0), Color(0xFF00CDAC)]), // Cyan/teal science gradient
-            onTap: () => _navigateToGame(SpaceStationGridlockGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        GameInfo(
-            title: s.starLoaderGameTitle, // NOTE: Add this to your S.of(context) strings
-            description: s.starLoaderGameDesc, // NOTE: Add this to your S.of(context) strings
-            icon: Icons.move_down, // Icon for Sokoban
-            gradient: const LinearGradient(colors: [Color(0xFFf9a825), Color(0xFFc66900)]), // Brown/yellow
-            onTap: () => _navigateToGame(StarLoaderGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-        GameInfo(
-            title: s.robotPathTitle, // NOTE: Add this to your S.of(context) strings
-            description: s.robotPathDesc, // NOTE: Add this to your S.of(context) strings
-            icon: Icons.smart_toy_outlined, // Icon for robot
-            gradient: const LinearGradient(colors: [Color(0xFF00bcd4), Color(0xFF00838f)]), // Cyan
-            onTap: () => _navigateToGame(RobotPathGame(grade: gameProvider.grade, level: gameProvider.level)),
-        ),
-    ];
+    // --- BUG FIX ---
+    // Get the specific saved level for *this* game
+    final int savedLevel = gameProvider.getGameProgress(gameData.gameKey);
+    // Default to level 1 if no progress (level 0) is found
+    final int levelToLoad = savedLevel == 0 ? 1 : savedLevel;
+    // --- END BUG FIX ---
 
-    if (index >= games.length) return const SizedBox.shrink(); // Safety check
+    // Build the final GameInfo object with the correct onTap
+    final game = GameInfo(
+      title: gameData.title,
+      description: gameData.description,
+      icon: gameData.icon,
+      gradient: gameData.gradient,
+      // The onTap now correctly builds the game widget with the saved level
+      onTap: () => _navigateToGame(
+        gameData.gameBuilder(gameProvider.grade, levelToLoad),
+      ),
+    );
 
-    final game = games[index];
     final bool isPremiumContent = index > 1; // First 2 games are free
     final bool isUnlocked = gameProvider.isFullVersionUnlocked || debugProvider.isPaidUnlockedForced;
     final bool isLocked = isPremiumContent && !isUnlocked;
-
-    if (index >= _cardAnimations.length) return const SizedBox.shrink();
 
     return SlideTransition(
       position: _cardAnimations[index],
@@ -455,7 +551,9 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
               alignment: Alignment.center,
               children: [
                 GameCard(
-                  game: game,
+                    game: game,
+                  // The onTap logic is now separated:
+                  // If locked, show purchase flow. If unlocked, use the game's built-in onTap.
                   onTap: isLocked ? () => _showPurchaseFlow(context) : game.onTap,
                 ),
                 if (isLocked)
@@ -473,7 +571,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   }
 }
 
-// GameInfo and GameCard classes remain the same... (Code omitted for brevity)
 class GameInfo {
   final String title;
   final String description;

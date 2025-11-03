@@ -559,6 +559,42 @@ abstract class S {
   /// **'Space Math Academy helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.'**
   String get aboutApp;
 
+  /// No description provided for @languageRestartPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'The app language will change when you restart. Would you like to restart now?'**
+  String get languageRestartPrompt;
+
+  /// No description provided for @later.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get later;
+
+  /// No description provided for @restartNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart Now'**
+  String get restartNow;
+
+  /// No description provided for @resetProgressConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to reset all progress? This action cannot be undone.'**
+  String get resetProgressConfirm;
+
+  /// No description provided for @appVersionValue.
+  ///
+  /// In en, this message translates to:
+  /// **'1.0.2'**
+  String get appVersionValue;
+
+  /// No description provided for @legalNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'View Legal Notice'**
+  String get legalNotice;
+
   /// No description provided for @debugPanelTitle.
   ///
   /// In en, this message translates to:
@@ -654,18 +690,6 @@ abstract class S {
   /// In en, this message translates to:
   /// **'The app language will change when you restart. Would you like to restart now?'**
   String get languageChangedDesc;
-
-  /// No description provided for @later.
-  ///
-  /// In en, this message translates to:
-  /// **'Later'**
-  String get later;
-
-  /// No description provided for @restartNow.
-  ///
-  /// In en, this message translates to:
-  /// **'Restart Now'**
-  String get restartNow;
 
   /// No description provided for @selectGrade.
   ///
@@ -1260,6 +1284,12 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Asteroid Hunter'**
   String get asteroidMathHunter;
+
+  /// No description provided for @asteroidMathHunterDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate a dangerous asteroid field! Blast the drifting space rocks in the correct numerical sequence before they collide.'**
+  String get asteroidMathHunterDesc;
 
   /// No description provided for @asteroidMathTarget.
   ///

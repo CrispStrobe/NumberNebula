@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:space_math_academy/core/models/skill_category.dart'; // <-- IMPORTED
 import 'package:space_math_academy/core/services/debug_provider.dart';
 import 'package:space_math_academy/core/theme/space_theme.dart';
 import 'package:space_math_academy/features/games/providers/game_provider.dart';
 import 'package:space_math_academy/generated/l10n.dart';
 
 class DebugPanel extends StatefulWidget {
-  // FIX: Removed the onSettingsApplied parameter, making the constructor const.
   const DebugPanel({super.key});
 
   @override
@@ -16,6 +16,11 @@ class DebugPanel extends StatefulWidget {
 class _DebugPanelState extends State<DebugPanel> {
   late int _grade;
   late int _level;
+  
+  // --- NEW STATE VARIABLES ---
+  Set<String> _selectedGameKeys = {};
+  bool _selectAll = false;
+  // --- END NEW STATE ---
 
   @override
   void didChangeDependencies() {
@@ -39,7 +44,7 @@ class _DebugPanelState extends State<DebugPanel> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
         ),
-        child: SingleChildScrollView( // prevents overflow
+        child: SingleChildScrollView( // ensures dialog can scroll if content is tall
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -55,11 +60,30 @@ class _DebugPanelState extends State<DebugPanel> {
               _buildSlider('Game Level', _level.toDouble(), 1, 20, (value) {
                 setState(() => _level = value.toInt());
               }),
+
+              // --- NEW GAME SELECTOR UI ---
+              const Divider(color: SpaceTheme.nebulaPurple, height: 32),
+              Text(
+                "Force Level for Selected Games:", 
+                style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow)
+              ),
+              _buildSelectAllToggle(),
+              _buildGameCheckboxList(),
+              // --- END NEW UI ---
+
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 icon: const Icon(Icons.check),
                 onPressed: () {
-                  context.read<GameProvider>().setDifficulty(_grade, _level);
+                  final gameProvider = context.read<GameProvider>();
+                  
+                  // Set the global grade and level (still useful)
+                  gameProvider.setDifficulty(_grade, _level);
+                  
+                  // --- UPDATED LOGIC ---
+                  // Force-set progress only for the selected games
+                  gameProvider.debugSetGameLevels(_level, _selectedGameKeys.toList());
+
                   Navigator.of(context).pop();
                 },
                 style: SpaceTheme.primaryButtonStyle,
@@ -68,6 +92,77 @@ class _DebugPanelState extends State<DebugPanel> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // --- NEW HELPER WIDGET ---
+  Widget _buildSelectAllToggle() {
+    return CheckboxListTile(
+      title: Text("Select All Games", style: SpaceTheme.bodyStyle.copyWith(fontStyle: FontStyle.italic)),
+      value: _selectAll,
+      onChanged: (bool? value) {
+        setState(() {
+          _selectAll = value ?? false;
+          if (_selectAll) {
+            // Add all keys from the map to the set
+            _selectedGameKeys = gameSkillMap.keys.toSet();
+          } else {
+            // Clear the set
+            _selectedGameKeys.clear();
+          }
+        });
+      },
+      controlAffinity: ListTileControlAffinity.leading,
+      activeColor: SpaceTheme.alienGreen,
+      checkColor: SpaceTheme.deepSpace,
+      dense: true,
+    );
+  }
+
+  // --- NEW HELPER WIDGET ---
+  Widget _buildGameCheckboxList() {
+    // Get all game keys and sort them for a clean list
+    final allGameKeys = gameSkillMap.keys.toList()..sort();
+
+    return Container(
+      height: 200, // Fixed height for the scrollable area
+      width: double.maxFinite,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.5)),
+      ),
+      child: ListView.builder(
+        shrinkWrap: true,
+        itemCount: allGameKeys.length,
+        itemBuilder: (context, index) {
+          final gameKey = allGameKeys[index];
+          return CheckboxListTile(
+            title: Text(gameKey, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+            value: _selectedGameKeys.contains(gameKey),
+            onChanged: (bool? value) {
+              setState(() {
+                if (value == true) {
+                  _selectedGameKeys.add(gameKey);
+                } else {
+                  _selectedGameKeys.remove(gameKey);
+                }
+                // Uncheck "Select All" if we manually uncheck one
+                if (_selectedGameKeys.length < allGameKeys.length) {
+                  _selectAll = false;
+                }
+                // Check "Select All" if we just checked the last one
+                if (_selectedGameKeys.length == allGameKeys.length) {
+                  _selectAll = true;
+                }
+              });
+            },
+            dense: true,
+            controlAffinity: ListTileControlAffinity.leading,
+            activeColor: SpaceTheme.alienGreen,
+            checkColor: SpaceTheme.deepSpace,
+          );
+        },
       ),
     );
   }

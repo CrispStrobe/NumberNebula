@@ -250,6 +250,26 @@ class SEn extends S {
       'Space Math Academy helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.';
 
   @override
+  String get languageRestartPrompt =>
+      'The app language will change when you restart. Would you like to restart now?';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get restartNow => 'Restart Now';
+
+  @override
+  String get resetProgressConfirm =>
+      'Are you sure you want to reset all progress? This action cannot be undone.';
+
+  @override
+  String get appVersionValue => '1.0.2';
+
+  @override
+  String get legalNotice => 'View Legal Notice';
+
+  @override
   String get debugPanelTitle => 'Debug Panel';
 
   @override
@@ -300,12 +320,6 @@ class SEn extends S {
   @override
   String get languageChangedDesc =>
       'The app language will change when you restart. Would you like to restart now?';
-
-  @override
-  String get later => 'Later';
-
-  @override
-  String get restartNow => 'Restart Now';
 
   @override
   String get selectGrade => 'Select Skill Level';
@@ -642,6 +656,10 @@ class SEn extends S {
 
   @override
   String get asteroidMathHunter => 'Asteroid Hunter';
+
+  @override
+  String get asteroidMathHunterDesc =>
+      'Navigate a dangerous asteroid field! Blast the drifting space rocks in the correct numerical sequence before they collide.';
 
   @override
   String asteroidMathTarget(Object target) {

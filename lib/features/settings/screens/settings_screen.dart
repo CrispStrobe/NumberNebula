@@ -6,6 +6,8 @@ import 'dart:math' as math;
 
 import '../widgets/sri_statistics_dialog.dart'; // statistics dialog widget
 
+import '../../../shared/widgets/imprint_dialog.dart';
+
 import '../../../core/theme/space_theme.dart';
 import '../../../core/services/debug_provider.dart';
 import '../../../core/services/progress_service.dart';
@@ -796,7 +798,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
                   
                   _buildStatRow(
-                    label: 'Achievements',
+                    label: S.of(context)!.achievements, // Was 'Achievements'
                     value: gameProvider.totalAchievements.toString(),
                     icon: Icons.emoji_events,
                   ),
@@ -826,20 +828,66 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
   
   Widget _buildAboutSection() {
+    // Get the S instance
+    final s = S.of(context)!;
+
     return SlideTransition(
       position: _settingAnimations[5],
       child: _buildSettingsCard(
-        title: S.of(context)!.about,
+        title: s.about,
         icon: Icons.info,
         children: [
-          _buildInfoRow(S.of(context)!.appVersion, '1.0.0'),
-          _buildInfoRow(S.of(context)!.developer, 'Space Math Academy Team'),
-          _buildInfoRow(S.of(context)!.targetAge, '8-12 years (Grades 3-6)'),
+          _buildInfoRow(s.appVersion, s.appVersionValue), // Using ARB string
+          _buildInfoRow(s.developer, s.developerName), // Using ARB string
+          _buildInfoRow(s.targetAge, s.targetAgeRange), // Using ARB string
+          
+          const SizedBox(height: 8),
+
+          // --- NEW IMPRINT LINK ---
+          InkWell(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => const ImprintDialog(),
+              );
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    s.imprint, // Re-uses the existing "Imprint" string
+                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        s.legalNotice, // New "View Legal Notice" string
+                        style: SpaceTheme.bodyStyle.copyWith(
+                          fontSize: 14,
+                          color: SpaceTheme.alienGreen, // Link color
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.launch, // "Open in new" icon
+                        color: SpaceTheme.alienGreen,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // --- END NEW IMPRINT LINK ---
           
           const SizedBox(height: 16),
           
           Text(
-            S.of(context)!.aboutApp,
+            s.aboutApp,
             style: TextStyle(
               color: Colors.white70,
               fontSize: 14,
@@ -1156,7 +1204,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           style: TextStyle(color: Colors.white),
         ),
         content: Text(
-          'The app language will change when you restart. Would you like to restart now?',
+          S.of(context)!.languageRestartPrompt, // Was hardcoded
           style: TextStyle(color: Colors.white70),
         ),
         actions: [
@@ -1308,7 +1356,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           style: TextStyle(color: Colors.white),
         ),
         content: Text(
-          'Are you sure you want to reset all progress? This action cannot be undone.',
+          S.of(context)!.resetProgressConfirm,
           style: TextStyle(color: Colors.white70),
         ),
         actions: [

@@ -95,6 +95,14 @@
     "targetAge": "Target Age",
     "targetAgeRange": "8-12 years (Grades 3-6)",
     "aboutApp": "Space Math Academy helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.",
+    
+    "languageRestartPrompt": "The app language will change when you restart. Would you like to restart now?",
+    "later": "Later",
+    "restartNow": "Restart Now",
+    "resetProgressConfirm": "Are you sure you want to reset all progress? This action cannot be undone.",
+    "appVersionValue": "1.0.2",
+    "legalNotice": "View Legal Notice",
+    
     "debugPanelTitle": "Debug Panel",
     "debugForceUnlock": "Force Full Unlock",
     "debugApplyAndClose": "Apply & Close",
@@ -265,6 +273,8 @@
     "nextAnomaly": "Next Anomaly",
     "toTheBridge": "To Bridge",
     "asteroidMathHunter": "Asteroid Hunter",
+    "asteroidMathHunterDesc": "Navigate a dangerous asteroid field! Blast the drifting space rocks in the correct numerical sequence before they collide.",
+    
     "asteroidMathTarget": "Target asteroid: {target}",
     "@asteroidMathTarget": {
         "placeholders": {

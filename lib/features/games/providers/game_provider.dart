@@ -84,6 +84,28 @@ class GameProvider extends ChangeNotifier {
     // to batch save operations.
   }
 
+  /// DEBUG: Forces specific game progress levels to a new level.
+  void debugSetGameLevels(int newLevel, List<String> gameKeys) {
+    if (gameKeys.isEmpty) return; // Do nothing if no keys are selected
+
+    debugPrint('[DEBUG] Forcing ${gameKeys.length} game(s) to level $newLevel');
+    
+    for (final gameKey in gameKeys) {
+      // We check if the key is valid by looking in the official gameSkillMap
+      if (gameSkillMap.containsKey(gameKey)) {
+        _gameProgress[gameKey] = newLevel;
+      } else {
+        debugPrint('[DEBUG] Unknown game key: $gameKey. Skipping.');
+      }
+    }
+    
+    // Clear the session win history for any affected games
+    _currentLevelWins.removeWhere((key, value) => gameKeys.contains(key));
+    
+    notifyListeners();
+    _saveProgress();
+  }
+
   // Getters
   int get score => _score;
   int get level => _level;
@@ -348,7 +370,7 @@ class GameProvider extends ChangeNotifier {
     if (_level >= 5 && !hasAchievement('level_explorer')) { newAchievements.add(Achievement(id: 'level_explorer')); }
     if (_level >= 10 && !hasAchievement('space_commander')) { newAchievements.add(Achievement(id: 'space_commander')); }
     if (getGameProgress('magic_triangles') >= 3 && !hasAchievement('triangle_wizard')) { newAchievements.add(Achievement(id: 'triangle_wizard')); }
-    if (getGameProgress('bubble_math') >= 3 && !hasAchievement('bubble_popper')) { newAchievements.add(Achievement(id: 'bubble_popper')); }
+    if (getGameProgress('asteroid_math') >= 3 && !hasAchievement('bubble_popper')) { newAchievements.add(Achievement(id: 'bubble_popper')); }
     if (getGameProgress('puzzle_math') >= 3 && !hasAchievement('puzzle_solver')) { newAchievements.add(Achievement(id: 'puzzle_solver')); }
     if (getGameProgress('number_walls') >= 3 && !hasAchievement('number_walls_pro')) { newAchievements.add(Achievement(id: 'number_walls_pro')); }
     if (getGameProgress('codebreaker') >= 3 && !hasAchievement('codebreaker_pro')) { newAchievements.add(Achievement(id: 'codebreaker_pro')); }

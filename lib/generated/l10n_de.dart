@@ -244,11 +244,31 @@ class SDe extends S {
   String get targetAge => 'Zielalter';
 
   @override
-  String get targetAgeRange => '8-12 Jahre (Klasse 3-6)';
+  String get targetAgeRange => '6-12 Jahre (Klassen 1-6)';
 
   @override
   String get aboutApp =>
-      'Die Space Math Academy hilft Grundschülern, Mathematik durch fesselnde Weltraum-Spiele zu lernen. Perfekt für iPads und für junge Lernende konzipiert.';
+      'Die App hilft hoffentlich Kindern, Mathematik durch fesselnde Weltraum-Spiele zu lernen. Optimiert für Tablets.';
+
+  @override
+  String get languageRestartPrompt =>
+      'Die App-Sprache wird beim Neustart geändert. Möchtest du jetzt neu starten?';
+
+  @override
+  String get later => 'Später';
+
+  @override
+  String get restartNow => 'Jetzt neu starten';
+
+  @override
+  String get resetProgressConfirm =>
+      'Bist du sicher, dass du den gesamten Fortschritt zurücksetzen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get appVersionValue => '1.0.2';
+
+  @override
+  String get legalNotice => 'Impressum anzeigen';
 
   @override
   String get debugPanelTitle => 'Debug-Panel';
@@ -304,12 +324,6 @@ class SDe extends S {
       'Die App-Sprache wird nach einem Neustart geändert. Möchtest du jetzt neu starten?';
 
   @override
-  String get later => 'Später';
-
-  @override
-  String get restartNow => 'Jetzt neu starten';
-
-  @override
   String get selectGrade => 'Stufe auswählen';
 
   @override
@@ -332,7 +346,7 @@ class SDe extends S {
   String get progressResetSuccess => 'Fortschritt erfolgreich zurückgesetzt!';
 
   @override
-  String get reset => 'reset';
+  String get reset => 'Neustart';
 
   @override
   String get playToUnlock => 'Spielen zum Freischalten!';
@@ -648,6 +662,10 @@ class SDe extends S {
 
   @override
   String get asteroidMathHunter => 'Asteroiden-Mathe-Jäger';
+
+  @override
+  String get asteroidMathHunterDesc =>
+      'Navigiere durch ein gefährliches Asteroidenfeld! Zerstöre die treibenden Weltraumfelsen in der richtigen Reihenfolge, bevor sie kollidieren.';
 
   @override
   String asteroidMathTarget(Object target) {
@@ -2057,7 +2075,7 @@ class SDe extends S {
   String get spaceGridlockWinTitle => 'Andocken abgeschlossen!';
 
   @override
-  String get spaceGridlockPerfect => 'Prefekt!';
+  String get spaceGridlockPerfect => 'Perfekt!';
 
   @override
   String get spaceGridlockGreat => 'Großartig!';
@@ -2090,31 +2108,31 @@ class SDe extends S {
   String get undo => 'Zurück';
 
   @override
-  String get run => 'run';
+  String get run => 'Los!';
 
   @override
-  String get clear => 'clear';
+  String get clear => 'Leeren';
 
   @override
-  String get shoot => 'shoot';
+  String get shoot => 'Zerstöre';
 
   @override
-  String get jump => 'jump';
+  String get jump => 'Hüpfe';
 
   @override
-  String get robotPathJump => 'Jump';
+  String get robotPathJump => 'Hüpfe';
 
   @override
-  String get robotPathDestroy => 'Destroy';
+  String get robotPathDestroy => 'Zerkleinere';
 
   @override
-  String get robotPathWait => 'Wait';
+  String get robotPathWait => 'Warte';
 
   @override
-  String get robotPathPush => 'Push';
+  String get robotPathPush => 'Schiebe';
 
   @override
-  String get robotPathPull => 'Pull';
+  String get robotPathPull => 'Ziehe';
 
   @override
   String get robotPathTooltipWall => 'Mauer';
@@ -2126,7 +2144,7 @@ class SDe extends S {
   String get robotPathTooltipDestructible => 'Zerstörbarer Fels';
 
   @override
-  String get robotPathTooltipMovable => 'Beweglicher Block';
+  String get robotPathTooltipMovable => 'Beweglicher Fels';
 
   @override
   String get robotPathTooltipStart => 'Start';
@@ -2191,7 +2209,8 @@ class SDe extends S {
   String get starLoaderTitle => 'Frachtlader';
 
   @override
-  String get starLoaderGameDesc => 'Schiebe die Kisten auf die grünen Ziele.';
+  String get starLoaderGameDesc =>
+      'Schiebe die Frachtkisten ohne hängen zu bleiben auf die grünen Ziele.';
 
   @override
   String get starLoaderHint =>
