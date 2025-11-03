@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:space_math_academy/core/models/skill_category.dart'; // <-- IMPORTED
-import 'package:space_math_academy/core/services/debug_provider.dart';
-import 'package:space_math_academy/core/theme/space_theme.dart';
-import 'package:space_math_academy/features/games/providers/game_provider.dart';
-import 'package:space_math_academy/generated/l10n.dart';
+import '../../../core/models/skill_category.dart'; // <-- IMPORTED
+import '../../../core/services/debug_provider.dart';
+import '../../../core/theme/space_theme.dart';
+import '../../../features/games/providers/game_provider.dart';
+import '../../../generated/l10n.dart';
 
 class DebugPanel extends StatefulWidget {
   const DebugPanel({super.key});

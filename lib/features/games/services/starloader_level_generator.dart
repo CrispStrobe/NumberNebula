@@ -45,14 +45,14 @@ class LevelGenerator {
 
         final result = _reversePlaying(roomState, roomStructure, numBoxes);
 
-        if (result.moves > 0) {  // Changed from score to moves
+        if (result.score > 0) {  // Use score, not moves
           final cleanedState = _cleanupBoxesOnTargets(result.room);
           
           return GeneratedLevel(
             roomStructure: roomStructure,
             roomState: cleanedState,
             boxMapping: result.boxMapping,
-            optimalMoves: result.moves,  // Use actual move count
+            optimalMoves: result.score,  // Use score as move estimate
           );
         }
       } catch (e) {
@@ -196,39 +196,41 @@ class LevelGenerator {
 
     _exploredStates.clear();
     _bestRoom = null;
-    _bestMoves = 0;
+    _bestScore = 0;
     _bestBoxMapping = null;
-    _bestDisplacement = 0;
 
     _depthFirstSearch(
       roomState,
       roomStructure,
       boxMapping,
-      0,  // moves counter
-      200,
+      numBoxes,
+      0,           // boxSwaps
+      null,        // lastPulledBox
+      300,         // ttl
     );
 
     return ReversePlayResult(
       room: _bestRoom ?? roomState,
-      moves: _bestMoves,
+      score: _bestScore,
       boxMapping: _bestBoxMapping ?? boxMapping,
     );
   }
 
   Set<String> _exploredStates = {};
   List<List<int>>? _bestRoom;
-  int _bestMoves = 0;
-  int _bestDisplacement = 0;
+  int _bestScore = -1; 
   Map<String, List<int>>? _bestBoxMapping;
 
   void _depthFirstSearch(
     List<List<int>> roomState,
     List<List<int>> roomStructure,
     Map<String, List<int>> boxMapping,
-    int moves,
+    int numBoxes,
+    int boxSwaps,
+    String? lastPulledBox,
     int ttl,
   ) {
-    if (ttl <= 0 || _exploredStates.length > 5000) {
+    if (ttl <= 0 || _exploredStates.length > 300000) {
       return;
     }
 
@@ -239,38 +241,52 @@ class LevelGenerator {
 
     _exploredStates.add(stateHash);
 
-    // Calculate total displacement
-    int displacement = _boxDisplacementScore(boxMapping);
-
-    // Check if all boxes are off their targets
-    bool allBoxesOffTargets = true;
-    for (var entry in boxMapping.entries) {
-      final targetPos = entry.key.split(',').map(int.parse).toList();
-      final boxPos = entry.value;
-      if (targetPos[0] == boxPos[0] && targetPos[1] == boxPos[1]) {
-        allBoxesOffTargets = false;
-        break;
+    // Check if all boxes are off their targets - count empty targets in room state
+    int emptyTargets = 0;
+    for (int i = 0; i < roomState.length; i++) {
+      for (int j = 0; j < roomState[i].length; j++) {
+        if (roomState[i][j] == TARGET) {
+          emptyTargets++;
+        }
       }
     }
 
-    // Update best if this is better (more displacement with reasonable moves)
-    if (allBoxesOffTargets && displacement > _bestDisplacement) {
+    bool allBoxesOffTargets = (emptyTargets == numBoxes);
+
+    // Calculate score using Python's formula: box_swaps * displacement
+    int displacement = _boxDisplacementScore(boxMapping);
+    int score = boxSwaps * displacement;
+
+    // Update best if this is better
+    if (allBoxesOffTargets && score > _bestScore) {
       _bestRoom = roomState.map((row) => List<int>.from(row)).toList();
-      _bestMoves = moves;
-      _bestDisplacement = displacement;
+      _bestScore = score;
       _bestBoxMapping = Map<String, List<int>>.from(boxMapping);
     }
 
-    // Try all actions
+    // Try all actions (pull and move actions)
     for (int action = 0; action < 8; action++) {
       final result = _reverseMove(roomState, roomStructure, boxMapping, action);
       
       if (result != null) {
+        // Calculate new box swaps - increment if we pulled a different box
+        int newBoxSwaps = boxSwaps;
+        String? newLastPulledBox = lastPulledBox;
+        
+        if (result.pulled && result.pulledBoxKey != null) {
+          if (result.pulledBoxKey != lastPulledBox) {
+            newBoxSwaps = boxSwaps + 1;
+          }
+          newLastPulledBox = lastPulledBox; // Keep old value per Python logic
+        }
+        
         _depthFirstSearch(
           result.room,
           roomStructure,
           result.boxMapping,
-          moves + 1,  // Increment move counter
+          numBoxes,
+          newBoxSwaps,
+          newLastPulledBox,
           ttl - 1,
         );
       }
@@ -321,27 +337,36 @@ class LevelGenerator {
       return null;
     }
 
+    // Check if next position is a wall or box
     if (newRoom[nextPos[0]][nextPos[1]] == WALL ||
-        newRoom[nextPos[0]][nextPos[1]] == BOX) {
+        newRoom[nextPos[0]][nextPos[1]] == BOX ||
+        newRoom[nextPos[0]][nextPos[1]] == BOX_ON_TARGET) {
       return null;
     }
 
     bool pulled = false;
+    String? pulledBoxKey;
 
+    // If this is a pull action (0-3), try to pull a box
     if (action < 4) {
       final behindPos = [playerPos[0] - change[0], playerPos[1] - change[1]];
 
       if (behindPos[0] >= 0 && behindPos[0] < newRoom.length &&
           behindPos[1] >= 0 && behindPos[1] < newRoom[0].length) {
         
-        // FIX: Check for both BOX and BOX_ON_TARGET
+        // Check for both BOX and BOX_ON_TARGET
         if ([BOX, BOX_ON_TARGET].contains(newRoom[behindPos[0]][behindPos[1]])) {
-          newRoom[playerPos[0]][playerPos[1]] = BOX;
+          // Box lands where player was - set to BOX_ON_TARGET (3) per Python
+          newRoom[playerPos[0]][playerPos[1]] = BOX_ON_TARGET;
+          
+          // Where box was becomes the structure tile
           newRoom[behindPos[0]][behindPos[1]] = roomStructure[behindPos[0]][behindPos[1]];
           
+          // Update box mapping and track which box was pulled
           for (var entry in newBoxMapping.entries) {
             if (entry.value[0] == behindPos[0] && entry.value[1] == behindPos[1]) {
               newBoxMapping[entry.key] = [playerPos[0], playerPos[1]];
+              pulledBoxKey = entry.key;
               break;
             }
           }
@@ -351,15 +376,19 @@ class LevelGenerator {
       }
     }
 
+    // If no box was pulled, restore the structure tile where player was
     if (!pulled) {
       newRoom[playerPos[0]][playerPos[1]] = roomStructure[playerPos[0]][playerPos[1]];
     }
+    
+    // Move player to next position
     newRoom[nextPos[0]][nextPos[1]] = PLAYER;
 
     return ReverseMoveResult(
       room: newRoom,
       boxMapping: newBoxMapping,
       pulled: pulled,
+      pulledBoxKey: pulledBoxKey,
     );
   }
 
@@ -431,12 +460,12 @@ class GeneratedLevel {
 
 class ReversePlayResult {
   final List<List<int>> room;
-  final int moves;
+  final int score;
   final Map<String, List<int>> boxMapping;
 
   ReversePlayResult({
     required this.room,
-    required this.moves,
+    required this.score,
     required this.boxMapping,
   });
 }
@@ -445,10 +474,12 @@ class ReverseMoveResult {
   final List<List<int>> room;
   final Map<String, List<int>> boxMapping;
   final bool pulled;
+  final String? pulledBoxKey;
 
   ReverseMoveResult({
     required this.room,
     required this.boxMapping,
     required this.pulled,
+    this.pulledBoxKey,
   });
 }
