@@ -2265,4 +2265,34 @@ class SDe extends S {
 
   @override
   String get imprintWebsite => 'www.crispstro.be';
+
+  @override
+  String get solarPanelGameTitle => 'Solarpanel-Baumeister';
+
+  @override
+  String get solarPanelTitle => 'Baue Solaranlagen';
+
+  @override
+  String get solarPanelHint =>
+      'Höhe × Breite = Panelfläche. Addiere beide Panels für Gesamtleistung!';
+
+  @override
+  String get solarPanelNumbers => 'Verfügbare Zahlen';
+
+  @override
+  String get solarPanelDropFar => 'Näher an eine leere Zelle ziehen!';
+
+  @override
+  String get solarPanelFail => 'Nicht ganz! Prüfe deine Rechnungen.';
+
+  @override
+  String get solarPanelWinTitle => '🌞 Station versorgt!';
+
+  @override
+  String solarPanelWinDesc(Object bonus) {
+    return 'Großartig! Du hast $bonus Bonus-Watt verdient!';
+  }
+
+  @override
+  String get solarPanelNext => 'Nächste Anlage';
 }

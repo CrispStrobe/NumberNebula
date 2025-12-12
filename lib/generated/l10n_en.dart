@@ -2251,4 +2251,34 @@ class SEn extends S {
 
   @override
   String get imprintWebsite => 'www.crispstro.be';
+
+  @override
+  String get solarPanelGameTitle => 'Solar Panel Builder';
+
+  @override
+  String get solarPanelTitle => 'Build Solar Arrays';
+
+  @override
+  String get solarPanelHint =>
+      'Height × Width = Panel Area. Add both panels for total power!';
+
+  @override
+  String get solarPanelNumbers => 'Available Numbers';
+
+  @override
+  String get solarPanelDropFar => 'Drop closer to an empty cell!';
+
+  @override
+  String get solarPanelFail => 'Not quite! Check your calculations.';
+
+  @override
+  String get solarPanelWinTitle => '🌞 Station Powered!';
+
+  @override
+  String solarPanelWinDesc(Object bonus) {
+    return 'Amazing work! You earned $bonus bonus watts!';
+  }
+
+  @override
+  String get solarPanelNext => 'Next Array';
 }

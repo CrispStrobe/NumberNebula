@@ -31,6 +31,7 @@ import 'quantum_molecule_builder_game.dart';
 import 'space_station_gridlock_game.dart';
 import 'star_loader_game.dart';
 import 'robot_path_game.dart';
+import 'solarpanel_game.dart';
 
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
@@ -76,7 +77,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   bool _isGamesDataInitialized = false;
 
   // for new games, we must manually update game count
-  static const int _gameCount = 22;
+  static const int _gameCount = 23;
 
   @override
   void initState() {
@@ -299,6 +300,14 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         icon: Icons.smart_toy_outlined,
         gradient: const LinearGradient(colors: [Color(0xFF00bcd4), Color(0xFF00838f)]),
         gameBuilder: (grade, level) => RobotPathGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'solarpanel_game',
+        title: s.solarPanelGameTitle,
+        description: s.solarPanelTitle,
+        icon: Icons.smart_toy_outlined,
+        gradient: const LinearGradient(colors: [Color(0xFF44bcd4), Color(0xFF44838f)]),
+        gameBuilder: (grade, level) => SolarPanelGame(grade: grade, level: level),
       ),
     ];
   }

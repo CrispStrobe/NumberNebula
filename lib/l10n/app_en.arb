@@ -1283,6 +1283,17 @@
   "imprintDisclaimer": "Disclaimer",
   "imprintDisclaimerText": "This app is provided as is, exclusively for educational and creative purposes, without any liability.",
   "imprintWebsite": "www.crispstro.be",
-  "close": "Close"
+  "close": "Close",
+
+  "solarPanelGameTitle": "Solar Panel Builder",
+  "solarPanelTitle": "Build Solar Arrays",
+  "solarPanelHint": "Height × Width = Panel Area. Add both panels for total power!",
+  "solarPanelNumbers": "Available Numbers",
+  "solarPanelDropFar": "Drop closer to an empty cell!",
+  "solarPanelFail": "Not quite! Check your calculations.",
+  "solarPanelWinTitle": "🌞 Station Powered!",
+  "solarPanelWinDesc": "Amazing work! You earned {bonus} bonus watts!",
+  "solarPanelNext": "Next Array",
+  "toTheBridge": "To Bridge"
 
 }

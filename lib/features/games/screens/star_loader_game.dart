@@ -11,7 +11,7 @@ import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
-import '../services/starloader_level_generator.dart'; // We can leave this filename for now
+import '../services/starloader_level_generator.dart';
 
 // --- Enums for Game Logic ---
 
@@ -91,7 +91,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   void initState() {
     super.initState();
 
-    _levelGenerator = LevelGenerator();
+    _levelGenerator = LevelGenerator(verbose: kDebugMode);
     // --- FIX: Generate and cache the level ONCE ---
     _currentLevelData = _getLevelData(widget.grade, widget.level);
     // ---

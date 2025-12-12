@@ -1203,6 +1203,17 @@
   "imprintDisclaimer": "Haftungsausschluss",
   "imprintDisclaimerText": "Diese App wird 'as is' (so wie sie ist) ausschließlich zu Bildungs- und kreativen Zwecken bereitgestellt, ohne jegliche Haftung.",
   "imprintWebsite": "www.crispstro.be",
-  "close": "Schließen"
+  "close": "Schließen",
+
+  "solarPanelGameTitle": "Solarpanel-Baumeister",
+  "solarPanelTitle": "Baue Solaranlagen",
+  "solarPanelHint": "Höhe × Breite = Panelfläche. Addiere beide Panels für Gesamtleistung!",
+  "solarPanelNumbers": "Verfügbare Zahlen",
+  "solarPanelDropFar": "Näher an eine leere Zelle ziehen!",
+  "solarPanelFail": "Nicht ganz! Prüfe deine Rechnungen.",
+  "solarPanelWinTitle": "🌞 Station versorgt!",
+  "solarPanelWinDesc": "Großartig! Du hast {bonus} Bonus-Watt verdient!",
+  "solarPanelNext": "Nächste Anlage",
+  "toTheBridge": "Zur Brücke"
 
 }

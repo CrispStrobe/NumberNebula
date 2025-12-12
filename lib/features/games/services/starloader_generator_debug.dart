@@ -145,149 +145,45 @@ class LevelGenerator {
     if (_verbose) print('\x1B[90m[Gen] $message\x1B[0m');
   }
 
-
-  /// NEW METHOD: Ensures all floor tiles are connected using flood-fill.
-  /// Keeps the largest connected component and walls off the rest.
-  List<List<int>> _ensureConnectivity(List<List<int>> room) {
-    int dimX = room.length;
-    int dimY = room[0].length;
-
-    // Find all floor tiles
-    List<List<int>> floorTiles = [];
-    for (int i = 0; i < dimX; i++) {
-      for (int j = 0; j < dimY; j++) {
-        if (room[i][j] == FLOOR) {
-          floorTiles.add([i, j]);
-        }
-      }
-    }
-
-    if (floorTiles.isEmpty) {
-      throw Exception('No floor tiles generated');
-    }
-
-    // Find all connected components
-    Set<String> visited = {};
-    List<Set<String>> components = [];
-
-    for (var tile in floorTiles) {
-      String key = '${tile[0]},${tile[1]}';
-      if (!visited.contains(key)) {
-        Set<String> component = {};
-        _floodFill(room, tile[0], tile[1], visited, component);
-        components.add(component);
-      }
-    }
-
-    _log('Found ${components.length} connected components');
-
-    // Keep only the largest component
-    if (components.length > 1) {
-      components.sort((a, b) => b.length.compareTo(a.length));
-      Set<String> largestComponent = components[0];
-      
-      _log('Keeping largest component with ${largestComponent.length} tiles');
-
-      // Wall off smaller components
-      List<List<int>> result = room.map((row) => List<int>.from(row)).toList();
-      for (int i = 0; i < dimX; i++) {
-        for (int j = 0; j < dimY; j++) {
-          if (result[i][j] == FLOOR) {
-            String key = '$i,$j';
-            if (!largestComponent.contains(key)) {
-              result[i][j] = WALL;
-            }
-          }
-        }
-      }
-      return result;
-    }
-
-    return room;
-  }
-
-  /// NEW METHOD: Flood-fill helper to find connected floor tiles.
-  void _floodFill(List<List<int>> room, int x, int y, Set<String> visited, Set<String> component) {
-    String key = '$x,$y';
-    if (visited.contains(key)) return;
-    
-    if (x < 0 || x >= room.length || y < 0 || y >= room[0].length) return;
-    if (room[x][y] != FLOOR) return;
-
-    visited.add(key);
-    component.add(key);
-
-    // Check 4 directions
-    _floodFill(room, x - 1, y, visited, component);
-    _floodFill(room, x + 1, y, visited, component);
-    _floodFill(room, x, y - 1, visited, component);
-    _floodFill(room, x, y + 1, visited, component);
-  }
-
-
-
-
   GeneratedLevel generateLevel({
     required int dimX,
     required int dimY,
     required int numBoxes,
     int? numGenSteps,
     double pChangeDirection = 0.35,
-    int maxTries = 10, // Increased from 4
+    int maxTries = 4,
   }) {
-    _log('Starting level generation ($dimX x $dimY, $numBoxes boxes)...');
+    _log('Starting ($dimX x $dimY, $numBoxes boxes)...');
     numGenSteps ??= (1.7 * (dimX + dimY)).round();
-    _log('Using numGenSteps: $numGenSteps');
 
     for (int attempt = 0; attempt < maxTries; attempt++) {
-      _log('--- Attempt ${attempt + 1} of $maxTries ---');
       try {
-        List<List<int>> room =
-            _generateTopology(dimX, dimY, numGenSteps, pChangeDirection);
-        _log('Topology generated.');
-
-        // NEW: Ensure connectivity
-        room = _ensureConnectivity(room);
-        _log('Connectivity ensured.');
-
+        List<List<int>> room = _generateTopology(dimX, dimY, numGenSteps, pChangeDirection);
         room = _placePlayerAndTargets(room, numBoxes);
-        _log('Player and $numBoxes targets placed.');
-
         List<List<int>> roomStructure = _createRoomStructure(room);
-        _log('Room structure created.');
-
         List<List<int>> roomState = _createInitialStateWithBoxesOnTargets(room);
-        _log('Initial room state created (boxes on targets).');
 
+        // Run Reverse Play
         final result = _reversePlaying(roomState, roomStructure, numBoxes);
 
         if (result.score > 0) {
-          _log('✅ Success! Found valid level with score: ${result.score}');
+          _log('✅ Valid level found! Score: ${result.score}');
           final cleanedState = _cleanupBoxesOnTargets(result.room);
-
-          final level = GeneratedLevel(
+          return GeneratedLevel(
             roomStructure: roomStructure,
             roomState: cleanedState,
             boxMapping: result.boxMapping,
             optimalMoves: result.score,
           );
-          
-          if (_verbose) {
-            _log('\n${level.toLayoutString()}');
-          }
-
-          return level;
         } else {
-          _log(
-              '⚠️ Failed attempt. Reverse play score was ${result.score}. Retrying...');
+          _log('⚠️ Low score (${result.score}). Retrying...');
         }
       } catch (e) {
-        _log('⚠️ Error during attempt ${attempt + 1}: $e. Retrying...');
+        _log('⚠️ Error: $e. Retrying...');
         continue;
       }
     }
-
-    _log('❌ All $maxTries attempts failed. Returning fallback level.');
+    _log('❌ Failed. Returning fallback.');
     return _createFallbackLevel(dimX, dimY, numBoxes);
   }
 
@@ -598,33 +494,6 @@ class GeneratedLevel {
     required this.boxMapping,
     required this.optimalMoves,
   });
-
-  // ADD THIS METHOD:
-  String toLayoutString() {
-    List<String> lines = [];
-    for (int i = 0; i < roomState.length; i++) {
-      String line = '';
-      for (int j = 0; j < roomState[i].length; j++) {
-        if (roomState[i][j] == LevelGenerator.WALL) {
-          line += 'W';
-        } else if (roomState[i][j] == LevelGenerator.PLAYER) {
-          line += 'P';
-        } else if (roomState[i][j] == LevelGenerator.BOX) {
-          if (roomStructure[i][j] == LevelGenerator.TARGET) {
-            line += 'X';
-          } else {
-            line += 'B';
-          }
-        } else if (roomStructure[i][j] == LevelGenerator.TARGET) {
-          line += 'T';
-        } else {
-          line += ' ';
-        }
-      }
-      lines.add(line);
-    }
-    return lines.join('\n');
-  }
 }
 
 class ReversePlayResult {

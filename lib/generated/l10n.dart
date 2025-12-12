@@ -4041,6 +4041,60 @@ abstract class S {
   /// In en, this message translates to:
   /// **'www.crispstro.be'**
   String get imprintWebsite;
+
+  /// No description provided for @solarPanelGameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Solar Panel Builder'**
+  String get solarPanelGameTitle;
+
+  /// No description provided for @solarPanelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Build Solar Arrays'**
+  String get solarPanelTitle;
+
+  /// No description provided for @solarPanelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Height × Width = Panel Area. Add both panels for total power!'**
+  String get solarPanelHint;
+
+  /// No description provided for @solarPanelNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Numbers'**
+  String get solarPanelNumbers;
+
+  /// No description provided for @solarPanelDropFar.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop closer to an empty cell!'**
+  String get solarPanelDropFar;
+
+  /// No description provided for @solarPanelFail.
+  ///
+  /// In en, this message translates to:
+  /// **'Not quite! Check your calculations.'**
+  String get solarPanelFail;
+
+  /// No description provided for @solarPanelWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'🌞 Station Powered!'**
+  String get solarPanelWinTitle;
+
+  /// No description provided for @solarPanelWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Amazing work! You earned {bonus} bonus watts!'**
+  String solarPanelWinDesc(Object bonus);
+
+  /// No description provided for @solarPanelNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Array'**
+  String get solarPanelNext;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

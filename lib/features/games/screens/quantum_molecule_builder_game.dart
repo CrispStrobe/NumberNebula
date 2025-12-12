@@ -246,7 +246,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     _setupAnimationControllers();
     
     // Initialize with default values first to prevent LateInitializationError
-    levelName = 'H₂O';
+    levelName = '';
     targetPattern = MoleculePattern.water();
     moveLimit = 40;
     grid = List.generate(gridSize, (i) => List.filled(gridSize, CellType.empty));
@@ -404,6 +404,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
       setState(() {
         levelDisplayName = getLevelLabel(level.levelNumber);
+        levelName = level.name;
       });
 
       if (level.name.toUpperCase() != 'BONUS STAGE') {
@@ -631,7 +632,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   }
 
   void _loadFallbackLevel() {
-    levelName = 'H₂O';
+    levelName = '';
     grid = List.generate(gridSize, (i) => List.filled(gridSize, CellType.empty));
     
     for (int i = 0; i < gridSize; i++) {
@@ -2240,7 +2241,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                     const Icon(Icons.science, size: 54, color: SpaceTheme.alienGreen),
                     const SizedBox(height: 8),
                     Text(
-                    levelName,
+                    levelDisplayName,
                     style: const TextStyle(
                         color: SpaceTheme.alienGreen,
                         fontSize: 28,
