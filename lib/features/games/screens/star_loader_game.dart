@@ -12,6 +12,8 @@ import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../services/starloader_level_generator.dart';
+import '../services/starloader_level_manager.dart';
+
 
 // --- Enums for Game Logic ---
 
@@ -26,10 +28,11 @@ class MoveHistory {
 
 // --- Level Data Structure ---
 class LevelData {
+  final String id;
   final List<String> layout;
   final int optimalMoves;
 
-  LevelData({required this.layout, required this.optimalMoves});
+  LevelData({required this.id, required this.layout, required this.optimalMoves});
 }
 
 // --- Main Game Widget ---
@@ -50,40 +53,48 @@ class StarLoaderGame extends StatefulWidget {
 
 class _StarLoaderGameState extends State<StarLoaderGame>
     with TickerProviderStateMixin {
-  // --- Game State ---
-  late final LevelGenerator _levelGenerator;
-  late LevelData _currentLevelData; // <-- FIX: Cache for current level
+  
+  // --- 1. Level & Grid State ---
+  late LevelData _currentLevelData; 
   late List<List<CellType>> _grid;
   late Offset _playerPos;
-  late int _playerDirection; // 0=up, 1=right, 2=down, 3=left
+  late int _playerDirection;
   late List<Offset> _boxPositions;
   late List<Offset> _targetPositions;
   late int _optimalMoves;
+  int _userRating = 0;
+  // In production, set this to false to hide the rating UI
+  static const bool ENABLE_LEVEL_RATING = true; // kDebugMode; 
+  int _currentRating = 0; // Local state for the dialog
 
+  // --- 2. Loading State ---
+  bool _isLoading = true; 
+
+  // --- 3. Game Logic State (These were missing!) ---
   final List<MoveHistory> _moveHistory = [];
   int _moveCount = 0;
   bool _hasWon = false;
   final Stopwatch _stopwatch = Stopwatch();
 
-  // --- Animation & Controls ---
+  // --- 4. Animation & Controls ---
   late AnimationController _winPulseController;
   late AnimationController _glowController;
   late AnimationController _particleController;
   late AnimationController _celebrationController;
-  late AnimationController _pushController; // For squash/stretch
+  late AnimationController _pushController; 
 
   late Animation<double> _winPulseAnimation;
   late Animation<double> _glowAnimation;
-  late Animation<double> _pushAnimation; // Squash/stretch animation
+  late Animation<double> _pushAnimation; 
 
   final FocusNode _focusNode = FocusNode();
 
-  // Particles
+  // --- 5. Particles ---
   List<StarParticle> _particles = [];
   List<TrailParticle> _trails = [];
   List<CelebrationParticle> _celebrationParticles = [];
 
-  // Hints
+  // --- 6. Hints ---
   bool _showingHint = false;
   String _hintMessage = '';
 
@@ -91,11 +102,10 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   void initState() {
     super.initState();
 
-    _levelGenerator = LevelGenerator(verbose: kDebugMode);
-    // --- FIX: Generate and cache the level ONCE ---
-    _currentLevelData = _getLevelData(widget.grade, widget.level);
-    // ---
-
+    // Safety first
+    _isLoading = true;
+    
+    // Initialize Controllers
     _winPulseController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -133,8 +143,9 @@ class _StarLoaderGameState extends State<StarLoaderGame>
         }
       });
 
-    _loadLevel(); // Load the cached level
+    // Start Logic
     _generateStarfield();
+    _initGameFlow();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
@@ -142,6 +153,39 @@ class _StarLoaderGameState extends State<StarLoaderGame>
         _showTutorialHint();
       }
     });
+  }
+
+  void _handleDiscard() {
+    // 1. Rate as -1 (The "Discard" Signal)
+    StarLoaderLevelManager().rateLevel(_currentLevelData.id, -1);
+    
+    // 2. Feedback
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('🗑️ Level Discarded (-1 rating)'),
+        duration: Duration(milliseconds: 500),
+        backgroundColor: Colors.red,
+      ),
+    );
+
+    // 3. Load Next
+    _loadLevel();
+  }
+
+  Future<void> _initGameFlow() async {
+    // 1. Initialize the manager
+    await StarLoaderLevelManager().initialize();
+    
+    // 2. Load the level
+    await _loadLevel();
+
+    // 3. UI stuff after loading is done
+    if (mounted) {
+       WidgetsBinding.instance.addPostFrameCallback((_) {
+        _focusNode.requestFocus();
+        if (widget.level == 1) _showTutorialHint();
+      });
+    }
   }
 
   void _generateStarfield() {
@@ -238,80 +282,24 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     _stopwatch.start();
     _focusNode.requestFocus();
   }
-  
-  // --- FIX: This method now generates a NEW level ---
-  // It's called by the "Play Again" button.
-  void _loadLevel() {
-    // Generate new data and cache it
-    _currentLevelData = _getLevelData(widget.grade, widget.level);
-    _resetCurrentLevel(); // Load the newly cached data
+
+  Future<void> _loadLevel() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+
+    final levelData = await StarLoaderLevelManager().getLevelForGrade(widget.grade, widget.level);
+
+    if (!mounted) return;
+    
+    print('🚀 [Game] Loading Level ID: ${levelData.id} (Moves: ${levelData.optimalMoves})');
+
+    _currentLevelData = levelData;
+    _resetCurrentLevel(); 
+
+    setState(() {
+      _isLoading = false;
+    });
   }
-
-    // solvable levels with progressive difficulty
-    LevelData _getLevelData(int grade, int level) {
-    // Calculate difficulty
-    final complexity = (grade - 1) * 5 + level;
-    
-    // Determine room size based on grade
-    int dimX, dimY, numBoxes;
-    
-    if (grade == 1) {
-        dimX = 7;
-        dimY = 7;
-        numBoxes = 2 + (level ~/ 5).clamp(0, 1);
-    } else if (grade == 2) {
-        dimX = 8;
-        dimY = 8;
-        numBoxes = 2 + (level ~/ 4).clamp(0, 2);
-    } else if (grade == 3) {
-        dimX = 10;
-        dimY = 10;
-        numBoxes = 3 + (level ~/ 3).clamp(0, 2);
-    } else {
-        dimX = 12;
-        dimY = 11;
-        numBoxes = 4 + (level ~/ 3).clamp(0, 2);
-    }
-
-    // Generate level
-    final generatedLevel = _levelGenerator.generateLevel(
-        dimX: dimX,
-        dimY: dimY,
-        numBoxes: numBoxes,
-    );
-
-    // Convert to layout strings
-    List<String> layout = [];
-    for (int i = 0; i < generatedLevel.roomState.length; i++) {
-        String line = '';
-        for (int j = 0; j < generatedLevel.roomState[i].length; j++) {
-        final state = generatedLevel.roomState[i][j];
-        final structure = generatedLevel.roomStructure[i][j];
-        
-        if (state == LevelGenerator.WALL) {
-            line += 'W';
-        } else if (state == LevelGenerator.PLAYER) {
-            line += 'P';
-        } else if (state == LevelGenerator.BOX) {
-            if (structure == LevelGenerator.TARGET) {
-            line += 'X'; // Box on target (shouldn't happen in initial state)
-            } else {
-            line += 'B';
-            }
-        } else if (structure == LevelGenerator.TARGET) {
-            line += 'T';
-        } else {
-            line += ' ';
-        }
-        }
-        layout.add(line);
-    }
-
-    return LevelData(
-        layout: layout,
-        optimalMoves: generatedLevel.optimalMoves,
-    );
-    }
 
   @override
   void dispose() {
@@ -555,6 +543,15 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   Widget build(BuildContext context) {
     final s = S.of(context)!;
 
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: SpaceTheme.deepSpace,
+        body: const Center(
+          child: CircularProgressIndicator(color: SpaceTheme.alienGreen),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: SpaceTheme.deepSpace, 
       body: SpaceBackground( 
@@ -772,40 +769,61 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   }
 
   Widget _buildControls(S s) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      alignment: WrapAlignment.center,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        ElevatedButton.icon(
-          onPressed: _moveHistory.isEmpty || _hasWon ? null : _undoMove,
-          icon: const Icon(Icons.undo, size: 20),
-          label: Text(s.undo),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: SpaceTheme.nebulaPurple,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          alignment: WrapAlignment.center,
+          children: [
+            ElevatedButton.icon(
+              onPressed: _moveHistory.isEmpty || _hasWon ? null : _undoMove,
+              icon: const Icon(Icons.undo, size: 20),
+              label: Text(s.undo),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: SpaceTheme.nebulaPurple,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 8,
+              ),
             ),
-            elevation: 8,
-          ),
-        ),
-        // --- FIX: Call _resetCurrentLevel ---
-        ElevatedButton.icon(
-          onPressed: _hasWon ? null : _resetCurrentLevel, // Disable if won
-          icon: const Icon(Icons.refresh, size: 20),
-          label: Text(s.reset),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: SpaceTheme.rocketRed.withOpacity(0.8),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+            ElevatedButton.icon(
+              onPressed: _hasWon ? null : _resetCurrentLevel,
+              icon: const Icon(Icons.refresh, size: 20),
+              label: Text(s.reset),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: SpaceTheme.rocketRed.withOpacity(0.8),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 8,
+              ),
             ),
-            elevation: 8,
-          ),
+          ],
         ),
+        
+        // --- DEV: DISCARD BUTTON ---
+        if (ENABLE_LEVEL_RATING) ...[
+          const SizedBox(height: 12),
+          TextButton.icon(
+            onPressed: _handleDiscard,
+            icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
+            label: const Text(
+              "Verwerfe Level", 
+              style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)
+            ),
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.red.withOpacity(0.1),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -997,146 +1015,246 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     );
   }
 
+  Widget _buildRatingStars(StateSetter setState) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(5, (index) {
+        return IconButton(
+          icon: Icon(
+            index < _userRating ? Icons.star : Icons.star_border,
+            color: SpaceTheme.starYellow,
+            size: 32,
+          ),
+          onPressed: () {
+            setState(() {
+              _userRating = index + 1;
+            });
+            HapticFeedback.selectionClick();
+          },
+        );
+      }),
+    );  
+  }
+
   Widget _buildSuccessDialog(
       S s, int totalScore, int timeTaken, int efficiency) {
-    // Borrowing the superior style from RobotPathGame
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              SpaceTheme.deepSpace.withOpacity(0.95),
-              SpaceTheme.nebulaPurple.withOpacity(0.95),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: SpaceTheme.alienGreen, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: SpaceTheme.alienGreen.withOpacity(0.5),
-              blurRadius: 30,
-              spreadRadius: 5,
+    
+    // Reset rating state every time dialog opens
+    _currentRating = 0;
+
+    return StatefulBuilder(
+      builder: (context, setDialogState) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  SpaceTheme.deepSpace.withOpacity(0.95),
+                  SpaceTheme.nebulaPurple.withOpacity(0.95),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: SpaceTheme.alienGreen, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: SpaceTheme.alienGreen.withOpacity(0.5),
+                  blurRadius: 30,
+                  spreadRadius: 5,
+                ),
+              ],
             ),
-          ],
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ScaleTransition(
-                scale: _winPulseAnimation, // Use existing win pulse
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        SpaceTheme.alienGreen,
-                        SpaceTheme.alienGreen.withOpacity(0.5),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // --- 1. Success Icon ---
+                  ScaleTransition(
+                    scale: _winPulseAnimation,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            SpaceTheme.alienGreen,
+                            SpaceTheme.alienGreen.withOpacity(0.5),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: SpaceTheme.alienGreen.withOpacity(0.6),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.check_circle,
+                        size: 60,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // --- 2. Title & Desc ---
+                  Text(
+                    s.starLoaderWinTitle,
+                    style: SpaceTheme.headlineStyle.copyWith(fontSize: 28),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    s.starLoaderWinDesc(totalScore, _moveCount, timeTaken),
+                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                  
+                  // --- 3. Rating System (Conditional) ---
+                  if (ENABLE_LEVEL_RATING) ...[
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: Column(
+                        children: [
+                          const Text(
+                            "RATE THIS LEVEL (DEV ONLY)", 
+                            style: TextStyle(
+                              color: SpaceTheme.starYellow, 
+                              fontSize: 12, 
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                            )
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(5, (index) {
+                              return GestureDetector(
+                                onTap: () {
+                                  setDialogState(() {
+                                    _currentRating = index + 1;
+                                  });
+                                  HapticFeedback.selectionClick();
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                  child: Icon(
+                                    index < _currentRating ? Icons.star : Icons.star_border,
+                                    color: SpaceTheme.starYellow,
+                                    size: 36,
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 24),
+                  
+                  // --- 4. Stats Box ---
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildScoreRow(
+                            s.efficiency,
+                            '$efficiency',
+                            efficiency >= 90
+                                ? SpaceTheme.alienGreen
+                                : SpaceTheme.starYellow),
+                        const SizedBox(height: 8),
+                        _buildScoreRow(s.movesVsOptimal, '$_moveCount / $_optimalMoves',
+                            Colors.white70),
                       ],
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: SpaceTheme.alienGreen.withOpacity(0.6),
-                        blurRadius: 20,
-                        spreadRadius: 5,
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // --- 5. Buttons ---
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Flexible(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            // SAVE RATING
+                            if (ENABLE_LEVEL_RATING && _currentRating > 0) {
+                              StarLoaderLevelManager().rateLevel(
+                                _currentLevelData.id, 
+                                _currentRating
+                              );
+                            }
+                            
+                            Navigator.of(context).pop();
+                            _loadLevel(); // Load next
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: Text(s.nextLevel, textAlign: TextAlign.center),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: SpaceTheme.alienGreen,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            // SAVE RATING
+                            if (ENABLE_LEVEL_RATING && _currentRating > 0) {
+                              StarLoaderLevelManager().rateLevel(
+                                _currentLevelData.id, 
+                                _currentRating
+                              );
+                            }
+                            
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          },
+                          icon: const Icon(Icons.home),
+                          label: Text(s.toTheBridge, textAlign: TextAlign.center),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: SpaceTheme.nebulaPurple,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.check_circle,
-                    size: 60,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                s.starLoaderWinTitle,
-                style: SpaceTheme.headlineStyle.copyWith(fontSize: 28),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                s.starLoaderWinDesc(totalScore, _moveCount, timeTaken),
-                style: SpaceTheme.bodyStyle.copyWith(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    _buildScoreRow(
-                        s.efficiency,
-                        '$efficiency',
-                        efficiency >= 90
-                            ? SpaceTheme.alienGreen
-                            : SpaceTheme.starYellow),
-                    const SizedBox(height: 8),
-                    _buildScoreRow(s.movesVsOptimal, '$_moveCount / $_optimalMoves',
-                        Colors.white70),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Flexible(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        _loadLevel(); // <-- FIX: This generates a NEW level
-                      },
-                      icon: const Icon(Icons.refresh),
-                      // This label should be "New Level" or "Next Level"
-                      label: Text(s.nextLevel, textAlign: TextAlign.center), 
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: SpaceTheme.alienGreen,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Flexible(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pop();
-                      },
-                      icon: const Icon(Icons.home),
-                      label: Text(s.toTheBridge, textAlign: TextAlign.center),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: SpaceTheme.nebulaPurple,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

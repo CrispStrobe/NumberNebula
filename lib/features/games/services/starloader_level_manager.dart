@@ -1,209 +1,264 @@
-// lib/features/games/services/starloader_level_manager.dart
+// lib/features/games/services/starloader_level_manager.dart:
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'package:flutter/services.dart' show rootBundle;
-import '../models/level_database.dart';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/starloader_level_model.dart';
 import 'starloader_level_generator.dart';
+import '../screens/star_loader_game.dart';
 
 class StarLoaderLevelManager {
-  static const String DB_PATH = 'assets/data/starloader_levels.json';
-  static const String PROGRESS_PATH = 'starloader_progress.json';
-  
-  LevelDatabase? _database;
-  ProgressTracker? _progressTracker;
-  final LevelGenerator _generator = LevelGenerator();
-  final Random _random = Random();
-  
-  String? _dataDir;
+  static final StarLoaderLevelManager _instance = StarLoaderLevelManager._internal();
+  factory StarLoaderLevelManager() => _instance;
+  StarLoaderLevelManager._internal();
 
-  Future<void> initialize({String? dataDir}) async {
-    _dataDir = dataDir;
-    await _loadDatabase();
-    await _loadProgress();
-  }
+  LevelDatabase _database = LevelDatabase.empty();
+  
+  // Verbose generator so you see the logs in CLI
+  final LevelGenerator _realTimeGenerator = LevelGenerator(verbose: true);
+  
+  final Set<String> _playedLevelIds = {};
+  bool _initialized = false;
+  File? _localFile;
 
-  Future<void> _loadDatabase() async {
+  /// 1. INITIALIZE: ONLY Load Local File. Ignore Assets.
+  Future<void> initialize() async {
+    if (_initialized) return;
+
+    // A. Load Played History (so we don't repeat levels in this session)
     try {
-      // Try to load from assets
-      final String jsonString = await rootBundle.loadString(DB_PATH);
-      final json = jsonDecode(jsonString);
-      _database = LevelDatabase.fromJson(json);
-      print('📦 Loaded level database with ${_database!.levels.length} levels');
+      final prefs = await SharedPreferences.getInstance();
+      final history = prefs.getStringList('starloader_played_ids');
+      if (history != null) _playedLevelIds.addAll(history);
     } catch (e) {
-      print('⚠️  Could not load level database: $e');
-      print('   Will generate levels on demand');
-      _database = null;
+      print('⚠️ [Manager] Failed to load history: $e');
     }
-  }
 
-  Future<void> _loadProgress() async {
-    if (_dataDir == null) return;
-
-    final file = File('$_dataDir/$PROGRESS_PATH');
-    
+    // B. Setup Local JSON File Access
     try {
-      if (await file.exists()) {
-        final content = await file.readAsString();
-        final json = jsonDecode(content);
-        _progressTracker = ProgressTracker.fromJson(json);
-        print('📊 Loaded progress: ${_progressTracker!.playedLevels.length} levels played');
+      final directory = await getApplicationDocumentsDirectory();
+      _localFile = File('${directory.path}/starloader_db.json');
+      print('📂 [Manager] DB Path: ${_localFile!.path}');
+
+      if (await _localFile!.exists()) {
+        final content = await _localFile!.readAsString();
+        if (content.isNotEmpty) {
+          final jsonMap = jsonDecode(content);
+          _database = LevelDatabase.fromJson(jsonMap);
+          print('✅ [Manager] Loaded Local DB: ${_database.levels.length} levels.');
+        } else {
+          print('🆕 [Manager] Local DB file exists but is empty.');
+        }
       } else {
-        _progressTracker = ProgressTracker.empty();
+        print('🆕 [Manager] No Local DB found. Starting fresh.');
+        await _saveDatabase(); // Create the empty file
       }
     } catch (e) {
-      print('⚠️  Error loading progress: $e');
-      _progressTracker = ProgressTracker.empty();
-    }
-  }
-
-  Future<void> _saveProgress() async {
-    if (_dataDir == null || _progressTracker == null) return;
-
-    final file = File('$_dataDir/$PROGRESS_PATH');
-    await file.parent.create(recursive: true);
-    
-    final json = jsonEncode(_progressTracker!.toJson());
-    await file.writeAsString(json);
-  }
-
-  Future<LoadedLevel> getLevel({required String difficulty}) async {
-    // Try to get from database first
-    if (_database != null && _progressTracker != null) {
-      final unplayedLevels = _database!.getLevelsByDifficulty(difficulty)
-          .where((level) => !_progressTracker!.hasPlayed(level.id))
-          .toList();
-
-      if (unplayedLevels.isNotEmpty) {
-        // Pick a random unplayed level
-        final level = unplayedLevels[_random.nextInt(unplayedLevels.length)];
-        
-        return LoadedLevel(
-          id: level.id,
-          difficulty: level.difficulty,
-          roomStructure: level.roomStructure,
-          roomState: level.roomState,
-          boxMapping: level.boxMapping,
-          optimalMoves: level.optimalMoves,
-          fromDatabase: true,
-        );
-      }
-
-      print('⚠️  No unplayed $difficulty levels in database, generating new one...');
+      print('❌ [Manager] File System Error: $e');
+      _database = LevelDatabase.empty();
     }
 
-    // Fall back to generator
-    return await _generateLevel(difficulty);
+    _printDiagnostics();
+    _initialized = true;
   }
 
-  Future<LoadedLevel> _generateLevel(String difficulty) async {
-    final config = _getDifficultyConfig(difficulty);
-    
-    final generatedLevel = _generator.generateLevel(
-      dimX: config.dimX,
-      dimY: config.dimY,
-      numBoxes: config.numBoxes,
-    );
+  /// 2. GET LEVEL: DB First -> Fallback to Generate -> Save -> Return
+  Future<LevelData> getLevelForGrade(int grade, int difficultyLevel) async {
+    if (!_initialized) await initialize();
 
-    return LoadedLevel(
-      id: 'generated_${DateTime.now().millisecondsSinceEpoch}',
-      difficulty: difficulty,
-      roomStructure: generatedLevel.roomStructure,
-      roomState: generatedLevel.roomState,
-      boxMapping: generatedLevel.boxMapping,
-      optimalMoves: generatedLevel.optimalMoves,
-      fromDatabase: false,
-    );
-  }
+    final difficultyKey = 'grade_$grade';
+    LevelEntry? selectedEntry;
 
-  DifficultyConfig _getDifficultyConfig(String difficulty) {
-    switch (difficulty.toLowerCase()) {
-      case 'tutorial':
-        return DifficultyConfig(dimX: 6, dimY: 6, numBoxes: 1);
-      case 'easy':
-        return DifficultyConfig(dimX: 7 + _random.nextInt(2), dimY: 7, numBoxes: 2);
-      case 'medium':
-        return DifficultyConfig(dimX: 8 + _random.nextInt(3), dimY: 8 + _random.nextInt(2), numBoxes: 3);
-      case 'hard':
-        return DifficultyConfig(dimX: 10 + _random.nextInt(3), dimY: 10 + _random.nextInt(2), numBoxes: 4);
-      case 'expert':
-        return DifficultyConfig(dimX: 12 + _random.nextInt(2), dimY: 12, numBoxes: 5);
-      default:
-        return DifficultyConfig(dimX: 8, dimY: 8, numBoxes: 3);
-    }
-  }
+    // --- STRATEGY A: LOOK IN LOCAL JSON ---
+    // Filter candidates:
+    // 1. Must match grade
+    // 2. Must NOT have been played yet
+    // 3. Must NOT have been rated (Rating = user is done with it)
+    final candidates = _database.levels.where((l) => 
+      l.difficulty == difficultyKey && 
+      !_playedLevelIds.contains(l.id) && 
+      l.ratingCount == 0 
+    ).toList();
 
-  Future<void> markLevelPlayed(String levelId) async {
-    if (_progressTracker != null) {
-      _progressTracker!.markPlayed(levelId);
-      await _saveProgress();
-    }
-  }
+    if (candidates.isNotEmpty) {
+      // Sort by Rating (High to Low)
+      candidates.sort((a, b) => b.avgRating.compareTo(a.avgRating));
 
-  Future<void> markLevelCompleted(String levelId, int moveCount) async {
-    await markLevelPlayed(levelId);
-    // You can extend this to track completion stats
-  }
+      // Selection Logic:
+      // If we have few levels, force variety (random).
+      // If we have a clear 5-star winner, pick it.
+      bool pickBest = candidates.first.avgRating > 0;
+      if (candidates.length < 3) pickBest = false; // Force random if pool is tiny
 
-  int getUnplayedCount(String difficulty) {
-    if (_database == null || _progressTracker == null) return 0;
-    
-    return _database!.getLevelsByDifficulty(difficulty)
-        .where((level) => !_progressTracker!.hasPlayed(level.id))
-        .length;
-  }
-
-  int getTotalCount(String difficulty) {
-    if (_database == null) return 0;
-    return _database!.getLevelsByDifficulty(difficulty).length;
-  }
-
-  Map<String, int> getUnplayedCountByDifficulty() {
-    if (_database == null || _progressTracker == null) return {};
-    
-    final counts = <String, int>{};
-    for (final level in _database!.levels) {
-      if (!_progressTracker!.hasPlayed(level.id)) {
-        counts[level.difficulty] = (counts[level.difficulty] ?? 0) + 1;
+      if (pickBest) {
+         selectedEntry = candidates.first;
+         print('⭐ [Manager] Selected highest rated level (${selectedEntry.avgRating} stars).');
+      } else {
+         int poolSize = (candidates.length / 2).ceil().clamp(1, candidates.length);
+         selectedEntry = candidates[Random().nextInt(poolSize)];
+         print('🎲 [Manager] Selected random level from top $poolSize candidates.');
       }
     }
-    return counts;
+
+    // --- STRATEGY B: GENERATE NEW ---
+    if (selectedEntry == null) {
+      print('🔧 [Manager] Pool empty. Generating new level (Grade $grade)...');
+      
+      selectedEntry = _generateRealTimeEntry(grade, difficultyLevel);
+      
+      // SAVE TO DB IMMEDIATELY
+      _database.levels.add(selectedEntry);
+      await _saveDatabase();
+      print('💾 [Manager] New level generated and written to JSON file.');
+    }
+
+    // CRITICAL: Mark as played NOW so we don't get it again next click
+    await _markAsPlayed(selectedEntry.id);
+
+    return _convertToLevelData(selectedEntry);
   }
 
-  Future<void> resetProgress() async {
-    _progressTracker = ProgressTracker.empty();
-    await _saveProgress();
+  /// 3. RATE LEVEL: Update Memory -> Write to File
+  Future<void> rateLevel(String levelId, int stars) async {
+    final index = _database.levels.indexWhere((l) => l.id == levelId);
+    
+    if (index != -1) {
+      final level = _database.levels[index];
+      
+      // Update stats
+      final newCount = level.ratingCount + 1;
+      final totalScore = (level.avgRating * level.ratingCount) + stars;
+      final newAvg = totalScore / newCount;
+
+      // Replace entry
+      _database.levels[index] = LevelEntry(
+        id: level.id,
+        difficulty: level.difficulty,
+        dimX: level.dimX,
+        dimY: level.dimY,
+        roomStructure: level.roomStructure,
+        roomState: level.roomState,
+        optimalMoves: level.optimalMoves,
+        avgRating: newAvg,      // Updated
+        ratingCount: newCount,  // Updated
+      );
+
+      // WRITE TO FILE
+      await _saveDatabase();
+      print('⭐ [Manager] Rating saved to file. Level $levelId is now ${newAvg.toStringAsFixed(1)} stars.');
+    } else {
+      print('⚠️ [Manager] Level $levelId not found in DB to rate.');
+    }
   }
-}
 
-class LoadedLevel {
-  final String id;
-  final String difficulty;
-  final List<List<int>> roomStructure;
-  final List<List<int>> roomState;
-  final Map<String, List<int>> boxMapping;
-  final int optimalMoves;
-  final bool fromDatabase;
+  /// 4. HELPER: Write memory to disk
+  Future<void> _saveDatabase() async {
+    if (_localFile == null) return;
+    try {
+      // Pretty print for readability if you open the file manually
+      final jsonStr = const JsonEncoder.withIndent('  ').convert(_database.toJson());
+      await _localFile!.writeAsString(jsonStr);
+    } catch (e) {
+      print('❌ [Manager] Failed to save JSON file: $e');
+    }
+  }
 
-  LoadedLevel({
-    required this.id,
-    required this.difficulty,
-    required this.roomStructure,
-    required this.roomState,
-    required this.boxMapping,
-    required this.optimalMoves,
-    required this.fromDatabase,
-  });
-}
+  /// 5. DEV TOOL: Export for Production
+  /// Call this when you are happy with your levels and want to ship them.
+  void printDatabaseForExport() {
+    print('\n📋 [Manager] --- COPY CONTENT BELOW TO assets/data/starloader_levels.json ---');
+    print(jsonEncode(_database.toJson()));
+    print('📋 [Manager] ----------------------------------------------------------------\n');
+  }
 
-class DifficultyConfig {
-  final int dimX;
-  final int dimY;
-  final int numBoxes;
+  // --- Internal Helpers ---
 
-  DifficultyConfig({
-    required this.dimX,
-    required this.dimY,
-    required this.numBoxes,
-  });
+  void _printDiagnostics() {
+    int totalLevels = _database.levels.length;
+    int ratedLevels = _database.levels.where((l) => l.ratingCount > 0).length;
+    
+    Map<String, int> levelsPerGrade = {};
+    for (var l in _database.levels) {
+      levelsPerGrade[l.difficulty] = (levelsPerGrade[l.difficulty] ?? 0) + 1;
+    }
+
+    print('\n📊 [Manager] --- LOCAL JSON DIAGNOSTICS ---');
+    print('   File Path:      ${_localFile?.path ?? "Unknown"}');
+    print('   Total Levels:   $totalLevels');
+    print('   Rated Levels:   $ratedLevels');
+    print('   History Size:   ${_playedLevelIds.length}');
+    print('   Breakdown:');
+    levelsPerGrade.forEach((key, count) {
+      print('     - $key: $count');
+    });
+    print('------------------------------------------\n');
+  }
+
+  LevelEntry _generateRealTimeEntry(int grade, int level) {
+    int dimX, dimY, numBoxes;
+    if (grade == 1) { dimX = 7; dimY = 7; numBoxes = 2; }
+    else if (grade == 2) { dimX = 8; dimY = 8; numBoxes = 2; }
+    else if (grade == 3) { dimX = 10; dimY = 10; numBoxes = 3; }
+    else { dimX = 12; dimY = 11; numBoxes = 4; }
+    numBoxes += (level ~/ 5).clamp(0, 1);
+
+    final genResult = _realTimeGenerator.generateLevel(
+      dimX: dimX, dimY: dimY, numBoxes: numBoxes, 
+      maxTries: 15,
+      minMoves: 8, 
+    );
+
+    return LevelEntry(
+      id: 'gen_${DateTime.now().millisecondsSinceEpoch}',
+      difficulty: 'grade_$grade',
+      dimX: dimX, dimY: dimY,
+      roomStructure: genResult.roomStructure,
+      roomState: genResult.roomState,
+      optimalMoves: genResult.optimalMoves,
+    );
+  }
+
+  Future<void> _markAsPlayed(String id) async {
+    _playedLevelIds.add(id);
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setStringList('starloader_played_ids', _playedLevelIds.toList());
+  }
+
+  LevelData _convertToLevelData(LevelEntry entry) {
+    List<String> layout = [];
+    const int WALL = 0, PLAYER = 5, BOX = 4, TARGET = 2;
+    for (int y = 0; y < entry.roomState.length; y++) {
+      String line = '';
+      for (int x = 0; x < entry.roomState[y].length; x++) {
+        final state = entry.roomState[y][x];
+        final structure = entry.roomStructure[y][x];
+        if (state == WALL) line += 'W';
+        else if (state == PLAYER) line += 'P';
+        else if (state == BOX) line += (structure == TARGET ? 'X' : 'B');
+        else if (structure == TARGET) line += 'T';
+        else line += ' ';
+      }
+      layout.add(line);
+    }
+    return LevelData(
+      id: entry.id,
+      layout: layout, 
+      optimalMoves: entry.optimalMoves
+    );
+  }
+  
+  // Reset method if you want to clear local data during dev
+  Future<void> clearLocalDatabase() async {
+    if (_localFile != null && await _localFile!.exists()) {
+      await _localFile!.delete();
+      _database = LevelDatabase.empty();
+      _playedLevelIds.clear();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('starloader_played_ids');
+      print('🧹 [Manager] Local Database and History Cleared.');
+    }
+  }
 }

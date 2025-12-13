@@ -1,4 +1,4 @@
-// generator_debug.dart
+// lib/features/games/servies/starloader_level_generator.dart
 
 import 'dart:io';
 import 'dart:math' as math;
@@ -233,35 +233,32 @@ class LevelGenerator {
     required int numBoxes,
     int? numGenSteps,
     double pChangeDirection = 0.35,
-    int maxTries = 10, // Increased from 4
+    int maxTries = 10,
+    // --- ADD THIS PARAMETER ---
+    int minMoves = 0, 
   }) {
     _log('Starting level generation ($dimX x $dimY, $numBoxes boxes)...');
     numGenSteps ??= (1.7 * (dimX + dimY)).round();
-    _log('Using numGenSteps: $numGenSteps');
 
     for (int attempt = 0; attempt < maxTries; attempt++) {
       _log('--- Attempt ${attempt + 1} of $maxTries ---');
       try {
         List<List<int>> room =
             _generateTopology(dimX, dimY, numGenSteps, pChangeDirection);
-        _log('Topology generated.');
-
-        // NEW: Ensure connectivity
+        
+        // Ensure connectivity
         room = _ensureConnectivity(room);
-        _log('Connectivity ensured.');
 
         room = _placePlayerAndTargets(room, numBoxes);
-        _log('Player and $numBoxes targets placed.');
 
         List<List<int>> roomStructure = _createRoomStructure(room);
-        _log('Room structure created.');
-
         List<List<int>> roomState = _createInitialStateWithBoxesOnTargets(room);
-        _log('Initial room state created (boxes on targets).');
 
         final result = _reversePlaying(roomState, roomStructure, numBoxes);
 
-        if (result.score > 0) {
+        // --- ADD THIS CHECK ---
+        // Verify both solvability (>0) and complexity (>= minMoves)
+        if (result.score > 0 && result.score >= minMoves) {
           _log('✅ Success! Found valid level with score: ${result.score}');
           final cleanedState = _cleanupBoxesOnTargets(result.room);
 
@@ -278,8 +275,12 @@ class LevelGenerator {
 
           return level;
         } else {
-          _log(
-              '⚠️ Failed attempt. Reverse play score was ${result.score}. Retrying...');
+          // Log specific failure reason
+          if (result.score <= 0) {
+            _log('⚠️ Failed attempt. Reverse play failed (score ${result.score}). Retrying...');
+          } else {
+             _log('⚠️ Level too trivial (Score: ${result.score} < Min: $minMoves). Retrying...');
+          }
         }
       } catch (e) {
         _log('⚠️ Error during attempt ${attempt + 1}: $e. Retrying...');
