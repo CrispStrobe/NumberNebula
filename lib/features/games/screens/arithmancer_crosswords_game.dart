@@ -1138,6 +1138,14 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   Widget _buildOperatorCell(String operator, double cellSize, double operatorSize) {
+    final gameProvider = context.read<GameProvider>();
+    String displayOp = operator;
+    if (operator == '÷' || operator == '/') {
+      displayOp = gameProvider.divisionSymbol;
+    } else if (operator == '×' || operator == '*') {
+      displayOp = gameProvider.multiplicationSymbol;
+    }
+
     return Container(
       width: cellSize,
       height: cellSize,
@@ -1148,7 +1156,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       ),
       child: Center(
         child: Text(
-          operator,
+          displayOp,
           style: SpaceTheme.headlineStyle.copyWith(
             fontSize: operatorSize,
             color: Colors.white,

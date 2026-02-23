@@ -922,10 +922,20 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   Widget _buildOperatorDisplay(String operator, double size) {
+    final gameProvider = context.read<GameProvider>();
+    String displayOp = operator;
+    if (operator == '÷' || operator == '/') {
+      displayOp = gameProvider.divisionSymbol;
+    } else if (operator == '×' || operator == '*') {
+      displayOp = gameProvider.multiplicationSymbol;
+    } else if (operator == '−' || operator == '-') {
+      displayOp = '−';
+    }
+
     return Container(
       padding: const EdgeInsets.all(4),
       child: Text(
-        operator == '÷' ? '÷' : operator == '×' ? '×' : operator == '−' ? '−' : operator,
+        displayOp,
         style: SpaceTheme.headlineStyle.copyWith(
           fontSize: size,
           color: SpaceTheme.starYellow,

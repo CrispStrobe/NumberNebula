@@ -969,7 +969,9 @@ class PuzzleSlotWidget extends StatelessWidget {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  data.problemExpression,
+                  data.problemExpression
+                      .replaceAll('÷', context.read<GameProvider>().divisionSymbol)
+                      .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
                   style: SpaceTheme.titleStyle.copyWith(
                     color: SpaceTheme.starYellow,
                     fontWeight: FontWeight.bold,

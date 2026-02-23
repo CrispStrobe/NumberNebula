@@ -15,39 +15,49 @@ class PuzzleImageService {
     debugPrint("[PuzzleImageService] Initializing...");
     
     try {
-      final manifestContent = await rootBundle.loadString('AssetManifest.json');
-      final Map<String, dynamic> manifestMap = json.decode(manifestContent);
-      debugPrint("[PuzzleImageService] AssetManifest.json loaded successfully.");
-
-      // --- NEW VERBOSE DEBUGGING ---
-      final allAssetKeys = manifestMap.keys.toList();
-      debugPrint("==============================================================");
-      debugPrint("[PuzzleImageService] ALL ASSETS FOUND IN THE APP BUNDLE:");
-      if (allAssetKeys.isEmpty) {
-        debugPrint("--> The asset manifest is EMPTY.");
-      } else {
-        allAssetKeys.forEach(debugPrint);
+      // Try multiple ways to load the manifest as it varies by Flutter version
+      String manifestContent = "";
+      try {
+        manifestContent = await rootBundle.loadString('AssetManifest.json');
+      } catch (_) {
+        try {
+          manifestContent = await rootBundle.loadString('AssetManifest.bin.json');
+        } catch (_) {}
       }
-      debugPrint("==============================================================");
-      // --- END VERBOSE DEBUGGING ---
 
-      final puzzleRegex = RegExp(r'assets/images/puzzle\d+\.(png|jpg|jpeg)$');
-      
-      _puzzleImagePaths = allAssetKeys
-          .where((String key) => puzzleRegex.hasMatch(key))
-          .toList();
-          
-      debugPrint("[PuzzleImageService] Found ${_puzzleImagePaths.length} puzzle images after filtering.");
+      if (manifestContent.isNotEmpty) {
+        final Map<String, dynamic> manifestMap = json.decode(manifestContent);
+        debugPrint("[PuzzleImageService] Asset manifest loaded successfully.");
 
-      if (_puzzleImagePaths.isNotEmpty) {
-        _puzzleImagePaths.sort();
-        debugPrint("[PuzzleImageService] Sorted image paths found: $_puzzleImagePaths");
-      } else {
-        debugPrint("[PuzzleImageService] WARNING: Filtering found NO puzzle images.");
+        final allAssetKeys = manifestMap.keys.toList();
+        final puzzleRegex = RegExp(r'assets/images/puzzle\d+\.(png|jpg|jpeg|webp)$', caseSensitive: false);
+        
+        _puzzleImagePaths = allAssetKeys
+            .where((String key) => puzzleRegex.hasMatch(key))
+            .toList();
+            
+        debugPrint("[PuzzleImageService] Found ${_puzzleImagePaths.length} puzzle images after filtering.");
       }
     } catch (e) {
-      debugPrint("[PuzzleImageService] CRITICAL ERROR loading AssetManifest.json: $e");
+      debugPrint("[PuzzleImageService] Error parsing asset manifest: $e");
     }
+
+    // ALWAYS check if we found images, and use fallback if not (regardless of exceptions above)
+    if (_puzzleImagePaths.isEmpty) {
+      debugPrint("[PuzzleImageService] WARNING: No puzzle images found in manifest. Using hardcoded fallback.");
+      _puzzleImagePaths = [
+        'assets/images/puzzle01.png',
+        'assets/images/puzzle02.jpg',
+        'assets/images/puzzle03.jpg',
+        'assets/images/puzzle04.jpg',
+        'assets/images/puzzle05.jpg',
+        'assets/images/puzzle06.jpg',
+        'assets/images/puzzle07.jpg',
+      ];
+    }
+    
+    _puzzleImagePaths.sort();
+    debugPrint("[PuzzleImageService] Sorted image paths: $_puzzleImagePaths");
   }
 
   String? getImageForLevel(int level) {

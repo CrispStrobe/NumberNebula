@@ -109,7 +109,9 @@ class _BubbleMathGameState extends State<BubbleMathGame>
 
       bubbles.add(Bubble(
         id: i,
-        mathProblem: problem.expression,
+        mathProblem: problem.expression
+            .replaceAll('÷', context.read<GameProvider>().divisionSymbol)
+            .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
         answer: problem.answer,
         position: Offset(
           random.nextDouble() * (screenSize.width - bubbleSize) + (bubbleSize / 2),

@@ -613,7 +613,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
               // Equation
               Expanded(
                 child: Text(
-                  '${equation.getLeftSideDisplay()} = ${equation.getRightSideDisplay()}',
+                  '${equation.getLeftSideDisplay().replaceAll('/', context.read<GameProvider>().divisionSymbol).replaceAll('*', context.read<GameProvider>().multiplicationSymbol)} = ${equation.getRightSideDisplay()}',
                   style: SpaceTheme.bodyStyle.copyWith(
                     fontSize: 14,
                     color: isSatisfied ? SpaceTheme.alienGreen : Colors.white,

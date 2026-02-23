@@ -384,7 +384,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                             ),
                           ),
                           Text(
-                            'Fill the 45×45 grid',
+                            'Fill the 45${context.read<GameProvider>().multiplicationSymbol}45 grid',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.7),
                               fontSize: 14,
@@ -432,7 +432,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                               Icon(Icons.touch_app, color: selectedPiece!.color, size: 20),
                               const SizedBox(width: 8),
                               Text(
-                                'Click to place ${selectedPiece!.size}×${selectedPiece!.size}',
+                                'Click to place ${selectedPiece!.size}${context.read<GameProvider>().multiplicationSymbol}${selectedPiece!.size}',
                                 style: TextStyle(
                                   color: selectedPiece!.color,
                                   fontSize: 14,
@@ -678,7 +678,7 @@ class _GridFillerGameState extends State<GridFillerGame>
           ),
           child: Center(
             child: Text(
-              '${piece.size}×${piece.size}',
+              '${piece.size}${context.read<GameProvider>().multiplicationSymbol}${piece.size}',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: math.max(10, piece.size * 2).toDouble(),
@@ -748,7 +748,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                 ),
                 child: Center(
                   child: Text(
-                    '${piece.size}×${piece.size}',
+                    '${piece.size}${context.read<GameProvider>().multiplicationSymbol}${piece.size}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -762,7 +762,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${piece.size}×${piece.size}',
+                    '${piece.size}${context.read<GameProvider>().multiplicationSymbol}${piece.size}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -801,7 +801,7 @@ class _GridFillerGameState extends State<GridFillerGame>
           ),
           child: Center(
             child: Text(
-              '${piece.size}×${piece.size}',
+              '${piece.size}${context.read<GameProvider>().multiplicationSymbol}${piece.size}',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: math.max(10, piece.size * 2).toDouble(),
@@ -848,7 +848,7 @@ class _GridFillerGameState extends State<GridFillerGame>
           ),
           child: Center(
             child: Text(
-              '${piece.size}×${piece.size}',
+              '${piece.size}${context.read<GameProvider>().multiplicationSymbol}${piece.size}',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: math.max(10, piece.size * 2).toDouble(),

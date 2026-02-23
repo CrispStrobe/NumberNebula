@@ -641,10 +641,11 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   List<Widget> _buildOperationSymbols(double containerSize) {
     if (currentPuzzle == null) return [];
     
+    final gameProvider = context.read<GameProvider>();
     List<Widget> symbols = [];
     final cellPositions = currentPuzzle!.getCellPositions(containerSize);
     
-    // × symbol between A (index 3) and B (index 4) - bottom row
+    // multiplication symbol between A (index 3) and B (index 4) - bottom row
     final aPos = cellPositions[3];
     final bPos = cellPositions[4];
     final leftMultPos = Offset(
@@ -654,11 +655,11 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     
     symbols.add(_buildOperationIcon(
       leftMultPos,
-      Icons.close,
+      gameProvider.multiplicationSymbol,
       SpaceTheme.cosmicPink,
     ));
     
-    // × symbol between B (index 4) and C (index 5) - bottom row
+    // multiplication symbol between B (index 4) and C (index 5) - bottom row
     final cPos = cellPositions[5];
     final rightMultPos = Offset(
       (bPos.dx + cPos.dx) / 2,
@@ -667,7 +668,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     
     symbols.add(_buildOperationIcon(
       rightMultPos,
-      Icons.close,
+      gameProvider.multiplicationSymbol,
       SpaceTheme.cosmicPink,
     ));
     
@@ -681,14 +682,14 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     
     symbols.add(_buildOperationIcon(
       addPos,
-      Icons.add,
+      '+',
       SpaceTheme.alienGreen,
     ));
     
     return symbols;
   }
 
-  Widget _buildOperationIcon(Offset position, IconData icon, Color color) {
+  Widget _buildOperationIcon(Offset position, String symbol, Color color) {
     return Positioned(
       left: position.dx - 16,
       top: position.dy - 16,
@@ -713,7 +714,16 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                   )
                 ],
               ),
-              child: Icon(icon, size: 18, color: Colors.white),
+              child: Center(
+                child: Text(
+                  symbol,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
           );
         },

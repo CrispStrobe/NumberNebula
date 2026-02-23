@@ -638,7 +638,10 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
         border: Border.all(color: Colors.cyan, width: 2),
         boxShadow: [BoxShadow(color: Colors.cyan.withOpacity(0.5), blurRadius: 20, spreadRadius: 2)],
       ),
-      child: Text(currentProblem!.expression,
+      child: Text(
+          currentProblem!.expression
+              .replaceAll('÷', context.read<GameProvider>().divisionSymbol)
+              .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
           style: const TextStyle(
               color: Colors.white,
               fontSize: 36,

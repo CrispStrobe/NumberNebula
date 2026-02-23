@@ -689,6 +689,8 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
                               laserBeams: laserBeams,
                               floatingScores: floatingScores,
                               showVisualHint: showVisualHint,
+                              divisionSymbol: context.read<GameProvider>().divisionSymbol,
+                              multiplicationSymbol: context.read<GameProvider>().multiplicationSymbol,
                               targetAnswer: currentTargetIndex < targetOrder.length
                                   ? targetOrder[currentTargetIndex]
                                   : null,
@@ -836,6 +838,8 @@ class GameObjectsPainter extends CustomPainter {
   final List<FloatingScore> floatingScores;
   final bool showVisualHint;
   final int? targetAnswer;
+  final String divisionSymbol;
+  final String multiplicationSymbol;
 
   GameObjectsPainter({
     required this.asteroids,
@@ -843,6 +847,8 @@ class GameObjectsPainter extends CustomPainter {
     required this.laserBeams,
     required this.floatingScores,
     required this.showVisualHint,
+    required this.divisionSymbol,
+    required this.multiplicationSymbol,
     this.targetAnswer,
   });
 
@@ -854,7 +860,7 @@ class GameObjectsPainter extends CustomPainter {
     
     for (final asteroid in asteroids) {
       final bool isTarget = targetAnswer == asteroid.answer;
-      asteroid.draw(canvas, isHintActive: showVisualHint && isTarget);
+      asteroid.draw(canvas, isHintActive: showVisualHint && isTarget, divisionSymbol: divisionSymbol, multiplicationSymbol: multiplicationSymbol);
     }
     
     for (final explosion in explosions) {
@@ -902,7 +908,7 @@ class Asteroid {
   String get mathProblem => problem.expression;
   int get answer => problem.answer;
 
-  void draw(Canvas canvas, {required bool isHintActive}) {
+  void draw(Canvas canvas, {required bool isHintActive, required String divisionSymbol, required String multiplicationSymbol}) {
     canvas.save();
     canvas.translate(position.dx, position.dy);
     canvas.rotate(rotation);
@@ -966,7 +972,10 @@ class Asteroid {
         Shadow(blurRadius: 3, color: Colors.black, offset: Offset(1, 1)),
       ],
     );
-    final textSpan = TextSpan(text: mathProblem, style: textStyle);
+    final displayProblem = mathProblem
+        .replaceAll('÷', divisionSymbol)
+        .replaceAll('×', multiplicationSymbol);
+    final textSpan = TextSpan(text: displayProblem, style: textStyle);
     final textPainter = TextPainter(text: textSpan, textAlign: TextAlign.center, textDirection: TextDirection.ltr);
     textPainter.layout();
     textPainter.paint(canvas, position - Offset(textPainter.width / 2, textPainter.height / 2));

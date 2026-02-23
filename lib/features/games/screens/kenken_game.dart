@@ -603,7 +603,9 @@ class _KenkenGameState extends State<KenkenGame>
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  cage!.clue!,
+                  cage!.clue!
+                      .replaceAll('÷', context.read<GameProvider>().divisionSymbol)
+                      .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
                   style: TextStyle(
                     fontSize: isCompact ? 10 : 12,
                     fontWeight: FontWeight.bold,
@@ -682,7 +684,9 @@ class _KenkenGameState extends State<KenkenGame>
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        cage!.clue!,
+                        cage!.clue!
+                            .replaceAll('÷', context.read<GameProvider>().divisionSymbol)
+                            .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
                         style: TextStyle(
                           fontSize: isCompact ? 10 : 12,
                           fontWeight: FontWeight.bold,

@@ -1050,7 +1050,12 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
                     style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
                     children: [
                       TextSpan(text: '${l10n.solve} ', style: TextStyle(color: Colors.yellow.shade300)),
-                      TextSpan(text: currentProblem!.expression, style: const TextStyle(color: Colors.white)),
+                      TextSpan(
+                        text: currentProblem!.expression
+                            .replaceAll('÷', context.read<GameProvider>().divisionSymbol)
+                            .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
+                        style: const TextStyle(color: Colors.white)
+                      ),
                     ]
                   ),
                 )

@@ -749,13 +749,15 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   }
 
   String _getBonusName(BonusType type) {
+    final gameProvider = context.read<GameProvider>();
+    final mult = gameProvider.multiplicationSymbol;
     switch (type) {
-      case BonusType.fibonacci4: return 'Fibonacci ×4';
-      case BonusType.fibonacci5: return 'Fibonacci ×5';
-      case BonusType.fibonacci6: return 'Fibonacci ×6';
-      case BonusType.doubling3: return '2× ×3';
-      case BonusType.doubling4: return '2× ×4';
-      case BonusType.doubling5: return '2× ×5';
+      case BonusType.fibonacci4: return 'Fibonacci ${mult}4';
+      case BonusType.fibonacci5: return 'Fibonacci ${mult}5';
+      case BonusType.fibonacci6: return 'Fibonacci ${mult}6';
+      case BonusType.doubling3: return '2$mult ${mult}3';
+      case BonusType.doubling4: return '2$mult ${mult}4';
+      case BonusType.doubling5: return '2$mult ${mult}5';
       case BonusType.consecutive4: return '1,2,3,4...';
       case BonusType.consecutive5: return '1,2,3,4,5...';
       case BonusType.consecutive6: return '1,2,3,4,5,6...';
@@ -1370,7 +1372,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
                   const Icon(Icons.whatshot, color: Colors.orange, size: 20),
                   const SizedBox(width: 4),
                   Text(
-                    '×$combo',
+                    '${context.read<GameProvider>().multiplicationSymbol}$combo',
                     style: const TextStyle(
                       color: Colors.orange,
                       fontSize: 18,
@@ -1715,6 +1717,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   }
 
   String _getBonusDescription(BonusType type) {
+    final mult = context.read<GameProvider>().multiplicationSymbol;
     switch (type) {
       case BonusType.fibonacci4: return '1,1,2,3';
       case BonusType.fibonacci5: return '1,1,2,3,5';
@@ -1726,8 +1729,8 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       case BonusType.consecutive5: return '1,2,3,4,5';
       case BonusType.consecutive6: return '1,2,3,4,5,6';
       case BonusType.consecutive7: return '1,2,3,4,5,6,7';
-      case BonusType.square3: return '3×3';
-      case BonusType.square4: return '4×4';
+      case BonusType.square3: return '3$mult 3';
+      case BonusType.square4: return '4$mult 4';
       default: return '';
     }
   }

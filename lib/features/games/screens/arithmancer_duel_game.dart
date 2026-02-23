@@ -632,7 +632,10 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     _createBonusEffects(nonNullResult);
     
     setState(() {
-      _lastExpression = nonNullResult.expression;
+      final gameProvider = context.read<GameProvider>();
+      _lastExpression = nonNullResult.expression
+          .replaceAll('/', gameProvider.divisionSymbol)
+          .replaceAll('*', gameProvider.multiplicationSymbol);
       _lastProperties = _getPropertyStrings(nonNullResult);
       _showingResult = true;
       _isCalculating = false;

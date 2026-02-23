@@ -923,7 +923,10 @@ class PlanetWidget extends StatelessWidget {
               decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.7),
                   borderRadius: BorderRadius.circular(8)),
-              child: Text(planet.problemExpression,
+              child: Text(
+                  planet.problemExpression
+                      .replaceAll('÷', context.read<GameProvider>().divisionSymbol)
+                      .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
                   style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

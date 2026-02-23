@@ -698,6 +698,13 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
   Widget _buildSingleEquation(PuzzleEquation equation, int equationIndex, {required bool isCompact, required bool isExtraCompact}) {
     final numEquations = puzzle?.equations.length ?? 4;
+    final gameProvider = context.read<GameProvider>();
+    String displayOp = equation.op;
+    if (displayOp == '/') {
+      displayOp = gameProvider.divisionSymbol;
+    } else if (displayOp == '*') {
+      displayOp = gameProvider.multiplicationSymbol;
+    }
     
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2),
@@ -713,7 +720,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-              equation.op,
+              displayOp,
               style: SpaceTheme.headlineStyle.copyWith(
                 fontSize: _getFontSize(numEquations, 18, isCompact: isCompact), 
                 color: SpaceTheme.starYellow
