@@ -53,6 +53,9 @@ class GameProvider extends ChangeNotifier {
   List<Achievement> _achievements = [];
   bool _isFullVersionUnlocked = false;
 
+  String _multiplicationSymbol = '×'; // Options: '×', '·', '*'
+  String _divisionSymbol = '÷'; // Options: '÷', '/', ':', '%'
+
   bool _useCustomProblemSettings = false;
   Set<String> _customOperations = {'addition', 'subtraction'}; // Default to basic ops
   int _customRangeMin = 1;
@@ -119,6 +122,9 @@ class GameProvider extends ChangeNotifier {
 
   Map<String, int> get gameProgress => _gameProgress;
   List<Achievement> get achievements => _achievements;
+
+  String get multiplicationSymbol => _multiplicationSymbol;
+  String get divisionSymbol => _divisionSymbol;
 
   bool get useCustomProblemSettings => _useCustomProblemSettings;
   Set<String> get customOperations => _customOperations;
@@ -256,6 +262,18 @@ class GameProvider extends ChangeNotifier {
       _customRangeMax = max;
       notifyListeners();
     }
+  }
+
+  void setMultiplicationSymbol(String symbol) {
+    _multiplicationSymbol = symbol;
+    notifyListeners();
+    _saveProgress();
+  }
+
+  void setDivisionSymbol(String symbol) {
+    _divisionSymbol = symbol;
+    notifyListeners();
+    _saveProgress();
   }
 
   // Score management
@@ -467,6 +485,8 @@ class GameProvider extends ChangeNotifier {
       'achievements': _achievements.map((a) => a.toJson()).toList(),
       'useAdaptiveDifficulty': _useAdaptiveDifficulty,
       'isFullVersionUnlocked': _isFullVersionUnlocked,
+      'multiplicationSymbol': _multiplicationSymbol,
+      'divisionSymbol': _divisionSymbol,
       
       'useCustomProblemSettings': _useCustomProblemSettings,
       'customOperations': _customOperations.toList(), // Convert set to list for JSON
@@ -491,6 +511,9 @@ class GameProvider extends ChangeNotifier {
     if (!AppConfig.inapps_active) {
       _isFullVersionUnlocked = true;
     }
+
+    _multiplicationSymbol = json['multiplicationSymbol'] ?? '×';
+    _divisionSymbol = json['divisionSymbol'] ?? '÷';
 
     // --- Load custom settings ---
     _useCustomProblemSettings = json['useCustomProblemSettings'] ?? false;

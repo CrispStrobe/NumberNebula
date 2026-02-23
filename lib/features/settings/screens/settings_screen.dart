@@ -136,6 +136,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       final customOps = prefs.getStringList('custom_math_ops')?.toSet() ?? {'addition', 'subtraction'};
       final customMin = prefs.getInt('custom_range_min') ?? 1;
       final customMax = prefs.getInt('custom_range_max') ?? 20;
+
+      final multSymbol = prefs.getString('multiplication_symbol') ?? '×';
+      final divSymbol = prefs.getString('division_symbol') ?? '÷';
       
       debugPrint("[SETTINGS] 🔊 Sound enabled: $soundEnabled");
       debugPrint("[SETTINGS] 🎵 Music enabled: $musicEnabled");
@@ -156,6 +159,8 @@ class _SettingsScreenState extends State<SettingsScreen>
         gameProvider.setUseCustomSettings(useCustomSettings);
         gameProvider.setCustomOperations(customOps);
         gameProvider.setCustomRange(min: customMin, max: customMax);
+        gameProvider.setMultiplicationSymbol(multSymbol);
+        gameProvider.setDivisionSymbol(divSymbol);
         
         debugPrint("[SETTINGS] ✅ Applied settings to GameProvider");
       }
@@ -182,6 +187,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                       _buildAudioSettings(),
                       const SizedBox(height: 20),
                       _buildGameplaySettings(),
+                      const SizedBox(height: 20),
+                      _buildOperatorSettings(),
                       const SizedBox(height: 20),
                       _buildProblemCustomizationSettings(),
                       const SizedBox(height: 20),
@@ -286,6 +293,74 @@ class _SettingsScreenState extends State<SettingsScreen>
                       _saveSetting('music_enabled', value);
                     },
                     icon: Icons.library_music,
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOperatorSettings() {
+    return SlideTransition(
+      position: _settingAnimations[2],
+      child: _buildSettingsCard(
+        title: "Operator Symbols",
+        icon: Icons.calculate_outlined,
+        children: [
+          Consumer<GameProvider>(
+            builder: (context, gameProvider, child) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Multiplication Symbol",
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: ['×', '·', '*'].map((symbol) {
+                      final isSelected = gameProvider.multiplicationSymbol == symbol;
+                      return ChoiceChip(
+                        label: Text(symbol, style: const TextStyle(fontSize: 18)),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            gameProvider.setMultiplicationSymbol(symbol);
+                            _saveSetting('multiplication_symbol', symbol);
+                          }
+                        },
+                        selectedColor: SpaceTheme.alienGreen,
+                        backgroundColor: SpaceTheme.deepSpace,
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Division Symbol",
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: ['÷', '/', ':', '%'].map((symbol) {
+                      final isSelected = gameProvider.divisionSymbol == symbol;
+                      return ChoiceChip(
+                        label: Text(symbol, style: const TextStyle(fontSize: 18)),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            gameProvider.setDivisionSymbol(symbol);
+                            _saveSetting('division_symbol', symbol);
+                          }
+                        },
+                        selectedColor: SpaceTheme.alienGreen,
+                        backgroundColor: SpaceTheme.deepSpace,
+                      );
+                    }).toList(),
                   ),
                 ],
               );

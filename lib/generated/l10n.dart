@@ -1315,6 +1315,12 @@ abstract class S {
   /// **'Time\'s Up, Space Cadet!'**
   String get timesUpSpaceCadet;
 
+  /// No description provided for @asteroidMathLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission Failed!'**
+  String get asteroidMathLoseTitle;
+
   /// No description provided for @asteroidMathLoseDesc.
   ///
   /// In en, this message translates to:

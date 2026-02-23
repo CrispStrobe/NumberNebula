@@ -22,7 +22,7 @@ class GameConfig {
   
   /// The desired screen area in pixels per asteroid.
   /// A larger value means fewer, less crowded asteroids.
-  static const double pixelsPerAsteroid = 35000.0; 
+  static const double pixelsPerAsteroid = 65000.0; 
 
   /// A reference screen height to calculate responsive scaling from.
   static const double baseScreenDimension = 800.0;
@@ -34,8 +34,8 @@ class GameConfig {
   static const double gameLoopFrameTime = 20.0; // milliseconds (50fps instead of 60fps)
   
   // Speed Settings
-  static const double baseAsteroidSpeed = 3.0;
-  static const double speedMultiplier = 1.8;
+  static const double baseAsteroidSpeed = 1.2;
+  static const double speedMultiplier = 1.2;
   static const double asteroidBounceDeceleration = 0.9;
   static const double maxRotationSpeed = 0.8;
   
@@ -99,6 +99,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   List<int> targetOrder = [];
   int currentTargetIndex = 0;
   int timeLeft = 60;
+  int wrongShots = 0;
   bool gameActive = true;
   bool showTextHint = false;
   bool showVisualHint = false;
@@ -164,6 +165,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       showTextHint = false;
       showVisualHint = false;
       currentTargetIndex = 0;
+      wrongShots = 0;
       targetOrder.clear();
       asteroids.clear();
       explosions.clear();
@@ -184,13 +186,17 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     _textHintTimer?.cancel();
     _visualHintTimer?.cancel();
     
-    _textHintTimer = Timer(Duration(seconds: GameConfig.textHintDelaySeconds), () {
+    // Scale hint delay by grade: Grade 1 gets hints faster
+    final textDelay = (GameConfig.textHintDelaySeconds * (0.6 + widget.grade * 0.2)).round();
+    final visualDelay = (GameConfig.visualHintDelaySeconds * (0.6 + widget.grade * 0.2)).round();
+
+    _textHintTimer = Timer(Duration(seconds: textDelay), () {
       if (mounted && gameActive) {
         setState(() => showTextHint = true);
       }
     });
     
-    _visualHintTimer = Timer(Duration(seconds: GameConfig.visualHintDelaySeconds), () {
+    _visualHintTimer = Timer(Duration(seconds: visualDelay), () {
       if (mounted && gameActive) {
         setState(() => showVisualHint = true);
       }
@@ -499,8 +505,15 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       }
     } else {
       setState(() {
+        wrongShots++;
         explosions.add(ParticleExplosion(position: asteroid.position, isCorrect: false));
       });
+
+      // Loss condition: more than 1/3 of total asteroids
+      final maxWrongAllowed = (targetOrder.length / 3).floor();
+      if (wrongShots > maxWrongAllowed) {
+        _endGame(isWin: false);
+      }
     }
   }
 
@@ -566,13 +579,15 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              isWin ? Icons.emoji_events : Icons.timer_off,
+              isWin ? Icons.emoji_events : Icons.error_outline,
               size: 64,
               color: isWin ? SpaceTheme.starYellow : SpaceTheme.warning,
             ),
             const SizedBox(height: 16),
             Text(
-              isWin ? S.of(context)!.asteroidMathWinTitle : S.of(context)!.timesUpSpaceCadet,
+              isWin 
+                  ? S.of(context)!.asteroidMathWinTitle 
+                  : (timeLeft > 0 ? S.of(context)!.asteroidMathLoseTitle : S.of(context)!.timesUpSpaceCadet),
               style: SpaceTheme.headlineStyle,
               textAlign: TextAlign.center,
             ),

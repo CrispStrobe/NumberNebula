@@ -684,6 +684,9 @@ class SDe extends S {
   String get timesUpSpaceCadet => 'Zeit abgelaufen, Weltraumkadett!';
 
   @override
+  String get asteroidMathLoseTitle => 'Mission fehlgeschlagen!';
+
+  @override
   String get asteroidMathLoseDesc =>
       'Das Asteroidenfeld wurde zu chaotisch!\nVersuche es erneut, Kommandant!';
 

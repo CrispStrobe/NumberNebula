@@ -222,6 +222,7 @@
     "asteroidMathWinTitle": "Asteroidenfeld geräumt!",
     "asteroidMathWinDesc": "Zeitbonus: {timeBonus} Punkte!\nDu bist ein wahrer Weltraum-Jäger!",
     "timesUpSpaceCadet": "Zeit abgelaufen, Weltraumkadett!",
+    "asteroidMathLoseTitle": "Mission fehlgeschlagen!",
     "asteroidMathLoseDesc": "Das Asteroidenfeld wurde zu chaotisch!\nVersuche es erneut, Kommandant!",
     "nextTarget": "Nächstes Ziel: ",
     "loadingAdventure": "Lade Weltraum-Abenteuer...",

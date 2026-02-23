@@ -178,6 +178,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   bool hasShield = false;
   bool timeSlowActive = false;
   Timer? _powerUpSpawnTimer;
+  bool _choiceMadeForCurrentSet = false;
 
   // --- Core Gameplay State ---
   MathProblem? currentProblem;
@@ -294,7 +295,13 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   void _spawnRandomPowerUp(Size screenSize) {
     final random = math.Random();
     final powerUpType = PowerUpType.values[random.nextInt(PowerUpType.values.length)];
-    final yPos = random.nextDouble() * screenSize.height * 0.8 + screenSize.height * 0.1;
+    
+    double yPos;
+    if (laneCenters.isNotEmpty) {
+      yPos = laneCenters[random.nextInt(laneCenters.length)].dy;
+    } else {
+      yPos = random.nextDouble() * screenSize.height * 0.8 + screenSize.height * 0.1;
+    }
     
     powerUps.add(PowerUp(
       position: Offset(screenSize.width + 50, yPos),
@@ -303,6 +310,9 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   }
 
   void _spawnNextGateSet(Size screenSize) {
+    setState(() {
+      _choiceMadeForCurrentSet = false;
+    });
     final sriService = context.read<SriService>();
     final gameProvider = context.read<GameProvider>();
     currentProblem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
@@ -727,7 +737,9 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     ));
   }
 
-  void _processPlayerInput(double targetY) {
+  void _handleGateChoice(double targetY) {
+    if (_choiceMadeForCurrentSet) return;
+    
     final gates = gameObjects.whereType<Gate>();
     if (gates.isEmpty) return;
     
@@ -737,9 +749,11 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       _triggerDecisionBoost(targetGate);
     }
     
-    spaceship.moveTo(targetY);
+    setState(() {
+      _choiceMadeForCurrentSet = true;
+    });
   }
-  
+
   void _handleKeyboard(KeyEvent event) {
     if (event is KeyDownEvent && laneCenters.isNotEmpty) {
       int currentLane = -1;
@@ -762,7 +776,8 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       }
 
       if (targetY != null) {
-        _processPlayerInput(targetY);
+        _handleGateChoice(targetY);
+        spaceship.moveTo(targetY);
       }
     }
   }
@@ -780,7 +795,14 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
         closestY = lane.dy;
       }
     }
-    _processPlayerInput(closestY);
+    _handleGateChoice(closestY);
+    spaceship.moveTo(closestY);
+  }
+  
+  void _handleDrag(Offset localPosition) {
+    if (!gameActive) return;
+    _handleGateChoice(localPosition.dy);
+    spaceship.moveTo(localPosition.dy);
   }
   
   void _winGame() {
@@ -843,7 +865,8 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
         onKeyEvent: _handleKeyboard,
         child: GestureDetector(
           onTapDown: (details) => _handleScreenInteraction(details.localPosition),
-          onVerticalDragUpdate: (details) => _handleScreenInteraction(details.localPosition),
+          onVerticalDragStart: (details) => _handleDrag(details.localPosition),
+          onVerticalDragUpdate: (details) => _handleDrag(details.localPosition),
           child: Transform.translate(
             offset: screenShakeOffset,
             child: Container(

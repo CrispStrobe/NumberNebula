@@ -689,8 +689,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     switch (operation) {
       case WallOperation.addition: return Icons.add;
       case WallOperation.subtraction: return Icons.remove;
-      case WallOperation.multiplication: return Icons.close;
-      case WallOperation.division: return Icons.percent_outlined;
+      case WallOperation.multiplication: return Icons.close; // Multiplication icon
+      case WallOperation.division: return Icons.horizontal_rule; // Division icon
     }
   }
 
@@ -893,10 +893,20 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   List<Widget> _buildOperationSymbols(double containerSize) {
     if (currentPuzzle == null) return [];
     
+    final gameProvider = context.read<GameProvider>();
     List<Widget> symbols = [];
     final cellPositions = currentPuzzle!.getCellPositions(containerSize);
     final operationColor = _getOperationColor(currentPuzzle!.operation);
-    final operationIcon = _getOperationIcon(currentPuzzle!.operation);
+    
+    // Determine the symbol to display
+    String symbolText;
+    switch (currentPuzzle!.operation) {
+      case WallOperation.addition: symbolText = '+'; break;
+      case WallOperation.subtraction: symbolText = '-'; break;
+      case WallOperation.multiplication: symbolText = gameProvider.multiplicationSymbol; break;
+      case WallOperation.division: symbolText = gameProvider.divisionSymbol; break;
+    }
+
     final isSubtraction = currentPuzzle!.operation == WallOperation.subtraction;
     
     for (int row = 0; row < currentPuzzle!.wallHeight - 1; row++) {
@@ -912,28 +922,46 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         if (rightChildIndex < currentPuzzle!.totalCells) {
           final parentPos = cellPositions[parentIndex];
           final leftChildPos = cellPositions[leftChildIndex];
+          final rightChildPos = cellPositions[rightChildIndex];
           
-          final symbolPos = isSubtraction
-            ? Offset(parentPos.dx, parentPos.dy + containerSize * 0.06)
-            : Offset(parentPos.dx, parentPos.dy + containerSize * 0.08);
+          // Calculate the midpoint between the two children
+          final childrenMidX = (leftChildPos.dx + rightChildPos.dx) / 2;
+          final childrenMidY = (leftChildPos.dy + rightChildPos.dy) / 2;
+          
+          // The operator should be between the parent and the children.
+          // In a normal wall, parent is ABOVE the children.
+          // In a subtraction wall, parent is BELOW the children (due to inversion).
+          final symbolPos = Offset(
+            (parentPos.dx + childrenMidX) / 2,
+            (parentPos.dy + childrenMidY) / 2,
+          );
           
           symbols.add(Positioned(
-            left: symbolPos.dx - 16,
-            top: symbolPos.dy - 16,
+            left: symbolPos.dx - 14,
+            top: symbolPos.dy - 14,
             child: AnimatedBuilder(
               animation: _operationAnimation,
               builder: (context, child) {
                 return Transform.scale(
                   scale: _operationAnimation.value * 0.9,
                   child: Container(
-                    width: 32, height: 32,
+                    width: 28, height: 28,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(colors: [operationColor, operationColor.withOpacity(0.7)]),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                      boxShadow: [BoxShadow(color: operationColor.withOpacity(0.6), blurRadius: 8, spreadRadius: 1)],
+                      border: Border.all(color: Colors.white, width: 1.5),
+                      boxShadow: [BoxShadow(color: operationColor.withOpacity(0.6), blurRadius: 6, spreadRadius: 1)],
                     ),
-                    child: Icon(operationIcon, size: 18, color: Colors.white),
+                    child: Center(
+                      child: Text(
+                        symbolText,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
                 );
               },
@@ -1406,8 +1434,24 @@ class _NumberWallGenerator {
   }
 
   List<int> _generateMultiplicationWall() {
-    final minBase = useCustomSettings ? customRangeMin : math.max(1, (grade / 2).round());
-    final maxBase = useCustomSettings ? customRangeMax : math.max(3, (level / 2).round() + 3);
+    int minBase, maxBase;
+    if (useCustomSettings) {
+      // If the user sets max to 100, they want the top of the wall to be around 100.
+      // Top of wall for height H is roughly factor^(2^(H-1)).
+      // So factor = result^(1/2^(H-1)).
+      double exponent = math.pow(2.0, wallHeight - 1.0).toDouble();
+      double maxFactor = math.pow(customRangeMax.toDouble(), 1.0 / exponent).toDouble();
+      minBase = customRangeMin;
+      maxBase = maxFactor.floor().clamp(minBase, customRangeMax);
+      // Ensure we have at least some range if customRangeMax is small
+      if (maxBase == minBase && maxBase < customRangeMax && wallHeight > 2) {
+         maxBase = (maxBase + 1).clamp(minBase, customRangeMax);
+      }
+    } else {
+      minBase = math.max(1, (grade / 2).round());
+      maxBase = math.max(3, (level / 2).round() + 3);
+    }
+
     final bottomRow = List.generate(wallHeight, (_) => minBase + math.Random().nextInt(maxBase - minBase + 1));
     return _buildWallFromBottom(bottomRow, (a, b) => a * b);
   }

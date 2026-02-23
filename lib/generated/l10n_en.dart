@@ -678,6 +678,9 @@ class SEn extends S {
   String get timesUpSpaceCadet => 'Time\'s Up, Space Cadet!';
 
   @override
+  String get asteroidMathLoseTitle => 'Mission Failed!';
+
+  @override
   String get asteroidMathLoseDesc =>
       'The asteroid field got too chaotic!\nTry again, Commander!';
 
