@@ -207,7 +207,12 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
         int baseScore = 150 * widget.grade;
         int bonusScore = (baseScore * (currentPuzzle!.circlesPerSide / 3.0)).round();
-        context.read<GameProvider>().addScore(baseScore + bonusScore);
+        context.read<GameProvider>().recordLevelWin(
+          gameType: 'magic_triangles',
+          scoreGained: baseScore + bonusScore,
+          difficulty: widget.level,
+          wasSuccessful: true,
+        );
         _successController.forward(from: 0.0);
         
         if (mounted) {

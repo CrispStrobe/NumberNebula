@@ -51,6 +51,9 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   List<SpacePath> availablePaths = [];
   bool choosingPath = true;
 
+  // Problems attempted this session, reported once on game end.
+  final List<MathProblem> _attemptedProblems = [];
+
   // Visual Effects
   List<SpaceParticle> particles = [];
   List<BackgroundStar> stars = [];
@@ -246,8 +249,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     }
     debugPrint("-> Path selection ACCEPTED. Processing...");
 
-    final sriService = context.read<SriService>();
-    sriService.recordResponse(currentProblem!, path.isCorrect);
+    _attemptedProblems.add(currentProblem!);
 
     HapticFeedback.lightImpact();
 
@@ -432,15 +434,27 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     gameActive = false;
     final completionBonus = 500 + (lives.toInt() * 100);
     totalScore += completionBonus;
-    context.read<GameProvider>().addScore(completionBonus);
-    context.read<GameProvider>().updateGameProgress('pathfinder', widget.level);
-    
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'pathfinder',
+      scoreGained: completionBonus,
+      difficulty: widget.level,
+      wasSuccessful: true,
+      mathProblems: _attemptedProblems,
+    );
+
     showDialog(context: context, barrierDismissible: false, builder: (ctx) => _buildEndDialog(true));
   }
 
   void _gameOver() {
     if (!mounted) return;
     gameActive = false;
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'pathfinder',
+      scoreGained: 0,
+      difficulty: widget.level,
+      wasSuccessful: false,
+      mathProblems: _attemptedProblems,
+    );
     showDialog(context: context, barrierDismissible: false, builder: (ctx) => _buildEndDialog(false));
   }
   

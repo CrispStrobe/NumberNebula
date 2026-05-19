@@ -233,14 +233,6 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     );
     sriService.recordResponse(problem, isCorrect); */
 
-    context.read<GameProvider>().recordLevelWin(
-      gameType: 'signal_triangulation',
-      scoreGained: 0, // We add score later in _handleSuccess
-      difficulty: widget.grade + (widget.level ~/ 5),
-      wasSuccessful: isCorrect,
-      // No mathProblem parameter - this is a logic game!
-    );
-    
     _feedbackController.forward(from: 0.0);
     
     // Add feedback particles
@@ -322,12 +314,12 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     final difficultyBonus = (sequenceLength - 3) * 100;
     final totalScore = baseScore + efficiencyBonus + difficultyBonus;
 
-    // now handled by recordLevelWin:
-    // context.read<GameProvider>().addScore(totalScore);
-    // context.read<GameProvider>().updateGameProgress('signal_triangulation', widget.level);
-
-    // We just record the final score
-    context.read<GameProvider>().addScore(totalScore);
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'signal_triangulation',
+      scoreGained: totalScore,
+      difficulty: widget.grade + (widget.level ~/ 5),
+      wasSuccessful: true,
+    );
     
     // Add celebration particles
     for (int i = 0; i < 50; i++) {
@@ -349,12 +341,19 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
 
   void _handleFailure() {
     debugPrint("❌ [SignalTriangulation] Failed - Signal source remains hidden");
-    
+
     setState(() {
       gameActive = false;
       hasWon = false;
     });
-    
+
+    context.read<GameProvider>().recordLevelWin(
+      gameType: 'signal_triangulation',
+      scoreGained: 0,
+      difficulty: widget.grade + (widget.level ~/ 5),
+      wasSuccessful: false,
+    );
+
     HapticFeedback.vibrate();
     
     // Add failure particles

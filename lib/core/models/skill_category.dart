@@ -11,7 +11,6 @@ enum SkillCategory {
 // Complete game-to-skill mapping, corresponding to game_menu_screen.dart
 const Map<String, SkillCategory> gameSkillMap = {
   // Arithmetic games (use SriService)
-  'magic_triangles': SkillCategory.arithmetic,
   'bubble_math': SkillCategory.arithmetic,
   'puzzle_math': SkillCategory.arithmetic,
   'hyperdrive_gates': SkillCategory.arithmetic,
@@ -37,7 +36,12 @@ const Map<String, SkillCategory> gameSkillMap = {
   'cryptex_lock_breaker': SkillCategory.logicDeduction,
   'asteroid_field_navigator': SkillCategory.logicDeduction,
   'robot_path_game': SkillCategory.logicDeduction,
-  
+  'solarpanel_game': SkillCategory.logicDeduction,
+  'grid_filler_game': SkillCategory.spatial2d,
+
   // HYBRID: Arithmancer teaches BOTH arithmetic AND pattern recognition
   'arithmancer_duel': SkillCategory.patternRecognition,
+
+  // Pure pattern/puzzle games (no per-problem SRI data)
+  'magic_triangles': SkillCategory.patternRecognition,
 };

@@ -216,7 +216,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
         int totalScore = baseScore + bonusScore;
 
         context.read<GameProvider>().recordLevelWin(
-          gameType: 'solar_panel',
+          gameType: 'solarpanel_game',
           scoreGained: totalScore,
           difficulty: widget.level,
           wasSuccessful: true,
@@ -226,7 +226,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
         _handleSuccess(totalScore);
       } else {
         context.read<GameProvider>().recordLevelWin(
-          gameType: 'solar_panel',
+          gameType: 'solarpanel_game',
           scoreGained: 0,
           difficulty: widget.level,
           wasSuccessful: false,

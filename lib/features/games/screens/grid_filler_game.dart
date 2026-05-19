@@ -261,7 +261,7 @@ class _GridFillerGameState extends State<GridFillerGame>
       debugPrint('🎉 WINNER! Score: $totalScore');
       
       context.read<GameProvider>().recordLevelWin(
-        gameType: 'grid_filler',
+        gameType: 'grid_filler_game',
         scoreGained: totalScore,
         difficulty: widget.level,
         wasSuccessful: true,

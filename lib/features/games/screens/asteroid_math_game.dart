@@ -115,7 +115,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   Offset spaceshipPosition = const Offset(50, 0);
 
   // Timers
-  late Timer _gameTimer;
+  Timer? _gameTimer;
   Timer? _textHintTimer;
   Timer? _visualHintTimer;
 
@@ -153,7 +153,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     _laserController.dispose();
     _screenShakeController.dispose();
     _spaceshipController.dispose();
-    _gameTimer.cancel();
+    _gameTimer?.cancel();
     _textHintTimer?.cancel();
     _visualHintTimer?.cancel();
     super.dispose();
@@ -533,7 +533,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   void _endGame({required bool isWin}) {
     if (!gameActive) return;
     setState(() => gameActive = false);
-    _gameTimer.cancel();
+    _gameTimer?.cancel();
     _textHintTimer?.cancel();
     _visualHintTimer?.cancel();
     

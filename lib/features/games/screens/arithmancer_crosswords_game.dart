@@ -239,11 +239,10 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   void dispose() {
     debugPrint("🔤 [ARITHMANCER CROSSWORDS] Disposing game and cleaning up resources");
     
-    _glowController.stop();
-    _successController.stop();
-    _dropController.stop();
-    _pulseController.stop();
-
+    _glowController.dispose();
+    _successController.dispose();
+    _dropController.dispose();
+    _pulseController.dispose();
     _moveWarningController.dispose();
     
     puzzle = null;

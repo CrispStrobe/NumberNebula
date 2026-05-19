@@ -29,7 +29,7 @@ class BubbleMathGame extends StatefulWidget {
 class _BubbleMathGameState extends State<BubbleMathGame>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
-  late Timer _gameTimer;
+  Timer? _gameTimer;
 
   List<Bubble> bubbles = [];
   List<int> targetOrder = [];
@@ -62,7 +62,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
   @override
   void dispose() {
     _animationController.dispose();
-    _gameTimer.cancel();
+    _gameTimer?.cancel();
     super.dispose();
   }
 
@@ -212,7 +212,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
   void _winGame() {
     if (!gameActive) return;
     setState(() => gameActive = false);
-    _gameTimer.cancel();
+    _gameTimer?.cancel();
     context.read<GameProvider>().addScore(timeLeft * 5); // Time bonus
     showDialog(
       context: context,
@@ -224,7 +224,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
   void _endGame() {
     if (!gameActive) return;
     setState(() => gameActive = false);
-    _gameTimer.cancel();
+    _gameTimer?.cancel();
     showDialog(
       context: context,
       barrierDismissible: false,
