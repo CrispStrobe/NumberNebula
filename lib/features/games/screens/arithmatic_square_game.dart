@@ -6,6 +6,7 @@ import 'package:dart_csp/dart_csp.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -440,13 +441,11 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     
     // SINGLE CALL to unified progression system
     // NO mathProblems parameter - already tracked in real-time via _checkAndLogCompletedEquations()
-    context.read<GameProvider>().recordLevelWin(
-      gameType: 'arithmatic_square', // Note: keep the typo to match existing keys
-      scoreGained: totalScore,
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      gameType: 'arithmatic_square',
       difficulty: widget.level,
-      wasSuccessful: true,
-      // NO mathProblems - SRI already tracked each equation as it was completed
-    );
+      score: 0,
+    ));
     
     _successController.forward(from: 0.0);
     
@@ -463,13 +462,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     debugPrint("❌ [ARITHMETIC SQUARE] Player gave up or failed");
     
     // Record the failure - equations were already tracked via SRI as they were completed
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'arithmatic_square',
-      scoreGained: 0,
       difficulty: widget.level,
-      wasSuccessful: false,
-      // NO mathProblems - SRI already has the data from partial completion
-    );
+    ));
   }
 
   int _getOperationBonus(String operation) {

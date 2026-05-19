@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import '../constants/app_constants.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -221,13 +222,12 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     // 3. Make a SINGLE, UNIFIED call to the GameProvider to record the win.
     //    This centralizes progress tracking and dispatches data to both the
     //    SRI and Cognitive Profile services automatically.
-    context.read<GameProvider>().recordLevelWin(
-      gameType: 'cryptex_lock_breaker', // Unique identifier for this game
-      scoreGained: totalScore,
-      difficulty: widget.grade + (widget.level ~/ 5), // A measure of the puzzle's difficulty
-      wasSuccessful: true,
-      mathProblems: solvedProblems, // The list of actual problems that were solved
-    );
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      gameType: 'cryptex_lock_breaker',
+      difficulty: widget.grade + (widget.level ~/ 5),
+      score: totalScore,
+      mathProblems: solvedProblems,
+    ));
 
     // --- END: MODIFIED LOGIC ---
 
@@ -266,13 +266,11 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
         .map((eq) => eq.toMathProblem(currentPuzzle.solution))
         .toList();
 
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'cryptex_lock_breaker',
-      scoreGained: 0,
       difficulty: widget.grade + (widget.level ~/ 5),
-      wasSuccessful: false,
       mathProblems: attemptedProblems,
-    );
+    ));
 
     if (showDialogOnFail && mounted) {
       showDialog(

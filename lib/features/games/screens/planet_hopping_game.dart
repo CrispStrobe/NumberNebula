@@ -6,6 +6,7 @@ import 'dart:async';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../../../core/services/sri_service.dart';
@@ -626,13 +627,12 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     final totalScore = bonus + (100 * widget.grade * targetSequence.length);
     
     // UNIFIED PROGRESSION: Report all attempted problems
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'planet_hopping',
-      scoreGained: totalScore,
       difficulty: widget.level,
-      wasSuccessful: true,
+      score: totalScore,
       mathProblems: _attemptedProblems,
-    );
+    ));
     
     debugPrint("[Gameplay] 📊 Reported ${_attemptedProblems.length} attempted problems");
     
@@ -650,13 +650,11 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     _hintTimer?.cancel();
     
     // UNIFIED PROGRESSION: Report failure with attempted problems for learning
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'planet_hopping',
-      scoreGained: 0,
       difficulty: widget.level,
-      wasSuccessful: false,
       mathProblems: _attemptedProblems,
-    );
+    ));
     
     debugPrint("[Gameplay] 📊 Reported ${_attemptedProblems.length} attempted problems (loss)");
     

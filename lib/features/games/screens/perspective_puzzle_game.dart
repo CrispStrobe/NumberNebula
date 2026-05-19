@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'package:flutter_cube/flutter_cube.dart' as cube;
 import 'package:collection/collection.dart';
 
+import '../models/game_outcome.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -624,13 +625,11 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     int finalScore = (baseScore + difficultyBonus - penalty).clamp(50, 1000).toInt();
 
     // 2. Make the single, unified call to the GameProvider.
-    context.read<GameProvider>().recordLevelWin(
-      gameType: 'perspective_puzzle', // Unique ID for this game
-      scoreGained: finalScore,
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      gameType: 'perspective_puzzle',
       difficulty: currentPuzzle?.difficulty ?? 1,
-      wasSuccessful: true,
-      // NO mathProblems are sent because this is a spatial reasoning game.
-    );
+      score: 0,
+    ));
     
     // 3. Trigger UI feedback.
     _successController.forward(from: 0.0);
@@ -647,12 +646,10 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     debugPrint("Perspective Puzzle Failed: Ran out of lives.");
 
     // Report the failure to the GameProvider.
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'perspective_puzzle',
-      scoreGained: 0,
       difficulty: currentPuzzle?.difficulty ?? 1,
-      wasSuccessful: false,
-    );
+    ));
 
     // Show a failure dialog.
     showDialog(

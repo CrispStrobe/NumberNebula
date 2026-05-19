@@ -8,6 +8,7 @@ import 'dart:async';
 import '../constants/app_constants.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -212,26 +213,23 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         int operationBonus = _getOperationBonus(currentPuzzle!.operation);
         int totalScore = baseScore + bonusScore + operationBonus;
 
-        context.read<GameProvider>().recordLevelWin(
-          gameType: 'number_walls',
-          scoreGained: totalScore,
-          difficulty: widget.level,
-          wasSuccessful: true,
-          mathProblems: attemptedProblems,
-        );
+        context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      gameType: 'number_walls',
+      difficulty: widget.level,
+      score: totalScore,
+      mathProblems: attemptedProblems,
+    ));
         
         // 3. Trigger the success UI/animation.
         _handleSuccess(totalScore);
 
       } else {
         // On FAILURE, report a loss with zero score.
-        context.read<GameProvider>().recordLevelWin(
-          gameType: 'number_walls',
-          scoreGained: 0,
-          difficulty: widget.level,
-          wasSuccessful: false,
-          mathProblems: attemptedProblems,
-        );
+        context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      gameType: 'number_walls',
+      difficulty: widget.level,
+      mathProblems: attemptedProblems,
+    ));
 
         // 3. Trigger the failure UI.
         _handleIncorrect();

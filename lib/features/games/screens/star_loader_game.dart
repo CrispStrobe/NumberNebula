@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'dart:async';
 // Import for MaskFilter
 
+import '../models/game_outcome.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -484,12 +485,10 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     if (_hasWon || _moveCount == 0) return; 
 
     _stopwatch.stop();
-    context.read<GameProvider>().recordLevelWin(
-          gameType: 'star_loader_game', // <-- Use the new ID
-          scoreGained: 0,
-          difficulty: widget.level,
-          wasSuccessful: false, // <-- Mark as a failed attempt
-        );
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      gameType: 'star_loader_game',
+      difficulty: widget.level,
+    ));
   }
 
   void _handleSuccess() {
@@ -510,12 +509,11 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     int totalScore = baseScore + timeBonus + moveBonus + efficiencyBonus;
 
     // Use the correct framework method
-    context.read<GameProvider>().recordLevelWin(
-          gameType: 'star_loader_game', // <-- FIX: Use new ID
-          scoreGained: totalScore,
-          difficulty: widget.level,
-          wasSuccessful: true,
-        );
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      gameType: 'star_loader_game',
+      difficulty: widget.level,
+      score: 0,
+    ));
 
     showDialog(
       context: context,

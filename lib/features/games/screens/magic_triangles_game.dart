@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
+import '../models/game_outcome.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -207,12 +208,11 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
         int baseScore = 150 * widget.grade;
         int bonusScore = (baseScore * (currentPuzzle!.circlesPerSide / 3.0)).round();
-        context.read<GameProvider>().recordLevelWin(
-          gameType: 'magic_triangles',
-          scoreGained: baseScore + bonusScore,
-          difficulty: widget.level,
-          wasSuccessful: true,
-        );
+        context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      gameType: 'magic_triangles',
+      difficulty: widget.level,
+      score: baseScore + bonusScore,
+    ));
         _successController.forward(from: 0.0);
         
         if (mounted) {

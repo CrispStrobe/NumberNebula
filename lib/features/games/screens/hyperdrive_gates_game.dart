@@ -7,6 +7,7 @@ import 'dart:ui' as ui;
 import 'package:provider/provider.dart';
 
 import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../../../core/services/sri_service.dart';
@@ -808,13 +809,12 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     _gameController.stop();
     
     // DON'T pass mathProblems - already recorded during gameplay
-    context.read<GameProvider>().recordLevelWin(
+    // Score already added incrementally; mathProblems already recorded.
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'hyperdrive_gates',
-      scoreGained: 0, // Score already added incrementally
       difficulty: widget.level,
-      wasSuccessful: true,
-      // NO mathProblems parameter
-    );
+      score: 0,
+    ));
     
     showDialog(
       context: context, 
@@ -829,13 +829,10 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     _gameController.stop();
     
     // DON'T pass mathProblems - already recorded during gameplay
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'hyperdrive_gates',
-      scoreGained: 0,
       difficulty: widget.level,
-      wasSuccessful: false,
-      // NO mathProblems parameter
-    );
+    ));
     
     showDialog(
       context: context, 

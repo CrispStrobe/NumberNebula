@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../../../core/services/sri_service.dart'; 
@@ -434,13 +435,12 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     gameActive = false;
     final completionBonus = 500 + (lives.toInt() * 100);
     totalScore += completionBonus;
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'pathfinder',
-      scoreGained: completionBonus,
       difficulty: widget.level,
-      wasSuccessful: true,
+      score: completionBonus,
       mathProblems: _attemptedProblems,
-    );
+    ));
 
     showDialog(context: context, barrierDismissible: false, builder: (ctx) => _buildEndDialog(true));
   }
@@ -448,13 +448,11 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   void _gameOver() {
     if (!mounted) return;
     gameActive = false;
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'pathfinder',
-      scoreGained: 0,
       difficulty: widget.level,
-      wasSuccessful: false,
       mathProblems: _attemptedProblems,
-    );
+    ));
     showDialog(context: context, barrierDismissible: false, builder: (ctx) => _buildEndDialog(false));
   }
   

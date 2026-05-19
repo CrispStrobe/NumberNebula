@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
 
+import '../models/game_outcome.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -234,12 +235,10 @@ class _RobotPathGameState extends State<RobotPathGame>
         await Future.delayed(const Duration(milliseconds: 1500));
 
         if (mounted) {
-          context.read<GameProvider>().recordLevelWin(
-                gameType: 'robot_path_game',
-                scoreGained: 0,
-                difficulty: widget.level,
-                wasSuccessful: false,
-              );
+          context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      gameType: 'robot_path_game',
+      difficulty: widget.level,
+    ));
         }
 
         _resetRobot();
@@ -264,12 +263,10 @@ class _RobotPathGameState extends State<RobotPathGame>
     await Future.delayed(const Duration(milliseconds: 1500));
 
     if (mounted) {
-      context.read<GameProvider>().recordLevelWin(
-            gameType: 'robot_path_game',
-            scoreGained: 0,
-            difficulty: widget.level,
-            wasSuccessful: false,
-          );
+      context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      gameType: 'robot_path_game',
+      difficulty: widget.level,
+    ));
     }
 
     _resetRobot();
@@ -707,12 +704,11 @@ class _RobotPathGameState extends State<RobotPathGame>
     final int bonusScore = (baseScore * (efficiency / 100.0)).round();
     final int totalScore = baseScore + bonusScore;
 
-    context.read<GameProvider>().recordLevelWin(
-          gameType: 'robot_path_game',
-          scoreGained: totalScore,
-          difficulty: widget.level,
-          wasSuccessful: true,
-        );
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      gameType: 'robot_path_game',
+      difficulty: widget.level,
+      score: totalScore,
+    ));
 
     Future.delayed(const Duration(milliseconds: 800), () {
       if (mounted) {

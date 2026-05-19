@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
 
+import '../models/game_outcome.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -347,12 +348,10 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
       }
     });
     
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'asteroid_field_navigator',
-      scoreGained: 0,
       difficulty: widget.grade + (widget.level ~/ 5),
-      wasSuccessful: false,
-    );
+    ));
     
     Future.delayed(const Duration(milliseconds: 2000), () async {
       if (mounted) {
@@ -404,12 +403,11 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
     final efficiencyBonus = (mineCount - flagsPlaced) == 0 ? 200 : 100;
     final totalScore = baseScore + speedBonus + efficiencyBonus;
     
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'asteroid_field_navigator',
-      scoreGained: totalScore,
       difficulty: widget.grade + (widget.level ~/ 5),
-      wasSuccessful: true,
-    );
+      score: totalScore,
+    ));
     
     Future.delayed(const Duration(milliseconds: 1200), () async {
       if (mounted) {

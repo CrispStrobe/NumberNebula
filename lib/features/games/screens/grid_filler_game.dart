@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
+import '../models/game_outcome.dart';
 import '../../../core/theme/space_theme.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -260,13 +261,12 @@ class _GridFillerGameState extends State<GridFillerGame>
       
       debugPrint('🎉 WINNER! Score: $totalScore');
       
-      context.read<GameProvider>().recordLevelWin(
-        gameType: 'grid_filler_game',
-        scoreGained: totalScore,
-        difficulty: widget.level,
-        wasSuccessful: true,
-        mathProblems: [],
-      );
+      context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      gameType: 'grid_filler_game',
+      difficulty: widget.level,
+      score: totalScore,
+      mathProblems: [],
+    ));
       
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) _showWinDialog(totalScore);

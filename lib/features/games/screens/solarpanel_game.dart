@@ -7,6 +7,7 @@ import 'dart:async';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -215,23 +216,20 @@ class _SolarPanelGameState extends State<SolarPanelGame>
         int bonusScore = (baseScore * 0.5).round();
         int totalScore = baseScore + bonusScore;
 
-        context.read<GameProvider>().recordLevelWin(
-          gameType: 'solarpanel_game',
-          scoreGained: totalScore,
-          difficulty: widget.level,
-          wasSuccessful: true,
-          mathProblems: attemptedProblems,
-        );
+        context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      gameType: 'solarpanel_game',
+      difficulty: widget.level,
+      score: totalScore,
+      mathProblems: attemptedProblems,
+    ));
         
         _handleSuccess(totalScore);
       } else {
-        context.read<GameProvider>().recordLevelWin(
-          gameType: 'solarpanel_game',
-          scoreGained: 0,
-          difficulty: widget.level,
-          wasSuccessful: false,
-          mathProblems: attemptedProblems,
-        );
+        context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      gameType: 'solarpanel_game',
+      difficulty: widget.level,
+      mathProblems: attemptedProblems,
+    ));
 
         _handleIncorrect();
       }

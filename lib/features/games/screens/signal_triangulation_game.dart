@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
 
+import '../models/game_outcome.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -314,12 +315,11 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     final difficultyBonus = (sequenceLength - 3) * 100;
     final totalScore = baseScore + efficiencyBonus + difficultyBonus;
 
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'signal_triangulation',
-      scoreGained: totalScore,
       difficulty: widget.grade + (widget.level ~/ 5),
-      wasSuccessful: true,
-    );
+      score: totalScore,
+    ));
     
     // Add celebration particles
     for (int i = 0; i < 50; i++) {
@@ -347,12 +347,10 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       hasWon = false;
     });
 
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'signal_triangulation',
-      scoreGained: 0,
       difficulty: widget.grade + (widget.level ~/ 5),
-      wasSuccessful: false,
-    );
+    ));
 
     HapticFeedback.vibrate();
     

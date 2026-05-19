@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../../core/services/puzzle_image_service.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -93,13 +94,13 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     debugPrint("Result: ${wasSuccessful ? 'WIN' : 'LOSS'} | Final Score: $finalScore");
 
     // 3. Make the single, unified call to the GameProvider.
-    context.read<GameProvider>().recordLevelWin(
-      gameType: 'puzzle_math', // Unique identifier for this game
-      scoreGained: finalScore,
+    context.read<GameProvider>().reportOutcome(GameOutcome(
+      gameType: 'puzzle_math',
       difficulty: widget.level,
+      score: 0,
       wasSuccessful: wasSuccessful,
-      mathProblems: allProblems, // Report all problems for SRI and Cognitive tracking
-    );
+      mathProblems: allProblems,
+    ));
 
     // 4. Show the appropriate dialog to the user.
     if (wasSuccessful) {

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'package:flutter_cube/flutter_cube.dart' as cube;
 
+import '../models/game_outcome.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -410,13 +411,11 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
     
     // SINGLE CALL to unified progression system
     // Block Counter is spatial3d, so no mathProblem needed
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'block_counter',
-      scoreGained: totalScore,
       difficulty: widget.level,
-      wasSuccessful: true,
-      // NO mathProblem - uses CognitiveProfileService for spatial reasoning
-    );
+      score: totalScore,
+    ));
     
     _successController.forward(from: 0.0);
     
@@ -429,13 +428,10 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
 
   void _handleIncorrect() {
     // Track the incorrect attempt
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'block_counter',
-      scoreGained: 0,
       difficulty: widget.level,
-      wasSuccessful: false,
-      // NO mathProblem - spatial reasoning game
-    );
+    ));
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

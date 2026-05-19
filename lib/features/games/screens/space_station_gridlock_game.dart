@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
+import '../models/game_outcome.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -584,12 +585,11 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       'total': totalScore,
     });
     
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'space_station_gridlock',
-      scoreGained: totalScore,
       difficulty: widget.grade + (widget.level ~/ 5),
-      wasSuccessful: true,
-    );
+      score: totalScore,
+    ));
     
     for (int i = 0; i < 60; i++) {
       particles.add(GridlockParticle.celebration(

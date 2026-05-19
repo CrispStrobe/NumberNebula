@@ -7,6 +7,7 @@ import 'package:dart_csp/dart_csp.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -400,13 +401,12 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     debugPrint("🎉 [CODEBREAKER UI] Extracted ${mathProblems.length} math problems for SRI tracking");
     
     // SINGLE CALL to unified progression system
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'codebreaker',
-      scoreGained: totalScore,
       difficulty: widget.level,
-      wasSuccessful: true,
-      mathProblems: mathProblems, // Pass ALL the problems
-    );
+      score: totalScore,
+      mathProblems: mathProblems,
+    ));
     
     _successController.forward(from: 0.0);
     
@@ -426,13 +426,11 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     final mathProblems = _extractMathProblems();
     
     // Record the failure
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'codebreaker',
-      scoreGained: 0,
       difficulty: widget.level,
-      wasSuccessful: false,
       mathProblems: mathProblems,
-    );
+    ));
   }
 
   int _getOperationBonus(String operation) {

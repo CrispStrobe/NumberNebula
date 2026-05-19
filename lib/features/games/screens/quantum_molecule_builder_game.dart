@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
 
+import '../models/game_outcome.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../core/services/debug_provider.dart';
 import '../../../generated/l10n.dart';
@@ -870,12 +871,11 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     final efficiencyBonus = math.max(0, (moveLimit - movesMade) * 10);
     final totalScore = baseScore + efficiencyBonus;
     
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'quantum_molecule_builder',
-      scoreGained: totalScore,
       difficulty: widget.grade + (widget.level ~/ 5),
-      wasSuccessful: true,
-    );
+      score: totalScore,
+    ));
     
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) {
@@ -896,12 +896,10 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     
     HapticFeedback.heavyImpact();
     
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'quantum_molecule_builder',
-      scoreGained: 0,
       difficulty: widget.grade + (widget.level ~/ 5),
-      wasSuccessful: false,
-    );
+    ));
     
     for (int i = 0; i < 40; i++) {
       particles.add(MoleculeParticle.failure(MediaQuery.of(context).size.center(Offset.zero)));

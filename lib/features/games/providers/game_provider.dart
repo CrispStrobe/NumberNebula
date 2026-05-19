@@ -5,6 +5,7 @@ import '../../../core/config/app_config.dart';
 import '../../../core/models/skill_category.dart';
 import '../../../core/services/sri_service.dart';
 import '../../../core/services/cognitive_profile_service.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../constants/app_constants.dart'; // For MathOperation and NumberRange
 
@@ -136,61 +137,77 @@ class GameProvider extends ChangeNotifier {
     _progressService.saveProgress(this);
   }
 
+  /// Canonical end-of-level reporting entry point. Every game should
+  /// funnel through here.
+  ///
+  /// Returns true iff the player advanced to the next level as a result
+  /// of this outcome.
+  bool reportOutcome(GameOutcome outcome) {
+    debugPrint(
+        '[GAME_PROVIDER] 🎯 Recording ${outcome.gameType} result: '
+        '${outcome.wasSuccessful ? "WIN" : "LOSS"} at difficulty ${outcome.difficulty}');
+
+    if (outcome.wasSuccessful) addScore(outcome.score);
+
+    _currentLevelWins[outcome.gameType] =
+        (_currentLevelWins[outcome.gameType] ?? 0) +
+            (outcome.wasSuccessful ? 1 : 0);
+
+    final skill = gameSkillMap[outcome.gameType];
+    if (skill == null) {
+      debugPrint('[GAME_PROVIDER] ⚠️ Unknown game type: ${outcome.gameType}');
+      return false;
+    }
+
+    if (skill == SkillCategory.arithmetic) {
+      if (outcome.mathProblems.isNotEmpty) {
+        for (final problem in outcome.mathProblems) {
+          _sriService.recordResponse(problem, outcome.wasSuccessful);
+        }
+        debugPrint(
+            '[GAME_PROVIDER] Recorded ${outcome.mathProblems.length} math problem(s) for ${outcome.gameType}');
+      } else {
+        debugPrint(
+            '[GAME_PROVIDER] ⚠️ Arithmetic game ${outcome.gameType} missing MathProblem data');
+      }
+    } else {
+      _cognitiveProfileService.recordAttempt(
+          skill, outcome.difficulty, outcome.wasSuccessful);
+    }
+
+    bool didAdvance = false;
+    if (outcome.wasSuccessful &&
+        canAdvanceToNextLevel(
+            outcome.gameType, _gameProgress[outcome.gameType] ?? 1)) {
+      advanceLevel(outcome.gameType);
+      didAdvance = true;
+    }
+
+    _saveProgress();
+    return didAdvance;
+  }
+
+  /// Legacy shim. Prefer [reportOutcome] with a [GameOutcome] factory.
+  @Deprecated('Use reportOutcome(GameOutcome.win/.loss/.fromRatio(...))')
   bool recordLevelWin({
     required String gameType,
     required int scoreGained,
     required int difficulty,
     required bool wasSuccessful,
     MathProblem? mathProblem,
-    List<MathProblem>? mathProblems,  // NEW: Support multiple problems
+    List<MathProblem>? mathProblems,
   }) {
-    debugPrint('[GAME_PROVIDER] 🎯 Recording $gameType result: ${wasSuccessful ? "WIN" : "LOSS"} at difficulty $difficulty');
-    
-    if (wasSuccessful) addScore(scoreGained);
-
-    _currentLevelWins[gameType] = (_currentLevelWins[gameType] ?? 0) + (wasSuccessful ? 1 : 0);
-
-    final skill = gameSkillMap[gameType];
-    if (skill == null) {
-      debugPrint('[GAME_PROVIDER] ⚠️ Unknown game type: $gameType');
-      return false;
-    }
-
-    if (skill == SkillCategory.arithmetic) {
-      // Collect all problems to record
-      final problemsToRecord = <MathProblem>[];
-      
-      if (mathProblem != null) {
-        problemsToRecord.add(mathProblem);
-      }
-      
-      if (mathProblems != null) {
-        problemsToRecord.addAll(mathProblems);
-      }
-      
-      // Record all problems with SRI
-      if (problemsToRecord.isNotEmpty) {
-        for (final problem in problemsToRecord) {
-          _sriService.recordResponse(problem, wasSuccessful);
-        }
-        debugPrint('[GAME_PROVIDER] Recorded ${problemsToRecord.length} math problem(s) for $gameType');
-      } else {
-        // Arithmetic game with no problems - this shouldn't happen
-        debugPrint('[GAME_PROVIDER] ⚠️ Arithmetic game $gameType missing MathProblem data');
-      }
-    } else {
-      // Non-arithmetic games use cognitive profile tracking
-      _cognitiveProfileService.recordAttempt(skill, difficulty, wasSuccessful);
-    }
-
-    bool didAdvance = false;
-    if (wasSuccessful && canAdvanceToNextLevel(gameType, _gameProgress[gameType] ?? 1)) {
-       advanceLevel(gameType);
-       didAdvance = true;
-    }
-
-    _saveProgress();
-    return didAdvance;
+    final problems = <MathProblem>[
+      if (mathProblem != null) mathProblem,
+      ...?mathProblems,
+    ];
+    return reportOutcome(GameOutcome(
+      gameType: gameType,
+      difficulty: difficulty,
+      score: scoreGained,
+      wasSuccessful: wasSuccessful,
+      mathProblems: problems,
+    ));
   }
 
   bool canAdvanceToNextLevel(String gameType, int currentLevel) {

@@ -5,6 +5,7 @@ import 'dart:math' as math;
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -320,13 +321,12 @@ class _KenkenGameState extends State<KenkenGame>
     debugPrint("🎉 [KENKEN] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
     
     // SINGLE CALL to unified progression system
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'kenken',
-      scoreGained: totalScore,
       difficulty: widget.level,
-      wasSuccessful: true,
-      mathProblems: mathProblems, // Pass ALL the cage problems
-    );
+      score: totalScore,
+      mathProblems: mathProblems,
+    ));
     
     _successController.forward(from: 0.0);
     

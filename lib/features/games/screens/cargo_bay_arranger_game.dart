@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
 
+import '../models/game_outcome.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -841,10 +842,11 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     final bonusTotal = bonusesEarned * 100;
     final totalScore = score + (300 * widget.grade) + bonusTotal;
     
-    context.read<GameProvider>().recordLevelWin(
-      gameType: 'cargo_bay_arranger', scoreGained: totalScore,
-      difficulty: widget.grade + (widget.level ~/ 5), wasSuccessful: true,
-    );
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      gameType: 'cargo_bay_arranger',
+      difficulty: widget.grade + (widget.level ~/ 5),
+      score: totalScore,
+    ));
     
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) {
@@ -862,10 +864,10 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     dropTimer?.cancel();
     HapticFeedback.heavyImpact();
     
-    context.read<GameProvider>().recordLevelWin(
-      gameType: 'cargo_bay_arranger', scoreGained: 0,
-      difficulty: widget.grade + (widget.level ~/ 5), wasSuccessful: false,
-    );
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      gameType: 'cargo_bay_arranger',
+      difficulty: widget.grade + (widget.level ~/ 5),
+    ));
     
     Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) {

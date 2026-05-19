@@ -7,6 +7,7 @@ import '../constants/app_constants.dart';
 import '../constants/difficulty_manager.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -546,13 +547,13 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     }
     
     // SINGLE CALL to unified progression system
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome(
       gameType: 'asteroid_math',
-      scoreGained: finalScore,
       difficulty: widget.level,
+      score: finalScore,
       wasSuccessful: isWin,
-      mathProblems: levelProblems, // Pass all problems from this level
-    );
+      mathProblems: levelProblems,
+    ));
     
     if (isWin) {
       showDialog(

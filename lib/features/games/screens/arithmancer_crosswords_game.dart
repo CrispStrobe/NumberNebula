@@ -10,6 +10,7 @@ import 'package:dart_csp/dart_csp.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -595,13 +596,12 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     debugPrint("🎉 [ARITHMANCER CROSSWORDS] Extracted ${mathProblems.length} math problems for tracking");
     
     // SINGLE CALL to unified progression system
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'arithmancer_crosswords',
-      scoreGained: totalScore,
       difficulty: widget.level,
-      wasSuccessful: true,
-      mathProblems: mathProblems, // Pass all problems at once
-    );
+      score: totalScore,
+      mathProblems: mathProblems,
+    ));
     
     _successController.forward(from: 0.0);
     
@@ -763,13 +763,11 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         : <MathProblem>[];
     
     // Record the failure
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'arithmancer_crosswords',
-      scoreGained: 0,
       difficulty: widget.level,
-      wasSuccessful: false,
       mathProblems: mathProblems,
-    );
+    ));
   }
 
   @override

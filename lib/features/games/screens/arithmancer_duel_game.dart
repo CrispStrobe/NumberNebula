@@ -12,6 +12,7 @@ import '../widgets/space_background.dart';
 import '../../../shared/utils/arithmancer.dart';
 
 import '../constants/app_constants.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../../../core/services/sri_service.dart'; 
 
@@ -750,14 +751,11 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
     // Pattern recognition victory tracking
     // Arithmetic was already tracked during each _executeBattlefield() call
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'arithmancer_duel',
-      scoreGained: baseScore,
       difficulty: widget.level,
-      wasSuccessful: true,
-      // NO mathProblem - this tracks pattern recognition only
-      // Individual arithmetic operations were tracked in real-time
-    );
+      score: baseScore,
+    ));
     
     if (widget.gameMode == GameMode.ladder) {
       _ladderProgress++;
@@ -831,13 +829,11 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
     // DUAL TRACKING: Pattern recognition victory (no mathProblem needed)
     // The arithmetic was already tracked during _executeBattlefield()
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'arithmancer_duel',
-      scoreGained: totalScore,
       difficulty: widget.level,
-      wasSuccessful: true,
-      // NO mathProblem - arithmetic already tracked per-calculation
-    );
+      score: totalScore,
+    ));
 
     context.read<GameProvider>().addScore(baseScore + bonusScore);
     
@@ -943,13 +939,10 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   void _handleDefeat() {
     // Track pattern recognition failure
     // Arithmetic tracking already happened during gameplay
-    context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'arithmancer_duel',
-      scoreGained: 0,
       difficulty: widget.level,
-      wasSuccessful: false,
-      // NO mathProblem - arithmetic was tracked per-calculation
-    );
+    ));
     
     showDialog(
       context: context,
