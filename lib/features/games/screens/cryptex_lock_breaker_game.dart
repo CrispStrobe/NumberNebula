@@ -249,14 +249,15 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     });
   }
 
-  void _handleFailure() {
+  /// Records the level as failed. Pass [showDialogOnFail] = false when the
+  /// user is navigating away (back-press) so we don't block their exit.
+  void _handleFailure({bool showDialogOnFail = true}) {
     if (!gameActive) return; // Prevent multiple calls
 
     setState(() {
       gameActive = false;
-      // Optionally, reveal the solution to the player here
     });
-    
+
     HapticFeedback.vibrate();
 
     // Convert the puzzle equations into MathProblem objects to let the SRI
@@ -265,18 +266,75 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
         .map((eq) => eq.toMathProblem(currentPuzzle.solution))
         .toList();
 
-    // Report the failure to the GameProvider.
-    // The provider will update the Cognitive Profile and tell the SRI service
-    // that these problems were answered incorrectly.
     context.read<GameProvider>().recordLevelWin(
       gameType: 'cryptex_lock_breaker',
-      scoreGained: 0, // No score for failing
+      scoreGained: 0,
       difficulty: widget.grade + (widget.level ~/ 5),
       wasSuccessful: false,
       mathProblems: attemptedProblems,
     );
 
-    // You would then show a "Try Again" or "Solution Revealed" dialog.
+    if (showDialogOnFail && mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => _buildFailureDialog(),
+      );
+    }
+  }
+
+  /// Called when the player taps the back button. If the puzzle is still
+  /// active, treat the exit as an abandonment so the failure is recorded —
+  /// without this hook the game has no fail path at all and the mastery
+  /// gate (3 wins + difficulty signal) gets only wins.
+  void _onBackPressed() {
+    if (gameActive) {
+      _handleFailure(showDialogOnFail: false);
+    }
+    Navigator.of(context).pop();
+  }
+
+  Widget _buildFailureDialog() {
+    final s = S.of(context)!;
+    return AlertDialog(
+      backgroundColor: SpaceTheme.deepSpace,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Row(
+        children: [
+          const Icon(Icons.lock, size: 32, color: SpaceTheme.rocketRed),
+          const SizedBox(width: 12),
+          Text(s.gameOver, style: SpaceTheme.headlineStyle),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Solution: ${currentPuzzle.solution.join("  ")}',
+            style: SpaceTheme.bodyStyle,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          },
+          child: Text(s.backToMenu,
+              style: const TextStyle(color: SpaceTheme.starYellow)),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            _generatePuzzle();
+          },
+          child: Text(s.tryAgain,
+              style: const TextStyle(color: SpaceTheme.alienGreen)),
+        ),
+      ],
+    );
   }
 
   void _addProgressParticles(int satisfiedCount) {
@@ -382,7 +440,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
           GameUI(
             title: S.of(context)!.cryptexLockBreakerGameTitle,
             level: widget.level,
-            onBack: () => Navigator.of(context).pop(),
+            onBack: _onBackPressed,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -406,7 +464,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
             child: GameUI(
               title: S.of(context)!.cryptexLockBreakerGameTitle,
               level: widget.level,
-              onBack: () => Navigator.of(context).pop(),
+              onBack: _onBackPressed,
               // Pass a custom child to insert the instructions text
               customTitleWidget: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

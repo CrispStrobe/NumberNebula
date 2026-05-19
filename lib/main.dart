@@ -54,9 +54,15 @@ import 'features/games/services/gridlock_puzzle_tracker.dart';
 import 'generated/l10n.dart';
 
 // --- GLOBAL INSTANCES & NAVIGATOR KEY ---
+// Order matters: GameProvider references sriService / cognitiveProfileService
+// / progressService, so those must be declared first. Dart's lazy top-level
+// final initialization saves out-of-order references at runtime, but the
+// brittle order broke once we switched to `late final` elsewhere — keep
+// dependencies above their consumers.
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-final ProgressService progressService = ProgressService(); // must be a singleton before GameProvider
+final ProgressService progressService = ProgressService();
 final CognitiveProfileService cognitiveProfileService = CognitiveProfileService();
+final SriService sriService = SriService();
 
 final GameProvider gameProvider = GameProvider(
   progressService: progressService,
@@ -64,7 +70,6 @@ final GameProvider gameProvider = GameProvider(
   cognitiveProfileService: cognitiveProfileService,
 );
 
-final SriService sriService = SriService();
 final GridlockPuzzleTracker gridlockPuzzleTracker = GridlockPuzzleTracker();
 final PurchaseService purchaseService = PurchaseService();
 final DebugProvider debugProvider = DebugProvider();
