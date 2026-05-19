@@ -8,6 +8,7 @@
 // Use `GameOutcome.win` / `.loss` / `.fromRatio` instead of constructing
 // the value directly, and report via `gameProvider.reportOutcome(...)`.
 
+import '../tuning.dart';
 import 'math_problem.dart';
 
 class GameOutcome {
@@ -66,7 +67,7 @@ class GameOutcome {
     required int correct,
     required int total,
     List<MathProblem> mathProblems = const [],
-    double passThreshold = 0.7,
+    double passThreshold = kDefaultPassThreshold,
   }) =>
       GameOutcome(
         gameType: gameType,

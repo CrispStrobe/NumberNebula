@@ -7,6 +7,7 @@ import '../../../core/services/sri_service.dart';
 import '../../../core/services/cognitive_profile_service.dart';
 import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
+import '../tuning.dart';
 import '../constants/app_constants.dart'; // For MathOperation and NumberRange
 
 // The Achievement data class. It should be at the top-level, NOT inside another class.
@@ -211,8 +212,9 @@ class GameProvider extends ChangeNotifier {
   }
 
   bool canAdvanceToNextLevel(String gameType, int currentLevel) {
-    if ((_currentLevelWins[gameType] ?? 0) < 3) {
-      debugPrint('[GAME_PROVIDER] ❌ $gameType: Only ${_currentLevelWins[gameType] ?? 0}/3 wins');
+    if ((_currentLevelWins[gameType] ?? 0) < kWinsRequiredForLevelUp) {
+      debugPrint('[GAME_PROVIDER] ❌ $gameType: '
+          'Only ${_currentLevelWins[gameType] ?? 0}/$kWinsRequiredForLevelUp wins');
       return false;
     }
 
@@ -257,7 +259,8 @@ class GameProvider extends ChangeNotifier {
       }
     }
     
-    final hasMastery = totalTracked >= 10 && (totalMastered / totalTracked) >= 0.7;
+    final hasMastery = totalTracked >= kMinTrackedProblemsForMastery &&
+        (totalMastered / totalTracked) >= kDefaultPassThreshold;
     debugPrint('[GAME_PROVIDER] Arithmetic mastery @ $difficulty: $totalMastered/$totalTracked ${hasMastery ? "✓" : "✗"}');
     return hasMastery;
   }

@@ -2,6 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:space_math_academy/core/services/debug_provider.dart';
+import 'package:space_math_academy/core/services/sri_service.dart';
+import 'package:space_math_academy/features/games/screens/sri_review_screen.dart';
+import 'package:space_math_academy/features/games/screens/cognitive_profile_screen.dart';
 
 import 'dart:async';
 
@@ -224,6 +227,48 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
             const SizedBox(width: 8), // Spacing
+            // SRI review chip — opens the review screen and badges with
+            // the count of items currently due.
+            Consumer<SriService>(
+              builder: (context, sri, _) {
+                final due = sri.getAvailableReviewCount();
+                final btn = IconButton(
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const SriReviewScreen(),
+                    ));
+                  },
+                  icon: const Icon(Icons.menu_book,
+                      color: Colors.white, size: 24),
+                  tooltip: 'Review',
+                  style: IconButton.styleFrom(
+                    backgroundColor:
+                        SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                    padding: const EdgeInsets.all(12),
+                  ),
+                );
+                return due > 0
+                    ? Badge.count(count: due, child: btn)
+                    : btn;
+              },
+            ),
+            const SizedBox(width: 8),
+            // Cognitive profile shortcut
+            IconButton(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const CognitiveProfileScreen(),
+                ));
+              },
+              icon: const Icon(Icons.psychology,
+                  color: Colors.white, size: 24),
+              tooltip: 'Cognitive profile',
+              style: IconButton.styleFrom(
+                backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                padding: const EdgeInsets.all(12),
+              ),
+            ),
+            const SizedBox(width: 8),
             IconButton(
               onPressed: _navigateToSettings,
               icon: const Icon(

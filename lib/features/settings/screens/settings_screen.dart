@@ -7,6 +7,7 @@ import '../widgets/sri_statistics_dialog.dart'; // statistics dialog widget
 
 import '../../../shared/widgets/imprint_dialog.dart';
 import 'diagnostics_screen.dart';
+import '../../games/screens/parent_dashboard_screen.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../core/services/debug_provider.dart';
@@ -1000,6 +1001,48 @@ class _SettingsScreenState extends State<SettingsScreen>
             ),
           ),
           // --- END DIAGNOSTICS LINK ---
+
+          // --- PARENT DASHBOARD LINK ---
+          InkWell(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const ParentDashboardScreen(),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Parent dashboard',
+                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+                  ),
+                  const Row(
+                    children: [
+                      Text(
+                        'Progress summary',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: SpaceTheme.alienGreen,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(
+                        Icons.family_restroom,
+                        color: SpaceTheme.alienGreen,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // --- END PARENT DASHBOARD LINK ---
 
           const SizedBox(height: 16),
 

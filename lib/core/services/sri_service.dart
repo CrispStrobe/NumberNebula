@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/games/models/math_problem.dart';
 import '../../features/games/constants/app_constants.dart';
+import '../../features/games/tuning.dart';
 
 // Data model for each tracked problem
 class SriProblemData {
@@ -19,7 +20,7 @@ class SriProblemData {
     required this.problemId,
     this.successCount = 0,
     this.failureCount = 0,
-    this.easinessFactor = 2.5,
+    this.easinessFactor = kSm2InitialEasiness,
     this.repetitions = 0,
     required this.nextReviewDate,
   });
@@ -37,7 +38,7 @@ class SriProblemData {
     problemId: json['id'],
     successCount: json['s'] ?? 0,
     failureCount: json['f'] ?? 0,
-    easinessFactor: json['ef'] ?? 2.5,
+    easinessFactor: json['ef'] ?? kSm2InitialEasiness,
     repetitions: json['r'] ?? 0,
     nextReviewDate: DateTime.parse(json['next']),
   );
@@ -160,7 +161,9 @@ class SriService with ChangeNotifier {
     final data = _sriDatabase[problemId];
     if (data == null) return false;
 
-    final isMastered = data.repetitions >= 3 && data.easinessFactor > 4.0 && data.failureCount <= 1;
+    final isMastered = data.repetitions >= kSm2MinimumRepetitionsForMastery &&
+        data.easinessFactor > kSm2MasteryEasinessThreshold &&
+        data.failureCount <= kSm2MaxFailuresForMastery;
 
     if (isMastered) {
       _log('Problem "$problemId" is considered MASTERED. Skipping for now.');
@@ -229,7 +232,9 @@ class SriService with ChangeNotifier {
     }
 
     data.easinessFactor = data.easinessFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
-    if (data.easinessFactor < 1.3) data.easinessFactor = 1.3;
+    if (data.easinessFactor < kSm2MinimumEasiness) {
+      data.easinessFactor = kSm2MinimumEasiness;
+    }
 
     int intervalInDays;
     if (data.repetitions <= 1) {
