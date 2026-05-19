@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 // puzzle_generator_cli.dart
 // Run with: dart run puzzle_generator_cli.dart
 
@@ -595,7 +596,7 @@ Future<void> _savePuzzlesAtomic(List<GeneratedPuzzle> puzzles) async {
     
   } catch (e) {
     print('❌ Error saving puzzles: $e');
-    throw e;
+    rethrow;
   }
 }
 

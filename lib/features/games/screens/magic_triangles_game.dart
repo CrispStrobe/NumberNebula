@@ -1,15 +1,13 @@
+// ignore_for_file: unused_element, unused_field
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
-import 'dart:ui';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
-import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
-import '../widgets/game_ui.dart';
 
 class MagicTrianglesGame extends StatefulWidget {
   final int grade;
@@ -89,9 +87,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     _timeController.stop();
     _dropController.stop();
     _warpController.stop();
-    
-    _warpController.clearListeners();
-    
+
     _glowController.dispose();
     _successController.dispose();
     _timeController.dispose();
@@ -330,7 +326,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               size: isSmallScreen ? 20 : 28,
             ),
             style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFF1A1A2E).withOpacity(0.8),
+              backgroundColor: const Color(0xFF1A1A2E).withValues(alpha: 0.8),
               padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
             ),
           ),
@@ -403,10 +399,10 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         vertical: isSmall ? 4 : 8
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E).withOpacity(0.8),
+        color: const Color(0xFF1A1A2E).withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(isSmall ? 12 : 20),
         border: Border.all(
-          color: color.withOpacity(0.5),
+          color: color.withValues(alpha: 0.5),
           width: isSmall ? 1 : 2,
         ),
       ),
@@ -477,10 +473,10 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
           vertical: isSmallScreen ? 4 : 6,
         ),
         decoration: BoxDecoration(
-          color: SpaceTheme.deepSpace.withOpacity(0.4), // More transparent
+          color: SpaceTheme.deepSpace.withValues(alpha: 0.4), // More transparent
           borderRadius: BorderRadius.circular(isSmallScreen ? 6 : 10),
           border: Border.all(
-            color: SpaceTheme.alienGreen.withOpacity(0.3),
+            color: SpaceTheme.alienGreen.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -593,7 +589,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                 ),
               );
             },
-            onWillAccept: (data) {
+            onWillAcceptWithDetails: (data) {
               debugPrint("🎯 [UI] DragTarget.onWillAccept: $data");
               setState(() => _isDraggingOver = true);
               return true;
@@ -838,7 +834,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         gradient: SpaceTheme.starGradient,
         borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 12),
         border: Border.all(
-          color: SpaceTheme.starYellow.withOpacity(0.7), 
+          color: SpaceTheme.starYellow.withValues(alpha: 0.7), 
           width: isSmallScreen ? 1 : 2
         ),
       ),
@@ -859,10 +855,10 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       child: Container(
         width: isSmallScreen ? 45 : 60,
         height: isSmallScreen ? 45 : 60,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           shape: BoxShape.circle,
           gradient: SpaceTheme.starGradient,
-          boxShadow: const [BoxShadow(color: SpaceTheme.starYellow, blurRadius: 20, spreadRadius: 5)],
+          boxShadow: [BoxShadow(color: SpaceTheme.starYellow, blurRadius: 20, spreadRadius: 5)],
         ),
         child: Center(
           child: Text(
@@ -1138,7 +1134,6 @@ class MagicTrianglePuzzle {
   }
 
   static int _calculateDecoyCount(int grade, int level, int hiddenCount) {
-    final baseDifficulty = grade + (level / 5.0);
     final baseDecoys = 2 + (level / 4).floor();
     final gradeMultiplier = (grade >= 3) ? 1.3 : 1.0;
     
@@ -1277,9 +1272,15 @@ class MagicTrianglePuzzle {
       center + Offset(math.cos(cornerAngles[2]), math.sin(cornerAngles[2])) * radius,
     ];
 
-    for (int i = 0; i < n; i++) points.add(Offset.lerp(cornerPoints[0], cornerPoints[1], i / (n - 1))!);
-    for (int i = 1; i < n; i++) points.add(Offset.lerp(cornerPoints[1], cornerPoints[2], i / (n - 1))!);
-    for (int i = 1; i < n - 1; i++) points.add(Offset.lerp(cornerPoints[2], cornerPoints[0], i / (n - 1))!);
+    for (int i = 0; i < n; i++) {
+      points.add(Offset.lerp(cornerPoints[0], cornerPoints[1], i / (n - 1))!);
+    }
+    for (int i = 1; i < n; i++) {
+      points.add(Offset.lerp(cornerPoints[1], cornerPoints[2], i / (n - 1))!);
+    }
+    for (int i = 1; i < n - 1; i++) {
+      points.add(Offset.lerp(cornerPoints[2], cornerPoints[0], i / (n - 1))!);
+    }
     
     debugPrint("🔺 [Puzzle] Generated ${points.length} circle positions");
     return points;
@@ -1308,7 +1309,7 @@ class _MagicTriangleSolver {
   }
 
   int _calculateMaxIterations() {
-    final baseIterations = 100000;
+    const baseIterations = 100000;
     final complexityFactor = math.pow(circlesPerSide, 2.0).toInt();
     return baseIterations * complexityFactor;
   }
@@ -1402,7 +1403,7 @@ class WormholePainter extends CustomPainter {
       ).createShader(Rect.fromCircle(center: center, radius: radius * 1.2));
     canvas.drawCircle(center, radius * 1.2, wormholePaint);
     
-    final starPaint = Paint()..color = Colors.white.withOpacity(0.5);
+    final starPaint = Paint()..color = Colors.white.withValues(alpha: 0.5);
     for (int i = 0; i < 30; i++) {
       final starRadius = (math.sin(time * 2 * math.pi + i * 0.5) + 1) / 2 * 1.5;
       final angle = (i * 1.375) + (time * 0.5);
@@ -1420,25 +1421,28 @@ class WormholePainter extends CustomPainter {
       final angle = (i * 2 * math.pi / 3) - math.pi / 2;
       final point = center + Offset(math.cos(angle) * radius, math.sin(angle) * radius);
       cornerPoints.add(point);
-      if (i == 0) path.moveTo(point.dx, point.dy);
-      else path.lineTo(point.dx, point.dy);
+      if (i == 0) {
+        path.moveTo(point.dx, point.dy);
+      } else {
+        path.lineTo(point.dx, point.dy);
+      }
     }
     path.close();
 
     final energyPaint = Paint()
-      ..color = SpaceTheme.alienGreen.withOpacity(glowIntensity * 0.6)
+      ..color = SpaceTheme.alienGreen.withValues(alpha: glowIntensity * 0.6)
       ..style = PaintingStyle.stroke..strokeWidth = 3
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     canvas.drawPath(path, energyPaint);
     
     final framePaint = Paint()
-      ..color = SpaceTheme.starYellow.withOpacity(0.8)
+      ..color = SpaceTheme.starYellow.withValues(alpha: 0.8)
       ..style = PaintingStyle.stroke..strokeWidth = 2;
     canvas.drawPath(path, framePaint);
     
     if (warpActivation > 0) {
       final warpPaint = Paint()
-        ..color = Colors.white.withOpacity(Curves.easeOut.transform(warpActivation))
+        ..color = Colors.white.withValues(alpha: Curves.easeOut.transform(warpActivation))
         ..strokeWidth = 4.0
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
       for (final point in cornerPoints) {

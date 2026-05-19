@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -8,11 +9,9 @@ import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
-import '../widgets/game_ui.dart';
 import '../../../shared/utils/arithmancer.dart';
 
 import '../constants/app_constants.dart';
-import '../constants/difficulty_manager.dart';
 import '../models/math_problem.dart';
 import '../../../core/services/sri_service.dart'; 
 
@@ -68,13 +67,13 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   late ArithmancerGame _game;
   PvPGame? _pvpGame;
   List<MathCard> _handCards = [];
-  List<MathCard> _battlefieldCards = [];
+  final List<MathCard> _battlefieldCards = [];
   List<MathCard> _deckCards = [];
   List<MathCard> _discardCards = [];
   
   // Opponent State (for PvP)
   List<MathCard> _opponentHand = [];
-  List<MathCard> _opponentBattlefield = [];
+  final List<MathCard> _opponentBattlefield = [];
   bool _isOpponentTurn = false;
   
   // Current Opponent
@@ -91,14 +90,14 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   
   // Game Mode State
   int _ladderProgress = 0;
-  int _totalLadderSteps = 12; // (3 programs + 1 player) * 3
+  final int _totalLadderSteps = 12; // (3 programs + 1 player) * 3
   int _enemiesDefeated = 0;
   
   // Visual Effects
-  List<CombatParticle> _particles = [];
-  List<EnergyOrb> _energyOrbs = [];
-  List<ShieldEffect> _shieldEffects = [];
-  List<BonusEffect> _bonusEffects = [];
+  final List<CombatParticle> _particles = [];
+  final List<EnergyOrb> _energyOrbs = [];
+  final List<ShieldEffect> _shieldEffects = [];
+  final List<BonusEffect> _bonusEffects = [];
   String _statusMessage = "";
   Timer? _statusTimer;
 
@@ -497,6 +496,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       }
       
       if (result == null) {
+        if (!mounted) return;
         _showStatus(S.of(context)!.arithmancerInvalidExpression);
         setState(() => _isCalculating = false);
         _energyTransferController.reverse();
@@ -508,27 +508,27 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     
     // Debug print the mathematical properties for troubleshooting
     // Enhanced debug logging for troubleshooting
-    print("🔢 === DAMAGE CALCULATION DEBUG ===");
+    debugPrint("🔢 === DAMAGE CALCULATION DEBUG ===");
     if (nonNullResult.isChained) {
-      print("🔢 CHAINED EXPRESSION: ${nonNullResult.expression}");
-      print("🔢 Left: ${nonNullResult.leftResult!.expression} = ${nonNullResult.leftResult!.value}");
-      print("🔢 Right: ${nonNullResult.rightResult!.expression} = ${nonNullResult.rightResult!.value}");
-      print("🔢 Combined display value: ${nonNullResult.value}");
+      debugPrint("🔢 CHAINED EXPRESSION: ${nonNullResult.expression}");
+      debugPrint("🔢 Left: ${nonNullResult.leftResult!.expression} = ${nonNullResult.leftResult!.value}");
+      debugPrint("🔢 Right: ${nonNullResult.rightResult!.expression} = ${nonNullResult.rightResult!.value}");
+      debugPrint("🔢 Combined display value: ${nonNullResult.value}");
     } else {
-      print("🔢 Expression: ${nonNullResult.expression} = ${nonNullResult.value}");
-      print("🔢 Raw damage: ${nonNullResult.damage}");
+      debugPrint("🔢 Expression: ${nonNullResult.expression} = ${nonNullResult.value}");
+      debugPrint("🔢 Raw damage: ${nonNullResult.damage}");
     }
 
     if (_currentEnemy != null) {
-      print("🔢 Enemy: ${_currentEnemy!.name}");
-      print("🔢 Enemy health: ${_currentEnemy!.health}/${_currentEnemy!.maxHealth}");
-      print("🔢 Enemy shields: ${_currentEnemy!.mathematicalShields}");
+      debugPrint("🔢 Enemy: ${_currentEnemy!.name}");
+      debugPrint("🔢 Enemy health: ${_currentEnemy!.health}/${_currentEnemy!.maxHealth}");
+      debugPrint("🔢 Enemy shields: ${_currentEnemy!.mathematicalShields}");
       
       // FIXED: Check shields for each side of chained results
       if (nonNullResult.isChained) {
-        print("🔢 Checking LEFT side (${nonNullResult.leftResult!.value}):");
+        debugPrint("🔢 Checking LEFT side (${nonNullResult.leftResult!.value}):");
         _debugShieldCheck(nonNullResult.leftResult!, _currentEnemy!);
-        print("🔢 Checking RIGHT side (${nonNullResult.rightResult!.value}):");
+        debugPrint("🔢 Checking RIGHT side (${nonNullResult.rightResult!.value}):");
         _debugShieldCheck(nonNullResult.rightResult!, _currentEnemy!);
       } else {
         _debugShieldCheck(nonNullResult, _currentEnemy!);
@@ -543,6 +543,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       debugPrint('  - ${p.expression} = ${p.answer}');
     }
 
+    if (!mounted) return;
     final sriService = context.read<SriService>();
 
     // Determine if this was a successful play based on damage dealt
@@ -555,26 +556,26 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     }
 
     if (_currentEnemy != null) {
-    print("🔢 Enemy: ${_currentEnemy!.name}");
-    print("🔢 Enemy health: ${_currentEnemy!.health}/${_currentEnemy!.maxHealth}");
-    print("🔢 Enemy shields: ${_currentEnemy!.mathematicalShields}");
+    debugPrint("🔢 Enemy: ${_currentEnemy!.name}");
+    debugPrint("🔢 Enemy health: ${_currentEnemy!.health}/${_currentEnemy!.maxHealth}");
+    debugPrint("🔢 Enemy shields: ${_currentEnemy!.mathematicalShields}");
     
     // Check each shield type
     _currentEnemy!.mathematicalShields.forEach((shieldType, threshold) {
-        print("🔢 Shield check - $shieldType: threshold=$threshold");
+        debugPrint("🔢 Shield check - $shieldType: threshold=$threshold");
         switch (shieldType) {
         case 'prime_shield':
-            print("🔢   - Value ${nonNullResult.value} is prime: ${nonNullResult.isPrime}");
-            print("🔢   - Threshold check: ${nonNullResult.value} >= $threshold = ${nonNullResult.value >= threshold}");
+            debugPrint("🔢   - Value ${nonNullResult.value} is prime: ${nonNullResult.isPrime}");
+            debugPrint("🔢   - Threshold check: ${nonNullResult.value} >= $threshold = ${nonNullResult.value >= threshold}");
             break;
         case 'square_immune':
-            print("🔢   - Value ${nonNullResult.value} is perfect square: ${nonNullResult.isPerfectSquare}");
+            debugPrint("🔢   - Value ${nonNullResult.value} is perfect square: ${nonNullResult.isPerfectSquare}");
             break;
         case 'fibonacci_only':
-            print("🔢   - Value ${nonNullResult.value} is fibonacci: ${nonNullResult.isFibonacci}");
+            debugPrint("🔢   - Value ${nonNullResult.value} is fibonacci: ${nonNullResult.isFibonacci}");
             break;
         case 'power_of_two_only':
-            print("🔢   - Value ${nonNullResult.value} is power of two: ${nonNullResult.isPowerOfTwo}");
+            debugPrint("🔢   - Value ${nonNullResult.value} is power of two: ${nonNullResult.isPowerOfTwo}");
             break;
         }
     });
@@ -656,20 +657,20 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   void _debugShieldCheck(MathResult result, MathematicalEnemy enemy) {
     enemy.mathematicalShields.forEach((shieldType, threshold) {
-      print("🔢 Shield check - $shieldType: threshold=$threshold");
+      debugPrint("🔢 Shield check - $shieldType: threshold=$threshold");
       switch (shieldType) {
         case 'prime_shield':
-          print("🔢   - Value ${result.value} is prime: ${result.isPrime}");
-          print("🔢   - Threshold check: ${result.value} >= $threshold = ${result.value >= threshold}");
+          debugPrint("🔢   - Value ${result.value} is prime: ${result.isPrime}");
+          debugPrint("🔢   - Threshold check: ${result.value} >= $threshold = ${result.value >= threshold}");
           break;
         case 'square_immune':
-          print("🔢   - Value ${result.value} is perfect square: ${result.isPerfectSquare}");
+          debugPrint("🔢   - Value ${result.value} is perfect square: ${result.isPerfectSquare}");
           break;
         case 'fibonacci_only':
-          print("🔢   - Value ${result.value} is fibonacci: ${result.isFibonacci}");
+          debugPrint("🔢   - Value ${result.value} is fibonacci: ${result.isFibonacci}");
           break;
         case 'power_of_two_only':
-          print("🔢   - Value ${result.value} is power of two: ${result.isPowerOfTwo}");
+          debugPrint("🔢   - Value ${result.value} is power of two: ${result.isPowerOfTwo}");
           break;
       }
     });
@@ -725,7 +726,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         
         _addEnemyAttackParticles();
         _shakeController.forward(from: 0.0);
-        _showStatus(S.of(context)!.arithmancerEnemyAttack(damage));
+        if (mounted) {
+          _showStatus(S.of(context)!.arithmancerEnemyAttack(damage));
+        }
       }
     }
 
@@ -747,7 +750,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
     // Pattern recognition victory tracking
     // Arithmetic was already tracked during each _executeBattlefield() call
-    final didAdvance = context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().recordLevelWin(
       gameType: 'arithmancer_duel',
       scoreGained: baseScore,
       difficulty: widget.level,
@@ -828,7 +831,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
     // DUAL TRACKING: Pattern recognition victory (no mathProblem needed)
     // The arithmetic was already tracked during _executeBattlefield()
-    final didAdvance = context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().recordLevelWin(
       gameType: 'arithmancer_duel',
       scoreGained: totalScore,
       difficulty: widget.level,
@@ -959,8 +962,12 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     setState(() {
       _particles.removeWhere((p) => p.update());
       _energyOrbs.removeWhere((orb) => orb.update(_energyTransferAnimation.value));
-      _shieldEffects.forEach((shield) => shield.update(_shieldAnimation.value));
-      _bonusEffects.forEach((bonus) => bonus.update(_bonusAnimation.value));
+      for (var shield in _shieldEffects) {
+        shield.update(_shieldAnimation.value);
+      }
+      for (var bonus in _bonusEffects) {
+        bonus.update(_bonusAnimation.value);
+      }
     });
   }
 
@@ -1060,14 +1067,14 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                 if (_showInstructions)
                   Positioned.fill(
                     child: Container(
-                      color: Colors.black.withOpacity(0.8),
+                      color: Colors.black.withValues(alpha: 0.8),
                       child: Center(
                         child: Container(
                           margin: const EdgeInsets.all(20),
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple.withOpacity(0.3)],
+                              colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple.withValues(alpha: 0.3)],
                             ),
                             borderRadius: BorderRadius.circular(15),
                             border: Border.all(color: SpaceTheme.alienGreen, width: 2),
@@ -1299,7 +1306,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [SpaceTheme.deepSpace.withOpacity(0.9), Colors.transparent],
+          colors: [SpaceTheme.deepSpace.withValues(alpha: 0.9), Colors.transparent],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -1339,7 +1346,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: SpaceTheme.starYellow.withOpacity(0.2),
+                color: SpaceTheme.starYellow.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(color: SpaceTheme.starYellow),
               ),
@@ -1381,8 +1388,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           DragTarget<MathCard>(
-            onWillAccept: (card) => card != null && !_isOpponentTurn,
-            onAccept: (card) {
+            onWillAcceptWithDetails: (details) => !_isOpponentTurn,
+            onAcceptWithDetails: (details) {
+                final card = details.data;
                 HapticFeedback.lightImpact();
                 setState(() {
                 // Handle parentheses halves specially
@@ -1451,16 +1459,16 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    SpaceTheme.rocketRed.withOpacity(0.1),
-                    SpaceTheme.deepSpace.withOpacity(0.9),
-                    SpaceTheme.rocketRed.withOpacity(0.1),
+                    SpaceTheme.rocketRed.withValues(alpha: 0.1),
+                    SpaceTheme.deepSpace.withValues(alpha: 0.9),
+                    SpaceTheme.rocketRed.withValues(alpha: 0.1),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: SpaceTheme.rocketRed, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: SpaceTheme.rocketRed.withOpacity(0.6),
+                    color: SpaceTheme.rocketRed.withValues(alpha: 0.6),
                     blurRadius: 15,
                     spreadRadius: 2,
                   ),
@@ -1479,19 +1487,19 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                           height: 50,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: RadialGradient(
+                            gradient: const RadialGradient(
                               colors: [SpaceTheme.rocketRed, SpaceTheme.deepSpace],
                             ),
                             border: Border.all(color: SpaceTheme.rocketRed, width: 2),
                             boxShadow: [
                               BoxShadow(
-                                color: SpaceTheme.rocketRed.withOpacity(0.8),
+                                color: SpaceTheme.rocketRed.withValues(alpha: 0.8),
                                 blurRadius: 10,
                                 spreadRadius: 2,
                               ),
                             ],
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.psychology,
                             color: Colors.white,
                             size: 25,
@@ -1543,8 +1551,8 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            SpaceTheme.rocketRed.withOpacity(0.2),
-            SpaceTheme.deepSpace.withOpacity(0.9),
+            SpaceTheme.rocketRed.withValues(alpha: 0.2),
+            SpaceTheme.deepSpace.withValues(alpha: 0.9),
           ],
           stops: const [0.0, 1.0],
           begin: Alignment.centerLeft,
@@ -1554,7 +1562,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         border: Border.all(color: SpaceTheme.rocketRed, width: 2),
         boxShadow: [
           BoxShadow(
-            color: SpaceTheme.rocketRed.withOpacity(0.6),
+            color: SpaceTheme.rocketRed.withValues(alpha: 0.6),
             blurRadius: 10,
           ),
         ],
@@ -1596,9 +1604,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                 width: 120, // A fixed width for the health bar itself
                 height: 18,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(9),
-                  border: Border.all(color: SpaceTheme.rocketRed.withOpacity(0.5)),
+                  border: Border.all(color: SpaceTheme.rocketRed.withValues(alpha: 0.5)),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(9),
@@ -1639,8 +1647,8 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            SpaceTheme.alienGreen.withOpacity(0.2),
-            SpaceTheme.deepSpace.withOpacity(0.9),
+            SpaceTheme.alienGreen.withValues(alpha: 0.2),
+            SpaceTheme.deepSpace.withValues(alpha: 0.9),
           ],
           stops: const [0.0, 1.0],
           begin: Alignment.centerLeft,
@@ -1650,7 +1658,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         border: Border.all(color: SpaceTheme.alienGreen, width: 2),
         boxShadow: [
           BoxShadow(
-            color: SpaceTheme.alienGreen.withOpacity(0.6),
+            color: SpaceTheme.alienGreen.withValues(alpha: 0.6),
             blurRadius: 10,
           ),
         ],
@@ -1677,9 +1685,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                 Container(
                   height: 18,
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(9),
-                    border: Border.all(color: SpaceTheme.alienGreen.withOpacity(0.5)),
+                    border: Border.all(color: SpaceTheme.alienGreen.withValues(alpha: 0.5)),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(9),
@@ -1719,18 +1727,19 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         children: [
           // Battle zone with TRON styling
           DragTarget<MathCard>(
-            onWillAccept: (card) {
+            onWillAcceptWithDetails: (details) {
               setState(() => _isDraggingCard = true);
-              return card != null && !_isOpponentTurn;
+              return !_isOpponentTurn;
             },
             onLeave: (card) {
               setState(() => _isDraggingCard = false);
             },
-            onAccept: (card) {
+            onAcceptWithDetails: (details) {
+              final card = details.data;
               HapticFeedback.lightImpact();
               setState(() {
                 _battlefieldCards.add(card);
-                
+
                 if (card.name == "Open Parenthesis" || card.name == "Close Parenthesis") {
                   for (var handCard in _handCards) {
                     if (handCard.type == CardType.parentheses && handCard.name == "Parentheses") {
@@ -1745,7 +1754,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                 } else {
                   _handCards.remove(card);
                 }
-                
+
                 _isDraggingCard = false;
               });
             },
@@ -1756,14 +1765,14 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                   gradient: LinearGradient(
                     colors: _isDraggingCard 
                         ? [
-                            SpaceTheme.starYellow.withOpacity(0.3),
-                            SpaceTheme.alienGreen.withOpacity(0.2),
-                            SpaceTheme.starYellow.withOpacity(0.3),
+                            SpaceTheme.starYellow.withValues(alpha: 0.3),
+                            SpaceTheme.alienGreen.withValues(alpha: 0.2),
+                            SpaceTheme.starYellow.withValues(alpha: 0.3),
                           ]
                         : [
-                            SpaceTheme.deepSpace.withOpacity(0.4),
-                            SpaceTheme.nebulaPurple.withOpacity(0.2),
-                            SpaceTheme.deepSpace.withOpacity(0.4),
+                            SpaceTheme.deepSpace.withValues(alpha: 0.4),
+                            SpaceTheme.nebulaPurple.withValues(alpha: 0.2),
+                            SpaceTheme.deepSpace.withValues(alpha: 0.4),
                           ],
                   ),
                   borderRadius: BorderRadius.circular(12),
@@ -1773,7 +1782,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                   ),
                   boxShadow: _isDraggingCard ? [
                     BoxShadow(
-                      color: SpaceTheme.starYellow.withOpacity(0.7),
+                      color: SpaceTheme.starYellow.withValues(alpha: 0.7),
                       blurRadius: 15,
                       spreadRadius: 3,
                     ),
@@ -1888,15 +1897,15 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                SpaceTheme.alienGreen.withOpacity(0.9),
-                                SpaceTheme.cosmicPink.withOpacity(0.7),
-                                SpaceTheme.starYellow.withOpacity(0.9),
+                                SpaceTheme.alienGreen.withValues(alpha: 0.9),
+                                SpaceTheme.cosmicPink.withValues(alpha: 0.7),
+                                SpaceTheme.starYellow.withValues(alpha: 0.9),
                               ],
                             ),
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: SpaceTheme.alienGreen.withOpacity(0.7),
+                                color: SpaceTheme.alienGreen.withValues(alpha: 0.7),
                                 blurRadius: 20,
                                 spreadRadius: 3,
                               ),
@@ -1912,7 +1921,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                     shadows: [
-                                      Shadow(color: Colors.black, blurRadius: 3),
+                                      const Shadow(color: Colors.black, blurRadius: 3),
                                     ],
                                   ),
                                 ),
@@ -1924,7 +1933,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                                     color: SpaceTheme.starYellow,
                                     fontWeight: FontWeight.bold,
                                     shadows: [
-                                      Shadow(color: SpaceTheme.starYellow, blurRadius: 8),
+                                      const Shadow(color: SpaceTheme.starYellow, blurRadius: 8),
                                     ],
                                   ),
                                 ),
@@ -1935,7 +1944,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                                     children: _lastProperties.map((prop) => Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.8),
+                                        color: Colors.black.withValues(alpha: 0.8),
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(color: SpaceTheme.starYellow),
                                       ),
@@ -1973,16 +1982,16 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        SpaceTheme.starYellow.withOpacity(0.3),
-                        SpaceTheme.deepSpace.withOpacity(0.9),
-                        SpaceTheme.starYellow.withOpacity(0.3),
+                        SpaceTheme.starYellow.withValues(alpha: 0.3),
+                        SpaceTheme.deepSpace.withValues(alpha: 0.9),
+                        SpaceTheme.starYellow.withValues(alpha: 0.3),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: SpaceTheme.starYellow),
                     boxShadow: [
                       BoxShadow(
-                        color: SpaceTheme.starYellow.withOpacity(0.6),
+                        color: SpaceTheme.starYellow.withValues(alpha: 0.6),
                         blurRadius: 10,
                         spreadRadius: 1,
                       ),
@@ -2016,13 +2025,13 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
           colors: [
             SpaceTheme.nebulaPurple,
             SpaceTheme.cosmicPink,
-            SpaceTheme.nebulaPurple.withOpacity(0.8),
+            SpaceTheme.nebulaPurple.withValues(alpha: 0.8),
           ],
         ),
         border: Border.all(color: SpaceTheme.nebulaPurple, width: 3),
         boxShadow: [
           BoxShadow(
-            color: SpaceTheme.nebulaPurple.withOpacity(0.8),
+            color: SpaceTheme.nebulaPurple.withValues(alpha: 0.8),
             blurRadius: 15,
             spreadRadius: 3,
           ),
@@ -2038,7 +2047,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min, // Important for preventing overflow
               children: [
-                Icon(
+                const Icon(
                   Icons.skip_next,
                   color: Colors.white,
                   size: 28, // Slightly larger
@@ -2047,7 +2056,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                 Flexible( // Wrap text in Flexible to prevent overflow
                   child: Text(
                     S.of(context)!.arithmancerSkipTurn,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 9, // Slightly larger
                       fontWeight: FontWeight.bold,
@@ -2069,9 +2078,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     return Container(
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.2),
+        color: Colors.black.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.5)),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
       ),
       child: Column(
         children: [
@@ -2116,7 +2125,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                           height: cardHeight,
                           margin: EdgeInsets.only(right: i < 6 ? 6 : 0),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -2168,7 +2177,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         Container(
           height: 5, // CHANGED from 6
           decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
+            color: color.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(3),
           ),
           child: FractionallySizedBox(
@@ -2180,7 +2189,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                 borderRadius: BorderRadius.circular(3),
                 boxShadow: [
                   BoxShadow(
-                    color: color.withOpacity(0.8),
+                    color: color.withValues(alpha: 0.8),
                     blurRadius: 3, // Reduced blur
                   ),
                 ],
@@ -2229,13 +2238,13 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
           colors: [
             SpaceTheme.starYellow,
             SpaceTheme.planetOrange,
-            SpaceTheme.starYellow.withOpacity(0.8),
+            SpaceTheme.starYellow.withValues(alpha: 0.8),
           ],
         ),
         border: Border.all(color: SpaceTheme.starYellow, width: 3),
         boxShadow: [
           BoxShadow(
-            color: SpaceTheme.starYellow.withOpacity(0.8),
+            color: SpaceTheme.starYellow.withValues(alpha: 0.8),
             blurRadius: 15,
             spreadRadius: 3,
           ),
@@ -2248,7 +2257,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
           customBorder: const CircleBorder(),
           child: Center(
             child: _isCalculating
-                ? SizedBox(
+                ? const SizedBox(
                     width: 25,
                     height: 25,
                     child: CircularProgressIndicator(
@@ -2259,14 +2268,14 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.play_arrow,
                         color: Colors.black,
                         size: 24,
                       ),
                       Text(
                         S.of(context)!.arithmancerExecute,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.black,
                           fontSize: 8,
                           fontWeight: FontWeight.bold,
@@ -2291,7 +2300,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             width: 60,
             height: 80,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [SpaceTheme.alienGreen, SpaceTheme.cosmicPink],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -2300,7 +2309,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
               border: Border.all(color: SpaceTheme.alienGreen, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: SpaceTheme.alienGreen.withOpacity(0.7),
+                  color: SpaceTheme.alienGreen.withValues(alpha: 0.7),
                   blurRadius: 10,
                   spreadRadius: 2,
                 ),
@@ -2309,7 +2318,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.style,
                   color: Colors.white,
                   size: 20,
@@ -2352,7 +2361,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: (isTarget ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple).withOpacity(0.5),
+                  color: (isTarget ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple).withValues(alpha: 0.5),
                   blurRadius: isTarget ? 15 : 8,
                   spreadRadius: isTarget ? 3 : 1,
                 ),
@@ -2392,7 +2401,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         border: Border.all(color: _getCardBorderColor(card), width: 2),
         boxShadow: [
           BoxShadow(
-            color: _getCardBorderColor(card).withOpacity(0.6),
+            color: _getCardBorderColor(card).withValues(alpha: 0.6),
             blurRadius: 8,
             spreadRadius: 2,
           ),
@@ -2422,13 +2431,13 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.8),
+                color: Colors.black.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: SpaceTheme.starYellow),
               ),
               child: Text(
                 "${card.cost}",
-                style: TextStyle(
+                style: const TextStyle(
                   color: SpaceTheme.starYellow,
                   fontSize: 8,
                   fontWeight: FontWeight.bold,
@@ -2555,14 +2564,14 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             gradient: _getCardGradient(card),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: _getCardBorderColor(card).withOpacity(
+              color: _getCardBorderColor(card).withValues(alpha: 
                 isBeingDragged ? 1.0 : _cardGlowAnimation.value
               ),
               width: isBeingDragged ? 3 : 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: _getCardBorderColor(card).withOpacity(
+                color: _getCardBorderColor(card).withValues(alpha: 
                   isBeingDragged ? 0.9 : _cardGlowAnimation.value * 0.6
                 ),
                 blurRadius: isBeingDragged ? 15 : 8,
@@ -2610,13 +2619,13 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                   height: 24, // Increased from 20
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: RadialGradient(
+                    gradient: const RadialGradient(
                       colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange],
                     ),
                     border: Border.all(color: Colors.black, width: 1),
                     boxShadow: [
                       BoxShadow(
-                        color: SpaceTheme.starYellow.withOpacity(0.8),
+                        color: SpaceTheme.starYellow.withValues(alpha: 0.8),
                         blurRadius: 6,
                         spreadRadius: 1,
                       ),
@@ -2654,14 +2663,14 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             gradient: _getCardGradient(originalCard),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: _getCardBorderColor(originalCard).withOpacity(
+              color: _getCardBorderColor(originalCard).withValues(alpha: 
                 isUsed ? 0.3 : _cardGlowAnimation.value
               ),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: _getCardBorderColor(originalCard).withOpacity(
+                color: _getCardBorderColor(originalCard).withValues(alpha: 
                   isUsed ? 0.2 : _cardGlowAnimation.value * 0.6
                 ),
                 blurRadius: 8,
@@ -2710,12 +2719,12 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                     height: 20,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: RadialGradient(
+                      gradient: const RadialGradient(
                         colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange],
                       ),
                       border: Border.all(color: Colors.black, width: 1),
                     ),
-                    child: Center(
+                    child: const Center(
                       child: Text(
                         "1", // Each half costs 1
                         style: TextStyle(
@@ -2793,7 +2802,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   // Dialog methods remain the same as before...
   Widget _buildVictoryDialog(int score) {
     return AlertDialog(
-      backgroundColor: SpaceTheme.deepSpace.withOpacity(0.95),
+      backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
         side: const BorderSide(color: SpaceTheme.alienGreen, width: 2),
@@ -2839,7 +2848,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   Widget _buildLadderStepDialog() {
     return AlertDialog(
-      backgroundColor: SpaceTheme.deepSpace.withOpacity(0.95),
+      backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
         side: const BorderSide(color: SpaceTheme.starYellow, width: 2),
@@ -2875,7 +2884,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   Widget _buildLadderCompleteDialog(int score) {
     return AlertDialog(
-      backgroundColor: SpaceTheme.deepSpace.withOpacity(0.95),
+      backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
         side: const BorderSide(color: SpaceTheme.alienGreen, width: 2),
@@ -2911,7 +2920,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   Widget _buildDefeatDialog() {
     return AlertDialog(
-      backgroundColor: SpaceTheme.deepSpace.withOpacity(0.95),
+      backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
         side: const BorderSide(color: SpaceTheme.rocketRed, width: 2),
@@ -3058,12 +3067,12 @@ class CombatParticle {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: color.withOpacity((life / maxLife).clamp(0.0, 1.0)),
+          color: color.withValues(alpha: (life / maxLife).clamp(0.0, 1.0)),
           shape: BoxShape.circle,
           boxShadow: type == 'explosion'
               ? [
                   BoxShadow(
-                    color: color.withOpacity(0.5),
+                    color: color.withValues(alpha: 0.5),
                     blurRadius: size * 2,
                   )
                 ]
@@ -3112,11 +3121,11 @@ class EnergyOrb {
         width: 16,
         height: 16,
         decoration: BoxDecoration(
-          color: SpaceTheme.starYellow.withOpacity(life),
+          color: SpaceTheme.starYellow.withValues(alpha: life),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: SpaceTheme.starYellow.withOpacity(life * 0.8),
+              color: SpaceTheme.starYellow.withValues(alpha: life * 0.8),
               blurRadius: 12,
               spreadRadius: 3,
             ),
@@ -3173,11 +3182,11 @@ class ShieldEffect {
           height: 30,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             border: Border.all(color: color, width: 2),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.7),
+                color: color.withValues(alpha: 0.7),
                 blurRadius: 10,
                 spreadRadius: 2,
               ),
@@ -3226,12 +3235,12 @@ class BonusEffect {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: color.withOpacity(opacity * 0.8),
+          color: color.withValues(alpha: opacity * 0.8),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: color, width: 2),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(opacity * 0.7),
+              color: color.withValues(alpha: opacity * 0.7),
               blurRadius: 15,
               spreadRadius: 4,
             ),
@@ -3255,7 +3264,7 @@ class TronGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = SpaceTheme.nebulaPurple.withOpacity(0.2)
+      ..color = SpaceTheme.nebulaPurple.withValues(alpha: 0.2)
       ..strokeWidth = 1;
 
     // Draw grid pattern
@@ -3280,7 +3289,7 @@ class CardPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity(0.1)
+      ..color = color.withValues(alpha: 0.1)
       ..strokeWidth = 1;
 
     // Draw circuit-like patterns
@@ -3317,7 +3326,7 @@ class ArithmancerModeSelection extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [SpaceTheme.deepSpace.withOpacity(0.9), Colors.transparent],
+                    colors: [SpaceTheme.deepSpace.withValues(alpha: 0.9), Colors.transparent],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -3401,7 +3410,7 @@ class ArithmancerModeSelection extends StatelessWidget {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: 120,
       child: Material(
@@ -3414,16 +3423,16 @@ class ArithmancerModeSelection extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  color.withOpacity(0.2),
-                  SpaceTheme.deepSpace.withOpacity(0.9),
-                  color.withOpacity(0.1),
+                  color.withValues(alpha: 0.2),
+                  SpaceTheme.deepSpace.withValues(alpha: 0.9),
+                  color.withValues(alpha: 0.1),
                 ],
               ),
               borderRadius: BorderRadius.circular(15),
               border: Border.all(color: color, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: color.withOpacity(0.3),
+                  color: color.withValues(alpha: 0.3),
                   blurRadius: 10,
                   spreadRadius: 1,
                 ),
@@ -3436,7 +3445,7 @@ class ArithmancerModeSelection extends StatelessWidget {
                   height: 60,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: color.withOpacity(0.3),
+                    color: color.withValues(alpha: 0.3),
                     border: Border.all(color: color, width: 2),
                   ),
                   child: Icon(icon, color: color, size: 30),

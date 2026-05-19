@@ -5,9 +5,6 @@ import 'dart:math' as math;
 import 'dart:async';
 import 'dart:ui' as ui;
 
-import '../constants/app_constants.dart';
-import '../constants/difficulty_manager.dart';
-import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
@@ -320,7 +317,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   }
   
   void _triggerFeedback(bool isSuccess) {
-    feedbackColor = isSuccess ? Colors.green.withOpacity(0.5) : Colors.red.withOpacity(0.6);
+    feedbackColor = isSuccess ? Colors.green.withValues(alpha: 0.5) : Colors.red.withValues(alpha: 0.6);
     _feedbackController.forward(from: 0.0).then((_) {
       if (mounted) _feedbackController.reverse();
     });
@@ -389,11 +386,15 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   void _updateGame() {
     if (!mounted) return;
     
-    final dt = 0.016;
+    const dt = 0.016;
     final screenSize = MediaQuery.of(context).size;
     
-    for (var star in stars) star.update(dt, screenSize, gameSpeed * 0.1);
-    for (var dustParticle in dust) dustParticle.update(dt, screenSize, gameSpeed * 0.3);
+    for (var star in stars) {
+      star.update(dt, screenSize, gameSpeed * 0.1);
+    }
+    for (var dustParticle in dust) {
+      dustParticle.update(dt, screenSize, gameSpeed * 0.3);
+    }
 
     particles.removeWhere((p) => p.update(dt));
     if (followingPath) {
@@ -497,7 +498,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
             ),
             IgnorePointer(
               child: Container(
-                color: feedbackColor.withOpacity(feedbackColor.opacity * _feedbackController.value),
+                color: feedbackColor.withValues(alpha: feedbackColor.a * _feedbackController.value),
               ),
             ),
             // UI elements that should not interfere with taps
@@ -593,7 +594,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Colors.black.withOpacity(0.5),
+      color: Colors.black.withValues(alpha: 0.5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -633,10 +634,10 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
       margin: const EdgeInsets.only(top: 20),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.7),
+        color: Colors.black.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.cyan, width: 2),
-        boxShadow: [BoxShadow(color: Colors.cyan.withOpacity(0.5), blurRadius: 20, spreadRadius: 2)],
+        boxShadow: [BoxShadow(color: Colors.cyan.withValues(alpha: 0.5), blurRadius: 20, spreadRadius: 2)],
       ),
       child: Text(
           currentProblem!.expression
@@ -655,7 +656,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
       margin: const EdgeInsets.only(top: 20),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.8),
+        color: Colors.black.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white38),
       ),
@@ -671,14 +672,14 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
       padding: const EdgeInsets.all(16.0),
       child: Text(S.of(context)!.pathFinderInstructions,
         textAlign: TextAlign.center,
-        style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 13),
+        style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13),
       ),
     );
   }
   
   Widget _buildEndDialog(bool isWin) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF1A1A3E).withOpacity(0.95),
+      backgroundColor: const Color(0xFF1A1A3E).withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
         side: BorderSide(color: isWin ? Colors.greenAccent : Colors.redAccent, width: 2),
@@ -693,7 +694,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
         style: const TextStyle(color: Colors.white70),
       ),
       actions: [
-        TextButton(child: Text(S.of(context)!.playAgain, style: const TextStyle(color: Colors.cyanAccent)), onPressed: _resetGame),
+        TextButton(onPressed: _resetGame, child: Text(S.of(context)!.playAgain, style: const TextStyle(color: Colors.cyanAccent))),
         TextButton(child: Text(S.of(context)!.backToMenu, style: const TextStyle(color: Colors.white)), onPressed: () {
             Navigator.pop(context);
             Navigator.pop(context);
@@ -819,9 +820,9 @@ class BackgroundStar {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(brightness),
+          color: Colors.white.withValues(alpha: brightness),
           shape: BoxShape.circle,
-          boxShadow: isDust ? null : [BoxShadow(color: Colors.white.withOpacity(0.3), blurRadius: size * 2)],
+          boxShadow: isDust ? null : [BoxShadow(color: Colors.white.withValues(alpha: 0.3), blurRadius: size * 2)],
         ),
       ),
     );
@@ -900,7 +901,7 @@ class SpaceParticle {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: color.withOpacity(opacity),
+          color: color.withValues(alpha: opacity),
           shape: BoxShape.circle,
         ),
       ),
@@ -932,8 +933,8 @@ class SpacePathPainter extends CustomPainter {
     _drawPathEffects(canvas, p, path.pathType);
 
     final midPoint = path.getPointAt(0.5);
-    final bubbleRadius = 38.0;
-    canvas.drawCircle(midPoint, bubbleRadius, Paint()..color = Colors.black.withOpacity(0.8));
+    const bubbleRadius = 38.0;
+    canvas.drawCircle(midPoint, bubbleRadius, Paint()..color = Colors.black.withValues(alpha: 0.8));
     canvas.drawCircle(midPoint, bubbleRadius, Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5
@@ -969,7 +970,7 @@ class SpacePathPainter extends CustomPainter {
           final tangent = metrics.getTangentForOffset(distance)!;
           final p1 = tangent.position;
           final p2 = p1 + Offset.fromDirection(tangent.angle + (random.nextDouble()-0.5) * 2, 40);
-          canvas.drawLine(p1, p2, Paint()..color=Colors.yellow.withOpacity(0.8)..strokeWidth=2);
+          canvas.drawLine(p1, p2, Paint()..color=Colors.yellow.withValues(alpha: 0.8)..strokeWidth=2);
          }
         break;
       default:
@@ -1009,7 +1010,7 @@ class SpaceshipPainter extends CustomPainter {
     );
     
     if (damageLevel > 1.0) {
-      final crackPaint = Paint()..color = Colors.black.withOpacity(0.5)..strokeWidth = 1.2..style = PaintingStyle.stroke;
+      final crackPaint = Paint()..color = Colors.black.withValues(alpha: 0.5)..strokeWidth = 1.2..style = PaintingStyle.stroke;
       canvas.drawLine(Offset(size.width * 0.5, size.height * 0.35), Offset(size.width * 0.8, size.height * 0.6), crackPaint);
     }
 

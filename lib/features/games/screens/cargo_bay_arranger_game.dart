@@ -1,19 +1,15 @@
-import 'package:flutter/foundation.dart';
+// ignore_for_file: unused_element, unused_field
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
-import 'dart:ui';
 
 import '../../../core/theme/space_theme.dart';
-import '../constants/app_constants.dart';
 import '../../../generated/l10n.dart';
-import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
-import '../widgets/game_ui.dart';
 
 class CargoBayArrangerGame extends StatefulWidget {
   final int grade;
@@ -87,7 +83,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   double _lastTickTime = 0;
   
   // Keyboard
-  FocusNode _focusNode = FocusNode();
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -925,10 +921,10 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: disabled ? Colors.grey.shade800.withOpacity(0.5) : SpaceTheme.deepSpace.withOpacity(0.5),
+        color: disabled ? Colors.grey.shade800.withValues(alpha: 0.5) : SpaceTheme.deepSpace.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(4),
         border: Border.all(
-          color: disabled ? Colors.grey.shade600 : SpaceTheme.nebulaPurple.withOpacity(0.3),
+          color: disabled ? Colors.grey.shade600 : SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
           width: 0.5,
         ),
       ),
@@ -989,7 +985,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
             ),
             
             // Particles
-            ...particles.map((p) => p.build()).toList(),
+            ...particles.map((p) => p.build()),
             
             // Bonus notifications
             ..._buildBonusNotifications(),
@@ -1006,7 +1002,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
                     SizedBox(
                       width: sidebarWidth,
                       child: Container(
-                        color: SpaceTheme.deepSpace.withOpacity(0.8),
+                        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
                         padding: EdgeInsets.symmetric(vertical: 8, horizontal: isWide ? 8 : 4),
                         child: Column(
                           children: [
@@ -1035,13 +1031,13 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
                                 Container(
                                   width: 20,
                                   height: 1,
-                                  color: SpaceTheme.alienGreen.withOpacity(0.5),
+                                  color: SpaceTheme.alienGreen.withValues(alpha: 0.5),
                                   margin: const EdgeInsets.symmetric(vertical: 2),
                                 ),
                                 Text(
                                   '$rowsToWin',
                                   style: TextStyle(
-                                    color: SpaceTheme.alienGreen.withOpacity(0.7),
+                                    color: SpaceTheme.alienGreen.withValues(alpha: 0.7),
                                     fontSize: isWide ? 18 : 16,
                                     height: 1.0,
                                   ),
@@ -1052,7 +1048,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
                             const SizedBox(height: 12),
                             
                             // Hold piece
-                            Text(
+                            const Text(
                               'HOLD',
                               style: TextStyle(fontSize: 9, color: Colors.white54),
                             ),
@@ -1062,7 +1058,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
                             const SizedBox(height: 8),
                             
                             // Next piece  
-                            Text(
+                            const Text(
                               'NEXT',
                               style: TextStyle(fontSize: 9, color: Colors.white54),
                             ),
@@ -1118,9 +1114,9 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
                                   width: gridWidth + 2, // Reduced border space
                                   height: gridHeight + 2,
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.5), width: 1),
+                                    border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5), width: 1),
                                     borderRadius: BorderRadius.circular(4),
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: Colors.black.withValues(alpha: 0.3),
                                   ),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(3),
@@ -1160,7 +1156,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
               GestureDetector(
                 onTap: () => setState(() => showBonusPanel = false),
                 child: Container(
-                  color: Colors.black.withOpacity(0.7),
+                  color: Colors.black.withValues(alpha: 0.7),
                   child: Center(
                     child: Container(
                       margin: const EdgeInsets.all(32),
@@ -1224,9 +1220,9 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
               width: gridWidth + 4,
               height: gridHeight + 4,
               decoration: BoxDecoration(
-                border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.5), width: 2),
+                border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5), width: 2),
                 borderRadius: BorderRadius.circular(8),
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(6),
@@ -1251,7 +1247,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
 
   Widget _buildLeftSidebar() {
     return Container(
-      color: SpaceTheme.deepSpace.withOpacity(0.8),
+      color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
       padding: const EdgeInsets.all(12), // Reduced from 16
       child: Column(
         children: [
@@ -1292,7 +1288,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
 
   Widget _buildRightSidebar() {
     return Container(
-      color: SpaceTheme.deepSpace.withOpacity(0.8),
+      color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
@@ -1334,9 +1330,9 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.2),
+              color: Colors.blue.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue.withOpacity(0.5)),
+              border: Border.all(color: Colors.blue.withValues(alpha: 0.5)),
             ),
             child: Column(
               children: [
@@ -1363,7 +1359,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.2),
+                color: Colors.orange.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -1397,17 +1393,17 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   }
 
   Widget _buildPiecePreview(CargoPiece? piece, bool disabled) {
-    final size = 80.0; // Reduced from 100
-    final cellSize = 16.0; // Reduced from 20
+    const size = 80.0; // Reduced from 100
+    const cellSize = 16.0; // Reduced from 20
 
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: disabled ? Colors.grey.shade800.withOpacity(0.5) : SpaceTheme.deepSpace.withOpacity(0.5),
+        color: disabled ? Colors.grey.shade800.withValues(alpha: 0.5) : SpaceTheme.deepSpace.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: disabled ? Colors.grey.shade600 : SpaceTheme.nebulaPurple.withOpacity(0.3),
+          color: disabled ? Colors.grey.shade600 : SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
         ),
       ),
       child: piece == null
@@ -1463,16 +1459,16 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   }
 
   Widget _buildTinyPiecePreview(CargoPiece? piece) {
-    final size = 40.0;
-    final cellSize = 8.0;
+    const size = 40.0;
+    const cellSize = 8.0;
     
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.5),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.3)),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
       ),
       child: piece == null
           ? const Center(
@@ -1505,7 +1501,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: SpaceTheme.nebulaPurple.withOpacity(0.3),
+        backgroundColor: SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
         foregroundColor: SpaceTheme.alienGreen,
         padding: const EdgeInsets.all(12),
         shape: RoundedRectangleBorder(
@@ -1557,7 +1553,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: _getBonusColor(notif.type).withOpacity(0.5),
+                    color: _getBonusColor(notif.type).withValues(alpha: 0.5),
                     blurRadius: 10,
                     spreadRadius: 2,
                   ),
@@ -1630,7 +1626,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.15),
+        color: Colors.blue.withValues(alpha: 0.15),
         border: Border.all(color: Colors.blue.shade300, width: 1.5),
         borderRadius: BorderRadius.circular(8),
       ),
@@ -1687,8 +1683,8 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.1),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -1777,7 +1773,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
                 margin: const EdgeInsets.all(1.5),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: currentPiece!.cubes[i][j]!.color.withOpacity(0.3),
+                    color: currentPiece!.cubes[i][j]!.color.withValues(alpha: 0.3),
                     width: 2,
                   ),
                   borderRadius: BorderRadius.circular(cellSize * 0.15),
@@ -1837,11 +1833,11 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
                   stops: const [0.0, 0.5, 1.0],
                 ),
                 borderRadius: BorderRadius.circular(size * 0.15),
-                border: Border.all(color: Colors.black.withOpacity(0.2), width: 1.0),
+                border: Border.all(color: Colors.black.withValues(alpha: 0.2), width: 1.0),
                 boxShadow: isClearing ? [
-                  BoxShadow(color: SpaceTheme.alienGreen.withOpacity(0.7), blurRadius: 12, spreadRadius: 3),
+                  BoxShadow(color: SpaceTheme.alienGreen.withValues(alpha: 0.7), blurRadius: 12, spreadRadius: 3),
                 ] : [
-                  BoxShadow(color: Colors.black.withOpacity(0.5), spreadRadius: 1, blurRadius: 3, offset: const Offset(2, 2))
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.5), spreadRadius: 1, blurRadius: 3, offset: const Offset(2, 2))
                 ],
               ),
               child: Center(
@@ -1851,7 +1847,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
                     color: Colors.white,
                     fontSize: size * 0.5,
                     fontWeight: FontWeight.bold,
-                    shadows: [const Shadow(blurRadius: 3.0, color: Colors.black, offset: Offset(1, 1))]
+                    shadows: const [Shadow(blurRadius: 3.0, color: Colors.black, offset: Offset(1, 1))]
                   ),
                 ),
               ),
@@ -2033,8 +2029,8 @@ class CargoParticle {
         child: Container(
           width: size, height: size,
           decoration: BoxDecoration(
-            color: color.withOpacity(opacity * 0.8), shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: color.withOpacity(opacity * 0.5), blurRadius: size * 1.5)],
+            color: color.withValues(alpha: opacity * 0.8), shape: BoxShape.circle,
+            boxShadow: [BoxShadow(color: color.withValues(alpha: opacity * 0.5), blurRadius: size * 1.5)],
           ),
         ),
       ),
@@ -2060,7 +2056,7 @@ class CargoBayPainter extends CustomPainter {
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
 
     final beamPaint = Paint()
-      ..color = Colors.black.withOpacity(0.2)
+      ..color = Colors.black.withValues(alpha: 0.2)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 35.0;
     canvas.drawLine(const Offset(-50, 50), Offset(size.width * 0.4, size.height + 50), beamPaint);
@@ -2080,7 +2076,7 @@ class GridPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (cellSize <= 0) return;
     final paint = Paint()
-      ..color = Colors.cyan.withOpacity(0.2 + (intensity * 0.2))
+      ..color = Colors.cyan.withValues(alpha: 0.2 + (intensity * 0.2))
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0
       ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 1.5);

@@ -4,7 +4,6 @@ import 'dart:math' as math;
 import 'dart:async';
 
 import '../constants/app_constants.dart';
-import '../constants/difficulty_manager.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -253,7 +252,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Next target: ', style: SpaceTheme.bodyStyle),
+                    const Text('Next target: ', style: SpaceTheme.bodyStyle),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
@@ -450,14 +449,14 @@ class BubbleWidget extends StatelessWidget {
             shape: BoxShape.circle,
             gradient: RadialGradient(
               colors: [
-                bubble.color.withOpacity(0.9),
+                bubble.color.withValues(alpha: 0.9),
                 bubble.color,
               ],
               stops: const [0.0, 1.0],
             ),
             boxShadow: [
               BoxShadow(
-                color: bubble.color.withOpacity(0.4),
+                color: bubble.color.withValues(alpha: 0.4),
                 blurRadius: 12,
                 spreadRadius: 2,
               ),
@@ -473,7 +472,7 @@ class BubbleWidget extends StatelessWidget {
                 shadows: [
                   Shadow(
                     blurRadius: 4.0,
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withValues(alpha: 0.5),
                     offset: const Offset(2.0, 2.0),
                   ),
                 ],

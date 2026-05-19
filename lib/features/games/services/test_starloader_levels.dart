@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 // test_level_generator.dart
 import 'dart:io';
 import 'starloader_level_generator.dart';
@@ -55,7 +56,7 @@ void generateAndDisplay(List<String> args) {
   final dimY = args.length > 2 ? int.tryParse(args[2]) ?? 10 : 10;
   final numBoxes = args.length > 3 ? int.tryParse(args[3]) ?? 3 : 3;
 
-  print('\n📦 Generating level: ${dimX}x${dimY} with $numBoxes boxes...\n');
+  print('\n📦 Generating level: ${dimX}x$dimY with $numBoxes boxes...\n');
 
   final generator = LevelGenerator();
   final stopwatch = Stopwatch()..start();
@@ -87,7 +88,7 @@ void batchGenerate(List<String> args) {
   final dimX = args.length > 2 ? int.tryParse(args[2]) ?? 10 : 10;
   final dimY = args.length > 3 ? int.tryParse(args[3]) ?? 10 : 10;
 
-  print('\n📦 Generating $count levels of size ${dimX}x${dimY}...\n');
+  print('\n📦 Generating $count levels of size ${dimX}x$dimY...\n');
 
   final generator = LevelGenerator();
   final times = <int>[];
@@ -209,7 +210,7 @@ void playLevel(List<String> args) {
   var moveCount = 0;
 
   while (true) {
-    print('\n' + '=' * 60);
+    print('\n${'=' * 60}');
     displayGameState(state, structure);
     print('\nMoves: $moveCount | Optimal: ${level.optimalMoves}');
     print('Commands: w/a/s/d (move), q (quit), r (reset), n (new level)');
@@ -289,7 +290,7 @@ void playLevel(List<String> args) {
 
 void displayLevel(GeneratedLevel level) {
   print('Level Layout:');
-  print('┌' + '─' * (level.roomState[0].length * 2 + 1) + '┐');
+  print('┌${'─' * (level.roomState[0].length * 2 + 1)}┐');
   
   for (int i = 0; i < level.roomState.length; i++) {
     stdout.write('│ ');
@@ -297,12 +298,12 @@ void displayLevel(GeneratedLevel level) {
       final state = level.roomState[i][j];
       final structure = level.roomStructure[i][j];
       
-      stdout.write(getTileChar(state, structure) + ' ');
+      stdout.write('${getTileChar(state, structure)} ');
     }
     print('│');
   }
   
-  print('└' + '─' * (level.roomState[0].length * 2 + 1) + '┘');
+  print('└${'─' * (level.roomState[0].length * 2 + 1)}┘');
   
   print('\nLegend:');
   print('  █ = Wall    · = Floor    ○ = Target    @ = Player');
@@ -321,17 +322,17 @@ void displayLevelCompact(GeneratedLevel level) {
 }
 
 void displayGameState(List<List<int>> state, List<List<int>> structure) {
-  print('┌' + '─' * (state[0].length * 2 + 1) + '┐');
+  print('┌${'─' * (state[0].length * 2 + 1)}┐');
   
   for (int i = 0; i < state.length; i++) {
     stdout.write('│ ');
     for (int j = 0; j < state[i].length; j++) {
-      stdout.write(getTileChar(state[i][j], structure[i][j]) + ' ');
+      stdout.write('${getTileChar(state[i][j], structure[i][j])} ');
     }
     print('│');
   }
   
-  print('└' + '─' * (state[0].length * 2 + 1) + '┘');
+  print('└${'─' * (state[0].length * 2 + 1)}┘');
 }
 
 String getTileChar(int state, int structure) {

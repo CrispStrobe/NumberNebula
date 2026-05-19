@@ -1,17 +1,15 @@
+// ignore_for_file: unused_element, unused_field
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
-import 'dart:ui';
 import 'dart:async';
 
-import '../constants/app_constants.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
-import '../widgets/game_ui.dart';
 
 // DEVELOPMENT TWEAKING CONSTANTS
 const bool kTweakProblems = false;
@@ -354,13 +352,13 @@ class _SolarPanelGameState extends State<SolarPanelGame>
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange.withOpacity(0.8)],
+                  colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange.withValues(alpha: 0.8)],
                 ),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: SpaceTheme.starYellow, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: SpaceTheme.starYellow.withOpacity(0.3),
+                    color: SpaceTheme.starYellow.withValues(alpha: 0.3),
                     blurRadius: 10,
                     spreadRadius: 1,
                   ),
@@ -377,7 +375,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -419,7 +417,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.8),
+                        color: Colors.orange.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Text(
@@ -463,7 +461,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: SpaceTheme.starYellow.withOpacity(0.2),
+                  color: SpaceTheme.starYellow.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: SpaceTheme.starYellow),
                 ),
@@ -480,7 +478,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: SpaceTheme.alienGreen.withOpacity(0.2),
+                  color: SpaceTheme.alienGreen.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: SpaceTheme.alienGreen),
                 ),
@@ -509,7 +507,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.7), width: 1.5),
+        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 1.5),
       ),
       child: Center(
         child: Text(
@@ -602,7 +600,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                 ),
               );
             },
-            onWillAccept: (data) {
+            onWillAcceptWithDetails: (data) {
               setState(() => _isDraggingOver = true);
               return true;
             },
@@ -702,13 +700,13 @@ class _SolarPanelGameState extends State<SolarPanelGame>
               width: 32, height: 32,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [color, color.withOpacity(0.7)]
+                  colors: [color, color.withValues(alpha: 0.7)]
                 ),
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: color.withOpacity(0.6),
+                    color: color.withValues(alpha: 0.6),
                     blurRadius: 8,
                     spreadRadius: 1,
                   )
@@ -827,7 +825,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
         borderRadius: BorderRadius.circular(8),
         gradient: _getCellGradient(isHidden, isSelected),
         border: Border.all(
-          color: isSelected ? SpaceTheme.starYellow : SpaceTheme.starYellow.withOpacity(0.5),
+          color: isSelected ? SpaceTheme.starYellow : SpaceTheme.starYellow.withValues(alpha: 0.5),
           width: isSelected ? 3 : 2,
         ),
         boxShadow: _getCellShadow(isSelected),
@@ -917,7 +915,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   List<BoxShadow> _getCellShadow(bool isSelected) {
     return [
       BoxShadow(
-        color: isSelected ? SpaceTheme.starYellow : SpaceTheme.starYellow.withOpacity(0.5),
+        color: isSelected ? SpaceTheme.starYellow : SpaceTheme.starYellow.withValues(alpha: 0.5),
         blurRadius: isSelected ? 20 : 10,
         spreadRadius: isSelected ? 3 : 1,
       ),
@@ -1238,7 +1236,7 @@ class SolarPanelBackgroundPainter extends CustomPainter {
     final backgroundPaint = Paint()
       ..shader = RadialGradient(
         colors: [ 
-          SpaceTheme.starYellow.withOpacity(0.1 * glowIntensity), 
+          SpaceTheme.starYellow.withValues(alpha: 0.1 * glowIntensity), 
           Colors.transparent 
         ],
       ).createShader(Rect.fromCircle(center: center, radius: size.width * 0.6));
@@ -1248,7 +1246,7 @@ class SolarPanelBackgroundPainter extends CustomPainter {
     // Warp effect
     if (warpActivation > 0) {
       final warpPaint = Paint()
-        ..color = SpaceTheme.starYellow.withOpacity(0.4 * (1 - warpActivation))
+        ..color = SpaceTheme.starYellow.withValues(alpha: 0.4 * (1 - warpActivation))
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3.0 + (warpActivation * 10)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, 5 + warpActivation * 10);
@@ -1300,8 +1298,8 @@ class PanelExpansionPainter extends CustomPainter {
     final leftPanelPaint = Paint()
       ..shader = LinearGradient(
         colors: [
-          SpaceTheme.starYellow.withOpacity(0.5 * expansion),
-          SpaceTheme.planetOrange.withOpacity(0.3 * expansion),
+          SpaceTheme.starYellow.withValues(alpha: 0.5 * expansion),
+          SpaceTheme.planetOrange.withValues(alpha: 0.3 * expansion),
         ],
       ).createShader(leftPanelRect)
       ..style = PaintingStyle.fill;
@@ -1313,7 +1311,7 @@ class PanelExpansionPainter extends CustomPainter {
     
     // Border for left panel
     final leftBorderPaint = Paint()
-      ..color = SpaceTheme.starYellow.withOpacity(0.9 * expansion)
+      ..color = SpaceTheme.starYellow.withValues(alpha: 0.9 * expansion)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
     
@@ -1351,8 +1349,8 @@ class PanelExpansionPainter extends CustomPainter {
     final rightPanelPaint = Paint()
       ..shader = LinearGradient(
         colors: [
-          SpaceTheme.starYellow.withOpacity(0.5 * expansion),
-          SpaceTheme.planetOrange.withOpacity(0.3 * expansion),
+          SpaceTheme.starYellow.withValues(alpha: 0.5 * expansion),
+          SpaceTheme.planetOrange.withValues(alpha: 0.3 * expansion),
         ],
       ).createShader(rightPanelRect)
       ..style = PaintingStyle.fill;
@@ -1364,7 +1362,7 @@ class PanelExpansionPainter extends CustomPainter {
     
     // Border for right panel
     final rightBorderPaint = Paint()
-      ..color = SpaceTheme.starYellow.withOpacity(0.9 * expansion)
+      ..color = SpaceTheme.starYellow.withValues(alpha: 0.9 * expansion)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
     
@@ -1392,7 +1390,7 @@ class PanelExpansionPainter extends CustomPainter {
     // Energy rays from panels
     if (expansion > 0.7) {
       final rayPaint = Paint()
-        ..color = SpaceTheme.starYellow.withOpacity(0.4 * (expansion - 0.7) * 3.33)
+        ..color = SpaceTheme.starYellow.withValues(alpha: 0.4 * (expansion - 0.7) * 3.33)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
@@ -1418,12 +1416,12 @@ class PanelExpansionPainter extends CustomPainter {
         text: TextSpan(
         text: text,
         style: TextStyle(
-            color: Colors.white.withOpacity(0.95 * clampedExpansion),
+            color: Colors.white.withValues(alpha: 0.95 * clampedExpansion),
             fontSize: 16,
             fontWeight: FontWeight.bold,
             shadows: [
             Shadow(
-                color: SpaceTheme.starYellow.withOpacity(0.8 * clampedExpansion),
+                color: SpaceTheme.starYellow.withValues(alpha: 0.8 * clampedExpansion),
                 blurRadius: 8,
             ),
             ],

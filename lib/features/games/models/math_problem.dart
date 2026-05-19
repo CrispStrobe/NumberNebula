@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field
 // lib/features/games/models/math_problem.dart:
 
 import 'dart:math' as math;
@@ -20,11 +21,11 @@ class MathProblem {
       case MathOperation.addition:
         return 'ADD_${math.min(operandA, operandB)}_${math.max(operandA, operandB)}';
       case MathOperation.subtraction:
-        return 'SUB_${operandA}_${operandB}';
+        return 'SUB_${operandA}_$operandB';
       case MathOperation.multiplication:
         return 'MUL_${math.min(operandA, operandB)}_${math.max(operandA, operandB)}';
       case MathOperation.division:
-        return 'DIV_${operandA}_${operandB}';
+        return 'DIV_${operandA}_$operandB';
     }
   }
   

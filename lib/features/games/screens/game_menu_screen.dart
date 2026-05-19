@@ -1,7 +1,6 @@
 // lib/features/games/screens/game_menu_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:math' as math;
 
 import '../../../core/services/debug_provider.dart';
 import '../../../core/theme/space_theme.dart';
@@ -324,7 +323,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   void _showDebugPanel() {
     showDialog(
       context: context,
-      builder: (context) => DebugPanel(),
+      builder: (context) => const DebugPanel(),
     );
   }
 
@@ -398,7 +397,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 28),
             style: IconButton.styleFrom(
-              backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8),
+              backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
               padding: const EdgeInsets.all(12),
             ),
           ),
@@ -413,7 +412,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
                     // This header now correctly shows the GLOBAL grade and level (which is 1)
                     // but the cards will load their individual saved levels.
                     return Text(
-                      '${S.of(context)!.gradeN(gameProvider.grade)}', // Simplified header
+                      S.of(context)!.gradeN(gameProvider.grade), // Simplified header
                       style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 16),
                     );
                   },
@@ -426,7 +425,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
-                  color: SpaceTheme.deepSpace.withOpacity(0.8),
+                  color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -454,7 +453,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
                   icon: const Icon(Icons.emoji_events),
                   color: SpaceTheme.starYellow,
                   tooltip: S.of(context)!.achievements,
-                  style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
+                  style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8)),
                 ),
                 const SizedBox(width: 4),
                 // --- IMPRINT BUTTON ADDED ---
@@ -462,13 +461,13 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
                   onPressed: () {
                     showDialog(
                       context: context,
-                      builder: (context) => ImprintDialog(),
+                      builder: (context) => const ImprintDialog(),
                     );
                   },
                   icon: const Icon(Icons.gavel), // Legal / Gavel icon
                   color: SpaceTheme.moonSilver,
                   tooltip: S.of(context)!.imprint,
-                  style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
+                  style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8)),
                 ),
                 const SizedBox(width: 4),
                 IconButton(
@@ -476,7 +475,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
                   icon: const Icon(Icons.settings),
                   color: SpaceTheme.moonSilver,
                   tooltip: S.of(context)!.settings,
-                  style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
+                  style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8)),
                 ),
                 if (debugProvider.isDebugMenuEnabled) ...[
                   const SizedBox(width: 4),
@@ -487,7 +486,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
                         ? SpaceTheme.alienGreen
                         : SpaceTheme.moonSilver,
                     tooltip: S.of(context)!.debugPanelTitle,
-                    style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8)),
+                    style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8)),
                   ),
                 ]
               ],
@@ -526,7 +525,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   Widget _buildGameCard(int index) {
     final gameProvider = context.read<GameProvider>();
     final debugProvider = context.read<DebugProvider>();
-    final s = S.of(context)!;
 
     // Safety check
     if (index >= _gamesData.length || index >= _cardAnimations.length) {
@@ -576,10 +574,10 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
                 ),
                 if (isLocked)
                   Container(
-                    decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(25)),
+                    decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(25)),
                   ),
                 if (isLocked)
-                  Icon(Icons.lock, color: SpaceTheme.starYellow, size: 50, shadows: [Shadow(color: Colors.black.withOpacity(0.7), blurRadius: 10)]),
+                  Icon(Icons.lock, color: SpaceTheme.starYellow, size: 50, shadows: [Shadow(color: Colors.black.withValues(alpha: 0.7), blurRadius: 10)]),
               ],
             ),
           );
@@ -651,8 +649,8 @@ class _GameCardState extends State<GameCard> with SingleTickerProviderStateMixin
                   gradient: widget.game.gradient,
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8)),
-                    BoxShadow(color: widget.game.gradient.colors.first.withOpacity(_glowAnimation.value), blurRadius: 25, spreadRadius: 2),
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8)),
+                    BoxShadow(color: widget.game.gradient.colors.first.withValues(alpha: _glowAnimation.value), blurRadius: 25, spreadRadius: 2),
                   ],
                 ),
                 child: Padding(
@@ -662,14 +660,14 @@ class _GameCardState extends State<GameCard> with SingleTickerProviderStateMixin
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
+                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
                         child: Icon(widget.game.icon, size: 24, color: Colors.white),
                       ),
                       Text(widget.game.title, style: SpaceTheme.headlineStyle.copyWith(fontSize: 15), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
                       Text(widget.game.description, style: SpaceTheme.bodyStyle.copyWith(fontSize: 10), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

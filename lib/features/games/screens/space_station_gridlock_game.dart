@@ -1,19 +1,14 @@
+// ignore_for_file: unused_element, unused_field
 // space_station_gridlock_game.dart - Responsive UI Update
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
-import 'dart:ui';
-import 'dart:collection';
 
 import '../../../core/theme/space_theme.dart';
-import '../constants/app_constants.dart';
 import '../../../generated/l10n.dart';
-import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
-import '../widgets/game_ui.dart';
 import '../services/gridlock_puzzle_tracker.dart';
 import '../data/gridlock_puzzles_data.dart';
 
@@ -80,7 +75,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
   }
 
   void _log(String message, [Map<String, dynamic>? data]) {
-    final prefix = '[SpaceGridlock]';
+    const prefix = '[SpaceGridlock]';
     if (data != null && data.isNotEmpty) {
       debugPrint('$prefix $message: ${data.entries.map((e) => '${e.key}=${e.value}').join(', ')}');
     } else {
@@ -176,10 +171,11 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       
       setState(() => _loadingStatus = 'Searching puzzle database...');
       await Future.delayed(const Duration(milliseconds: 100));
-      
+      if (!mounted) return;
+
       final tracker = context.read<GridlockPuzzleTracker>();
       
-      final tolerance = 0.0;
+      const tolerance = 0.0;
       final allPuzzlesAtLevel = getPuzzlesByComplexity(_currentComplexity, tolerance: tolerance);
       _log('🔍 Found puzzles in database', {
         'total_at_complexity': allPuzzlesAtLevel.length,
@@ -675,7 +671,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
         // Compact header
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          color: SpaceTheme.deepSpace.withOpacity(0.8),
+          color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
           child: Row(
             children: [
               IconButton(
@@ -750,7 +746,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
         // Ultra-compact header
         Container(
           padding: EdgeInsets.symmetric(horizontal: 8, vertical: isTinyScreen ? 4 : 6),
-          color: SpaceTheme.deepSpace.withOpacity(0.8),
+          color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
           child: Row(
             children: [
               IconButton(
@@ -801,7 +797,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
         // Left sidebar with controls
         Container(
           width: 120,
-          color: SpaceTheme.deepSpace.withOpacity(0.8),
+          color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
           padding: const EdgeInsets.all(8),
           child: Column(
             children: [
@@ -846,10 +842,10 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.6),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isOptimal ? SpaceTheme.alienGreen.withOpacity(0.5) : SpaceTheme.starYellow.withOpacity(0.5),
+          color: isOptimal ? SpaceTheme.alienGreen.withValues(alpha: 0.5) : SpaceTheme.starYellow.withValues(alpha: 0.5),
         ),
       ),
       child: Row(
@@ -865,7 +861,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
           ),
           Text(
             '/$minMoves',
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white54,
               fontSize: 12,
             ),
@@ -881,7 +877,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white54,
             fontSize: 10,
             fontWeight: FontWeight.w500,
@@ -891,9 +887,9 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: SpaceTheme.deepSpace.withOpacity(0.6),
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: color.withOpacity(0.3)),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
           ),
           child: Text(
             value,
@@ -914,7 +910,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white54,
             fontSize: 10,
           ),
@@ -958,7 +954,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
             width: gridPixelSize,
             height: gridPixelSize,
             decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace.withOpacity(0.5),
+              color: SpaceTheme.deepSpace.withValues(alpha: 0.5),
               border: Border.all(color: SpaceTheme.nebulaPurple, width: borderWidth),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -992,7 +988,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                               color: SpaceTheme.alienGreen,
                               boxShadow: [
                                 BoxShadow(
-                                  color: SpaceTheme.alienGreen.withOpacity(_glowAnimation.value),
+                                  color: SpaceTheme.alienGreen.withValues(alpha: _glowAnimation.value),
                                   blurRadius: 15,
                                   spreadRadius: 3,
                                 ),
@@ -1012,7 +1008,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                         builder: (context, child) {
                           return Icon(
                             Icons.arrow_forward,
-                            color: SpaceTheme.alienGreen.withOpacity(_pulseAnimation.value * 0.7),
+                            color: SpaceTheme.alienGreen.withValues(alpha: _pulseAnimation.value * 0.7),
                             size: 24,
                           );
                         },
@@ -1073,8 +1069,8 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                 height: shipHeight,
                 decoration: BoxDecoration(
                   color: ship.isBlocking 
-                      ? Colors.grey.shade800.withOpacity(0.9)
-                      : ship.color.withOpacity(isDragging ? 0.9 : 0.75),
+                      ? Colors.grey.shade800.withValues(alpha: 0.9)
+                      : ship.color.withValues(alpha: isDragging ? 0.9 : 0.75),
                   borderRadius: BorderRadius.circular(
                     ship.length == 1 ? 2 : (cellSize < 40 ? 4 : 6)
                   ),
@@ -1083,14 +1079,14 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                         ? SpaceTheme.alienGreen 
                         : ship.isBlocking
                         ? Colors.grey.shade600
-                        : Colors.white.withOpacity(0.6),
+                        : Colors.white.withValues(alpha: 0.6),
                     width: ship.isPlayer ? 2.0 : ship.isBlocking ? 1.5 : 1.0,
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: ship.isBlocking
-                          ? Colors.black.withOpacity(0.5)
-                          : ship.color.withOpacity(isDragging ? 0.6 : 0.3),
+                          ? Colors.black.withValues(alpha: 0.5)
+                          : ship.color.withValues(alpha: isDragging ? 0.6 : 0.3),
                       blurRadius: isDragging ? 12 : 6,
                       spreadRadius: isDragging ? 2 : 0,
                     ),
@@ -1119,7 +1115,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
 
   Widget _buildLoadingOverlay() {
     return Container(
-      color: Colors.black.withOpacity(0.85),
+      color: Colors.black.withValues(alpha: 0.85),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1408,11 +1404,11 @@ class GridlockParticle {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: color.withOpacity(opacity),
+            color: color.withValues(alpha: opacity),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(opacity * 0.5),
+                color: color.withValues(alpha: opacity * 0.5),
                 blurRadius: size * 2,
               ),
             ],
@@ -1439,7 +1435,7 @@ class GridlockBackgroundPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     
     final gridPaint = Paint()
-      ..color = (hasWon ? Colors.green : Colors.cyan).withOpacity(0.05 * pulseIntensity)
+      ..color = (hasWon ? Colors.green : Colors.cyan).withValues(alpha: 0.05 * pulseIntensity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     
@@ -1454,8 +1450,8 @@ class GridlockBackgroundPainter extends CustomPainter {
     final glowPaint = Paint()
       ..shader = RadialGradient(
         colors: hasWon 
-            ? [Colors.green.withOpacity(0.2 * glowIntensity), Colors.transparent]
-            : [Colors.cyan.withOpacity(0.1 * glowIntensity), Colors.transparent],
+            ? [Colors.green.withValues(alpha: 0.2 * glowIntensity), Colors.transparent]
+            : [Colors.cyan.withValues(alpha: 0.1 * glowIntensity), Colors.transparent],
       ).createShader(Rect.fromCircle(center: center, radius: 300));
     
     canvas.drawCircle(center, 300, glowPaint);
@@ -1477,11 +1473,11 @@ class GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final linePaint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
+      ..color = Colors.white.withValues(alpha: 0.1)
       ..strokeWidth = 1;
     
     final highlightPaint = Paint()
-      ..color = SpaceTheme.alienGreen.withOpacity(0.2);
+      ..color = SpaceTheme.alienGreen.withValues(alpha: 0.2);
     
     for (final cell in highlightedCells) {
       final parts = cell.split('-');

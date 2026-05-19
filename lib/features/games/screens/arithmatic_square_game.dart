@@ -11,7 +11,6 @@ import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
-import '../constants/app_constants.dart';
 import '../../../core/services/sri_service.dart';
 
 class ArithmeticSquareGame extends StatefulWidget {
@@ -441,7 +440,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     
     // SINGLE CALL to unified progression system
     // NO mathProblems parameter - already tracked in real-time via _checkAndLogCompletedEquations()
-    final didAdvance = context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().recordLevelWin(
       gameType: 'arithmatic_square', // Note: keep the typo to match existing keys
       scoreGained: totalScore,
       difficulty: widget.level,
@@ -627,7 +626,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
               vertical: isCompact ? 4 : 8,
             ),
             decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace.withOpacity(0.8),
+              color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(30),
               border: Border.all(color: indicatorColor),
             ),
@@ -700,13 +699,13 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.nebulaPurple.withOpacity(0.1 * _glowAnimation.value),
-                  SpaceTheme.deepSpace.withOpacity(0.05),
+                  SpaceTheme.nebulaPurple.withValues(alpha: 0.1 * _glowAnimation.value),
+                  SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.nebulaPurple.withOpacity(_glowAnimation.value),
+                color: SpaceTheme.nebulaPurple.withValues(alpha: _glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -776,7 +775,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
             // Column operator
             final col = index ~/ 2;
             if (row < puzzle!.columnOperators[col].length) {
-              return Container(
+              return SizedBox(
                 width: cellSize,
                 child: Center(
                   child: _buildOperatorDisplay(puzzle!.columnOperators[col][row], operatorSize),
@@ -784,7 +783,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
               );
             } else {
               // Equals sign for result row
-              return Container(
+              return SizedBox(
                 width: cellSize,
                 child: Center(
                   child: Text(
@@ -810,9 +809,8 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     final bool isEmpty = puzzle!.emptyCells.contains(cellId);
     final bool hasUserValue = userSolution.containsKey(cellId);
     final bool isPlayerHint = puzzle!.playerHints.containsKey(cellId);
-    final bool isCSPClue = puzzle!.clues.containsKey(cellId);
-    
-    final int? value = isEmpty 
+
+    final int? value = isEmpty
         ? userSolution[cellId] 
         : isPlayerHint 
             ? puzzle!.playerHints[cellId]
@@ -840,7 +838,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         ),
         boxShadow: isPlayerHint ? [
           BoxShadow(
-            color: SpaceTheme.starYellow.withOpacity(0.3),
+            color: SpaceTheme.starYellow.withValues(alpha: 0.3),
             blurRadius: 6,
             spreadRadius: 1,
           )
@@ -881,7 +879,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
               ),
               boxShadow: isHovering ? [
                 BoxShadow(
-                  color: SpaceTheme.starYellow.withOpacity(0.6),
+                  color: SpaceTheme.starYellow.withValues(alpha: 0.6),
                   blurRadius: 8,
                   spreadRadius: 2,
                 )
@@ -989,7 +987,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
         borderRadius: BorderRadius.circular(isCompact ? 8 : 12),
-        border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.7), width: 2),
+        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
       ),
       child: Center(
         child: Text(
@@ -1008,7 +1006,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: SpaceTheme.starGradient,
-          boxShadow: [BoxShadow(color: SpaceTheme.starYellow.withOpacity(0.8), blurRadius: 20, spreadRadius: 5)],
+          boxShadow: [BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.8), blurRadius: 20, spreadRadius: 5)],
         ),
         child: Center(
           child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 22)),
@@ -1026,7 +1024,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         vertical: isCompact ? 4 : 8,
       ),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.8),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: SpaceTheme.starYellow),
       ),
@@ -1055,7 +1053,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
             vertical: isCompact ? 4 : 8,
           ),
           decoration: BoxDecoration(
-            color: SpaceTheme.deepSpace.withOpacity(0.8),
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(30),
             border: Border.all(color: SpaceTheme.alienGreen),
           ),
@@ -1604,7 +1602,7 @@ class ArithmeticSquareGenerator {
     debugPrint("🔧 [CSP] Solving with ${gridSize * gridSize} variables...");
     
     try {
-      final solution = await p.getSolution().timeout(Duration(seconds: 30));
+      final solution = await p.getSolution().timeout(const Duration(seconds: 30));
       
       if (solution == 'FAILURE') {
         debugPrint("🔧 [CSP] ❌ No solution found");

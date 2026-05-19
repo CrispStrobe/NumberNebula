@@ -1,3 +1,4 @@
+// ignore_for_file: constant_identifier_names
 // lib/features/games/screens/blocks_counter_game.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,6 @@ import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/game_ui.dart';
 import '../widgets/space_background.dart';
-import '../../../shared/utils/app_utilities.dart';
 import '../constants/difficulty_manager.dart';
 
 // =============================================================================
@@ -25,7 +25,7 @@ class _VisualConfig {
   // --- Lighting ---
   // static final cube.Vector3 lightPosition = cube.Vector3(15, 20, 20); // Position of the main light
   static final cube.Vector3 lightPosition = cube.Vector3(5, 30, 15);
-  static final Color lightColor = Colors.white; // Color of the light
+  static const Color lightColor = Colors.white; // Color of the light
   // static const double ambientIntensity = 0.6; // Overall ambient light
   static const double ambientIntensity = 0.9; 
   // static const double diffuseIntensity = 1.0; // Directional light contribution
@@ -270,7 +270,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
     );
     
     _rotationController = AnimationController(
-      duration: Duration(seconds: _VisualConfig.rotationDurationSeconds),
+      duration: const Duration(seconds: _VisualConfig.rotationDurationSeconds),
       vsync: this,
     );
     _rotationAnimation = Tween<double>(begin: 0, end: 2 * math.pi).animate(
@@ -363,9 +363,9 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
       final color = blockData.color; // Use the color assigned during generation
       
       material.diffuse.setFrom(cube.Vector3(
-        color.red / 255.0,
-        color.green / 255.0,
-        color.blue / 255.0,
+        color.r,
+        color.g,
+        color.b,
       ));
       
       // FIX: Add specular and shininess for better lighting effects
@@ -410,7 +410,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
     
     // SINGLE CALL to unified progression system
     // Block Counter is spatial3d, so no mathProblem needed
-    final didAdvance = context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().recordLevelWin(
       gameType: 'block_counter',
       scoreGained: totalScore,
       difficulty: widget.level,
@@ -560,7 +560,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
             decoration: SpaceTheme.cardDecoration.copyWith(
               borderRadius: BorderRadius.circular(_VisualConfig.containerBorderRadius),
               boxShadow: [
-                BoxShadow(color: SpaceTheme.starYellow.withOpacity(0.3), blurRadius: 10, spreadRadius: 2),
+                BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.3), blurRadius: 10, spreadRadius: 2),
               ],
             ),
             child: ClipRRect(
@@ -683,95 +683,6 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
     );
   }
 
-  Widget _buildAnswerArea_old() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          S.of(context)!.blockCounterSelectAnswer,
-          style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: SpaceTheme.cardDecoration,
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              // FIX: Changed aspect ratio to make buttons more square-like.
-              childAspectRatio: 1.5, 
-            ),
-            itemCount: answerChoices.length,
-            itemBuilder: (context, index) {
-              final answer = answerChoices[index];
-              final isSelected = _selectedAnswerIndex == index;
-              final isCorrect = userAnswer != null && 
-                               answer == currentPuzzle!.correctAnswer;
-              final isWrong = userAnswer != null && isSelected && !isCorrect;
-              
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                child: ElevatedButton(
-                  onPressed: userAnswer == null ? () => _selectAnswer(index) : null,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(8), // Add padding for FittedBox
-                    backgroundColor: isCorrect 
-                        ? SpaceTheme.alienGreen 
-                        : isWrong 
-                            ? SpaceTheme.rocketRed 
-                            : isSelected
-                                ? SpaceTheme.spaceBlue
-                                : SpaceTheme.deepSpace,
-                    foregroundColor: Colors.white,
-                    elevation: isSelected ? 8 : 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(
-                        color: isSelected 
-                            ? SpaceTheme.starYellow 
-                            : Colors.transparent,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                  // FIX: Wrap the Text with a FittedBox to make the font size
-                  // automatically shrink to fit the available space.
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: Text(
-                      answer.toString(),
-                      style: SpaceTheme.headlineStyle.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        if (userAnswer != null) ...[
-          const SizedBox(height: 16),
-          Text(
-            userAnswer == currentPuzzle!.correctAnswer
-                ? '🎉 ${S.of(context)!.blockCounterWinTitle}'
-                : '🤔 Try again!',
-            style: SpaceTheme.titleStyle.copyWith(
-              color: userAnswer == currentPuzzle!.correctAnswer
-                  ? SpaceTheme.alienGreen
-                  : SpaceTheme.rocketRed,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ],
-    );
-  }
-
   Widget _buildSuccessDialog(int totalScore) {
     return AnimatedBuilder(
       animation: _successAnimation,
@@ -779,7 +690,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
         return Transform.scale(
           scale: _successAnimation.value,
           child: AlertDialog(
-            backgroundColor: const Color(0xFF1A1A3E).withOpacity(0.95),
+            backgroundColor: const Color(0xFF1A1A3E).withValues(alpha: 0.95),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
               side: const BorderSide(color: Colors.greenAccent, width: 2),

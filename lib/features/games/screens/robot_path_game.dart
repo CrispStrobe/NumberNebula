@@ -1,15 +1,12 @@
 // robot_path_game.dart (MODIFIED)
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
-import 'dart:ui';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
-import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -739,15 +736,15 @@ class _RobotPathGameState extends State<RobotPathGame>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              SpaceTheme.deepSpace.withOpacity(0.95),
-              SpaceTheme.nebulaPurple.withOpacity(0.95),
+              SpaceTheme.deepSpace.withValues(alpha: 0.95),
+              SpaceTheme.nebulaPurple.withValues(alpha: 0.95),
             ],
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: SpaceTheme.alienGreen, width: 2),
           boxShadow: [
             BoxShadow(
-              color: SpaceTheme.alienGreen.withOpacity(0.5),
+              color: SpaceTheme.alienGreen.withValues(alpha: 0.5),
               blurRadius: 30,
               spreadRadius: 5,
             ),
@@ -765,12 +762,12 @@ class _RobotPathGameState extends State<RobotPathGame>
                   gradient: RadialGradient(
                     colors: [
                       SpaceTheme.starYellow,
-                      SpaceTheme.starYellow.withOpacity(0.5),
+                      SpaceTheme.starYellow.withValues(alpha: 0.5),
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: SpaceTheme.starYellow.withOpacity(0.6),
+                      color: SpaceTheme.starYellow.withValues(alpha: 0.6),
                       blurRadius: 20,
                       spreadRadius: 5,
                     ),
@@ -796,7 +793,7 @@ class _RobotPathGameState extends State<RobotPathGame>
             Text(
               S.of(context)!.robotPathSuccess,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 fontSize: 16,
               ),
               textAlign: TextAlign.center,
@@ -805,10 +802,10 @@ class _RobotPathGameState extends State<RobotPathGame>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: SpaceTheme.alienGreen.withOpacity(0.3),
+                  color: SpaceTheme.alienGreen.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -901,7 +898,7 @@ class _RobotPathGameState extends State<RobotPathGame>
           borderRadius: BorderRadius.circular(12),
         ),
         elevation: 8,
-        shadowColor: color.withOpacity(0.5),
+        shadowColor: color.withValues(alpha: 0.5),
       ),
     );
   }
@@ -1003,7 +1000,6 @@ class _RobotPathGameState extends State<RobotPathGame>
   }
 
   Widget _buildPortraitLayout(BoxConstraints constraints) {
-    final s = S.of(context)!;
     final double availableWidth = constraints.maxWidth;
     
     final double maxGridSize = availableWidth * 0.95;
@@ -1112,24 +1108,24 @@ class _RobotPathGameState extends State<RobotPathGame>
             center: Alignment.topLeft,
             radius: 1.5,
             colors: [
-              const Color(0xFF4A2C2A).withOpacity(0.6),
-              const Color(0xFF2D1B1A).withOpacity(0.9),
+              const Color(0xFF4A2C2A).withValues(alpha: 0.6),
+              const Color(0xFF2D1B1A).withValues(alpha: 0.9),
               const Color(0xFF1A0F0E),
             ],
           ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color(0xFFD4A574).withOpacity(0.4),
+            color: const Color(0xFFD4A574).withValues(alpha: 0.4),
             width: 3,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.6),
+              color: Colors.black.withValues(alpha: 0.6),
               blurRadius: 20,
               spreadRadius: 5,
             ),
             BoxShadow(
-              color: const Color(0xFFD4A574).withOpacity(0.2),
+              color: const Color(0xFFD4A574).withValues(alpha: 0.2),
               blurRadius: 30,
               spreadRadius: 2,
             ),
@@ -1190,7 +1186,7 @@ class _RobotPathGameState extends State<RobotPathGame>
       height: cellSize,
       decoration: BoxDecoration(
         border: Border.all(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           width: 0.5,
         ),
       ),
@@ -1205,7 +1201,7 @@ class _RobotPathGameState extends State<RobotPathGame>
       message: tooltipMessage,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.8),
+        color: Colors.black.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(8),
       ),
       textStyle: const TextStyle(color: Colors.white, fontSize: 13),
@@ -1240,7 +1236,7 @@ class _RobotPathGameState extends State<RobotPathGame>
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.8),
+                      color: Colors.black.withValues(alpha: 0.8),
                       blurRadius: 8,
                       spreadRadius: 2,
                     ),
@@ -1269,7 +1265,7 @@ class _RobotPathGameState extends State<RobotPathGame>
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.red.withOpacity(0.5),
+                color: Colors.red.withValues(alpha: 0.5),
                 blurRadius: 6,
                 spreadRadius: 2,
                 offset: const Offset(0, 2),
@@ -1293,7 +1289,7 @@ class _RobotPathGameState extends State<RobotPathGame>
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.cyan.withOpacity(0.6),
+                color: Colors.cyan.withValues(alpha: 0.6),
                 blurRadius: 8,
                 spreadRadius: 1,
               ),
@@ -1317,7 +1313,7 @@ class _RobotPathGameState extends State<RobotPathGame>
             border: Border.all(color: Colors.purple.shade100, width: 2),
             boxShadow: [
               BoxShadow(
-                color: Colors.purple.withOpacity(0.7),
+                color: Colors.purple.withValues(alpha: 0.7),
                 blurRadius: 10,
                 spreadRadius: 2,
               ),
@@ -1330,8 +1326,8 @@ class _RobotPathGameState extends State<RobotPathGame>
           decoration: BoxDecoration(
             gradient: RadialGradient(
               colors: [
-                const Color(0xFF00E676).withOpacity(0.4),
-                const Color(0xFF00E676).withOpacity(0.1),
+                const Color(0xFF00E676).withValues(alpha: 0.4),
+                const Color(0xFF00E676).withValues(alpha: 0.1),
                 Colors.transparent,
               ],
             ),
@@ -1354,8 +1350,8 @@ class _RobotPathGameState extends State<RobotPathGame>
                 gradient: RadialGradient(
                   colors: [
                     const Color(0xFFFFD700)
-                        .withOpacity(0.5 * _pulseAnimation.value),
-                    const Color(0xFFFFD700).withOpacity(0.2),
+                        .withValues(alpha: 0.5 * _pulseAnimation.value),
+                    const Color(0xFFFFD700).withValues(alpha: 0.2),
                     Colors.transparent,
                   ],
                 ),
@@ -1369,7 +1365,7 @@ class _RobotPathGameState extends State<RobotPathGame>
                     size: cellSize * 0.65,
                     shadows: [
                       Shadow(
-                        color: const Color(0xFFFFD700).withOpacity(0.8),
+                        color: const Color(0xFFFFD700).withValues(alpha: 0.8),
                         blurRadius: 10,
                       ),
                     ],
@@ -1383,7 +1379,7 @@ class _RobotPathGameState extends State<RobotPathGame>
   }
 
   Widget _buildRover(double cellSize) {
-    return Container(
+    return SizedBox(
       width: cellSize,
       height: cellSize,
       child: Center(
@@ -1400,7 +1396,7 @@ class _RobotPathGameState extends State<RobotPathGame>
                   boxShadow: [
                     BoxShadow(
                       color: (hasWon ? const Color(0xFFFFD700) : const Color(0xFF00E5FF))
-                          .withOpacity(_glowAnimation.value * 0.9),
+                          .withValues(alpha: _glowAnimation.value * 0.9),
                       blurRadius: 16,
                       spreadRadius: 3,
                     ),
@@ -1414,12 +1410,12 @@ class _RobotPathGameState extends State<RobotPathGame>
                         width: cellSize * 0.5,
                         height: cellSize * 0.4,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
+                          gradient: const LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              const Color(0xFF37474F),
-                              const Color(0xFF263238),
+                              Color(0xFF37474F),
+                              Color(0xFF263238),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(6),
@@ -1462,8 +1458,8 @@ class _RobotPathGameState extends State<RobotPathGame>
                                   ? const Color(0xFFFFD700)
                                   : const Color(0xFF00E5FF),
                               hasWon
-                                  ? const Color(0xFFFFD700).withOpacity(0.3)
-                                  : const Color(0xFF00E5FF).withOpacity(0.3),
+                                  ? const Color(0xFFFFD700).withValues(alpha: 0.3)
+                                  : const Color(0xFF00E5FF).withValues(alpha: 0.3),
                             ],
                           ),
                           boxShadow: [
@@ -1471,7 +1467,7 @@ class _RobotPathGameState extends State<RobotPathGame>
                               color: (hasWon
                                       ? const Color(0xFFFFD700)
                                       : const Color(0xFF00E5FF))
-                                  .withOpacity(0.8),
+                                  .withValues(alpha: 0.8),
                               blurRadius: 8,
                               spreadRadius: 2,
                             ),
@@ -1529,8 +1525,8 @@ class _RobotPathGameState extends State<RobotPathGame>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.red.withOpacity(0.3),
-            Colors.red.withOpacity(0.1),
+            Colors.red.withValues(alpha: 0.3),
+            Colors.red.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(10),
@@ -1570,18 +1566,18 @@ class _RobotPathGameState extends State<RobotPathGame>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            const Color(0xFF1A237E).withOpacity(0.5),
-            const Color(0xFF0D1B5E).withOpacity(0.7),
+            const Color(0xFF1A237E).withValues(alpha: 0.5),
+            const Color(0xFF0D1B5E).withValues(alpha: 0.7),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF00E5FF).withOpacity(0.5),
+          color: const Color(0xFF00E5FF).withValues(alpha: 0.5),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00E5FF).withOpacity(0.2),
+            color: const Color(0xFF00E5FF).withValues(alpha: 0.2),
             blurRadius: 15,
             spreadRadius: 2,
           ),
@@ -1599,7 +1595,7 @@ class _RobotPathGameState extends State<RobotPathGame>
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00E5FF).withOpacity(0.2),
+                      color: const Color(0xFF00E5FF).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -1624,8 +1620,8 @@ class _RobotPathGameState extends State<RobotPathGame>
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: commandSequence.length >= maxCommands
-                      ? Colors.red.withOpacity(0.3)
-                      : const Color(0xFF00E5FF).withOpacity(0.2),
+                      ? Colors.red.withValues(alpha: 0.3)
+                      : const Color(0xFF00E5FF).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: commandSequence.length >= maxCommands
@@ -1648,20 +1644,20 @@ class _RobotPathGameState extends State<RobotPathGame>
           const SizedBox(height: 10),
           Flexible(
             child: DragTarget<RobotCommand>(
-              onWillAccept: (data) => !isExecuting,
-              onAccept: (command) {
-                _addCommand(command);
+              onWillAcceptWithDetails: (data) => !isExecuting,
+              onAcceptWithDetails: (details) {
+                _addCommand(details.data);
               },
               builder: (context, candidateData, rejectedData) {
                 return Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0A0E27).withOpacity(0.6),
+                    color: const Color(0xFF0A0E27).withValues(alpha: 0.6),
                     border: Border.all(
                       color: candidateData.isNotEmpty
                           ? Colors.white
-                          : const Color(0xFF00E5FF).withOpacity(0.3),
+                          : const Color(0xFF00E5FF).withValues(alpha: 0.3),
                       width: candidateData.isNotEmpty ? 2 : 1,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -1673,14 +1669,14 @@ class _RobotPathGameState extends State<RobotPathGame>
                             children: [
                               Icon(
                                 Icons.touch_app,
-                                color: Colors.white.withOpacity(0.3),
+                                color: Colors.white.withValues(alpha: 0.3),
                                 size: 32,
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 S.of(context)!.emptyProgram,
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: Colors.white.withValues(alpha: 0.5),
                                   fontSize: 12,
                                 ),
                               ),
@@ -1727,8 +1723,8 @@ class _RobotPathGameState extends State<RobotPathGame>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                commandInfo.color.withOpacity(0.9),
-                commandInfo.color.withOpacity(0.6),
+                commandInfo.color.withValues(alpha: 0.9),
+                commandInfo.color.withValues(alpha: 0.6),
               ],
             ),
             borderRadius: BorderRadius.circular(12),
@@ -1738,7 +1734,7 @@ class _RobotPathGameState extends State<RobotPathGame>
             ),
             boxShadow: [
               BoxShadow(
-                color: commandInfo.color.withOpacity(0.4),
+                color: commandInfo.color.withValues(alpha: 0.4),
                 blurRadius: 8,
                 spreadRadius: 1,
               ),
@@ -1759,7 +1755,7 @@ class _RobotPathGameState extends State<RobotPathGame>
                 child: Container(
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
+                    color: Colors.black.withValues(alpha: 0.7),
                     shape: BoxShape.circle,
                   ),
                   child: Text(
@@ -1789,7 +1785,7 @@ class _RobotPathGameState extends State<RobotPathGame>
                 border: Border.all(color: Colors.white, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.red.withOpacity(0.5),
+                    color: Colors.red.withValues(alpha: 0.5),
                     blurRadius: 4,
                   ),
                 ],
@@ -1806,8 +1802,9 @@ class _RobotPathGameState extends State<RobotPathGame>
     );
     
     return DragTarget<Object>(
-      onWillAccept: (data) => !isExecuting,
-      onAccept: (data) {
+      onWillAcceptWithDetails: (data) => !isExecuting,
+      onAcceptWithDetails: (details) {
+        final data = details.data;
         if (data is RobotCommand) {
           _insertCommand(data, index);
         } else if (data is int) {
@@ -1855,13 +1852,13 @@ class _RobotPathGameState extends State<RobotPathGame>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFF1A237E).withOpacity(0.4),
-            const Color(0xFF0D1B5E).withOpacity(0.6),
+            const Color(0xFF1A237E).withValues(alpha: 0.4),
+            const Color(0xFF0D1B5E).withValues(alpha: 0.6),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF00E5FF).withOpacity(0.3),
+          color: const Color(0xFF00E5FF).withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -1877,7 +1874,7 @@ class _RobotPathGameState extends State<RobotPathGame>
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFD700).withOpacity(0.2),
+                      color: const Color(0xFFFFD700).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -1955,20 +1952,20 @@ class _RobotPathGameState extends State<RobotPathGame>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            commandInfo.color.withOpacity(isExecuting ? 0.3 : 0.8),
-            commandInfo.color.withOpacity(isExecuting ? 0.2 : 0.5),
+            commandInfo.color.withValues(alpha: isExecuting ? 0.3 : 0.8),
+            commandInfo.color.withValues(alpha: isExecuting ? 0.2 : 0.5),
           ],
         ),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: commandInfo.color.withOpacity(isExecuting ? 0.3 : 1.0),
+          color: commandInfo.color.withValues(alpha: isExecuting ? 0.3 : 1.0),
           width: 2,
         ),
         boxShadow: isExecuting
             ? []
             : [
                 BoxShadow(
-                  color: commandInfo.color.withOpacity(0.5),
+                  color: commandInfo.color.withValues(alpha: 0.5),
                   blurRadius: 10,
                   spreadRadius: 1,
                 ),
@@ -1979,14 +1976,14 @@ class _RobotPathGameState extends State<RobotPathGame>
         children: [
           Icon(
             commandInfo.icon,
-            color: Colors.white.withOpacity(isExecuting ? 0.5 : 1.0),
+            color: Colors.white.withValues(alpha: isExecuting ? 0.5 : 1.0),
             size: 30,
           ),
           const SizedBox(height: 4),
           Text(
             commandInfo.label,
             style: TextStyle(
-              color: Colors.white.withOpacity(isExecuting ? 0.5 : 0.95),
+              color: Colors.white.withValues(alpha: isExecuting ? 0.5 : 0.95),
               fontSize: 10,
               fontWeight: FontWeight.bold,
             ),
@@ -2118,7 +2115,7 @@ class _RobotPathGameState extends State<RobotPathGame>
           borderRadius: BorderRadius.circular(12),
         ),
         elevation: enabled ? 8 : 2,
-        shadowColor: enabled ? color.withOpacity(0.6) : Colors.transparent,
+        shadowColor: enabled ? color.withValues(alpha: 0.6) : Colors.transparent,
       ),
     );
   }
@@ -2353,11 +2350,11 @@ class SpaceParticle {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: color.withOpacity(opacity),
+            color: color.withValues(alpha: opacity),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(opacity * 0.6),
+                color: color.withValues(alpha: opacity * 0.6),
                 blurRadius: size * 2,
               ),
             ],
@@ -2399,11 +2396,11 @@ class ExplosionParticle {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: color.withOpacity(life.clamp(0.0, 1.0)),
+            color: color.withValues(alpha: life.clamp(0.0, 1.0)),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(life.clamp(0.0, 1.0) * 0.6),
+                color: color.withValues(alpha: life.clamp(0.0, 1.0) * 0.6),
                 blurRadius: size * 2,
               ),
             ],
@@ -2430,7 +2427,7 @@ class TrailPainter extends CustomPainter {
     if (trail.length < 2) return;
 
     final paint = Paint()
-      ..color = const Color(0xFF00E5FF).withOpacity(0.5 * glowIntensity)
+      ..color = const Color(0xFF00E5FF).withValues(alpha: 0.5 * glowIntensity)
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
@@ -2468,7 +2465,7 @@ class MartianSurfacePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // Draw stars
-    final starPaint = Paint()..color = Colors.white.withOpacity(0.4);
+    final starPaint = Paint()..color = Colors.white.withValues(alpha: 0.4);
     final random = math.Random(42);
 
     for (int i = 0; i < 80; i++) {
@@ -2486,8 +2483,8 @@ class MartianSurfacePainter extends CustomPainter {
     final nebulaPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFF6B46C1).withOpacity(0.15 * glowIntensity),
-          const Color(0xFF4C1D95).withOpacity(0.08 * glowIntensity),
+          const Color(0xFF6B46C1).withValues(alpha: 0.15 * glowIntensity),
+          const Color(0xFF4C1D95).withValues(alpha: 0.08 * glowIntensity),
           Colors.transparent,
         ],
       ).createShader(Rect.fromCircle(
@@ -2523,7 +2520,7 @@ class TerrainPainter extends CustomPainter {
       final y = random.nextDouble() * size.height;
       final radius = random.nextDouble() * 5 + 2;
       
-      paint.color = const Color(0xFF3D2314).withOpacity(random.nextDouble() * 0.3);
+      paint.color = const Color(0xFF3D2314).withValues(alpha: random.nextDouble() * 0.3);
       canvas.drawCircle(Offset(x, y), radius, paint);
     }
   }
@@ -2536,7 +2533,7 @@ class AsteroidCratersPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black.withOpacity(0.4)
+      ..color = Colors.black.withValues(alpha: 0.4)
       ..style = PaintingStyle.fill;
 
     final random = math.Random(123);

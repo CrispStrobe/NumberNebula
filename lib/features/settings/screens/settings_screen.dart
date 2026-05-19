@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,11 +9,9 @@ import '../../../shared/widgets/imprint_dialog.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../core/services/debug_provider.dart';
-import '../../../core/services/progress_service.dart';
 
 import '../../../generated/l10n.dart';
 
-import '../../games/constants/app_constants.dart';
 import '../../games/providers/game_provider.dart';
 import '../../games/widgets/space_background.dart';
 
@@ -236,7 +233,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               size: 28,
             ),
             style: IconButton.styleFrom(
-              backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8),
+              backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
               padding: const EdgeInsets.all(12),
             ),
           ),
@@ -690,10 +687,10 @@ class _SettingsScreenState extends State<SettingsScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.5),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: SpaceTheme.alienGreen.withOpacity(0.3),
+          color: SpaceTheme.alienGreen.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -715,7 +712,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   children: [
                     Text(
                       S.of(context)!.appLanguage,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
@@ -755,13 +752,13 @@ class _SettingsScreenState extends State<SettingsScreen>
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected 
-              ? SpaceTheme.alienGreen.withOpacity(0.2)
+              ? SpaceTheme.alienGreen.withValues(alpha: 0.2)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected 
                 ? SpaceTheme.alienGreen 
-                : Colors.white.withOpacity(0.3),
+                : Colors.white.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -783,7 +780,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               ),
             ),
             if (isSelected) 
-              Icon(
+              const Icon(
                 Icons.check,
                 color: SpaceTheme.alienGreen,
                 size: 20,
@@ -963,7 +960,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           
           Text(
             s.aboutApp,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white70,
               fontSize: 14,
               height: 1.4,
@@ -993,7 +990,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: SpaceTheme.starYellow.withOpacity(0.2),
+                  color: SpaceTheme.starYellow.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -1065,7 +1062,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           Switch(
             value: value,
             onChanged: isLocked ? null : onChanged, // Disable if locked
-            activeColor: SpaceTheme.alienGreen,
+            activeThumbColor: SpaceTheme.alienGreen,
             inactiveThumbColor: SpaceTheme.moonSilver,
             inactiveTrackColor: SpaceTheme.deepSpace,
           ),
@@ -1178,20 +1175,12 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
   
   dynamic _getSettingValue(SharedPreferences prefs, String key, Type type) {
-    switch (type) {
-      case bool:
-        return prefs.getBool(key);
-      case String:
-        return prefs.getString(key);
-      case int:
-        return prefs.getInt(key);
-      case double:
-        return prefs.getDouble(key);
-      case const (List<String>):
-        return prefs.getStringList(key);
-      default:
-        return prefs.get(key);
-    }
+    if (type == bool) return prefs.getBool(key);
+    if (type == String) return prefs.getString(key);
+    if (type == int) return prefs.getInt(key);
+    if (type == double) return prefs.getDouble(key);
+    if (type == List<String>) return prefs.getStringList(key);
+    return prefs.get(key);
   }
 
   void _changeLanguage(String localeCode) async {
@@ -1276,11 +1265,11 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
         title: Text(
           S.of(context)!.languageChanged,
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
         content: Text(
           S.of(context)!.languageRestartPrompt, // Was hardcoded
-          style: TextStyle(color: Colors.white70),
+          style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
@@ -1290,7 +1279,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             },
             child: Text(
               S.of(context)!.later,
-              style: TextStyle(color: SpaceTheme.moonSilver),
+              style: const TextStyle(color: SpaceTheme.moonSilver),
             ),
           ),
           ElevatedButton(
@@ -1319,7 +1308,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
         title: Text(
           S.of(context)!.selectGrade,
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1339,13 +1328,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: isSelected 
-                      ? SpaceTheme.starYellow.withOpacity(0.2)
+                      ? SpaceTheme.starYellow.withValues(alpha: 0.2)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: isSelected 
                         ? SpaceTheme.starYellow 
-                        : Colors.white.withOpacity(0.3),
+                        : Colors.white.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -1381,7 +1370,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
               S.of(context)!.cancel,
-              style: TextStyle(color: SpaceTheme.moonSilver),
+              style: const TextStyle(color: SpaceTheme.moonSilver),
             ),
           ),
         ],
@@ -1413,7 +1402,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       SnackBar(
         content: Text(S.of(context)!.restartToApplyChanges),
         backgroundColor: SpaceTheme.alienGreen,
-        duration: Duration(seconds: 4),
+        duration: const Duration(seconds: 4),
       ),
     );
   }
@@ -1428,18 +1417,18 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
         title: Text(
           S.of(context)!.resetProgress,
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
         content: Text(
           S.of(context)!.resetProgressConfirm,
-          style: TextStyle(color: Colors.white70),
+          style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
               S.of(context)!.cancel,
-              style: TextStyle(color: SpaceTheme.moonSilver),
+              style: const TextStyle(color: SpaceTheme.moonSilver),
             ),
           ),
           ElevatedButton(

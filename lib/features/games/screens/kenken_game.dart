@@ -11,7 +11,6 @@ import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../constants/app_constants.dart';
-import '../../../core/services/sri_service.dart';
 
 class KenkenGame extends StatefulWidget {
   final int grade;
@@ -321,7 +320,7 @@ class _KenkenGameState extends State<KenkenGame>
     debugPrint("🎉 [KENKEN] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
     
     // SINGLE CALL to unified progression system
-    final didAdvance = context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().recordLevelWin(
       gameType: 'kenken',
       scoreGained: totalScore,
       difficulty: widget.level,
@@ -509,13 +508,13 @@ class _KenkenGameState extends State<KenkenGame>
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.cosmicPink.withOpacity(0.1 * _glowAnimation.value),
-                  SpaceTheme.deepSpace.withOpacity(0.05),
+                  SpaceTheme.cosmicPink.withValues(alpha: 0.1 * _glowAnimation.value),
+                  SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.cosmicPink.withOpacity(_glowAnimation.value),
+                color: SpaceTheme.cosmicPink.withValues(alpha: _glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -533,19 +532,17 @@ class _KenkenGameState extends State<KenkenGame>
     final maxCellSize = isCompact ? 45.0 : 70.0; // Increased from 35/50
     final cellSize = math.min(maxCellSize, maxGridWidth / gridSize);
     
-    return Container(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: List.generate(gridSize, (row) {
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            children: List.generate(gridSize, (col) {
-              final cellId = 'r${row}c$col';
-              return _buildKenkenCell(cellId, row, col, cellSize, isCompact);
-            }),
-          );
-        }),
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(gridSize, (row) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(gridSize, (col) {
+            final cellId = 'r${row}c$col';
+            return _buildKenkenCell(cellId, row, col, cellSize, isCompact);
+          }),
+        );
+      }),
     );
   }
 
@@ -599,11 +596,11 @@ class _KenkenGameState extends State<KenkenGame>
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
                 decoration: BoxDecoration(
-                  color: SpaceTheme.starYellow.withOpacity(0.8),
+                  color: SpaceTheme.starYellow.withValues(alpha: 0.8),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  cage!.clue!
+                  cage.clue!
                       .replaceAll('÷', context.read<GameProvider>().divisionSymbol)
                       .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
                   style: TextStyle(
@@ -664,7 +661,7 @@ class _KenkenGameState extends State<KenkenGame>
               ),
               boxShadow: isHovering ? [
                 BoxShadow(
-                  color: SpaceTheme.starYellow.withOpacity(0.6),
+                  color: SpaceTheme.starYellow.withValues(alpha: 0.6),
                   blurRadius: 8,
                   spreadRadius: 2,
                 )
@@ -680,11 +677,11 @@ class _KenkenGameState extends State<KenkenGame>
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
                       decoration: BoxDecoration(
-                        color: SpaceTheme.starYellow.withOpacity(0.8),
+                        color: SpaceTheme.starYellow.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        cage!.clue!
+                        cage.clue!
                             .replaceAll('÷', context.read<GameProvider>().divisionSymbol)
                             .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
                         style: TextStyle(
@@ -822,7 +819,7 @@ class _KenkenGameState extends State<KenkenGame>
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
         borderRadius: BorderRadius.circular(size < 40 ? 8 : 12),
-        border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.7), width: 2),
+        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
       ),
       child: Center(
         child: Text(
@@ -844,7 +841,7 @@ class _KenkenGameState extends State<KenkenGame>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: SpaceTheme.starGradient,
-          boxShadow: [BoxShadow(color: SpaceTheme.starYellow.withOpacity(0.8), blurRadius: 20, spreadRadius: 5)],
+          boxShadow: [BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.8), blurRadius: 20, spreadRadius: 5)],
         ),
         child: Center(
           child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: fontSize)),
@@ -862,7 +859,7 @@ class _KenkenGameState extends State<KenkenGame>
         vertical: isCompact ? 4 : 8,
       ),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.8),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: SpaceTheme.starYellow),
       ),
@@ -891,7 +888,7 @@ class _KenkenGameState extends State<KenkenGame>
             vertical: isCompact ? 4 : 8,
           ),
           decoration: BoxDecoration(
-            color: SpaceTheme.deepSpace.withOpacity(0.8),
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(30),
             border: Border.all(color: SpaceTheme.alienGreen),
           ),
@@ -1567,10 +1564,7 @@ class KenkenGenerator {
     // OLD: Fallback to addition only when not in strict mode
     final fallbackOp = KenkenAddition();
     final result = fallbackOp.calculate(cageValues)!;
-    bool inRange = true;
-    if (minResult != null && result < minResult!) inRange = false;
-    if (maxResult != null && result > maxResult!) inRange = false;
-    
+
     // If even addition is out of range, use it anyway (better than no clue)
     cage.clue = '$result${fallbackOp.symbol}';
     cage.operation = fallbackOp;

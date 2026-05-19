@@ -1,19 +1,15 @@
+// ignore_for_file: unused_element, unused_field
 // All imports remain the same...
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
-import 'dart:ui';
 
 import '../../../core/theme/space_theme.dart';
-import '../constants/app_constants.dart';
 import '../../../generated/l10n.dart';
-import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
-import '../widgets/game_ui.dart';
 
 
 class AsteroidFieldNavigatorGame extends StatefulWidget {
@@ -545,10 +541,10 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
       width: panelWidth,
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.7), // Semi-transparent background
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.7), // Semi-transparent background
         border: Border(
           // Add a border to visually separate it from the grid
-          right: BorderSide(color: SpaceTheme.nebulaPurple.withOpacity(0.5), width: 1),
+          right: BorderSide(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5), width: 1),
         ),
       ),
       child: Column(
@@ -596,9 +592,9 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.6),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -639,7 +635,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
                  ),
                  boxShadow: cell.isExploded ? [
                    BoxShadow(
-                     color: SpaceTheme.rocketRed.withOpacity(0.8),
+                     color: SpaceTheme.rocketRed.withValues(alpha: 0.8),
                      blurRadius: cellSize * 0.2,
                      spreadRadius: cellSize * 0.05,
                    ),
@@ -660,17 +656,17 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
       return SpaceTheme.rocketRed;
     } else if (cell.isRevealed) {
       return cell.isMine 
-          ? SpaceTheme.rocketRed.withOpacity(0.3)
-          : SpaceTheme.deepSpace.withOpacity(0.7);
+          ? SpaceTheme.rocketRed.withValues(alpha: 0.3)
+          : SpaceTheme.deepSpace.withValues(alpha: 0.7);
     } else {
-      return SpaceTheme.nebulaPurple.withOpacity(0.3);
+      return SpaceTheme.nebulaPurple.withValues(alpha: 0.3);
     }
   }
 
   Color _getCellBorderColor(AsteroidCell cell) {
     if (cell.isExploded) return SpaceTheme.rocketRed;
     if (cell.isFlagged) return SpaceTheme.starYellow;
-    if (cell.isRevealed) return SpaceTheme.alienGreen.withOpacity(0.3);
+    if (cell.isRevealed) return SpaceTheme.alienGreen.withValues(alpha: 0.3);
     return SpaceTheme.nebulaPurple;
   }
 
@@ -727,12 +723,12 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
         HapticFeedback.selectionClick();
       },
       style: (isFlagMode ? SpaceTheme.primaryButtonStyle : SpaceTheme.secondaryButtonStyle).copyWith(
-        padding: MaterialStateProperty.all(
+        padding: WidgetStateProperty.all(
           // Reduced padding for a smaller button
           const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         ),
         // Make it slightly smaller if needed
-        minimumSize: MaterialStateProperty.all(const Size(60, 36)), 
+        minimumSize: WidgetStateProperty.all(const Size(60, 36)), 
       ),
        // Use only the icon
       child: Icon( 
@@ -993,11 +989,11 @@ class ExplosionParticle {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: color.withOpacity(opacity),
+            color: color.withValues(alpha: opacity),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(opacity * 0.6),
+                color: color.withValues(alpha: opacity * 0.6),
                 blurRadius: size * 2,
               ),
             ],
@@ -1027,7 +1023,7 @@ class AsteroidFieldPainter extends CustomPainter {
     
     final gridPaint = Paint()
       ..color = (gameLost ? Colors.red : gameWon ? Colors.green : Colors.cyan)
-          .withOpacity(0.08 * pulseIntensity)
+          .withValues(alpha: 0.08 * pulseIntensity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     
@@ -1041,8 +1037,8 @@ class AsteroidFieldPainter extends CustomPainter {
     final scanPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          (gameLost ? Colors.red : gameWon ? Colors.green : Colors.cyan).withOpacity(0.0),
-          (gameLost ? Colors.red : gameWon ? Colors.green : Colors.cyan).withOpacity(0.2 * pulseIntensity),
+          (gameLost ? Colors.red : gameWon ? Colors.green : Colors.cyan).withValues(alpha: 0.0),
+          (gameLost ? Colors.red : gameWon ? Colors.green : Colors.cyan).withValues(alpha: 0.2 * pulseIntensity),
         ],
         stops: const [0.95, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: size.width * scanProgress));

@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 // test_robot_path_generator.dart
 import 'dart:io';
 import 'robot_path_generator.dart';
@@ -68,7 +69,7 @@ void generateAndDisplay(List<String> args) {
   final pathLength = args.length > 3 ? int.tryParse(args[3]) ?? 20 : 20;
   final obstacles = args.length > 4 ? int.tryParse(args[4]) ?? 5 : 5;
 
-  print('\n🤖 Generating level: ${dimX}x${dimY}, path=$pathLength, obstacles=$obstacles...\n');
+  print('\n🤖 Generating level: ${dimX}x$dimY, path=$pathLength, obstacles=$obstacles...\n');
 
   final generator = RobotPathGenerator();
   final stopwatch = Stopwatch()..start();
@@ -106,7 +107,7 @@ void batchGenerate(List<String> args) {
   final dimX = args.length > 2 ? int.tryParse(args[2]) ?? 15 : 15;
   final dimY = args.length > 3 ? int.tryParse(args[3]) ?? 15 : 15;
 
-  print('\n🤖 Generating $count levels of size ${dimX}x${dimY}...\n');
+  print('\n🤖 Generating $count levels of size ${dimX}x$dimY...\n');
 
   final generator = RobotPathGenerator();
   final times = <int>[];
@@ -280,7 +281,7 @@ void visualizeLevel(List<String> args) {
   );
 
   while (true) {
-    print('\n' + '=' * 60);
+    print('\n${'=' * 60}');
     displayLevel(level);
     
     print('\n📊 Level Info:');
@@ -477,17 +478,17 @@ RobotLevel promptCustomLevel(RobotPathGenerator generator) {
 
 void displayLevel(RobotLevel level) {
   print('Level Layout:');
-  print('┌' + '─' * (level.grid[0].length * 2 + 1) + '┐');
+  print('┌${'─' * (level.grid[0].length * 2 + 1)}┐');
   
   for (int i = 0; i < level.grid.length; i++) {
     stdout.write('│ ');
     for (int j = 0; j < level.grid[i].length; j++) {
-      stdout.write(getTileChar(level.grid[i][j]) + ' ');
+      stdout.write('${getTileChar(level.grid[i][j])} ');
     }
     print('│');
   }
   
-  print('└' + '─' * (level.grid[0].length * 2 + 1) + '┘');
+  print('└${'─' * (level.grid[0].length * 2 + 1)}┘');
   
   print('\nLegend:');
   print('  █ = Wall       = Path      S = Start     G = Goal');

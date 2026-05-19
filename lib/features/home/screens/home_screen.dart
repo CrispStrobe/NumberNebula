@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:space_math_academy/core/services/debug_provider.dart';
@@ -6,12 +7,8 @@ import 'dart:async';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
-import '../../achievements/screens/achievements_screen.dart';
 import '../../games/providers/game_provider.dart';
 import '../../games/widgets/space_background.dart';
-import '../widgets/animated_logo.dart';
-import '../widgets/grade_selector.dart';
-import '../widgets/stats_card.dart';
 import '../../games/screens/game_menu_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../games/widgets/debug_panel.dart';
@@ -26,7 +23,7 @@ class HomeScreen extends StatefulWidget {
   void _showDebugPanel(BuildContext context) {
     showDialog(
         context: context,
-        builder: (context) => DebugPanel(),
+        builder: (context) => const DebugPanel(),
     );
   }
 }
@@ -212,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen>
               onPressed: () {
                 showDialog(
                   context: context,
-                  builder: (context) => ImprintDialog(),
+                  builder: (context) => const ImprintDialog(),
                 );
               },
               icon: const Icon(
@@ -222,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               tooltip: S.of(context)!.imprint,
               style: IconButton.styleFrom(
-                backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8),
+                backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
                 padding: const EdgeInsets.all(12),
               ),
             ),
@@ -235,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen>
               size: 28,
               ),
               style: IconButton.styleFrom(
-              backgroundColor: SpaceTheme.deepSpace.withOpacity(0.8),
+              backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
               padding: const EdgeInsets.all(12),
               ),
             ),
@@ -406,7 +403,7 @@ class _HomeScreenState extends State<HomeScreen>
         borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 30),
         boxShadow: [
           BoxShadow(
-            color: SpaceTheme.starYellow.withOpacity(0.4),
+            color: SpaceTheme.starYellow.withValues(alpha: 0.4),
             blurRadius: isSmallScreen ? 10 : 20,
             spreadRadius: 1,
           ),
@@ -511,7 +508,7 @@ class _AnimatedLogoState extends State<AnimatedLogo>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFFD700).withOpacity(0.5),
+                  color: const Color(0xFFFFD700).withValues(alpha: 0.5),
                   blurRadius: 20,
                   spreadRadius: 5,
                 ),
@@ -567,7 +564,7 @@ class CompactStatsCard extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.analytics,
-                    color: Color(0xFFFFD700),
+                    color: const Color(0xFFFFD700),
                     size: isSmallScreen ? 12 : 20, // Larger icon on big screens
                   ),
                   SizedBox(width: isSmallScreen ? 4 : 8),
@@ -623,7 +620,7 @@ class CompactStatsCard extends StatelessWidget {
           width: isSmallScreen ? 20 : 32, // Larger containers on big screens
           height: isSmallScreen ? 20 : 32,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(isSmallScreen ? 4 : 6),
           ),
           child: Icon(
@@ -858,13 +855,13 @@ class CompactGradeSelector extends StatelessWidget {
                         border: Border.all(
                           color: isSelected
                               ? const Color(0xFFFFD700) // starYellow
-                              : const Color(0xFFC0C0C0).withOpacity(0.3), // moonSilver
+                              : const Color(0xFFC0C0C0).withValues(alpha: 0.3), // moonSilver
                           width: 1, // Thinner border
                         ),
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: const Color(0xFFFFD700).withOpacity(0.5),
+                                  color: const Color(0xFFFFD700).withValues(alpha: 0.5),
                                   blurRadius: 8,
                                   spreadRadius: 1,
                                 ),

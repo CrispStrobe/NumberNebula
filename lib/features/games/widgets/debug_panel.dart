@@ -40,7 +40,7 @@ class _DebugPanelState extends State<DebugPanel> {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: SpaceTheme.deepSpace.withOpacity(0.95),
+          color: SpaceTheme.deepSpace.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
         ),
@@ -130,7 +130,7 @@ class _DebugPanelState extends State<DebugPanel> {
       width: double.maxFinite,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.5)),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
       ),
       child: ListView.builder(
         shrinkWrap: true,
@@ -175,7 +175,7 @@ class _DebugPanelState extends State<DebugPanel> {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: SpaceTheme.alienGreen,
+          activeThumbColor: SpaceTheme.alienGreen,
         ),
       ],
     );

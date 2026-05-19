@@ -21,7 +21,7 @@ class PurchaseService with ChangeNotifier {
   ProductDetails? product;
 
   /// A public flag to easily check from the UI if IAPs are globally enabled.
-  bool get iapEnabled => AppConfig.inapps_active;
+  bool get iapEnabled => AppConfig.inappsActive;
 
   /// Call this once when the app starts.
   void init(GameProvider gameProvider) {

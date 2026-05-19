@@ -68,7 +68,7 @@ class GameProvider extends ChangeNotifier {
   }) : _progressService = progressService,
        _sriService = sriService,
        _cognitiveProfileService = cognitiveProfileService {
-    if (!AppConfig.inapps_active) {
+    if (!AppConfig.inappsActive) {
       _isFullVersionUnlocked = true;
     }
   }
@@ -234,8 +234,8 @@ class GameProvider extends ChangeNotifier {
       for (var range in NumberRange.values) {
         final stat = breakdown[op]?[range];
         if (stat != null && stat.tracked > 0) {
-          totalTracked += stat.tracked as int;
-          totalMastered += stat.mastered as int;
+          totalTracked += stat.tracked;
+          totalMastered += stat.mastered;
         }
       }
     }
@@ -508,7 +508,7 @@ class GameProvider extends ChangeNotifier {
     _isFullVersionUnlocked = json['isFullVersionUnlocked'] ?? false;
 
     // overridhere to handle loading a saved state where the user hadn't purchased the app yet.
-    if (!AppConfig.inapps_active) {
+    if (!AppConfig.inappsActive) {
       _isFullVersionUnlocked = true;
     }
 

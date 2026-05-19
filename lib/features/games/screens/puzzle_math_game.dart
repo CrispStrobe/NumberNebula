@@ -1,6 +1,7 @@
+// ignore_for_file: unused_element, unused_field
 import 'dart:async';
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart'; // Import for debugPrint
+// Import for debugPrint
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,7 +10,6 @@ import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
-import '../widgets/game_ui.dart';
 import '../widgets/space_background.dart';
 import '../../../core/services/sri_service.dart';
 
@@ -32,7 +32,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   String? currentPuzzleImage;
   Timer? _timer;
   int _timeLeft = 120;
-  Map<String, JigsawSide> _edgeShapes = {}; // Stores the shape of each interior edge
+  final Map<String, JigsawSide> _edgeShapes = {}; // Stores the shape of each interior edge
 
   @override
   void initState() {
@@ -129,7 +129,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     } else {
       columns = 3; rows = 4;
     }
-    debugPrint("PUZZLE: Grid set to ${columns}x${rows} = ${columns * rows} pieces (Grade: $difficulty)");
+    debugPrint("PUZZLE: Grid set to ${columns}x$rows = ${columns * rows} pieces (Grade: $difficulty)");
 
     final pieceCount = columns * rows;
     _generateEdgeShapes(); 
@@ -277,7 +277,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
               size: isSmallScreen ? 20 : 24,
             ),
             style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFF1A1A2E).withOpacity(0.8),
+              backgroundColor: const Color(0xFF1A1A2E).withValues(alpha: 0.8),
               padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
             ),
           ),
@@ -314,7 +314,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
               vertical: isSmallScreen ? 2 : 4,
             ),
             decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace.withOpacity(0.8),
+              color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -357,7 +357,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
               Switch(
                 value: gameProvider.puzzleTimerEnabled,
                 onChanged: _onToggleTimer,
-                activeColor: SpaceTheme.alienGreen,
+                activeThumbColor: SpaceTheme.alienGreen,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ],
@@ -414,10 +414,10 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         width: coreWidth,
         height: coreHeight,
         decoration: BoxDecoration(
-          color: SpaceTheme.deepSpace.withOpacity(0.2),
+          color: SpaceTheme.deepSpace.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
-            color: SpaceTheme.starYellow.withOpacity(0.8),
+            color: SpaceTheme.starYellow.withValues(alpha: 0.8),
             width: 3,
             strokeAlign: BorderSide.strokeAlignOutside,
           ),
@@ -469,13 +469,15 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                         : null,
                   );
                 },
-                onWillAccept: (pieceId) {
+                onWillAcceptWithDetails: (details) {
+                  final pieceId = details.data;
                   final willAccept = !isPlaced;
                   debugPrint("DRAG: Piece ID $pieceId hovering over slot ${slotData.id}. Will Accept: $willAccept");
                   return willAccept;
                 },
                 // Inside the DragTarget's onAccept callback in _buildPuzzleBoard
-                onAccept: (pieceId) {
+                onAcceptWithDetails: (details) {
+                  final pieceId = details.data;
                   final pieceData = pieces.firstWhere((p) => p.id == pieceId);
                   final slotData = pieces.firstWhere((p) => p.row == row && p.col == col);
                   final isCorrect = pieceData.answer == slotData.answer && pieceData.rotation == 0;
@@ -536,14 +538,14 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
       boardPieceSize.height * sizeMultiplier
     );
     
-    debugPrint("TRAY: ${availablePieces.length} pieces, ${crossAxisCount} columns, size multiplier: $sizeMultiplier");
+    debugPrint("TRAY: ${availablePieces.length} pieces, $crossAxisCount columns, size multiplier: $sizeMultiplier");
     
     return Container(
       padding: EdgeInsets.all(isSmallScreen ? 2 : 4), // Minimal padding
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.3),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: SpaceTheme.alienGreen.withOpacity(0.3), width: 1),
+        border: Border.all(color: SpaceTheme.alienGreen.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         children: [
@@ -610,9 +612,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
           baseTrayPieceSize.width * scaleFactor,
           baseTrayPieceSize.height * scaleFactor,
         );
-        
-        final trayBumpSize = math.min(finalSize.width, finalSize.height) / 4;
-        
+
         return Padding(
           padding: EdgeInsets.all(margin / 2), // Minimal padding
           child: Center(
@@ -746,9 +746,9 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     return Container(
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.2),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: SpaceTheme.alienGreen.withOpacity(0.3), width: 1),
+        border: Border.all(color: SpaceTheme.alienGreen.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         children: [
@@ -840,7 +840,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A3E).withOpacity(0.95),
+        backgroundColor: const Color(0xFF1A1A3E).withValues(alpha: 0.95),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
           side: const BorderSide(color: Colors.greenAccent, width: 2),
@@ -856,8 +856,8 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         ),
         actions: [
           TextButton(
-            child: Text(S.of(context)!.playAgain, style: const TextStyle(color: Colors.cyanAccent)),
             onPressed: _resetGame,
+            child: Text(S.of(context)!.playAgain, style: const TextStyle(color: Colors.cyanAccent)),
           ),
           TextButton(
             child: Text(S.of(context)!.backToMenu, style: const TextStyle(color: Colors.white)),
@@ -948,11 +948,11 @@ class PuzzleSlotWidget extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 isPieceOver 
-                    ? SpaceTheme.alienGreen.withOpacity(0.4)
-                    : SpaceTheme.moonSilver.withOpacity(0.3),
+                    ? SpaceTheme.alienGreen.withValues(alpha: 0.4)
+                    : SpaceTheme.moonSilver.withValues(alpha: 0.3),
                 isPieceOver 
-                    ? SpaceTheme.alienGreen.withOpacity(0.2)
-                    : SpaceTheme.deepSpace.withOpacity(0.4),
+                    ? SpaceTheme.alienGreen.withValues(alpha: 0.2)
+                    : SpaceTheme.deepSpace.withValues(alpha: 0.4),
               ],
             ),
           ),
@@ -963,7 +963,7 @@ class PuzzleSlotWidget extends StatelessWidget {
               width: pieceSize.width * 0.8,
               height: pieceSize.height * 0.5,
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: FittedBox(
@@ -1067,7 +1067,7 @@ class PuzzlePieceWidget extends StatelessWidget {
                       ),
                       // Overlay to darken the image slightly
                       Container(
-                        color: Colors.black.withOpacity(0.4),
+                        color: Colors.black.withValues(alpha: 0.4),
                       ),
                     ],
                   ),
@@ -1080,12 +1080,12 @@ class PuzzlePieceWidget extends StatelessWidget {
                 height: pieceSize.width * 0.4,
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
+                  gradient: const LinearGradient(
                     colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange],
                   ),
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 4, spreadRadius: 1)
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 4, spreadRadius: 1)
                   ]
                 ),
                 child: FittedBox(

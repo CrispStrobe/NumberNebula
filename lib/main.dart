@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -50,9 +51,7 @@ import 'features/games/screens/grid_filler_game.dart';
 import 'features/games/services/gridlock_puzzle_tracker.dart';
 
 // --- UTILS & GENERATED ---
-import 'shared/utils/app_utilities.dart';
 import 'generated/l10n.dart';
-import 'package:dart_csp/dart_csp.dart';
 
 // --- GLOBAL INSTANCES & NAVIGATOR KEY ---
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -588,7 +587,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: SpaceTheme.starYellow.withOpacity(0.5),
+                                color: SpaceTheme.starYellow.withValues(alpha: 0.5),
                                 blurRadius: isSmallScreen ? 20 : 30,
                                 spreadRadius: isSmallScreen ? 5 : 10,
                               ),

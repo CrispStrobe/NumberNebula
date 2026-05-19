@@ -47,7 +47,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   Planet? _targetPlanet; // NEW: Track which planet we're flying to
 
   // --- Progression Tracking ---
-  List<MathProblem> _attemptedProblems = []; // Track problems we've attempted
+  final List<MathProblem> _attemptedProblems = []; // Track problems we've attempted
 
   // --- UI State ---
   bool _showInstructions = true;
@@ -275,7 +275,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
   void _updateGame() {
     if (!gameActive || !mounted) return;
-    final dt = 0.016;
+    const dt = 0.016;
 
     // --- Core Movement (Ballistic Trajectory) ---
     if (!hopper.isLanded) {
@@ -286,7 +286,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     // --- ENHANCED Gravitational Pull ---
     if (!hopper.isLanded) {
       Offset gravityForce = Offset.zero;
-      final baseGravityStrength = 0.8; // Increased from 0.2
+      const baseGravityStrength = 0.8; // Increased from 0.2
       final gravityStrength = baseGravityStrength + (_gravityController.value * 0.6); // More pronounced pulsation
 
       for (final planet in planets) {
@@ -304,7 +304,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
             gravityWaves.add(GravityWave(
               center: planet.position,
               maxRadius: planet.radius + 80,
-              color: planet.color.withOpacity(0.3),
+              color: planet.color.withValues(alpha: 0.3),
             ));
           }
         }
@@ -407,10 +407,10 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.9),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.9),
         border: Border(
             bottom:
-                BorderSide(color: SpaceTheme.starYellow.withOpacity(0.3), width: 2)),
+                BorderSide(color: SpaceTheme.starYellow.withValues(alpha: 0.3), width: 2)),
       ),
       child: Row(
         children: [
@@ -433,7 +433,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-                color: SpaceTheme.alienGreen.withOpacity(0.2),
+                color: SpaceTheme.alienGreen.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12)),
             child: Text('$nextTargetIndex/${targetSequence.length}',
                 style: SpaceTheme.bodyStyle.copyWith(
@@ -462,7 +462,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-                color: SpaceTheme.deepSpace.withOpacity(0.9),
+                color: SpaceTheme.deepSpace.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: SpaceTheme.starYellow, width: 1.5)),
             child: Text(
@@ -521,7 +521,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
               width: star.size,
               height: star.size,
               decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(star.brightness),
+                  color: Colors.white.withValues(alpha: star.brightness),
                   shape: BoxShape.circle)))),
       
       // NEW: Gravity wave effects
@@ -568,7 +568,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
               margin: const EdgeInsets.all(12),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
+                  color: Colors.black.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: SpaceTheme.alienGreen, width: 1)),
               child: Text(S.of(context)!.planetHoppingInstructions,
@@ -626,7 +626,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     final totalScore = bonus + (100 * widget.grade * targetSequence.length);
     
     // UNIFIED PROGRESSION: Report all attempted problems
-    final didAdvance = context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().recordLevelWin(
       gameType: 'planet_hopping',
       scoreGained: totalScore,
       difficulty: widget.level,
@@ -869,7 +869,7 @@ class SpaceHopperWidget extends StatelessWidget {
                 colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange]),
             boxShadow: [
               BoxShadow(
-                  color: SpaceTheme.starYellow.withOpacity(0.6),
+                  color: SpaceTheme.starYellow.withValues(alpha: 0.6),
                   blurRadius: 8,
                   spreadRadius: 2)
             ]),
@@ -899,8 +899,8 @@ class PlanetWidget extends StatelessWidget {
             shape: BoxShape.circle,
             gradient: RadialGradient(colors: [
               planet.color,
-              planet.color.withOpacity(0.7),
-              planet.color.withOpacity(0.9)
+              planet.color.withValues(alpha: 0.7),
+              planet.color.withValues(alpha: 0.9)
             ], stops: const [
               0.0,
               0.7,
@@ -911,7 +911,7 @@ class PlanetWidget extends StatelessWidget {
                 width: planet.visited ? 2 : 0),
             boxShadow: [
               BoxShadow(
-                  color: planet.color.withOpacity(0.4),
+                  color: planet.color.withValues(alpha: 0.4),
                   blurRadius: 10,
                   spreadRadius: 2),
             ]),
@@ -921,7 +921,7 @@ class PlanetWidget extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
+                  color: Colors.black.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(8)),
               child: Text(
                   planet.problemExpression
@@ -961,7 +961,7 @@ class ParticleWidget extends StatelessWidget {
         width: particle.size,
         height: particle.size,
         decoration: BoxDecoration(
-            color: particle.color.withOpacity(opacity), shape: BoxShape.circle));
+            color: particle.color.withValues(alpha: opacity), shape: BoxShape.circle));
   }
 }
 
@@ -978,7 +978,7 @@ class GravityWaveWidget extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: wave.color.withOpacity(wave.opacity * 0.6),
+          color: wave.color.withValues(alpha: wave.opacity * 0.6),
           width: 2,
         ),
       ),
@@ -992,7 +992,7 @@ class PlanetSurfacePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = planetColor.withOpacity(0.3)
+      ..color = planetColor.withValues(alpha: 0.3)
       ..style = PaintingStyle.fill;
     final random = math.Random(42);
     for (int i = 0; i < 3; i++) {

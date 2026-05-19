@@ -1,10 +1,9 @@
+// ignore_for_file: unused_element, unused_field
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
-import 'dart:ui';
 
 import '../../../core/theme/space_theme.dart';
-import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 
@@ -298,7 +297,7 @@ class _GridFillerGameState extends State<GridFillerGame>
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A2E),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
+        title: const Text(
           '🎉 Grid Complete!',
           style: TextStyle(color: SpaceTheme.alienGreen, fontSize: 24),
           textAlign: TextAlign.center,
@@ -306,15 +305,15 @@ class _GridFillerGameState extends State<GridFillerGame>
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               'Perfect fit! All pieces placed!',
-              style: const TextStyle(color: Colors.white70, fontSize: 16),
+              style: TextStyle(color: Colors.white70, fontSize: 16),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             Text(
               '+$score points',
-              style: TextStyle(
+              style: const TextStyle(
                 color: SpaceTheme.starYellow,
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
@@ -328,7 +327,7 @@ class _GridFillerGameState extends State<GridFillerGame>
               Navigator.pop(context);
               _initializeGame();
             },
-            child: Text('Play Again', style: TextStyle(color: SpaceTheme.alienGreen)),
+            child: const Text('Play Again', style: TextStyle(color: SpaceTheme.alienGreen)),
           ),
           TextButton(
             onPressed: () {
@@ -360,7 +359,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withOpacity(0.7),
+                        Colors.black.withValues(alpha: 0.7),
                         Colors.transparent,
                       ],
                     ),
@@ -375,7 +374,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Grid Filler',
                             style: TextStyle(
                               color: SpaceTheme.alienGreen,
@@ -386,7 +385,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                           Text(
                             'Fill the 45${context.read<GameProvider>().multiplicationSymbol}45 grid',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
+                              color: Colors.white.withValues(alpha: 0.7),
                               fontSize: 14,
                             ),
                           ),
@@ -396,20 +395,20 @@ class _GridFillerGameState extends State<GridFillerGame>
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
+                          color: Colors.black.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: SpaceTheme.alienGreen.withOpacity(0.5),
+                            color: SpaceTheme.alienGreen.withValues(alpha: 0.5),
                             width: 2,
                           ),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.grid_on, color: SpaceTheme.alienGreen, size: 20),
+                            const Icon(Icons.grid_on, color: SpaceTheme.alienGreen, size: 20),
                             const SizedBox(width: 8),
                             Text(
                               '${placedPieces.length}/45',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: SpaceTheme.alienGreen,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -423,7 +422,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: selectedPiece!.color.withOpacity(0.3),
+                            color: selectedPiece!.color.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(color: selectedPiece!.color, width: 2),
                           ),
@@ -456,17 +455,17 @@ class _GridFillerGameState extends State<GridFillerGame>
                         width: 200,
                         margin: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1A1A2E).withOpacity(0.9),
+                          color: const Color(0xFF1A1A2E).withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: SpaceTheme.alienGreen.withOpacity(0.3),
+                            color: SpaceTheme.alienGreen.withValues(alpha: 0.3),
                             width: 2,
                           ),
                         ),
                         child: Column(
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.all(16),
+                            const Padding(
+                              padding: EdgeInsets.all(16),
                               child: Text(
                                 'Available Pieces',
                                 style: TextStyle(
@@ -522,7 +521,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                                 child: DragTarget<Object>(
                                   key: _gridKey,
                                   onWillAcceptWithDetails: (details) {
-                                    debugPrint('🎯 Grid DragTarget: Will accept? ${details.data != null}');
+                                    debugPrint('🎯 Grid DragTarget: data=${details.data.runtimeType}');
                                     return details.data is GridPiece || details.data is PlacedPiece;
                                   },
                                   onAcceptWithDetails: (details) {
@@ -622,13 +621,13 @@ class _GridFillerGameState extends State<GridFillerGame>
                                                   child: Container(
                                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                                     decoration: BoxDecoration(
-                                                      color: Colors.black.withOpacity(0.8),
+                                                      color: Colors.black.withValues(alpha: 0.8),
                                                       borderRadius: BorderRadius.circular(8),
                                                       border: Border.all(color: SpaceTheme.starYellow, width: 2),
                                                     ),
                                                     child: Text(
                                                       'Position: (${(selectedPiece != null ? hoverGridPosition : dragPreviewPosition)?.dx.toInt()}, ${(selectedPiece != null ? hoverGridPosition : dragPreviewPosition)?.dy.toInt()})',
-                                                      style: TextStyle(
+                                                      style: const TextStyle(
                                                         color: SpaceTheme.starYellow,
                                                         fontSize: 16,
                                                         fontWeight: FontWeight.bold,
@@ -672,7 +671,7 @@ class _GridFillerGameState extends State<GridFillerGame>
           width: piece.size * _currentCellSize,
           height: piece.size * _currentCellSize,
           decoration: BoxDecoration(
-            color: piece.color.withOpacity(0.8),
+            color: piece.color.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(4),
             border: Border.all(color: Colors.white, width: 2),
           ),
@@ -725,13 +724,13 @@ class _GridFillerGameState extends State<GridFillerGame>
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: isSelected
-                ? piece.color.withOpacity(0.3)
-                : Colors.white.withOpacity(0.05),
+                ? piece.color.withValues(alpha: 0.3)
+                : Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected
-                  ? piece.color.withOpacity(_glowAnimation.value)
-                  : piece.color.withOpacity(0.3),
+                  ? piece.color.withValues(alpha: _glowAnimation.value)
+                  : piece.color.withValues(alpha: 0.3),
               width: isSelected ? 3 : 1,
             ),
           ),
@@ -742,8 +741,8 @@ class _GridFillerGameState extends State<GridFillerGame>
                 height: 40,
                 decoration: BoxDecoration(
                   color: canUse
-                      ? piece.color.withOpacity(0.7)
-                      : Colors.grey.withOpacity(0.3),
+                      ? piece.color.withValues(alpha: 0.7)
+                      : Colors.grey.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Center(
@@ -795,7 +794,7 @@ class _GridFillerGameState extends State<GridFillerGame>
           width: piece.size * cellSize,
           height: piece.size * cellSize,
           decoration: BoxDecoration(
-            color: piece.color.withOpacity(0.6),
+            color: piece.color.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(4),
             border: Border.all(color: Colors.white, width: 2),
           ),
@@ -883,7 +882,7 @@ class GridFillerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final gridPaint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
+      ..color = Colors.white.withValues(alpha: 0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.5;
     
@@ -911,8 +910,8 @@ class GridFillerPainter extends CustomPainter {
       
       final previewPaint = Paint()
         ..color = canPlace
-            ? previewColor!.withOpacity(0.4)
-            : Colors.red.withOpacity(0.3);
+            ? previewColor!.withValues(alpha: 0.4)
+            : Colors.red.withValues(alpha: 0.3);
       
       final borderPaint = Paint()
         ..color = canPlace ? previewColor! : Colors.red

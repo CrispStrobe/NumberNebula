@@ -1,5 +1,6 @@
 /// Auto-generated file. Do not edit.
 /// Contains all extracted level data for the Atomiks game.
+library;
 
 const List<Map<String, dynamic>> levelsData = [
   {

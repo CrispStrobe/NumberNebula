@@ -1,3 +1,4 @@
+// ignore_for_file: constant_identifier_names, unused_element, unused_field
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -12,7 +13,6 @@ import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../constants/app_constants.dart';
-import '../../../core/services/sri_service.dart';
 
 // DEVELOPMENT CONSTANT: Switch between generation approaches
 const bool USE_CSP_GENERATION = false; // Set to false to use original algorithm
@@ -160,22 +160,22 @@ class _CodebreakerGameState extends State<CodebreakerGame>
           context: context,
           barrierDismissible: false,
           builder: (context) => AlertDialog(
-            title: Text('Puzzle Generation Failed'),
-            content: Text('Unable to generate a puzzle. Would you like to try again or return to the main menu?'),
+            title: const Text('Puzzle Generation Failed'),
+            content: const Text('Unable to generate a puzzle. Would you like to try again or return to the main menu?'),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop(); // Close dialog
                   _generatePuzzle(); // Retry
                 },
-                child: Text('Try Again'),
+                child: const Text('Try Again'),
               ),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop(); // Close dialog
                   Navigator.of(context).pop(); // Return to menu
                 },
-                child: Text('Back to Menu'),
+                child: const Text('Back to Menu'),
               ),
             ],
           ),
@@ -400,7 +400,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     debugPrint("🎉 [CODEBREAKER UI] Extracted ${mathProblems.length} math problems for SRI tracking");
     
     // SINGLE CALL to unified progression system
-    final didAdvance = context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().recordLevelWin(
       gameType: 'codebreaker',
       scoreGained: totalScore,
       difficulty: widget.level,
@@ -609,7 +609,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         vertical: isCompact ? 4 : 8,
       ),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.8),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: SpaceTheme.starYellow),
       ),
@@ -638,7 +638,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             vertical: isCompact ? 4 : 8,
           ),
           decoration: BoxDecoration(
-            color: SpaceTheme.deepSpace.withOpacity(0.8),
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(30),
             border: Border.all(color: SpaceTheme.alienGreen),
           ),
@@ -668,13 +668,13 @@ class _CodebreakerGameState extends State<CodebreakerGame>
           decoration: BoxDecoration(
             gradient: RadialGradient(
               colors: [
-                SpaceTheme.alienGreen.withOpacity(0.1 * _glowAnimation.value),
-                SpaceTheme.deepSpace.withOpacity(0.05),
+                SpaceTheme.alienGreen.withValues(alpha: 0.1 * _glowAnimation.value),
+                SpaceTheme.deepSpace.withValues(alpha: 0.05),
               ],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: SpaceTheme.alienGreen.withOpacity(_glowAnimation.value),
+              color: SpaceTheme.alienGreen.withValues(alpha: _glowAnimation.value),
               width: 2,
             ),
           ),
@@ -771,7 +771,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             Center(
               child: Text(
                 "🔢",
-                style: TextStyle(fontSize: symbolSize * 0.7, color: SpaceTheme.alienGreen.withOpacity(0.3)),
+                style: TextStyle(fontSize: symbolSize * 0.7, color: SpaceTheme.alienGreen.withValues(alpha: 0.3)),
               ),
             ),
             Center(
@@ -809,14 +809,14 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                 Center(
                   child: Text(
                     _getSymbolIcon(symbol),
-                    style: TextStyle(fontSize: symbolSize * 0.8, color: SpaceTheme.nebulaPurple.withOpacity(0.6)),
+                    style: TextStyle(fontSize: symbolSize * 0.8, color: SpaceTheme.nebulaPurple.withValues(alpha: 0.6)),
                   ),
                 ),
                 Center(
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.4),
+                      color: Colors.black.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(3),
                     ),
                     child: Text(
@@ -856,14 +856,14 @@ class _CodebreakerGameState extends State<CodebreakerGame>
               Center(
                 child: Text(
                   _getSymbolIcon(symbol),
-                  style: TextStyle(fontSize: symbolSize * 0.8, color: SpaceTheme.alienGreen.withOpacity(0.6)),
+                  style: TextStyle(fontSize: symbolSize * 0.8, color: SpaceTheme.alienGreen.withValues(alpha: 0.6)),
                 ),
               ),
               Center(
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.4),
+                    color: Colors.black.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(
@@ -899,7 +899,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
           child: Center(
             child: Text(
               _getSymbolIcon(symbol),
-              style: TextStyle(fontSize: symbolSize, color: SpaceTheme.alienGreen.withOpacity(0.8)),
+              style: TextStyle(fontSize: symbolSize, color: SpaceTheme.alienGreen.withValues(alpha: 0.8)),
             ),
           ),
         );
@@ -934,7 +934,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                     ),
                     boxShadow: isHovering ? [
                       BoxShadow(
-                        color: SpaceTheme.starYellow.withOpacity(0.6),
+                        color: SpaceTheme.starYellow.withValues(alpha: 0.6),
                         blurRadius: 8,
                         spreadRadius: 2,
                       )
@@ -947,7 +947,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                         fontSize: symbolSize, 
                         color: isHovering 
                             ? SpaceTheme.starYellow 
-                            : SpaceTheme.alienGreen.withOpacity(0.9)
+                            : SpaceTheme.alienGreen.withValues(alpha: 0.9)
                       ),
                     ),
                   ),
@@ -969,10 +969,15 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
   double _getCellSize(int numEquations, {bool isCompact = false}) {
     double baseSize;
-    if (numEquations <= 3) baseSize = 50.0;
-    else if (numEquations <= 4) baseSize = 46.0;
-    else if (numEquations <= 5) baseSize = 42.0;
-    else baseSize = 38.0;
+    if (numEquations <= 3) {
+      baseSize = 50.0;
+    } else if (numEquations <= 4) {
+      baseSize = 46.0;
+    } else if (numEquations <= 5) {
+      baseSize = 42.0;
+    } else {
+      baseSize = 38.0;
+    }
 
     // Apply a scaling factor for compact mode.
     return isCompact ? baseSize * 0.8 : baseSize;
@@ -1065,7 +1070,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         gradient: SpaceTheme.starGradient,
         // Reduce border radius for smaller tiles
         borderRadius: BorderRadius.circular(isCompact ? 8 : 12),
-        border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.7), width: 2),
+        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
       ),
       child: Center(
         child: Text(
@@ -1085,7 +1090,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: SpaceTheme.starGradient,
-          boxShadow: [BoxShadow(color: SpaceTheme.starYellow.withOpacity(0.8), blurRadius: 20, spreadRadius: 5)],
+          boxShadow: [BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.8), blurRadius: 20, spreadRadius: 5)],
         ),
         child: Center(
           child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 22)),
@@ -1206,7 +1211,7 @@ class PuzzleSolver {
         final eq = equations[eqIndex];
         final unknowns = eq.getSymbols().where((s) => !knownValues.containsKey(s)).toList();
         
-        if (verbose) debugPrint("🧠 [SOLVER] Eq$eqIndex: ${eq} -> unknowns: $unknowns");
+        if (verbose) debugPrint("🧠 [SOLVER] Eq$eqIndex: $eq -> unknowns: $unknowns");
         
         if (unknowns.length == 1) {
           final unknownSymbol = unknowns.first;
@@ -1548,7 +1553,7 @@ class AdvancedPuzzleGenerator {
     
     // If we still don't have enough equations, create some mixed number-symbol equations
     while (equations.length < numEquations) {
-      final attempts = 20;
+      const attempts = 20;
       bool found = false;
       
       for (int i = 0; i < attempts; i++) {
@@ -1653,13 +1658,13 @@ class AdvancedPuzzleGenerator {
     
     try {
       final result = await p.getSolution();
-      if (result is Map<String, dynamic> && result != 'FAILURE') {
+      if (result is Map<String, dynamic>) {
         return result.cast<String, int>();
       }
     } catch (e) {
       if (verbose) debugPrint("🗂️ [CSP] Validation error: $e");
     }
-    
+
     return null;
   }
 
@@ -1804,13 +1809,13 @@ class AdvancedPuzzleGenerator {
     // Solve with CSP
     try {
       final result = await p.getSolution();
-      if (result is Map<String, dynamic> && result != 'FAILURE') {
+      if (result is Map<String, dynamic>) {
         return result.cast<String, int>();
       }
     } catch (e) {
       if (verbose) debugPrint("🗂️ [CSP] Error solving: $e");
     }
-    
+
     return null;
   }
 
@@ -2055,8 +2060,6 @@ class AdvancedCodebreakerPuzzle {
   static Future<AdvancedCodebreakerPuzzle> generate(Map<String, dynamic> args) async {
     debugPrint("🎯 [PUZZLE FACTORY] Starting puzzle generation with args: $args");
     
-    final grade = args['grade'] as int;
-    final level = args['level'] as int;
     final difficultyConfig = args['difficulty'] as DifficultyConfig;
     final useCSP = args['useCSP'] as bool;
     
@@ -2155,7 +2158,7 @@ class AdvancedCodebreakerPuzzle {
     decoys.removeAll(correctNumbersSet);
 
     final random = math.Random();
-    final targetPoolSize = 8;
+    const targetPoolSize = 8;
     final requiredDecoys = targetPoolSize - correctNumbersList.length;
 
     while (decoys.length < requiredDecoys) {

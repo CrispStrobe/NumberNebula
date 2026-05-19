@@ -1,9 +1,9 @@
+// ignore_for_file: avoid_print, constant_identifier_names
 // lib/features/games/services/starloader_level_manager.dart:
 
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/starloader_level_model.dart';
@@ -235,11 +235,17 @@ class StarLoaderLevelManager {
       for (int x = 0; x < entry.roomState[y].length; x++) {
         final state = entry.roomState[y][x];
         final structure = entry.roomStructure[y][x];
-        if (state == WALL) line += 'W';
-        else if (state == PLAYER) line += 'P';
-        else if (state == BOX) line += (structure == TARGET ? 'X' : 'B');
-        else if (structure == TARGET) line += 'T';
-        else line += ' ';
+        if (state == WALL) {
+          line += 'W';
+        } else if (state == PLAYER) {
+          line += 'P';
+        } else if (state == BOX) {
+          line += (structure == TARGET ? 'X' : 'B');
+        } else if (structure == TARGET) {
+          line += 'T';
+        } else {
+          line += ' ';
+        }
       }
       layout.add(line);
     }

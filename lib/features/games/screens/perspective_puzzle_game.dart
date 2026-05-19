@@ -60,7 +60,7 @@ class _Arrow3D {
   /// Creates a fully oriented 3D arrow object using predefined geometries
   static cube.Object createArrow(cube.Vector3 start, cube.Vector3 end, Color color) {
     final material = cube.Material()
-      ..diffuse.setValues(color.red / 255, color.green / 255, color.blue / 255);
+      ..diffuse.setValues(color.r, color.g, color.b);
 
     final direction = end - start;
     
@@ -530,7 +530,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
                 var temp = row[col1]; row[col1] = row[col2]; row[col2] = temp;
             }
         } else if (modType == 1) {
-            var blocks = newView.expand((row) => row).whereNotNull().toList();
+            var blocks = newView.expand((row) => row).nonNulls.toList();
             if (blocks.isNotEmpty) {
                 var blockToRemove = blocks[random.nextInt(blocks.length)];
                 for (var i = 0; i < newView.length; i++) {
@@ -542,7 +542,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
                 }
             }
         } else {
-            var blocks = newView.expand((row) => row).whereNotNull().toList();
+            var blocks = newView.expand((row) => row).nonNulls.toList();
              if (blocks.isNotEmpty) {
                 var blockToChange = blocks[random.nextInt(blocks.length)];
                 var newColor = _VisualConfig.blockColors[random.nextInt(_VisualConfig.blockColors.length)];
@@ -659,13 +659,13 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        backgroundColor: SpaceTheme.deepSpace.withOpacity(0.9),
+        backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.9),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
           side: const BorderSide(color: SpaceTheme.rocketRed, width: 2)
         ),
-        title: Text("Mission Failed", style: SpaceTheme.headlineStyle),
-        content: Text("You've run out of attempts. Let's try a different structure.", style: SpaceTheme.bodyStyle),
+        title: const Text("Mission Failed", style: SpaceTheme.headlineStyle),
+        content: const Text("You've run out of attempts. Let's try a different structure.", style: SpaceTheme.bodyStyle),
         actions: [
           TextButton(
             child: Text(S.of(context)!.tryAgain),
@@ -792,7 +792,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.8),
+                    color: Colors.black.withValues(alpha: 0.8),
                     borderRadius: BorderRadius.circular(25),
                     border: Border.all(color: perspectiveInfo['color'], width: 3),
                   ),
@@ -829,7 +829,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -870,7 +870,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final spacing = 12.0;
+              const spacing = 12.0;
               final availableWidth = constraints.maxWidth - spacing;
               final availableHeight = constraints.maxHeight - spacing;
               final cellWidth = availableWidth / 2;
@@ -931,7 +931,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     
     for (final block in blocks) {
         final material = cube.Material();
-        material.diffuse.setValues(block.color.red/255, block.color.green/255, block.color.blue/255);
+        material.diffuse.setValues(block.color.r, block.color.g, block.color.b);
         _sceneObject.add(cube.Object(
         position: cube.Vector3(block.x - size, block.y - height, block.z - size),
         mesh: cube.Mesh(
@@ -952,7 +952,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
      return ScaleTransition(
       scale: CurvedAnimation(parent: _successController, curve: Curves.elasticOut),
       child: AlertDialog(
-        backgroundColor: SpaceTheme.deepSpace.withOpacity(0.9),
+        backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.9),
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
             side: const BorderSide(color: SpaceTheme.alienGreen, width: 2)),

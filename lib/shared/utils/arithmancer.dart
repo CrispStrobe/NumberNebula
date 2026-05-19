@@ -1,8 +1,8 @@
+// ignore_for_file: avoid_print
 // lib/shared/utils/arithmancer.dart
 // Pure Mathematical Combat System
 
 import 'dart:math';
-import 'dart:collection';
 import 'dart:io';
 
 // === CORE MATHEMATICAL TYPES ===
@@ -1788,14 +1788,14 @@ class ExpressionEvaluator {
 }
 
 // === PvP GAME SYSTEM ===
-class _PlayerState {
+class PlayerState {
   final ArithmancerGame gameInstance;
   int health = 120;
   int energy = 6;
   int block = 0;
   bool passedLastTurn = false; // FIX: Add this new flag
 
-  _PlayerState(this.gameInstance);
+  PlayerState(this.gameInstance);
   
   void drawInitialHand() {
     gameInstance._drawCards(7);
@@ -1820,8 +1820,8 @@ class PvPGame {
   final bool player2IsHuman;
 
   // Central state for each player
-  late _PlayerState player1State;
-  late _PlayerState player2State;
+  late PlayerState player1State;
+  late PlayerState player2State;
 
   int turn = 1;
   bool gameOver = false;
@@ -1836,8 +1836,8 @@ class PvPGame {
     this.player1IsHuman = false,
     this.player2IsHuman = false,
   }) {
-    player1State = _PlayerState(ArithmancerGame(player1AI, Random(rng.nextInt(1000000)), verbose: false));
-    player2State = _PlayerState(ArithmancerGame(player2AI, Random(rng.nextInt(1000000)), verbose: false));
+    player1State = PlayerState(ArithmancerGame(player1AI, Random(rng.nextInt(1000000)), verbose: false));
+    player2State = PlayerState(ArithmancerGame(player2AI, Random(rng.nextInt(1000000)), verbose: false));
     
     player1State.drawInitialHand();
     player2State.drawInitialHand();
@@ -1907,7 +1907,7 @@ class PvPGame {
   }
 
   void _executePlayerTurn(
-    _PlayerState currentPlayer, _PlayerState opponentPlayer) {
+    PlayerState currentPlayer, PlayerState opponentPlayer) {
     String playerName = (currentPlayer == player1State
         ? (player1IsHuman ? "Human" : player1AI.name)
         : (player2IsHuman ? "Human" : player2AI.name));
@@ -1954,8 +1954,8 @@ class PvPGame {
     _checkGameOver();
     }
   
-  void _processTurnResults(List<MathResult> results, _PlayerState currentPlayer,
-    _PlayerState opponentPlayer, MathematicalEnemy opponentMock) {
+  void _processTurnResults(List<MathResult> results, PlayerState currentPlayer,
+    PlayerState opponentPlayer, MathematicalEnemy opponentMock) {
     String playerName = (currentPlayer == player1State
         ? (player1IsHuman ? "Human" : player1AI.name)
         : (player2IsHuman ? "Human" : player2AI.name));
@@ -2042,9 +2042,10 @@ class PvPGame {
           : "Cost: $cost (TOO EXPENSIVE)";
       String effectStr = "";
       if (result.damage > 0) effectStr += "Damage: ${result.damage}";
-      if (result.block > 0)
+      if (result.block > 0) {
         effectStr +=
             "${effectStr.isNotEmpty ? ', ' : ''}Block: ${result.block}";
+      }
       if (effectStr.isEmpty) effectStr = "No effect";
 
       String hint = "";
@@ -2140,7 +2141,7 @@ class ContinuousPlayGame extends ArithmancerGame {
     }
 
     if (verbose && gameOver) {
-      print("\n" + "=" * 60);
+      print("\n${"=" * 60}");
       print("📊 FINAL STATISTICS");
       print("Total turns: $totalTurns");
       print("Enemies defeated: $enemiesDefeated");
@@ -2261,9 +2262,9 @@ void _handlePveHumanTurn(ArithmancerGame game) {
     
     String effectStr = "";
     if (result.damage > 0) effectStr += "Damage: ${result.damage}";
-    if (result.block > 0) effectStr += (effectStr.isNotEmpty ? ", " : "") + "Block: ${result.block}";
+    if (result.block > 0) effectStr += "${effectStr.isNotEmpty ? ", " : ""}Block: ${result.block}";
     if (result.damageReduction > 0) {
-      effectStr += (effectStr.isNotEmpty ? ", " : "") + "Dmg. Reduction: ${(result.damageReduction * 100).toStringAsFixed(0)}%";
+      effectStr += "${effectStr.isNotEmpty ? ", " : ""}Dmg. Reduction: ${(result.damageReduction * 100).toStringAsFixed(0)}%";
     }
     if (effectStr.isEmpty) effectStr = "No effect";
 
@@ -2296,7 +2297,7 @@ void _handlePveHumanTurn(ArithmancerGame game) {
   // --- 3. Execute Turn based on Player's Choice ---
   bool playerActed = chosenResult != null;
   if (playerActed) {
-    game._executeResult(chosenResult!, playerName: "Player"); // This removes the used cards from the hand
+    game._executeResult(chosenResult, playerName: "Player"); // This removes the used cards from the hand
   } else {
     game.log("Player passes the turn.");
   }
@@ -2309,23 +2310,7 @@ void _handlePveHumanTurn(ArithmancerGame game) {
     return;
   }
 
-  // --- 4. Optional Discard Phase (as requested, currently disabled) ---
-  if (false) {
-    while(true) {
-      print("\nYour hand: ${game.hand.map((c) => c.toString()).join(', ')}");
-      stdout.write("Enter index of card to discard (1-${game.hand.length}), or 'done': ");
-      String? input = stdin.readLineSync();
-      if (input == null || input.toLowerCase() == 'done') break;
-      int? index = int.tryParse(input);
-      if (index != null && index > 0 && index <= game.hand.length) {
-        final discardedCard = game.hand.removeAt(index - 1);
-        game.discardPile.add(discardedCard);
-        print("Discarded ${discardedCard.name}.");
-      } else {
-        print("Invalid index.");
-      }
-    }
-  }
+  // --- 4. Optional Discard Phase: disabled (kept for reference) ---
 
   // --- 5. Enemy's Turn ---
   game.currentEnemy!.takeTurn(game);
@@ -2450,8 +2435,9 @@ void _runSingleAiVsAi() {
   stdout.write("Choose Player 1 (1-${personalities.length}): ");
   String? input1 = stdin.readLineSync();
   int? choice1 = int.tryParse(input1 ?? "1");
-  if (choice1 == null || choice1 < 1 || choice1 > personalities.length)
+  if (choice1 == null || choice1 < 1 || choice1 > personalities.length) {
     choice1 = 1;
+  }
 
   print("\nSelect Player 2 AI:");
   for (int i = 0; i < personalities.length; i++) {
@@ -2461,8 +2447,9 @@ void _runSingleAiVsAi() {
   stdout.write("Choose Player 2 (1-${personalities.length}): ");
   String? input2 = stdin.readLineSync();
   int? choice2 = int.tryParse(input2 ?? "2");
-  if (choice2 == null || choice2 < 1 || choice2 > personalities.length)
+  if (choice2 == null || choice2 < 1 || choice2 > personalities.length) {
     choice2 = 2;
+  }
 
   AIPersonality ai1 = personalities[choice1 - 1];
   AIPersonality ai2 = personalities[choice2 - 1];
@@ -2607,8 +2594,9 @@ void _runContinuousAiVsGame() {
   stdout.write("Choose AI (1-${personalities.length}): ");
   String? input = stdin.readLineSync();
   int? choice = int.tryParse(input ?? "1");
-  if (choice == null || choice < 1 || choice > personalities.length)
+  if (choice == null || choice < 1 || choice > personalities.length) {
     choice = 1;
+  }
 
   AIPersonality selectedAI = personalities[choice - 1];
 

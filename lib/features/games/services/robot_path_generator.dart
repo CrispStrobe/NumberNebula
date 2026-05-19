@@ -1,3 +1,4 @@
+// ignore_for_file: constant_identifier_names
 // robot_path_generator.dart (FIXED - Carves both pocket and action spot)
 import 'dart:math' as math;
 

@@ -1,5 +1,5 @@
+// ignore_for_file: avoid_print, constant_identifier_names
 // lib/features/games/services/starloader_puzzle_debug.dart
-import 'dart:io';
 import 'dart:math' as math;
 import 'dart:collection';
 
@@ -14,7 +14,7 @@ void main(List<String> args) {
     return;
   }
   
-  if (args.length >= 1) dimX = int.tryParse(args[0]) ?? dimX;
+  if (args.isNotEmpty) dimX = int.tryParse(args[0]) ?? dimX;
   if (args.length >= 2) dimY = int.tryParse(args[1]) ?? dimY;
   if (args.length >= 3) numBoxes = int.tryParse(args[2]) ?? numBoxes;
   
@@ -196,7 +196,7 @@ class LevelGenerator {
   final math.Random _random = math.Random();
   final bool _verbose;
   
-  Set<String> _exploredStates = {};
+  final Set<String> _exploredStates = {};
   List<List<int>>? _bestRoom;
   int _bestScore = -1;
   Map<String, List<int>>? _bestBoxMapping;

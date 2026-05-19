@@ -1,13 +1,11 @@
-import 'package:flutter/foundation.dart';
+// ignore_for_file: unused_element, unused_field
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
-import 'dart:ui';
 
 import '../constants/app_constants.dart';
 import '../../../core/theme/space_theme.dart';
-import '../../../core/services/sri_service.dart';
 import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
@@ -499,8 +497,8 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: isSelected 
-                            ? [SpaceTheme.starYellow.withOpacity(0.3), SpaceTheme.planetOrange.withOpacity(0.3)]
-                            : [SpaceTheme.nebulaPurple.withOpacity(0.3), SpaceTheme.deepSpace.withOpacity(0.5)],
+                            ? [SpaceTheme.starYellow.withValues(alpha: 0.3), SpaceTheme.planetOrange.withValues(alpha: 0.3)]
+                            : [SpaceTheme.nebulaPurple.withValues(alpha: 0.3), SpaceTheme.deepSpace.withValues(alpha: 0.5)],
                       ),
                       border: Border.all(
                         color: isSelected ? SpaceTheme.starYellow : SpaceTheme.alienGreen,
@@ -508,7 +506,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: (isSelected ? SpaceTheme.starYellow : SpaceTheme.alienGreen).withOpacity(0.5),
+                          color: (isSelected ? SpaceTheme.starYellow : SpaceTheme.alienGreen).withValues(alpha: 0.5),
                           blurRadius: 15,
                           spreadRadius: 3,
                         ),
@@ -599,7 +597,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: BoxDecoration(
             color: isSatisfied 
-                ? SpaceTheme.alienGreen.withOpacity(0.2 * highlightIntensity)
+                ? SpaceTheme.alienGreen.withValues(alpha: 0.2 * highlightIntensity)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
@@ -894,7 +892,7 @@ class CryptexEquation {
       operandB: opB,
       operation: op,
       answer: rightSide, // The equation's result is the problem's answer
-      expression: '${opA} ${operator} ${opB}',
+      expression: '$opA $operator $opB',
       // The difficulty can be based on the operator or number size
       difficulty: (operator == '*' || operator == '/') ? 3 : 1,
     );
@@ -1003,11 +1001,11 @@ class CryptexParticle {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: color.withOpacity(opacity),
+          color: color.withValues(alpha: opacity),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(opacity * 0.5),
+              color: color.withValues(alpha: opacity * 0.5),
               blurRadius: size * 1.5,
             ),
           ],
@@ -1037,7 +1035,7 @@ class CryptexBackgroundPainter extends CustomPainter {
     
     // Draw rotating mystical symbols
     final symbolPaint = Paint()
-      ..color = (isUnlocked ? Colors.green : Colors.cyan).withOpacity(0.1 * glowIntensity)
+      ..color = (isUnlocked ? Colors.green : Colors.cyan).withValues(alpha: 0.1 * glowIntensity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     
@@ -1062,8 +1060,8 @@ class CryptexBackgroundPainter extends CustomPainter {
     final vortexPaint = Paint()
       ..shader = RadialGradient(
         colors: isUnlocked 
-            ? [Colors.green.withOpacity(0.5), Colors.transparent]
-            : [Colors.cyan.withOpacity(0.3 * glowIntensity), Colors.transparent],
+            ? [Colors.green.withValues(alpha: 0.5), Colors.transparent]
+            : [Colors.cyan.withValues(alpha: 0.3 * glowIntensity), Colors.transparent],
         stops: const [0.0, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: 150));
     
@@ -1116,7 +1114,7 @@ class CryptexBodyPainter extends CustomPainter {
     
     // Decorative bands
     final bandPaint = Paint()
-      ..color = Colors.amber.withOpacity(0.7)
+      ..color = Colors.amber.withValues(alpha: 0.7)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
     
@@ -1137,7 +1135,7 @@ class CryptexBodyPainter extends CustomPainter {
     // Unlock glow effect
     if (isUnlocked) {
       final glowPaint = Paint()
-        ..color = Colors.green.withOpacity(0.5 * unlockProgress)
+        ..color = Colors.green.withValues(alpha: 0.5 * unlockProgress)
         ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 10);
       
       canvas.drawRRect(

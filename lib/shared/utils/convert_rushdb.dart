@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print, unused_element, unused_field
 // convert_rush_database.dart
 // Converts Michael Fogleman's Rush Hour database to Dart puzzle format
 // Usage: dart run convert_rush_database.dart input.txt output.dart

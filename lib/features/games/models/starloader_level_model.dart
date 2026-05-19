@@ -1,6 +1,5 @@
 // lib/features/games/models/starloader_level_model.dart:
 
-import 'dart:convert';
 
 /// Represents a single level entry in the database.
 class LevelEntry {
@@ -45,7 +44,7 @@ class LevelEntry {
   /// Ignores ID, difficulty label, and ratings.
   String get contentHash {
     final buffer = StringBuffer();
-    buffer.write('${dimX}x${dimY}:');
+    buffer.write('${dimX}x$dimY:');
     
     // Encode Structure (Walls/Targets)
     for (var row in roomStructure) {

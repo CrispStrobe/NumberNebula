@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print, constant_identifier_names
 // lib/features/games/services/starloader_level_generator.dart
 
 import 'dart:math' as math;
@@ -16,7 +17,7 @@ class LevelGenerator {
   final bool _verbose;
 
   // --- Reverse Play State (Reset on each generation) ---
-  Set<String> _exploredStates = {};
+  final Set<String> _exploredStates = {};
   List<List<int>>? _bestRoom;
   int _bestScore = -1;
   Map<String, List<int>>? _bestBoxMapping;

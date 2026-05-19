@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,8 +15,6 @@ import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
-import '../constants/app_constants.dart';
-import '../../../core/services/sri_service.dart';
 
 // ============================================================================
 // CROSSWORD PUZZLE SCALING CONFIGURATION
@@ -326,22 +325,22 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
           context: context,
           barrierDismissible: false,
           builder: (context) => AlertDialog(
-            title: Text('Puzzle Generation Failed'),
-            content: Text('Unable to generate puzzle. Please try again.'),
+            title: const Text('Puzzle Generation Failed'),
+            content: const Text('Unable to generate puzzle. Please try again.'),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                   _generatePuzzle();
                 },
-                child: Text('Retry'),
+                child: const Text('Retry'),
               ),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
                 },
-                child: Text('Back to Menu'),
+                child: const Text('Back to Menu'),
               ),
             ],
           ),
@@ -364,13 +363,13 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
             children: [
               const Icon(Icons.error_outline, size: 64, color: SpaceTheme.rocketRed),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 'Puzzle Generation Failed',
                 style: SpaceTheme.headlineStyle,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 'Unable to generate a puzzle at this difficulty. Try again or return to the menu.',
                 style: SpaceTheme.bodyStyle,
                 textAlign: TextAlign.center,
@@ -546,8 +545,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       
       final operand1 = values[0];
       final operand2 = values[1];
-      final result = values[2];
-      
+
       MathProblem? problem;
       switch (equation.operator) {
         case '+':
@@ -598,7 +596,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     debugPrint("🎉 [ARITHMANCER CROSSWORDS] Extracted ${mathProblems.length} math problems for tracking");
     
     // SINGLE CALL to unified progression system
-    final didAdvance = context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().recordLevelWin(
       gameType: 'arithmancer_crosswords',
       scoreGained: totalScore,
       difficulty: widget.level,
@@ -733,7 +731,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
               vertical: isCompact ? 4 : 8,
             ),
             decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace.withOpacity(0.8),
+              color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(30),
               border: Border.all(color: indicatorColor),
             ),
@@ -932,13 +930,13 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.cosmicPink.withOpacity(0.1 * _glowAnimation.value),
-                  SpaceTheme.deepSpace.withOpacity(0.05),
+                  SpaceTheme.cosmicPink.withValues(alpha: 0.1 * _glowAnimation.value),
+                  SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.cosmicPink.withOpacity(_glowAnimation.value),
+                color: SpaceTheme.cosmicPink.withValues(alpha: _glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -988,7 +986,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
           scrollDirection: Axis.horizontal,
           child: SingleChildScrollView(
             scrollDirection: Axis.vertical,
-            child: Container(
+            child: SizedBox(
               width: totalWidth,
               height: totalHeight,
               child: Stack(
@@ -1097,7 +1095,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
               ),
               boxShadow: isHovering ? [
                 BoxShadow(
-                  color: SpaceTheme.starYellow.withOpacity(0.6),
+                  color: SpaceTheme.starYellow.withValues(alpha: 0.6),
                   blurRadius: 8,
                   spreadRadius: 2,
                 )
@@ -1111,7 +1109,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
                   child: Center(
                     child: Icon(
                       Icons.add_circle_outline,
-                      color: isHovering ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple.withOpacity(0.7),
+                      color: isHovering ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple.withValues(alpha: 0.7),
                       size: cellSize * 0.4,
                     ),
                   ),
@@ -1238,7 +1236,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
         borderRadius: BorderRadius.circular(isCompact ? 8 : 12),
-        border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.7), width: 2),
+        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
       ),
       child: Center(
         child: Text(
@@ -1257,7 +1255,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: SpaceTheme.starGradient,
-          boxShadow: [BoxShadow(color: SpaceTheme.starYellow.withOpacity(0.8), blurRadius: 20, spreadRadius: 5)],
+          boxShadow: [BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.8), blurRadius: 20, spreadRadius: 5)],
         ),
         child: Center(
           child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 18)),
@@ -1275,7 +1273,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         vertical: isCompact ? 4 : 8,
       ),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.8),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: SpaceTheme.starYellow),
       ),
@@ -1304,7 +1302,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
             vertical: isCompact ? 4 : 8,
           ),
           decoration: BoxDecoration(
-            color: SpaceTheme.deepSpace.withOpacity(0.8),
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(30),
             border: Border.all(color: SpaceTheme.alienGreen),
           ),
@@ -1410,10 +1408,10 @@ class GridPatternGenerator {
   late math.Point<int> mazeStart;
   late int firstDirection;
   final List<math.Point<int>> directions = [
-    math.Point(0, -1),
-    math.Point(1, 0),
-    math.Point(0, 1),
-    math.Point(-1, 0)
+    const math.Point(0, -1),
+    const math.Point(1, 0),
+    const math.Point(0, 1),
+    const math.Point(-1, 0)
   ];
 
   GridPatternGenerator({
@@ -1738,7 +1736,7 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
       final generator = GridPatternGenerator(targetEdges: config.targetEdges);
       final rawGrid = generator.generatePattern();
       puzzle = PuzzleParser(rawGrid, config);
-    } while (puzzle?.isPatternValid() != true && patternAttempt < 20);
+    } while (puzzle.isPatternValid() != true && patternAttempt < 20);
 
     if (puzzle == null || !puzzle.isPatternValid()) {
       debugPrint("🔧 [GENERATOR]   -> FAILED to generate valid pattern, retrying...");
@@ -1773,7 +1771,7 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
       if (candidates.isEmpty) break;
       final bestCandidate = candidates.first;
 
-      final chosenEquation = puzzle!.equations.firstWhere(
+      final chosenEquation = puzzle.equations.firstWhere(
         (eq) => eq.variableNames.contains(bestCandidate) && !disqualifiedEquations.contains(eq),
         orElse: () => puzzle!.equations.first,
       );
@@ -1821,7 +1819,7 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
         p.addVariable(varName, fullDomain);
       }
     }
-    for (final eq in puzzle!.equations) {
+    for (final eq in puzzle.equations) {
       p.addConstraint(eq.variableNames, (assignment) {
         final a = assignment[eq.variableNames[0]];
         final b = assignment[eq.variableNames[1]];
@@ -1855,11 +1853,11 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
       if (potentialSolution != 'FAILURE') {
         debugPrint("🔧 [GENERATOR]   -> SOLVED in ${solveStopwatch.elapsedMilliseconds}ms");
         solution = potentialSolution;
-        successfulPuzzle = puzzle!;
+        successfulPuzzle = puzzle;
         finalClues = clues;
         
         debugPrint("🔧 [GENERATOR] [4] Rendering ASCII preview...");
-        final emptyRenderer = AsciiRenderer(puzzle!, config, solution: clues);
+        final emptyRenderer = AsciiRenderer(puzzle, config, solution: clues);
         debugPrint(emptyRenderer.render());
         break;
       } else {

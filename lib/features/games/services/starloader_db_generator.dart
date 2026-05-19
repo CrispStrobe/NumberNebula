@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print, constant_identifier_names
 import 'dart:convert';
 import 'dart:io';
 import 'package:uuid/uuid.dart'; 
@@ -54,13 +55,12 @@ void main(List<String> args) async {
 
   // ENABLE VERBOSE LOGS HERE
   final generator = LevelGenerator(verbose: true); 
-  final uuid = Uuid();
+  const uuid = Uuid();
   int totalAdded = 0;
 
   for (final config in configs) {
     int needed = countToAdd;
-    int gradeAdded = 0;
-    
+
     print('\n🔨 --- Grade ${config.grade}: Generating $needed new levels ---');
 
     // Aggressive Loop: Keep trying until we find 'needed' UNIQUE levels
@@ -96,7 +96,6 @@ void main(List<String> args) async {
         if (!uniqueLevels.containsKey(tempEntry.contentHash)) {
           uniqueLevels[tempEntry.contentHash] = tempEntry;
           needed--;
-          gradeAdded++;
           totalAdded++;
           print('✅ New Unique Level Added! (Remaining: $needed)');
         } else {
@@ -162,9 +161,11 @@ Future<void> _mergeFromFile(File file, Map<String, LevelEntry> map, String label
         
         bool replace = false;
         // Logic: Ratings trump everything
-        if (entry.ratingCount > existing.ratingCount) replace = true;
-        // Logic: Permanent ID (not gen_) trumps temp ID
-        else if (!entry.id.startsWith('gen_') && existing.id.startsWith('gen_')) replace = true;
+        if (entry.ratingCount > existing.ratingCount) {
+          replace = true;
+        } else if (!entry.id.startsWith('gen_') && existing.id.startsWith('gen_')) {
+          replace = true;
+        }
 
         if (replace) {
           map[hash] = entry;

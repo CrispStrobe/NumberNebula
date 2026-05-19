@@ -1,17 +1,16 @@
-import 'package:flutter/foundation.dart';
+// ignore_for_file: constant_identifier_names, unused_element, unused_field
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
-import 'dart:ui'; // Import for MaskFilter
+// Import for MaskFilter
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
-import '../services/starloader_level_generator.dart';
 import '../services/starloader_level_manager.dart';
 
 
@@ -90,9 +89,9 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   final FocusNode _focusNode = FocusNode();
 
   // --- 5. Particles ---
-  List<StarParticle> _particles = [];
-  List<TrailParticle> _trails = [];
-  List<CelebrationParticle> _celebrationParticles = [];
+  final List<StarParticle> _particles = [];
+  final List<TrailParticle> _trails = [];
+  final List<CelebrationParticle> _celebrationParticles = [];
 
   // --- 6. Hints ---
   bool _showingHint = false;
@@ -291,7 +290,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
     if (!mounted) return;
     
-    print('🚀 [Game] Loading Level ID: ${levelData.id} (Moves: ${levelData.optimalMoves})');
+    debugPrint('🚀 [Game] Loading Level ID: ${levelData.id} (Moves: ${levelData.optimalMoves})');
 
     _currentLevelData = levelData;
     _resetCurrentLevel(); 
@@ -544,9 +543,9 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     final s = S.of(context)!;
 
     if (_isLoading) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: SpaceTheme.deepSpace,
-        body: const Center(
+        body: Center(
           child: CircularProgressIndicator(color: SpaceTheme.alienGreen),
         ),
       );
@@ -614,15 +613,15 @@ class _StarLoaderGameState extends State<StarLoaderGame>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            SpaceTheme.alienGreen.withOpacity(0.9),
-            SpaceTheme.alienGreen.withOpacity(0.7),
+            SpaceTheme.alienGreen.withValues(alpha: 0.9),
+            SpaceTheme.alienGreen.withValues(alpha: 0.7),
           ],
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: SpaceTheme.starYellow, width: 2),
         boxShadow: [
           BoxShadow(
-            color: SpaceTheme.alienGreen.withOpacity(0.5),
+            color: SpaceTheme.alienGreen.withValues(alpha: 0.5),
             blurRadius: 15,
             spreadRadius: 3,
           ),
@@ -706,18 +705,18 @@ class _StarLoaderGameState extends State<StarLoaderGame>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            SpaceTheme.deepSpace.withOpacity(0.9),
-            SpaceTheme.nebulaPurple.withOpacity(0.8),
+            SpaceTheme.deepSpace.withValues(alpha: 0.9),
+            SpaceTheme.nebulaPurple.withValues(alpha: 0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: SpaceTheme.alienGreen.withOpacity(0.3),
+          color: SpaceTheme.alienGreen.withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: SpaceTheme.alienGreen.withOpacity(0.2),
+            color: SpaceTheme.alienGreen.withValues(alpha: 0.2),
             blurRadius: 10,
             spreadRadius: 2,
           ),
@@ -760,7 +759,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
+            color: Colors.white.withValues(alpha: 0.7),
             fontSize: 11,
           ),
         ),
@@ -796,7 +795,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
               icon: const Icon(Icons.refresh, size: 20),
               label: Text(s.reset),
               style: ElevatedButton.styleFrom(
-                backgroundColor: SpaceTheme.rocketRed.withOpacity(0.8),
+                backgroundColor: SpaceTheme.rocketRed.withValues(alpha: 0.8),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -819,7 +818,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
               style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)
             ),
             style: TextButton.styleFrom(
-              backgroundColor: Colors.red.withOpacity(0.1),
+              backgroundColor: Colors.red.withValues(alpha: 0.1),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
           ),
@@ -834,13 +833,13 @@ class _StarLoaderGameState extends State<StarLoaderGame>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            SpaceTheme.deepSpace.withOpacity(0.8),
-            SpaceTheme.nebulaPurple.withOpacity(0.7),
+            SpaceTheme.deepSpace.withValues(alpha: 0.8),
+            SpaceTheme.nebulaPurple.withValues(alpha: 0.7),
           ],
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: SpaceTheme.alienGreen.withOpacity(0.3),
+          color: SpaceTheme.alienGreen.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -867,10 +866,10 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: SpaceTheme.deepSpace.withOpacity(0.5),
+                  color: SpaceTheme.deepSpace.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: SpaceTheme.alienGreen.withOpacity(0.2),
+                    color: SpaceTheme.alienGreen.withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
@@ -913,8 +912,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
               colors: _hasWon
                   ? [Colors.grey.shade700, Colors.grey.shade800]
                   : [
-                      SpaceTheme.alienGreen.withOpacity(0.6),
-                      SpaceTheme.alienGreen.withOpacity(0.4),
+                      SpaceTheme.alienGreen.withValues(alpha: 0.6),
+                      SpaceTheme.alienGreen.withValues(alpha: 0.4),
                     ],
             ),
             borderRadius: BorderRadius.circular(8),
@@ -928,7 +927,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                 ? []
                 : [
                     BoxShadow(
-                      color: SpaceTheme.alienGreen.withOpacity(0.3),
+                      color: SpaceTheme.alienGreen.withValues(alpha: 0.3),
                       blurRadius: 8,
                       spreadRadius: 1,
                     ),
@@ -967,18 +966,18 @@ class _StarLoaderGameState extends State<StarLoaderGame>
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   colors: [
-                    SpaceTheme.deepSpace.withOpacity(0.5),
-                    SpaceTheme.deepSpace.withOpacity(0.9),
+                    SpaceTheme.deepSpace.withValues(alpha: 0.5),
+                    SpaceTheme.deepSpace.withValues(alpha: 0.9),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: SpaceTheme.alienGreen.withOpacity(0.5),
+                  color: SpaceTheme.alienGreen.withValues(alpha: 0.5),
                   width: 2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: SpaceTheme.alienGreen.withOpacity(0.3),
+                    color: SpaceTheme.alienGreen.withValues(alpha: 0.3),
                     blurRadius: 20,
                     spreadRadius: 3,
                   ),
@@ -1053,15 +1052,15 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  SpaceTheme.deepSpace.withOpacity(0.95),
-                  SpaceTheme.nebulaPurple.withOpacity(0.95),
+                  SpaceTheme.deepSpace.withValues(alpha: 0.95),
+                  SpaceTheme.nebulaPurple.withValues(alpha: 0.95),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: SpaceTheme.alienGreen, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: SpaceTheme.alienGreen.withOpacity(0.5),
+                  color: SpaceTheme.alienGreen.withValues(alpha: 0.5),
                   blurRadius: 30,
                   spreadRadius: 5,
                 ),
@@ -1081,12 +1080,12 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                         gradient: RadialGradient(
                           colors: [
                             SpaceTheme.alienGreen,
-                            SpaceTheme.alienGreen.withOpacity(0.5),
+                            SpaceTheme.alienGreen.withValues(alpha: 0.5),
                           ],
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: SpaceTheme.alienGreen.withOpacity(0.6),
+                            color: SpaceTheme.alienGreen.withValues(alpha: 0.6),
                             blurRadius: 20,
                             spreadRadius: 5,
                           ),
@@ -1120,7 +1119,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
+                        color: Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.white24),
                       ),
@@ -1169,7 +1168,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -1296,7 +1295,7 @@ class StarParticle {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(opacity),
+            color: Colors.white.withValues(alpha: opacity),
             shape: BoxShape.circle,
           ),
         ),
@@ -1375,10 +1374,10 @@ class StarLoaderPainter extends CustomPainter {
     ..style = PaintingStyle.stroke
     ..strokeWidth = 3;
   final Paint _targetFillPaint = Paint()
-    ..color = SpaceTheme.alienGreen.withOpacity(0.2);
+    ..color = SpaceTheme.alienGreen.withValues(alpha: 0.2);
   final Paint _boxPaint = Paint(); // Will use gradient
   final Paint _boxShadowPaint = Paint()
-    ..color = Colors.black.withOpacity(0.4)
+    ..color = Colors.black.withValues(alpha: 0.4)
     ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
   final Paint _playerPaint = Paint(); // Will use gradient
   final Paint _playerWindowPaint = Paint(); // Will use gradient
@@ -1420,12 +1419,12 @@ class StarLoaderPainter extends CustomPainter {
           case CellType.wall:
             final wallRect = rect.deflate(padding / 3);
             
-            _wallPaint.shader = LinearGradient(
+            _wallPaint.shader = const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                const Color(0xFF5A3A7B), // Darker, uniform purple
-                const Color(0xFF381B42), // Even darker
+                Color(0xFF5A3A7B), // Darker, uniform purple
+                Color(0xFF381B42), // Even darker
               ],
             ).createShader(wallRect);
 
@@ -1440,7 +1439,7 @@ class StarLoaderPainter extends CustomPainter {
             canvas.drawRect(rect, _floorPaint); // Transparent floor
             
             final targetPulse = (winPulse - 0.8) * 2.5; // Remap 0.8-1.2 to 0-1.0
-            final glowColor = SpaceTheme.alienGreen.withOpacity(0.5 + targetPulse * 0.5);
+            final glowColor = SpaceTheme.alienGreen.withValues(alpha: 0.5 + targetPulse * 0.5);
             
             // Draw outer glow
             _targetPaint
@@ -1448,7 +1447,7 @@ class StarLoaderPainter extends CustomPainter {
               ..maskFilter = MaskFilter.blur(BlurStyle.normal, (10 * targetPulse) + 5);
             
             // Draw inner fill
-            _targetFillPaint.color = SpaceTheme.alienGreen.withOpacity(0.1 + targetPulse * 0.2);
+            _targetFillPaint.color = SpaceTheme.alienGreen.withValues(alpha: 0.1 + targetPulse * 0.2);
 
             canvas.drawCircle(rect.center, innerSize / 2, _targetFillPaint);
             canvas.drawCircle(rect.center, innerSize / 2, _targetPaint);
@@ -1460,7 +1459,7 @@ class StarLoaderPainter extends CustomPainter {
     // 2. Draw trail particles
     for (final p in trails) {
       final center = p.position * cellSize + Offset(cellSize / 2, cellSize / 2);
-      _trailPaint.color = p.color.withOpacity(p.life.clamp(0.0, 1.0));
+      _trailPaint.color = p.color.withValues(alpha: p.life.clamp(0.0, 1.0));
       canvas.drawCircle(center, p.size * (p.life + 0.5), _trailPaint);
     }
 
@@ -1566,7 +1565,7 @@ class StarLoaderPainter extends CustomPainter {
     // 5. Draw celebration particles
     for (final p in celebrationParticles) {
       final center = p.position * cellSize + Offset(cellSize / 2, cellSize / 2);
-      _celebrationPaint.color = p.color.withOpacity(p.life.clamp(0.0, 1.0));
+      _celebrationPaint.color = p.color.withValues(alpha: p.life.clamp(0.0, 1.0));
       canvas.drawCircle(center, p.size * (p.life + 0.5), _celebrationPaint);
     }
   }

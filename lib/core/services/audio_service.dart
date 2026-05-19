@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class AudioService {
   bool _soundEnabled = true;
   bool _musicEnabled = true;
@@ -17,19 +19,19 @@ class AudioService {
     if (_soundEnabled) {
       // TODO: Implement sound playing using audioplayers package
       // AudioPlayer().play(AssetSource('sounds/$soundFile'));
-      print('Playing sound: $soundFile');
+      debugPrint('Playing sound: $soundFile');
     }
   }
   
   void playBackgroundMusic() {
     if (_musicEnabled) {
       // TODO: Implement background music
-      print('Playing background music');
+      debugPrint('Playing background music');
     }
   }
   
   void stopBackgroundMusic() {
     // TODO: Implement stop background music
-    print('Stopping background music');
+    debugPrint('Stopping background music');
   }
 }

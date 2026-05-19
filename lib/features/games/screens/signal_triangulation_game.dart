@@ -1,19 +1,14 @@
-import 'package:flutter/foundation.dart';
+// ignore_for_file: unused_element, unused_field
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
-import 'dart:ui';
 import 'dart:async';
 
 import '../../../core/theme/space_theme.dart';
-import '../constants/app_constants.dart';
 import '../../../generated/l10n.dart';
-import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
-import '../../../core/services/sri_service.dart';
 import '../widgets/space_background.dart';
-import '../widgets/game_ui.dart';
 
 class SignalTriangulationGame extends StatefulWidget {
   final int grade;
@@ -238,7 +233,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     );
     sriService.recordResponse(problem, isCorrect); */
 
-    final didAdvance = context.read<GameProvider>().recordLevelWin(
+    context.read<GameProvider>().recordLevelWin(
       gameType: 'signal_triangulation',
       scoreGained: 0, // We add score later in _handleSuccess
       difficulty: widget.grade + (widget.level ~/ 5),
@@ -428,7 +423,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            SpaceTheme.deepSpace.withOpacity(0.8),
+                            SpaceTheme.deepSpace.withValues(alpha: 0.8),
                             Colors.transparent,
                           ],
                         ),
@@ -439,7 +434,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                             onPressed: () => Navigator.of(context).pop(),
                             icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
                             style: IconButton.styleFrom(
-                              backgroundColor: SpaceTheme.deepSpace.withOpacity(0.7),
+                              backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.7),
                               padding: const EdgeInsets.all(6),
                               minimumSize: const Size(32, 32),
                             ),
@@ -448,9 +443,9 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: SpaceTheme.deepSpace.withOpacity(0.7),
+                              color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: SpaceTheme.alienGreen.withOpacity(0.3)),
+                              border: Border.all(color: SpaceTheme.alienGreen.withValues(alpha: 0.3)),
                             ),
                             child: Text(
                               '${previousGuesses.length}/$maxGuesses',
@@ -502,7 +497,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            SpaceTheme.deepSpace.withOpacity(0.8),
+            SpaceTheme.deepSpace.withValues(alpha: 0.8),
             Colors.transparent,
           ],
         ),
@@ -513,7 +508,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
             style: IconButton.styleFrom(
-              backgroundColor: SpaceTheme.deepSpace.withOpacity(0.6),
+              backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.6),
               padding: const EdgeInsets.all(8),
             ),
           ),
@@ -524,9 +519,9 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: SpaceTheme.deepSpace.withOpacity(0.5),
+                color: SpaceTheme.deepSpace.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.3)),
+                border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
               ),
               child: Text(
                 S.of(context)!.signalTriangulationInstructions,
@@ -557,9 +552,9 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.6),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -640,7 +635,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: SpaceTheme.cardDecoration.copyWith(
-        border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.3)),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
       ),
       child: Text(
         S.of(context)!.signalTriangulationInstructions,
@@ -656,7 +651,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: SpaceTheme.cardDecoration.copyWith(
-        border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.3)),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
       ),
       child: Text(
         S.of(context)!.signalTriangulationInstructions,
@@ -707,7 +702,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: (glyph.color ?? Colors.transparent).withOpacity(0.5),
+                            color: (glyph.color ?? Colors.transparent).withValues(alpha: 0.5),
                             blurRadius: 6,
                             spreadRadius: isActive ? 2 : 1,
                           ),
@@ -715,7 +710,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                       ),
                       child: glyph.icon != null ?
                           Icon(glyph.icon, color: Colors.white, size: 22) :
-                          (isActive ? Icon(Icons.radio_button_unchecked, 
+                          (isActive ? const Icon(Icons.radio_button_unchecked, 
                               color: SpaceTheme.starYellow, size: 18) : null),
                     ),
                   );
@@ -731,7 +726,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                 ElevatedButton(
                   onPressed: currentPosition > 0 ? _clearGuess : null,
                   style: SpaceTheme.secondaryButtonStyle.copyWith(
-                    padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+                    padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
                   ),
                   child: Text(S.of(context)!.signalTriangulationClear, style: const TextStyle(fontSize: 12)),
                 ),
@@ -739,7 +734,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                 ElevatedButton(
                   onPressed: currentPosition >= sequenceLength ? _submitGuess : null,
                   style: SpaceTheme.primaryButtonStyle.copyWith(
-                    padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+                    padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
                   ),
                   child: Text(S.of(context)!.signalTriangulationTransmit, style: const TextStyle(fontSize: 12)),
                 ),
@@ -785,7 +780,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                           border: Border.all(color: SpaceTheme.alienGreen, width: 2),
                           boxShadow: [
                             BoxShadow(
-                              color: glyph.color!.withOpacity(_pulseAnimation.value * 0.5),
+                              color: glyph.color!.withValues(alpha: _pulseAnimation.value * 0.5),
                               blurRadius: 6,
                               spreadRadius: 1,
                             ),
@@ -849,9 +844,9 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       margin: const EdgeInsets.symmetric(vertical: 3),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.3),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withOpacity(0.3)),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -1254,11 +1249,11 @@ class SignalParticle {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: color.withOpacity(opacity),
+          color: color.withValues(alpha: opacity),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(opacity * 0.5),
+              color: color.withValues(alpha: opacity * 0.5),
               blurRadius: size * 2,
             ),
           ],
@@ -1286,7 +1281,7 @@ class SignalBackgroundPainter extends CustomPainter {
     
     // Draw radar-like scanning effect
     final scanPaint = Paint()
-      ..color = (gameWon ? Colors.green : Colors.cyan).withOpacity(0.1 * pulseIntensity)
+      ..color = (gameWon ? Colors.green : Colors.cyan).withValues(alpha: 0.1 * pulseIntensity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     
@@ -1301,14 +1296,14 @@ class SignalBackgroundPainter extends CustomPainter {
     final scanEnd = center + Offset.fromDirection(scanAngle, scanRadius);
     
     final scanLinePaint = Paint()
-      ..color = (gameWon ? Colors.green : Colors.cyan).withOpacity(0.3 * pulseIntensity)
+      ..color = (gameWon ? Colors.green : Colors.cyan).withValues(alpha: 0.3 * pulseIntensity)
       ..strokeWidth = 3;
     
     canvas.drawLine(center, scanEnd, scanLinePaint);
     
     // Central hub
     final hubPaint = Paint()
-      ..color = (gameWon ? Colors.green : Colors.cyan).withOpacity(0.5 * pulseIntensity);
+      ..color = (gameWon ? Colors.green : Colors.cyan).withValues(alpha: 0.5 * pulseIntensity);
     
     canvas.drawCircle(center, 8, hubPaint);
   }

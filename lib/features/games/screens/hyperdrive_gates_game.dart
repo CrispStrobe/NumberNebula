@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+// ignore_for_file: constant_identifier_names
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
@@ -10,7 +10,6 @@ import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../../../core/services/sri_service.dart';
-import '../../../core/models/skill_category.dart';
 
 // --- ENHANCED GAME CONFIGURATION ---
 const double BASE_GAME_SPEED = 160.0;
@@ -72,9 +71,8 @@ class PowerUp extends GameObject {
   double rotation = 0.0;
   double pulsePhase = 0.0;
   
-  PowerUp({required Offset position, required this.type})
-      : color = _getColorForType(type),
-        super(position: position);
+  PowerUp({required super.position, required this.type})
+      : color = _getColorForType(type);
   
   static Color _getColorForType(PowerUpType type) {
     switch (type) {
@@ -96,6 +94,7 @@ class PowerUp extends GameObject {
     }
   }
   
+  @override
   Rect get collisionRect => Rect.fromCenter(center: position, width: 40, height: 40);
   
   @override
@@ -117,12 +116,12 @@ class PowerUp extends GameObject {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.8 * pulse),
+            color: color.withValues(alpha: 0.8 * pulse),
             shape: BoxShape.circle,
             border: Border.all(color: color, width: 2),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.6 * pulse),
+                color: color.withValues(alpha: 0.6 * pulse),
                 blurRadius: 15,
                 spreadRadius: 2,
               )
@@ -494,16 +493,14 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       });
 
       // Update power-ups
-      bool shouldCheckPowerUpCollision = false;
       powerUps.removeWhere((powerUp) {
         powerUp.update(dt, effectiveGameSpeed);
-        
+
         if (powerUp.collisionRect.overlaps(spaceship.collisionRect)) {
           _collectPowerUp(powerUp);
-          shouldCheckPowerUpCollision = true;
           return true;
         }
-        
+
         return powerUp.position.dx < -50;
       });
 
@@ -514,9 +511,9 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
           for (final gravityField in gravityFields) {
             final force = gravityField.calculateForce(obj.position, 0.5);
             if (obj is Asteroid) {
-              (obj as Asteroid).applyForce(force * dt);
+              (obj).applyForce(force * dt);
             } else if (obj is SpaceDebris) {
-              (obj as SpaceDebris).applyForce(force * dt);
+              (obj).applyForce(force * dt);
             }
           }
         }
@@ -731,7 +728,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
 
     effects.add(FloatingScore(
       position: Offset(targetGate.position.dx, targetGate.position.dy - 50),
-      text: '+${bonusPoints} BOOST!',
+      text: '+$bonusPoints BOOST!',
       color: Colors.amber,
       fontSize: 28,
     ));
@@ -917,10 +914,10 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
         width: star.size,
         height: star.size,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(star.brightness), 
+          color: Colors.white.withValues(alpha: star.brightness), 
           shape: BoxShape.circle,
           boxShadow: [
-            BoxShadow(color: Colors.white.withOpacity(star.brightness * 0.5), blurRadius: star.size * 2)
+            BoxShadow(color: Colors.white.withValues(alpha: star.brightness * 0.5), blurRadius: star.size * 2)
           ]
         ),
       ),
@@ -937,12 +934,12 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: Colors.purple.withOpacity(0.3),
+            color: Colors.purple.withValues(alpha: 0.3),
             width: 2,
           ),
           gradient: RadialGradient(
             colors: [
-              Colors.purple.withOpacity(0.1),
+              Colors.purple.withValues(alpha: 0.1),
               Colors.transparent,
             ],
           ),
@@ -959,7 +956,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       child: SafeArea(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: Colors.black.withOpacity(0.5),
+          color: Colors.black.withValues(alpha: 0.5),
           child: Row(
             children: [
               IconButton(
@@ -1003,7 +1000,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.7),
+              color: Colors.black.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: powerUp.color, width: 1),
             ),
@@ -1038,11 +1035,11 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.75),
+                  color: Colors.black.withValues(alpha: 0.75),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.yellow.withOpacity(glow), width: 2.5),
+                  border: Border.all(color: Colors.yellow.withValues(alpha: glow), width: 2.5),
                   boxShadow: [
-                    BoxShadow(color: Colors.yellow.withOpacity(glow * 0.6), blurRadius: 18, spreadRadius: 3),
+                    BoxShadow(color: Colors.yellow.withValues(alpha: glow * 0.6), blurRadius: 18, spreadRadius: 3),
                   ]
                 ),
                 child: RichText(
@@ -1082,7 +1079,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
             fontWeight: FontWeight.w900,
             color: Colors.orangeAccent,
             shadows: [
-              Shadow(blurRadius: 20, color: Colors.orangeAccent.withOpacity(0.9)),
+              Shadow(blurRadius: 20, color: Colors.orangeAccent.withValues(alpha: 0.9)),
               const Shadow(blurRadius: 8, color: Colors.white, offset: Offset(0,0)),
             ]
           ),
@@ -1103,7 +1100,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
         textAlign: TextAlign.center,
       ),
       actions: <Widget>[
-        TextButton(child: Text(l10n.flyAgain, style: const TextStyle(color: Colors.white, fontSize: 16)), onPressed: _resetGame),
+        TextButton(onPressed: _resetGame, child: Text(l10n.flyAgain, style: const TextStyle(color: Colors.white, fontSize: 16))),
         TextButton(
           child: Text(l10n.backToMenu, style: const TextStyle(color: Colors.white, fontSize: 16)),
           onPressed: () {
@@ -1186,7 +1183,8 @@ class Spaceship {
   }
 
   void moveTo(double y) {
-    targetY = y.clamp(sizeValue, ui.window.physicalSize.height / ui.window.devicePixelRatio - sizeValue);
+    final view = ui.PlatformDispatcher.instance.implicitView!;
+    targetY = y.clamp(sizeValue, view.physicalSize.height / view.devicePixelRatio - sizeValue);
   }
   
   void damage() {
@@ -1201,8 +1199,7 @@ class Planet extends GameObject {
   final Color color;
   double rotation = 0.0;
   
-  Planet({required Offset position, required this.radius, required this.color})
-      : super(position: position);
+  Planet({required super.position, required this.radius, required this.color});
   
   @override
   Rect get collisionRect => Rect.fromCenter(center: position, width: radius * 2, height: radius * 2);
@@ -1228,14 +1225,14 @@ class Planet extends GameObject {
             gradient: RadialGradient(
               center: const Alignment(-0.3, -0.3),
               colors: [
-                color.withOpacity(0.8),
-                color.withOpacity(0.6),
-                color.withOpacity(0.9),
+                color.withValues(alpha: 0.8),
+                color.withValues(alpha: 0.6),
+                color.withValues(alpha: 0.9),
               ],
             ),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.4),
+                color: color.withValues(alpha: 0.4),
                 blurRadius: radius * 0.5,
                 spreadRadius: radius * 0.1,
               )
@@ -1258,7 +1255,7 @@ class PlanetSurfacePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity(0.3)
+      ..color = color.withValues(alpha: 0.3)
       ..style = PaintingStyle.fill;
     
     final random = math.Random(42); // Fixed seed for consistent pattern
@@ -1284,9 +1281,8 @@ class SpaceDebris extends GameObject {
   final double rotationSpeed;
   Offset velocity = Offset.zero;
   
-  SpaceDebris({required Offset position})
-      : rotationSpeed = (math.Random().nextDouble() - 0.5) * 3.0,
-        super(position: position) {
+  SpaceDebris({required super.position})
+      : rotationSpeed = (math.Random().nextDouble() - 0.5) * 3.0 {
     rotation = math.Random().nextDouble() * math.pi * 2;
   }
   
@@ -1320,7 +1316,7 @@ class SpaceDebris extends GameObject {
             border: Border.all(color: Colors.grey.shade400, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withValues(alpha: 0.3),
                 blurRadius: 4,
               )
             ],
@@ -1337,8 +1333,7 @@ class Gate extends GameObject {
   final Color color;
   Size size;
 
-  Gate({required Offset position, required this.answer, required this.isCorrect, required this.size, required this.color})
-      : super(position: position);
+  Gate({required super.position, required this.answer, required this.isCorrect, required this.size, required this.color});
   
   @override
   Rect get collisionRect => Rect.fromCenter(center: position, width: size.width * 0.8, height: size.height * 0.8);
@@ -1350,7 +1345,7 @@ class Gate extends GameObject {
 
   @override
   Widget build() {
-    final gradient = [color.withOpacity(0.1), color.withOpacity(0.4)];
+    final gradient = [color.withValues(alpha: 0.1), color.withValues(alpha: 0.4)];
 
     return Positioned(
       left: position.dx - size.width / 2,
@@ -1389,11 +1384,10 @@ class Asteroid extends GameObject {
   final Path shape;
   Offset velocity = Offset.zero;
 
-  Asteroid({required Offset position, required this.sizeValue})
+  Asteroid({required super.position, required this.sizeValue})
       : rotation = math.Random().nextDouble() * math.pi * 2,
         rotationSpeed = (math.Random().nextDouble() - 0.5) * 2.5,
-        shape = _createAsteroidShape(sizeValue),
-        super(position: position);
+        shape = _createAsteroidShape(sizeValue);
   
   static Path _createAsteroidShape(double size) {
     final random = math.Random();
@@ -1546,8 +1540,8 @@ class ParticleEffect extends Effect {
             left: position.dx, top: position.dy,
             child: Container(
                 width: size, height: size,
-                decoration: BoxDecoration(color: color.withOpacity(opacity), shape: BoxShape.circle, boxShadow: [
-                  BoxShadow(color: color.withOpacity(opacity * 0.6), blurRadius: size * 2)
+                decoration: BoxDecoration(color: color.withValues(alpha: opacity), shape: BoxShape.circle, boxShadow: [
+                  BoxShadow(color: color.withValues(alpha: opacity * 0.6), blurRadius: size * 2)
                 ]),
             ),
         );
@@ -1582,10 +1576,10 @@ class FloatingScore extends Effect {
       child: Text(
         text,
         style: TextStyle(
-          color: color.withOpacity(opacity),
+          color: color.withValues(alpha: opacity),
           fontSize: fontSize,
           fontWeight: FontWeight.bold,
-          shadows: [Shadow(blurRadius: 5, color: Colors.black.withOpacity(opacity * 0.8))],
+          shadows: [Shadow(blurRadius: 5, color: Colors.black.withValues(alpha: opacity * 0.8))],
         ),
       ),
     );
@@ -1633,7 +1627,7 @@ class WarpLinesPainter extends CustomPainter {
             final startPoint = center + Offset(math.cos(angle), math.sin(angle)) * startRadius;
             final endPoint = center + Offset(math.cos(angle), math.sin(angle)) * endRadius;
             
-            linePaint.color = Colors.cyanAccent.withOpacity(opacity * (random.nextDouble() * 0.5 + 0.5));
+            linePaint.color = Colors.cyanAccent.withValues(alpha: opacity * (random.nextDouble() * 0.5 + 0.5));
             canvas.drawLine(startPoint, endPoint, linePaint);
         }
     }
@@ -1684,12 +1678,12 @@ class SpaceshipWidget extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: Colors.blue.withOpacity(0.6),
+                          color: Colors.blue.withValues(alpha: 0.6),
                           width: 3,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blue.withOpacity(0.3),
+                            color: Colors.blue.withValues(alpha: 0.3),
                             blurRadius: 15,
                             spreadRadius: 2,
                           )
@@ -1743,7 +1737,7 @@ class SpaceshipPainter extends CustomPainter {
             ..shader = ui.Gradient.radial(
                 Offset(0, size.height / 2),
                 size.height * 0.3,
-                [Colors.white, Colors.orangeAccent.withOpacity(0.8), Colors.transparent],
+                [Colors.white, Colors.orangeAccent.withValues(alpha: 0.8), Colors.transparent],
                 [0.0, 0.4, 1.0]
             );
         canvas.drawOval(flameRect, flamePaint);

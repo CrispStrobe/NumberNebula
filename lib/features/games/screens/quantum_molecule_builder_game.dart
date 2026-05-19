@@ -1,19 +1,14 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
-import 'dart:ui';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../core/services/debug_provider.dart';
-import '../constants/app_constants.dart';
 import '../../../generated/l10n.dart';
-import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
-import '../widgets/game_ui.dart';
 
 import 'levels.dart';
 
@@ -216,12 +211,12 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   Offset? _panCurrentPosition;
   Atom? _panningAtom;
 
-  Set<int> _levelsWonThisSession = {}; // Track which levels won in current session
+  final Set<int> _levelsWonThisSession = {}; // Track which levels won in current session
   int _startingLevel = 1; // The level we started at (based on persistent progress)
   
   List<MoleculeParticle> particles = [];
 
-  List<Map<String, dynamic>> _moveHistory = [];
+  final List<Map<String, dynamic>> _moveHistory = [];
 
   bool _showInstructions = false;
   
@@ -735,16 +730,24 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     
     switch (direction) {
       case Direction.up:
-        while (newRow > 0 && _canMoveTo(newRow - 1, newCol, atom)) newRow--;
+        while (newRow > 0 && _canMoveTo(newRow - 1, newCol, atom)) {
+          newRow--;
+        }
         break;
       case Direction.down:
-        while (newRow < gridSize - 1 && _canMoveTo(newRow + 1, newCol, atom)) newRow++;
+        while (newRow < gridSize - 1 && _canMoveTo(newRow + 1, newCol, atom)) {
+          newRow++;
+        }
         break;
       case Direction.left:
-        while (newCol > 0 && _canMoveTo(newRow, newCol - 1, atom)) newCol--;
+        while (newCol > 0 && _canMoveTo(newRow, newCol - 1, atom)) {
+          newCol--;
+        }
         break;
       case Direction.right:
-        while (newCol < gridSize - 1 && _canMoveTo(newRow, newCol + 1, atom)) newCol++;
+        while (newCol < gridSize - 1 && _canMoveTo(newRow, newCol + 1, atom)) {
+          newCol++;
+        }
         break;
     }
     
@@ -976,7 +979,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   Widget _buildInfoButton() {
     return IconButton(
-      icon: Icon(Icons.info_outline, color: SpaceTheme.alienGreen.withOpacity(0.8)),
+      icon: Icon(Icons.info_outline, color: SpaceTheme.alienGreen.withValues(alpha: 0.8)),
       onPressed: () {
         setState(() {
           _showInstructions = true;
@@ -992,7 +995,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       child: GestureDetector(
         onTap: () => setState(() => _showInstructions = false), // Tap background to close
         child: Container(
-          color: Colors.black.withOpacity(0.85),
+          color: Colors.black.withValues(alpha: 0.85),
           child: Center(
             child: Container(
               margin: const EdgeInsets.all(24),
@@ -1001,7 +1004,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                 gradient: LinearGradient(
                   colors: [
                     SpaceTheme.deepSpace,
-                    SpaceTheme.nebulaPurple.withOpacity(0.4)
+                    SpaceTheme.nebulaPurple.withValues(alpha: 0.4)
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -1056,8 +1059,8 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: isEnabled 
-            ? SpaceTheme.nebulaPurple.withOpacity(0.8)
-            : SpaceTheme.deepSpace.withOpacity(0.4),
+            ? SpaceTheme.nebulaPurple.withValues(alpha: 0.8)
+            : SpaceTheme.deepSpace.withValues(alpha: 0.4),
         foregroundColor: isEnabled 
             ? SpaceTheme.alienGreen 
             : Colors.grey,
@@ -1066,8 +1069,8 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           borderRadius: BorderRadius.circular(10),
           side: BorderSide(
             color: isEnabled 
-                ? SpaceTheme.alienGreen.withOpacity(0.5) 
-                : Colors.grey.withOpacity(0.3),
+                ? SpaceTheme.alienGreen.withValues(alpha: 0.5) 
+                : Colors.grey.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -1146,9 +1149,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.5),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.5),
         border: Border(
-          bottom: BorderSide(color: SpaceTheme.nebulaPurple.withOpacity(0.3), width: 1),
+          bottom: BorderSide(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3), width: 1),
         ),
       ),
       // Use LayoutBuilder to get the available width
@@ -1192,7 +1195,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: SpaceTheme.deepSpace.withOpacity(0.8),
+                  color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: SpaceTheme.starYellow, width: 1.5),
                 ),
@@ -1326,7 +1329,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       style: ElevatedButton.styleFrom(
         backgroundColor: canUndo
             ? SpaceTheme.secondaryButtonStyle.backgroundColor?.resolve({})
-            : SpaceTheme.deepSpace.withOpacity(0.4),
+            : SpaceTheme.deepSpace.withValues(alpha: 0.4),
         foregroundColor: canUndo
             ? SpaceTheme.secondaryButtonStyle.foregroundColor?.resolve({})
             : Colors.grey,
@@ -1336,8 +1339,8 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           borderRadius: BorderRadius.circular(8),
           side: BorderSide(
             color: canUndo
-                ? SpaceTheme.cosmicPink.withOpacity(0.5)
-                : Colors.grey.withOpacity(0.3),
+                ? SpaceTheme.cosmicPink.withValues(alpha: 0.5)
+                : Colors.grey.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -1444,13 +1447,13 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         _successController.reset();
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: SpaceTheme.nebulaPurple.withOpacity(0.6),
+        backgroundColor: SpaceTheme.nebulaPurple.withValues(alpha: 0.6),
         foregroundColor: SpaceTheme.starYellow,
         // MODIFIED: Adjusted padding for a more square, icon-only button
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: SpaceTheme.starYellow.withOpacity(0.5), width: 2),
+          side: BorderSide(color: SpaceTheme.starYellow.withValues(alpha: 0.5), width: 2),
         ),
       ),
       // MODIFIED: Child is just the Icon
@@ -1468,9 +1471,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.8),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.5), width: 2),
+        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.5), width: 2),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1518,13 +1521,13 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.4),
+                color: Colors.black.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
               ),
               child: Text(
                 content,
-                style: SpaceTheme.bodyStyle.copyWith(height: 1.6, color: Colors.white.withOpacity(0.95)),
+                style: SpaceTheme.bodyStyle.copyWith(height: 1.6, color: Colors.white.withValues(alpha: 0.95)),
               ),
             ),
           ],
@@ -1541,21 +1544,21 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       child: GestureDetector(
         onTap: () => setState(() => _showMoleculeInfo = false),
         child: Container(
-          color: Colors.black.withOpacity(0.92),
+          color: Colors.black.withValues(alpha: 0.92),
           child: Center(
             child: Container(
               margin: const EdgeInsets.all(20),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple.withOpacity(0.4)],
+                  colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple.withValues(alpha: 0.4)],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(color: SpaceTheme.starYellow, width: 2),
                 boxShadow: [
-                  BoxShadow(color: SpaceTheme.starYellow.withOpacity(0.3), blurRadius: 20, spreadRadius: 2),
+                  BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.3), blurRadius: 20, spreadRadius: 2),
                 ],
               ),
               child: SingleChildScrollView(
@@ -1618,21 +1621,21 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       child: GestureDetector(
         onTap: () => setState(() => _showMoleculeInfo = false),
         child: Container(
-          color: Colors.black.withOpacity(0.92),
+          color: Colors.black.withValues(alpha: 0.92),
           child: Center(
             child: Container(
               margin: const EdgeInsets.all(20),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple.withOpacity(0.4)],
+                  colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple.withValues(alpha: 0.4)],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(color: SpaceTheme.alienGreen, width: 2),
                  boxShadow: [
-                  BoxShadow(color: SpaceTheme.alienGreen.withOpacity(0.3), blurRadius: 20, spreadRadius: 2),
+                  BoxShadow(color: SpaceTheme.alienGreen.withValues(alpha: 0.3), blurRadius: 20, spreadRadius: 2),
                 ],
               ),
               child: Column(
@@ -1732,9 +1735,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withOpacity(0.6),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1759,9 +1762,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: SpaceTheme.starYellow.withOpacity(0.2),
+        color: SpaceTheme.starYellow.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.5)),
+        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.5)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1862,13 +1865,13 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: SpaceTheme.nebulaPurple.withOpacity(0.6),
+        backgroundColor: SpaceTheme.nebulaPurple.withValues(alpha: 0.6),
         foregroundColor: SpaceTheme.alienGreen,
         padding: const EdgeInsets.all(10),
         minimumSize: const Size(44, 44),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: SpaceTheme.alienGreen.withOpacity(0.5), width: 2),
+          side: BorderSide(color: SpaceTheme.alienGreen.withValues(alpha: 0.5), width: 2),
         ),
       ),
       child: Icon(icon, size: 18),
@@ -1883,10 +1886,10 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     final diagonalStubLength = size * 0.65;
     final stubThickness = size * 0.15;
     final halfStubThickness = stubThickness / 2;
-    final stubColor = Colors.white.withOpacity(0.8);
+    final stubColor = Colors.white.withValues(alpha: 0.8);
     
     // Base container for the bond stub, before rotation/positioning
-    Widget _buildStub(double width, double height, BorderRadius radius) {
+    Widget buildStub(double width, double height, BorderRadius radius) {
       return Container(
         width: width,
         height: height,
@@ -1898,18 +1901,18 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     }
     
     // Helper to build a vertical/horizontal stub
-    Widget _buildCardinalStub(BondDirection dir) {
+    Widget buildCardinalStub(BondDirection dir) {
         switch (dir) {
             case BondDirection.left:
             case BondDirection.right:
-                return _buildStub(stubLength, stubThickness, 
+                return buildStub(stubLength, stubThickness, 
                     dir == BondDirection.left 
                         ? BorderRadius.horizontal(left: Radius.circular(halfStubThickness))
                         : BorderRadius.horizontal(right: Radius.circular(halfStubThickness))
                 );
             case BondDirection.up:
             case BondDirection.down:
-                return _buildStub(stubThickness, stubLength, 
+                return buildStub(stubThickness, stubLength, 
                     dir == BondDirection.up 
                         ? BorderRadius.vertical(top: Radius.circular(halfStubThickness))
                         : BorderRadius.vertical(bottom: Radius.circular(halfStubThickness))
@@ -1921,13 +1924,13 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     }
     
     // Helper to build a diagonal stub using rotation
-    Widget _buildDiagonalStub(double angle, double translateX, double translateY, double length) {
+    Widget buildDiagonalStub(double angle, double translateX, double translateY, double length) {
         return Transform.translate(
             offset: Offset(translateX, translateY),
             child: Transform.rotate(
                 angle: angle,
                 alignment: Alignment.center,
-                child: _buildStub(length, stubThickness, // Uses the passed-in length
+                child: buildStub(length, stubThickness, // Uses the passed-in length
                     BorderRadius.horizontal(left: Radius.circular(halfStubThickness))
                 ),
             ),
@@ -1946,32 +1949,32 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                 return Positioned(
                   left: 0,
                   top: (size - stubThickness) / 2,
-                  child: _buildCardinalStub(dir),
+                  child: buildCardinalStub(dir),
                 );
               
               case BondDirection.right:
                 return Positioned(
                   right: 0,
                   top: (size - stubThickness) / 2,
-                  child: _buildCardinalStub(dir),
+                  child: buildCardinalStub(dir),
                 );
               
               case BondDirection.up:
                 return Positioned(
                   top: 0,
                   left: (size - stubThickness) / 2,
-                  child: _buildCardinalStub(dir),
+                  child: buildCardinalStub(dir),
                 );
               
               case BondDirection.down:
                 return Positioned(
                   bottom: 0,
                   left: (size - stubThickness) / 2,
-                  child: _buildCardinalStub(dir),
+                  child: buildCardinalStub(dir),
                 );
                 
               case BondDirection.upLeft:
-                return _buildDiagonalStub(
+                return buildDiagonalStub(
                     -3 * math.pi / 4,  // Fixed angle
                     size * 0.25 - diagonalStubLength / 2,  // Original positioning
                     size * 0.25 - halfStubThickness,       // Original positioning
@@ -1979,7 +1982,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                 );
                 
               case BondDirection.upRight:
-                return _buildDiagonalStub(
+                return buildDiagonalStub(
                     -math.pi / 4,  // Fixed angle
                     size * 0.75 - diagonalStubLength / 2,
                     size * 0.25 - halfStubThickness,
@@ -1987,7 +1990,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                 );
                 
               case BondDirection.downLeft:
-                return _buildDiagonalStub(
+                return buildDiagonalStub(
                     3 * math.pi / 4,  // Fixed angle
                     size * 0.25 - diagonalStubLength / 2,
                     size * 0.75 - halfStubThickness,
@@ -1995,14 +1998,14 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                 );
                 
               case BondDirection.downRight:
-                return _buildDiagonalStub(
+                return buildDiagonalStub(
                     math.pi / 4,
                     size * 0.75 - diagonalStubLength / 2,
                     size * 0.75 - halfStubThickness,
                     diagonalStubLength
                 );
             }
-          }).toList(),
+          }),
           
           // Main atom circle
           Center(
@@ -2013,9 +2016,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    atomType.color.withOpacity(0.9),
+                    atomType.color.withValues(alpha: 0.9),
                     atomType.color,
-                    atomType.color.withOpacity(0.7),
+                    atomType.color.withValues(alpha: 0.7),
                   ],
                   stops: const [0.0, 0.6, 1.0],
                 ),
@@ -2024,18 +2027,18 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                       ? SpaceTheme.starYellow 
                       : isLightAtom
                           ? const Color(0xFFCCCCCC)
-                          : Colors.white.withOpacity(0.9),
+                          : Colors.white.withValues(alpha: 0.9),
                   width: isSelected ? 3 : 2,
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: (isSelected ? SpaceTheme.starYellow : atomType.color)
-                        .withOpacity(isSelected ? 0.8 : 0.6),
+                        .withValues(alpha: isSelected ? 0.8 : 0.6),
                     blurRadius: isSelected ? 16 : 10,
                     spreadRadius: isSelected ? 3 : 2,
                   ),
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     offset: const Offset(2, 2),
                     blurRadius: 4,
                   ),
@@ -2051,7 +2054,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                       height: size * 0.13,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(isLightAtom ? 0.6 : 0.4),
+                        color: Colors.white.withValues(alpha: isLightAtom ? 0.6 : 0.4),
                       ),
                     ),
                   ),
@@ -2099,7 +2102,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         border: Border.all(width: 3, color: const Color(0xFF2A4F6F)),
         boxShadow: [
           BoxShadow(
-            color: SpaceTheme.nebulaPurple.withOpacity(0.3),
+            color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
             blurRadius: 18,
             spreadRadius: 4,
           ),
@@ -2162,13 +2165,13 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                     : null,
                 color: !isWall ? const Color(0xFF0A1520) : null,
                 border: Border.all(
-                  color: isWall ? const Color(0xFF1A2F3F) : Colors.white.withOpacity(0.05),
+                  color: isWall ? const Color(0xFF1A2F3F) : Colors.white.withValues(alpha: 0.05),
                   width: isWall ? 1.5 : 0.5,
                 ),
                 boxShadow: isWall
                     ? [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.5),
+                          color: Colors.black.withValues(alpha: 0.5),
                           offset: const Offset(1.5, 1.5),
                           blurRadius: 3,
                         ),
@@ -2532,10 +2535,10 @@ class MoleculeParticle {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: color.withOpacity(opacity),
+            color: color.withValues(alpha: opacity),
             shape: BoxShape.circle,
             boxShadow: [
-              BoxShadow(color: color.withOpacity(opacity * 0.6), blurRadius: size * 2),
+              BoxShadow(color: color.withValues(alpha: opacity * 0.6), blurRadius: size * 2),
             ],
           ),
         ),
@@ -2555,7 +2558,7 @@ class MolecularBackgroundPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final baseColor = gameLost ? Colors.red : gameWon ? Colors.green : Colors.cyan;
     final networkPaint = Paint()
-      ..color = baseColor.withOpacity(0.08 * pulseIntensity)
+      ..color = baseColor.withValues(alpha: 0.08 * pulseIntensity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
     

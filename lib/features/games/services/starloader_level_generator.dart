@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print, constant_identifier_names
 // lib/features/games/servies/starloader_level_generator.dart
 
 import 'dart:io';
@@ -58,7 +59,7 @@ class LevelVisualizer {
     StringBuffer buffer = StringBuffer();
     
     // Top border
-    buffer.writeln('   ' +List.generate(level.roomState[0].length, (index) => '$index').join(''));
+    buffer.writeln('   ${List.generate(level.roomState[0].length, (index) => '$index').join('')}');
     
     for (int x = 0; x < level.roomState.length; x++) {
       buffer.write('${x.toString().padRight(2)} '); // Row number
@@ -122,7 +123,7 @@ class LevelGenerator {
   final bool _verbose;
 
   // --- Reverse Play State ---
-  Set<String> _exploredStates = {};
+  final Set<String> _exploredStates = {};
   List<List<int>>? _bestRoom;
   int _bestScore = -1;
   Map<String, List<int>>? _bestBoxMapping;

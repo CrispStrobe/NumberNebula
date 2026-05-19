@@ -1,8 +1,8 @@
+// ignore_for_file: unused_element, unused_field
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
-import 'dart:ui';
 import 'dart:async';
 
 import '../constants/app_constants.dart';
@@ -11,8 +11,6 @@ import '../../../generated/l10n.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
-import '../widgets/game_ui.dart';
-import '../../../core/services/sri_service.dart';
 
 // DEVELOPMENT TWEAKING CONSTANTS
 const bool kTweakProblems = false;  // Set to true to override normal generation
@@ -413,7 +411,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 border: Border.all(color: _getOperationColor(currentPuzzle!.operation), width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: _getOperationColor(currentPuzzle!.operation).withOpacity(0.3),
+                    color: _getOperationColor(currentPuzzle!.operation).withValues(alpha: 0.3),
                     blurRadius: 10,
                     spreadRadius: 1,
                   ),
@@ -430,7 +428,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -472,12 +470,12 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.8),
+                        color: Colors.orange.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Text(
+                      child: const Text(
                         'TWEAK',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 8,
                           fontWeight: FontWeight.bold,
@@ -531,7 +529,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: SpaceTheme.starYellow.withOpacity(0.2),
+                  color: SpaceTheme.starYellow.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: SpaceTheme.starYellow),
                 ),
@@ -548,7 +546,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: SpaceTheme.alienGreen.withOpacity(0.2),
+                  color: SpaceTheme.alienGreen.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: SpaceTheme.alienGreen),
                 ),
@@ -577,7 +575,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.7), width: 1.5),
+        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 1.5),
       ),
       child: Center(
         child: Text(
@@ -607,7 +605,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -649,12 +647,12 @@ class _NumberWallsGameState extends State<NumberWallsGame>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.8),
+                color: Colors.orange.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(
+              child: const Text(
                 'TWEAK',
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
                   fontSize: 9,
                   fontWeight: FontWeight.bold,
@@ -762,7 +760,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
           child: DragTarget<int>(
             key: _dragTargetKey,
             builder: (context, candidateData, rejectedData) {
-              return Container(
+              return SizedBox(
                 width: size,
                 height: size,
                 child: Stack(
@@ -787,7 +785,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 ),
               );
             },
-            onWillAccept: (data) {
+            onWillAcceptWithDetails: (data) {
               setState(() => _isDraggingOver = true);
               return true;
             },
@@ -907,8 +905,6 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       case WallOperation.division: symbolText = gameProvider.divisionSymbol; break;
     }
 
-    final isSubtraction = currentPuzzle!.operation == WallOperation.subtraction;
-    
     for (int row = 0; row < currentPuzzle!.wallHeight - 1; row++) {
       final cellsInCurrentRow = row + 1;
       final currentRowStart = row * (row + 1) ~/ 2;
@@ -947,10 +943,10 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                   child: Container(
                     width: 28, height: 28,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [operationColor, operationColor.withOpacity(0.7)]),
+                      gradient: LinearGradient(colors: [operationColor, operationColor.withValues(alpha: 0.7)]),
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 1.5),
-                      boxShadow: [BoxShadow(color: operationColor.withOpacity(0.6), blurRadius: 6, spreadRadius: 1)],
+                      boxShadow: [BoxShadow(color: operationColor.withValues(alpha: 0.6), blurRadius: 6, spreadRadius: 1)],
                     ),
                     child: Center(
                       child: Text(
@@ -1004,7 +1000,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         gradient: _getCellGradient(isHidden, isSelected),
         border: Border.all(
           // MODIFIED: Changed SpaceTheme.alien to SpaceTheme.alienGreen
-          color: isSelected ? SpaceTheme.starYellow : currentPuzzle != null ? _getOperationColor(currentPuzzle!.operation) : SpaceTheme.alienGreen.withOpacity(0.5),
+          color: isSelected ? SpaceTheme.starYellow : currentPuzzle != null ? _getOperationColor(currentPuzzle!.operation) : SpaceTheme.alienGreen.withValues(alpha: 0.5),
           width: isSelected ? 3 : 2,
         ),
         boxShadow: _getCellShadow(isSelected),
@@ -1070,7 +1066,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SpaceTheme.starYellow.withOpacity(0.7), width: 2),
+        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
       ),
       child: Center(
         child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 18))
@@ -1110,7 +1106,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     return [
       BoxShadow(
         // MODIFIED: Changed SpaceTheme.alien to SpaceTheme.alienGreen
-        color: isSelected ? SpaceTheme.starYellow : currentPuzzle != null ? _getOperationColor(currentPuzzle!.operation) : SpaceTheme.alienGreen.withOpacity(0.5),
+        color: isSelected ? SpaceTheme.starYellow : currentPuzzle != null ? _getOperationColor(currentPuzzle!.operation) : SpaceTheme.alienGreen.withValues(alpha: 0.5),
         blurRadius: isSelected ? 20 : 10,
         spreadRadius: isSelected ? 3 : 1,
       ),
@@ -1498,7 +1494,9 @@ class _NumberWallGenerator {
   List<int> _buildWallFromBottom(List<int> bottomRow, int Function(int, int) operation) {
     final wall = List<int>.filled(totalCells, 0);
     final bottomRowStart = (wallHeight - 1) * wallHeight ~/ 2;
-    for (int i = 0; i < wallHeight; i++) wall[bottomRowStart + i] = bottomRow[i];
+    for (int i = 0; i < wallHeight; i++) {
+      wall[bottomRowStart + i] = bottomRow[i];
+    }
     
     for (int row = wallHeight - 2; row >= 0; row--) {
       final cellsInCurrentRow = row + 1;
@@ -1531,7 +1529,6 @@ class _NumberWallGenerator {
   }
 
   Set<int> _selectHiddenCells() {
-    final hidden = <int>{};
     final maxHidden = (2 + grade + (level / 5)).clamp(2, totalCells - 2).floor();
     final candidates = List.generate(totalCells, (i) => i)..shuffle();
     return candidates.take(maxHidden).toSet();
@@ -1602,14 +1599,14 @@ class NumberWallBackgroundPainter extends CustomPainter {
     
     final backgroundPaint = Paint()
       ..shader = RadialGradient(
-        colors: [ baseColor.withOpacity(0.1 * glowIntensity), Colors.transparent ],
+        colors: [ baseColor.withValues(alpha: 0.1 * glowIntensity), Colors.transparent ],
       ).createShader(Rect.fromCircle(center: center, radius: size.width * 0.6));
     
     canvas.drawCircle(center, size.width * 0.6, backgroundPaint);
     
     if (warpActivation > 0) {
       final warpPaint = Paint()
-        ..color = baseColor.withOpacity(0.4 * (1 - warpActivation))
+        ..color = baseColor.withValues(alpha: 0.4 * (1 - warpActivation))
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3.0 + (warpActivation * 10)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, 5 + warpActivation * 10);
