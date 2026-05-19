@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import '../widgets/sri_statistics_dialog.dart'; // statistics dialog widget
 
 import '../../../shared/widgets/imprint_dialog.dart';
+import 'diagnostics_screen.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../core/services/debug_provider.dart';
@@ -955,9 +956,53 @@ class _SettingsScreenState extends State<SettingsScreen>
             ),
           ),
           // --- END NEW IMPRINT LINK ---
-          
+
+          const SizedBox(height: 8),
+
+          // --- DIAGNOSTICS LINK ---
+          InkWell(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const DiagnosticsScreen(),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Diagnostics',
+                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+                  ),
+                  const Row(
+                    children: [
+                      Text(
+                        'View crash log',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: SpaceTheme.alienGreen,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(
+                        Icons.bug_report,
+                        color: SpaceTheme.alienGreen,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // --- END DIAGNOSTICS LINK ---
+
           const SizedBox(height: 16),
-          
+
           Text(
             s.aboutApp,
             style: const TextStyle(

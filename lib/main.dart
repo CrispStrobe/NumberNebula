@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // --- CORE SERVICES ---
 import 'core/services/audio_service.dart';
+import 'core/services/crash_logger.dart';
 import 'core/services/debug_provider.dart';
 import 'core/services/progress_service.dart';
 import 'core/services/purchase_service.dart';
@@ -84,10 +85,12 @@ void main() async {
     DeviceOrientation.landscapeRight,
   ]);
 
+  // Install crash logger before anything else so we catch init failures.
+  await CrashLogger.instance.init();
+
   await PuzzleImageService.instance.init();
   purchaseService.init(gameProvider);
   await debugProvider.init();
-  GlobalErrorHandler.init();
   
   runApp(
     MultiProvider(
@@ -696,24 +699,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     );
   }
   
-}
-
-// Global Error Handler
-class GlobalErrorHandler {
-  static void handleError(dynamic error, StackTrace stackTrace) {
-    // Log error
-    debugPrint('Global Error: $error');
-    debugPrint('Stack Trace: $stackTrace');
-    
-    // Report to crash analytics service if implemented
-    // FirebaseCrashlytics.instance.recordError(error, stackTrace);
-  }
-  
-  static void init() {
-    FlutterError.onError = (FlutterErrorDetails details) {
-      handleError(details.exception, details.stack ?? StackTrace.empty);
-    };
-  }
 }
 
 class SpaceLoadingScreen extends StatelessWidget {
