@@ -1051,7 +1051,13 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     return Positioned(
       left: ship.col * cellSize + padding,
       top: ship.row * cellSize + padding,
-      child: GestureDetector(
+      child: Semantics(
+        label: ship.isPlayer
+            ? 'Player ship'
+            : (ship.isBlocking ? 'Blocking ship' : 'Ship'),
+        hint: ship.isHorizontal ? 'Drag horizontally to move' : 'Drag vertically to move',
+        button: true,
+        child: GestureDetector(
         onPanStart: (details) => _onPanStart(details, index),
         onPanUpdate: (details) => _onPanUpdate(details, index),
         onPanEnd: _onPanEnd,
@@ -1108,6 +1114,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
               ),
             );
           },
+        ),
         ),
       ),
     );
