@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'package:dart_csp/dart_csp.dart';
@@ -428,6 +429,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   void _handleSuccess() {
+    HapticFeedback.lightImpact();
     debugPrint("🎉 [ARITHMETIC SQUARE] SUCCESS! Player solved the puzzle!");
     
     int baseScore = 200 * widget.grade;
@@ -483,9 +485,16 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
 
   void _handleIncorrect() {
     debugPrint("❌ [ARITHMETIC SQUARE] Incorrect solution - showing error message");
+    HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(S.of(context)!.arithmeticSquareError),
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(S.of(context)!.arithmeticSquareError)),
+          ],
+        ),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
       ),
@@ -906,9 +915,13 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     }
 
     if (isEmpty && hasUserValue) {
-      return GestureDetector(
-        onTap: () => _removeNumber(cellId),
-        child: cell,
+      return Semantics(
+        button: true,
+        label: 'Placed value, tap to remove',
+        child: GestureDetector(
+          onTap: () => _removeNumber(cellId),
+          child: cell,
+        ),
       );
     }
 
@@ -965,11 +978,15 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
             itemBuilder: (context, index) {
               if (index >= numberPool.length) return Container();
               final number = numberPool[index];
-              return Draggable<int>(
-                data: number,
-                feedback: _buildDraggableFeedback(number),
-                childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
-                child: _buildNumberTile(number, isCompact: isCompact),
+              return Semantics(
+                label: 'Number $number, drag to a cell',
+                button: true,
+                child: Draggable<int>(
+                  data: number,
+                  feedback: _buildDraggableFeedback(number),
+                  childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
+                  child: _buildNumberTile(number, isCompact: isCompact),
+                ),
               );
             },
           ),
