@@ -1,6 +1,7 @@
 // ignore_for_file: unused_element, unused_field
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
@@ -259,6 +260,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   }
 
   void _handleSuccess(int totalScoreGained) {
+    HapticFeedback.lightImpact();
     // First show panel expansion animation
     setState(() => _showPanelExpansion = true);
     _panelExpandController.forward();
@@ -290,9 +292,16 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   }
 
   void _handleIncorrect() {
+    HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(S.of(context)!.solarPanelFail),
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(S.of(context)!.solarPanelFail)),
+          ],
+        ),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
       ),
@@ -795,13 +804,19 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   }
 
   Widget _buildDroppableCell(int? value, int answerIndex, double size) {
-    return GestureDetector(
-      onTap: value != null ? () => _removeNumber(answerIndex) : null,
-      child: _buildPanelCell(
-        value: value,
-        isSelected: _isDraggingOver && value == null,
-        isHidden: true,
-        size: size,
+    return Semantics(
+      button: true,
+      label: value != null
+          ? 'Placed value $value, tap to remove'
+          : 'Empty panel cell, drop a number here',
+      child: GestureDetector(
+        onTap: value != null ? () => _removeNumber(answerIndex) : null,
+        child: _buildPanelCell(
+          value: value,
+          isSelected: _isDraggingOver && value == null,
+          isHidden: true,
+          size: size,
+        ),
       ),
     );
   }
@@ -869,11 +884,15 @@ class _SolarPanelGameState extends State<SolarPanelGame>
               itemBuilder: (context, index) {
                 if (index >= numberPool.length) return Container();
                 final number = numberPool[index];
-                return Draggable<int>(
-                  data: number,
-                  feedback: _buildDraggableFeedback(number),
-                  childWhenDragging: Opacity(opacity: 0.3, child: _buildCompactBrick(number)),
-                  child: _buildCompactBrick(number),
+                return Semantics(
+                  label: 'Number brick $number, drag to a panel cell',
+                  button: true,
+                  child: Draggable<int>(
+                    data: number,
+                    feedback: _buildDraggableFeedback(number),
+                    childWhenDragging: Opacity(opacity: 0.3, child: _buildCompactBrick(number)),
+                    child: _buildCompactBrick(number),
+                  ),
                 );
               },
             ),
