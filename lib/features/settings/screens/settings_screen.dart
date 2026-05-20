@@ -8,6 +8,8 @@ import '../widgets/sri_statistics_dialog.dart'; // statistics dialog widget
 import '../../../shared/widgets/imprint_dialog.dart';
 import 'diagnostics_screen.dart';
 import '../../games/screens/parent_dashboard_screen.dart';
+import '../../../shared/widgets/privacy_policy_dialog.dart';
+import '../../../shared/widgets/parental_gate.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../core/services/debug_provider.dart';
@@ -1044,6 +1046,83 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
           // --- END PARENT DASHBOARD LINK ---
 
+          // --- PRIVACY POLICY LINK ---
+          InkWell(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => const PrivacyPolicyDialog(),
+              );
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Privacy & data',
+                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+                  ),
+                  const Row(
+                    children: [
+                      Text(
+                        'What stays on this device',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: SpaceTheme.alienGreen,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(
+                        Icons.shield_outlined,
+                        color: SpaceTheme.alienGreen,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // --- END PRIVACY POLICY LINK ---
+
+          // --- RESET DATA LINK (parental-gated) ---
+          InkWell(
+            onTap: () => _confirmResetAllData(context),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Reset all data',
+                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+                  ),
+                  const Row(
+                    children: [
+                      Text(
+                        'Wipe progress on this device',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: SpaceTheme.rocketRed,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(
+                        Icons.delete_forever,
+                        color: SpaceTheme.rocketRed,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // --- END RESET DATA LINK ---
+
           const SizedBox(height: 16),
 
           Text(
@@ -1495,6 +1574,21 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
   
+  /// Parental-gated full reset. Goes through ParentalGateDialog first
+  /// (math challenge) so kids can't wipe their own progress, then shows
+  /// the same confirmation dialog as the existing reset flow.
+  void _confirmResetAllData(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => ParentalGateDialog(
+        onSuccess: () {
+          Navigator.of(context).pop(); // close gate
+          _showResetDialog();
+        },
+      ),
+    );
+  }
+
   void _showResetDialog() {
     showDialog(
       context: context,
