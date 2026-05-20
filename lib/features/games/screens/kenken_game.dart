@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
@@ -310,7 +311,8 @@ class _KenkenGameState extends State<KenkenGame>
 
   void _handleSuccess(List<MathProblem> mathProblems) {
     debugPrint("🎉 [KENKEN] SUCCESS! Player solved the puzzle!");
-    
+    HapticFeedback.lightImpact();
+
     int baseScore = 300 * widget.grade;
     int complexityBonus = puzzle!.size * puzzle!.size * 15 + puzzle!.cages.length * 20;
     int operationBonus = puzzle!.getAllOperators()
@@ -351,9 +353,16 @@ class _KenkenGameState extends State<KenkenGame>
 
   void _handleIncorrect() {
     debugPrint("❌ [KENKEN] Incorrect solution - showing error message");
+    HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(S.of(context)!.kenkenError),
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(S.of(context)!.kenkenError)),
+          ],
+        ),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
       ),
@@ -437,13 +446,17 @@ class _KenkenGameState extends State<KenkenGame>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  S.of(context)!.kenken,
-                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 18),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    S.of(context)!.kenken,
+                    style: SpaceTheme.headlineStyle,
+                  ),
                 ),
                 Text(
                   S.of(context)!.kenkenInstructions,
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: Colors.white70),
+                  style: SpaceTheme.bodyStyle.copyWith(color: Colors.white70),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -720,9 +733,13 @@ class _KenkenGameState extends State<KenkenGame>
     }
 
     if (isEmpty && hasUserValue) {
-      return GestureDetector(
-        onTap: () => _removeNumber(cellId),
-        child: cellWidget,
+      return Semantics(
+        button: true,
+        label: 'Placed value, tap to remove',
+        child: GestureDetector(
+          onTap: () => _removeNumber(cellId),
+          child: cellWidget,
+        ),
       );
     }
 
@@ -787,14 +804,18 @@ class _KenkenGameState extends State<KenkenGame>
                             ? SizedBox(
                                 width: cellSize,
                                 height: cellSize,
-                                child: Draggable<int>(
-                                  data: rowNumbers[i],
-                                  feedback: _buildDraggableFeedback(rowNumbers[i], isCompact),
-                                  childWhenDragging: Opacity(
-                                    opacity: 0.7,
-                                    child: _buildNumberTile(rowNumbers[i], tileSize: cellSize)
+                                child: Semantics(
+                                  label: 'Number ${rowNumbers[i]}, drag to a cell',
+                                  button: true,
+                                  child: Draggable<int>(
+                                    data: rowNumbers[i],
+                                    feedback: _buildDraggableFeedback(rowNumbers[i], isCompact),
+                                    childWhenDragging: Opacity(
+                                      opacity: 0.7,
+                                      child: _buildNumberTile(rowNumbers[i], tileSize: cellSize)
+                                    ),
+                                    child: _buildNumberTile(rowNumbers[i], tileSize: cellSize),
                                   ),
-                                  child: _buildNumberTile(rowNumbers[i], tileSize: cellSize),
                                 ),
                               )
                             : SizedBox(width: cellSize, height: cellSize), // Empty space
@@ -853,26 +874,36 @@ class _KenkenGameState extends State<KenkenGame>
   Widget _buildLevelIndicator({required bool isCompact}) {
     final fontSize = isCompact ? 12.0 : 16.0;
     final iconSize = isCompact ? 20.0 : 24.0;
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isCompact ? 8 : 12, 
-        vertical: isCompact ? 4 : 8,
-      ),
-      decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: SpaceTheme.starYellow),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: iconSize),
-          SizedBox(width: isCompact ? 4 : 8),
-          Text(
-            'Level ${widget.level}',
-            style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
+    final levelText = '${S.of(context)?.level ?? 'Level'} ${widget.level}';
+    return Semantics(
+      label: levelText,
+      container: true,
+      child: ExcludeSemantics(
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: isCompact ? 8 : 12,
+            vertical: isCompact ? 4 : 8,
           ),
-        ],
+          decoration: BoxDecoration(
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: SpaceTheme.starYellow),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: iconSize),
+              SizedBox(width: isCompact ? 4 : 8),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  levelText,
+                  style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -880,28 +911,39 @@ class _KenkenGameState extends State<KenkenGame>
   Widget _buildScoreIndicator({required bool isCompact}) {
     final fontSize = isCompact ? 12.0 : 16.0;
     final iconSize = isCompact ? 20.0 : 24.0;
+    final scoreLabel = S.of(context)?.score ?? 'Score';
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
-        return Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: isCompact ? 8 : 12, 
-            vertical: isCompact ? 4 : 8,
-          ),
-          decoration: BoxDecoration(
-            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: SpaceTheme.alienGreen),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.star, color: SpaceTheme.alienGreen, size: iconSize),
-              SizedBox(width: isCompact ? 4 : 8),
-              Text(
-                gameProvider.score.toString(),
-                style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
+        return Semantics(
+          label: '$scoreLabel ${gameProvider.score}',
+          liveRegion: true,
+          container: true,
+          child: ExcludeSemantics(
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isCompact ? 8 : 12,
+                vertical: isCompact ? 4 : 8,
               ),
-            ],
+              decoration: BoxDecoration(
+                color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: SpaceTheme.alienGreen),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.star, color: SpaceTheme.alienGreen, size: iconSize),
+                  SizedBox(width: isCompact ? 4 : 8),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      gameProvider.score.toString(),
+                      style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       },
