@@ -488,7 +488,10 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
         child: Stack(
           children: [
             // MAIN GAME AREA WITH SCREEN-WIDE TAP DETECTION
-            GestureDetector(
+            Semantics(
+              label: 'Path finder area',
+              hint: 'Tap a glowing path bubble to choose your route',
+              child: GestureDetector(
               onTapDown: (details) {
                 _handleScreenTap(details.localPosition);
               },
@@ -507,6 +510,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
                   ],
                 ),
               ),
+            ),
             ),
             IgnorePointer(
               child: Container(
