@@ -94,22 +94,33 @@ Skipped by user — leave the orphan in place.
 
 ## Tier 3 — Accessibility (high stakes for a kids' app)
 
-### [ ] 7. Replace color-only feedback
-Many games flash red/green for wrong/right. ~8% of boys have color
-blindness. Add shape / icon / haptic to every win/fail state.
+### [x] 7. Replace color-only feedback
+Swept all 28 game screens. Added ✓/✗ icon overlays, haptic feedback
+(`HapticFeedback.lightImpact/heavyImpact`), and error icons on
+snackbars wherever correctness was previously color-only. Colors
+themselves unchanged — non-color cues added in parallel.
 
-### [ ] 8. Add `Semantics` annotations
-Screen readers currently can't describe game state. Math apps in
-particular are near-unusable for low-vision learners. Label every
-interactive element.
+### [x] 8. Add `Semantics` annotations
+Wrapped interactive boundaries (dials, cells, drop slots, draggables,
+swipe areas) across all major game screens. Shared `GameUI` widget
+now exposes score/time as `liveRegion: true` Semantics so screen
+readers announce updates. `ExcludeSemantics` used around decorative
+inner content. Labels describe function not color.
 
-### [ ] 9. Respect OS text scaling
-Fixed `fontSize: 12` (and similar) doesn't scale. Use
-`MediaQuery.textScaler` or `Theme.of(context).textTheme` consistently.
+### [x] 9. Respect OS text scaling
+Dropped hardcoded `fontSize:` on title/instruction/body text in
+shared `GameUI` and per-game compact headers — `SpaceTheme.{body,title,
+headline}Style` now drives sizing with OS scaler. Fixed-width labels
+(stat pills, cell numerals) wrapped in `FittedBox(scaleDown)`. Some
+intentionally-sized text inside FittedBox/grid cells left as-is.
 
-### [ ] 10. Touch targets ≥ 48dp
-Some games (dial gestures in cryptex, falling-tile choice buttons)
-have undersized hit areas.
+### [x] 10. Touch targets ≥ 48dp
+Cryptex dial verified at 120×180 (well over 48dp). `signal_triangulation`
+glyph buttons and `robot_path` remove-X wrapped in 48dp `SizedBox` +
+`HitTestBehavior.translucent`. Several full-area gesture detectors
+(`bubble_math`, `cargo_bay_arranger`, `planet_hopping`, `path_finder`,
+`hyperdrive_gates`, `asteroid_field_navigator`) got translucent hit
+behavior so transparent padding counts as hit area.
 
 ---
 
