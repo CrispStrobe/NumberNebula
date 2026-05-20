@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:space_math_academy/core/services/debug_provider.dart';
 import 'package:space_math_academy/core/services/sri_service.dart';
+import 'package:space_math_academy/core/services/streak_service.dart';
 import 'package:space_math_academy/features/games/screens/sri_review_screen.dart';
 import 'package:space_math_academy/features/games/screens/cognitive_profile_screen.dart';
 
@@ -227,6 +228,42 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
             const SizedBox(width: 8), // Spacing
+            // Streak chip — flame + current consecutive-day count.
+            Consumer<StreakService>(
+              builder: (context, streak, _) {
+                if (!streak.isLoaded || streak.currentStreak == 0) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: SpaceTheme.rocketRed.withValues(alpha: 0.6)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('🔥', style: TextStyle(fontSize: 18)),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${streak.currentStreak}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
             // SRI review chip — opens the review screen and badges with
             // the count of items currently due.
             Consumer<SriService>(

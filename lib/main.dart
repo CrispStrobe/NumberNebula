@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/services/audio_service.dart';
 import 'core/services/crash_logger.dart';
 import 'core/services/debug_provider.dart';
+import 'core/services/streak_service.dart';
 import 'core/services/progress_service.dart';
 import 'core/services/purchase_service.dart';
 import 'core/services/puzzle_image_service.dart';
@@ -75,6 +76,7 @@ final GridlockPuzzleTracker gridlockPuzzleTracker = GridlockPuzzleTracker();
 final PurchaseService purchaseService = PurchaseService();
 final DebugProvider debugProvider = DebugProvider();
 final AudioService audioService = AudioService();
+final StreakService streakService = StreakService();
 
 
 void main() async {
@@ -91,6 +93,9 @@ void main() async {
   await PuzzleImageService.instance.init();
   purchaseService.init(gameProvider);
   await debugProvider.init();
+  await streakService.load();
+  // Mark today as played as soon as the app opens.
+  await streakService.markPlayed();
   
   runApp(
     MultiProvider(
@@ -101,6 +106,7 @@ void main() async {
         ChangeNotifierProvider.value(value: gridlockPuzzleTracker),
         ChangeNotifierProvider.value(value: purchaseService),
         ChangeNotifierProvider.value(value: debugProvider),
+        ChangeNotifierProvider.value(value: streakService),
         Provider.value(value: progressService),
         Provider.value(value: audioService),
       ],

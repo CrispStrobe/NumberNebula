@@ -365,6 +365,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
           child: Column(
             children: [
               _buildHeader(),
+              _buildDifficultyPicker(),
               Expanded(
                 child: Padding(
                   padding:
@@ -380,6 +381,42 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
     );
   }
   
+  Widget _buildDifficultyPicker() {
+    return Consumer<GameProvider>(
+      builder: (context, gp, _) {
+        final mode = gp.difficultyMode;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _DifficultyButton(
+                label: 'Easy',
+                icon: Icons.spa,
+                selected: mode == DifficultyMode.easy,
+                onTap: () => gp.setDifficultyMode(DifficultyMode.easy),
+              ),
+              const SizedBox(width: 8),
+              _DifficultyButton(
+                label: 'Normal',
+                icon: Icons.school,
+                selected: mode == DifficultyMode.normal,
+                onTap: () => gp.setDifficultyMode(DifficultyMode.normal),
+              ),
+              const SizedBox(width: 8),
+              _DifficultyButton(
+                label: 'Challenge',
+                icon: Icons.local_fire_department,
+                selected: mode == DifficultyMode.challenge,
+                onTap: () => gp.setDifficultyMode(DifficultyMode.challenge),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildHeader() {
     final debugProvider = context.watch<DebugProvider>();
     return Container(
@@ -546,9 +583,11 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
       description: gameData.description,
       icon: gameData.icon,
       gradient: gameData.gradient,
-      // The onTap now correctly builds the game widget with the saved level
+      // The onTap now correctly builds the game widget with the saved
+      // level. We use effectiveGrade so the player's chosen difficulty
+      // mode (easy/normal/challenge) shifts the game's grade band.
       onTap: () => _navigateToGame(
-        gameData.gameBuilder(gameProvider.grade, levelToLoad),
+        gameData.gameBuilder(gameProvider.effectiveGrade, levelToLoad),
       ),
     );
 
@@ -685,6 +724,60 @@ class _GameCardState extends State<GameCard> with SingleTickerProviderStateMixin
           ),
         );
       },
+    );
+  }
+}
+class _DifficultyButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+  const _DifficultyButton({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: selected
+                ? SpaceTheme.starYellow.withValues(alpha: 0.25)
+                : SpaceTheme.deepSpace.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected ? SpaceTheme.starYellow : Colors.white24,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon,
+                  size: 16,
+                  color: selected ? SpaceTheme.starYellow : Colors.white60),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: selected ? Colors.white : Colors.white60,
+                  fontWeight:
+                      selected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

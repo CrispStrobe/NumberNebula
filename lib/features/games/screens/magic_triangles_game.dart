@@ -9,6 +9,7 @@ import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
+import '../../../shared/widgets/onboarding_overlay.dart';
 
 class MagicTrianglesGame extends StatefulWidget {
   final int grade;
@@ -77,6 +78,27 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     
     debugPrint("🚀 [UI] Animation controllers initialized, calling _generatePuzzle()");
     _generatePuzzle();
+
+    OnboardingOverlay.maybeShow(
+      context,
+      gameKey: 'magic_triangles',
+      title: 'Magic Triangles',
+      steps: const [
+        OnboardingStep(
+          icon: Icons.touch_app,
+          body: 'Drag numbers from the pool onto the empty triangle nodes.',
+        ),
+        OnboardingStep(
+          icon: Icons.balance,
+          body:
+              'Every side of the triangle must add up to the same number.',
+        ),
+        OnboardingStep(
+          icon: Icons.refresh,
+          body: 'Tap a placed number to send it back to the pool.',
+        ),
+      ],
+    );
   }
 
   @override

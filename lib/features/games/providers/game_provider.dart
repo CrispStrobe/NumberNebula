@@ -10,6 +10,28 @@ import '../models/math_problem.dart';
 import '../tuning.dart';
 import '../constants/app_constants.dart'; // For MathOperation and NumberRange
 
+/// User-facing difficulty mode picked from the menu. Shifts the grade
+/// passed into a game so kids can sample easier or harder content
+/// without changing their official grade selection.
+enum DifficultyMode {
+  easy,
+  normal,
+  challenge,
+}
+
+extension DifficultyModeShift on DifficultyMode {
+  int get gradeShift {
+    switch (this) {
+      case DifficultyMode.easy:
+        return -1;
+      case DifficultyMode.normal:
+        return 0;
+      case DifficultyMode.challenge:
+        return 1;
+    }
+  }
+}
+
 // The Achievement data class. It should be at the top-level, NOT inside another class.
 class Achievement {
   final String id;
@@ -51,6 +73,7 @@ class GameProvider extends ChangeNotifier {
   bool _musicEnabled = true;
   bool _puzzleTimerEnabled = true;
   bool _useAdaptiveDifficulty = false;
+  DifficultyMode _difficultyMode = DifficultyMode.normal;
   Map<String, int> _gameProgress = {};
   List<Achievement> _achievements = [];
   bool _isFullVersionUnlocked = false;
@@ -115,6 +138,20 @@ class GameProvider extends ChangeNotifier {
   int get score => _score;
   int get level => _level;
   int get grade => _grade; // Internally, we'll still call this 'grade'
+  DifficultyMode get difficultyMode => _difficultyMode;
+
+  /// Grade with the current [difficultyMode] shift applied, clamped to 1-6.
+  /// Use this when launching games so the player can sample easier/harder
+  /// content without changing their official grade.
+  int get effectiveGrade =>
+      (_grade + _difficultyMode.gradeShift).clamp(1, 6);
+
+  void setDifficultyMode(DifficultyMode mode) {
+    if (_difficultyMode == mode) return;
+    _difficultyMode = mode;
+    notifyListeners();
+    _saveProgress();
+  }
   int get lives => _lives;
   bool get soundEnabled => _soundEnabled;
   bool get musicEnabled => _musicEnabled;
@@ -504,6 +541,7 @@ class GameProvider extends ChangeNotifier {
       'gameProgress': _gameProgress,
       'achievements': _achievements.map((a) => a.toJson()).toList(),
       'useAdaptiveDifficulty': _useAdaptiveDifficulty,
+      'difficultyMode': _difficultyMode.index,
       'isFullVersionUnlocked': _isFullVersionUnlocked,
       'multiplicationSymbol': _multiplicationSymbol,
       'divisionSymbol': _divisionSymbol,
@@ -525,6 +563,10 @@ class GameProvider extends ChangeNotifier {
     _musicEnabled = json['musicEnabled'] ?? true;
     _gameProgress = Map<String, int>.from(json['gameProgress'] ?? {});
     _useAdaptiveDifficulty = json['useAdaptiveDifficulty'] ?? false;
+    final modeIndex = json['difficultyMode'] as int? ??
+        DifficultyMode.normal.index;
+    _difficultyMode = DifficultyMode.values[
+        modeIndex.clamp(0, DifficultyMode.values.length - 1)];
     _isFullVersionUnlocked = json['isFullVersionUnlocked'] ?? false;
 
     // overridhere to handle loading a saved state where the user hadn't purchased the app yet.
