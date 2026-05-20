@@ -1768,28 +1768,39 @@ class _RobotPathGameState extends State<RobotPathGame>
           ),
         ),
         Positioned(
-          top: -6,
-          right: -6,
-          child: GestureDetector(
-            onTap: !isExecuting ? () => _removeCommand(index) : null,
-            child: Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.red.withValues(alpha: 0.5),
-                    blurRadius: 4,
+          top: -20,
+          right: -20,
+          child: Semantics(
+            label: 'Remove command',
+            button: true,
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: !isExecuting ? () => _removeCommand(index) : null,
+                child: Center(
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.red.withValues(alpha: 0.5),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 12,
+                    ),
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.close,
-                color: Colors.white,
-                size: 12,
+                ),
               ),
             ),
           ),
@@ -1989,16 +2000,20 @@ class _RobotPathGameState extends State<RobotPathGame>
       ),
     );
     
-    return Draggable<RobotCommand>(
-      data: command,
-      feedback: tileUI,
-      childWhenDragging: Opacity(
-        opacity: 0.4,
-        child: tileUI,
-      ),
-      child: GestureDetector(
-        onTap: isExecuting ? null : () => _addCommand(command),
-        child: tileUI,
+    return Semantics(
+      label: 'Command ${command.name}',
+      button: true,
+      child: Draggable<RobotCommand>(
+        data: command,
+        feedback: tileUI,
+        childWhenDragging: Opacity(
+          opacity: 0.4,
+          child: tileUI,
+        ),
+        child: GestureDetector(
+          onTap: isExecuting ? null : () => _addCommand(command),
+          child: tileUI,
+        ),
       ),
     );
   }
