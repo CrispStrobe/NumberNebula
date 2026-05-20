@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
@@ -183,6 +184,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
     final expectedAnswer = targetOrder[currentTargetIndex];
 
     if (bubble.answer == expectedAnswer) {
+      HapticFeedback.lightImpact();
       setState(() {
         bubbles.remove(bubble);
         currentTargetIndex++;
@@ -197,11 +199,20 @@ class _BubbleMathGameState extends State<BubbleMathGame>
   }
 
   void _showWrongBubbleFeedback() {
+    HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          '${S.of(context)!.tryAgain} Look for: ${targetOrder[currentTargetIndex]}',
-          style: SpaceTheme.bodyStyle,
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '${S.of(context)!.tryAgain} Look for: ${targetOrder[currentTargetIndex]}',
+                style: SpaceTheme.bodyStyle,
+              ),
+            ),
+          ],
         ),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
@@ -245,30 +256,39 @@ class _BubbleMathGameState extends State<BubbleMathGame>
                 timeLeft: timeLeft,
                 onBack: () => Navigator.of(context).pop(),
               ),
-              Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                decoration: SpaceTheme.cardDecoration,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Next target: ', style: SpaceTheme.bodyStyle),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: SpaceTheme.starYellow,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Text(
-                        currentTargetIndex < targetOrder.length
-                            ? targetOrder[currentTargetIndex].toString()
-                            : '✔️',
-                        style: SpaceTheme.titleStyle.copyWith(
-                          color: SpaceTheme.spaceBlue,
+              Semantics(
+                liveRegion: true,
+                label: currentTargetIndex < targetOrder.length
+                    ? 'Next target: ${targetOrder[currentTargetIndex]}'
+                    : 'All targets popped',
+                container: true,
+                child: ExcludeSemantics(
+                  child: Container(
+                    margin: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    decoration: SpaceTheme.cardDecoration,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Next target: ', style: SpaceTheme.bodyStyle),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: SpaceTheme.starYellow,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Text(
+                            currentTargetIndex < targetOrder.length
+                                ? targetOrder[currentTargetIndex].toString()
+                                : '✔️',
+                            style: SpaceTheme.titleStyle.copyWith(
+                              color: SpaceTheme.spaceBlue,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
               Expanded(
@@ -440,44 +460,49 @@ class BubbleWidget extends StatelessWidget {
     return Positioned(
       left: bubble.position.dx - bubble.size / 2,
       top: bubble.position.dy - bubble.size / 2,
-      child: GestureDetector(
-        onTap: onTapped,
-        child: Container(
-          width: bubble.size,
-          height: bubble.size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [
-                bubble.color.withValues(alpha: 0.9),
-                bubble.color,
-              ],
-              stops: const [0.0, 1.0],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: bubble.color.withValues(alpha: 0.4),
-                blurRadius: 12,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: Center(
-            child: Text(
-              bubble.mathProblem,
-              style: TextStyle(
-                fontSize: bubble.size * 0.3,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                shadows: [
-                  Shadow(
-                    blurRadius: 4.0,
-                    color: Colors.black.withValues(alpha: 0.5),
-                    offset: const Offset(2.0, 2.0),
-                  ),
+      child: Semantics(
+        label: 'Bubble ${bubble.mathProblem}',
+        button: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: onTapped,
+          child: Container(
+            width: bubble.size,
+            height: bubble.size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  bubble.color.withValues(alpha: 0.9),
+                  bubble.color,
                 ],
+                stops: const [0.0, 1.0],
               ),
-              textAlign: TextAlign.center,
+              boxShadow: [
+                BoxShadow(
+                  color: bubble.color.withValues(alpha: 0.4),
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                bubble.mathProblem,
+                style: TextStyle(
+                  fontSize: bubble.size * 0.3,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 4.0,
+                      color: Colors.black.withValues(alpha: 0.5),
+                      offset: const Offset(2.0, 2.0),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
         ),
