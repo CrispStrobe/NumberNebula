@@ -943,7 +943,10 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
   Widget _buildGameGrid() {
     return Center(
-      child: GestureDetector(
+      child: Semantics(
+        label: 'Star loader puzzle grid',
+        hint: 'Swipe in a direction to move the player',
+        child: GestureDetector(
         onVerticalDragEnd: _handleSwipe,
         onHorizontalDragEnd: _handleSwipe,
         child: LayoutBuilder(
@@ -958,7 +961,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
             if (cellSize <= 0) return Container();
 
-            return Container(
+            return ExcludeSemantics(
+              child: Container(
               width: gridWidth,
               height: gridHeight,
               decoration: BoxDecoration(
@@ -1005,9 +1009,11 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                   },
                 ),
               ),
+            ),
             );
           },
         ),
+      ),
       ),
     );
   }
