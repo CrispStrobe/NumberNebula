@@ -14,6 +14,7 @@ import '../../../shared/utils/arithmancer.dart';
 import '../constants/app_constants.dart';
 import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
+import '../widgets/arithmancer_duel_dialogs.dart';
 import '../widgets/arithmancer_duel_effects.dart';
 import '../../../core/services/sri_service.dart';
 
@@ -765,21 +766,32 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => _buildLadderCompleteDialog(baseScore),
+          builder: (context) => ArithmancerLadderCompleteDialog(
+            score: baseScore,
+            onReturnToBridge: () => Navigator.of(context).pop(),
+          ),
         );
       } else {
         // Next ladder step
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => _buildLadderStepDialog(),
+          builder: (context) => ArithmancerLadderStepDialog(
+            ladderProgress: _ladderProgress,
+            totalLadderSteps: _totalLadderSteps,
+            onContinue: _advanceToNextEnemy,
+          ),
         );
       }
     } else {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => _buildVictoryDialog(baseScore),
+        builder: (context) => ArithmancerVictoryDialog(
+          score: baseScore,
+          onNextChallenge: _advanceToNextEnemy,
+          onReturnToBridge: () => Navigator.of(context).pop(),
+        ),
       );
     }
   }
@@ -844,20 +856,31 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (context) => _buildLadderCompleteDialog(baseScore + bonusScore),
+            builder: (context) => ArithmancerLadderCompleteDialog(
+              score: baseScore + bonusScore,
+              onReturnToBridge: () => Navigator.of(context).pop(),
+            ),
         );
         } else {
         showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (context) => _buildLadderStepDialog(),
+            builder: (context) => ArithmancerLadderStepDialog(
+              ladderProgress: _ladderProgress,
+              totalLadderSteps: _totalLadderSteps,
+              onContinue: _advanceToNextEnemy,
+            ),
         );
         }
     } else {
         showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => _buildVictoryDialog(baseScore + bonusScore),
+        builder: (context) => ArithmancerVictoryDialog(
+          score: baseScore + bonusScore,
+          onNextChallenge: _advanceToNextEnemy,
+          onReturnToBridge: () => Navigator.of(context).pop(),
+        ),
         );
     }
     }
@@ -948,7 +971,10 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => _buildDefeatDialog(),
+      builder: (context) => ArithmancerDefeatDialog(
+        onTryAgain: _initializeGame,
+        onReturnToBridge: () => Navigator.of(context).pop(),
+      ),
     );
   }
 
@@ -2791,171 +2817,6 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       default:
         return SpaceTheme.nebulaPurple;
     }
-  }
-
-  // Dialog methods remain the same as before...
-  Widget _buildVictoryDialog(int score) {
-    return AlertDialog(
-      backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.95),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: const BorderSide(color: SpaceTheme.alienGreen, width: 2),
-      ),
-      title: Row(
-        children: [
-          const Icon(Icons.military_tech, color: SpaceTheme.starYellow, size: 30),
-          const SizedBox(width: 10),
-          Text(
-            S.of(context)!.arithmancerVictoryTitle,
-            style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.alienGreen),
-          ),
-        ],
-      ),
-      content: Text(
-        S.of(context)!.arithmancerVictoryDesc(score),
-        style: SpaceTheme.bodyStyle,
-      ),
-      actions: [
-        TextButton(
-            onPressed: () {
-            Navigator.of(context).pop();
-            _advanceToNextEnemy(); // Use new method
-            },
-            child: Text(
-            S.of(context)!.arithmancerNextChallenge,
-            style: const TextStyle(color: SpaceTheme.alienGreen),
-            ),
-        ),
-        TextButton(
-            onPressed: () {
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
-            },
-            child: Text(
-            S.of(context)!.arithmancerReturnToBridge,
-            style: const TextStyle(color: SpaceTheme.starYellow),
-            ),
-        ),
-        ],
-    );
-  }
-
-  Widget _buildLadderStepDialog() {
-    return AlertDialog(
-      backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.95),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: const BorderSide(color: SpaceTheme.starYellow, width: 2),
-      ),
-      title: Row(
-        children: [
-          const Icon(Icons.trending_up, color: SpaceTheme.starYellow, size: 30),
-          const SizedBox(width: 10),
-          Text(
-            S.of(context)!.arithmancerLadderProgressTitle,
-            style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.starYellow),
-          ),
-        ],
-      ),
-      content: Text(
-        S.of(context)!.arithmancerLadderProgressDesc(_ladderProgress + 1, _totalLadderSteps),
-        style: SpaceTheme.bodyStyle,
-      ),
-      actions: [
-        TextButton(
-            onPressed: () {
-            Navigator.of(context).pop();
-            _advanceToNextEnemy();
-            },
-            child: Text(
-            S.of(context)!.arithmancerLadderContinue,
-            style: const TextStyle(color: SpaceTheme.starYellow),
-            ),
-        ),
-        ],
-    );
-  }
-
-  Widget _buildLadderCompleteDialog(int score) {
-    return AlertDialog(
-      backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.95),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: const BorderSide(color: SpaceTheme.alienGreen, width: 2),
-      ),
-      title: Row(
-        children: [
-          const Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: 30),
-          const SizedBox(width: 10),
-          Text(
-            S.of(context)!.arithmancerLadderChampionTitle,
-            style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.alienGreen),
-          ),
-        ],
-      ),
-      content: Text(
-        S.of(context)!.arithmancerLadderChampionDesc(score),
-        style: SpaceTheme.bodyStyle,
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
-          },
-          child: Text(
-            S.of(context)!.arithmancerReturnToBridge,
-            style: const TextStyle(color: SpaceTheme.starYellow),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDefeatDialog() {
-    return AlertDialog(
-      backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.95),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: const BorderSide(color: SpaceTheme.rocketRed, width: 2),
-      ),
-      title: Row(
-        children: [
-          const Icon(Icons.warning, color: SpaceTheme.rocketRed, size: 30),
-          const SizedBox(width: 10),
-          Text(
-            S.of(context)!.arithmancerDefeatTitle,
-            style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
-          ),
-        ],
-      ),
-      content: Text(
-        S.of(context)!.arithmancerDefeatDesc,
-        style: SpaceTheme.bodyStyle,
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-            _initializeGame();
-          },
-          child: Text(
-            S.of(context)!.arithmancerTryAgain,
-            style: const TextStyle(color: SpaceTheme.alienGreen),
-          ),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
-          },
-          child: Text(
-            S.of(context)!.arithmancerReturnToBridge,
-            style: const TextStyle(color: SpaceTheme.starYellow),
-          ),
-        ),
-      ],
-    );
   }
 
   @override
