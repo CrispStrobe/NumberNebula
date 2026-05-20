@@ -2,6 +2,7 @@
 // lib/features/games/screens/blocks_counter_game.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'package:flutter_cube/flutter_cube.dart' as cube;
@@ -405,6 +406,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
   }
 
   void _handleSuccess() {
+    HapticFeedback.lightImpact();
     int baseScore = 150 * widget.grade;
     int difficultyBonus = (currentPuzzle?.difficulty ?? 1) * 50;
     int totalScore = baseScore + difficultyBonus;
@@ -433,9 +435,16 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
       difficulty: widget.level,
     ));
     
+    HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(S.of(context)!.blockCounterFail),
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(S.of(context)!.blockCounterFail)),
+          ],
+        ),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
       ),
@@ -545,7 +554,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(S.of(context)!.blockCounterQuestion, style: SpaceTheme.titleStyle.copyWith(fontSize: 18), textAlign: TextAlign.center),
+        Text(S.of(context)!.blockCounterQuestion, style: SpaceTheme.titleStyle, textAlign: TextAlign.center),
         SizedBox(
           height: containerHeight, // Use the passed-in value
         
@@ -611,7 +620,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
       children: [
         Text(
           S.of(context)!.blockCounterSelectAnswer,
-          style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
+          style: SpaceTheme.titleStyle,
         ),
         const SizedBox(height: 16),
         Container(
@@ -634,38 +643,62 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
                                answer == currentPuzzle!.correctAnswer;
               final isWrong = userAnswer != null && isSelected && !isCorrect;
 
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                child: ElevatedButton(
-                  onPressed: userAnswer == null ? () => _selectAnswer(index) : null,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(8),
-                    backgroundColor: isCorrect
-                        ? SpaceTheme.alienGreen
-                        : isWrong
-                            ? SpaceTheme.rocketRed
-                            : isSelected
-                                ? SpaceTheme.spaceBlue
-                                : SpaceTheme.deepSpace,
-                    foregroundColor: Colors.white,
-                    elevation: isSelected ? 8 : 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(
-                        color: isSelected
-                            ? SpaceTheme.starYellow
-                            : Colors.transparent,
-                        width: 2,
+              return Semantics(
+                button: true,
+                label: 'Answer ${answer.toString()}',
+                selected: isSelected,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  child: ElevatedButton(
+                    onPressed: userAnswer == null ? () => _selectAnswer(index) : null,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(8),
+                      backgroundColor: isCorrect
+                          ? SpaceTheme.alienGreen
+                          : isWrong
+                              ? SpaceTheme.rocketRed
+                              : isSelected
+                                  ? SpaceTheme.spaceBlue
+                                  : SpaceTheme.deepSpace,
+                      foregroundColor: Colors.white,
+                      elevation: isSelected ? 8 : 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: isSelected
+                              ? SpaceTheme.starYellow
+                              : Colors.transparent,
+                          width: 2,
+                        ),
                       ),
                     ),
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: Text(
-                      answer.toString(),
-                      style: SpaceTheme.headlineStyle.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.contain,
+                          child: Text(
+                            answer.toString(),
+                            style: SpaceTheme.headlineStyle.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        // Non-color cue for correctness so color-blind
+                        // players also see the feedback.
+                        if (isCorrect)
+                          const Positioned(
+                            top: 2,
+                            right: 2,
+                            child: Icon(Icons.check, color: Colors.white, size: 20),
+                          )
+                        else if (isWrong)
+                          const Positioned(
+                            top: 2,
+                            right: 2,
+                            child: Icon(Icons.close, color: Colors.white, size: 20),
+                          ),
+                      ],
                     ),
                   ),
                 ),
