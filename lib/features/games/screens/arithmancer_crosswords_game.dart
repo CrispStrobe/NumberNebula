@@ -1,6 +1,7 @@
 // ignore_for_file: unused_element, unused_field
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'dart:math' as math;
@@ -452,7 +453,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
 
   void _handleSuccess(Map<String, int> userSolution) {
     debugPrint("🎉 [ARITHMANCER CROSSWORDS] SUCCESS! Player solved the puzzle!");
-    
+    HapticFeedback.lightImpact();
+
     int baseScore = 250 * widget.grade;
     int complexityBonus = puzzle!.equations.length * 15 + puzzle!.emptyCells.length * 5;
     int operationBonus = puzzle!.getAllOperators()
@@ -500,9 +502,16 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
 
   void _handleIncorrect() {
     debugPrint("❌ [ARITHMANCER CROSSWORDS] Incorrect solution - showing error message");
+    HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(S.of(context)!.arithmancerCrosswordsError),
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(S.of(context)!.arithmancerCrosswordsError)),
+          ],
+        ),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
       ),
@@ -590,38 +599,48 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       indicatorColor = SpaceTheme.cosmicPink;
     }
     
-    return AnimatedBuilder(
-      animation: _moveWarningAnimation,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _movesRemaining <= 3 ? _moveWarningAnimation.value : 1.0,
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isCompact ? 8 : 12,
-              vertical: isCompact ? 4 : 8,
-            ),
-            decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: indicatorColor),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.touch_app, color: indicatorColor, size: iconSize),
-                SizedBox(width: isCompact ? 4 : 8),
-                Text(
-                  '$_movesRemaining',
-                  style: SpaceTheme.titleStyle.copyWith(
-                    fontSize: fontSize,
-                    color: indicatorColor,
-                  ),
+    return Semantics(
+      label: 'Moves remaining: $_movesRemaining',
+      liveRegion: true,
+      container: true,
+      child: ExcludeSemantics(
+        child: AnimatedBuilder(
+          animation: _moveWarningAnimation,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _movesRemaining <= 3 ? _moveWarningAnimation.value : 1.0,
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isCompact ? 8 : 12,
+                  vertical: isCompact ? 4 : 8,
                 ),
-              ],
-            ),
-          ),
-        );
-      },
+                decoration: BoxDecoration(
+                  color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: indicatorColor),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.touch_app, color: indicatorColor, size: iconSize),
+                    SizedBox(width: isCompact ? 4 : 8),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '$_movesRemaining',
+                        style: SpaceTheme.titleStyle.copyWith(
+                          fontSize: fontSize,
+                          color: indicatorColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -729,11 +748,15 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
             onPressed: () => Navigator.of(context).pop(),
           ),
           Expanded(
-            child: Text( // Just the title
-              S.of(context)!.arithmancerCrosswords,
-              style: SpaceTheme.headlineStyle.copyWith(fontSize: 16), // Smaller font
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text( // Just the title
+                S.of(context)!.arithmancerCrosswords,
+                style: SpaceTheme.headlineStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -994,9 +1017,13 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     }
 
     if (isEmpty && hasUserValue) {
-      return GestureDetector(
-        onTap: () => _removeNumber(cellId),
-        child: cell,
+      return Semantics(
+        button: true,
+        label: 'Placed value, tap to remove',
+        child: GestureDetector(
+          onTap: () => _removeNumber(cellId),
+          child: cell,
+        ),
       );
     }
 
@@ -1084,12 +1111,15 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
               itemBuilder: (context, index) {
                 if (index >= numberPool.length) return Container();
                  final number = numberPool[index];
-                return Draggable<int>(
-                  data: number,
-                  feedback: _buildDraggableFeedback(number),
-                  childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
-                  child: _buildNumberTile(number, isCompact: isCompact),
-                  // MODIFIED: Removed the extra line below this comment
+                return Semantics(
+                  label: 'Number $number, drag to a slot',
+                  button: true,
+                  child: Draggable<int>(
+                    data: number,
+                    feedback: _buildDraggableFeedback(number),
+                    childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
+                    child: _buildNumberTile(number, isCompact: isCompact),
+                  ),
                 );
               },
             ),
@@ -1135,26 +1165,36 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   Widget _buildLevelIndicator({required bool isCompact}) {
     final fontSize = isCompact ? 12.0 : 16.0;
     final iconSize = isCompact ? 20.0 : 24.0;
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isCompact ? 8 : 12, 
-        vertical: isCompact ? 4 : 8,
-      ),
-      decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: SpaceTheme.starYellow),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: iconSize),
-          SizedBox(width: isCompact ? 4 : 8),
-          Text(
-            'Level ${widget.level}',
-            style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
+    final levelText = '${S.of(context)?.level ?? 'Level'} ${widget.level}';
+    return Semantics(
+      label: levelText,
+      container: true,
+      child: ExcludeSemantics(
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: isCompact ? 8 : 12,
+            vertical: isCompact ? 4 : 8,
           ),
-        ],
+          decoration: BoxDecoration(
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: SpaceTheme.starYellow),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: iconSize),
+              SizedBox(width: isCompact ? 4 : 8),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  levelText,
+                  style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1162,28 +1202,39 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   Widget _buildScoreIndicator({required bool isCompact}) {
     final fontSize = isCompact ? 12.0 : 16.0;
     final iconSize = isCompact ? 20.0 : 24.0;
+    final scoreLabel = S.of(context)?.score ?? 'Score';
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
-        return Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: isCompact ? 8 : 12, 
-            vertical: isCompact ? 4 : 8,
-          ),
-          decoration: BoxDecoration(
-            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: SpaceTheme.alienGreen),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.star, color: SpaceTheme.alienGreen, size: iconSize),
-              SizedBox(width: isCompact ? 4 : 8),
-              Text(
-                gameProvider.score.toString(),
-                style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
+        return Semantics(
+          label: '$scoreLabel ${gameProvider.score}',
+          liveRegion: true,
+          container: true,
+          child: ExcludeSemantics(
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isCompact ? 8 : 12,
+                vertical: isCompact ? 4 : 8,
               ),
-            ],
+              decoration: BoxDecoration(
+                color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: SpaceTheme.alienGreen),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.star, color: SpaceTheme.alienGreen, size: iconSize),
+                  SizedBox(width: isCompact ? 4 : 8),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      gameProvider.score.toString(),
+                      style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       },
