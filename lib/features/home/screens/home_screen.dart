@@ -234,31 +234,61 @@ class _HomeScreenState extends State<HomeScreen>
                 if (!streak.isLoaded || streak.currentStreak == 0) {
                   return const SizedBox.shrink();
                 }
+                final label =
+                    '🔥 ${streak.currentStreak} day streak — best: ${streak.longestStreak}';
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                  child: Tooltip(
+                    message: label,
+                    child: Material(
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color: SpaceTheme.rocketRed.withValues(alpha: 0.6)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('🔥', style: TextStyle(fontSize: 18)),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${streak.currentStreak}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(label),
+                              duration: const Duration(seconds: 3),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        child: Semantics(
+                          button: true,
+                          label: label,
+                          child: ExcludeSemantics(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: SpaceTheme.deepSpace
+                                    .withValues(alpha: 0.8),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                    color: SpaceTheme.rocketRed
+                                        .withValues(alpha: 0.6)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text('🔥',
+                                      style: TextStyle(fontSize: 18)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${streak.currentStreak}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 );
