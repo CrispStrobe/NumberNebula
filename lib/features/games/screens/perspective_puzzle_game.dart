@@ -1,6 +1,7 @@
 // lib/features/games/screens/perspective_puzzle_game.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'package:flutter_cube/flutter_cube.dart' as cube;
@@ -572,6 +573,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     });
 
     if (index == _correctAnswerIndex) {
+      HapticFeedback.lightImpact();
       setState(() {
         _correctAttempts++; // Track correct attempts.
         _answerState = AnswerState.correct;
@@ -579,6 +581,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
       // Move to the next turn or win the game.
       Future.delayed(const Duration(milliseconds: 1000), _nextTurn);
     } else {
+      HapticFeedback.heavyImpact();
       // On incorrect guess, lose a life.
       setState(() {
         _lives--;
@@ -860,7 +863,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
           padding: const EdgeInsets.only(bottom: 16.0),
           child: Text(
             S.of(context)!.perspectivePuzzleSelectView(perspective),
-            style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
+            style: SpaceTheme.titleStyle,
             textAlign: TextAlign.center,
           ),
         ),
@@ -889,21 +892,46 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
                           width: 4);
                   }
                   
-                  return GestureDetector(
-                    onTap: () => _selectAnswer(index),
-                    child: Container(
-                      width: cellSize,
-                      height: cellSize,
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: SpaceTheme.deepSpace,
-                        border: border ?? Border.all(color: Colors.white24, width: 1),
-                      ),
-                      child: Center(
-                        child: PerspectiveGridWidget(
-                          view: _answerChoices[index],
-                          maxSize: cellSize - 16,
+                  final isSelected = _selectedAnswerIndex == index;
+                  final isCorrect = isSelected && _answerState == AnswerState.correct;
+                  final isWrong = isSelected && _answerState == AnswerState.incorrect;
+                  return Semantics(
+                    label: 'Answer choice ${index + 1}',
+                    button: true,
+                    selected: isSelected,
+                    child: GestureDetector(
+                      onTap: () => _selectAnswer(index),
+                      child: Container(
+                        width: cellSize,
+                        height: cellSize,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: SpaceTheme.deepSpace,
+                          border: border ?? Border.all(color: Colors.white24, width: 1),
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Center(
+                              child: PerspectiveGridWidget(
+                                view: _answerChoices[index],
+                                maxSize: cellSize - 16,
+                              ),
+                            ),
+                            if (isCorrect)
+                              const Positioned(
+                                top: 4,
+                                right: 4,
+                                child: Icon(Icons.check_circle, color: SpaceTheme.alienGreen, size: 28),
+                              )
+                            else if (isWrong)
+                              const Positioned(
+                                top: 4,
+                                right: 4,
+                                child: Icon(Icons.cancel, color: SpaceTheme.rocketRed, size: 28),
+                              ),
+                          ],
                         ),
                       ),
                     ),
