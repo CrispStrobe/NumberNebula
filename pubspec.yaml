@@ -64,8 +64,6 @@ flutter:
   
   assets:
     - assets/images/
-    - assets/animations/
-    - assets/sounds/
     - assets/fonts/
     - assets/data/starloader_levels.json
     
