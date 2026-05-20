@@ -1,6 +1,7 @@
 // ignore_for_file: unused_element, unused_field
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
@@ -305,6 +306,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _handleSuccess(int totalScoreGained) {
+    HapticFeedback.lightImpact();
     setState(() => _isWarping = true);
     _warpController.forward();
 
@@ -340,9 +342,16 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _handleIncorrect() {
+    HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(S.of(context)!.numberWallsFail),
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(S.of(context)!.numberWallsFail)),
+          ],
+        ),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
       ),
@@ -969,13 +978,19 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
   
   Widget _buildDroppableCell(int? value, int answerIndex, double size) {
-    return GestureDetector(
-      onTap: value != null ? () => _removeNumber(answerIndex) : null,
-      child: _buildBrickCell(
-        value: value,
-        isSelected: _isDraggingOver && value == null,
-        isHidden: true,
-        size: size,
+    return Semantics(
+      button: true,
+      label: value != null
+          ? 'Placed value $value, tap to remove'
+          : 'Empty brick, drop a number here',
+      child: GestureDetector(
+        onTap: value != null ? () => _removeNumber(answerIndex) : null,
+        child: _buildBrickCell(
+          value: value,
+          isSelected: _isDraggingOver && value == null,
+          isHidden: true,
+          size: size,
+        ),
       ),
     );
   }
@@ -1045,11 +1060,15 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               itemBuilder: (context, index) {
                 if (index >= numberPool.length) return Container();
                 final number = numberPool[index];
-                return Draggable<int>(
-                  data: number,
-                  feedback: _buildDraggableFeedback(number),
-                  childWhenDragging: Opacity(opacity: 0.3, child: _buildCompactBrick(number)),
-                  child: _buildCompactBrick(number),
+                return Semantics(
+                  label: 'Number brick $number, drag to a wall slot',
+                  button: true,
+                  child: Draggable<int>(
+                    data: number,
+                    feedback: _buildDraggableFeedback(number),
+                    childWhenDragging: Opacity(opacity: 0.3, child: _buildCompactBrick(number)),
+                    child: _buildCompactBrick(number),
+                  ),
                 );
               },
             ),
