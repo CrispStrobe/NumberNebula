@@ -1,5 +1,6 @@
 // ignore_for_file: unused_element, unused_field
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
@@ -253,6 +254,7 @@ class _GridFillerGameState extends State<GridFillerGame>
     
     if (allPlaced && !_hasWon) {
       _hasWon = true;
+      HapticFeedback.lightImpact();
       _winController.forward();
       
       final baseScore = 200 * widget.grade;
@@ -700,17 +702,23 @@ class _GridFillerGameState extends State<GridFillerGame>
         opacity: 0.3,
         child: _buildPieceCardContent(piece, isSelected, canUse),
       ),
-      child: GestureDetector(
-        onTap: canUse ? () {
-          debugPrint('🖱️ Clicked piece ${piece.size}x${piece.size} in panel');
-          setState(() {
-            selectedPiece = isSelected ? null : piece;
-            debugPrint(selectedPiece != null 
-                ? '✅ Selected ${piece.size}x${piece.size} - click grid to place'
-                : '❌ Deselected piece');
-          });
-        } : null,
-        child: _buildPieceCardContent(piece, isSelected, canUse),
+      child: Semantics(
+        label: 'Piece ${piece.size}x${piece.size}, ${piece.remainingCount} of ${piece.count} left',
+        button: true,
+        selected: isSelected,
+        enabled: canUse,
+        child: GestureDetector(
+          onTap: canUse ? () {
+            debugPrint('🖱️ Clicked piece ${piece.size}x${piece.size} in panel');
+            setState(() {
+              selectedPiece = isSelected ? null : piece;
+              debugPrint(selectedPiece != null
+                  ? '✅ Selected ${piece.size}x${piece.size} - click grid to place'
+                  : '❌ Deselected piece');
+            });
+          } : null,
+          child: _buildPieceCardContent(piece, isSelected, canUse),
+        ),
       ),
     );
   }
@@ -824,7 +832,11 @@ class _GridFillerGameState extends State<GridFillerGame>
         });
       },
       childWhenDragging: Container(),
-      child: GestureDetector(
+      child: Semantics(
+        label: 'Placed ${piece.size}x${piece.size} piece',
+        hint: 'Tap to remove or long-press to drag',
+        button: true,
+        child: GestureDetector(
         onTap: () {
           debugPrint('👆 Single tap to remove ${piece.size}x${piece.size}');
           _removePlacedPiece(piece);
@@ -856,6 +868,7 @@ class _GridFillerGameState extends State<GridFillerGame>
             ),
           ),
         ),
+      ),
       ),
     );
   }
