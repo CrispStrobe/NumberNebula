@@ -1107,7 +1107,11 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
                               final gridWidth = cellSize * gridCols;
                               final gridHeight = cellSize * gridRows;
                               
-                              return GestureDetector(
+                              return Semantics(
+                                label: 'Cargo bay grid',
+                                hint: 'Tap a cell or drag a piece to place cargo',
+                                child: GestureDetector(
+                                behavior: HitTestBehavior.translucent,
                                 onTapDown: (details) => _handleTapOnGrid(details.localPosition, cellSize),
                                 onPanStart: (details) => _handlePanStart(details, cellSize),
                                 onPanUpdate: (details) => _handlePanUpdate(details, cellSize),
@@ -1135,6 +1139,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
                                     ),
                                   ),
                                 ),
+                              ),
                               );
                             },
                           ),
