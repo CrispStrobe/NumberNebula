@@ -857,7 +857,11 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
         autofocus: true,
         focusNode: _focusNode,
         onKeyEvent: _handleKeyboard,
-        child: GestureDetector(
+        child: Semantics(
+          label: 'Hyperdrive game area',
+          hint: 'Tap or drag to steer your ship through gates',
+          child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
           onTapDown: (details) => _handleScreenInteraction(details.localPosition),
           onVerticalDragStart: (details) => _handleDrag(details.localPosition),
           onVerticalDragUpdate: (details) => _handleDrag(details.localPosition),
@@ -898,6 +902,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
               ),
             ),
           ),
+        ),
         ),
       ),
     );
