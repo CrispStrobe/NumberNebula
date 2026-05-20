@@ -608,8 +608,21 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
   Widget _buildCell(int row, int col, double cellSize) {
     final cell = grid[row][col];
     final isAnimating = animatingCells.contains('$row-$col');
+    String cellLabel;
+    if (cell.isExploded) {
+      cellLabel = 'Asteroid hit at row ${row + 1}, column ${col + 1}';
+    } else if (cell.isRevealed) {
+      cellLabel = 'Revealed cell at row ${row + 1}, column ${col + 1}';
+    } else {
+      cellLabel = 'Hidden cell at row ${row + 1}, column ${col + 1}';
+    }
 
-    return GestureDetector(
+    return Semantics(
+      label: cellLabel,
+      button: true,
+      hint: 'Tap to reveal, long press to flag',
+      child: GestureDetector(
+      behavior: HitTestBehavior.translucent,
       // Keep primary tap and long press here
       onTap: () => _onCellTap(row, col),
       onLongPress: () => _onCellLongPress(row, col),
@@ -645,6 +658,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
              );
            },
          ),
+      ),
       ),
     );
   }
