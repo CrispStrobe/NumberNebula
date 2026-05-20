@@ -1864,7 +1864,11 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                                       spacing: 8,
                                       runSpacing: 8,
                                       children: _battlefieldCards.asMap().entries.map((entry) {
-                                        return GestureDetector(
+                                        return Semantics(
+                                          label: 'Battlefield card ${entry.value.name}',
+                                          hint: 'Tap to return to hand',
+                                          button: true,
+                                          child: GestureDetector(
                                           onTap: () {
                                             if (!_isOpponentTurn) {
                                               HapticFeedback.lightImpact();
@@ -1896,6 +1900,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                                             }
                                           },
                                           child: _buildBattlefieldCard(entry.value),
+                                          ),
                                         );
                                       }).toList(),
                                     ),
@@ -2164,7 +2169,18 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   Widget _buildCompactHealthBar(int current, int max, Color color) {
     final percentage = max > 0 ? (current / max).clamp(0.0, 1.0) : 0.0;
-    
+
+    return Semantics(
+      label: 'Health $current of $max',
+      liveRegion: true,
+      container: true,
+      child: ExcludeSemantics(
+        child: _buildCompactHealthBarInner(current, max, color, percentage),
+      ),
+    );
+  }
+
+  Widget _buildCompactHealthBarInner(int current, int max, Color color, double percentage) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min, // Constrains the Column's size to its children
@@ -2554,24 +2570,29 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     }
     
     // Regular card dragging
-    return Draggable<MathCard>(
-      data: card,
-      feedback: Material(
-        color: Colors.transparent,
-        child: Transform.scale(
-          scale: 1.2,
-          child: SizedBox(
-            width: 80,
-            height: 120,
-            child: _buildCard(card, isBeingDragged: true),
+    return Semantics(
+      label: 'Hand card ${card.name}',
+      hint: 'Drag to the battlefield',
+      button: true,
+      child: Draggable<MathCard>(
+        data: card,
+        feedback: Material(
+          color: Colors.transparent,
+          child: Transform.scale(
+            scale: 1.2,
+            child: SizedBox(
+              width: 80,
+              height: 120,
+              child: _buildCard(card, isBeingDragged: true),
+            ),
           ),
         ),
+        childWhenDragging: Opacity(
+          opacity: 0.3,
+          child: _buildCard(card),
+        ),
+        child: _buildCard(card, handIndex: handIndex),
       ),
-      childWhenDragging: Opacity(
-        opacity: 0.3,
-        child: _buildCard(card),
-      ),
-      child: _buildCard(card, handIndex: handIndex),
     );
   }
 
