@@ -2208,7 +2208,12 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
             return Positioned(
             left: localX * cellSize,
             top: localY * cellSize,
-            child: GestureDetector(
+            child: Semantics(
+              label: 'Atom ${atom.type}',
+              hint: 'Tap to select, drag to slide',
+              button: true,
+              selected: isSelected,
+              child: GestureDetector(
                 onTap: () => _selectAtom(atom),
                 // Add pan gesture handlers for touch sliding
                 onPanStart: (details) => _handleAtomPanStart(atom, details),
@@ -2216,6 +2221,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                 onPanEnd: (details) => _handleAtomPanEnd(atom),
                 behavior: HitTestBehavior.opaque, // Ensure gesture detection works
                 child: _buildAtomVisual(atom.type, cellSize, isSelected, bonds),
+              ),
             ),
             );
         },
