@@ -1,6 +1,7 @@
 // ignore_for_file: constant_identifier_names, unused_element, unused_field
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/space_theme.dart';
@@ -382,7 +383,8 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
   void _handleSuccess() {
     debugPrint("🎉 [CODEBREAKER UI] SUCCESS! Player solved the puzzle!");
-    
+    HapticFeedback.lightImpact();
+
     int baseScore = 150 * widget.grade;
     int complexityBonus = puzzle!.equations.length * 25;
     int operationBonus = puzzle!.equations
@@ -441,9 +443,16 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
   void _handleIncorrect() {
     debugPrint("❌ [CODEBREAKER UI] Incorrect solution - showing error message");
+    HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(S.of(context)!.codebreakerError),
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(S.of(context)!.codebreakerError)),
+          ],
+        ),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
       ),
@@ -526,13 +535,17 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  S.of(context)!.codebreaker,
-                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 18),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    S.of(context)!.codebreaker,
+                    style: SpaceTheme.headlineStyle,
+                  ),
                 ),
                 Text(
                   S.of(context)!.codebreakerInstructions,
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: Colors.white70),
+                  style: SpaceTheme.bodyStyle.copyWith(color: Colors.white70),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -597,26 +610,36 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   Widget _buildLevelIndicator({required bool isCompact}) {
     final fontSize = isCompact ? 12.0 : 16.0;
     final iconSize = isCompact ? 20.0 : 24.0;
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isCompact ? 8 : 12, 
-        vertical: isCompact ? 4 : 8,
-      ),
-      decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: SpaceTheme.starYellow),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: iconSize),
-          SizedBox(width: isCompact ? 4 : 8),
-          Text(
-            'Level ${widget.level}',
-            style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
+    final levelText = '${S.of(context)?.level ?? 'Level'} ${widget.level}';
+    return Semantics(
+      label: levelText,
+      container: true,
+      child: ExcludeSemantics(
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: isCompact ? 8 : 12,
+            vertical: isCompact ? 4 : 8,
           ),
-        ],
+          decoration: BoxDecoration(
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: SpaceTheme.starYellow),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: iconSize),
+              SizedBox(width: isCompact ? 4 : 8),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  levelText,
+                  style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -624,28 +647,39 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   Widget _buildScoreIndicator({required bool isCompact}) {
     final fontSize = isCompact ? 12.0 : 16.0;
     final iconSize = isCompact ? 20.0 : 24.0;
+    final scoreLabel = S.of(context)?.score ?? 'Score';
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
-        return Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: isCompact ? 8 : 12, 
-            vertical: isCompact ? 4 : 8,
-          ),
-          decoration: BoxDecoration(
-            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: SpaceTheme.alienGreen),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.star, color: SpaceTheme.alienGreen, size: iconSize),
-              SizedBox(width: isCompact ? 4 : 8),
-              Text(
-                gameProvider.score.toString(),
-                style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
+        return Semantics(
+          label: '$scoreLabel ${gameProvider.score}',
+          liveRegion: true,
+          container: true,
+          child: ExcludeSemantics(
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isCompact ? 8 : 12,
+                vertical: isCompact ? 4 : 8,
               ),
-            ],
+              decoration: BoxDecoration(
+                color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: SpaceTheme.alienGreen),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.star, color: SpaceTheme.alienGreen, size: iconSize),
+                  SizedBox(width: isCompact ? 4 : 8),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      gameProvider.score.toString(),
+                      style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       },
@@ -788,7 +822,11 @@ class _CodebreakerGameState extends State<CodebreakerGame>
       
       if (hasUserValue) {
         // User has placed a number here
-        cellContent = GestureDetector(
+        cellContent = Semantics(
+          button: true,
+          label: 'Placed value ${userSolution[positionId]}',
+          hint: 'Tap to remove',
+          child: GestureDetector(
           onTap: () => _removeNumber(positionId),
           child: Container(
             width: cellSize, 
@@ -832,6 +870,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                 ),
               ],
             ),
+          ),
           ),
         );
       } else if (isPositionVisible) {
@@ -905,8 +944,11 @@ class _CodebreakerGameState extends State<CodebreakerGame>
       
       // Wrap in DragTarget if it should accept drops
       if (shouldAcceptDrops) {
-        return SizedBox(
-          width: cellSize + (isCompact ? 16 : 24), 
+        return Semantics(
+          label: 'Empty slot for $symbol',
+          hint: 'Drag a number here',
+          child: SizedBox(
+          width: cellSize + (isCompact ? 16 : 24),
           height: cellSize + (isCompact ? 16 : 24),
           child: DragTarget<int>(
             builder: (context, candidateData, rejectedData) {
@@ -954,9 +996,10 @@ class _CodebreakerGameState extends State<CodebreakerGame>
               _placeNumber(details.data, positionId);
             },
           ),
+          ),
         );
       }
-      
+
       return cellContent;
     }
   }
@@ -1031,7 +1074,10 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                 itemBuilder: (context, index) {
                   if (index >= numberPool.length) return Container();
                   final number = numberPool[index];
-                  return Draggable<int>(
+                  return Semantics(
+                    label: 'Number $number, drag to a slot',
+                    button: true,
+                    child: Draggable<int>(
                     data: number,
                     onDragStarted: () {
                       setState(() {
@@ -1048,6 +1094,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                     feedback: _buildDraggableFeedback(number),
                     childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
                     child: _buildNumberTile(number, isCompact: isCompact),
+                  ),
                   );
                 },
               ),
