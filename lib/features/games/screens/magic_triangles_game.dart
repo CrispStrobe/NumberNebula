@@ -871,16 +871,17 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                 return Container(); 
               }
               final number = numberPool[index];
-              return Semantics(
-                label: 'Resonator $number, drag to a triangle node',
-                button: true,
-                child: Draggable<int>(
-                  data: number,
-                  feedback: _buildDraggableFeedback(number, isSmallScreen),
-                  childWhenDragging: Opacity(
-                    opacity: 0.3,
-                    child: _buildResonator(number, isSmallScreen)
-                  ),
+              // Semantics on visual child — see note in word_sort_game.
+              return Draggable<int>(
+                data: number,
+                feedback: _buildDraggableFeedback(number, isSmallScreen),
+                childWhenDragging: Opacity(
+                  opacity: 0.3,
+                  child: _buildResonator(number, isSmallScreen)
+                ),
+                child: Semantics(
+                  label: 'Resonator $number, drag to a triangle node',
+                  button: true,
                   child: _buildResonator(number, isSmallScreen),
                 ),
               );

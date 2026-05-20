@@ -1060,13 +1060,15 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               itemBuilder: (context, index) {
                 if (index >= numberPool.length) return Container();
                 final number = numberPool[index];
-                return Semantics(
-                  label: 'Number brick $number, drag to a wall slot',
-                  button: true,
-                  child: Draggable<int>(
-                    data: number,
-                    feedback: _buildDraggableFeedback(number),
-                    childWhenDragging: Opacity(opacity: 0.3, child: _buildCompactBrick(number)),
+                // Semantics goes on the visual child — see note in
+                // word_sort_game / codebreaker_game.
+                return Draggable<int>(
+                  data: number,
+                  feedback: _buildDraggableFeedback(number),
+                  childWhenDragging: Opacity(opacity: 0.3, child: _buildCompactBrick(number)),
+                  child: Semantics(
+                    label: 'Number brick $number, drag to a wall slot',
+                    button: true,
                     child: _buildCompactBrick(number),
                   ),
                 );

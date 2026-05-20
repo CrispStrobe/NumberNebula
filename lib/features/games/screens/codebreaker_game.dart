@@ -1074,10 +1074,11 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                 itemBuilder: (context, index) {
                   if (index >= numberPool.length) return Container();
                   final number = numberPool[index];
-                  return Semantics(
-                    label: 'Number $number, drag to a slot',
-                    button: true,
-                    child: Draggable<int>(
+                  // Semantics goes on the Draggable's visual child, not
+                  // around the Draggable itself — wrapping Draggable can
+                  // interpose a SemanticsNode in Flutter web's pointer
+                  // pipeline and silently swallow drag input.
+                  return Draggable<int>(
                     data: number,
                     onDragStarted: () {
                       setState(() {
@@ -1093,8 +1094,11 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                     },
                     feedback: _buildDraggableFeedback(number),
                     childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
-                    child: _buildNumberTile(number, isCompact: isCompact),
-                  ),
+                    child: Semantics(
+                      label: 'Number $number, drag to a slot',
+                      button: true,
+                      child: _buildNumberTile(number, isCompact: isCompact),
+                    ),
                   );
                 },
               ),

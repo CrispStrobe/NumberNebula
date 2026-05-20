@@ -2000,16 +2000,17 @@ class _RobotPathGameState extends State<RobotPathGame>
       ),
     );
     
-    return Semantics(
-      label: 'Command ${command.name}',
-      button: true,
-      child: Draggable<RobotCommand>(
-        data: command,
-        feedback: tileUI,
-        childWhenDragging: Opacity(
-          opacity: 0.4,
-          child: tileUI,
-        ),
+    // Semantics on the visual child — see note in word_sort_game.
+    return Draggable<RobotCommand>(
+      data: command,
+      feedback: tileUI,
+      childWhenDragging: Opacity(
+        opacity: 0.4,
+        child: tileUI,
+      ),
+      child: Semantics(
+        label: 'Command ${command.name}',
+        button: true,
         child: GestureDetector(
           onTap: isExecuting ? null : () => _addCommand(command),
           child: tileUI,

@@ -978,13 +978,14 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
             itemBuilder: (context, index) {
               if (index >= numberPool.length) return Container();
               final number = numberPool[index];
-              return Semantics(
-                label: 'Number $number, drag to a cell',
-                button: true,
-                child: Draggable<int>(
-                  data: number,
-                  feedback: _buildDraggableFeedback(number),
-                  childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
+              // Semantics on visual child — see note in word_sort_game.
+              return Draggable<int>(
+                data: number,
+                feedback: _buildDraggableFeedback(number),
+                childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
+                child: Semantics(
+                  label: 'Number $number, drag to a cell',
+                  button: true,
                   child: _buildNumberTile(number, isCompact: isCompact),
                 ),
               );

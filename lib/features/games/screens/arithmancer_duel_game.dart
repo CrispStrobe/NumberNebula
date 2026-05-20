@@ -2569,28 +2569,29 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       );
     }
     
-    // Regular card dragging
-    return Semantics(
-      label: 'Hand card ${card.name}',
-      hint: 'Drag to the battlefield',
-      button: true,
-      child: Draggable<MathCard>(
-        data: card,
-        feedback: Material(
-          color: Colors.transparent,
-          child: Transform.scale(
-            scale: 1.2,
-            child: SizedBox(
-              width: 80,
-              height: 120,
-              child: _buildCard(card, isBeingDragged: true),
-            ),
+    // Regular card dragging. Semantics on the visual child — see note
+    // in word_sort_game.
+    return Draggable<MathCard>(
+      data: card,
+      feedback: Material(
+        color: Colors.transparent,
+        child: Transform.scale(
+          scale: 1.2,
+          child: SizedBox(
+            width: 80,
+            height: 120,
+            child: _buildCard(card, isBeingDragged: true),
           ),
         ),
-        childWhenDragging: Opacity(
-          opacity: 0.3,
-          child: _buildCard(card),
-        ),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.3,
+        child: _buildCard(card),
+      ),
+      child: Semantics(
+        label: 'Hand card ${card.name}',
+        hint: 'Drag to the battlefield',
+        button: true,
         child: _buildCard(card, handIndex: handIndex),
       ),
     );

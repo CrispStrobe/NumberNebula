@@ -804,16 +804,17 @@ class _KenkenGameState extends State<KenkenGame>
                             ? SizedBox(
                                 width: cellSize,
                                 height: cellSize,
-                                child: Semantics(
-                                  label: 'Number ${rowNumbers[i]}, drag to a cell',
-                                  button: true,
-                                  child: Draggable<int>(
-                                    data: rowNumbers[i],
-                                    feedback: _buildDraggableFeedback(rowNumbers[i], isCompact),
-                                    childWhenDragging: Opacity(
-                                      opacity: 0.7,
-                                      child: _buildNumberTile(rowNumbers[i], tileSize: cellSize)
-                                    ),
+                                // Semantics on visual child — see note in word_sort_game.
+                                child: Draggable<int>(
+                                  data: rowNumbers[i],
+                                  feedback: _buildDraggableFeedback(rowNumbers[i], isCompact),
+                                  childWhenDragging: Opacity(
+                                    opacity: 0.7,
+                                    child: _buildNumberTile(rowNumbers[i], tileSize: cellSize)
+                                  ),
+                                  child: Semantics(
+                                    label: 'Number ${rowNumbers[i]}, drag to a cell',
+                                    button: true,
                                     child: _buildNumberTile(rowNumbers[i], tileSize: cellSize),
                                   ),
                                 ),
