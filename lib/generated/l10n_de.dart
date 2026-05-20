@@ -265,9 +265,6 @@ class SDe extends S {
       'Bist du sicher, dass du den gesamten Fortschritt zurücksetzen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.';
 
   @override
-  String get appVersionValue => '1.0.2';
-
-  @override
   String get legalNotice => 'Impressum anzeigen';
 
   @override

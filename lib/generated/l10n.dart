@@ -583,12 +583,6 @@ abstract class S {
   /// **'Are you sure you want to reset all progress? This action cannot be undone.'**
   String get resetProgressConfirm;
 
-  /// No description provided for @appVersionValue.
-  ///
-  /// In en, this message translates to:
-  /// **'1.0.2'**
-  String get appVersionValue;
-
   /// No description provided for @legalNotice.
   ///
   /// In en, this message translates to:

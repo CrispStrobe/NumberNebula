@@ -264,9 +264,6 @@ class SEn extends S {
       'Are you sure you want to reset all progress? This action cannot be undone.';
 
   @override
-  String get appVersionValue => '1.0.2';
-
-  @override
   String get legalNotice => 'View Legal Notice';
 
   @override

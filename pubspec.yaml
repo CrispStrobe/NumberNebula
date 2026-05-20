@@ -1,7 +1,7 @@
 name: space_math_academy
 description: A space-themed math learning app, from primary school students onwards
 publish_to: 'none'
-version: 1.0.2
+version: 1.1.0
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -38,6 +38,7 @@ dependencies:
   intl: ^0.20.2
   equatable: ^2.0.5
   uuid: ^4.1.0
+  package_info_plus: ^8.0.0
   
   # Math & Physics
   vector_math: ^2.1.4

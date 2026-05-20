@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:math' as math;
 
 import '../widgets/sri_statistics_dialog.dart'; // statistics dialog widget
@@ -913,7 +914,15 @@ class _SettingsScreenState extends State<SettingsScreen>
         title: s.about,
         icon: Icons.info,
         children: [
-          _buildInfoRow(s.appVersion, s.appVersionValue), // Using ARB string
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snap) {
+              final v = snap.data == null
+                  ? '…'
+                  : '${snap.data!.version} (${snap.data!.buildNumber})';
+              return _buildInfoRow(s.appVersion, v);
+            },
+          ),
           _buildInfoRow(s.developer, s.developerName), // Using ARB string
           _buildInfoRow(s.targetAge, s.targetAgeRange), // Using ARB string
           
