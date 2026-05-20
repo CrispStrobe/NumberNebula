@@ -1,5 +1,6 @@
 // lib/features/games/screens/planet_hopping_game.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
@@ -256,15 +257,17 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
     if (isCorrect) {
       debugPrint("[Gameplay] ✅ CORRECT landing!");
+      HapticFeedback.lightImpact();
       planet.visited = true;
       hopper.landOn(planet);
       nextTargetIndex++;
       context.read<GameProvider>().addScore(100 * widget.grade);
       _addSuccessParticles(planet);
-      
+
       if (nextTargetIndex >= targetSequence.length) _winGame();
     } else {
       debugPrint("[Gameplay] ❌ WRONG landing!");
+      HapticFeedback.heavyImpact();
       lives--;
       _addErrorParticles(planet);
       final bounceDirection = (hopper.position - planet.position).normalize();
@@ -423,24 +426,44 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
             icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           ),
           Expanded(
-              child: Text(S.of(context)!.planetHoppingTitle,
-                  style: SpaceTheme.titleStyle.copyWith(fontSize: 18))),
-          Row(
-              children: List.generate(
-                  3,
-                  (index) => Icon(index < lives ? Icons.favorite : Icons.favorite_border,
-                      color: SpaceTheme.rocketRed, size: 22))),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(S.of(context)!.planetHoppingTitle,
+                    style: SpaceTheme.titleStyle),
+              )),
+          Semantics(
+            label: 'Lives remaining: $lives of 3',
+            container: true,
+            child: ExcludeSemantics(
+              child: Row(
+                  children: List.generate(
+                      3,
+                      (index) => Icon(index < lives ? Icons.favorite : Icons.favorite_border,
+                          color: SpaceTheme.rocketRed, size: 22))),
+            ),
+          ),
           const SizedBox(width: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-                color: SpaceTheme.alienGreen.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12)),
-            child: Text('$nextTargetIndex/${targetSequence.length}',
-                style: SpaceTheme.bodyStyle.copyWith(
-                    color: SpaceTheme.alienGreen,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18)),
+          Semantics(
+            label: 'Progress $nextTargetIndex of ${targetSequence.length}',
+            liveRegion: true,
+            container: true,
+            child: ExcludeSemantics(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                    color: SpaceTheme.alienGreen.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12)),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text('$nextTargetIndex/${targetSequence.length}',
+                      style: SpaceTheme.bodyStyle.copyWith(
+                          color: SpaceTheme.alienGreen,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18)),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -480,7 +503,11 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
   Widget _buildControlOverlay() {
     return Positioned.fill(
-      child: GestureDetector(
+      child: Semantics(
+        label: 'Planet hopper control area',
+        hint: 'Tap a planet to launch toward it',
+        child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
         onTapDown: (details) {
           if (!gameActive) return;
           final tapPosition = details.localPosition;
@@ -508,6 +535,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
           setState(() {});
         },
         child: Container(color: Colors.transparent),
+      ),
       ),
     );
   }
