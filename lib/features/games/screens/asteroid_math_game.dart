@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
@@ -484,8 +485,9 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     _startHintTimers();
 
     if (isCorrect) {
+      HapticFeedback.lightImpact();
       _triggerScreenShake();
-      
+
       final scoreToAdd = (15 * widget.grade * currentDifficulty!.difficultyMultiplier).round();
       context.read<GameProvider>().addScore(scoreToAdd);
 
@@ -505,6 +507,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
         _endGame(isWin: true);
       }
     } else {
+      HapticFeedback.heavyImpact();
       setState(() {
         wrongShots++;
         explosions.add(ParticleExplosion(position: asteroid.position, isCorrect: false));
@@ -703,12 +706,16 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
                           ...asteroids.map((asteroid) => Positioned(
                                 left: asteroid.position.dx - asteroid.size / 2,
                                 top: asteroid.position.dy - asteroid.size / 2,
-                                child: GestureDetector(
-                                  onTap: () => _onAsteroidTapped(asteroid),
-                                  behavior: HitTestBehavior.opaque,
-                                  child: SizedBox(
-                                    width: asteroid.size,
-                                    height: asteroid.size,
+                                child: Semantics(
+                                  label: 'Asteroid ${asteroid.mathProblem}',
+                                  button: true,
+                                  child: GestureDetector(
+                                    onTap: () => _onAsteroidTapped(asteroid),
+                                    behavior: HitTestBehavior.opaque,
+                                    child: SizedBox(
+                                      width: math.max(asteroid.size, 48),
+                                      height: math.max(asteroid.size, 48),
+                                    ),
                                   ),
                                 ),
                               )),
@@ -759,18 +766,26 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
             ),
           ],
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.gps_fixed, color: SpaceTheme.rocketRed, size: 22),
-            const SizedBox(width: 10),
-            Text(S.of(context)!.nextTarget, style: SpaceTheme.bodyStyle.copyWith(fontSize: 18)),
-            Text(
-              shouldShow ? targetOrder[currentTargetIndex].toString() : '',
-              style: SpaceTheme.titleStyle
-                  .copyWith(color: SpaceTheme.starYellow, fontSize: 20),
+        child: Semantics(
+          liveRegion: true,
+          label: shouldShow
+              ? '${S.of(context)!.nextTarget} ${targetOrder[currentTargetIndex]}'
+              : S.of(context)!.nextTarget,
+          container: true,
+          child: ExcludeSemantics(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.gps_fixed, color: SpaceTheme.rocketRed, size: 22),
+                const SizedBox(width: 10),
+                Text(S.of(context)!.nextTarget, style: SpaceTheme.bodyStyle),
+                Text(
+                  shouldShow ? targetOrder[currentTargetIndex].toString() : '',
+                  style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
