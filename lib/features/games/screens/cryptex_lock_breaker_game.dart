@@ -414,7 +414,6 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                             S.of(context)!.cryptexLockBreakerControls,
                             style: SpaceTheme.bodyStyle.copyWith(
                               color: Colors.white60,
-                              fontSize: 12,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -467,13 +466,17 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
               customTitleWidget: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    S.of(context)!.cryptexLockBreakerGameTitle,
-                    style: SpaceTheme.headlineStyle.copyWith(fontSize: 18),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      S.of(context)!.cryptexLockBreakerGameTitle,
+                      style: SpaceTheme.headlineStyle,
+                    ),
                   ),
                   Text(
                     S.of(context)!.cryptexLockBreakerInstructions, // Use the now-shortened text
-                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: Colors.white70),
+                    style: SpaceTheme.bodyStyle.copyWith(color: Colors.white70),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -523,79 +526,90 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   Widget _buildDial(int dialIndex) {
     final isSelected = selectedDial == dialIndex;
     final dialValue = dialValues[dialIndex];
-    
-    return GestureDetector(
-      onPanStart: (details) => _onPanStart(details, dialIndex),
-      onPanUpdate: (details) => _onPanUpdate(details, dialIndex),
-      onPanEnd: _onPanEnd,
-      onTap: () => setState(() => selectedDial = dialIndex),
-      child: AnimatedBuilder(
-        animation: _dialAnimation,
-        builder: (context, child) {
-          final scale = isSelected ? (1.0 + _dialAnimation.value * 0.15) : 1.0;
-          
-          return Transform.scale(
-            scale: scale,
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 12),
-              width: 120,
-              height: 180,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Dial background
-                  Container(
-                    width: 120,
-                    height: 180,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(60),
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: isSelected 
-                            ? [SpaceTheme.starYellow.withValues(alpha: 0.3), SpaceTheme.planetOrange.withValues(alpha: 0.3)]
-                            : [SpaceTheme.nebulaPurple.withValues(alpha: 0.3), SpaceTheme.deepSpace.withValues(alpha: 0.5)],
-                      ),
-                      border: Border.all(
-                        color: isSelected ? SpaceTheme.starYellow : SpaceTheme.alienGreen,
-                        width: 3,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: (isSelected ? SpaceTheme.starYellow : SpaceTheme.alienGreen).withValues(alpha: 0.5),
-                          blurRadius: 15,
-                          spreadRadius: 3,
+    final dialLabel = String.fromCharCode(65 + dialIndex);
+
+    return Semantics(
+      label: 'Dial $dialLabel, value $dialValue',
+      hint: 'Drag up or down to change value',
+      value: dialValue.toString(),
+      button: true,
+      selected: isSelected,
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onPanStart: (details) => _onPanStart(details, dialIndex),
+        onPanUpdate: (details) => _onPanUpdate(details, dialIndex),
+        onPanEnd: _onPanEnd,
+        onTap: () => setState(() => selectedDial = dialIndex),
+        child: AnimatedBuilder(
+          animation: _dialAnimation,
+          builder: (context, child) {
+            final scale = isSelected ? (1.0 + _dialAnimation.value * 0.15) : 1.0;
+
+            return Transform.scale(
+              scale: scale,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 12),
+                width: 120,
+                height: 180,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Dial background
+                    Container(
+                      width: 120,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(60),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: isSelected
+                              ? [SpaceTheme.starYellow.withValues(alpha: 0.3), SpaceTheme.planetOrange.withValues(alpha: 0.3)]
+                              : [SpaceTheme.nebulaPurple.withValues(alpha: 0.3), SpaceTheme.deepSpace.withValues(alpha: 0.5)],
                         ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Dial markings and numbers
-                  CustomPaint(
-                    size: const Size(120, 180),
-                    painter: DialPainter(
-                      currentValue: dialValue,
-                      isSelected: isSelected,
-                      dialIndex: dialIndex,
-                    ),
-                  ),
-                  
-                  // Dial label
-                  Positioned(
-                    bottom: 12,
-                    child: Text(
-                      String.fromCharCode(65 + dialIndex), // A, B, C, etc.
-                      style: SpaceTheme.titleStyle.copyWith(
-                        fontSize: 20,
-                        color: isSelected ? SpaceTheme.starYellow : SpaceTheme.alienGreen,
+                        border: Border.all(
+                          color: isSelected ? SpaceTheme.starYellow : SpaceTheme.alienGreen,
+                          width: 3,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (isSelected ? SpaceTheme.starYellow : SpaceTheme.alienGreen).withValues(alpha: 0.5),
+                            blurRadius: 15,
+                            spreadRadius: 3,
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
+
+                    // Dial markings and numbers
+                    CustomPaint(
+                      size: const Size(120, 180),
+                      painter: DialPainter(
+                        currentValue: dialValue,
+                        isSelected: isSelected,
+                        dialIndex: dialIndex,
+                      ),
+                    ),
+
+                    // Dial label
+                    Positioned(
+                      bottom: 12,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          dialLabel, // A, B, C, etc.
+                          style: SpaceTheme.titleStyle.copyWith(
+                            color: isSelected ? SpaceTheme.starYellow : SpaceTheme.alienGreen,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -614,8 +628,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
           Text(
             S.of(context)!.cryptexLockBreakerEquations,
             style: SpaceTheme.titleStyle.copyWith(
-              color: SpaceTheme.nebulaPurple, 
-              fontSize: 16,
+              color: SpaceTheme.nebulaPurple,
             ),
           ),
           const SizedBox(height: 8),
@@ -666,12 +679,15 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
             children: [
               // Equation
               Expanded(
-                child: Text(
-                  '${equation.getLeftSideDisplay().replaceAll('/', context.read<GameProvider>().divisionSymbol).replaceAll('*', context.read<GameProvider>().multiplicationSymbol)} = ${equation.getRightSideDisplay()}',
-                  style: SpaceTheme.bodyStyle.copyWith(
-                    fontSize: 14,
-                    color: isSatisfied ? SpaceTheme.alienGreen : Colors.white,
-                    fontWeight: isSatisfied ? FontWeight.bold : FontWeight.normal,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '${equation.getLeftSideDisplay().replaceAll('/', context.read<GameProvider>().divisionSymbol).replaceAll('*', context.read<GameProvider>().multiplicationSymbol)} = ${equation.getRightSideDisplay()}',
+                    style: SpaceTheme.bodyStyle.copyWith(
+                      color: isSatisfied ? SpaceTheme.alienGreen : Colors.white,
+                      fontWeight: isSatisfied ? FontWeight.bold : FontWeight.normal,
+                    ),
                   ),
                 ),
               ),
