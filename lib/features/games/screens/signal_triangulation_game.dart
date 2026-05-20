@@ -763,29 +763,40 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
               spacing: 8,
               runSpacing: 8,
               children: availableGlyphs.map((glyph) {
-                return GestureDetector(
-                  onTap: () => _selectGlyph(glyph),
-                  child: AnimatedBuilder(
-                    animation: _pulseAnimation,
-                    builder: (context, child) {
-                      return Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: glyph.color,
-                          border: Border.all(color: SpaceTheme.alienGreen, width: 2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: glyph.color!.withValues(alpha: _pulseAnimation.value * 0.5),
-                              blurRadius: 6,
-                              spreadRadius: 1,
+                return Semantics(
+                  label: 'Glyph ${glyph.name}',
+                  button: true,
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: () => _selectGlyph(glyph),
+                      child: AnimatedBuilder(
+                        animation: _pulseAnimation,
+                        builder: (context, child) {
+                          return Center(
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: glyph.color,
+                                border: Border.all(color: SpaceTheme.alienGreen, width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: glyph.color!.withValues(alpha: _pulseAnimation.value * 0.5),
+                                    blurRadius: 6,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                              child: Icon(glyph.icon, color: Colors.white, size: 18),
                             ),
-                          ],
-                        ),
-                        child: Icon(glyph.icon, color: Colors.white, size: 18),
-                      );
-                    },
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 );
               }).toList(),
@@ -825,7 +836,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
         children: [
           Text(
             S.of(context)!.signalTriangulationPreviousAttempts,
-            style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
+            style: SpaceTheme.titleStyle,
           ),
           const SizedBox(height: 16),
           Column(
