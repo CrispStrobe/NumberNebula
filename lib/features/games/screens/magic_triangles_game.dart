@@ -1,6 +1,7 @@
 // ignore_for_file: unused_element, unused_field
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
@@ -221,6 +222,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
   void _handleSuccess() {
     debugPrint("🎉 [UI] _handleSuccess() - Starting success animation");
+    HapticFeedback.lightImpact();
     setState(() => _isWarping = true);
     _warpController.forward();
 
@@ -254,9 +256,16 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
   void _handleIncorrect() {
     debugPrint("❌ [UI] _handleIncorrect() - Showing failure message");
+    HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(S.of(context)!.magicTrianglesFail),
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(S.of(context)!.magicTrianglesFail)),
+          ],
+        ),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
       ),
@@ -367,44 +376,59 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  S.of(context)!.magicTrianglesGameTitle,
-                  style: SpaceTheme.headlineStyle.copyWith(
-                    fontSize: isSmallScreen ? 18 : 28
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    S.of(context)!.magicTrianglesGameTitle,
+                    style: SpaceTheme.headlineStyle,
                   ),
                 ),
                 if (isSmallScreen)
                   Text(
                     S.of(context)!.magicTrianglesInstructions,
-                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 10),
+                    style: SpaceTheme.bodyStyle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
               ],
             ),
           ),
-          
+
           // Level and Score - more compact
           Row(
             children: [
-              _buildCompactStatItem(
-                icon: Icons.emoji_events,
-                label: isSmallScreen ? '' : 'Level',
-                value: widget.level.toString(),
-                color: const Color(0xFFFFD700),
-                isSmall: isSmallScreen,
+              Semantics(
+                label: '${S.of(context)?.level ?? 'Level'} ${widget.level}',
+                container: true,
+                child: ExcludeSemantics(
+                  child: _buildCompactStatItem(
+                    icon: Icons.emoji_events,
+                    label: isSmallScreen ? '' : (S.of(context)?.level ?? 'Level'),
+                    value: widget.level.toString(),
+                    color: const Color(0xFFFFD700),
+                    isSmall: isSmallScreen,
+                  ),
+                ),
               ),
-              
+
               SizedBox(width: isSmallScreen ? 8 : 20),
-              
+
               Consumer<GameProvider>(
                 builder: (context, gameProvider, child) {
-                  return _buildCompactStatItem(
-                    icon: Icons.star,
-                    label: isSmallScreen ? '' : 'Score',
-                    value: gameProvider.score.toString(),
-                    color: const Color(0xFF06FFA5),
-                    isSmall: isSmallScreen,
+                  return Semantics(
+                    label: '${S.of(context)?.score ?? 'Score'} ${gameProvider.score}',
+                    liveRegion: true,
+                    container: true,
+                    child: ExcludeSemantics(
+                      child: _buildCompactStatItem(
+                        icon: Icons.star,
+                        label: isSmallScreen ? '' : (S.of(context)?.score ?? 'Score'),
+                        value: gameProvider.score.toString(),
+                        color: const Color(0xFF06FFA5),
+                        isSmall: isSmallScreen,
+                      ),
+                    ),
                   );
                 },
               ),
@@ -761,13 +785,19 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   
   Widget _buildDroppableNode(int? value, int answerIndex, double size) {
     debugPrint("🎯 [UI] _buildDroppableNode - value: $value, answerIndex: $answerIndex");
-    return GestureDetector(
-      onTap: value != null ? () => _removeNumber(answerIndex) : null,
-      child: _buildStargateNode(
-        value: value,
-        isSelected: _isDraggingOver && value == null,
-        isHidden: true,
-        size: size,
+    return Semantics(
+      button: true,
+      label: value != null
+          ? 'Placed value $value, tap to remove'
+          : 'Empty triangle node, drop a number here',
+      child: GestureDetector(
+        onTap: value != null ? () => _removeNumber(answerIndex) : null,
+        child: _buildStargateNode(
+          value: value,
+          isSelected: _isDraggingOver && value == null,
+          isHidden: true,
+          size: size,
+        ),
       ),
     );
   }
@@ -841,14 +871,18 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                 return Container(); 
               }
               final number = numberPool[index];
-              return Draggable<int>(
-                data: number,
-                feedback: _buildDraggableFeedback(number, isSmallScreen),
-                childWhenDragging: Opacity(
-                  opacity: 0.3, 
-                  child: _buildResonator(number, isSmallScreen)
+              return Semantics(
+                label: 'Resonator $number, drag to a triangle node',
+                button: true,
+                child: Draggable<int>(
+                  data: number,
+                  feedback: _buildDraggableFeedback(number, isSmallScreen),
+                  childWhenDragging: Opacity(
+                    opacity: 0.3,
+                    child: _buildResonator(number, isSmallScreen)
+                  ),
+                  child: _buildResonator(number, isSmallScreen),
                 ),
-                child: _buildResonator(number, isSmallScreen),
               );
             },
           ),
