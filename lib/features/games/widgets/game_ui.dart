@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/space_theme.dart';
+import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 
 /// A smart, responsive, and backward-compatible UI header for all mini-games.
@@ -49,6 +50,7 @@ class GameUI extends StatelessWidget {
                   color: Colors.white,
                   size: isCompact ? 22 : 28,
                 ),
+                tooltip: S.of(context)?.backToMenu,
                 onPressed: onBack,
               ),
               
@@ -78,38 +80,47 @@ class GameUI extends StatelessWidget {
 
   /// Helper method to build the row of stats.
   Widget _buildStatsRow(BuildContext context, bool isCompact) {
+    final s = S.of(context);
+    final levelLabel = s?.level ?? 'Level';
+    final scoreLabel = s?.score ?? 'Score';
+    final timeLabel = s?.time ?? 'Time';
     return Row(
       children: [
         // Level
         _buildStatItem(
           icon: Icons.emoji_events,
-          label: isCompact ? '' : 'Level', // Hide label if compact
+          label: isCompact ? '' : levelLabel, // Hide label if compact
+          semanticLabel: '$levelLabel $level',
           value: level.toString(),
           color: SpaceTheme.starYellow,
           isCompact: isCompact,
         ),
-        
+
         SizedBox(width: isCompact ? 8 : 12),
-        
+
         // Score
         Consumer<GameProvider>(
           builder: (context, gameProvider, child) {
             return _buildStatItem(
               icon: Icons.star,
-              label: isCompact ? '' : 'Score', // Hide label if compact
+              label: isCompact ? '' : scoreLabel, // Hide label if compact
+              semanticLabel: '$scoreLabel ${gameProvider.score}',
+              isLiveRegion: true,
               value: gameProvider.score.toString(),
               color: SpaceTheme.alienGreen,
               isCompact: isCompact,
             );
           },
         ),
-        
+
         // Time (if provided)
         if (timeLeft != null) ...[
           SizedBox(width: isCompact ? 8 : 12),
           _buildStatItem(
             icon: Icons.timer,
-            label: isCompact ? '' : 'Time', // Hide label if compact
+            label: isCompact ? '' : timeLabel, // Hide label if compact
+            semanticLabel: '$timeLabel ${_formatTime(timeLeft!)}',
+            isLiveRegion: true,
             value: _formatTime(timeLeft!),
             color: timeLeft! > 10 ? SpaceTheme.cosmicPink : SpaceTheme.rocketRed,
             isCompact: isCompact,
@@ -126,42 +137,55 @@ class GameUI extends StatelessWidget {
     required String value,
     required Color color,
     required bool isCompact,
+    String? semanticLabel,
+    bool isLiveRegion = false,
   }) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isCompact ? 8 : 12,
-        vertical: isCompact ? 4 : 6,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E).withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.6), width: 1.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: isCompact ? 18 : 20),
-          // Conditionally show the label text, hiding it if the label is empty.
-          if (label.isNotEmpty) ...[
-            const SizedBox(width: 8),
-            Text(
-              '$label: $value',
-              style: SpaceTheme.bodyStyle.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-              ),
-            ),
-          ] else ...[
-            const SizedBox(width: 6),
-            Text(
-              value,
-              style: SpaceTheme.bodyStyle.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-              ),
-            ),
-          ],
-        ],
+    return Semantics(
+      label: semanticLabel,
+      liveRegion: isLiveRegion,
+      container: true,
+      child: ExcludeSemantics(
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: isCompact ? 8 : 12,
+            vertical: isCompact ? 4 : 6,
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1A2E).withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color.withValues(alpha: 0.6), width: 1.5),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: isCompact ? 18 : 20),
+              // Conditionally show the label text, hiding it if the label is empty.
+              if (label.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    '$label: $value',
+                    style: SpaceTheme.bodyStyle.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ] else ...[
+                const SizedBox(width: 6),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    value,
+                    style: SpaceTheme.bodyStyle.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
