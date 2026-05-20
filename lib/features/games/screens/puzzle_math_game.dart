@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:math' as math;
 // Import for debugPrint
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/puzzle_image_service.dart';
@@ -818,9 +819,16 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   void _showIncorrectPlacement() {
+    HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(S.of(context)!.puzzleMathIncorrect),
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(S.of(context)!.puzzleMathIncorrect)),
+          ],
+        ),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
       ),
@@ -1030,7 +1038,11 @@ class PuzzlePieceWidget extends StatelessWidget {
         "ExtendedSize=${extendedWidgetWidth.toStringAsFixed(1)}, "
         "ImageOffset=(${imageOffsetX.toStringAsFixed(1)}, ${imageOffsetY.toStringAsFixed(1)})");
 
-    return GestureDetector(
+    return Semantics(
+      label: isPlaced ? 'Placed puzzle piece' : 'Unplaced puzzle piece',
+      hint: isPlaced ? 'Tap to remove' : 'Tap to rotate',
+      button: true,
+      child: GestureDetector(
       // A placed piece can be removed, an unplaced piece can be rotated
       onTap: isPlaced ? onRemove : onRotate,
       child: SizedBox(
@@ -1103,6 +1115,7 @@ class PuzzlePieceWidget extends StatelessWidget {
               ),
           ],
         ),
+      ),
       ),
     );
   }
