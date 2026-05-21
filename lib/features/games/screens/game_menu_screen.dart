@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/debug_provider.dart';
+import '../../../core/services/sri_service.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
+import 'sri_review_screen.dart';
 
 import 'magic_triangles_game.dart';
 import 'asteroid_math_game.dart';
@@ -365,6 +367,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
           child: Column(
             children: [
               _buildHeader(),
+              _buildReviewStrip(),
               _buildDifficultyPicker(),
               Expanded(
                 child: Padding(
@@ -381,6 +384,72 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
     );
   }
   
+  Widget _buildReviewStrip() {
+    return Consumer<SriService>(
+      builder: (context, sri, _) {
+        final total = sri.totalTrackedProblems;
+        if (total == 0) return const SizedBox.shrink();
+
+        final due = sri.getAvailableReviewCount();
+        final learning = sri.learningProblemCount;
+        final mastered = sri.masteredProblemCount;
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 4, 24, 4),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SriReviewScreen()),
+              ),
+              child: Semantics(
+                button: true,
+                label: due > 0
+                    ? '$due items due for review, tap to open review'
+                    : 'Review progress, tap to open',
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: (due > 0 ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple)
+                          .withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.menu_book,
+                        color: due > 0 ? SpaceTheme.starYellow : Colors.white70,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            _ReviewChip(label: 'due', value: due, highlight: due > 0),
+                            _ReviewChip(label: 'learning', value: learning),
+                            _ReviewChip(label: 'mastered', value: mastered),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right, color: Colors.white54),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildDifficultyPicker() {
     return Consumer<GameProvider>(
       builder: (context, gp, _) {
@@ -777,6 +846,41 @@ class _DifficultyButton extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ReviewChip extends StatelessWidget {
+  final String label;
+  final int value;
+  final bool highlight;
+  const _ReviewChip({
+    required this.label,
+    required this.value,
+    this.highlight = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = highlight ? SpaceTheme.starYellow : Colors.white;
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(fontSize: 13),
+        children: [
+          TextSpan(
+            text: '$value ',
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
+          ),
+          TextSpan(
+            text: label,
+            style: TextStyle(color: color.withValues(alpha: 0.7)),
+          ),
+        ],
       ),
     );
   }
