@@ -8,7 +8,7 @@ import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
-import 'sri_review_screen.dart';
+import 'karteikasten_screen.dart';
 
 import 'magic_triangles_game.dart';
 import 'asteroid_math_game.dart';
@@ -401,7 +401,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SriReviewScreen()),
+                MaterialPageRoute(builder: (_) => const KarteikastenScreen()),
               ),
               child: Semantics(
                 button: true,

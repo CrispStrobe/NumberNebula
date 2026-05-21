@@ -223,7 +223,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     SpacePath? tappedPath;
     double closestDistance = double.infinity;
     const int samples = 24;
-    final double hitRadius = kPathWidth / 2 + 14.0; // half-stripe + forgiveness
+    const double hitRadius = kPathWidth / 2 + 14.0; // half-stripe + forgiveness
 
     for (final path in availablePaths) {
       double pathMinDistance = double.infinity;

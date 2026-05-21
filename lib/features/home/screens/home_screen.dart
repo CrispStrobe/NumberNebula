@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:space_math_academy/core/services/debug_provider.dart';
 import 'package:space_math_academy/core/services/sri_service.dart';
 import 'package:space_math_academy/core/services/streak_service.dart';
-import 'package:space_math_academy/features/games/screens/sri_review_screen.dart';
+import 'package:space_math_academy/features/games/screens/karteikasten_screen.dart';
 import 'package:space_math_academy/features/games/screens/cognitive_profile_screen.dart';
 
 import 'dart:async';
@@ -302,7 +302,7 @@ class _HomeScreenState extends State<HomeScreen>
                 final btn = IconButton(
                   onPressed: () {
                     Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => const SriReviewScreen(),
+                      builder: (_) => const KarteikastenScreen(),
                     ));
                   },
                   icon: const Icon(Icons.menu_book,
