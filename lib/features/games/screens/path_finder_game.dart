@@ -52,8 +52,9 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   List<SpacePath> availablePaths = [];
   bool choosingPath = true;
 
-  // Problems attempted this session, reported once on game end.
-  final List<MathProblem> _attemptedProblems = [];
+  // Per-attempt SRI recording happens in _handleCorrectPath/_handleWrongPath,
+  // so we deliberately do not bulk-pass mathProblems to reportOutcome
+  // (which would re-record all attempts with the game's final win/loss flag).
 
   // Visual Effects
   List<SpaceParticle> particles = [];
@@ -216,19 +217,26 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
       return;
     }
 
-    // Check which path (if any) was tapped
+    // Check which path (if any) was tapped. Sample points along the whole
+    // bezier curve so taps anywhere on the visible path stripe register,
+    // not only inside the central bubble.
     SpacePath? tappedPath;
     double closestDistance = double.infinity;
+    const int samples = 24;
+    final double hitRadius = kPathWidth / 2 + 14.0; // half-stripe + forgiveness
 
     for (final path in availablePaths) {
-      final bubblePosition = path.getPointAt(0.5);
-      final distance = (tapPosition - bubblePosition).distance;
-      
-      debugPrint("[TAP DEBUG] Path ${path.answer}: bubble at $bubblePosition, distance: ${distance.toStringAsFixed(1)}");
-      
-      // Increased tap radius for better responsiveness
-      if (distance < 70.0 && distance < closestDistance) {
-        closestDistance = distance;
+      double pathMinDistance = double.infinity;
+      for (int i = 0; i <= samples; i++) {
+        final point = path.getPointAt(i / samples);
+        final d = (tapPosition - point).distance;
+        if (d < pathMinDistance) pathMinDistance = d;
+      }
+
+      debugPrint("[TAP DEBUG] Path ${path.answer}: closest point distance: ${pathMinDistance.toStringAsFixed(1)}");
+
+      if (pathMinDistance < hitRadius && pathMinDistance < closestDistance) {
+        closestDistance = pathMinDistance;
         tappedPath = path;
       }
     }
@@ -249,8 +257,6 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
       return;
     }
     debugPrint("-> Path selection ACCEPTED. Processing...");
-
-    _attemptedProblems.add(currentProblem!);
 
     HapticFeedback.lightImpact();
 
@@ -330,7 +336,9 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     problemsSolved++;
     final scoreGained = (100 * widget.grade) + (lives.floor() * 50);
     totalScore += scoreGained;
-    
+
+    context.read<SriService>().recordResponse(currentProblem!, true);
+
     try {
       context.read<GameProvider>().addScore(scoreGained);
     } catch (e) {
@@ -355,6 +363,8 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
 
   void _handleWrongPath(SpacePath path) {
     lives -= path.pathType.damage;
+
+    context.read<SriService>().recordResponse(currentProblem!, false);
 
     _addDamageEffect();
     _triggerFeedback(false);
@@ -439,7 +449,6 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
       gameType: 'pathfinder',
       difficulty: widget.level,
       score: completionBonus,
-      mathProblems: _attemptedProblems,
     ));
 
     showDialog(context: context, barrierDismissible: false, builder: (ctx) => _buildEndDialog(true));
@@ -451,7 +460,6 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'pathfinder',
       difficulty: widget.level,
-      mathProblems: _attemptedProblems,
     ));
     showDialog(context: context, barrierDismissible: false, builder: (ctx) => _buildEndDialog(false));
   }
