@@ -158,10 +158,10 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "65063cfdd1f8ba5b9205f3912e0f18a0c9f7eba5"
-      url: "https://github.com/CrispStrobe/dartCSP.git"
+      resolved-ref: "6520ed2c8cbc6c78ddc04c696d79faea18d3d02b"
+      url: "https://github.com/CrispStrobe/dart_csp.git"
     source: git
-    version: "2.0.0"
+    version: "2.1.0"
   equatable:
     dependency: "direct main"
     description:

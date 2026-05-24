@@ -57,11 +57,9 @@ A space-themed math learning app for primary school students onwards. Features e
 1.  **Clone the project**
 
     ```bash
-    git clone https://github.com/CrispStrobe/dartCSP.git
+    git clone https://github.com/CrispStrobe/space_math_academy.git
     cd space_math_academy
     ```
-
-    *(Note: Using your `dart_csp` repo as a placeholder URL)*
 
 2.  **Install dependencies**
 
