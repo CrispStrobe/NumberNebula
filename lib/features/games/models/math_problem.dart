@@ -113,21 +113,26 @@ class MathProblem {
     final random = math.Random();
     final operations = config.operationTypes;
     final range = config.numberRange;
-    final min = range['min']!;
-    final max = range['max']!;
-    
+    // Normalise the range. A custom range can arrive with min == max (the
+    // settings sliders allow it) or, defensively, min > max. Both previously
+    // crashed the subtraction branch via random.nextInt(0)/negative.
+    final lo = math.min(range['min']!, range['max']!);
+    final hi = math.max(range['min']!, range['max']!);
+
     final operation = operations[random.nextInt(operations.length)];
 
     int a, b;
 
     switch (operation) {
       case MathOperation.addition:
-        a = random.nextInt(max - min + 1) + min;
-        b = random.nextInt(max - min + 1) + min;
+        a = random.nextInt(hi - lo + 1) + lo;
+        b = random.nextInt(hi - lo + 1) + lo;
         return MathProblem.addition(a, b, difficulty: config.grade);
       case MathOperation.subtraction:
-        a = random.nextInt(max - (min + 1) + 1) + (min + 1);
-        b = random.nextInt(a - min + 1) + min;
+        // a in [lo+1, hi] when the range has room; otherwise the degenerate
+        // single value lo (yields a trivial a-a problem rather than crashing).
+        a = hi > lo ? random.nextInt(hi - lo) + (lo + 1) : lo;
+        b = random.nextInt(a - lo + 1) + lo; // b in [lo, a]
         return MathProblem.subtraction(a, b, difficulty: config.grade);
       case MathOperation.multiplication:
         final maxFactor = math.min(12, 3 + config.grade * 2);
