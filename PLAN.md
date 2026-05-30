@@ -422,8 +422,9 @@ tracked here so it isn't lost.)
   / `*_debug` files shipping as app code.
 
 ## Incidental bugs noted (fix opportunistically)
-- `robot_path_generator.dart` ~:259-260 — `math.max(3, math.min(3, …))` always
-  collapses to 3 (likely copy-paste).
+- [x] `robot_path_generator.dart` :259-260 — `math.max(3, math.min(3, …))`
+  always collapsed to 3 (path-length scaling was dead). Fixed to the intended
+  ~20%-80% obstacle band; robot_path invariant tests still green.
 - `gridlock_puzzle_generator` solver caps at 15000 nodes → can discard valid
   puzzles.
 - `skill_category.dart` — `'arithmatic_square'` typo key (matches the

@@ -256,8 +256,12 @@ class RobotPathGenerator {
     List<Obstacle> obstacles = [];
     Set<int> reservedPathIndices = {};
     
-    int startIdx = math.max(3, math.min(3, path.length ~/ 5));
-    int endIdx = math.min(path.length - 4, math.max(path.length - 3, path.length - path.length ~/ 5));
+    // Place obstacles across the middle ~20%-80% of the path (never right at
+    // the start/goal). The previous expressions collapsed to constants
+    // (startIdx==3, endIdx==path.length-4) because of redundant min/max calls,
+    // so the path-length scaling was dead.
+    int startIdx = math.max(3, path.length ~/ 5);
+    int endIdx = math.min(path.length - 4, path.length - path.length ~/ 5);
     
     int usableLength = endIdx - startIdx;
     if (usableLength <= 0 || count <= 0) return obstacles;
