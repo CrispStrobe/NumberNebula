@@ -172,15 +172,27 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     }
   }
 
+  CargoPiece _rollPiece() => CargoPiece.random(
+        numberMin,
+        numberMax,
+        gridCols,
+        // Make the math/bonus layer actually reachable: emit consecutive runs
+        // and target-sum-friendly values a good fraction of the time. The
+        // player still has to place them well to score.
+        targetSum: targetSum,
+        sequenceChance: 0.30,
+        targetSumChance: 0.30,
+      );
+
   void _spawnNewPiece() {
     setState(() {
       hasUsedHold = false;
       if (nextPiece == null) {
-        currentPiece = CargoPiece.random(numberMin, numberMax, gridCols);
-        nextPiece = CargoPiece.random(numberMin, numberMax, gridCols);
+        currentPiece = _rollPiece();
+        nextPiece = _rollPiece();
       } else {
         currentPiece = nextPiece;
-        nextPiece = CargoPiece.random(numberMin, numberMax, gridCols);
+        nextPiece = _rollPiece();
       }
 
       if (_checkCollision(currentPiece!.x, currentPiece!.y, currentPiece!.shape)) {
@@ -1929,9 +1941,19 @@ class CargoPiece {
 
   CargoPiece({required this.x, required this.y, required this.shape, required this.cubes});
 
-  static CargoPiece random(int minValue, int maxValue, int gridCols) {
+  static CargoPiece random(
+    int minValue,
+    int maxValue,
+    int gridCols, {
+    // When set, [targetSumChance] of pieces are biased so a full row can reach
+    // this sum; [sequenceChance] of pieces are emitted as a consecutive run.
+    // Defaults keep the legacy pure-uniform behaviour.
+    int? targetSum,
+    double sequenceChance = 0.0,
+    double targetSumChance = 0.0,
+  }) {
     final random = math.Random();
-    
+
     final shapes = [
       [[false, false, false, false], [true, true, true, true], [false, false, false, false], [false, false, false, false]],
       [[true, true], [true, true]],
@@ -1941,29 +1963,92 @@ class CargoPiece {
       [[false, true, true], [true, true, false], [false, false, false]],
       [[true, true, false], [false, true, true], [false, false, false]],
     ];
-    
+
     final colors = [
       Colors.cyan.shade300, Colors.yellow.shade400, Colors.purple.shade300, Colors.orange.shade400,
       Colors.blue.shade300, Colors.green.shade300, Colors.red.shade300,
     ];
-    
+
     final shapeIndex = random.nextInt(shapes.length);
     final shape = shapes[shapeIndex];
     final color = colors[shapeIndex % colors.length];
-    
-    final cubes = List.generate(shape.length, (i) => List.generate(shape[i].length, (j) {
-        if (shape[i][j]) {
-          return CargoCube(value: minValue + random.nextInt(maxValue - minValue + 1), color: color);
-        }
-        return null;
-    }));
-    
+
+    // Values for the filled cells, in row-major order.
+    final filledCount =
+        shape.fold<int>(0, (n, row) => n + row.where((c) => c).length);
+    final values = _pieceValues(
+      random,
+      minValue,
+      maxValue,
+      gridCols,
+      filledCount,
+      targetSum: targetSum,
+      sequenceChance: sequenceChance,
+      targetSumChance: targetSumChance,
+    );
+
+    var k = 0;
+    final cubes = List.generate(
+        shape.length,
+        (i) => List.generate(shape[i].length, (j) {
+              if (shape[i][j]) {
+                return CargoCube(value: values[k++], color: color);
+              }
+              return null;
+            }));
+
     return CargoPiece(
       x: (gridCols ~/ 2) - (shape[0].length ~/ 2),
       y: -2,
       shape: shape,
       cubes: cubes,
     );
+  }
+
+  /// Builds the [count] cube values for a piece's filled cells.
+  ///
+  /// The legacy generator drew every value i.i.d. uniform over [min,max], which
+  /// is decoupled from the game's whole point — the targetSum / consecutive /
+  /// doubling / fibonacci bonuses essentially never fired by chance. We now,
+  /// with the given probabilities, emit values that give the player a real shot
+  /// at those bonuses:
+  ///   * a consecutive run (n, n+1, ... or reversed) for the sequence bonuses;
+  ///   * values clustered around targetSum/gridCols so a row can hit the target.
+  /// Every returned value is guaranteed to lie within [min,max] (so the
+  /// arithmetic stays valid and the unit-test invariant holds).
+  static List<int> _pieceValues(
+    math.Random random,
+    int min,
+    int max,
+    int gridCols,
+    int count, {
+    int? targetSum,
+    double sequenceChance = 0.0,
+    double targetSumChance = 0.0,
+  }) {
+    final span = max - min + 1;
+    final roll = random.nextDouble();
+
+    // Consecutive run — only when the range is wide enough to hold one.
+    if (roll < sequenceChance && count >= 1 && span >= count) {
+      final start = min + random.nextInt(span - count + 1);
+      final run = List.generate(count, (i) => start + i);
+      return random.nextBool() ? run.reversed.toList() : run;
+    }
+
+    // Target-sum biasing: cluster around the per-cell average for a full row.
+    if (targetSum != null &&
+        gridCols > 0 &&
+        roll < sequenceChance + targetSumChance) {
+      final center = (targetSum / gridCols).round().clamp(min, max);
+      return List.generate(count, (_) {
+        final v = center + (random.nextInt(3) - 1); // center +/- 1
+        return v.clamp(min, max);
+      });
+    }
+
+    // Default: uniform over the full range.
+    return List.generate(count, (_) => min + random.nextInt(span));
   }
 }
 

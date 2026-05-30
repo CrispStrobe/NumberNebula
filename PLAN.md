@@ -403,14 +403,24 @@ levels:
 
 Result: `flutter analyze` clean, full suite **354 tests** passing.
 
-## C. Cargo *Bay* Arranger — separate generator (Tetris-with-numbers)
+## C. Cargo *Bay* Arranger — separate generator (Tetris-with-numbers) — DONE
 Distinct game (`cargo_bay_arranger_game.dart`), confusingly similar name. Its
-piece generator draws **every cube value as i.i.d. uniform noise** (`:1956`),
-decoupled from `targetSum` and the 13 math-bonus types — so the entire math/
-bonus layer the game is built around almost never fires. Fix later:
-target-/sequence-aware value sampling, optional `dart_csp`-backed "fill row to
-targetSum" piece generation, seeded 7-bag. (Not part of the StarLoader work;
-tracked here so it isn't lost.)
+piece generator drew **every cube value as i.i.d. uniform noise**, decoupled
+from `targetSum` and the 13 math-bonus types — so the entire math/bonus layer
+the game is built around almost never fired.
+- [x] `CargoPiece.random` now does **target-/sequence-aware value sampling**
+  behind optional params (`targetSum`, `sequenceChance`, `targetSumChance`;
+  defaults preserve the legacy uniform behaviour and the test's 3-arg
+  signature). With probability it emits a piece as a consecutive run (feeds the
+  consecutive/sequence bonuses) or clusters values around `targetSum/gridCols`
+  (so a row can actually hit the target). All values stay within `[min,max]`.
+- [x] `_spawnNewPiece` activates it (`sequenceChance: 0.30, targetSumChance:
+  0.30`) for the current/next/hold rolls via a new `_rollPiece()` helper.
+- [x] Tests added proving consecutive runs, target-sum clustering, and that a
+  degenerate range still produces only its single value.
+- [ ] Deferred (optional): seeded 7-bag for fair shape distribution +
+  reproducible daily runs; `dart_csp`-backed board-aware "fill the open row to
+  targetSum" generation for higher grades.
 
 ## D. Dead code in `lib/` to remove/relocate
 - [x] StarLoader dead scripts removed (see the StarLoader section above):

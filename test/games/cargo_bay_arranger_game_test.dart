@@ -186,4 +186,61 @@ void main() {
       expect(a.shouldRepaint(diffIntensity), isTrue);
     });
   });
+
+  group('CargoPiece.random structured sampling (bonus-reachability fix)', () {
+    // Reads a piece's filled-cell values in row-major order.
+    List<int> filledValues(CargoPiece p) {
+      final out = <int>[];
+      for (var i = 0; i < p.shape.length; i++) {
+        for (var j = 0; j < p.shape[i].length; j++) {
+          if (p.shape[i][j]) out.add(p.cubes[i][j]!.value);
+        }
+      }
+      return out;
+    }
+
+    test('sequenceChance:1.0 always yields a consecutive run (±1 monotonic)',
+        () {
+      for (var iter = 0; iter < 200; iter++) {
+        final p = CargoPiece.random(1, 9, 8, sequenceChance: 1.0);
+        final vals = filledValues(p);
+        expect(vals, isNotEmpty);
+        // Wide range (1..9) always fits a run for any piece (<=4 cells), so the
+        // values must step by exactly +1 or exactly -1 throughout.
+        if (vals.length >= 2) {
+          final step = vals[1] - vals[0];
+          expect(step.abs(), 1, reason: 'not a unit step: $vals');
+          for (var k = 1; k < vals.length; k++) {
+            expect(vals[k] - vals[k - 1], step, reason: 'not monotonic: $vals');
+          }
+        }
+        // Still in range.
+        for (final v in vals) {
+          expect(v, inInclusiveRange(1, 9));
+        }
+      }
+    });
+
+    test('targetSumChance:1.0 clusters values near targetSum/gridCols', () {
+      // center = round(80/8) = 10, clamped into [1,20]; values land in 9..11.
+      for (var iter = 0; iter < 200; iter++) {
+        final p = CargoPiece.random(1, 20, 8,
+            targetSum: 80, sequenceChance: 0.0, targetSumChance: 1.0);
+        for (final v in filledValues(p)) {
+          expect(v, inInclusiveRange(9, 11),
+              reason: 'value $v not clustered near center 10');
+        }
+      }
+    });
+
+    test('structured sampling still respects a degenerate range', () {
+      for (var iter = 0; iter < 50; iter++) {
+        final p = CargoPiece.random(7, 7, 8,
+            targetSum: 56, sequenceChance: 0.5, targetSumChance: 0.5);
+        for (final v in filledValues(p)) {
+          expect(v, 7);
+        }
+      }
+    });
+  });
 }
