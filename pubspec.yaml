@@ -43,8 +43,15 @@ dependencies:
   # Math & Physics
   vector_math: ^2.1.4
   dart_csp:
-    git: https://github.com/CrispStrobe/dart_csp.git
-  
+    git:
+      url: https://github.com/CrispStrobe/dart_csp.git
+      # Pin to a stable tag. The old lockfile resolved-ref pointed at a commit
+      # that no longer exists after the repo was force-pushed (dartCSP ->
+      # dart_csp migration), so Vercel's clean `flutter pub get` failed
+      # ("Could not find pubspec.yaml in ...") while local builds kept working
+      # from the pub cache. A tag is immune to that.
+      ref: v2.2.0
+
   # Development
   flutter_launcher_icons: ^0.13.1
 

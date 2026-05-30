@@ -422,6 +422,23 @@ the game is built around almost never fired.
   reproducible daily runs; `dart_csp`-backed board-aware "fill the open row to
   targetSum" generation for higher grades.
 
+## E. Vercel deployment — git-integrated build was failing
+The `spacemath` Vercel project (→ `space-math-academy.vercel.app`) builds
+Flutter on Vercel from GitHub. Recent branch builds errored after ~50s:
+`Could not find a file named "pubspec.yaml" in
+https://github.com/CrispStrobe/dart_csp.git 6520ed2...`.
+- Root cause: `pubspec.lock` pinned `dart_csp` to commit `6520ed2`, which **no
+  longer exists** (the repo was force-pushed in the dartCSP → CrispStrobe/
+  dart_csp migration). Local builds kept working from the pub cache; Vercel's
+  clean clone could not fetch the dangling SHA.
+- [x] Fixed by pinning `dart_csp` to the stable **`v2.2.0`** tag in
+  `pubspec.yaml` and re-resolving `pubspec.lock` (resolved-ref now `9739dc4`,
+  a live commit). `flutter analyze` clean (no v2.1→v2.2 API breakage).
+- Note: there are **two** Vercel projects for this app — `spacemathacademy`
+  (CLI/static deploy via `deploy.sh`, linked in `.vercel/`, working) and
+  `spacemath` (git-integrated, the one that was failing). Worth consolidating
+  to one to avoid confusion (not done — needs a product decision).
+
 ## D. Dead code in `lib/` to remove/relocate
 - [x] StarLoader dead scripts removed (see the StarLoader section above):
   `starloader_level_generator_1/2`, `starloader_generator_debug`,
@@ -439,5 +456,10 @@ the game is built around almost never fired.
   puzzles.
 - `skill_category.dart` — `'arithmatic_square'` typo key (matches the
   typo'd filename, so functionally fine, but worth normalizing).
-- `math_problem.generateProblem` can silently fall through to a mastered
-  problem after 20 retries; subtraction range math throws if `max < min+1`.
+- [x] `math_problem._generateFromConfig` subtraction threw `RangeError`
+  (`nextInt(0)`) when a custom range had `min == max` (settable via the
+  settings sliders) and subtraction was active — crashed every game that calls
+  `generateProblem`. Fixed by normalising the range + guarding the degenerate
+  case; regression test in `test/logic/math_problem_generate_test.dart`.
+- The 20-retry mastered-problem fall-through is intentional (avoids an infinite
+  loop); left as-is — not a bug.
