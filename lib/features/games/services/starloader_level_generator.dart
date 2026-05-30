@@ -4,6 +4,8 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'starloader_solver.dart';
+
 // ==========================================
 // 1. CLI Entry Point & Visualization Logic
 // ==========================================
@@ -235,8 +237,18 @@ class LevelGenerator {
     int? numGenSteps,
     double pChangeDirection = 0.35,
     int maxTries = 10,
-    // --- ADD THIS PARAMETER ---
-    int minMoves = 0, 
+    // Cheap pre-filter on the reverse-play heuristic score (boxSwaps *
+    // displacement). Kept for backward compatibility; the real difficulty gate
+    // below is [minOptimalPushes].
+    int minMoves = 0,
+    // Real difficulty gate: reject a candidate unless the push-optimal solver
+    // proves it solvable in at least this many pushes. The legacy score is a
+    // weak proxy that rewards boxes sitting far away in a straight line — the
+    // most boring level — so we now verify with an actual Sokoban solver.
+    int minOptimalPushes = 0,
+    // Node budget for the per-candidate solve. A candidate the solver cannot
+    // resolve within budget is treated as "probably hard" and accepted.
+    int solverNodeBudget = 40000,
   }) {
     _log('Starting level generation ($dimX x $dimY, $numBoxes boxes)...');
     numGenSteps ??= (1.7 * (dimX + dimY)).round();
@@ -246,7 +258,7 @@ class LevelGenerator {
       try {
         List<List<int>> room =
             _generateTopology(dimX, dimY, numGenSteps, pChangeDirection);
-        
+
         // Ensure connectivity
         room = _ensureConnectivity(room);
 
@@ -257,32 +269,47 @@ class LevelGenerator {
 
         final result = _reversePlaying(roomState, roomStructure, numBoxes);
 
-        // --- ADD THIS CHECK ---
-        // Verify both solvability (>0) and complexity (>= minMoves)
-        if (result.score > 0 && result.score >= minMoves) {
-          _log('✅ Success! Found valid level with score: ${result.score}');
-          final cleanedState = _cleanupBoxesOnTargets(result.room);
-
-          final level = GeneratedLevel(
-            roomStructure: roomStructure,
-            roomState: cleanedState,
-            boxMapping: result.boxMapping,
-            optimalMoves: result.score,
-          );
-          
-          if (_verbose) {
-            _log('\n${level.toLayoutString()}');
-          }
-
-          return level;
-        } else {
-          // Log specific failure reason
-          if (result.score <= 0) {
-            _log('⚠️ Failed attempt. Reverse play failed (score ${result.score}). Retrying...');
-          } else {
-             _log('⚠️ Level too trivial (Score: ${result.score} < Min: $minMoves). Retrying...');
-          }
+        // Cheap pre-filter: skip candidates the heuristic deems trivial.
+        if (result.score <= 0 || result.score < minMoves) {
+          _log('⚠️ Heuristic reject (score ${result.score} < min $minMoves). Retrying...');
+          continue;
         }
+
+        final cleanedState = _cleanupBoxesOnTargets(result.room);
+
+        // Authoritative check: solve forward for the TRUE optimal push count.
+        // This both (a) discards levels the buggy reverse-play can emit that
+        // are actually unsolvable forward, and (b) yields a meaningful
+        // difficulty number to store as optimalMoves.
+        final solve = StarloaderSolver.fromGrids(roomStructure, cleanedState)
+            .solve(nodeBudget: solverNodeBudget);
+
+        if (!solve.solved && !solve.exhausted) {
+          _log('⚠️ Solver proved candidate UNSOLVABLE. Retrying...');
+          continue;
+        }
+        // Real push count when solved; fall back to the heuristic score when
+        // the solver ran out of budget (level is large/hard — accept it).
+        final realPushes = solve.solved ? solve.pushes! : result.score;
+        if (solve.solved && realPushes < minOptimalPushes) {
+          _log('⚠️ Too easy: $realPushes pushes < min $minOptimalPushes. Retrying...');
+          continue;
+        }
+
+        _log('✅ Success! Solvable in $realPushes pushes '
+            '(heuristic score ${result.score}).');
+        final level = GeneratedLevel(
+          roomStructure: roomStructure,
+          roomState: cleanedState,
+          boxMapping: result.boxMapping,
+          optimalMoves: realPushes,
+        );
+
+        if (_verbose) {
+          _log('\n${level.toLayoutString()}');
+        }
+
+        return level;
       } catch (e) {
         _log('⚠️ Error during attempt ${attempt + 1}: $e. Retrying...');
         continue;
@@ -577,11 +604,16 @@ class LevelGenerator {
       structure[startRow][dimY - 3 - i] = TARGET;
       state[startRow][3 + i] = BOX;
     }
+    // Report the true push count so the in-game efficiency stat stays honest;
+    // fall back to a positive heuristic if the solver can't resolve it.
+    final solve =
+        StarloaderSolver.fromGrids(structure, state).solve(nodeBudget: 40000);
+    final pushes = solve.solved ? solve.pushes! : numBoxes * (dimY - 6);
     return GeneratedLevel(
       roomStructure: structure,
       roomState: state,
       boxMapping: {},
-      optimalMoves: numBoxes * (dimY - 6),
+      optimalMoves: pushes < 1 ? 1 : pushes,
     );
   }
 }

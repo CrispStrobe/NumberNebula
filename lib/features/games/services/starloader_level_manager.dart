@@ -4,6 +4,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/starloader_level_model.dart';
@@ -61,8 +62,35 @@ class StarLoaderLevelManager {
       _database = LevelDatabase.empty();
     }
 
+    // C. Merge the shipped, solver-verified level pool (in-memory; not
+    // persisted to the local file). These are the curated levels — runtime
+    // generation is only a fallback when the pool runs dry.
+    await _mergeBundledLevels();
+
     _printDiagnostics();
     _initialized = true;
+  }
+
+  /// Loads the pre-baked asset pool and merges any levels not already present
+  /// (deduped by physical layout via `contentHash`). Safe to call even when the
+  /// asset is missing or unreadable.
+  Future<void> _mergeBundledLevels() async {
+    try {
+      final raw = await rootBundle.loadString('assets/data/starloader_levels.json');
+      final bundled = LevelDatabase.fromJson(jsonDecode(raw));
+      final existing = _database.levels.map((l) => l.contentHash).toSet();
+      var added = 0;
+      for (final lvl in bundled.levels) {
+        if (existing.add(lvl.contentHash)) {
+          _database.levels.add(lvl);
+          added++;
+        }
+      }
+      print('📦 [Manager] Merged $added bundled levels '
+          '(${bundled.levels.length} in asset).');
+    } catch (e) {
+      print('⚠️ [Manager] Could not load bundled levels: $e');
+    }
   }
 
   /// 2. GET LEVEL: DB First -> Fallback to Generate -> Save -> Return
@@ -198,17 +226,21 @@ class StarLoaderLevelManager {
   }
 
   LevelEntry _generateRealTimeEntry(int grade, int level) {
-    int dimX, dimY, numBoxes;
-    if (grade == 1) { dimX = 7; dimY = 7; numBoxes = 2; }
-    else if (grade == 2) { dimX = 8; dimY = 8; numBoxes = 2; }
-    else if (grade == 3) { dimX = 10; dimY = 10; numBoxes = 3; }
-    else { dimX = 12; dimY = 11; numBoxes = 4; }
-    numBoxes += (level ~/ 5).clamp(0, 1);
+    int dimX, dimY, numBoxes, minPushes;
+    if (grade == 1) { dimX = 7; dimY = 7; numBoxes = 2; minPushes = 6; }
+    else if (grade == 2) { dimX = 8; dimY = 8; numBoxes = 3; minPushes = 9; }
+    else if (grade == 3) { dimX = 10; dimY = 10; numBoxes = 3; minPushes = 13; }
+    else { dimX = 12; dimY = 11; numBoxes = 4; minPushes = 17; }
+    // Scale box interaction with level progression (capped so generation stays
+    // feasible). More boxes => more forced ordering => harder puzzles.
+    numBoxes += (level ~/ 4).clamp(0, 2);
 
     final genResult = _realTimeGenerator.generateLevel(
-      dimX: dimX, dimY: dimY, numBoxes: numBoxes, 
-      maxTries: 15,
-      minMoves: 8, 
+      dimX: dimX, dimY: dimY, numBoxes: numBoxes,
+      maxTries: 20,
+      // Real difficulty gate: require a genuinely non-trivial push-optimal
+      // solution rather than the old boxSwaps*displacement proxy.
+      minOptimalPushes: minPushes,
     );
 
     return LevelEntry(

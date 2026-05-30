@@ -292,3 +292,141 @@ Picking off three at a time. Current focus:
 3. **#3 voc audio decision** (next)
 
 Then re-evaluate.
+
+---
+
+# Audit 2026-05-30 — Test coverage + Cargo-Loader generator
+
+Second audit pass, focused on (a) the near-total absence of functional unit
+tests and (b) the Cargo-Loader puzzle generator producing dull levels.
+
+## A. Test coverage — current state
+
+- 100 `lib/` Dart files, ~79k LoC of game logic. **5 test files, all of them
+  contract guards** (text-grep checks: menu key ↔ `gameSkillMap`, every game
+  calls `recordLevelWin`, provider-tree completeness). **Zero functional tests
+  of game logic.**
+- CI (`.github/workflows/ci.yml`) already runs `flutter analyze --fatal-infos`
+  + `flutter test`, so any tests we add are enforced on every push/PR.
+- Large amount of logic is **pure Dart and unit-testable today** (most just
+  need a seeded `Random` and tolerance for `debugPrint`). The blockers for a
+  few are `DateTime.now()` / `SharedPreferences.getInstance()` called inline
+  (testable via `SharedPreferences.setMockInitialValues`; time needs a small
+  DI seam to test boundaries precisely).
+
+### [x] T1. Seed a real unit-test suite (one file per game + architecture)
+Fan-out of 33 workers (25 games + 8 core modules), each writing & self-
+verifying one test file under `test/logic/` (core) or `test/games/` (games).
+Policy: real logic unit tests where pure logic exists; robust widget
+build/smoke test otherwise; **skip-with-reason** (no flaky red) where a screen
+can't be instantiated in a harness (audio/TTS/sqflite/asset coupling) and has
+no extractable logic. Workers do **not** modify `lib/`. Highest-value targets:
+- `game_provider` — `reportOutcome` / `canAdvanceToNextLevel` / 3-wins-AND-
+  mastery gate (the highest-risk untested logic; already DI-friendly).
+- `sri_service` — SM-2 EF adjustment, interval scheduling, mastery criteria.
+- `streak_service` — day-boundary rollover, idempotency, persistence.
+- `cognitive_profile_service`, `progress_service`, `math_problem`,
+  `game_outcome`, `skill_category`.
+- Generator/solver invariant tests: codebreaker, arithmancer crosswords,
+  magic-triangle, robot-path, **starloader**, gridlock, arithmancer-duel.
+
+### [ ] T2. Add `DateTime Function() getNow` injection to time-dependent services
+`SriService` and `StreakService` call `DateTime.now()` inline, so day-boundary
+/ interval behavior can't be tested deterministically. ~5-line constructor
+seam each (default `DateTime.now`) unlocks precise tests. Deferred until after
+T1 so we don't churn the freshly-written tests.
+
+## B. Cargo-Loader (StarLoader) — Sokoban generator overhaul
+
+Player-facing "Cargo-Loader" = `star_loader_game.dart` (StarLoader), a standard
+**push-only Sokoban** (`_movePlayer` :354, win = all targets covered :448). The
+math framing is cosmetic; boxes carry no numbers. Live generator is
+`starloader_level_generator.dart` (reverse-play DFS). Root causes of boring
+levels:
+
+1. **Broken difficulty metric** — `score = boxSwaps × displacement`
+   (`:432`), where `displacement` = summed **Manhattan distance to goal**
+   (`:478`). This *rewards boxes being far from goals in a straight line* — the
+   most boring case (shove straight across open floor). Measures nothing about
+   direction changes, box-on-box interaction, or forced ordering.
+2. **No real solver** — true optimal push count is never computed, so the
+   generator can't filter for difficulty and the in-game efficiency bonus
+   (`:503`) is based on a meaningless number.
+3. **Greedy single-best state** biases toward the long-straight-slide config.
+4. **Rooms too open** (`_generateTopology` :296 stamps blobby masks incl. 2×2);
+   deadlock detection that existed in a dead variant was dropped.
+5. **Box count barely grows** (`manager.dart:206`: +1 ever, caps at 4).
+6. **The 64 hand-verified baked levels in `assets/data/starloader_levels.json`
+   are never loaded** — manager says "ignore assets" (`manager.dart:27`) and
+   only serves freshly-generated weak levels. JSON shape already matches
+   `LevelDatabase.fromJson`; asset already declared in pubspec.
+7. **Trivial fallback** — `_createFallbackLevel` (:566) ships a straight-line
+   push corridor when generation fails `maxTries`.
+
+`dart_csp` is **not** applicable (Sokoban is sequential planning, not CSP).
+
+### Fix plan (this is the "start with starloader" work) — DONE
+- [x] **S2. Push-optimal solver.** New `starloader_solver.dart`: A* over
+  (normalised-player-region, box-config) with dead-square precomputation +
+  frozen-box deadlock pruning, bounded node budget. Pure Dart. Returns the true
+  minimum push count and proves unsolvable/budget-exhausted.
+- [x] **S3. Real difficulty metric + acceptance.** Generator now runs the solver
+  on each candidate: rejects proven-unsolvable levels (the buggy reverse-play
+  could emit them — one such level was even in the shipped asset) and stores the
+  TRUE optimal push count in `optimalMoves`. New `minOptimalPushes` gate +
+  bounded `solverNodeBudget`; budget-exhausted levels are accepted as "probably
+  hard." Fallback level is now solver-verified too.
+- [x] **S1. Load the baked pool.** `StarLoaderLevelManager.initialize()` now
+  loads `assets/data/starloader_levels.json` via `rootBundle` and merges it into
+  the pool (deduped by `contentHash`, in-memory). Runtime generation is
+  fallback-only.
+- [x] **Offline re-bake.** New `tool/bake_starloader_levels.dart` re-scored the
+  64 shipped "verified" levels with the solver and **dropped 1 unsolvable + 49
+  trivial** (only 14 survived — ~78 % of the old pool was junk by the real
+  metric, which had stored `optimalMoves` up to 1269 for ≤25-push levels), then
+  topped each grade up to 20 fresh solver-verified levels (**80 total**) with
+  honest, grade-scaled push counts: g1 6–9, g2 9–16, g3 13–20, g4 17–39.
+- [x] **S4. Scale box count** with level progression in
+  `_generateRealTimeEntry`; the trivial straight-corridor fallback is now
+  solver-verified (reports real pushes) rather than shipping a fake score.
+- [x] **S5. Tests.** `test/games/starloader_solver_test.dart` (deterministic
+  push counts, corner/frozen deadlocks, dead-square map, + an asset-integrity
+  guard asserting every shipped level is solvable, `optimalMoves` == solver
+  optimal, and above its grade floor). The pre-existing generator-invariant test
+  still passes and now implicitly covers solvability.
+- [x] **Dead code.** Removed the 6 dead StarLoader CLI scripts + the unused
+  alternate model from `lib/` (`starloader_level_generator_1/2`,
+  `starloader_generator_debug`, `starloader_puzzle_debug`,
+  `test_starloader_levels`, `starloader_db_generator`,
+  `models/starloader_level_database`). 0 live importers; superseded by the new
+  solver + bake tool.
+
+Result: `flutter analyze` clean, full suite **354 tests** passing.
+
+## C. Cargo *Bay* Arranger — separate generator (Tetris-with-numbers)
+Distinct game (`cargo_bay_arranger_game.dart`), confusingly similar name. Its
+piece generator draws **every cube value as i.i.d. uniform noise** (`:1956`),
+decoupled from `targetSum` and the 13 math-bonus types — so the entire math/
+bonus layer the game is built around almost never fires. Fix later:
+target-/sequence-aware value sampling, optional `dart_csp`-backed "fill row to
+targetSum" piece generation, seeded 7-bag. (Not part of the StarLoader work;
+tracked here so it isn't lost.)
+
+## D. Dead code in `lib/` to remove/relocate
+- [x] StarLoader dead scripts removed (see the StarLoader section above):
+  `starloader_level_generator_1/2`, `starloader_generator_debug`,
+  `starloader_puzzle_debug`, `test_starloader_levels`, `starloader_db_generator`,
+  `models/starloader_level_database`.
+- [ ] Still in `lib/`: `services/test_robot_path_generator.dart` (CLI scratch,
+  0 live importers) — delete or move to `tool/`. Sweep for any other `test_*`
+  / `*_debug` files shipping as app code.
+
+## Incidental bugs noted (fix opportunistically)
+- `robot_path_generator.dart` ~:259-260 — `math.max(3, math.min(3, …))` always
+  collapses to 3 (likely copy-paste).
+- `gridlock_puzzle_generator` solver caps at 15000 nodes → can discard valid
+  puzzles.
+- `skill_category.dart` — `'arithmatic_square'` typo key (matches the
+  typo'd filename, so functionally fine, but worth normalizing).
+- `math_problem.generateProblem` can silently fall through to a mastered
+  problem after 20 retries; subtraction range math throws if `max < min+1`.
