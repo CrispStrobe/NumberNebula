@@ -434,10 +434,14 @@ https://github.com/CrispStrobe/dart_csp.git 6520ed2...`.
 - [x] Fixed by pinning `dart_csp` to the stable **`v2.2.0`** tag in
   `pubspec.yaml` and re-resolving `pubspec.lock` (resolved-ref now `9739dc4`,
   a live commit). `flutter analyze` clean (no v2.1→v2.2 API breakage).
-- Note: there are **two** Vercel projects for this app — `spacemathacademy`
-  (CLI/static deploy via `deploy.sh`, linked in `.vercel/`, working) and
-  `spacemath` (git-integrated, the one that was failing). Worth consolidating
-  to one to avoid confusion (not done — needs a product decision).
+- [x] **Consolidated to one project with git auto-deploy.** Connected the
+  GitHub repo to `spacemathacademy` (`vercel git connect`), added a
+  version-controlled `vercel.json` (clone Flutter 3.38.5 → `pub get` → `build
+  web --release`, output `build/web`, SPA rewrite to `index.html`), and proved
+  a push-triggered build goes live (full 3-min Flutter build, all assets 200,
+  deep links 200). Then deleted the redundant `spacemath` project and retired
+  `deploy.sh` (manual CLI deploy superseded by git auto-deploy). Canonical URL:
+  **`spacemathacademy.vercel.app`**; pushes to `main` now auto-deploy.
 
 ## D. Dead code in `lib/` to remove/relocate
 - [x] StarLoader dead scripts removed (see the StarLoader section above):
