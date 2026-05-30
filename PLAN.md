@@ -442,6 +442,9 @@ https://github.com/CrispStrobe/dart_csp.git 6520ed2...`.
   deep links 200). Then deleted the redundant `spacemath` project and retired
   `deploy.sh` (manual CLI deploy superseded by git auto-deploy). Canonical URL:
   **`spacemathacademy.vercel.app`**; pushes to `main` now auto-deploy.
+- [x] Captured screenshots from the web build (home, Mission Control menu,
+  Asteroid Hunter gameplay) into `docs/screenshots/` and added a Screenshots
+  section + live-demo link to `README.md`.
 
 ## D. Dead code in `lib/` to remove/relocate
 - [x] StarLoader dead scripts removed (see the StarLoader section above):

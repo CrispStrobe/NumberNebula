@@ -3,6 +3,20 @@
 
 A space-themed math learning app for primary school students onwards. Features engaging mini-games including Magic Triangles, arithmetic puzzles, and visual spatial games.
 
+**🌐 Live demo (web build):** [spacemathacademy.vercel.app](https://spacemathacademy.vercel.app) — auto-deployed from `main`.
+
+## 📱 Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/home.png" width="30%" alt="Home screen" />
+  &nbsp;
+  <img src="docs/screenshots/game-menu.png" width="30%" alt="Mission Control game menu" />
+  &nbsp;
+  <img src="docs/screenshots/asteroid-hunter.png" width="30%" alt="Asteroid Hunter gameplay" />
+</p>
+
+<p align="center"><sub>Home · Mission Control menu · Asteroid Hunter gameplay (captured from the Flutter web build)</sub></p>
+
 ## ✨ Features
 
 ### 🎮 Mini Games
