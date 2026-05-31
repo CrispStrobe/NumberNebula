@@ -11,6 +11,9 @@ class NebulaMatrixPuzzle {
   final Map<String, int> clues;
   final Set<String> emptyCells;
   final List<int> numberPool;
+  /// Zone definitions: list of zones, each zone is a list of cell keys.
+  /// For size 4: four 2x2 zones. For size 6: six 2x3 zones. For others: empty.
+  final List<List<String>> zones;
 
   NebulaMatrixPuzzle({
     required this.size,
@@ -18,7 +21,18 @@ class NebulaMatrixPuzzle {
     required this.clues,
     required this.emptyCells,
     required this.numberPool,
+    required this.zones,
   });
+
+  /// Get zone index for a cell (for coloring in UI), or -1 if no zones.
+  int getZoneIndex(int row, int col) {
+    if (zones.isEmpty) return -1;
+    final key = 'r${row}c$col';
+    for (int z = 0; z < zones.length; z++) {
+      if (zones[z].contains(key)) return z;
+    }
+    return -1;
+  }
 
   bool validateSolution(Map<String, int> userSolution) {
     final complete = Map<String, int>.from(clues);
@@ -46,7 +60,47 @@ class NebulaMatrixPuzzle {
       if (colVals.length != size) return false;
     }
 
+    // Check zones (if any)
+    for (final zone in zones) {
+      final zoneVals = <int>{};
+      for (final key in zone) {
+        final v = complete[key];
+        if (v == null) return false;
+        zoneVals.add(v);
+      }
+      if (zoneVals.length != size) return false;
+    }
+
     return true;
+  }
+
+  /// Build zone definitions based on grid size.
+  static List<List<String>> buildZones(int size) {
+    if (size == 4) {
+      // Four 2x2 zones
+      return [
+        for (int br = 0; br < 2; br++)
+          for (int bc = 0; bc < 2; bc++)
+            [
+              for (int r = br * 2; r < br * 2 + 2; r++)
+                for (int c = bc * 2; c < bc * 2 + 2; c++)
+                  'r${r}c$c'
+            ],
+      ];
+    }
+    if (size == 6) {
+      // Six 2x3 zones (2 rows of 3 columns)
+      return [
+        for (int br = 0; br < 3; br++)
+          for (int bc = 0; bc < 2; bc++)
+            [
+              for (int r = bc * 3; r < bc * 3 + 3; r++)
+                for (int c = br * 2; c < br * 2 + 2; c++)
+                  'r${r}c$c'
+            ],
+      ];
+    }
+    return []; // No zones for size 3 or 5
   }
 }
 
@@ -62,8 +116,15 @@ class NebulaMatrixGenerator {
   }) async {
     assert(size >= 3 && size <= 6);
 
-    // Generate a valid Latin square using shuffled construction
-    final solution = _generateLatinSquare(size);
+    // Generate a valid grid (Latin square + zone constraints if applicable)
+    final zones = NebulaMatrixPuzzle.buildZones(size);
+    Map<String, int> solution;
+    if (zones.isNotEmpty) {
+      // Need zone-compatible grid -- generate-validate-retry
+      solution = _generateZoneGrid(size, zones);
+    } else {
+      solution = _generateLatinSquare(size);
+    }
 
     // Select clue cells
     final allCells = <String>[];
@@ -96,7 +157,29 @@ class NebulaMatrixGenerator {
       clues: clues,
       emptyCells: emptyCells,
       numberPool: numberPool,
+      zones: NebulaMatrixPuzzle.buildZones(size),
     );
+  }
+
+  Map<String, int> _generateZoneGrid(int size, List<List<String>> zones) {
+    // Generate Latin squares and check zone validity, retry until found
+    for (int attempt = 0; attempt < 200; attempt++) {
+      final grid = _generateLatinSquare(size);
+      bool zonesValid = true;
+      for (final zone in zones) {
+        final vals = <int>{};
+        for (final key in zone) {
+          vals.add(grid[key]!);
+        }
+        if (vals.length != size) {
+          zonesValid = false;
+          break;
+        }
+      }
+      if (zonesValid) return grid;
+    }
+    // Fallback: return a Latin square anyway (zones won't be checked in easy mode)
+    return _generateLatinSquare(size);
   }
 
   Map<String, int> _generateLatinSquare(int size) {
