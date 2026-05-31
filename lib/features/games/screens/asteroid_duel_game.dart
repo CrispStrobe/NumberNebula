@@ -298,11 +298,17 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
                 level: widget.level,
                 onBack: () => Navigator.of(context).pop(),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.4)),
+                ),
                 child: Text(
                   s.asteroidDuelInstructions(_maxPerTurn),
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 15, color: SpaceTheme.starYellow),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -407,7 +413,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
           final maxCellW = (gridConstraints.maxWidth - 32) / cols;
           final rows = (_remaining / cols).ceil().clamp(1, 10);
           final maxCellH = (gridConstraints.maxHeight - 32) / rows;
-          final cellSize = math.min(maxCellW, maxCellH).clamp(30.0, 55.0);
+          final cellSize = math.min(maxCellW, maxCellH).clamp(35.0, 70.0);
 
           return AnimatedBuilder(
             animation: _glowAnimation,
