@@ -61,3 +61,15 @@ Captured 2026-05-31 ~17:30 UTC from live testing session.
 - Many games rely on keyboard TextField which doesn't work well on mobile/tablet
 - All number inputs should offer slider/roller/tap alternatives
 - HitTestBehavior.opaque may be needed on ALL GestureDetectors for Flutter web
+
+## Additional Issues (latest feedback)
+
+- **Hive Station**: fixed back to 100% hints (was unsolvable with partial hints)
+- **Xenobiology Lab**: sliders make it trial-and-error not a riddle. Should use number input with submit, no auto-feedback. The MATH (system of equations) should be the puzzle.
+- **Nebula Matrix**: zones added to logic but not rendered in UI yet
+- **Cube Scanner**: still flat tiles, needs 3D isometric rendering
+- **Vault Cracker**: needs colored digit boxes with visual feedback (green/yellow/gray like Wordle), not just text descriptions
+- **Launch Sequence**: STILL invisible, needs fundamental background color fix
+- **Ion Chain**: rules use shape names now but puzzle logic may still be trivial
+- **Circuit Repair**: no difficulty progression
+- **Warp Fold**: animation still meaningless
