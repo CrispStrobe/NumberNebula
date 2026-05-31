@@ -28,7 +28,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   late Animation<double> _successAnimation;
 
   SectorPainterPuzzle? _puzzle;
-  Map<int, int> _coloring = {};
+  final Map<int, int> _coloring = {};
   int _selectedColor = 0;
   bool _isGenerating = true;
   DifficultyConfig? currentDifficulty;

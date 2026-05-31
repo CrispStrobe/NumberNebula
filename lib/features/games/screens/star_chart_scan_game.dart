@@ -262,14 +262,6 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     }
   }
 
-  void _handleLoss() {
-    HapticFeedback.heavyImpact();
-    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      gameType: 'star_chart_scan',
-      difficulty: widget.level,
-    ));
-  }
-
   @override
   Widget build(BuildContext context) {
     final s = S.of(context)!;

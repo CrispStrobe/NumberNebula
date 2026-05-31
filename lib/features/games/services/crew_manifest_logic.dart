@@ -148,7 +148,7 @@ class CrewManifestLogic {
       // Pick a wrong item to say they DON'T have
       final wrongItems = items.where((it) => it != correctItem).toList()..shuffle(rng);
       if (wrongItems.isNotEmpty) {
-        clues.add('${crewName} does not have the ${wrongItems.first}.');
+        clues.add('$crewName does not have the ${wrongItems.first}.');
       }
     }
 
@@ -160,7 +160,7 @@ class CrewManifestLogic {
       final correctItem = solution[crewName]!;
       final wrongItems = items.where((it) => it != correctItem).toList()..shuffle(rng);
       if (wrongItems.isNotEmpty) {
-        clues.add('${crewName} does not have the ${wrongItems.first}.');
+        clues.add('$crewName does not have the ${wrongItems.first}.');
       }
     }
 

@@ -104,7 +104,7 @@ class StarChartScanPuzzle {
 
     // Fill remaining cells with random letters
     // Choose the mystery letter first
-    final alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     final mysteryLetter = alphabet[random.nextInt(26)];
 
     // We need exactly one cell for the mystery letter

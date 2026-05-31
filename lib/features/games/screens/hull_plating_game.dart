@@ -33,7 +33,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   bool _isGenerating = true;
 
   // Player-placed dominoes
-  List<Domino> _placedDominoes = [];
+  final List<Domino> _placedDominoes = [];
   int _nextDominoId = 0;
 
   // Selection state for placing dominoes
@@ -227,14 +227,6 @@ class _HullPlatingGameState extends State<HullPlatingGame>
         builder: (_) => _buildWinDialog(totalScore),
       );
     }
-  }
-
-  void _handleLoss() {
-    HapticFeedback.heavyImpact();
-    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      gameType: 'hull_plating',
-      difficulty: widget.level,
-    ));
   }
 
   void _clearBoard() {

@@ -35,7 +35,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
   int _remaining = 0;
   int _maxPerTurn = 0;
   bool _isPlayerTurn = true;
-  List<_MoveRecord> _moveHistory = [];
+  final List<_MoveRecord> _moveHistory = [];
 
   final _random = math.Random();
 

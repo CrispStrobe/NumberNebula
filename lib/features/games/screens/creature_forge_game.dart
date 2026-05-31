@@ -23,7 +23,6 @@ class CreatureForgeGame extends StatefulWidget {
 class _CreatureForgeGameState extends State<CreatureForgeGame>
     with TickerProviderStateMixin {
   late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
 
@@ -68,8 +67,6 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
 
     _successController = AnimationController(
       duration: const Duration(milliseconds: 600),

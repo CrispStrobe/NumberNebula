@@ -40,7 +40,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
   int _optimalCount = 0; // fewest coins possible (greedy)
 
   // Math problems for SRI
-  List<MathProblem> _mathProblems = [];
+  final List<MathProblem> _mathProblems = [];
 
   final _random = math.Random();
 

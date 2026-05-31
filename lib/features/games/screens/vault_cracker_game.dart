@@ -34,7 +34,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   // Current guess being built
   List<int?> _currentGuess = [];
   // History of past guesses with feedback
-  List<VaultClue> _guessHistory = [];
+  final List<VaultClue> _guessHistory = [];
   int _attemptsRemaining = 0;
   bool _gameOver = false;
 

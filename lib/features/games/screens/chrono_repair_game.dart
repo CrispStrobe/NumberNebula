@@ -26,7 +26,6 @@ enum ClockMalfunction { offset, mirror, combined }
 class _ChronoRepairGameState extends State<ChronoRepairGame>
     with TickerProviderStateMixin {
   late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
 
@@ -49,7 +48,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   final TextEditingController _minuteController = TextEditingController();
 
   // Math problems for SRI
-  List<MathProblem> _mathProblems = [];
+  final List<MathProblem> _mathProblems = [];
 
   final _random = math.Random();
 
@@ -61,8 +60,6 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
 
     _successController = AnimationController(
       duration: const Duration(milliseconds: 600),
@@ -136,7 +133,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       _displayedHour = ((totalMinutes ~/ 60) % 12);
       if (_displayedHour == 0) _displayedHour = 12;
       _displayedMinute = totalMinutes % 60;
-      _malfunctionHint = 'This clock runs $_offsetHours h ${_offsetMinutes} min fast';
+      _malfunctionHint = 'This clock runs $_offsetHours h $_offsetMinutes min fast';
     }
 
     // Create MathProblem for SRI tracking

@@ -27,7 +27,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   late Animation<double> _successAnimation;
 
   CubeScannerPuzzle? _puzzle;
-  Map<int, int?> _answers = {};
+  final Map<int, int?> _answers = {};
   bool _isGenerating = true;
   DifficultyConfig? currentDifficulty;
 

@@ -24,7 +24,6 @@ class XenobiologyLabGame extends StatefulWidget {
 class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     with TickerProviderStateMixin {
   late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
 
@@ -56,7 +55,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
   final TextEditingController _answerCController = TextEditingController();
 
   // Math problems for SRI
-  List<MathProblem> _mathProblems = [];
+  final List<MathProblem> _mathProblems = [];
 
   final _random = math.Random();
 
@@ -73,8 +72,6 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
 
     _successController = AnimationController(
       duration: const Duration(milliseconds: 600),
