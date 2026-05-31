@@ -79,17 +79,13 @@ class _HiveStationGameState extends State<HiveStationGame>
   }
 
   double _getHintFraction() {
-    final grade = currentDifficulty?.grade ?? widget.grade;
-    final level = currentDifficulty?.level ?? widget.level;
-    // Show MOST hints but not all -- otherwise energy cells are trivially
-    // identifiable as "the only blank ones." Some non-energy cells must
-    // also be blank to create ambiguity that requires deduction.
-    if (grade <= 1) {
-      return 0.85; // Most hints shown, some blanks create easy deduction
-    } else if (grade <= 2) {
-      return (0.80 - (level - 1) * 0.02).clamp(0.65, 0.80);
-    }
-    return (0.70 - (level - 1) * 0.02).clamp(0.50, 0.70);
+    // Show ALL non-energy cell hints. The puzzle is deducible because
+    // energy cells have NO number while non-energy cells DO. The player
+    // must identify the blank cells as energy. With 100% hints this is
+    // trivially "click all blanks" BUT that's the correct Kanguru mechanic
+    // (C7/2024_34 shows ALL numbers). Difficulty comes from grid size
+    // and energy count, not from hiding hints.
+    return 1.0;
   }
 
   void _generatePuzzle() async {
