@@ -502,9 +502,31 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
                     ),
                     child: GestureDetector(
                       onTap: () => _selectTile(idx),
-                      onDoubleTap: () => _rotateTile(idx),
-                      child: _buildTileWidget(
-                        puzzle!.playerTiles[idx], rotations[idx], tileSize, isSelected,
+                      onLongPress: () => _rotateTile(idx),
+                      child: Stack(
+                        children: [
+                          _buildTileWidget(
+                            puzzle!.playerTiles[idx], rotations[idx], tileSize, isSelected,
+                          ),
+                          // Rotate button overlay
+                          Positioned(
+                            top: 0, right: 0,
+                            child: GestureDetector(
+                              onTap: () => _rotateTile(idx),
+                              child: Container(
+                                width: 22, height: 22,
+                                decoration: BoxDecoration(
+                                  color: SpaceTheme.nebulaPurple.withValues(alpha: 0.8),
+                                  borderRadius: const BorderRadius.only(
+                                    bottomLeft: Radius.circular(8),
+                                    topRight: Radius.circular(6),
+                                  ),
+                                ),
+                                child: const Icon(Icons.rotate_right, color: Colors.white70, size: 14),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );
