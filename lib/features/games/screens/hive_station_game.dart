@@ -315,32 +315,28 @@ class _HiveStationGameState extends State<HiveStationGame>
       bgColor = SpaceTheme.nebulaPurple.withValues(alpha: 0.4);
     }
 
-    return Container(
+    return SizedBox(
       width: hexSize,
       height: hexSize,
-      decoration: BoxDecoration(
-        color: bgColor,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: isMarked ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
-          width: 2,
+      child: CustomPaint(
+        painter: _HexCellPainter(
+          fillColor: bgColor,
+          borderColor: isMarked ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
+          glowColor: isMarked ? SpaceTheme.starYellow.withValues(alpha: 0.4) : null,
         ),
-        boxShadow: isMarked
-            ? [BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.4), blurRadius: 8)]
-            : null,
-      ),
-      child: Center(
-        child: hint != null
-            ? Text(
-                hint.toString(),
-                style: SpaceTheme.headlineStyle.copyWith(
-                  fontSize: hexSize * 0.35,
-                  color: Colors.white,
-                ),
-              )
-            : isMarked
-                ? Icon(Icons.flash_on, color: Colors.white, size: hexSize * 0.4)
-                : null,
+        child: Center(
+          child: hint != null
+              ? Text(
+                  hint.toString(),
+                  style: SpaceTheme.headlineStyle.copyWith(
+                    fontSize: hexSize * 0.35,
+                    color: Colors.white,
+                  ),
+                )
+              : isMarked
+                  ? Icon(Icons.flash_on, color: Colors.white, size: hexSize * 0.4)
+                  : null,
+        ),
       ),
     );
   }
@@ -412,4 +408,66 @@ class _HiveStationGameState extends State<HiveStationGame>
       },
     );
   }
+}
+
+/// Draws a flat-top hexagonal cell with fill, border, and optional glow.
+class _HexCellPainter extends CustomPainter {
+  final Color fillColor;
+  final Color borderColor;
+  final Color? glowColor;
+
+  _HexCellPainter({
+    required this.fillColor,
+    required this.borderColor,
+    this.glowColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final r = math.min(cx, cy) * 0.92; // slight inset for spacing
+
+    // Flat-top hexagon: vertices at 0, 60, 120, 180, 240, 300 degrees
+    final path = Path();
+    for (int i = 0; i < 6; i++) {
+      final angle = (60 * i - 30) * math.pi / 180; // -30 for flat-top
+      final x = cx + r * math.cos(angle);
+      final y = cy + r * math.sin(angle);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    path.close();
+
+    // Optional glow shadow
+    if (glowColor != null) {
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = glowColor!
+          ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 8),
+      );
+    }
+
+    // Fill
+    canvas.drawPath(path, Paint()..color = fillColor);
+
+    // Border
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = borderColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _HexCellPainter old) =>
+      fillColor != old.fillColor ||
+      borderColor != old.borderColor ||
+      glowColor != old.glowColor;
 }
