@@ -146,7 +146,6 @@ void main() {
                 break;
               default:
                 fail('unexpected face name: $faceName');
-                return;
             }
             expect(puzzle.correctAnswers[dieIdx], expectedValue,
                 reason: 'answer for die $dieIdx face $faceName must match');

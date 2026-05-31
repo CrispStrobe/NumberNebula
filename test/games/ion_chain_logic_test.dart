@@ -146,7 +146,6 @@ void main() {
 
           // Filling blanks with the correct solution values should produce the solution
           final filled = List<IonType?>.from(puzzle.chain);
-          int availIdx = 0;
           for (int i = 0; i < chainLength; i++) {
             if (filled[i] == null) {
               filled[i] = puzzle.solution[i];

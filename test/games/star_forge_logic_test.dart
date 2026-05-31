@@ -7,42 +7,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:space_math_academy/features/games/services/star_forge_logic.dart';
 
-/// Build a star puzzle with custom parameters.
-StarForgePuzzle _buildPuzzle({
-  required int points,
-  required List<List<int>> lines,
-  required int magicConstant,
-  required Map<int, int> solution,
-  required int clueCount,
-}) {
-  final nodeCount = points * 2;
-
-  final clues = <int, int>{};
-  final emptyNodes = <int>{};
-  for (int i = 0; i < nodeCount; i++) {
-    if (i < clueCount) {
-      clues[i] = solution[i]!;
-    } else {
-      emptyNodes.add(i);
-    }
-  }
-
-  final clueValues = clues.values.toSet();
-  final values = List.generate(nodeCount, (i) => i + 1);
-  final numberPool = values.where((v) => !clueValues.contains(v)).toList()
-    ..sort();
-
-  return StarForgePuzzle(
-    points: points,
-    nodeCount: nodeCount,
-    lines: lines,
-    magicConstant: magicConstant,
-    solution: solution,
-    clues: clues,
-    emptyNodes: emptyNodes,
-    numberPool: numberPool,
-  );
-}
 
 // A known valid 4-line star (a simplified "star" for testing).
 // 4 nodes on a 2-point star is not standard but works for testing the
@@ -232,10 +196,7 @@ void main() {
     });
 
     test('numberPool and clues partition values correctly', () {
-      final solution = <int, int>{
-        0: 1, 1: 3, 2: 5, 3: 9, 4: 4,
-        5: 10, 6: 8, 7: 6, 8: 2, 9: 7,
-      };
+      // solution: 0->1, 1->3, ... (clues reveal first 2)
       final clues = <int, int>{0: 1, 1: 3};
       final emptyNodes = <int>{2, 3, 4, 5, 6, 7, 8, 9};
       final numberPool = [2, 4, 5, 6, 7, 8, 9, 10]; // everything except 1, 3

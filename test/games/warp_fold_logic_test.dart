@@ -109,7 +109,6 @@ void main() {
   group('WarpFoldPuzzle symmetry from folds', () {
     test('single left/right fold produces horizontal symmetry', () {
       // A left or right fold should mirror across the vertical center
-      final gen = WarpFoldGenerator(seed: 0);
       for (int seed = 0; seed < 5; seed++) {
         final gen2 = WarpFoldGenerator(seed: seed);
         final puzzle = gen2.generate(grade: 1, level: 1);
