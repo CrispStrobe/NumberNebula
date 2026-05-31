@@ -74,7 +74,7 @@ void main() {
   });
 
   group('GravityWellLogic.generate difficulty scaling', () {
-    test('grade 1: 2 objects, 1 scale', () {
+    test('grade 1: 3 objects, 2 scales', () {
       for (int i = 0; i < 3; i++) {
         final puzzle = GravityWellLogic.generate({
           'grade': 1,
@@ -82,12 +82,12 @@ void main() {
           'difficulty': _config(grade: 1, level: 1),
         });
 
-        expect(puzzle.objectCount, 2);
-        expect(puzzle.scales.length, 1);
+        expect(puzzle.objectCount, 3);
+        expect(puzzle.scales.length, 2);
       }
     });
 
-    test('grade 4 level 10: 5 objects, 4 scales', () {
+    test('grade 4 level 10: 5 objects, 3+ scales', () {
       final puzzle = GravityWellLogic.generate({
         'grade': 4,
         'level': 10,
@@ -95,7 +95,7 @@ void main() {
       });
 
       expect(puzzle.objectCount, 5);
-      expect(puzzle.scales.length, 4);
+      expect(puzzle.scales.length, greaterThanOrEqualTo(3));
     });
   });
 

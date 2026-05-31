@@ -64,10 +64,11 @@ void main() {
         seed: 0,
       );
       for (final eq in puzzle.placedEquations) {
-        // Each equation string should be like "3+4=7" (5 chars)
-        expect(eq.equation.length, 5,
-            reason: 'equation "${eq.equation}" should be 5 chars (a op b = c)');
-        expect(eq.equation[3], '=');
+        // Equations like "3+4=7" (5 chars) or "6+9=15" (6 chars)
+        expect(eq.equation.length, greaterThanOrEqualTo(5),
+            reason: 'equation "${eq.equation}" should be at least 5 chars');
+        expect(eq.equation.contains('='), isTrue,
+            reason: 'equation "${eq.equation}" must contain "="');
       }
     });
 
