@@ -358,7 +358,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
+              color: const Color(0xFF1A2744), // distinct from SpaceBackground
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: SpaceTheme.starYellow.withValues(alpha: 0.4 + _glowAnimation.value * 0.3),
@@ -441,7 +441,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
                 ? SpaceTheme.starYellow
                 : isInCorrectPosition
                     ? SpaceTheme.alienGreen
-                    : Colors.transparent,
+                    : Colors.white24,
             width: isSelected ? 3 : 2,
           ),
           boxShadow: [
