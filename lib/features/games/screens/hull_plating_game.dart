@@ -267,14 +267,33 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     return _pieceColors[pieceId % _pieceColors.length];
   }
 
-  Set<String>? _getGhostCells() {
+  /// Returns (ghostCells, isValid). Shows ghost even for invalid placements (red).
+  (Set<String>, bool) _getGhostInfo() {
     if (_hoveringPieceIndex == null || _hoverRow == null || _hoverCol == null) {
-      return null;
+      return (<String>{}, false);
     }
     final piece = _getRotatedPiece(_hoveringPieceIndex!);
-    final placement = _computePlacement(piece, _hoverRow!, _hoverCol!);
-    if (placement == null) return null;
-    return placement.map((c) => 'r${c.$1}c${c.$2}').toSet();
+
+    // Compute absolute cells regardless of validity
+    final anchor = piece.cells.first;
+    final dr = _hoverRow! - anchor.$1;
+    final dc = _hoverCol! - anchor.$2;
+    final absoluteCells = piece.cells.map((c) => (c.$1 + dr, c.$2 + dc)).toList();
+
+    // Check validity
+    final validPlacement = _computePlacement(piece, _hoverRow!, _hoverCol!);
+    final isValid = validPlacement != null;
+
+    // Only include cells that are within the grid
+    final ghostCells = <String>{};
+    for (final cell in absoluteCells) {
+      if (cell.$1 >= 0 && cell.$1 < puzzle!.rows &&
+          cell.$2 >= 0 && cell.$2 < puzzle!.cols) {
+        ghostCells.add('r${cell.$1}c${cell.$2}');
+      }
+    }
+
+    return (ghostCells, isValid);
   }
 
   @override
@@ -417,7 +436,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   }
 
   Widget _buildBoard(double cellSize) {
-    final ghostCells = _getGhostCells();
+    final (ghostCells, ghostValid) = _getGhostInfo();
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -425,19 +444,19 @@ class _HullPlatingGameState extends State<HullPlatingGame>
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: List.generate(puzzle!.cols, (c) {
-            return _buildCell(r, c, cellSize, ghostCells);
+            return _buildCell(r, c, cellSize, ghostCells, ghostValid);
           }),
         );
       }),
     );
   }
 
-  Widget _buildCell(int row, int col, double size, Set<String>? ghostCells) {
+  Widget _buildCell(int row, int col, double size, Set<String> ghostCells, bool ghostValid) {
     final isActive = puzzle!.board[row][col];
     final placed = _getPlacedPieceAt(row, col);
     final isDark = HullPlatingPuzzle.isDarkCell(row, col);
     final cellId = 'r${row}c$col';
-    final isGhost = ghostCells?.contains(cellId) ?? false;
+    final isGhost = ghostCells.contains(cellId);
     final isLastDropped = cellId == _lastDroppedCell;
 
     if (!isActive) {
@@ -482,7 +501,9 @@ class _HullPlatingGameState extends State<HullPlatingGame>
           height: size,
           decoration: BoxDecoration(
             color: isGhost
-                ? SpaceTheme.starYellow.withValues(alpha: 0.3)
+                ? (ghostValid
+                    ? SpaceTheme.starYellow.withValues(alpha: 0.3)
+                    : SpaceTheme.rocketRed.withValues(alpha: 0.3))
                 : isHovering
                     ? SpaceTheme.starYellow.withValues(alpha: 0.2)
                     : isDark
