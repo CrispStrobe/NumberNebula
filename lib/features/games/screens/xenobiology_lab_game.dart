@@ -310,6 +310,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
             child: SingleChildScrollView(
               child: Column(
                 children: [
+                  _buildInstructions(),
+                  const SizedBox(height: 12),
                   _buildCreatureCards(),
                   const SizedBox(height: 16),
                   _buildCensusDisplay(),
@@ -334,12 +336,38 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          _buildInstructions(),
+          const SizedBox(height: 12),
           _buildCreatureCards(),
           const SizedBox(height: 16),
           _buildCensusDisplay(),
           const SizedBox(height: 16),
           _buildSlidersAndSubmit(),
           const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInstructions() {
+    final s = S.of(context)!;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, color: SpaceTheme.starYellow, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              s.xenobiologyLabInstructions,
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
+            ),
+          ),
         ],
       ),
     );
