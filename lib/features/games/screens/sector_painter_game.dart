@@ -486,9 +486,24 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   double _computeNodeRadius(double availW, double availH) {
     final regionCount = _puzzle!.regions.length;
     final area = availW * availH;
-    // Scale node size based on available space and region count
-    final maxRadius = math.sqrt(area / regionCount) * 0.35;
-    return maxRadius.clamp(18.0, 40.0);
+    // Base radius from available area
+    final areaRadius = math.sqrt(area / regionCount) * 0.25;
+
+    // Also compute from minimum distance between any two nodes
+    double minDist = double.infinity;
+    final positions = _puzzle!.positions;
+    for (int i = 0; i < positions.length; i++) {
+      for (int j = i + 1; j < positions.length; j++) {
+        final dx = (positions[i].x - positions[j].x) * availW;
+        final dy = (positions[i].y - positions[j].y) * availH;
+        final d = math.sqrt(dx * dx + dy * dy);
+        if (d < minDist) minDist = d;
+      }
+    }
+    // Radius must be less than half the minimum distance so circles don't overlap
+    final distRadius = minDist > 0 ? minDist * 0.4 : areaRadius;
+
+    return math.min(areaRadius, distRadius).clamp(14.0, 35.0);
   }
 
   Widget _buildRegionNode(
