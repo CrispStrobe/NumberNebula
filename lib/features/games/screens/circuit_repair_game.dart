@@ -25,6 +25,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
   late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   CircuitRepairPuzzle? _puzzle;
   String? _selectedSegA;
@@ -49,6 +51,13 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     _successAnimation =
         CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
 
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
+        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
@@ -62,6 +71,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
   void dispose() {
     _glowController.dispose();
     _successController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -94,11 +104,22 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
       } else if (_selectedSegB == null) {
         _selectedSegB = seg;
       } else {
-        // Both already selected, replace first
         _selectedSegA = seg;
         _selectedSegB = null;
       }
     });
+  }
+
+  /// Get the current display segments after applying the user's proposed swap.
+  List<Set<String>> _getPreviewSegments() {
+    if (_puzzle == null) return [];
+    if (_selectedSegA != null && _selectedSegB != null) {
+      // Show what the display would look like if we undo the user's swap
+      return _puzzle!.corruptedSegments.map((segs) {
+        return SevenSegment.applySwap(segs, _selectedSegA!, _selectedSegB!);
+      }).toList();
+    }
+    return _puzzle!.corruptedSegments;
   }
 
   void _checkSolution() {
@@ -197,17 +218,20 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
                   s.circuitRepairInstructions,
-                  style: SpaceTheme.bodyStyle,
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
                   textAlign: TextAlign.center,
                 ),
               ),
-              const SizedBox(height: 8),
-              _buildCorruptedDisplay(),
-              const SizedBox(height: 16),
-              _buildSegmentSelector(),
-              const Spacer(),
-              _buildCheckButton(),
-              const SizedBox(height: 16),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 700;
+                    return isWide
+                        ? _buildWideLayout(constraints)
+                        : _buildCompactLayout(constraints);
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -215,53 +239,135 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     );
   }
 
-  Widget _buildCorruptedDisplay() {
+  Widget _buildWideLayout(BoxConstraints constraints) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: _buildCorruptedDisplay(constraints),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          flex: 2,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildSegmentSelector(constraints),
+                const SizedBox(height: 16),
+                _buildCheckButton(),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactLayout(BoxConstraints constraints) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(height: 8),
+          _buildCorruptedDisplay(constraints),
+          const SizedBox(height: 12),
+          _buildSegmentSelector(constraints),
+          const SizedBox(height: 12),
+          _buildCheckButton(),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCorruptedDisplay(BoxConstraints constraints) {
+    // Make display LARGE: fill 60%+ of screen width
+    final displayWidth = constraints.maxWidth * 0.7;
+    final digitCount = _puzzle!.corruptedSegments.length;
+    final digitWidth = ((displayWidth - 32) / digitCount).clamp(50.0, 120.0);
+    final digitHeight = (digitWidth * 1.6).clamp(80.0, 200.0);
+
+    final previewSegments = _getPreviewSegments();
+    final isPreview = _selectedSegA != null && _selectedSegB != null;
+
     return AnimatedBuilder(
       animation: _glowAnimation,
       builder: (context, _) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          margin: const EdgeInsets.symmetric(horizontal: 24),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0A0A1A),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value),
-              width: 2,
+        return Center(
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: digitWidth * 0.3,
+              vertical: digitHeight * 0.15,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: SpaceTheme.rocketRed.withValues(alpha: 0.3 * _glowAnimation.value),
-                blurRadius: 20,
+            decoration: BoxDecoration(
+              color: const Color(0xFF0A0A1A),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isPreview
+                    ? SpaceTheme.alienGreen.withValues(alpha: _glowAnimation.value)
+                    : SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value),
+                width: 2,
               ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: _puzzle!.corruptedSegments.asMap().entries.map((entry) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: SizedBox(
-                  width: 60,
-                  height: 100,
-                  child: CustomPaint(
-                    painter: _SevenSegmentPainter(
-                      segments: entry.value,
-                      activeColor: SpaceTheme.rocketRed,
-                      inactiveColor: const Color(0xFF1A1A2E),
-                      glowValue: _glowAnimation.value,
+              boxShadow: [
+                BoxShadow(
+                  color: (isPreview ? SpaceTheme.alienGreen : SpaceTheme.rocketRed)
+                      .withValues(alpha: 0.3 * _glowAnimation.value),
+                  blurRadius: 20,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Label
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    isPreview ? 'PREVIEW (after swap)' : 'CORRUPTED DISPLAY',
+                    style: SpaceTheme.bodyStyle.copyWith(
+                      fontSize: 11,
+                      color: isPreview ? SpaceTheme.alienGreen : SpaceTheme.rocketRed,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
                     ),
                   ),
                 ),
-              );
-            }).toList(),
+                // Digits
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: previewSegments.asMap().entries.map((entry) {
+                    return Padding(
+                      padding: EdgeInsets.symmetric(horizontal: digitWidth * 0.1),
+                      child: SizedBox(
+                        width: digitWidth,
+                        height: digitHeight,
+                        child: CustomPaint(
+                          painter: _SevenSegmentPainter(
+                            segments: entry.value,
+                            activeColor: isPreview
+                                ? SpaceTheme.alienGreen
+                                : SpaceTheme.rocketRed,
+                            inactiveColor: const Color(0xFF1A1A2E),
+                            glowValue: _glowAnimation.value,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildSegmentSelector() {
+  Widget _buildSegmentSelector(BoxConstraints constraints) {
+    // Interactive 7-segment diagram at a good size
+    final selectorSize = (constraints.maxWidth * 0.25).clamp(80.0, 140.0);
+    final selectorHeight = selectorSize * 1.6;
+
     return Container(
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -271,10 +377,11 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
         border: Border.all(color: SpaceTheme.nebulaPurple),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             'Select two segments to swap:',
-            style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow),
+            style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 13),
           ),
           const SizedBox(height: 12),
           Row(
@@ -282,8 +389,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
             children: [
               // Interactive 7-segment diagram
               SizedBox(
-                width: 100,
-                height: 160,
+                width: selectorSize,
+                height: selectorHeight,
                 child: Stack(
                   children: SevenSegment.allSegments.map((seg) {
                     final isSelected =
@@ -303,17 +410,20 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                   }).toList(),
                 ),
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: 20),
               // Segment buttons as backup
               Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: ['a', 'b', 'c', 'd']
                         .map((seg) => _buildSegButton(seg))
                         .toList(),
                   ),
                   const SizedBox(height: 8),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: ['e', 'f', 'g']
                         .map((seg) => _buildSegButton(seg))
                         .toList(),
@@ -324,12 +434,20 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
           ),
           if (_selectedSegA != null || _selectedSegB != null) ...[
             const SizedBox(height: 12),
-            Text(
-              'Swap: ${_selectedSegA ?? "?"} \u2194 ${_selectedSegB ?? "?"}',
-              style: SpaceTheme.titleStyle.copyWith(
-                color: SpaceTheme.cosmicPink,
-                fontSize: 18,
-              ),
+            AnimatedBuilder(
+              animation: _pulseAnimation,
+              builder: (context, _) {
+                return Transform.scale(
+                  scale: _pulseAnimation.value,
+                  child: Text(
+                    'Swap: ${_selectedSegA ?? "?"} \u2194 ${_selectedSegB ?? "?"}',
+                    style: SpaceTheme.titleStyle.copyWith(
+                      color: SpaceTheme.cosmicPink,
+                      fontSize: 18,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ],
@@ -345,7 +463,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
       padding: const EdgeInsets.all(4),
       child: GestureDetector(
         onTap: () => _selectSegment(seg),
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           width: 40,
           height: 40,
           decoration: BoxDecoration(
@@ -359,6 +478,16 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                   : SpaceTheme.nebulaPurple,
               width: isSelected ? 2 : 1,
             ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: (isFirst ? SpaceTheme.cosmicPink : SpaceTheme.alienGreen)
+                          .withValues(alpha: 0.4),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ]
+                : null,
           ),
           child: Center(
             child: Text(
@@ -379,11 +508,20 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: SizedBox(
         width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: _checkSolution,
-          icon: const Icon(Icons.build_circle_outlined),
-          label: Text(S.of(context)!.circuitRepairWinTitle),
-          style: SpaceTheme.primaryButtonStyle,
+        child: AnimatedBuilder(
+          animation: _pulseAnimation,
+          builder: (context, child) {
+            final hasSelection = _selectedSegA != null && _selectedSegB != null;
+            return Transform.scale(
+              scale: hasSelection ? _pulseAnimation.value : 1.0,
+              child: ElevatedButton.icon(
+                onPressed: _checkSolution,
+                icon: const Icon(Icons.build_circle_outlined),
+                label: Text(S.of(context)!.circuitRepairWinTitle),
+                style: SpaceTheme.primaryButtonStyle,
+              ),
+            );
+          },
         ),
       ),
     );
@@ -445,7 +583,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
   }
 }
 
-/// Paints a 7-segment display.
+/// Paints a 7-segment display at large scale with CustomPaint.
 class _SevenSegmentPainter extends CustomPainter {
   final Set<String> segments;
   final Color activeColor;
@@ -466,7 +604,6 @@ class _SevenSegmentPainter extends CustomPainter {
     final t = w * 0.15; // segment thickness
     final gap = t * 0.2;
 
-    // Segment rectangles (a-g)
     final segmentRects = <String, Rect>{
       'a': Rect.fromLTWH(gap, 0, w - 2 * gap, t),
       'b': Rect.fromLTWH(w - t, gap, t, h / 2 - gap),
@@ -548,6 +685,17 @@ class _SegmentHighlightPainter extends CustomPainter {
       RRect.fromRectAndRadius(rect, Radius.circular(t * 0.3)),
       paint,
     );
+
+    // Glow for selected segments
+    if (isSelected) {
+      final glowPaint = Paint()
+        ..color = color.withValues(alpha: 0.3)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, Radius.circular(t * 0.3)),
+        glowPaint,
+      );
+    }
 
     // Draw segment label
     final center = rect.center;

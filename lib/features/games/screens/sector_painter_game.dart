@@ -28,12 +28,15 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   late Animation<double> _successAnimation;
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
+  late AnimationController _conflictController;
+  late Animation<double> _conflictAnimation;
 
   SectorPainterPuzzle? _puzzle;
   final Map<int, int> _coloring = {};
   int _selectedColor = 0;
   bool _isGenerating = true;
   DifficultyConfig? currentDifficulty;
+  Set<int> _conflictRegions = {};
 
   static const List<Color> _paletteColors = [
     Color(0xFFE63946),
@@ -67,6 +70,19 @@ class _SectorPainterGameState extends State<SectorPainterGame>
     _pulseAnimation = Tween<double>(begin: 0.85, end: 1.0)
         .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
+    _conflictController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _conflictAnimation = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(CurvedAnimation(parent: _conflictController, curve: Curves.easeOut));
+    _conflictController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        setState(() => _conflictRegions = {});
+        _conflictController.reset();
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
@@ -81,6 +97,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
     _glowController.dispose();
     _successController.dispose();
     _pulseController.dispose();
+    _conflictController.dispose();
     super.dispose();
   }
 
@@ -88,6 +105,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
     setState(() {
       _isGenerating = true;
       _coloring.clear();
+      _conflictRegions = {};
       _successController.reset();
     });
 
@@ -110,26 +128,30 @@ class _SectorPainterGameState extends State<SectorPainterGame>
         _coloring[region] = _selectedColor;
       }
     });
+
+    // Check for adjacent same-color conflicts and flash
+    _checkConflicts();
+
+    // Auto-check win when all regions colored
+    if (_coloring.length == _puzzle!.regions.length) {
+      if (_puzzle!.validateColoring(_coloring)) {
+        _handleWin();
+      }
+    }
   }
 
-  void _checkSolution() {
+  void _checkConflicts() {
     if (_puzzle == null) return;
-
-    if (_coloring.length < _puzzle!.regions.length) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(S.of(context)!.sectorPainterLoseDesc),
-          backgroundColor: SpaceTheme.rocketRed,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-
-    if (_puzzle!.validateColoring(_coloring)) {
-      _handleWin();
-    } else {
-      _handleLoss();
+    final conflicts = _puzzle!.findConflicts(_coloring);
+    if (conflicts.isNotEmpty) {
+      final regions = <int>{};
+      for (final pair in conflicts) {
+        regions.add(pair[0]);
+        regions.add(pair[1]);
+      }
+      setState(() => _conflictRegions = regions);
+      _conflictController.forward(from: 0.0);
+      HapticFeedback.heavyImpact();
     }
   }
 
@@ -152,27 +174,6 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       context: context,
       barrierDismissible: false,
       builder: (ctx) => _buildWinDialog(totalScore, colorsUsed),
-    );
-  }
-
-  void _handleLoss() {
-    HapticFeedback.heavyImpact();
-    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      gameType: 'sector_painter',
-      difficulty: widget.level,
-    ));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(S.of(context)!.sectorPainterLoseDesc)),
-          ],
-        ),
-        backgroundColor: SpaceTheme.rocketRed,
-        duration: const Duration(seconds: 2),
-      ),
     );
   }
 
@@ -200,72 +201,49 @@ class _SectorPainterGameState extends State<SectorPainterGame>
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final bool isCompact = constraints.maxHeight < 500;
-              final bool isWide = constraints.maxWidth > 700;
-
-              return Column(
-                children: [
-                  _buildHeader(s, isCompact),
-                  Expanded(
-                    child: isWide
-                        ? _buildWideLayout(isCompact)
-                        : _buildCompactLayout(isCompact),
-                  ),
-                ],
-              );
-            },
+          child: Column(
+            children: [
+              _buildHeader(s),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final bool isWide = constraints.maxWidth > 700;
+                    return isWide
+                        ? _buildWideLayout(constraints)
+                        : _buildCompactLayout(constraints);
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader(S s, bool isCompact) {
-    if (!isCompact) {
-      return Column(
-        children: [
-          GameUI(
-            title: s.sectorPainterTitle,
-            level: widget.level,
-            onBack: () => Navigator.of(context).pop(),
+  Widget _buildHeader(S s) {
+    return Column(
+      children: [
+        GameUI(
+          title: s.sectorPainterTitle,
+          level: widget.level,
+          onBack: () => Navigator.of(context).pop(),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Text(
+            s.sectorPainterInstructions,
+            style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text(
-              s.sectorPainterInstructions,
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(8, 4, 16, 4),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          Expanded(
-            child: Text(
-              s.sectorPainterTitle,
-              style: SpaceTheme.headlineStyle.copyWith(fontSize: 18),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildWideLayout(bool isCompact) {
+  Widget _buildWideLayout(BoxConstraints constraints) {
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Row(
@@ -282,8 +260,8 @@ class _SectorPainterGameState extends State<SectorPainterGame>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _buildColorPaletteVertical(),
-                const SizedBox(height: 16),
-                _buildCheckButton(),
+                const SizedBox(height: 12),
+                _buildMinColorsHint(),
               ],
             ),
           ),
@@ -292,14 +270,47 @@ class _SectorPainterGameState extends State<SectorPainterGame>
     );
   }
 
-  Widget _buildCompactLayout(bool isCompact) {
+  Widget _buildCompactLayout(BoxConstraints constraints) {
     return Column(
       children: [
         _buildColorPalette(),
+        _buildMinColorsHint(),
         Expanded(child: _buildMapArea()),
-        _buildCheckButton(),
-        SizedBox(height: isCompact ? 8 : 16),
+        const SizedBox(height: 8),
       ],
+    );
+  }
+
+  Widget _buildMinColorsHint() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.5)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.stars, color: SpaceTheme.starYellow, size: 16),
+            const SizedBox(width: 6),
+            Text(
+              'Min colors: ${_puzzle!.chromaticNumber}',
+              style: SpaceTheme.bodyStyle.copyWith(
+                fontSize: 12,
+                color: SpaceTheme.starYellow,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Painted: ${_coloring.length}/${_puzzle!.regions.length}',
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -397,31 +408,22 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   Widget _buildMapArea() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final availableSize = math.min(constraints.maxWidth, constraints.maxHeight) - 24;
-        final regionCount = _puzzle!.regions.length;
-
-        // Arrange regions in a grid-like layout
-        final cols = _computeGridCols(regionCount);
-        final rows = (regionCount / cols).ceil();
-
-        final cellW = availableSize / cols;
-        final cellH = availableSize / rows;
-        final cellSize = math.min(cellW, cellH);
-        final totalW = cellSize * cols;
-        final totalH = cellSize * rows;
+        final availW = constraints.maxWidth - 32;
+        final availH = constraints.maxHeight - 32;
 
         return Center(
           child: AnimatedBuilder(
-            animation: _glowAnimation,
+            animation: Listenable.merge([_glowAnimation, _pulseAnimation, _conflictAnimation]),
             builder: (context, child) {
               return Container(
-                width: totalW + 16,
-                height: totalH + 16,
+                width: availW + 16,
+                height: availH + 16,
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value * 0.5),
+                    color: SpaceTheme.starYellow
+                        .withValues(alpha: _glowAnimation.value * 0.5),
                     width: 2,
                   ),
                   gradient: RadialGradient(
@@ -432,36 +434,32 @@ class _SectorPainterGameState extends State<SectorPainterGame>
                   ),
                 ),
                 child: CustomPaint(
-                  size: Size(totalW, totalH),
-                  painter: _TerritoryMapPainter(
+                  painter: _GraphMapPainter(
                     puzzle: _puzzle!,
                     coloring: _coloring,
                     paletteColors: _paletteColors,
                     glowValue: _glowAnimation.value,
-                    cols: cols,
-                    rows: rows,
-                    cellSize: cellSize,
+                    conflictRegions: _conflictRegions,
+                    conflictValue: _conflictAnimation.value,
+                    width: availW,
+                    height: availH,
                   ),
                   child: Stack(
                     children: _puzzle!.regions.map((region) {
-                      final col = region % cols;
-                      final row = region ~/ cols;
+                      final pos = _puzzle!.positions[region];
+                      final x = pos.x * availW;
+                      final y = pos.y * availH;
                       final isColored = _coloring.containsKey(region);
+                      final isConflict = _conflictRegions.contains(region);
+                      final nodeRadius = _computeNodeRadius(availW, availH);
 
                       return Positioned(
-                        left: col * cellSize,
-                        top: row * cellSize,
+                        left: x - nodeRadius,
+                        top: y - nodeRadius,
                         child: GestureDetector(
                           onTap: () => _paintRegion(region),
-                          child: AnimatedBuilder(
-                            animation: _pulseAnimation,
-                            builder: (context, child) {
-                              final scale = isColored ? 1.0 : _pulseAnimation.value;
-                              return Transform.scale(
-                                scale: scale,
-                                child: _buildRegionTile(region, cellSize),
-                              );
-                            },
+                          child: _buildRegionNode(
+                            region, nodeRadius * 2, isColored, isConflict,
                           ),
                         ),
                       );
@@ -476,145 +474,95 @@ class _SectorPainterGameState extends State<SectorPainterGame>
     );
   }
 
-  Widget _buildRegionTile(int region, double cellSize) {
-    final isColored = _coloring.containsKey(region);
+  double _computeNodeRadius(double availW, double availH) {
+    final regionCount = _puzzle!.regions.length;
+    final area = availW * availH;
+    // Scale node size based on available space and region count
+    final maxRadius = math.sqrt(area / regionCount) * 0.35;
+    return maxRadius.clamp(18.0, 40.0);
+  }
+
+  Widget _buildRegionNode(
+      int region, double size, bool isColored, bool isConflict) {
     final color = isColored
         ? _paletteColors[_coloring[region]! % _paletteColors.length]
         : null;
 
-    // Determine which borders to thicken (adjacent regions share thin borders)
-    final adjacents = _puzzle!.adjacency[region] ?? <int>{};
-    final regionCount = _puzzle!.regions.length;
-    final cols = _computeGridCols(regionCount);
+    final scale = isColored ? 1.0 : _pulseAnimation.value;
+    final conflictFlash = isConflict ? _conflictAnimation.value : 0.0;
 
-    final thisRow = region ~/ cols;
-    final thisCol = region % cols;
-
-    // Check adjacency in each cardinal direction
-    final regionAbove = (thisRow > 0) ? (thisRow - 1) * cols + thisCol : -1;
-    final regionBelow = (thisRow < (regionCount / cols).ceil() - 1)
-        ? (thisRow + 1) * cols + thisCol
-        : -1;
-    final regionLeft = (thisCol > 0) ? thisRow * cols + (thisCol - 1) : -1;
-    final regionRight = (thisCol < cols - 1) ? thisRow * cols + (thisCol + 1) : -1;
-
-    final adjAbove = regionAbove >= 0 && regionAbove < regionCount && adjacents.contains(regionAbove);
-    final adjBelow = regionBelow >= 0 && regionBelow < regionCount && adjacents.contains(regionBelow);
-    final adjLeft = regionLeft >= 0 && regionLeft < regionCount && adjacents.contains(regionLeft);
-    final adjRight = regionRight >= 0 && regionRight < regionCount && adjacents.contains(regionRight);
-
-    const padding = 3.0;
-    final innerSize = cellSize - padding * 2;
-
-    return SizedBox(
-      width: cellSize,
-      height: cellSize,
-      child: Padding(
-        padding: const EdgeInsets.all(padding),
-        child: Container(
-          width: innerSize,
-          height: innerSize,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            gradient: isColored
-                ? LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      color!.withValues(alpha: 0.9),
-                      color.withValues(alpha: 0.6),
-                    ],
-                  )
-                : LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      SpaceTheme.deepSpace.withValues(alpha: 0.9),
-                      SpaceTheme.nebulaPurple.withValues(alpha: 0.6),
-                    ],
-                  ),
-            border: Border(
-              top: BorderSide(
-                color: adjAbove
-                    ? SpaceTheme.starYellow.withValues(alpha: 0.8)
-                    : SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
-                width: adjAbove ? 3 : 1,
-              ),
-              bottom: BorderSide(
-                color: adjBelow
-                    ? SpaceTheme.starYellow.withValues(alpha: 0.8)
-                    : SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
-                width: adjBelow ? 3 : 1,
-              ),
-              left: BorderSide(
-                color: adjLeft
-                    ? SpaceTheme.starYellow.withValues(alpha: 0.8)
-                    : SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
-                width: adjLeft ? 3 : 1,
-              ),
-              right: BorderSide(
-                color: adjRight
-                    ? SpaceTheme.starYellow.withValues(alpha: 0.8)
-                    : SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
-                width: adjRight ? 3 : 1,
-              ),
-            ),
-            boxShadow: isColored
-                ? [BoxShadow(
-                    color: color!.withValues(alpha: 0.4),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                  )]
-                : null,
-          ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${region + 1}',
-                  style: SpaceTheme.headlineStyle.copyWith(
-                    fontSize: innerSize * 0.3,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  ),
+    return Transform.scale(
+      scale: scale,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: isColored
+              ? RadialGradient(
+                  colors: [
+                    Color.lerp(color!, Colors.white, 0.2)!,
+                    color,
+                    color.withValues(alpha: 0.7),
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                )
+              : RadialGradient(
+                  colors: [
+                    SpaceTheme.nebulaPurple.withValues(alpha: 0.8),
+                    SpaceTheme.deepSpace.withValues(alpha: 0.9),
+                  ],
                 ),
-                if (!isColored)
-                  Icon(
-                    Icons.touch_app,
-                    color: Colors.white38,
-                    size: innerSize * 0.2,
-                  ),
-              ],
-            ),
+          border: Border.all(
+            color: isConflict
+                ? Color.lerp(
+                    Colors.transparent, SpaceTheme.rocketRed, conflictFlash)!
+                : isColored
+                    ? Colors.white.withValues(alpha: 0.6)
+                    : SpaceTheme.starYellow.withValues(alpha: 0.5),
+            width: isConflict ? 4 : 2,
           ),
+          boxShadow: [
+            if (isColored)
+              BoxShadow(
+                color: color!.withValues(alpha: 0.5),
+                blurRadius: 10,
+                spreadRadius: 2,
+              ),
+            if (isConflict)
+              BoxShadow(
+                color: SpaceTheme.rocketRed.withValues(alpha: conflictFlash * 0.8),
+                blurRadius: 16,
+                spreadRadius: 4,
+              ),
+          ],
         ),
-      ),
-    );
-  }
-
-  int _computeGridCols(int count) {
-    if (count <= 4) return 2;
-    if (count <= 6) return 3;
-    if (count <= 9) return 3;
-    return 4;
-  }
-
-  Widget _buildCheckButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: _checkSolution,
-          icon: const Icon(Icons.check_circle_outline),
-          label: Text(S.of(context)!.sectorPainterWinTitle),
-          style: SpaceTheme.primaryButtonStyle,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${region + 1}',
+                style: SpaceTheme.headlineStyle.copyWith(
+                  fontSize: size * 0.3,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+              ),
+              if (!isColored)
+                Icon(
+                  Icons.touch_app,
+                  color: Colors.white38,
+                  size: size * 0.2,
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -646,6 +594,26 @@ class _SectorPainterGameState extends State<SectorPainterGame>
                     style: SpaceTheme.bodyStyle,
                     textAlign: TextAlign.center,
                   ),
+                  if (colorsUsed <= _puzzle!.chromaticNumber)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: SpaceTheme.starYellow.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: SpaceTheme.starYellow),
+                        ),
+                        child: Text(
+                          'Optimal coloring!',
+                          style: SpaceTheme.bodyStyle.copyWith(
+                            color: SpaceTheme.starYellow,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -678,67 +646,76 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   }
 }
 
-/// Paints adjacency lines between grid-positioned territories.
-class _TerritoryMapPainter extends CustomPainter {
+/// Paints adjacency lines between graph-positioned regions.
+class _GraphMapPainter extends CustomPainter {
   final SectorPainterPuzzle puzzle;
   final Map<int, int> coloring;
   final List<Color> paletteColors;
   final double glowValue;
-  final int cols;
-  final int rows;
-  final double cellSize;
+  final Set<int> conflictRegions;
+  final double conflictValue;
+  final double width;
+  final double height;
 
-  _TerritoryMapPainter({
+  _GraphMapPainter({
     required this.puzzle,
     required this.coloring,
     required this.paletteColors,
     required this.glowValue,
-    required this.cols,
-    required this.rows,
-    required this.cellSize,
+    required this.conflictRegions,
+    required this.conflictValue,
+    required this.width,
+    required this.height,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final linePaint = Paint()
-      ..color = SpaceTheme.starYellow.withValues(alpha: 0.35 * glowValue)
-      ..strokeWidth = 2.5
-      ..style = PaintingStyle.stroke;
+      ..color = SpaceTheme.starYellow.withValues(alpha: 0.4 * glowValue)
+      ..strokeWidth = 3.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
 
-    final regionCount = puzzle.regions.length;
+    final conflictLinePaint = Paint()
+      ..color = SpaceTheme.rocketRed.withValues(alpha: conflictValue)
+      ..strokeWidth = 4.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
 
-    // Draw adjacency lines between non-grid-adjacent regions (diagonal/cross connections)
+    // Draw all adjacency edges
+    final drawn = <String>{};
     for (final region in puzzle.regions) {
-      final fromCol = region % cols;
-      final fromRow = region ~/ cols;
-      final fromCenter = Offset(
-        (fromCol + 0.5) * cellSize,
-        (fromRow + 0.5) * cellSize,
-      );
+      final fromPos = puzzle.positions[region];
+      final fromCenter = Offset(fromPos.x * width, fromPos.y * height);
 
       for (final neighbor in puzzle.adjacency[region] ?? <int>{}) {
-        if (neighbor > region && neighbor < regionCount) {
-          final toCol = neighbor % cols;
-          final toRow = neighbor ~/ cols;
+        final key = '${math.min(region, neighbor)}-${math.max(region, neighbor)}';
+        if (drawn.contains(key)) continue;
+        drawn.add(key);
 
-          // Only draw lines for non-immediate-grid-neighbors
-          final dCol = (toCol - fromCol).abs();
-          final dRow = (toRow - fromRow).abs();
-          final isGridNeighbor = (dCol + dRow) == 1;
+        final toPos = puzzle.positions[neighbor];
+        final toCenter = Offset(toPos.x * width, toPos.y * height);
 
-          if (!isGridNeighbor) {
-            final toCenter = Offset(
-              (toCol + 0.5) * cellSize,
-              (toRow + 0.5) * cellSize,
-            );
-            canvas.drawLine(fromCenter, toCenter, linePaint);
-          }
-        }
+        // Check if this edge is a conflict
+        final isConflictEdge = conflictRegions.contains(region) &&
+            conflictRegions.contains(neighbor) &&
+            coloring[region] != null &&
+            coloring[neighbor] != null &&
+            coloring[region] == coloring[neighbor];
+
+        canvas.drawLine(
+          fromCenter,
+          toCenter,
+          isConflictEdge ? conflictLinePaint : linePaint,
+        );
       }
     }
   }
 
   @override
-  bool shouldRepaint(covariant _TerritoryMapPainter oldDelegate) =>
-      oldDelegate.glowValue != glowValue || oldDelegate.coloring != coloring;
+  bool shouldRepaint(covariant _GraphMapPainter oldDelegate) =>
+      oldDelegate.glowValue != glowValue ||
+      oldDelegate.coloring != coloring ||
+      oldDelegate.conflictValue != conflictValue ||
+      oldDelegate.conflictRegions != conflictRegions;
 }

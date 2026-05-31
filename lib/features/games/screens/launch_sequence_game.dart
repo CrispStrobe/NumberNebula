@@ -26,7 +26,8 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
   late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
-  late AnimationController _swapController;
+  late AnimationController _launchController;
+  late Animation<double> _launchAnimation;
 
   DifficultyConfig? currentDifficulty;
   LaunchSequencePuzzle? puzzle;
@@ -63,10 +64,12 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
     );
     _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
 
-    _swapController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+    _launchController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
+    _launchAnimation = CurvedAnimation(parent: _launchController, curve: Curves.easeInExpo);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
@@ -80,7 +83,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
   void dispose() {
     _glowController.dispose();
     _successController.dispose();
-    _swapController.dispose();
+    _launchController.dispose();
     super.dispose();
   }
 
@@ -93,6 +96,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
       swapCount = 0;
       _selectedIndex = null;
       _successController.reset();
+      _launchController.reset();
     });
 
     final grade = currentDifficulty!.grade;
@@ -121,27 +125,43 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
     });
   }
 
+  void _onReorder(int oldIndex, int newIndex) {
+    if (_won) return;
+    // ReorderableListView adjusts newIndex when moving down
+    if (newIndex > oldIndex) newIndex--;
+    if (oldIndex == newIndex) return;
+
+    HapticFeedback.selectionClick();
+
+    setState(() {
+      final item = sequence.removeAt(oldIndex);
+      sequence.insert(newIndex, item);
+      swapCount++;
+      _selectedIndex = null;
+    });
+
+    if (LaunchSequencePuzzle.isSorted(sequence)) {
+      _handleWin();
+    }
+  }
+
   void _onItemTap(int index) {
     if (_won) return;
 
     HapticFeedback.selectionClick();
 
     if (_selectedIndex == null) {
-      // First selection
       setState(() {
         _selectedIndex = index;
       });
     } else if (_selectedIndex == index) {
-      // Deselect
       setState(() {
         _selectedIndex = null;
       });
     } else {
-      // Check if adjacent
       final diff = (index - _selectedIndex!).abs();
       if (diff == 1) {
-        // Swap
-        _swapController.forward(from: 0.0);
+        // Adjacent swap with animation
         setState(() {
           final temp = sequence[index];
           sequence[index] = sequence[_selectedIndex!];
@@ -154,7 +174,6 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
           _handleWin();
         }
       } else {
-        // Not adjacent, select the new one instead
         setState(() {
           _selectedIndex = index;
         });
@@ -166,9 +185,11 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
     _won = true;
     HapticFeedback.lightImpact();
 
+    // Start launch animation
+    _launchController.forward(from: 0.0);
+
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
-    // Bonus for being close to optimal
     final optimal = puzzle!.optimalSwaps;
     int efficiencyBonus = optimal > 0
         ? ((optimal / swapCount.clamp(1, 999)) * 100).round()
@@ -183,13 +204,16 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
 
     _successController.forward(from: 0.0);
 
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _buildWinDialog(totalScore),
-      );
-    }
+    // Show dialog after launch animation
+    Future.delayed(const Duration(milliseconds: 1300), () {
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => _buildWinDialog(totalScore),
+        );
+      }
+    });
   }
 
   @override
@@ -227,45 +251,21 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
                   s.launchSequenceInstructions,
-                  style: SpaceTheme.bodyStyle,
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
                   textAlign: TextAlign.center,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Swaps: $swapCount  |  Optimal: ${puzzle!.optimalSwaps}',
-                      style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
+              // Move counter + optimal prominently
+              _buildMoveCounter(),
               // Target order
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Target: ', style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
-                    ...puzzle!.target.map((v) => Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '$v',
-                        style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white70),
-                      ),
-                    )),
-                  ],
+              _buildTargetRow(),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return _buildSequenceArea(constraints);
+                  },
                 ),
               ),
-              Expanded(child: _buildSequenceArea()),
             ],
           ),
         ),
@@ -273,13 +273,89 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
     );
   }
 
-  Widget _buildSequenceArea() {
+  Widget _buildMoveCounter() {
+    final isOptimal = swapCount <= puzzle!.optimalSwaps;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+      child: AnimatedBuilder(
+        animation: _glowAnimation,
+        builder: (context, _) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(
+                color: isOptimal
+                    ? SpaceTheme.alienGreen.withValues(alpha: _glowAnimation.value)
+                    : SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value),
+                width: 2,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.swap_horiz, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Moves: $swapCount',
+                  style: SpaceTheme.titleStyle.copyWith(fontSize: 16),
+                ),
+                const SizedBox(width: 16),
+                const Icon(Icons.emoji_events,
+                    color: SpaceTheme.starYellow, size: 18),
+                const SizedBox(width: 4),
+                Text(
+                  'Optimal: ${puzzle!.optimalSwaps}',
+                  style: SpaceTheme.bodyStyle.copyWith(
+                    fontSize: 14,
+                    color: SpaceTheme.starYellow,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTargetRow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('Target: ', style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+          ...puzzle!.target.map((v) => Container(
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              '$v',
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white70),
+            ),
+          )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSequenceArea(BoxConstraints constraints) {
+    final availWidth = constraints.maxWidth;
+    final cardWidth = ((availWidth - 48) / sequence.length).clamp(55.0, 80.0);
+    final cardHeight = (cardWidth * 1.5).clamp(80.0, 120.0);
+
     return Center(
       child: AnimatedBuilder(
         animation: _glowAnimation,
         builder: (context, child) {
           return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: RadialGradient(
@@ -290,17 +366,42 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: const Color(0xFFFFD700).withValues(alpha: _glowAnimation.value * 0.5),
+                color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value * 0.5),
                 width: 2,
               ),
             ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(sequence.length, (i) {
-                  return _buildShipSlot(i);
-                }),
+            child: SizedBox(
+              height: cardHeight + 24,
+              child: ReorderableListView.builder(
+                scrollDirection: Axis.horizontal,
+                buildDefaultDragHandles: !_won,
+                proxyDecorator: (child, index, animation) {
+                  return AnimatedBuilder(
+                    animation: animation,
+                    builder: (context, child) {
+                      final scale = Tween<double>(begin: 1.0, end: 1.08)
+                          .animate(CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeInOut,
+                          )).value;
+                      return Transform.scale(
+                        scale: scale,
+                        child: child,
+                      );
+                    },
+                    child: child,
+                  );
+                },
+                itemCount: sequence.length,
+                onReorder: _onReorder,
+                itemBuilder: (context, index) {
+                  return _buildShipCard(
+                    key: ValueKey(sequence[index]),
+                    index: index,
+                    cardWidth: cardWidth,
+                    cardHeight: cardHeight,
+                  );
+                },
               ),
             ),
           );
@@ -309,19 +410,24 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
     );
   }
 
-  Widget _buildShipSlot(int index) {
+  Widget _buildShipCard({
+    required Key key,
+    required int index,
+    required double cardWidth,
+    required double cardHeight,
+  }) {
     final value = sequence[index];
     final isSelected = _selectedIndex == index;
     final isInCorrectPosition = sequence[index] == puzzle!.target[index];
     final color = _shipColors[(value - 1) % _shipColors.length];
 
-    return GestureDetector(
+    Widget card = GestureDetector(
       onTap: () => _onItemTap(index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        width: 65,
-        height: 100,
-        margin: const EdgeInsets.symmetric(horizontal: 6),
+        width: cardWidth,
+        height: cardHeight,
+        margin: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [color, color.withValues(alpha: 0.6)],
@@ -333,7 +439,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
             color: isSelected
                 ? SpaceTheme.starYellow
                 : isInCorrectPosition
-                    ? const Color(0xFF06FFA5)
+                    ? SpaceTheme.alienGreen
                     : Colors.transparent,
             width: isSelected ? 3 : 2,
           ),
@@ -346,7 +452,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
               ),
             if (isInCorrectPosition)
               BoxShadow(
-                color: const Color(0xFF06FFA5).withValues(alpha: 0.4),
+                color: SpaceTheme.alienGreen.withValues(alpha: 0.4),
                 blurRadius: 8,
                 spreadRadius: 1,
               ),
@@ -363,11 +469,11 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
             Icon(
               Icons.rocket_launch,
               color: Colors.white.withValues(alpha: 0.9),
-              size: 28,
+              size: cardWidth * 0.4,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: cardHeight * 0.06),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
@@ -375,7 +481,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
               child: Text(
                 '#$value',
                 style: SpaceTheme.headlineStyle.copyWith(
-                  fontSize: 16,
+                  fontSize: cardWidth * 0.22,
                   color: Colors.white,
                 ),
               ),
@@ -384,6 +490,28 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
         ),
       ),
     );
+
+    // Victory launch animation
+    if (_won) {
+      card = AnimatedBuilder(
+        animation: _launchAnimation,
+        builder: (context, child) {
+          // Stagger launch per ship index
+          final delay = index / sequence.length;
+          final progress = ((_launchAnimation.value - delay) / (1.0 - delay)).clamp(0.0, 1.0);
+          return Transform.translate(
+            offset: Offset(0, -progress * 300),
+            child: Opacity(
+              opacity: (1.0 - progress).clamp(0.2, 1.0),
+              child: child,
+            ),
+          );
+        },
+        child: card,
+      );
+    }
+
+    return card;
   }
 
   Widget _buildWinDialog(int bonusScore) {
@@ -401,7 +529,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.emoji_events, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.rocket_launch, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.launchSequenceWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 16),

@@ -27,6 +27,10 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
   late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
+  late AnimationController _dropController;
+  late Animation<double> _dropAnimation;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -35,9 +39,9 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
   // Puzzle data
   int _target = 0;
   List<int> _denominations = [];
-  Map<int, int> _selectedCoins = {}; // denomination -> count used
+  final List<int> _paymentCoins = []; // coins dropped into payment area (values)
   int _currentTotal = 0;
-  int _optimalCount = 0; // fewest coins possible (greedy)
+  int _optimalCount = 0;
 
   // Math problems for SRI
   final List<MathProblem> _mathProblems = [];
@@ -46,6 +50,17 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
 
   static const List<String> _coinNames = [
     'Nova', 'Pulsar', 'Quasar', 'Nebula', 'Photon', 'Graviton', 'Meson',
+  ];
+
+  // Coin colors matching denominations
+  static const List<Color> _coinColors = [
+    Color(0xFFFFD700), // gold
+    Color(0xFFC0C0C0), // silver
+    Color(0xFFE57373), // light red
+    Color(0xFF06FFA5), // green
+    Color(0xFF6B48FF), // purple
+    Color(0xFF00C9DB), // cyan
+    Color(0xFFFF69B4), // pink
   ];
 
   @override
@@ -66,6 +81,20 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     _successAnimation =
         CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
 
+    _dropController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _dropAnimation =
+        CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
+
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.85, end: 1.0)
+        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
@@ -79,8 +108,12 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
   void dispose() {
     _glowController.stop();
     _successController.stop();
+    _dropController.stop();
+    _pulseController.stop();
     _glowController.dispose();
     _successController.dispose();
+    _dropController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -90,6 +123,8 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     setState(() {
       _isGenerating = true;
       _gameOver = false;
+      _paymentCoins.clear();
+      _currentTotal = 0;
       _mathProblems.clear();
       _successController.reset();
     });
@@ -97,24 +132,17 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     final grade = currentDifficulty!.grade;
 
     if (grade <= 2) {
-      // Easy: target < 20, 3 denominations
       _denominations = [1, 2, 5];
-      _target = _random.nextInt(15) + 5; // 5-19
+      _target = _random.nextInt(15) + 5;
     } else {
-      // Hard: target < 100, 5+ denominations
       _denominations = [1, 2, 5, 10, 25];
       if (grade >= 4) _denominations.add(50);
-      _target = _random.nextInt(80) + 20; // 20-99
+      _target = _random.nextInt(80) + 20;
     }
 
     _denominations.sort((a, b) => b.compareTo(a));
-    _selectedCoins = {for (final d in _denominations) d: 0};
-    _currentTotal = 0;
-
-    // Calculate optimal (greedy works for these denominations)
     _optimalCount = _calculateOptimalCoins(_target, _denominations);
 
-    // Create MathProblem for SRI
     _mathProblems.add(MathProblem.addition(_target, 0, difficulty: grade));
 
     if (mounted) {
@@ -136,32 +164,36 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
 
   void _addCoin(int denomination) {
     if (_gameOver) return;
-    if (_currentTotal + denomination > _target) return;
+    if (_currentTotal + denomination > _target) {
+      HapticFeedback.heavyImpact();
+      return;
+    }
 
+    HapticFeedback.selectionClick();
     setState(() {
-      _selectedCoins[denomination] = (_selectedCoins[denomination] ?? 0) + 1;
+      _paymentCoins.add(denomination);
       _currentTotal += denomination;
     });
+    _dropController.forward(from: 0.0);
 
     if (_currentTotal == _target) {
       _handleWin();
     }
   }
 
-  void _removeCoin(int denomination) {
+  void _removeCoinAt(int index) {
     if (_gameOver) return;
-    if ((_selectedCoins[denomination] ?? 0) <= 0) return;
-
+    HapticFeedback.selectionClick();
     setState(() {
-      _selectedCoins[denomination] = _selectedCoins[denomination]! - 1;
-      _currentTotal -= denomination;
+      _currentTotal -= _paymentCoins[index];
+      _paymentCoins.removeAt(index);
     });
   }
 
   void _resetCoins() {
     if (_gameOver) return;
     setState(() {
-      _selectedCoins = {for (final d in _denominations) d: 0};
+      _paymentCoins.clear();
       _currentTotal = 0;
     });
   }
@@ -170,10 +202,12 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     HapticFeedback.lightImpact();
     _gameOver = true;
 
-    final totalCoins = _selectedCoins.values.fold(0, (a, b) => a + b);
+    final totalCoins = _paymentCoins.length;
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
-    int efficiencyBonus = totalCoins <= _optimalCount ? 100 : math.max(0, 50 - (totalCoins - _optimalCount) * 10);
+    int efficiencyBonus = totalCoins <= _optimalCount
+        ? 100
+        : math.max(0, 50 - (totalCoins - _optimalCount) * 10);
     int totalScore = baseScore + levelBonus + efficiencyBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
@@ -233,7 +267,16 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
                   textAlign: TextAlign.center,
                 ),
               ),
-              Expanded(child: _buildGameArea()),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 700;
+                    return isWide
+                        ? _buildWideLayout(constraints)
+                        : _buildCompactLayout(constraints);
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -241,134 +284,400 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     );
   }
 
-  Widget _buildGameArea() {
+  Widget _buildWideLayout(BoxConstraints constraints) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            flex: 2,
+            child: Column(
+              children: [
+                _buildTargetDisplay(),
+                const SizedBox(height: 12),
+                Expanded(child: _buildPaymentArea()),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            flex: 3,
+            child: _buildCoinTray(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactLayout(BoxConstraints constraints) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         children: [
-          // Target display
-          AnimatedBuilder(
-            animation: _glowAnimation,
-            builder: (context, child) {
-              return Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value),
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value * 0.3),
-                      blurRadius: 20,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Text('Target', style: SpaceTheme.bodyStyle.copyWith(color: Colors.white70, fontSize: 13)),
-                    Text('$_target',
-                        style: SpaceTheme.headlineStyle.copyWith(fontSize: 42, color: SpaceTheme.starYellow)),
-                    const SizedBox(height: 8),
-                    Text('Current: $_currentTotal',
-                        style: SpaceTheme.titleStyle.copyWith(
-                          color: _currentTotal == _target ? Colors.green : Colors.white,
-                          fontSize: 18,
-                        )),
-                    const SizedBox(height: 4),
-                    LinearProgressIndicator(
-                      value: _target > 0 ? _currentTotal / _target : 0,
-                      backgroundColor: Colors.white12,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        _currentTotal <= _target ? const Color(0xFF06FFA5) : SpaceTheme.rocketRed,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          // Coin buttons
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.0,
-              ),
-              itemCount: _denominations.length,
-              itemBuilder: (context, index) {
-                final denom = _denominations[index];
-                final count = _selectedCoins[denom] ?? 0;
-                final nameIndex = index % _coinNames.length;
-                return _buildCoinButton(denom, count, _coinNames[nameIndex]);
-              },
-            ),
-          ),
+          _buildTargetDisplay(),
           const SizedBox(height: 8),
-          // Reset button
-          if (!_gameOver)
-            ElevatedButton.icon(
-              onPressed: _resetCoins,
-              style: SpaceTheme.secondaryButtonStyle,
-              icon: const Icon(Icons.refresh),
-              label: Text(S.of(context)!.playAgain),
-            ),
+          Expanded(flex: 3, child: _buildPaymentArea()),
+          const SizedBox(height: 8),
+          Expanded(flex: 4, child: _buildCoinTray()),
+          if (!_gameOver) ...[
+            const SizedBox(height: 6),
+            _buildResetButton(),
+          ],
           const SizedBox(height: 8),
         ],
       ),
     );
   }
 
-  Widget _buildCoinButton(int denomination, int count, String name) {
-    final bool canAdd = _currentTotal + denomination <= _target && !_gameOver;
-    return GestureDetector(
-      onTap: canAdd ? () => _addCoin(denomination) : null,
-      onLongPress: count > 0 ? () => _removeCoin(denomination) : null,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: canAdd
-                ? [const Color(0xFFFFD700), const Color(0xFFFF6B35)]
-                : [Colors.grey.shade800, Colors.grey.shade700],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: count > 0 ? SpaceTheme.starYellow : Colors.white24,
-            width: count > 0 ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('$denomination',
-                style: SpaceTheme.headlineStyle.copyWith(fontSize: 22)),
-            Text(name, style: SpaceTheme.bodyStyle.copyWith(fontSize: 10)),
-            if (count > 0)
-              Container(
-                margin: const EdgeInsets.only(top: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text('x$count',
-                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: SpaceTheme.starYellow)),
+  Widget _buildTargetDisplay() {
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (context, child) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: SpaceTheme.starYellow
+                  .withValues(alpha: _glowAnimation.value),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: SpaceTheme.starYellow
+                    .withValues(alpha: _glowAnimation.value * 0.3),
+                blurRadius: 16,
               ),
-          ],
+            ],
+          ),
+          child: Row(
+            children: [
+              // Target
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('Target',
+                        style: SpaceTheme.bodyStyle
+                            .copyWith(color: Colors.white70, fontSize: 11)),
+                    Text('$_target',
+                        style: SpaceTheme.headlineStyle.copyWith(
+                            fontSize: 32, color: SpaceTheme.starYellow)),
+                  ],
+                ),
+              ),
+              // Current total
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('Current',
+                        style: SpaceTheme.bodyStyle
+                            .copyWith(color: Colors.white70, fontSize: 11)),
+                    Text('$_currentTotal',
+                        style: SpaceTheme.headlineStyle.copyWith(
+                          fontSize: 32,
+                          color: _currentTotal == _target
+                              ? SpaceTheme.alienGreen
+                              : Colors.white,
+                        )),
+                  ],
+                ),
+              ),
+              // Optimal
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('Optimal',
+                        style: SpaceTheme.bodyStyle
+                            .copyWith(color: Colors.white70, fontSize: 11)),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.stars,
+                            color: SpaceTheme.starYellow, size: 16),
+                        const SizedBox(width: 4),
+                        Text('$_optimalCount coins',
+                            style: SpaceTheme.bodyStyle.copyWith(
+                                fontSize: 12, color: SpaceTheme.starYellow)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPaymentArea() {
+    return DragTarget<int>(
+      builder: (context, candidateData, rejectedData) {
+        final isHovering = candidateData.isNotEmpty;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              colors: isHovering
+                  ? [
+                      SpaceTheme.starYellow.withValues(alpha: 0.15),
+                      SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                    ]
+                  : [
+                      SpaceTheme.deepSpace.withValues(alpha: 0.6),
+                      SpaceTheme.nebulaPurple.withValues(alpha: 0.4),
+                    ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isHovering
+                  ? SpaceTheme.starYellow
+                  : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
+              width: isHovering ? 3 : 2,
+            ),
+            boxShadow: isHovering
+                ? [
+                    BoxShadow(
+                      color: SpaceTheme.starYellow.withValues(alpha: 0.4),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                    ),
+                  ]
+                : null,
+          ),
+          child: _paymentCoins.isEmpty
+              ? Center(
+                  child: AnimatedBuilder(
+                    animation: _pulseAnimation,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _pulseAnimation.value,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.payments,
+                                color: isHovering
+                                    ? SpaceTheme.starYellow
+                                    : SpaceTheme.nebulaPurple,
+                                size: 40),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Drop coins here',
+                              style: SpaceTheme.bodyStyle.copyWith(
+                                color: isHovering
+                                    ? SpaceTheme.starYellow
+                                    : Colors.white38,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                )
+              : _buildPlacedCoins(),
+        );
+      },
+      onWillAcceptWithDetails: (details) {
+        return !_gameOver && _currentTotal + details.data <= _target;
+      },
+      onAcceptWithDetails: (details) {
+        _addCoin(details.data);
+      },
+    );
+  }
+
+  Widget _buildPlacedCoins() {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: SingleChildScrollView(
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          alignment: WrapAlignment.center,
+          children: List.generate(_paymentCoins.length, (index) {
+            final denom = _paymentCoins[index];
+            final denomIdx = _denominations.indexOf(denom);
+            final color = _coinColors[denomIdx.clamp(0, _coinColors.length - 1)];
+            final isLast = index == _paymentCoins.length - 1;
+
+            Widget coin = GestureDetector(
+              onTap: () => _removeCoinAt(index),
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Color.lerp(color, Colors.white, 0.3)!,
+                      color,
+                    ],
+                  ),
+                  border: Border.all(color: color.withValues(alpha: 0.8), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.4),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    '$denom',
+                    style: SpaceTheme.headlineStyle.copyWith(
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            );
+
+            if (isLast) {
+              coin = ScaleTransition(scale: _dropAnimation, child: coin);
+            }
+            return coin;
+          }),
         ),
       ),
     );
   }
 
+  Widget _buildCoinTray() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxCoinSize = (constraints.maxWidth - 48) / 3;
+        final coinSize = maxCoinSize.clamp(50.0, 90.0);
+
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: SpaceTheme.cardDecoration.copyWith(
+            border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.5), width: 2),
+          ),
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 1.0,
+            ),
+            itemCount: _denominations.length,
+            itemBuilder: (context, index) {
+              final denom = _denominations[index];
+              final color = _coinColors[index % _coinColors.length];
+              final nameIndex = index % _coinNames.length;
+              final canAdd = _currentTotal + denom <= _target && !_gameOver;
+
+              return Draggable<int>(
+                data: denom,
+                maxSimultaneousDrags: canAdd ? 1 : 0,
+                feedback: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    width: coinSize,
+                    height: coinSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Color.lerp(color, Colors.white, 0.3)!,
+                          color,
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.8),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$denom',
+                        style: SpaceTheme.headlineStyle
+                            .copyWith(fontSize: coinSize * 0.3, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+                childWhenDragging: Opacity(
+                  opacity: 0.3,
+                  child: _buildCoinWidget(denom, color, _coinNames[nameIndex], canAdd),
+                ),
+                child: _buildCoinWidget(denom, color, _coinNames[nameIndex], canAdd),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCoinWidget(int denomination, Color color, String name, bool canAdd) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: canAdd
+              ? [Color.lerp(color, Colors.white, 0.2)!, color, color.withValues(alpha: 0.7)]
+              : [Colors.grey.shade700, Colors.grey.shade800],
+          stops: const [0.0, 0.5, 1.0],
+        ),
+        border: Border.all(
+          color: canAdd ? color.withValues(alpha: 0.8) : Colors.grey.shade600,
+          width: 2,
+        ),
+        boxShadow: canAdd
+            ? [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.3),
+                  blurRadius: 6,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('$denomination',
+              style: SpaceTheme.headlineStyle.copyWith(
+                fontSize: 20,
+                color: canAdd ? Colors.white : Colors.grey,
+              )),
+          Text(name,
+              style: SpaceTheme.bodyStyle.copyWith(
+                fontSize: 9,
+                color: canAdd ? Colors.white70 : Colors.grey,
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResetButton() {
+    return ElevatedButton.icon(
+      onPressed: _paymentCoins.isEmpty ? null : _resetCoins,
+      style: SpaceTheme.secondaryButtonStyle,
+      icon: const Icon(Icons.refresh, size: 18),
+      label: Text(S.of(context)!.playAgain),
+    );
+  }
+
   Widget _buildWinDialog(int coins, int totalScore) {
     final s = S.of(context)!;
+    final isOptimal = coins <= _optimalCount;
     return AnimatedBuilder(
       animation: _successAnimation,
       builder: (context, child) {
@@ -389,6 +698,25 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
                   const SizedBox(height: 16),
                   Text(s.galacticMarketWinDesc(coins, totalScore),
                       style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  if (isOptimal)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: SpaceTheme.starYellow.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: SpaceTheme.starYellow),
+                        ),
+                        child: Text(
+                          'Optimal solution!',
+                          style: SpaceTheme.bodyStyle.copyWith(
+                            color: SpaceTheme.starYellow,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,

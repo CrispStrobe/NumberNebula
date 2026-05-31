@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'dart:math' as math;
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -26,6 +27,7 @@ class _DockClearanceGameState extends State<DockClearanceGame>
   late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
+  late AnimationController _dropController;
 
   DifficultyConfig? currentDifficulty;
   DockClearancePuzzle? puzzle;
@@ -33,8 +35,14 @@ class _DockClearanceGameState extends State<DockClearanceGame>
   int moveCount = 0;
   bool _isGenerating = true;
   bool _won = false;
-  int? _dragShipId;
-  Offset? _dragStart;
+
+  // Drag state -- ship follows finger smoothly
+  int? _dragShipIdx;
+  double _dragOffset = 0.0; // pixel offset along axis during drag
+  Offset _dragStartLocal = Offset.zero;
+
+  // Undo support
+  final List<_MoveRecord> _moveHistory = [];
 
   static const List<Color> _shipColors = [
     Color(0xFFE63946), // red = target
@@ -65,6 +73,11 @@ class _DockClearanceGameState extends State<DockClearanceGame>
     );
     _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
 
+    _dropController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
@@ -78,6 +91,7 @@ class _DockClearanceGameState extends State<DockClearanceGame>
   void dispose() {
     _glowController.dispose();
     _successController.dispose();
+    _dropController.dispose();
     super.dispose();
   }
 
@@ -88,6 +102,7 @@ class _DockClearanceGameState extends State<DockClearanceGame>
       _isGenerating = true;
       _won = false;
       moveCount = 0;
+      _moveHistory.clear();
       _successController.reset();
     });
 
@@ -122,42 +137,46 @@ class _DockClearanceGameState extends State<DockClearanceGame>
     });
   }
 
-  void _tryMoveShip(int shipId, int deltaRow, int deltaCol) {
-    if (_won) return;
-
-    final shipIdx = ships.indexWhere((s) => s.id == shipId);
-    if (shipIdx == -1) return;
+  /// Try to move a ship by delta cells. Returns true if move succeeded.
+  bool _tryMoveShip(int shipIdx, int delta) {
+    if (_won) return false;
     final ship = ships[shipIdx];
-
-    // Ships can only move along their axis
-    if (ship.orientation == ShipOrientation.horizontal && deltaRow != 0) return;
-    if (ship.orientation == ShipOrientation.vertical && deltaCol != 0) return;
 
     Ship moved;
     if (ship.orientation == ShipOrientation.horizontal) {
-      moved = ship.copyWith(col: ship.col + deltaCol);
+      moved = ship.copyWith(col: ship.col + delta);
     } else {
-      moved = ship.copyWith(row: ship.row + deltaRow);
+      moved = ship.copyWith(row: ship.row + delta);
     }
 
     // Check bounds
     for (final cell in moved.cells) {
       if (cell[0] < 0 || cell[0] >= puzzle!.boardSize ||
           cell[1] < 0 || cell[1] >= puzzle!.boardSize) {
-        return;
+        return false;
       }
     }
 
     // Check collision
     final testShips = List<Ship>.from(ships);
     testShips[shipIdx] = moved;
-    final grid = List.generate(puzzle!.boardSize, (_) => List.filled(puzzle!.boardSize, -1));
+    final grid = List.generate(
+        puzzle!.boardSize, (_) => List.filled(puzzle!.boardSize, -1));
     for (final s in testShips) {
       for (final cell in s.cells) {
-        if (grid[cell[0]][cell[1]] != -1 && grid[cell[0]][cell[1]] != s.id) return;
+        if (grid[cell[0]][cell[1]] != -1 && grid[cell[0]][cell[1]] != s.id) {
+          return false;
+        }
         grid[cell[0]][cell[1]] = s.id;
       }
     }
+
+    // Record undo
+    _moveHistory.add(_MoveRecord(
+      shipIdx: shipIdx,
+      oldRow: ship.row,
+      oldCol: ship.col,
+    ));
 
     HapticFeedback.selectionClick();
     setState(() {
@@ -165,10 +184,26 @@ class _DockClearanceGameState extends State<DockClearanceGame>
       moveCount++;
     });
 
+    _dropController.forward(from: 0.0);
+
     // Check win
     if (DockClearancePuzzle.isTargetAtExit(ships, puzzle!.boardSize)) {
       _handleWin();
     }
+    return true;
+  }
+
+  void _undoMove() {
+    if (_moveHistory.isEmpty || _won) return;
+    final record = _moveHistory.removeLast();
+    HapticFeedback.selectionClick();
+    setState(() {
+      ships[record.shipIdx] = ships[record.shipIdx].copyWith(
+        row: record.oldRow,
+        col: record.oldCol,
+      );
+      moveCount--;
+    });
   }
 
   void _handleWin() {
@@ -234,18 +269,20 @@ class _DockClearanceGameState extends State<DockClearanceGame>
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
                   s.dockClearanceInstructions,
-                  style: SpaceTheme.bodyStyle,
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
                   textAlign: TextAlign.center,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  '${s.level}: ${widget.level}  |  Moves: $moveCount',
-                  style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
+              // Move counter + undo bar
+              _buildControlBar(s),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Center(child: _buildBoard(constraints));
+                  },
                 ),
               ),
-              Expanded(child: _buildBoard()),
+              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -253,115 +290,190 @@ class _DockClearanceGameState extends State<DockClearanceGame>
     );
   }
 
-  Widget _buildBoard() {
-    final boardSize = puzzle!.boardSize;
-    final screenWidth = MediaQuery.of(context).size.width - 64;
-    final cellSize = (screenWidth / boardSize).clamp(40.0, 80.0);
-
-    return Center(
-      child: AnimatedBuilder(
-        animation: _glowAnimation,
-        builder: (context, child) {
-          return Container(
-            padding: const EdgeInsets.all(8),
+  Widget _buildControlBar(S s) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Move counter
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
               color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFF00C9DB).withValues(alpha: _glowAnimation.value),
-                width: 2,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: SpaceTheme.nebulaPurple),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.compare_arrows, color: SpaceTheme.starYellow, size: 18),
+                const SizedBox(width: 6),
+                Text(
+                  '${s.moves}: $moveCount',
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Undo button
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            child: ElevatedButton.icon(
+              onPressed: _moveHistory.isEmpty || _won ? null : _undoMove,
+              icon: const Icon(Icons.undo, size: 18),
+              label: Text(s.undo),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: SpaceTheme.nebulaPurple,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
             ),
-            child: SizedBox(
-              width: cellSize * boardSize + 4,
-              height: cellSize * boardSize + 4,
-              child: Stack(
-                children: [
-                  // Grid lines
-                  ...List.generate(boardSize, (row) {
-                    return Positioned.fill(
-                      child: Row(
-                        children: List.generate(boardSize, (col) {
-                          return Container(
-                            width: cellSize,
-                            height: cellSize,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.grey.shade800,
-                                width: 0.5,
-                              ),
-                            ),
-                          );
-                        }),
-                      ),
-                    );
-                  }),
-                  // Exit marker
-                  Positioned(
-                    top: puzzle!.exitRow * cellSize,
-                    right: -6,
-                    child: Container(
-                      width: 12,
-                      height: cellSize,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE63946).withValues(alpha: 0.8),
-                        borderRadius: const BorderRadius.horizontal(right: Radius.circular(6)),
-                      ),
-                      child: const Center(
-                        child: Icon(Icons.arrow_forward, color: Colors.white, size: 10),
-                      ),
-                    ),
-                  ),
-                  // Ships
-                  ...ships.map((ship) => _buildShip(ship, cellSize)),
-                ],
-              ),
-            ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildShip(Ship ship, double cellSize) {
+  Widget _buildBoard(BoxConstraints constraints) {
+    final boardSize = puzzle!.boardSize;
+    final maxW = (constraints.maxWidth - 48) / boardSize;
+    final maxH = (constraints.maxHeight - 16) / boardSize;
+    final cellSize = math.min(maxW, maxH).clamp(30.0, 80.0);
+
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (context, child) {
+        return Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: const Color(0xFF00C9DB)
+                  .withValues(alpha: _glowAnimation.value),
+              width: 2,
+            ),
+          ),
+          child: SizedBox(
+            width: cellSize * boardSize + 4,
+            height: cellSize * boardSize + 4,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Grid background
+                CustomPaint(
+                  size: Size(cellSize * boardSize, cellSize * boardSize),
+                  painter: _GridPainter(boardSize: boardSize, cellSize: cellSize),
+                ),
+                // Exit marker
+                Positioned(
+                  top: puzzle!.exitRow * cellSize,
+                  right: -10,
+                  child: Container(
+                    width: 14,
+                    height: cellSize,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFE63946), Color(0xFFFF6B9D)],
+                      ),
+                      borderRadius: const BorderRadius.horizontal(
+                          right: Radius.circular(7)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFE63946)
+                              .withValues(alpha: _glowAnimation.value * 0.6),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.arrow_forward, color: Colors.white, size: 10),
+                    ),
+                  ),
+                ),
+                // Ships -- rendered with drag offset
+                ...List.generate(ships.length, (idx) {
+                  return _buildShip(idx, cellSize);
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildShip(int shipIdx, double cellSize) {
+    final ship = ships[shipIdx];
     final color = _shipColors[ship.id % _shipColors.length];
-    final width = ship.orientation == ShipOrientation.horizontal
-        ? cellSize * ship.length - 4
-        : cellSize - 4;
-    final height = ship.orientation == ShipOrientation.vertical
-        ? cellSize * ship.length - 4
-        : cellSize - 4;
+    final isHoriz = ship.orientation == ShipOrientation.horizontal;
+    final shipW = isHoriz ? cellSize * ship.length - 4 : cellSize - 4;
+    final shipH = isHoriz ? cellSize - 4 : cellSize * ship.length - 4;
+    final isDragging = _dragShipIdx == shipIdx;
+
+    double left = ship.col * cellSize + 2;
+    double top = ship.row * cellSize + 2;
+
+    // Apply drag offset for smooth following
+    if (isDragging) {
+      if (isHoriz) {
+        left += _dragOffset;
+      } else {
+        top += _dragOffset;
+      }
+    }
 
     return Positioned(
-      left: ship.col * cellSize + 2,
-      top: ship.row * cellSize + 2,
+      left: left,
+      top: top,
       child: GestureDetector(
         onPanStart: (details) {
-          _dragShipId = ship.id;
-          _dragStart = details.localPosition;
+          if (_won) return;
+          _dragShipIdx = shipIdx;
+          _dragStartLocal = details.localPosition;
+          _dragOffset = 0.0;
         },
         onPanUpdate: (details) {
-          if (_dragShipId != ship.id || _dragStart == null) return;
-          final dx = details.localPosition.dx - _dragStart!.dx;
-          final dy = details.localPosition.dy - _dragStart!.dy;
+          if (_won || _dragShipIdx != shipIdx) return;
 
-          if (dx.abs() > cellSize * 0.5 || dy.abs() > cellSize * 0.5) {
-            if (ship.orientation == ShipOrientation.horizontal) {
-              _tryMoveShip(ship.id, 0, dx > 0 ? 1 : -1);
-            } else {
-              _tryMoveShip(ship.id, dy > 0 ? 1 : -1, 0);
-            }
-            _dragStart = details.localPosition;
-          }
+          final delta = isHoriz
+              ? details.localPosition.dx - _dragStartLocal.dx
+              : details.localPosition.dy - _dragStartLocal.dy;
+
+          setState(() {
+            _dragOffset = delta;
+          });
         },
-        onPanEnd: (_) {
-          _dragShipId = null;
-          _dragStart = null;
+        onPanEnd: (details) {
+          if (_dragShipIdx != shipIdx) return;
+
+          // Snap: determine how many cells to move
+          final cellsMoved = (_dragOffset / cellSize).round();
+          _dragOffset = 0.0;
+          _dragShipIdx = null;
+
+          if (cellsMoved != 0) {
+            // Try to move incrementally (handles blocked intermediate cells)
+            final direction = cellsMoved > 0 ? 1 : -1;
+            for (int i = 0; i < cellsMoved.abs(); i++) {
+              if (!_tryMoveShip(shipIdx, direction)) break;
+            }
+          }
+          setState(() {}); // reset drag visual
         },
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          width: width,
-          height: height,
+          duration: isDragging
+              ? Duration.zero
+              : const Duration(milliseconds: 150),
+          width: shipW,
+          height: shipH,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [color, color.withValues(alpha: 0.7)],
@@ -370,21 +482,24 @@ class _DockClearanceGameState extends State<DockClearanceGame>
             ),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: ship.isTarget ? Colors.white : color.withValues(alpha: 0.5),
+              color: ship.isTarget
+                  ? Colors.white
+                  : color.withValues(alpha: 0.5),
               width: ship.isTarget ? 3 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: color.withValues(alpha: 0.4),
-                blurRadius: 6,
-                spreadRadius: 1,
+                color: color.withValues(alpha: isDragging ? 0.7 : 0.4),
+                blurRadius: isDragging ? 12 : 6,
+                spreadRadius: isDragging ? 3 : 1,
               ),
             ],
           ),
           child: Center(
             child: ship.isTarget
                 ? const Icon(Icons.rocket_launch, color: Colors.white, size: 20)
-                : Icon(Icons.directions_boat, color: Colors.white.withValues(alpha: 0.7), size: 16),
+                : Icon(Icons.directions_boat,
+                    color: Colors.white.withValues(alpha: 0.7), size: 16),
           ),
         ),
       ),
@@ -408,15 +523,20 @@ class _DockClearanceGameState extends State<DockClearanceGame>
                 children: [
                   const Icon(Icons.emoji_events, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  Text(s.dockClearanceWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(s.dockClearanceWinTitle,
+                      style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
-                  Text(s.dockClearanceWinDesc(moveCount, bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  Text(s.dockClearanceWinDesc(moveCount, bonusScore),
+                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
-                        onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _generatePuzzle();
+                        },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(s.playAgain),
                       ),
@@ -438,4 +558,35 @@ class _DockClearanceGameState extends State<DockClearanceGame>
       },
     );
   }
+}
+
+class _MoveRecord {
+  final int shipIdx;
+  final int oldRow;
+  final int oldCol;
+  _MoveRecord({required this.shipIdx, required this.oldRow, required this.oldCol});
+}
+
+/// Draws the grid lines for the board background.
+class _GridPainter extends CustomPainter {
+  final int boardSize;
+  final double cellSize;
+  _GridPainter({required this.boardSize, required this.cellSize});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey.shade800.withValues(alpha: 0.5)
+      ..strokeWidth = 0.5;
+
+    for (int i = 0; i <= boardSize; i++) {
+      final pos = i * cellSize;
+      canvas.drawLine(Offset(pos, 0), Offset(pos, boardSize * cellSize), paint);
+      canvas.drawLine(Offset(0, pos), Offset(boardSize * cellSize, pos), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _GridPainter oldDelegate) =>
+      oldDelegate.boardSize != boardSize || oldDelegate.cellSize != cellSize;
 }
