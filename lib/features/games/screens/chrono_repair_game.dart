@@ -30,7 +30,6 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   late AnimationController _successController;
   late Animation<double> _successAnimation;
   late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -47,8 +46,8 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   String _malfunctionHint = '';
 
   // Slot machine roller controllers
-  late FixedExtentScrollController _hourScrollController;
-  late FixedExtentScrollController _minuteScrollController;
+  int _selectedHour = 1;
+  int _selectedMinute = 0;
 
   // Math problems for SRI
   final List<MathProblem> _mathProblems = [];
@@ -59,8 +58,8 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   void initState() {
     super.initState();
 
-    _hourScrollController = FixedExtentScrollController();
-    _minuteScrollController = FixedExtentScrollController();
+    
+    
 
     _glowController = AnimationController(
       duration: const Duration(milliseconds: 2000),
@@ -73,8 +72,6 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
     _successController = AnimationController(
       duration: const Duration(milliseconds: 600),
@@ -100,8 +97,8 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
     _glowController.dispose();
     _successController.dispose();
     _pulseController.dispose();
-    _hourScrollController.dispose();
-    _minuteScrollController.dispose();
+    
+    
     super.dispose();
   }
 
@@ -156,10 +153,10 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
     }
 
     // Reset scroll controllers
-    _hourScrollController.dispose();
-    _minuteScrollController.dispose();
-    _hourScrollController = FixedExtentScrollController();
-    _minuteScrollController = FixedExtentScrollController();
+    
+    
+    
+    
 
     if (mounted) {
       setState(() {
@@ -170,16 +167,56 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
 
   void _checkAnswer() {
     if (_gameOver) return;
-    // Hours: index 0 = 1, index 11 = 12 (1-12 range)
-    final answerH = _hourScrollController.selectedItem + 1;
-    // Minutes: index 0 = 0, index 1 = 5, ... index 11 = 55
-    final answerM = _minuteScrollController.selectedItem * 5;
-
-    if (answerH == _correctHour && answerM == _correctMinute) {
+    if (_selectedHour == _correctHour && _selectedMinute == _correctMinute) {
       _handleWin();
     } else {
       _handleLoss();
     }
+  }
+
+  Widget _buildStepper({
+    required int value,
+    required int min,
+    required int max,
+    int step = 1,
+    required ValueChanged<int> onChanged,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Up button
+        IconButton(
+          icon: const Icon(Icons.keyboard_arrow_up, color: SpaceTheme.starYellow, size: 32),
+          onPressed: () {
+            HapticFeedback.selectionClick();
+            onChanged(value + step > max ? min : value + step);
+          },
+        ),
+        // Value display
+        Container(
+          width: 70, height: 60,
+          decoration: BoxDecoration(
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: SpaceTheme.starYellow, width: 2),
+          ),
+          child: Center(
+            child: Text(
+              value.toString().padLeft(2, '0'),
+              style: SpaceTheme.headlineStyle.copyWith(fontSize: 32),
+            ),
+          ),
+        ),
+        // Down button
+        IconButton(
+          icon: const Icon(Icons.keyboard_arrow_down, color: SpaceTheme.starYellow, size: 32),
+          onPressed: () {
+            HapticFeedback.selectionClick();
+            onChanged(value - step < min ? max : value - step);
+          },
+        ),
+      ],
+    );
   }
 
   void _handleWin() {
@@ -450,35 +487,26 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Hour roller
-                  _buildRoller(
-                    controller: _hourScrollController,
-                    childCount: 12,
-                    labelBuilder: (index) => (index + 1).toString().padLeft(2, '0'),
+                  // Hour stepper
+                  _buildStepper(
+                    value: _selectedHour,
+                    min: 1, max: 12,
+                    onChanged: (v) => setState(() => _selectedHour = v),
                   ),
-                  // Colon separator
-                  AnimatedBuilder(
-                    animation: _pulseAnimation,
-                    builder: (context, child) {
-                      return Opacity(
-                        opacity: _pulseAnimation.value,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Text(':',
-                            style: SpaceTheme.headlineStyle.copyWith(
-                              fontSize: 36,
-                              color: SpaceTheme.starYellow,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                  // Colon
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(':',
+                      style: SpaceTheme.headlineStyle.copyWith(
+                        fontSize: 40, color: SpaceTheme.starYellow,
+                      ),
+                    ),
                   ),
-                  // Minute roller
-                  _buildRoller(
-                    controller: _minuteScrollController,
-                    childCount: 12,
-                    labelBuilder: (index) => (index * 5).toString().padLeft(2, '0'),
+                  // Minute stepper
+                  _buildStepper(
+                    value: _selectedMinute,
+                    min: 0, max: 55, step: 5,
+                    onChanged: (v) => setState(() => _selectedMinute = v),
                   ),
                 ],
               ),
@@ -496,58 +524,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
     );
   }
 
-  Widget _buildRoller({
-    required FixedExtentScrollController controller,
-    required int childCount,
-    required String Function(int index) labelBuilder,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Selection highlight window
-          Container(
-            height: 44,
-            width: 70,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: SpaceTheme.starYellow, width: 2),
-              color: SpaceTheme.starYellow.withValues(alpha: 0.1),
-            ),
-          ),
-          SizedBox(
-            height: 150,
-            width: 70,
-            child: ListWheelScrollView.useDelegate(
-              controller: controller,
-              itemExtent: 40,
-              physics: const FixedExtentScrollPhysics(),
-              overAndUnderCenterOpacity: 0.4,
-              childDelegate: ListWheelChildBuilderDelegate(
-                builder: (context, index) {
-                  return Container(
-                    alignment: Alignment.center,
-                    child: Text(
-                      labelBuilder(index),
-                      style: SpaceTheme.headlineStyle.copyWith(
-                        fontSize: 24,
-                        color: Colors.white,
-                      ),
-                    ),
-                  );
-                },
-                childCount: childCount,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Stepper widget is defined above in _buildStepper()
 
   Widget _buildWinDialog(int totalScore) {
     final s = S.of(context)!;
