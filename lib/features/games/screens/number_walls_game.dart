@@ -1390,15 +1390,16 @@ class _NumberWallGenerator {
     List<int>? fullSolution;
     int attempts = 0;
     
-    while (fullSolution == null && attempts < 50) {
+    while (fullSolution == null && attempts < 100) {
       try {
-        fullSolution = _generateValidWall();
-        if (fullSolution != null && _validateWallStructure(fullSolution)) {
+        final candidate = _generateValidWall();
+        if (candidate != null &&
+            _validateWallStructure(candidate) &&
+            NumberWallPuzzle._validateOperationConstraints(candidate, wallHeight, operation)) {
+          fullSolution = candidate;
           break;
-        } else {
-          fullSolution = null;
         }
-      } catch (e) {
+      } catch (_) {
         // Catches potential generation errors, e.g., division by zero
       }
       attempts++;
