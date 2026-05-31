@@ -205,6 +205,23 @@ class _WarpFoldGameState extends State<WarpFoldGame>
                 level: widget.level,
                 onBack: () => Navigator.of(context).pop(),
               ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+                  ),
+                  child: Row(children: [
+                    const Icon(Icons.info_outline, color: SpaceTheme.starYellow, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(s.warpFoldInstructions,
+                      style: SpaceTheme.bodyStyle.copyWith(fontSize: 11))),
+                  ]),
+                ),
+              ),
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
@@ -545,10 +562,18 @@ class _FoldAnimationPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    // Paper background
-    final paperPaint = Paint()..color = const Color(0xFF3A3A5A);
+    // Paper background -- light so folds are visible
+    final paperPaint = Paint()..color = const Color(0xFF8899AA);
     final paperRect = Rect.fromLTWH(0, 0, w, h);
-    canvas.drawRect(paperRect, paperPaint);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(paperRect, const Radius.circular(8)),
+      paperPaint,
+    );
+    // Border
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(paperRect, const Radius.circular(8)),
+      Paint()..color = Colors.white30..style = PaintingStyle.stroke..strokeWidth = 2,
+    );
 
     // Draw fold lines for completed folds
     final foldLinePaint = Paint()
@@ -573,9 +598,9 @@ class _FoldAnimationPainter extends CustomPainter {
         ..strokeWidth = 2.0;
       _drawFoldLine(canvas, dir, w, h, activeFoldPaint, dashLength);
 
-      // Animate folding: draw a translucent overlay for the folded half
+      // Animate folding: draw a darker overlay for the folded portion
       final foldOverlay = Paint()
-        ..color = const Color(0xFF4A4A6A).withValues(alpha: stepProgress * 0.5);
+        ..color = const Color(0xFF2A2A44).withValues(alpha: 0.3 + stepProgress * 0.5);
 
       switch (dir) {
         case FoldDirection.left:
@@ -593,14 +618,18 @@ class _FoldAnimationPainter extends CustomPainter {
       }
     }
 
-    // Draw cuts if we're on the cut step
+    // Draw cuts if we're on the cut step -- scissors cutting holes
     if (currentStep >= foldCount) {
-      final cutPaint = Paint()..color = SpaceTheme.cosmicPink.withValues(alpha: 0.5 + stepProgress * 0.5);
       for (final cut in cuts) {
         final cx = cut.x * w;
         final cy = cut.y * h;
-        final radius = cut.size * w * stepProgress;
-        canvas.drawCircle(Offset(cx, cy), radius, cutPaint);
+        final radius = cut.size * w * 0.5 * (0.3 + stepProgress * 0.7);
+        // Cut-out hole: dark with bright border
+        canvas.drawCircle(Offset(cx, cy), radius,
+          Paint()..color = SpaceTheme.deepSpace);
+        canvas.drawCircle(Offset(cx, cy), radius,
+          Paint()..color = SpaceTheme.starYellow.withValues(alpha: stepProgress)
+            ..style = PaintingStyle.stroke..strokeWidth = 2);
       }
     }
 

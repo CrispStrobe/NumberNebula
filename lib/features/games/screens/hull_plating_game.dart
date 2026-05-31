@@ -308,6 +308,23 @@ class _HullPlatingGameState extends State<HullPlatingGame>
                 level: widget.level,
                 onBack: () => Navigator.of(context).pop(),
               ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+                  ),
+                  child: Row(children: [
+                    const Icon(Icons.info_outline, color: SpaceTheme.starYellow, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(s.hullPlatingInstructions,
+                      style: SpaceTheme.bodyStyle.copyWith(fontSize: 11))),
+                  ]),
+                ),
+              ),
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {

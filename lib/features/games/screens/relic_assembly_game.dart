@@ -40,7 +40,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
   int? selectedTileIndex;
 
   // Glyph symbols for display
-  static const _glyphSymbols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+  static const _glyphSymbols = ['1', '2', '3', '4', '5', '6', '7', '8'];
   static const _glyphColors = [
     Color(0xFFFF6B35),
     Color(0xFF6B48FF),
@@ -324,33 +324,51 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
       );
     }
 
-    // Empty slot
-    return GestureDetector(
-      onTap: () => _placeTileAt(pos),
-      child: Container(
-        width: cellSize,
-        height: cellSize,
-        margin: const EdgeInsets.all(2),
-        decoration: BoxDecoration(
-          color: selectedTileIndex != null
-              ? SpaceTheme.starYellow.withValues(alpha: 0.15)
-              : SpaceTheme.deepSpace.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: selectedTileIndex != null
-                ? SpaceTheme.starYellow
-                : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
-            width: selectedTileIndex != null ? 2 : 1,
+    // Empty slot -- accepts drag OR tap (if tile selected)
+    return DragTarget<int>(
+      builder: (context, candidates, _) {
+        final isHovering = candidates.isNotEmpty;
+        return GestureDetector(
+          onTap: () => _placeTileAt(pos),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: cellSize,
+            height: cellSize,
+            margin: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: isHovering
+                  ? SpaceTheme.starYellow.withValues(alpha: 0.3)
+                  : selectedTileIndex != null
+                      ? SpaceTheme.starYellow.withValues(alpha: 0.15)
+                      : SpaceTheme.deepSpace.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isHovering
+                    ? SpaceTheme.starYellow
+                    : selectedTileIndex != null
+                        ? SpaceTheme.starYellow.withValues(alpha: 0.7)
+                        : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
+                width: isHovering ? 3 : (selectedTileIndex != null ? 2 : 1),
+              ),
+              boxShadow: isHovering
+                  ? [BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.4), blurRadius: 8)]
+                  : null,
+            ),
+            child: Center(
+              child: Icon(
+                Icons.add,
+                color: isHovering ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
+                size: cellSize * 0.3,
+              ),
+            ),
           ),
-        ),
-        child: Center(
-          child: Icon(
-            Icons.add,
-            color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
-            size: cellSize * 0.3,
-          ),
-        ),
-      ),
+        );
+      },
+      onWillAcceptWithDetails: (_) => true,
+      onAcceptWithDetails: (details) {
+        setState(() => selectedTileIndex = details.data);
+        _placeTileAt(pos);
+      },
     );
   }
 
@@ -460,14 +478,34 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
                 alignment: WrapAlignment.center,
                 children: availableTiles.map((idx) {
                   final isSelected = selectedTileIndex == idx;
-                  return GestureDetector(
-                    onTap: () => _selectTile(idx),
-                    onDoubleTap: () => _rotateTile(idx),
-                    child: _buildTileWidget(
-                      puzzle!.playerTiles[idx],
-                      rotations[idx],
-                      tileSize,
-                      isSelected,
+                  return Draggable<int>(
+                    data: idx,
+                    feedback: Material(
+                      color: Colors.transparent,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [BoxShadow(
+                            color: SpaceTheme.starYellow.withValues(alpha: 0.6),
+                            blurRadius: 15, spreadRadius: 3,
+                          )],
+                        ),
+                        child: _buildTileWidget(
+                          puzzle!.playerTiles[idx], rotations[idx], tileSize, true,
+                        ),
+                      ),
+                    ),
+                    childWhenDragging: Opacity(
+                      opacity: 0.3,
+                      child: _buildTileWidget(
+                        puzzle!.playerTiles[idx], rotations[idx], tileSize, false,
+                      ),
+                    ),
+                    child: GestureDetector(
+                      onTap: () => _selectTile(idx),
+                      onDoubleTap: () => _rotateTile(idx),
+                      child: _buildTileWidget(
+                        puzzle!.playerTiles[idx], rotations[idx], tileSize, isSelected,
+                      ),
                     ),
                   );
                 }).toList(),
