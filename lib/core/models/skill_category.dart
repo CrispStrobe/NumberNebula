@@ -64,7 +64,6 @@ const Map<String, SkillCategory> gameSkillMap = {
 
   // Batch C: Interactive/Spatial Games
   'dark_matter_grid': SkillCategory.logicDeduction,
-  'dock_clearance': SkillCategory.spatial2d,
   'ion_chain': SkillCategory.logicDeduction,
   'launch_sequence': SkillCategory.logicDeduction,
 

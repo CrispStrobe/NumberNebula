@@ -46,7 +46,6 @@ import 'warp_fold_game.dart';
 import 'cube_scanner_game.dart';
 import 'circuit_repair_game.dart';
 import 'dark_matter_grid_game.dart';
-import 'dock_clearance_game.dart';
 import 'ion_chain_game.dart';
 import 'launch_sequence_game.dart';
 import 'star_forge_game.dart';
@@ -104,7 +103,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   bool _isGamesDataInitialized = false;
 
   // for new games, we must manually update game count
-  static const int _gameCount = 49;
+  static const int _gameCount = 48;
 
   @override
   void initState() {
@@ -439,14 +438,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         icon: Icons.grid_view,
         gradient: const LinearGradient(colors: [Color(0xFF1A1A2E), Color(0xFF6B48FF)]),
         gameBuilder: (grade, level) => DarkMatterGridGame(grade: grade, level: level),
-      ),
-      _GameInfoData(
-        gameKey: 'dock_clearance',
-        title: s.dockClearanceTitle,
-        description: s.dockClearanceDesc,
-        icon: Icons.directions_boat,
-        gradient: const LinearGradient(colors: [Color(0xFFE63946), Color(0xFF00C9DB)]),
-        gameBuilder: (grade, level) => DockClearanceGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'ion_chain',
