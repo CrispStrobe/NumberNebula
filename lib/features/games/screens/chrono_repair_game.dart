@@ -26,8 +26,11 @@ enum ClockMalfunction { offset, mirror, combined }
 class _ChronoRepairGameState extends State<ChronoRepairGame>
     with TickerProviderStateMixin {
   late AnimationController _glowController;
+  late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -43,9 +46,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   int _offsetMinutes = 0;
   String _malfunctionHint = '';
 
-  // User answer
-  final TextEditingController _hourController = TextEditingController();
-  final TextEditingController _minuteController = TextEditingController();
+  // Slot machine roller controllers
+  late FixedExtentScrollController _hourScrollController;
+  late FixedExtentScrollController _minuteScrollController;
 
   // Math problems for SRI
   final List<MathProblem> _mathProblems = [];
@@ -56,10 +59,22 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   void initState() {
     super.initState();
 
+    _hourScrollController = FixedExtentScrollController();
+    _minuteScrollController = FixedExtentScrollController();
+
     _glowController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
+    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
+        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
+
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
+        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
     _successController = AnimationController(
       duration: const Duration(milliseconds: 600),
@@ -81,10 +96,12 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   void dispose() {
     _glowController.stop();
     _successController.stop();
+    _pulseController.stop();
     _glowController.dispose();
     _successController.dispose();
-    _hourController.dispose();
-    _minuteController.dispose();
+    _pulseController.dispose();
+    _hourScrollController.dispose();
+    _minuteScrollController.dispose();
     super.dispose();
   }
 
@@ -95,8 +112,6 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       _isGenerating = true;
       _gameOver = false;
       _mathProblems.clear();
-      _hourController.clear();
-      _minuteController.clear();
       _successController.reset();
     });
 
@@ -117,8 +132,6 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
     } else if (grade == 2) {
       // Mirror: hour hand and minute hand positions swap visually
       _malfunction = ClockMalfunction.mirror;
-      // Mirror means the clock face is reflected horizontally
-      // 3 becomes 9, 1 becomes 11, etc.
       _displayedHour = ((12 - _correctHour) % 12);
       if (_displayedHour == 0) _displayedHour = 12;
       _displayedMinute = (60 - _correctMinute) % 60;
@@ -142,6 +155,12 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       _mathProblems.add(MathProblem.addition(_correctMinute, _offsetMinutes, difficulty: grade));
     }
 
+    // Reset scroll controllers
+    _hourScrollController.dispose();
+    _minuteScrollController.dispose();
+    _hourScrollController = FixedExtentScrollController();
+    _minuteScrollController = FixedExtentScrollController();
+
     if (mounted) {
       setState(() {
         _isGenerating = false;
@@ -151,9 +170,10 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
 
   void _checkAnswer() {
     if (_gameOver) return;
-    final answerH = int.tryParse(_hourController.text);
-    final answerM = int.tryParse(_minuteController.text);
-    if (answerH == null || answerM == null) return;
+    // Hours: index 0 = 1, index 11 = 12 (1-12 range)
+    final answerH = _hourScrollController.selectedItem + 1;
+    // Minutes: index 0 = 0, index 1 = 5, ... index 11 = 55
+    final answerM = _minuteScrollController.selectedItem * 5;
 
     if (answerH == _correctHour && answerM == _correctMinute) {
       _handleWin();
@@ -251,7 +271,17 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
                   textAlign: TextAlign.center,
                 ),
               ),
-              Expanded(child: _buildGameArea()),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 700;
+                    if (isWide) {
+                      return _buildWideLayout(constraints);
+                    }
+                    return _buildCompactLayout(constraints);
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -259,153 +289,252 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
     );
   }
 
-  Widget _buildGameArea() {
+  Widget _buildWideLayout(BoxConstraints constraints) {
+    return Row(
+      children: [
+        Expanded(flex: 3, child: _buildClockSection(constraints)),
+        const SizedBox(width: 24),
+        Expanded(flex: 2, child: _buildRollerSection()),
+      ],
+    );
+  }
+
+  Widget _buildCompactLayout(BoxConstraints constraints) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Malfunction hint
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFD700).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.5)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.warning_amber, color: Color(0xFFFFD700), size: 24),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _malfunctionHint,
-                    style: SpaceTheme.bodyStyle.copyWith(color: const Color(0xFFFFD700), fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Clock display
-          Container(
-            width: 220,
-            height: 220,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: SpaceTheme.deepSpace,
-              border: Border.all(color: const Color(0xFF6B48FF), width: 3),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF6B48FF).withValues(alpha: 0.3),
-                  blurRadius: 20,
-                ),
-              ],
-            ),
-            child: CustomPaint(
-              painter: _ClockPainter(
-                hour: _displayedHour,
-                minute: _displayedMinute,
-                isMirrored: _malfunction == ClockMalfunction.mirror,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Digital display (broken)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.5)),
-            ),
-            child: Text(
-              '${_displayedHour.toString().padLeft(2, '0')}:${_displayedMinute.toString().padLeft(2, '0')}',
-              style: const TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 36,
-                color: Color(0xFFFFD700),
-                letterSpacing: 4,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Answer section
-          if (!_gameOver) ...[
-            Text('What is the correct time?',
-                style: SpaceTheme.titleStyle.copyWith(fontSize: 16)),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 70,
-                  child: TextField(
-                    controller: _hourController,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
-                    decoration: InputDecoration(
-                      hintText: 'HH',
-                      hintStyle: SpaceTheme.bodyStyle.copyWith(color: Colors.white30),
-                      filled: true,
-                      fillColor: SpaceTheme.deepSpace,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFFFFD700)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: const Color(0xFFFFD700).withValues(alpha: 0.5)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFFFFD700), width: 2),
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(':',
-                      style: SpaceTheme.headlineStyle.copyWith(fontSize: 28, color: const Color(0xFFFFD700))),
-                ),
-                SizedBox(
-                  width: 70,
-                  child: TextField(
-                    controller: _minuteController,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
-                    decoration: InputDecoration(
-                      hintText: 'MM',
-                      hintStyle: SpaceTheme.bodyStyle.copyWith(color: Colors.white30),
-                      filled: true,
-                      fillColor: SpaceTheme.deepSpace,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFFFFD700)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: const Color(0xFFFFD700).withValues(alpha: 0.5)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFFFFD700), width: 2),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: _checkAnswer,
-                  style: SpaceTheme.primaryButtonStyle,
-                  child: const Icon(Icons.check, size: 28),
-                ),
-              ],
-            ),
-          ],
+          _buildMalfunctionHint(),
           const SizedBox(height: 16),
+          _buildClockDisplay(constraints),
+          const SizedBox(height: 12),
+          _buildDigitalDisplay(),
+          const SizedBox(height: 20),
+          if (!_gameOver) _buildRollerInput(),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClockSection(BoxConstraints constraints) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildMalfunctionHint(),
+          const SizedBox(height: 16),
+          _buildClockDisplay(constraints),
+          const SizedBox(height: 12),
+          _buildDigitalDisplay(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRollerSection() {
+    return Center(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (!_gameOver) _buildRollerInput(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMalfunctionHint() {
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (context, child) {
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: SpaceTheme.starYellow.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value * 0.7),
+            ),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.warning_amber, color: SpaceTheme.starYellow, size: 24),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _malfunctionHint,
+                  style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildClockDisplay(BoxConstraints constraints) {
+    final clockSize = math.min(220.0, constraints.maxWidth * 0.5);
+    return Container(
+      width: clockSize,
+      height: clockSize,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: SpaceTheme.deepSpace,
+        border: Border.all(color: SpaceTheme.nebulaPurple, width: 3),
+        boxShadow: [
+          BoxShadow(
+            color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
+            blurRadius: 20,
+          ),
+        ],
+      ),
+      child: CustomPaint(
+        painter: _ClockPainter(
+          hour: _displayedHour,
+          minute: _displayedMinute,
+          isMirrored: _malfunction == ClockMalfunction.mirror,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDigitalDisplay() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.5)),
+      ),
+      child: Text(
+        '${_displayedHour.toString().padLeft(2, '0')}:${_displayedMinute.toString().padLeft(2, '0')}',
+        style: const TextStyle(
+          fontFamily: 'monospace',
+          fontSize: 36,
+          color: SpaceTheme.starYellow,
+          letterSpacing: 4,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRollerInput() {
+    return Column(
+      children: [
+        Text('What is the correct time?',
+            style: SpaceTheme.titleStyle.copyWith(fontSize: 16)),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Hour roller
+                  _buildRoller(
+                    controller: _hourScrollController,
+                    childCount: 12,
+                    labelBuilder: (index) => (index + 1).toString().padLeft(2, '0'),
+                  ),
+                  // Colon separator
+                  AnimatedBuilder(
+                    animation: _pulseAnimation,
+                    builder: (context, child) {
+                      return Opacity(
+                        opacity: _pulseAnimation.value,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(':',
+                            style: SpaceTheme.headlineStyle.copyWith(
+                              fontSize: 36,
+                              color: SpaceTheme.starYellow,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  // Minute roller
+                  _buildRoller(
+                    controller: _minuteScrollController,
+                    childCount: 12,
+                    labelBuilder: (index) => (index * 5).toString().padLeft(2, '0'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _checkAnswer,
+                icon: const Icon(Icons.check, size: 24),
+                label: const Text('Submit', style: TextStyle(fontSize: 16)),
+                style: SpaceTheme.primaryButtonStyle,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRoller({
+    required FixedExtentScrollController controller,
+    required int childCount,
+    required String Function(int index) labelBuilder,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Selection highlight window
+          Container(
+            height: 44,
+            width: 70,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: SpaceTheme.starYellow, width: 2),
+              color: SpaceTheme.starYellow.withValues(alpha: 0.1),
+            ),
+          ),
+          SizedBox(
+            height: 150,
+            width: 70,
+            child: ListWheelScrollView.useDelegate(
+              controller: controller,
+              itemExtent: 40,
+              physics: const FixedExtentScrollPhysics(),
+              overAndUnderCenterOpacity: 0.4,
+              childDelegate: ListWheelChildBuilderDelegate(
+                builder: (context, index) {
+                  return Container(
+                    alignment: Alignment.center,
+                    child: Text(
+                      labelBuilder(index),
+                      style: SpaceTheme.headlineStyle.copyWith(
+                        fontSize: 24,
+                        color: Colors.white,
+                      ),
+                    ),
+                  );
+                },
+                childCount: childCount,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -499,7 +628,7 @@ class _ClockPainter extends CustomPainter {
     // Draw hour hand
     final hourAngle = ((hour % 12) * 30 + minute * 0.5 - 90) * math.pi / 180;
     final hourPaint = Paint()
-      ..color = const Color(0xFFFFD700)
+      ..color = SpaceTheme.starYellow
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round;
     canvas.drawLine(
@@ -527,7 +656,7 @@ class _ClockPainter extends CustomPainter {
     );
 
     // Center dot
-    canvas.drawCircle(center, 5, Paint()..color = const Color(0xFFFFD700));
+    canvas.drawCircle(center, 5, Paint()..color = SpaceTheme.starYellow);
   }
 
   @override

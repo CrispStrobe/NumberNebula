@@ -26,6 +26,9 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
   late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+  late AnimationController _removeController;
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -35,7 +38,12 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
   int _remaining = 0;
   int _maxPerTurn = 0;
   bool _isPlayerTurn = true;
+  bool _isAiThinking = false;
   final List<_MoveRecord> _moveHistory = [];
+
+  // Selection state for tap-to-select
+  final Set<int> _selectedAsteroids = {};
+
 
   final _random = math.Random();
 
@@ -50,12 +58,24 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
     _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
         .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
 
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
+        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+
     _successController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
     _successAnimation =
         CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+
+    _removeController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -70,8 +90,12 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
   void dispose() {
     _glowController.stop();
     _successController.stop();
+    _pulseController.stop();
+    _removeController.stop();
     _glowController.dispose();
     _successController.dispose();
+    _pulseController.dispose();
+    _removeController.dispose();
     super.dispose();
   }
 
@@ -83,7 +107,10 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
       _gameOver = false;
       _moveHistory.clear();
       _isPlayerTurn = true;
+      _isAiThinking = false;
+      _selectedAsteroids.clear();
       _successController.reset();
+      _removeController.reset();
     });
 
     final grade = currentDifficulty!.grade;
@@ -111,12 +138,34 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
     }
   }
 
+  void _toggleAsteroidSelection(int index) {
+    if (_gameOver || !_isPlayerTurn || _isAiThinking) return;
+
+    setState(() {
+      if (_selectedAsteroids.contains(index)) {
+        _selectedAsteroids.remove(index);
+      } else {
+        if (_selectedAsteroids.length < math.min(_maxPerTurn, _remaining)) {
+          _selectedAsteroids.add(index);
+        }
+      }
+    });
+  }
+
+  void _confirmSelection() {
+    if (_selectedAsteroids.isEmpty) return;
+    _playerTake(_selectedAsteroids.length);
+  }
+
   void _playerTake(int count) {
     if (_gameOver || !_isPlayerTurn) return;
     if (count < 1 || count > math.min(_maxPerTurn, _remaining)) return;
 
+    _removeController.forward(from: 0.0);
+
     setState(() {
       _remaining -= count;
+      _selectedAsteroids.clear();
       _moveHistory.add(_MoveRecord(isPlayer: true, count: count, remainingAfter: _remaining));
       _isPlayerTurn = false;
     });
@@ -128,7 +177,8 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
     }
 
     // AI turn after a short delay
-    Future.delayed(const Duration(milliseconds: 600), () {
+    setState(() => _isAiThinking = true);
+    Future.delayed(const Duration(milliseconds: 700), () {
       if (mounted && !_gameOver) {
         _aiTurn();
       }
@@ -144,8 +194,6 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
       aiTake = _random.nextInt(math.min(_maxPerTurn, _remaining)) + 1;
     } else {
       // Near-optimal strategy: leave remainder of (maxPerTurn+1) * k + 1
-      // Optimal: leave _remaining such that (_remaining - aiTake - 1) % (_maxPerTurn + 1) == 0
-      // i.e. leave a number where remainder mod (_maxPerTurn+1) == 1
       final mod = _maxPerTurn + 1;
       final idealRemaining = ((_remaining - 1) ~/ mod) * mod + 1;
       aiTake = _remaining - idealRemaining;
@@ -161,10 +209,13 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
       }
     }
 
+    _removeController.forward(from: 0.0);
+
     setState(() {
       _remaining -= aiTake;
       _moveHistory.add(_MoveRecord(isPlayer: false, count: aiTake, remainingAfter: _remaining));
       _isPlayerTurn = true;
+      _isAiThinking = false;
     });
 
     // Check if AI took the last one (AI loses, player wins)
@@ -255,7 +306,17 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
                   textAlign: TextAlign.center,
                 ),
               ),
-              Expanded(child: _buildGameArea()),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 700;
+                    if (isWide) {
+                      return _buildWideLayout(constraints);
+                    }
+                    return _buildCompactLayout(constraints);
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -263,137 +324,273 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
     );
   }
 
-  Widget _buildGameArea() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+  Widget _buildWideLayout(BoxConstraints constraints) {
+    return Row(
+      children: [
+        Expanded(flex: 3, child: _buildAsteroidGrid(constraints)),
+        const SizedBox(width: 24),
+        Expanded(flex: 2, child: _buildControlPanel()),
+      ],
+    );
+  }
+
+  Widget _buildCompactLayout(BoxConstraints constraints) {
+    return Column(
+      children: [
+        // Turn indicator
+        _buildTurnIndicator(),
+        const SizedBox(height: 8),
+        // Asteroid grid
+        Expanded(flex: 3, child: _buildAsteroidGrid(constraints)),
+        const SizedBox(height: 8),
+        // Controls
+        _buildActionButtons(),
+        const SizedBox(height: 8),
+        // Move history
+        Expanded(flex: 1, child: _buildMoveHistory()),
+      ],
+    );
+  }
+
+  Widget _buildTurnIndicator() {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: _isPlayerTurn && !_isAiThinking
+            ? const Color(0xFF06FFA5).withValues(alpha: 0.2)
+            : SpaceTheme.rocketRed.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _isPlayerTurn && !_isAiThinking
+              ? const Color(0xFF06FFA5).withValues(alpha: 0.6)
+              : SpaceTheme.rocketRed.withValues(alpha: 0.6),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Asteroid field visualization
-          AnimatedBuilder(
+          if (_isAiThinking) ...[
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: SpaceTheme.rocketRed.withValues(alpha: 0.8),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Text(
+            _isAiThinking ? 'AI THINKING...' : (_isPlayerTurn ? 'YOUR TURN' : 'AI TURN'),
+            style: SpaceTheme.titleStyle.copyWith(
+              color: _isPlayerTurn && !_isAiThinking
+                  ? const Color(0xFF06FFA5)
+                  : SpaceTheme.rocketRed,
+              fontSize: 16,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAsteroidGrid(BoxConstraints constraints) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: LayoutBuilder(
+        builder: (context, gridConstraints) {
+          const cols = 5;
+          final maxCellW = (gridConstraints.maxWidth - 32) / cols;
+          final rows = (_remaining / cols).ceil().clamp(1, 10);
+          final maxCellH = (gridConstraints.maxHeight - 32) / rows;
+          final cellSize = math.min(maxCellW, maxCellH).clamp(30.0, 55.0);
+
+          return AnimatedBuilder(
             animation: _glowAnimation,
             builder: (context, child) {
               return Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: const Color(0xFFE63946).withValues(alpha: _glowAnimation.value * 0.7),
+                    color: SpaceTheme.nebulaPurple.withValues(alpha: _glowAnimation.value * 0.7),
                   ),
                 ),
-                child: Column(
-                  children: [
-                    Text(
-                      '$_remaining',
-                      style: SpaceTheme.headlineStyle.copyWith(
-                        fontSize: 48,
-                        color: _remaining <= 3 ? SpaceTheme.rocketRed : SpaceTheme.starYellow,
-                      ),
-                    ),
-                    Text('asteroids remaining',
-                        style: SpaceTheme.bodyStyle.copyWith(fontSize: 13, color: Colors.white70)),
-                    const SizedBox(height: 12),
-                    // Asteroid dots
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      alignment: WrapAlignment.center,
-                      children: List.generate(_remaining, (i) {
-                        return Container(
-                          width: 18,
-                          height: 18,
+                child: Center(
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    alignment: WrapAlignment.center,
+                    children: List.generate(_remaining, (i) {
+                      final isSelected = _selectedAsteroids.contains(i);
+                      return GestureDetector(
+                        onTap: _isPlayerTurn && !_gameOver && !_isAiThinking
+                            ? () => _toggleAsteroidSelection(i)
+                            : null,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: cellSize,
+                          height: cellSize,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFE63946), Color(0xFFFF6B35)],
-                            ),
+                            gradient: isSelected
+                                ? const LinearGradient(
+                                    colors: [SpaceTheme.starYellow, Color(0xFFFF6B35)],
+                                  )
+                                : const LinearGradient(
+                                    colors: [Color(0xFFE63946), Color(0xFFFF6B35)],
+                                  ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFE63946).withValues(alpha: 0.5),
-                                blurRadius: 4,
+                                color: isSelected
+                                    ? SpaceTheme.starYellow.withValues(alpha: 0.8)
+                                    : const Color(0xFFE63946).withValues(alpha: 0.4),
+                                blurRadius: isSelected ? 12 : 4,
+                                spreadRadius: isSelected ? 2 : 0,
                               ),
                             ],
+                            border: isSelected
+                                ? Border.all(color: SpaceTheme.starYellow, width: 2)
+                                : null,
                           ),
-                        );
-                      }),
-                    ),
-                  ],
+                          child: Center(
+                            child: CustomPaint(
+                              size: Size(cellSize * 0.6, cellSize * 0.6),
+                              painter: _AsteroidPainter(isSelected: isSelected),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
                 ),
               );
             },
-          ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildControlPanel() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildTurnIndicator(),
           const SizedBox(height: 16),
-          // Turn indicator
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: _isPlayerTurn
-                  ? const Color(0xFF06FFA5).withValues(alpha: 0.2)
-                  : const Color(0xFFE63946).withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              _isPlayerTurn ? 'Your Turn' : 'Opponent thinking...',
-              style: SpaceTheme.titleStyle.copyWith(
-                color: _isPlayerTurn ? const Color(0xFF06FFA5) : const Color(0xFFE63946),
-                fontSize: 16,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Action buttons
-          if (_isPlayerTurn && !_gameOver)
-            Wrap(
-              spacing: 12,
-              children: List.generate(math.min(_maxPerTurn, _remaining), (i) {
-                final count = i + 1;
-                return ElevatedButton(
-                  onPressed: () => _playerTake(count),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE63946),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: Text('Take $count', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                );
-              }),
-            ),
-          const SizedBox(height: 12),
-          // Move history
-          Expanded(
-            child: ListView.builder(
-              reverse: true,
-              itemCount: _moveHistory.length,
-              itemBuilder: (context, index) {
-                final move = _moveHistory[_moveHistory.length - 1 - index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Row(
-                    mainAxisAlignment: move.isPlayer
-                        ? MainAxisAlignment.start
-                        : MainAxisAlignment.end,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: move.isPlayer
-                              ? const Color(0xFF06FFA5).withValues(alpha: 0.2)
-                              : const Color(0xFFE63946).withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${move.isPlayer ? "You" : "AI"} took ${move.count} (${move.remainingAfter} left)',
-                          style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
-                        ),
-                      ),
-                    ],
+          _buildActionButtons(),
+          const SizedBox(height: 16),
+          Expanded(child: _buildMoveHistory()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    if (_gameOver || !_isPlayerTurn || _isAiThinking) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          if (_selectedAsteroids.isNotEmpty) ...[
+            AnimatedBuilder(
+              animation: _pulseAnimation,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: _pulseAnimation.value * 0.1 + 0.9,
+                  child: ElevatedButton.icon(
+                    onPressed: _confirmSelection,
+                    icon: const Icon(Icons.rocket_launch, size: 20),
+                    label: Text(
+                      'Mine ${_selectedAsteroids.length}!',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: SpaceTheme.starYellow,
+                      foregroundColor: SpaceTheme.deepSpace,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
                   ),
                 );
               },
             ),
+            const SizedBox(height: 8),
+          ],
+          Text(
+            'Tap asteroids to select (1-${math.min(_maxPerTurn, _remaining)})',
+            style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white54),
+          ),
+          const SizedBox(height: 8),
+          // Quick-select buttons as alternative
+          Wrap(
+            spacing: 8,
+            children: List.generate(math.min(_maxPerTurn, _remaining), (i) {
+              final count = i + 1;
+              return OutlinedButton(
+                onPressed: () => _playerTake(count),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: SpaceTheme.rocketRed,
+                  side: BorderSide(color: SpaceTheme.rocketRed.withValues(alpha: 0.6)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: Text('$count', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              );
+            }),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMoveHistory() {
+    if (_moveHistory.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListView.builder(
+        reverse: true,
+        itemCount: _moveHistory.length,
+        itemBuilder: (context, index) {
+          final move = _moveHistory[_moveHistory.length - 1 - index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(
+              mainAxisAlignment: move.isPlayer
+                  ? MainAxisAlignment.start
+                  : MainAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: move.isPlayer
+                        ? const Color(0xFF06FFA5).withValues(alpha: 0.2)
+                        : SpaceTheme.rocketRed.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${move.isPlayer ? "You" : "AI"} took ${move.count} (${move.remainingAfter} left)',
+                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 11),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -494,6 +691,48 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
         ),
       ),
     );
+  }
+}
+
+class _AsteroidPainter extends CustomPainter {
+  final bool isSelected;
+
+  _AsteroidPainter({required this.isSelected});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+
+    // Draw jagged asteroid shape
+    final path = Path();
+    const segments = 8;
+    final random = math.Random(42); // Fixed seed for consistent shape
+
+    for (int i = 0; i < segments; i++) {
+      final angle = (i * 2 * math.pi / segments) - math.pi / 2;
+      final variation = 0.7 + random.nextDouble() * 0.3;
+      final r = radius * variation;
+      final x = center.dx + r * math.cos(angle);
+      final y = center.dy + r * math.sin(angle);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    path.close();
+
+    final paint = Paint()
+      ..color = isSelected ? SpaceTheme.starYellow.withValues(alpha: 0.8) : Colors.white54
+      ..style = PaintingStyle.fill;
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _AsteroidPainter oldDelegate) {
+    return oldDelegate.isSelected != isSelected;
   }
 }
 
