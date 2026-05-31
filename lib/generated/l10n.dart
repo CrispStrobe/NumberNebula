@@ -4095,6 +4095,1056 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Next Array'**
   String get solarPanelNext;
+
+  /// No description provided for @starChartScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Star Chart Scan'**
+  String get starChartScanTitle;
+
+  /// No description provided for @starChartScanDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden constellation names are embedded in this star chart data! Scan horizontally, vertically, and diagonally to find them all. One letter will remain unclaimed...'**
+  String get starChartScanDesc;
+
+  /// No description provided for @starChartScanInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe across letters to highlight hidden words. Words can run in any direction. Find all words to reveal the mystery letter!'**
+  String get starChartScanInstructions;
+
+  /// No description provided for @starChartScanWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart Decoded!'**
+  String get starChartScanWinTitle;
+
+  /// No description provided for @starChartScanWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'All constellations found! The mystery letter is \'{letter}\'. You earned {bonusScore} cartography points.'**
+  String starChartScanWinDesc(String letter, int bonusScore);
+
+  /// No description provided for @starChartScanLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Incomplete!'**
+  String get starChartScanLoseTitle;
+
+  /// No description provided for @starChartScanLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Some constellations remain hidden in the data. Try scanning diagonally too, Commander.'**
+  String get starChartScanLoseDesc;
+
+  /// No description provided for @commRelayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comm Relay'**
+  String get commRelayTitle;
+
+  /// No description provided for @commRelayDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A garbled transmission from deep space! The communication relay has shifted every letter. Crack the cipher to read the original message!'**
+  String get commRelayDesc;
+
+  /// No description provided for @commRelayInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Each letter has been shifted by a fixed amount in the alphabet. Find the shift and decode the message.'**
+  String get commRelayInstructions;
+
+  /// No description provided for @commRelayWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Message Decoded!'**
+  String get commRelayWinTitle;
+
+  /// No description provided for @commRelayWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The transmission reads loud and clear! You earned {bonusScore} intelligence points.'**
+  String commRelayWinDesc(int bonusScore);
+
+  /// No description provided for @commRelayLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Static!'**
+  String get commRelayLoseTitle;
+
+  /// No description provided for @commRelayLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The message remains garbled. Try different shift values, Commander.'**
+  String get commRelayLoseDesc;
+
+  /// No description provided for @hullPlatingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hull Plating'**
+  String get hullPlatingTitle;
+
+  /// No description provided for @hullPlatingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The ship\'s hull took a hit! Cover the damaged section with armor plates. Every gap must be sealed, and plates must alternate dark and light for structural integrity.'**
+  String get hullPlatingDesc;
+
+  /// No description provided for @hullPlatingInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag armor plates onto the damaged hull. Cover every cell. Dark and light plates must alternate.'**
+  String get hullPlatingInstructions;
+
+  /// No description provided for @hullPlatingWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hull Sealed!'**
+  String get hullPlatingWinTitle;
+
+  /// No description provided for @hullPlatingWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The breach is patched! The ship is space-worthy again. You earned {bonusScore} repair credits.'**
+  String hullPlatingWinDesc(int bonusScore);
+
+  /// No description provided for @hullPlatingLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Breach Remains!'**
+  String get hullPlatingLoseTitle;
+
+  /// No description provided for @hullPlatingLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Gaps remain in the hull plating. Try a different arrangement, Commander.'**
+  String get hullPlatingLoseDesc;
+
+  /// No description provided for @vaultCrackerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vault Cracker'**
+  String get vaultCrackerTitle;
+
+  /// No description provided for @vaultCrackerDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'An ancient alien vault blocks your path! Each failed attempt reveals clues: which digits are correct, misplaced, or completely wrong. Deduce the combination!'**
+  String get vaultCrackerDesc;
+
+  /// No description provided for @vaultCrackerInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Study each clue attempt. Green = correct digit, correct position. Yellow = correct digit, wrong position. Gray = digit not in code.'**
+  String get vaultCrackerInstructions;
+
+  /// No description provided for @vaultCrackerWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vault Breached!'**
+  String get vaultCrackerWinTitle;
+
+  /// No description provided for @vaultCrackerWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The vault doors swing open! You cracked the code in {attempts} attempts, earning {bonusScore} archaeology points.'**
+  String vaultCrackerWinDesc(int attempts, int bonusScore);
+
+  /// No description provided for @vaultCrackerLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vault Sealed!'**
+  String get vaultCrackerLoseTitle;
+
+  /// No description provided for @vaultCrackerLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many failed attempts triggered the lockout. Analyze the clue patterns more carefully, Commander.'**
+  String get vaultCrackerLoseDesc;
+
+  /// No description provided for @crewManifestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Crew Manifest'**
+  String get crewManifestTitle;
+
+  /// No description provided for @crewManifestDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The crew database is scrambled! Use the clues from the ship\'s log to match each crew member to their role, quarters, and home planet.'**
+  String get crewManifestDesc;
+
+  /// No description provided for @crewManifestInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the clues and mark the logic grid. An X means \'not possible\', a check means \'confirmed match\'.'**
+  String get crewManifestInstructions;
+
+  /// No description provided for @crewManifestWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manifest Restored!'**
+  String get crewManifestWinTitle;
+
+  /// No description provided for @crewManifestWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Every crew member accounted for! Your detective work earned {bonusScore} intelligence points.'**
+  String crewManifestWinDesc(int bonusScore);
+
+  /// No description provided for @crewManifestLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Database Error!'**
+  String get crewManifestLoseTitle;
+
+  /// No description provided for @crewManifestLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The manifest contains contradictions. Re-read the clues carefully, Commander.'**
+  String get crewManifestLoseDesc;
+
+  /// No description provided for @alienTribunalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alien Tribunal'**
+  String get alienTribunalTitle;
+
+  /// No description provided for @alienTribunalDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Galactic delegates are testifying, but some always lie! Truth-tellers always speak truth, liars always lie. Study their statements and identify who is trustworthy!'**
+  String get alienTribunalDesc;
+
+  /// No description provided for @alienTribunalInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Read each delegate\'s statement. Mark each as \'Truth-Teller\' or \'Liar\'. All statements must be consistent with your assignments.'**
+  String get alienTribunalInstructions;
+
+  /// No description provided for @alienTribunalWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Justice Served!'**
+  String get alienTribunalWinTitle;
+
+  /// No description provided for @alienTribunalWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The tribunal\'s verdict is sound! Your deduction earned {bonusScore} diplomacy points.'**
+  String alienTribunalWinDesc(int bonusScore);
+
+  /// No description provided for @alienTribunalLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mistrial!'**
+  String get alienTribunalLoseTitle;
+
+  /// No description provided for @alienTribunalLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your assignments are contradictory. If someone is a truth-teller, their statements must be true, Commander.'**
+  String get alienTribunalLoseDesc;
+
+  /// No description provided for @gravityWellTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gravity Well'**
+  String get gravityWellTitle;
+
+  /// No description provided for @gravityWellDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibrate the gravity well! Place celestial masses on cosmic scales until perfect equilibrium is achieved. The warp drive won\'t engage without balanced gravity.'**
+  String get gravityWellDesc;
+
+  /// No description provided for @gravityWellInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Determine the weight of each object by reading the balanced scales. Drag your answer onto the target scale.'**
+  String get gravityWellInstructions;
+
+  /// No description provided for @gravityWellWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gravity Calibrated!'**
+  String get gravityWellWinTitle;
+
+  /// No description provided for @gravityWellWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect equilibrium achieved! The warp drive hums to life. You earned {bonusScore} calibration points.'**
+  String gravityWellWinDesc(int bonusScore);
+
+  /// No description provided for @gravityWellLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gravitational Anomaly!'**
+  String get gravityWellLoseTitle;
+
+  /// No description provided for @gravityWellLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The imbalanced gravity well warped the local spacetime. Recalculate the masses, Commander.'**
+  String get gravityWellLoseDesc;
+
+  /// No description provided for @sectorPainterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sector Painter'**
+  String get sectorPainterTitle;
+
+  /// No description provided for @sectorPainterDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign communication frequencies to star map sectors! Bordering sectors must use different frequencies to avoid signal interference.'**
+  String get sectorPainterDesc;
+
+  /// No description provided for @sectorPainterInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Color each sector so no two adjacent sectors share the same color. Use as few colors as possible!'**
+  String get sectorPainterInstructions;
+
+  /// No description provided for @sectorPainterWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequencies Assigned!'**
+  String get sectorPainterWinTitle;
+
+  /// No description provided for @sectorPainterWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Zero interference across the star map! You solved it with only {colors} frequencies, earning {bonusScore} points.'**
+  String sectorPainterWinDesc(int colors, int bonusScore);
+
+  /// No description provided for @sectorPainterLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Signal Interference!'**
+  String get sectorPainterLoseTitle;
+
+  /// No description provided for @sectorPainterLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjacent sectors are broadcasting on the same frequency! Reassign the channels, Commander.'**
+  String get sectorPainterLoseDesc;
+
+  /// No description provided for @warpFoldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Warp Fold'**
+  String get warpFoldTitle;
+
+  /// No description provided for @warpFoldDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The warp drive folds space itself! Predict what the star chart looks like after space has been folded and cut. Spatial intuition is your only tool!'**
+  String get warpFoldDesc;
+
+  /// No description provided for @warpFoldInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the folding animation, then choose which unfolded result is correct.'**
+  String get warpFoldInstructions;
+
+  /// No description provided for @warpFoldWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Space Unfolded!'**
+  String get warpFoldWinTitle;
+
+  /// No description provided for @warpFoldWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your spatial reasoning is flawless! You earned {bonusScore} dimensional points.'**
+  String warpFoldWinDesc(int bonusScore);
+
+  /// No description provided for @warpFoldLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dimensional Mishap!'**
+  String get warpFoldLoseTitle;
+
+  /// No description provided for @warpFoldLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The unfolded space didn\'t match your prediction. Trace the folds step by step, Commander.'**
+  String get warpFoldLoseDesc;
+
+  /// No description provided for @cubeScannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cube Scanner'**
+  String get cubeScannerTitle;
+
+  /// No description provided for @cubeScannerDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Alien data cubes have been recovered! Your scanner reveals some faces, but others are hidden. Use the rule -- opposite faces always sum to 7 -- to deduce the hidden values.'**
+  String get cubeScannerDesc;
+
+  /// No description provided for @cubeScannerInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Study the visible faces of each cube. Opposite faces sum to 7. Determine the hidden face values.'**
+  String get cubeScannerInstructions;
+
+  /// No description provided for @cubeScannerWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cubes Decoded!'**
+  String get cubeScannerWinTitle;
+
+  /// No description provided for @cubeScannerWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'All cube data extracted! Your analysis earned {bonusScore} scanner points.'**
+  String cubeScannerWinDesc(int bonusScore);
+
+  /// No description provided for @cubeScannerLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Incomplete!'**
+  String get cubeScannerLoseTitle;
+
+  /// No description provided for @cubeScannerLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Some face values are wrong. Remember: opposite faces always sum to 7, Commander.'**
+  String get cubeScannerLoseDesc;
+
+  /// No description provided for @circuitRepairTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Circuit Repair'**
+  String get circuitRepairTitle;
+
+  /// No description provided for @circuitRepairDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The cockpit display is glitching! Two wires got crossed in the 7-segment circuit. Figure out which segments were swapped and fix the readout!'**
+  String get circuitRepairDesc;
+
+  /// No description provided for @circuitRepairInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'The display shows wrong digits because two wire connections are swapped. Find which two segments to swap back.'**
+  String get circuitRepairInstructions;
+
+  /// No description provided for @circuitRepairWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Display Fixed!'**
+  String get circuitRepairWinTitle;
+
+  /// No description provided for @circuitRepairWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear readout restored! Your electrical skills earned {bonusScore} tech points.'**
+  String circuitRepairWinDesc(int bonusScore);
+
+  /// No description provided for @circuitRepairLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Still Glitching!'**
+  String get circuitRepairLoseTitle;
+
+  /// No description provided for @circuitRepairLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The display is still showing wrong digits. Think about which two segments, when swapped, make all digits valid, Commander.'**
+  String get circuitRepairLoseDesc;
+
+  /// No description provided for @darkMatterGridTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Matter Grid'**
+  String get darkMatterGridTitle;
+
+  /// No description provided for @darkMatterGridDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark matter has blanketed this sector! Toggle the nodes to push back the darkness. But beware -- each node affects its neighbors!'**
+  String get darkMatterGridDesc;
+
+  /// No description provided for @darkMatterGridInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a node to toggle it and all adjacent nodes. Light up the entire grid to clear the sector.'**
+  String get darkMatterGridInstructions;
+
+  /// No description provided for @darkMatterGridWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sector Illuminated!'**
+  String get darkMatterGridWinTitle;
+
+  /// No description provided for @darkMatterGridWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The dark matter recedes! You cleared the grid in {moves} moves and earned {bonusScore} photon points.'**
+  String darkMatterGridWinDesc(int moves, int bonusScore);
+
+  /// No description provided for @darkMatterGridLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Darkness Persists!'**
+  String get darkMatterGridLoseTitle;
+
+  /// No description provided for @darkMatterGridLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The dark matter grid remains unstable. Think about which nodes affect which neighbors, Commander.'**
+  String get darkMatterGridLoseDesc;
+
+  /// No description provided for @dockClearanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dock Clearance'**
+  String get dockClearanceTitle;
+
+  /// No description provided for @dockClearanceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The space dock is jammed! Slide the parked ships to clear a path for your vessel to reach the launch tube. No diagonal moves -- ships only slide along their axis!'**
+  String get dockClearanceDesc;
+
+  /// No description provided for @dockClearanceInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Slide ships horizontally or vertically to create a clear path. Get the red ship to the exit!'**
+  String get dockClearanceInstructions;
+
+  /// No description provided for @dockClearanceWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch Clear!'**
+  String get dockClearanceWinTitle;
+
+  /// No description provided for @dockClearanceWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your ship rockets out of the dock! Cleared in {moves} moves, earning {bonusScore} docking credits.'**
+  String dockClearanceWinDesc(int moves, int bonusScore);
+
+  /// No description provided for @dockClearanceLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Still Jammed!'**
+  String get dockClearanceLoseTitle;
+
+  /// No description provided for @dockClearanceLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'No clear path to the exit. Try sliding different ships first, Commander.'**
+  String get dockClearanceLoseDesc;
+
+  /// No description provided for @ionChainTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ion Chain'**
+  String get ionChainTitle;
+
+  /// No description provided for @ionChainDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'String ions along the plasma conduit! Each ion type has rules about which neighbors it tolerates. Build the chain without causing a reaction!'**
+  String get ionChainDesc;
+
+  /// No description provided for @ionChainInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Place ions in sequence. Read the constraint rules: some types cannot be adjacent, others must alternate.'**
+  String get ionChainInstructions;
+
+  /// No description provided for @ionChainWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Conduit Stable!'**
+  String get ionChainWinTitle;
+
+  /// No description provided for @ionChainWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The plasma flows smoothly through your ion chain! You earned {bonusScore} chemistry points.'**
+  String ionChainWinDesc(int bonusScore);
+
+  /// No description provided for @ionChainLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chain Reaction!'**
+  String get ionChainLoseTitle;
+
+  /// No description provided for @ionChainLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Incompatible ions caused a plasma surge! Check the adjacency rules, Commander.'**
+  String get ionChainLoseDesc;
+
+  /// No description provided for @launchSequenceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch Sequence'**
+  String get launchSequenceTitle;
+
+  /// No description provided for @launchSequenceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The launch queue is scrambled! Reorder the fleet by swapping adjacent ships. Get them in the correct sequence using the fewest swaps possible!'**
+  String get launchSequenceDesc;
+
+  /// No description provided for @launchSequenceInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap two adjacent ships to swap them. Arrange all ships in the correct order. Fewer swaps = more points!'**
+  String get launchSequenceInstructions;
+
+  /// No description provided for @launchSequenceWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fleet Launched!'**
+  String get launchSequenceWinTitle;
+
+  /// No description provided for @launchSequenceWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect sequence! You sorted the fleet in {moves} swaps (optimal: {optimal}), earning {bonusScore} efficiency points.'**
+  String launchSequenceWinDesc(int moves, int optimal, int bonusScore);
+
+  /// No description provided for @launchSequenceLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sequence Error!'**
+  String get launchSequenceLoseTitle;
+
+  /// No description provided for @launchSequenceLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The fleet is still out of order. Keep swapping adjacent ships, Commander.'**
+  String get launchSequenceLoseDesc;
+
+  /// No description provided for @starForgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Star Forge'**
+  String get starForgeTitle;
+
+  /// No description provided for @starForgeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignite a new star! Distribute energy values across the forge nodes so every plasma arm carries the same total charge. The star ignites when all arms align!'**
+  String get starForgeDesc;
+
+  /// No description provided for @starForgeInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Place numbers in the empty nodes. Each line through the star must have the same sum.'**
+  String get starForgeInstructions;
+
+  /// No description provided for @starForgeWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Star Ignited!'**
+  String get starForgeWinTitle;
+
+  /// No description provided for @starForgeWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A brilliant new star blazes to life! Your forge mastery earned {bonusScore} fusion points.'**
+  String starForgeWinDesc(int bonusScore);
+
+  /// No description provided for @starForgeLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Forge Misfire!'**
+  String get starForgeLoseTitle;
+
+  /// No description provided for @starForgeLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The energy imbalance caused a plasma leak. Redistribute the charge and try again, Commander.'**
+  String get starForgeLoseDesc;
+
+  /// No description provided for @nebulaMatrixTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nebula Matrix'**
+  String get nebulaMatrixTitle;
+
+  /// No description provided for @nebulaMatrixDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Stabilize the energy field! Fill every row, column, and zone of the nebula grid so no frequency repeats. One wrong resonance and the nebula collapses!'**
+  String get nebulaMatrixDesc;
+
+  /// No description provided for @nebulaMatrixInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Place numbers so each row and column contains every value exactly once. Colored zones must also contain each value once.'**
+  String get nebulaMatrixInstructions;
+
+  /// No description provided for @nebulaMatrixWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nebula Stabilized!'**
+  String get nebulaMatrixWinTitle;
+
+  /// No description provided for @nebulaMatrixWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The energy field is perfectly balanced! You earned {bonusScore} resonance points for your precision.'**
+  String nebulaMatrixWinDesc(int bonusScore);
+
+  /// No description provided for @nebulaMatrixLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Field Collapse!'**
+  String get nebulaMatrixLoseTitle;
+
+  /// No description provided for @nebulaMatrixLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Conflicting frequencies destabilized the nebula. Recalibrate your matrix and try again, Commander.'**
+  String get nebulaMatrixLoseDesc;
+
+  /// No description provided for @orbitalTowersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Orbital Towers'**
+  String get orbitalTowersTitle;
+
+  /// No description provided for @orbitalTowersDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Build a space city on the orbital platform! The satellite cameras on each edge report how many towers they can see. Taller towers hide shorter ones behind them.'**
+  String get orbitalTowersDesc;
+
+  /// No description provided for @orbitalTowersInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Place towers of height 1 to {size} so each row and column has every height once. Edge clues show how many towers are visible from that direction.'**
+  String orbitalTowersInstructions(int size);
+
+  /// No description provided for @orbitalTowersWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'City Constructed!'**
+  String get orbitalTowersWinTitle;
+
+  /// No description provided for @orbitalTowersWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The orbital city rises into view! All satellite readings match perfectly. You earned {bonusScore} construction credits.'**
+  String orbitalTowersWinDesc(int bonusScore);
+
+  /// No description provided for @orbitalTowersLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blueprint Mismatch!'**
+  String get orbitalTowersLoseTitle;
+
+  /// No description provided for @orbitalTowersLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The satellite cameras don\'t match your layout. Remember: tall towers block the view of shorter ones behind them, Commander.'**
+  String get orbitalTowersLoseDesc;
+
+  /// No description provided for @hiveStationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hive Station'**
+  String get hiveStationTitle;
+
+  /// No description provided for @hiveStationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The station\'s energy hive needs charging! Each cell displays how many of its neighbors hold an energy core. Deduce which cells need power!'**
+  String get hiveStationDesc;
+
+  /// No description provided for @hiveStationInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap hexagonal cells to fill them with energy. The number in each cell tells you how many adjacent cells contain energy.'**
+  String get hiveStationInstructions;
+
+  /// No description provided for @hiveStationWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hive Charged!'**
+  String get hiveStationWinTitle;
+
+  /// No description provided for @hiveStationWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'All energy cores placed correctly! The station hums with power. You earned {bonusScore} charge points.'**
+  String hiveStationWinDesc(int bonusScore);
+
+  /// No description provided for @hiveStationLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Power Mismatch!'**
+  String get hiveStationLoseTitle;
+
+  /// No description provided for @hiveStationLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Some cells report the wrong neighbor count. Check your energy placement, Commander.'**
+  String get hiveStationLoseDesc;
+
+  /// No description provided for @relicAssemblyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Relic Assembly'**
+  String get relicAssemblyTitle;
+
+  /// No description provided for @relicAssemblyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Ancient alien tablet fragments have been excavated! Arrange the pieces so the glyphs on touching edges match perfectly. The artifact holds the key to the next star system!'**
+  String get relicAssemblyDesc;
+
+  /// No description provided for @relicAssemblyInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Place and rotate tablet pieces in the grid. Touching edges must show matching glyphs.'**
+  String get relicAssemblyInstructions;
+
+  /// No description provided for @relicAssemblyWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Artifact Restored!'**
+  String get relicAssemblyWinTitle;
+
+  /// No description provided for @relicAssemblyWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The ancient tablet glows with power! Your archaeology earned {bonusScore} discovery points.'**
+  String relicAssemblyWinDesc(int bonusScore);
+
+  /// No description provided for @relicAssemblyLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fragments Misaligned!'**
+  String get relicAssemblyLoseTitle;
+
+  /// No description provided for @relicAssemblyLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Some edge glyphs don\'t match their neighbors. Try rotating or repositioning the pieces, Commander.'**
+  String get relicAssemblyLoseDesc;
+
+  /// No description provided for @xenobiologyLabTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Xenobiology Lab'**
+  String get xenobiologyLabTitle;
+
+  /// No description provided for @xenobiologyLabDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A new species has been discovered! Each subspecies has different numbers of eyes, tentacles, and legs. Use the census data to classify the colony!'**
+  String get xenobiologyLabDesc;
+
+  /// No description provided for @xenobiologyLabInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Two alien types live together. You know the total eyes and legs. Figure out how many of each type there are!'**
+  String get xenobiologyLabInstructions;
+
+  /// No description provided for @xenobiologyLabWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Species Cataloged!'**
+  String get xenobiologyLabWinTitle;
+
+  /// No description provided for @xenobiologyLabWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Field report filed! Your xenobiology skills earned {bonusScore} research credits.'**
+  String xenobiologyLabWinDesc(int bonusScore);
+
+  /// No description provided for @xenobiologyLabLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Census Error!'**
+  String get xenobiologyLabLoseTitle;
+
+  /// No description provided for @xenobiologyLabLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The numbers don\'t add up. Double-check the trait counts for each subspecies, Commander.'**
+  String get xenobiologyLabLoseDesc;
+
+  /// No description provided for @galacticMarketTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Galactic Market'**
+  String get galacticMarketTitle;
+
+  /// No description provided for @galacticMarketDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to the alien bazaar! Pay the exact price using the local currency. Some denominations are scarce -- find the combination that works!'**
+  String get galacticMarketDesc;
+
+  /// No description provided for @galacticMarketInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag coins onto the payment pad to reach the exact target amount. Use as few coins as possible for bonus points!'**
+  String get galacticMarketInstructions;
+
+  /// No description provided for @galacticMarketWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Complete!'**
+  String get galacticMarketWinTitle;
+
+  /// No description provided for @galacticMarketWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact change tendered! You used only {coins} coins, earning {bonusScore} trade points.'**
+  String galacticMarketWinDesc(int coins, int bonusScore);
+
+  /// No description provided for @galacticMarketLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect Amount!'**
+  String get galacticMarketLoseTitle;
+
+  /// No description provided for @galacticMarketLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The merchant frowns -- that\'s not the right amount. Try a different combination of coins, Commander.'**
+  String get galacticMarketLoseDesc;
+
+  /// No description provided for @creatureForgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Creature Forge'**
+  String get creatureForgeTitle;
+
+  /// No description provided for @creatureForgeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The xenobiology bay has parts from multiple alien species! Combine heads, bodies, and tails to discover every possible creature. How many unique beings can you create?'**
+  String get creatureForgeDesc;
+
+  /// No description provided for @creatureForgeInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe through heads, bodies, and tails. Count all unique combinations, then enter your answer.'**
+  String get creatureForgeInstructions;
+
+  /// No description provided for @creatureForgeWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Species Catalog Complete!'**
+  String get creatureForgeWinTitle;
+
+  /// No description provided for @creatureForgeWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'You discovered all {count} possible creatures! Your curiosity earned {bonusScore} biology points.'**
+  String creatureForgeWinDesc(int count, int bonusScore);
+
+  /// No description provided for @creatureForgeLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing Species!'**
+  String get creatureForgeLoseTitle;
+
+  /// No description provided for @creatureForgeLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t found all the combinations yet. Remember: each head can pair with each body AND each tail, Commander.'**
+  String get creatureForgeLoseDesc;
+
+  /// No description provided for @asteroidDuelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Asteroid Duel'**
+  String get asteroidDuelTitle;
+
+  /// No description provided for @asteroidDuelDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A strategic standoff in the asteroid belt! Take turns mining rocks with your opponent. The commander who takes the last asteroid loses. Think ahead!'**
+  String get asteroidDuelDesc;
+
+  /// No description provided for @asteroidDuelInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose 1 to {max} asteroids per turn. Force your opponent to take the last one!'**
+  String asteroidDuelInstructions(int max);
+
+  /// No description provided for @asteroidDuelWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Duel Won!'**
+  String get asteroidDuelWinTitle;
+
+  /// No description provided for @asteroidDuelWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Superior strategy! Your opponent is stranded. You earned {bonusScore} tactical points.'**
+  String asteroidDuelWinDesc(int bonusScore);
+
+  /// No description provided for @asteroidDuelLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Outmaneuvered!'**
+  String get asteroidDuelLoseTitle;
+
+  /// No description provided for @asteroidDuelLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your opponent forced you into the last asteroid. Study the patterns -- there\'s always a winning strategy, Commander.'**
+  String get asteroidDuelLoseDesc;
+
+  /// No description provided for @chronoRepairTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chrono Repair'**
+  String get chronoRepairTitle;
+
+  /// No description provided for @chronoRepairDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Relativistic effects have scrambled the station clocks! Some run fast, some are mirrored, some have broken segments. Deduce the real time!'**
+  String get chronoRepairDesc;
+
+  /// No description provided for @chronoRepairInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Each clock has a specific malfunction (offset, mirror, broken segments). Figure out the correct time.'**
+  String get chronoRepairInstructions;
+
+  /// No description provided for @chronoRepairWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Synchronized!'**
+  String get chronoRepairWinTitle;
+
+  /// No description provided for @chronoRepairWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'All clocks show the correct time! You earned {bonusScore} temporal points.'**
+  String chronoRepairWinDesc(int bonusScore);
+
+  /// No description provided for @chronoRepairLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Still Out of Sync!'**
+  String get chronoRepairLoseTitle;
+
+  /// No description provided for @chronoRepairLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The displayed time is incorrect. Consider the specific malfunction of each clock, Commander.'**
+  String get chronoRepairLoseDesc;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

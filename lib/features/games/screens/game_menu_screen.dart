@@ -34,6 +34,31 @@ import 'star_loader_game.dart';
 import 'robot_path_game.dart';
 import 'solarpanel_game.dart';
 import 'grid_filler_game.dart';
+import 'star_chart_scan_game.dart';
+import 'comm_relay_game.dart';
+import 'hull_plating_game.dart';
+import 'vault_cracker_game.dart';
+import 'crew_manifest_game.dart';
+import 'alien_tribunal_game.dart';
+import 'gravity_well_game.dart';
+import 'sector_painter_game.dart';
+import 'warp_fold_game.dart';
+import 'cube_scanner_game.dart';
+import 'circuit_repair_game.dart';
+import 'dark_matter_grid_game.dart';
+import 'dock_clearance_game.dart';
+import 'ion_chain_game.dart';
+import 'launch_sequence_game.dart';
+import 'star_forge_game.dart';
+import 'nebula_matrix_game.dart';
+import 'orbital_towers_game.dart';
+import 'hive_station_game.dart';
+import 'relic_assembly_game.dart';
+import 'xenobiology_lab_game.dart';
+import 'galactic_market_game.dart';
+import 'creature_forge_game.dart';
+import 'asteroid_duel_game.dart';
+import 'chrono_repair_game.dart';
 
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
@@ -79,7 +104,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   bool _isGamesDataInitialized = false;
 
   // for new games, we must manually update game count
-  static const int _gameCount = 24;
+  static const int _gameCount = 49;
 
   @override
   void initState() {
@@ -318,6 +343,206 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         icon: Icons.smart_toy_outlined,
         gradient: const LinearGradient(colors: [Color(0xFF44bcd4), Color(0xFF44838f)]),
         gameBuilder: (grade, level) => GridFillerGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'star_chart_scan',
+        title: s.starChartScanTitle,
+        description: s.starChartScanDesc,
+        icon: Icons.travel_explore,
+        gradient: const LinearGradient(colors: [Color(0xFF00C9DB), Color(0xFFFFD700)]),
+        gameBuilder: (grade, level) => StarChartScanGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'comm_relay',
+        title: s.commRelayTitle,
+        description: s.commRelayDesc,
+        icon: Icons.satellite_alt,
+        gradient: const LinearGradient(colors: [Color(0xFF00C9DB), Color(0xFF6B48FF)]),
+        gameBuilder: (grade, level) => CommRelayGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'hull_plating',
+        title: s.hullPlatingTitle,
+        description: s.hullPlatingDesc,
+        icon: Icons.view_compact,
+        gradient: const LinearGradient(colors: [Color(0xFF8B8B8B), Color(0xFF00C9DB)]),
+        gameBuilder: (grade, level) => HullPlatingGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'vault_cracker',
+        title: s.vaultCrackerTitle,
+        description: s.vaultCrackerDesc,
+        icon: Icons.lock_open,
+        gradient: const LinearGradient(colors: [Color(0xFF6B48FF), Color(0xFFE63946)]),
+        gameBuilder: (grade, level) => VaultCrackerGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'crew_manifest',
+        title: s.crewManifestTitle,
+        description: s.crewManifestDesc,
+        icon: Icons.assignment_ind,
+        gradient: const LinearGradient(colors: [Color(0xFF00C9DB), Color(0xFF06FFA5)]),
+        gameBuilder: (grade, level) => CrewManifestGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'alien_tribunal',
+        title: s.alienTribunalTitle,
+        description: s.alienTribunalDesc,
+        icon: Icons.gavel,
+        gradient: const LinearGradient(colors: [Color(0xFF6B48FF), Color(0xFFE63946)]),
+        gameBuilder: (grade, level) => AlienTribunalGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'gravity_well',
+        title: s.gravityWellTitle,
+        description: s.gravityWellDesc,
+        icon: Icons.balance,
+        gradient: const LinearGradient(colors: [Color(0xFF06FFA5), Color(0xFF00C9DB)]),
+        gameBuilder: (grade, level) => GravityWellGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'sector_painter',
+        title: s.sectorPainterTitle,
+        description: s.sectorPainterDesc,
+        icon: Icons.palette,
+        gradient: const LinearGradient(colors: [Color(0xFFFF6B35), Color(0xFFFFD700)]),
+        gameBuilder: (grade, level) => SectorPainterGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'warp_fold',
+        title: s.warpFoldTitle,
+        description: s.warpFoldDesc,
+        icon: Icons.content_cut,
+        gradient: const LinearGradient(colors: [Color(0xFFFF69B4), Color(0xFF6B48FF)]),
+        gameBuilder: (grade, level) => WarpFoldGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'cube_scanner',
+        title: s.cubeScannerTitle,
+        description: s.cubeScannerDesc,
+        icon: Icons.view_in_ar_outlined,
+        gradient: const LinearGradient(colors: [Color(0xFF6B48FF), Color(0xFFFF69B4)]),
+        gameBuilder: (grade, level) => CubeScannerGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'circuit_repair',
+        title: s.circuitRepairTitle,
+        description: s.circuitRepairDesc,
+        icon: Icons.electrical_services,
+        gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFE63946)]),
+        gameBuilder: (grade, level) => CircuitRepairGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'dark_matter_grid',
+        title: s.darkMatterGridTitle,
+        description: s.darkMatterGridDesc,
+        icon: Icons.grid_view,
+        gradient: const LinearGradient(colors: [Color(0xFF1A1A2E), Color(0xFF6B48FF)]),
+        gameBuilder: (grade, level) => DarkMatterGridGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'dock_clearance',
+        title: s.dockClearanceTitle,
+        description: s.dockClearanceDesc,
+        icon: Icons.directions_boat,
+        gradient: const LinearGradient(colors: [Color(0xFFE63946), Color(0xFF00C9DB)]),
+        gameBuilder: (grade, level) => DockClearanceGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'ion_chain',
+        title: s.ionChainTitle,
+        description: s.ionChainDesc,
+        icon: Icons.link,
+        gradient: const LinearGradient(colors: [Color(0xFF06FFA5), Color(0xFF00C9DB)]),
+        gameBuilder: (grade, level) => IonChainGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'launch_sequence',
+        title: s.launchSequenceTitle,
+        description: s.launchSequenceDesc,
+        icon: Icons.sort,
+        gradient: const LinearGradient(colors: [Color(0xFFE63946), Color(0xFFFFD700)]),
+        gameBuilder: (grade, level) => LaunchSequenceGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'star_forge',
+        title: s.starForgeTitle,
+        description: s.starForgeDesc,
+        icon: Icons.auto_awesome_mosaic,
+        gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFF6B35)]),
+        gameBuilder: (grade, level) => StarForgeGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'nebula_matrix',
+        title: s.nebulaMatrixTitle,
+        description: s.nebulaMatrixDesc,
+        icon: Icons.grid_on_rounded,
+        gradient: const LinearGradient(colors: [Color(0xFF6B48FF), Color(0xFFFF6B9D)]),
+        gameBuilder: (grade, level) => NebulaMatrixGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'orbital_towers',
+        title: s.orbitalTowersTitle,
+        description: s.orbitalTowersDesc,
+        icon: Icons.location_city,
+        gradient: const LinearGradient(colors: [Color(0xFFE63946), Color(0xFFFFD700)]),
+        gameBuilder: (grade, level) => OrbitalTowersGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'hive_station',
+        title: s.hiveStationTitle,
+        description: s.hiveStationDesc,
+        icon: Icons.hexagon,
+        gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFF6B35)]),
+        gameBuilder: (grade, level) => HiveStationGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'relic_assembly',
+        title: s.relicAssemblyTitle,
+        description: s.relicAssemblyDesc,
+        icon: Icons.dashboard_customize_outlined,
+        gradient: const LinearGradient(colors: [Color(0xFFFF6B35), Color(0xFFFFD700)]),
+        gameBuilder: (grade, level) => RelicAssemblyGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'xenobiology_lab',
+        title: s.xenobiologyLabTitle,
+        description: s.xenobiologyLabDesc,
+        icon: Icons.biotech,
+        gradient: const LinearGradient(colors: [Color(0xFF06FFA5), Color(0xFFFFD700)]),
+        gameBuilder: (grade, level) => XenobiologyLabGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'galactic_market',
+        title: s.galacticMarketTitle,
+        description: s.galacticMarketDesc,
+        icon: Icons.storefront,
+        gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFF06FFA5)]),
+        gameBuilder: (grade, level) => GalacticMarketGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'creature_forge',
+        title: s.creatureForgeTitle,
+        description: s.creatureForgeDesc,
+        icon: Icons.pets,
+        gradient: const LinearGradient(colors: [Color(0xFF06FFA5), Color(0xFFFF69B4)]),
+        gameBuilder: (grade, level) => CreatureForgeGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'asteroid_duel',
+        title: s.asteroidDuelTitle,
+        description: s.asteroidDuelDesc,
+        icon: Icons.sports_kabaddi,
+        gradient: const LinearGradient(colors: [Color(0xFFE63946), Color(0xFFFF6B35)]),
+        gameBuilder: (grade, level) => AsteroidDuelGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'chrono_repair',
+        title: s.chronoRepairTitle,
+        description: s.chronoRepairDesc,
+        icon: Icons.watch_later,
+        gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFF6B48FF)]),
+        gameBuilder: (grade, level) => ChronoRepairGame(grade: grade, level: level),
       ),
     ];
   }

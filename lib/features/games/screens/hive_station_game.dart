@@ -1,0 +1,415 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'dart:math' as math;
+
+import '../../../core/theme/space_theme.dart';
+import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
+import '../providers/game_provider.dart';
+import '../widgets/space_background.dart';
+import '../widgets/game_ui.dart';
+import '../constants/difficulty_manager.dart';
+import '../services/hive_station_logic.dart';
+
+class HiveStationGame extends StatefulWidget {
+  final int grade;
+  final int level;
+  const HiveStationGame({super.key, required this.grade, required this.level});
+
+  @override
+  State<HiveStationGame> createState() => _HiveStationGameState();
+}
+
+class _HiveStationGameState extends State<HiveStationGame>
+    with TickerProviderStateMixin {
+  late AnimationController _glowController;
+  late Animation<double> _glowAnimation;
+  late AnimationController _successController;
+  late Animation<double> _successAnimation;
+
+  HiveStationPuzzle? puzzle;
+  Set<HexCoord> userMarked = {};
+  bool _isGenerating = true;
+  DifficultyConfig? currentDifficulty;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _glowController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
+    );
+
+    _successController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final gp = context.read<GameProvider>();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
+        _generatePuzzle();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _glowController.dispose();
+    _successController.dispose();
+    super.dispose();
+  }
+
+  int _getRadius() {
+    final grade = currentDifficulty?.grade ?? widget.grade;
+    if (grade <= 1) return 1; // 7 cells
+    if (grade <= 2) return 2; // 19 cells
+    return 3; // 37 cells
+  }
+
+  double _getEnergyFraction() {
+    return 0.3; // 30% of cells have energy
+  }
+
+  double _getHintFraction() {
+    final level = currentDifficulty?.level ?? widget.level;
+    // Higher level = fewer hints
+    const base = 0.8;
+    final reduction = level * 0.03;
+    return (base - reduction).clamp(0.3, 0.9);
+  }
+
+  void _generatePuzzle() async {
+    setState(() {
+      _isGenerating = true;
+      userMarked.clear();
+      _successController.reset();
+    });
+
+    try {
+      final generator = HiveStationGenerator();
+      final p = await generator.generate(
+        radius: _getRadius(),
+        energyFraction: _getEnergyFraction(),
+        hintFraction: _getHintFraction(),
+      );
+
+      if (mounted) {
+        setState(() {
+          puzzle = p;
+          _isGenerating = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('[HiveStation] Error generating puzzle: $e');
+    }
+  }
+
+  void _toggleCell(HexCoord coord) {
+    // Don't toggle cells that show a hint
+    if (puzzle!.revealedHints.contains(coord)) return;
+
+    setState(() {
+      if (userMarked.contains(coord)) {
+        userMarked.remove(coord);
+      } else {
+        userMarked.add(coord);
+      }
+    });
+
+    HapticFeedback.selectionClick();
+  }
+
+  void _checkSolution() {
+    if (puzzle!.validateSolution(userMarked)) {
+      _handleWin();
+    } else {
+      _handleLoss();
+    }
+  }
+
+  void _handleWin() {
+    HapticFeedback.lightImpact();
+    int baseScore = 100 * widget.grade;
+    int levelBonus = widget.level * 25;
+    int totalScore = baseScore + levelBonus;
+
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      gameType: 'hive_station',
+      difficulty: widget.level,
+      score: totalScore,
+    ));
+
+    _successController.forward(from: 0.0);
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _buildWinDialog(totalScore),
+      );
+    }
+  }
+
+  void _handleLoss() {
+    HapticFeedback.heavyImpact();
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      gameType: 'hive_station',
+      difficulty: widget.level,
+    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(S.of(context)!.hiveStationLoseDesc)),
+          ],
+        ),
+        backgroundColor: SpaceTheme.rocketRed,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context)!;
+
+    if (puzzle == null || _isGenerating) {
+      return Scaffold(
+        body: SpaceBackground(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(s.loadingAdventure, style: SpaceTheme.bodyStyle),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      body: SpaceBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              GameUI(
+                title: s.hiveStationTitle,
+                level: widget.level,
+                onBack: () => Navigator.of(context).pop(),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Text(
+                  s.hiveStationInstructions,
+                  style: SpaceTheme.bodyStyle,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              Expanded(child: _buildHexGrid()),
+              _buildCheckButton(),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHexGrid() {
+    return Center(
+      child: AnimatedBuilder(
+        animation: _glowAnimation,
+        builder: (context, child) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                colors: [
+                  SpaceTheme.starYellow.withValues(alpha: 0.08 * _glowAnimation.value),
+                  SpaceTheme.deepSpace.withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value * 0.5),
+                width: 2,
+              ),
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final availableSize = math.min(constraints.maxWidth, constraints.maxHeight) * 0.9;
+                return SizedBox(
+                  width: availableSize,
+                  height: availableSize,
+                  child: _buildHexCells(availableSize),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildHexCells(double areaSize) {
+    final radius = puzzle!.radius;
+    final hexSize = areaSize / (2 * radius + 2.5);
+    final center = Offset(areaSize / 2, areaSize / 2);
+
+    final cells = <Widget>[];
+
+    for (final coord in puzzle!.allCells) {
+      final pixelPos = _hexToPixel(coord, hexSize, center);
+      final isRevealed = puzzle!.revealedHints.contains(coord);
+      final isMarked = userMarked.contains(coord);
+      final hint = puzzle!.numberHints[coord];
+
+      cells.add(Positioned(
+        left: pixelPos.dx - hexSize * 0.8,
+        top: pixelPos.dy - hexSize * 0.8,
+        child: GestureDetector(
+          onTap: () => _toggleCell(coord),
+          child: _buildHexCell(
+            hexSize: hexSize * 1.6,
+            isRevealed: isRevealed,
+            isMarked: isMarked,
+            hint: isRevealed ? hint : null,
+          ),
+        ),
+      ));
+    }
+
+    return Stack(children: cells);
+  }
+
+  Offset _hexToPixel(HexCoord coord, double hexSize, Offset center) {
+    final x = hexSize * (math.sqrt(3) * coord.q + math.sqrt(3) / 2 * coord.r);
+    final y = hexSize * (1.5 * coord.r);
+    return Offset(center.dx + x, center.dy + y);
+  }
+
+  Widget _buildHexCell({
+    required double hexSize,
+    required bool isRevealed,
+    required bool isMarked,
+    int? hint,
+  }) {
+    Color bgColor;
+    if (isMarked) {
+      bgColor = SpaceTheme.starYellow.withValues(alpha: 0.7);
+    } else if (isRevealed) {
+      bgColor = SpaceTheme.deepSpace.withValues(alpha: 0.8);
+    } else {
+      bgColor = SpaceTheme.nebulaPurple.withValues(alpha: 0.4);
+    }
+
+    return Container(
+      width: hexSize,
+      height: hexSize,
+      decoration: BoxDecoration(
+        color: bgColor,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: isMarked ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
+          width: 2,
+        ),
+        boxShadow: isMarked
+            ? [BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.4), blurRadius: 8)]
+            : null,
+      ),
+      child: Center(
+        child: hint != null
+            ? Text(
+                hint.toString(),
+                style: SpaceTheme.headlineStyle.copyWith(
+                  fontSize: hexSize * 0.35,
+                  color: Colors.white,
+                ),
+              )
+            : isMarked
+                ? Icon(Icons.flash_on, color: Colors.white, size: hexSize * 0.4)
+                : null,
+      ),
+    );
+  }
+
+  Widget _buildCheckButton() {
+    final s = S.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            '${userMarked.length} / ${puzzle!.energyCells.length}',
+            style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow),
+          ),
+          const SizedBox(width: 16),
+          ElevatedButton.icon(
+            onPressed: userMarked.length == puzzle!.energyCells.length ? _checkSolution : null,
+            icon: const Icon(Icons.check),
+            label: Text(s.correct.replaceAll('!', '')),
+            style: SpaceTheme.primaryButtonStyle,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWinDialog(int score) {
+    final s = S.of(context)!;
+    return AnimatedBuilder(
+      animation: _successAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _successAnimation.value,
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: SpaceTheme.cardDecoration,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.hexagon, size: 64, color: SpaceTheme.starYellow),
+                  const SizedBox(height: 16),
+                  Text(s.hiveStationWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  Text(s.hiveStationWinDesc(score), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                        style: SpaceTheme.secondaryButtonStyle,
+                        child: Text(s.playAgain),
+                      ),
+                      ElevatedButton(
+                        onPressed: () { Navigator.of(context).pop(); Navigator.of(context).pop(); },
+                        style: SpaceTheme.primaryButtonStyle,
+                        child: Text(s.backToMenu),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

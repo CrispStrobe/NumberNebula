@@ -2281,4 +2281,656 @@ class SEn extends S {
 
   @override
   String get solarPanelNext => 'Next Array';
+
+  @override
+  String get starChartScanTitle => 'Star Chart Scan';
+
+  @override
+  String get starChartScanDesc =>
+      'Hidden constellation names are embedded in this star chart data! Scan horizontally, vertically, and diagonally to find them all. One letter will remain unclaimed...';
+
+  @override
+  String get starChartScanInstructions =>
+      'Swipe across letters to highlight hidden words. Words can run in any direction. Find all words to reveal the mystery letter!';
+
+  @override
+  String get starChartScanWinTitle => 'Chart Decoded!';
+
+  @override
+  String starChartScanWinDesc(String letter, int bonusScore) {
+    return 'All constellations found! The mystery letter is \'$letter\'. You earned $bonusScore cartography points.';
+  }
+
+  @override
+  String get starChartScanLoseTitle => 'Scan Incomplete!';
+
+  @override
+  String get starChartScanLoseDesc =>
+      'Some constellations remain hidden in the data. Try scanning diagonally too, Commander.';
+
+  @override
+  String get commRelayTitle => 'Comm Relay';
+
+  @override
+  String get commRelayDesc =>
+      'A garbled transmission from deep space! The communication relay has shifted every letter. Crack the cipher to read the original message!';
+
+  @override
+  String get commRelayInstructions =>
+      'Each letter has been shifted by a fixed amount in the alphabet. Find the shift and decode the message.';
+
+  @override
+  String get commRelayWinTitle => 'Message Decoded!';
+
+  @override
+  String commRelayWinDesc(int bonusScore) {
+    return 'The transmission reads loud and clear! You earned $bonusScore intelligence points.';
+  }
+
+  @override
+  String get commRelayLoseTitle => 'Static!';
+
+  @override
+  String get commRelayLoseDesc =>
+      'The message remains garbled. Try different shift values, Commander.';
+
+  @override
+  String get hullPlatingTitle => 'Hull Plating';
+
+  @override
+  String get hullPlatingDesc =>
+      'The ship\'s hull took a hit! Cover the damaged section with armor plates. Every gap must be sealed, and plates must alternate dark and light for structural integrity.';
+
+  @override
+  String get hullPlatingInstructions =>
+      'Drag armor plates onto the damaged hull. Cover every cell. Dark and light plates must alternate.';
+
+  @override
+  String get hullPlatingWinTitle => 'Hull Sealed!';
+
+  @override
+  String hullPlatingWinDesc(int bonusScore) {
+    return 'The breach is patched! The ship is space-worthy again. You earned $bonusScore repair credits.';
+  }
+
+  @override
+  String get hullPlatingLoseTitle => 'Breach Remains!';
+
+  @override
+  String get hullPlatingLoseDesc =>
+      'Gaps remain in the hull plating. Try a different arrangement, Commander.';
+
+  @override
+  String get vaultCrackerTitle => 'Vault Cracker';
+
+  @override
+  String get vaultCrackerDesc =>
+      'An ancient alien vault blocks your path! Each failed attempt reveals clues: which digits are correct, misplaced, or completely wrong. Deduce the combination!';
+
+  @override
+  String get vaultCrackerInstructions =>
+      'Study each clue attempt. Green = correct digit, correct position. Yellow = correct digit, wrong position. Gray = digit not in code.';
+
+  @override
+  String get vaultCrackerWinTitle => 'Vault Breached!';
+
+  @override
+  String vaultCrackerWinDesc(int attempts, int bonusScore) {
+    return 'The vault doors swing open! You cracked the code in $attempts attempts, earning $bonusScore archaeology points.';
+  }
+
+  @override
+  String get vaultCrackerLoseTitle => 'Vault Sealed!';
+
+  @override
+  String get vaultCrackerLoseDesc =>
+      'Too many failed attempts triggered the lockout. Analyze the clue patterns more carefully, Commander.';
+
+  @override
+  String get crewManifestTitle => 'Crew Manifest';
+
+  @override
+  String get crewManifestDesc =>
+      'The crew database is scrambled! Use the clues from the ship\'s log to match each crew member to their role, quarters, and home planet.';
+
+  @override
+  String get crewManifestInstructions =>
+      'Read the clues and mark the logic grid. An X means \'not possible\', a check means \'confirmed match\'.';
+
+  @override
+  String get crewManifestWinTitle => 'Manifest Restored!';
+
+  @override
+  String crewManifestWinDesc(int bonusScore) {
+    return 'Every crew member accounted for! Your detective work earned $bonusScore intelligence points.';
+  }
+
+  @override
+  String get crewManifestLoseTitle => 'Database Error!';
+
+  @override
+  String get crewManifestLoseDesc =>
+      'The manifest contains contradictions. Re-read the clues carefully, Commander.';
+
+  @override
+  String get alienTribunalTitle => 'Alien Tribunal';
+
+  @override
+  String get alienTribunalDesc =>
+      'Galactic delegates are testifying, but some always lie! Truth-tellers always speak truth, liars always lie. Study their statements and identify who is trustworthy!';
+
+  @override
+  String get alienTribunalInstructions =>
+      'Read each delegate\'s statement. Mark each as \'Truth-Teller\' or \'Liar\'. All statements must be consistent with your assignments.';
+
+  @override
+  String get alienTribunalWinTitle => 'Justice Served!';
+
+  @override
+  String alienTribunalWinDesc(int bonusScore) {
+    return 'The tribunal\'s verdict is sound! Your deduction earned $bonusScore diplomacy points.';
+  }
+
+  @override
+  String get alienTribunalLoseTitle => 'Mistrial!';
+
+  @override
+  String get alienTribunalLoseDesc =>
+      'Your assignments are contradictory. If someone is a truth-teller, their statements must be true, Commander.';
+
+  @override
+  String get gravityWellTitle => 'Gravity Well';
+
+  @override
+  String get gravityWellDesc =>
+      'Calibrate the gravity well! Place celestial masses on cosmic scales until perfect equilibrium is achieved. The warp drive won\'t engage without balanced gravity.';
+
+  @override
+  String get gravityWellInstructions =>
+      'Determine the weight of each object by reading the balanced scales. Drag your answer onto the target scale.';
+
+  @override
+  String get gravityWellWinTitle => 'Gravity Calibrated!';
+
+  @override
+  String gravityWellWinDesc(int bonusScore) {
+    return 'Perfect equilibrium achieved! The warp drive hums to life. You earned $bonusScore calibration points.';
+  }
+
+  @override
+  String get gravityWellLoseTitle => 'Gravitational Anomaly!';
+
+  @override
+  String get gravityWellLoseDesc =>
+      'The imbalanced gravity well warped the local spacetime. Recalculate the masses, Commander.';
+
+  @override
+  String get sectorPainterTitle => 'Sector Painter';
+
+  @override
+  String get sectorPainterDesc =>
+      'Assign communication frequencies to star map sectors! Bordering sectors must use different frequencies to avoid signal interference.';
+
+  @override
+  String get sectorPainterInstructions =>
+      'Color each sector so no two adjacent sectors share the same color. Use as few colors as possible!';
+
+  @override
+  String get sectorPainterWinTitle => 'Frequencies Assigned!';
+
+  @override
+  String sectorPainterWinDesc(int colors, int bonusScore) {
+    return 'Zero interference across the star map! You solved it with only $colors frequencies, earning $bonusScore points.';
+  }
+
+  @override
+  String get sectorPainterLoseTitle => 'Signal Interference!';
+
+  @override
+  String get sectorPainterLoseDesc =>
+      'Adjacent sectors are broadcasting on the same frequency! Reassign the channels, Commander.';
+
+  @override
+  String get warpFoldTitle => 'Warp Fold';
+
+  @override
+  String get warpFoldDesc =>
+      'The warp drive folds space itself! Predict what the star chart looks like after space has been folded and cut. Spatial intuition is your only tool!';
+
+  @override
+  String get warpFoldInstructions =>
+      'Watch the folding animation, then choose which unfolded result is correct.';
+
+  @override
+  String get warpFoldWinTitle => 'Space Unfolded!';
+
+  @override
+  String warpFoldWinDesc(int bonusScore) {
+    return 'Your spatial reasoning is flawless! You earned $bonusScore dimensional points.';
+  }
+
+  @override
+  String get warpFoldLoseTitle => 'Dimensional Mishap!';
+
+  @override
+  String get warpFoldLoseDesc =>
+      'The unfolded space didn\'t match your prediction. Trace the folds step by step, Commander.';
+
+  @override
+  String get cubeScannerTitle => 'Cube Scanner';
+
+  @override
+  String get cubeScannerDesc =>
+      'Alien data cubes have been recovered! Your scanner reveals some faces, but others are hidden. Use the rule -- opposite faces always sum to 7 -- to deduce the hidden values.';
+
+  @override
+  String get cubeScannerInstructions =>
+      'Study the visible faces of each cube. Opposite faces sum to 7. Determine the hidden face values.';
+
+  @override
+  String get cubeScannerWinTitle => 'Cubes Decoded!';
+
+  @override
+  String cubeScannerWinDesc(int bonusScore) {
+    return 'All cube data extracted! Your analysis earned $bonusScore scanner points.';
+  }
+
+  @override
+  String get cubeScannerLoseTitle => 'Scan Incomplete!';
+
+  @override
+  String get cubeScannerLoseDesc =>
+      'Some face values are wrong. Remember: opposite faces always sum to 7, Commander.';
+
+  @override
+  String get circuitRepairTitle => 'Circuit Repair';
+
+  @override
+  String get circuitRepairDesc =>
+      'The cockpit display is glitching! Two wires got crossed in the 7-segment circuit. Figure out which segments were swapped and fix the readout!';
+
+  @override
+  String get circuitRepairInstructions =>
+      'The display shows wrong digits because two wire connections are swapped. Find which two segments to swap back.';
+
+  @override
+  String get circuitRepairWinTitle => 'Display Fixed!';
+
+  @override
+  String circuitRepairWinDesc(int bonusScore) {
+    return 'Clear readout restored! Your electrical skills earned $bonusScore tech points.';
+  }
+
+  @override
+  String get circuitRepairLoseTitle => 'Still Glitching!';
+
+  @override
+  String get circuitRepairLoseDesc =>
+      'The display is still showing wrong digits. Think about which two segments, when swapped, make all digits valid, Commander.';
+
+  @override
+  String get darkMatterGridTitle => 'Dark Matter Grid';
+
+  @override
+  String get darkMatterGridDesc =>
+      'Dark matter has blanketed this sector! Toggle the nodes to push back the darkness. But beware -- each node affects its neighbors!';
+
+  @override
+  String get darkMatterGridInstructions =>
+      'Tap a node to toggle it and all adjacent nodes. Light up the entire grid to clear the sector.';
+
+  @override
+  String get darkMatterGridWinTitle => 'Sector Illuminated!';
+
+  @override
+  String darkMatterGridWinDesc(int moves, int bonusScore) {
+    return 'The dark matter recedes! You cleared the grid in $moves moves and earned $bonusScore photon points.';
+  }
+
+  @override
+  String get darkMatterGridLoseTitle => 'Darkness Persists!';
+
+  @override
+  String get darkMatterGridLoseDesc =>
+      'The dark matter grid remains unstable. Think about which nodes affect which neighbors, Commander.';
+
+  @override
+  String get dockClearanceTitle => 'Dock Clearance';
+
+  @override
+  String get dockClearanceDesc =>
+      'The space dock is jammed! Slide the parked ships to clear a path for your vessel to reach the launch tube. No diagonal moves -- ships only slide along their axis!';
+
+  @override
+  String get dockClearanceInstructions =>
+      'Slide ships horizontally or vertically to create a clear path. Get the red ship to the exit!';
+
+  @override
+  String get dockClearanceWinTitle => 'Launch Clear!';
+
+  @override
+  String dockClearanceWinDesc(int moves, int bonusScore) {
+    return 'Your ship rockets out of the dock! Cleared in $moves moves, earning $bonusScore docking credits.';
+  }
+
+  @override
+  String get dockClearanceLoseTitle => 'Still Jammed!';
+
+  @override
+  String get dockClearanceLoseDesc =>
+      'No clear path to the exit. Try sliding different ships first, Commander.';
+
+  @override
+  String get ionChainTitle => 'Ion Chain';
+
+  @override
+  String get ionChainDesc =>
+      'String ions along the plasma conduit! Each ion type has rules about which neighbors it tolerates. Build the chain without causing a reaction!';
+
+  @override
+  String get ionChainInstructions =>
+      'Place ions in sequence. Read the constraint rules: some types cannot be adjacent, others must alternate.';
+
+  @override
+  String get ionChainWinTitle => 'Conduit Stable!';
+
+  @override
+  String ionChainWinDesc(int bonusScore) {
+    return 'The plasma flows smoothly through your ion chain! You earned $bonusScore chemistry points.';
+  }
+
+  @override
+  String get ionChainLoseTitle => 'Chain Reaction!';
+
+  @override
+  String get ionChainLoseDesc =>
+      'Incompatible ions caused a plasma surge! Check the adjacency rules, Commander.';
+
+  @override
+  String get launchSequenceTitle => 'Launch Sequence';
+
+  @override
+  String get launchSequenceDesc =>
+      'The launch queue is scrambled! Reorder the fleet by swapping adjacent ships. Get them in the correct sequence using the fewest swaps possible!';
+
+  @override
+  String get launchSequenceInstructions =>
+      'Tap two adjacent ships to swap them. Arrange all ships in the correct order. Fewer swaps = more points!';
+
+  @override
+  String get launchSequenceWinTitle => 'Fleet Launched!';
+
+  @override
+  String launchSequenceWinDesc(int moves, int optimal, int bonusScore) {
+    return 'Perfect sequence! You sorted the fleet in $moves swaps (optimal: $optimal), earning $bonusScore efficiency points.';
+  }
+
+  @override
+  String get launchSequenceLoseTitle => 'Sequence Error!';
+
+  @override
+  String get launchSequenceLoseDesc =>
+      'The fleet is still out of order. Keep swapping adjacent ships, Commander.';
+
+  @override
+  String get starForgeTitle => 'Star Forge';
+
+  @override
+  String get starForgeDesc =>
+      'Ignite a new star! Distribute energy values across the forge nodes so every plasma arm carries the same total charge. The star ignites when all arms align!';
+
+  @override
+  String get starForgeInstructions =>
+      'Place numbers in the empty nodes. Each line through the star must have the same sum.';
+
+  @override
+  String get starForgeWinTitle => 'Star Ignited!';
+
+  @override
+  String starForgeWinDesc(int bonusScore) {
+    return 'A brilliant new star blazes to life! Your forge mastery earned $bonusScore fusion points.';
+  }
+
+  @override
+  String get starForgeLoseTitle => 'Forge Misfire!';
+
+  @override
+  String get starForgeLoseDesc =>
+      'The energy imbalance caused a plasma leak. Redistribute the charge and try again, Commander.';
+
+  @override
+  String get nebulaMatrixTitle => 'Nebula Matrix';
+
+  @override
+  String get nebulaMatrixDesc =>
+      'Stabilize the energy field! Fill every row, column, and zone of the nebula grid so no frequency repeats. One wrong resonance and the nebula collapses!';
+
+  @override
+  String get nebulaMatrixInstructions =>
+      'Place numbers so each row and column contains every value exactly once. Colored zones must also contain each value once.';
+
+  @override
+  String get nebulaMatrixWinTitle => 'Nebula Stabilized!';
+
+  @override
+  String nebulaMatrixWinDesc(int bonusScore) {
+    return 'The energy field is perfectly balanced! You earned $bonusScore resonance points for your precision.';
+  }
+
+  @override
+  String get nebulaMatrixLoseTitle => 'Field Collapse!';
+
+  @override
+  String get nebulaMatrixLoseDesc =>
+      'Conflicting frequencies destabilized the nebula. Recalibrate your matrix and try again, Commander.';
+
+  @override
+  String get orbitalTowersTitle => 'Orbital Towers';
+
+  @override
+  String get orbitalTowersDesc =>
+      'Build a space city on the orbital platform! The satellite cameras on each edge report how many towers they can see. Taller towers hide shorter ones behind them.';
+
+  @override
+  String orbitalTowersInstructions(int size) {
+    return 'Place towers of height 1 to $size so each row and column has every height once. Edge clues show how many towers are visible from that direction.';
+  }
+
+  @override
+  String get orbitalTowersWinTitle => 'City Constructed!';
+
+  @override
+  String orbitalTowersWinDesc(int bonusScore) {
+    return 'The orbital city rises into view! All satellite readings match perfectly. You earned $bonusScore construction credits.';
+  }
+
+  @override
+  String get orbitalTowersLoseTitle => 'Blueprint Mismatch!';
+
+  @override
+  String get orbitalTowersLoseDesc =>
+      'The satellite cameras don\'t match your layout. Remember: tall towers block the view of shorter ones behind them, Commander.';
+
+  @override
+  String get hiveStationTitle => 'Hive Station';
+
+  @override
+  String get hiveStationDesc =>
+      'The station\'s energy hive needs charging! Each cell displays how many of its neighbors hold an energy core. Deduce which cells need power!';
+
+  @override
+  String get hiveStationInstructions =>
+      'Tap hexagonal cells to fill them with energy. The number in each cell tells you how many adjacent cells contain energy.';
+
+  @override
+  String get hiveStationWinTitle => 'Hive Charged!';
+
+  @override
+  String hiveStationWinDesc(int bonusScore) {
+    return 'All energy cores placed correctly! The station hums with power. You earned $bonusScore charge points.';
+  }
+
+  @override
+  String get hiveStationLoseTitle => 'Power Mismatch!';
+
+  @override
+  String get hiveStationLoseDesc =>
+      'Some cells report the wrong neighbor count. Check your energy placement, Commander.';
+
+  @override
+  String get relicAssemblyTitle => 'Relic Assembly';
+
+  @override
+  String get relicAssemblyDesc =>
+      'Ancient alien tablet fragments have been excavated! Arrange the pieces so the glyphs on touching edges match perfectly. The artifact holds the key to the next star system!';
+
+  @override
+  String get relicAssemblyInstructions =>
+      'Place and rotate tablet pieces in the grid. Touching edges must show matching glyphs.';
+
+  @override
+  String get relicAssemblyWinTitle => 'Artifact Restored!';
+
+  @override
+  String relicAssemblyWinDesc(int bonusScore) {
+    return 'The ancient tablet glows with power! Your archaeology earned $bonusScore discovery points.';
+  }
+
+  @override
+  String get relicAssemblyLoseTitle => 'Fragments Misaligned!';
+
+  @override
+  String get relicAssemblyLoseDesc =>
+      'Some edge glyphs don\'t match their neighbors. Try rotating or repositioning the pieces, Commander.';
+
+  @override
+  String get xenobiologyLabTitle => 'Xenobiology Lab';
+
+  @override
+  String get xenobiologyLabDesc =>
+      'A new species has been discovered! Each subspecies has different numbers of eyes, tentacles, and legs. Use the census data to classify the colony!';
+
+  @override
+  String get xenobiologyLabInstructions =>
+      'Two alien types live together. You know the total eyes and legs. Figure out how many of each type there are!';
+
+  @override
+  String get xenobiologyLabWinTitle => 'Species Cataloged!';
+
+  @override
+  String xenobiologyLabWinDesc(int bonusScore) {
+    return 'Field report filed! Your xenobiology skills earned $bonusScore research credits.';
+  }
+
+  @override
+  String get xenobiologyLabLoseTitle => 'Census Error!';
+
+  @override
+  String get xenobiologyLabLoseDesc =>
+      'The numbers don\'t add up. Double-check the trait counts for each subspecies, Commander.';
+
+  @override
+  String get galacticMarketTitle => 'Galactic Market';
+
+  @override
+  String get galacticMarketDesc =>
+      'Welcome to the alien bazaar! Pay the exact price using the local currency. Some denominations are scarce -- find the combination that works!';
+
+  @override
+  String get galacticMarketInstructions =>
+      'Drag coins onto the payment pad to reach the exact target amount. Use as few coins as possible for bonus points!';
+
+  @override
+  String get galacticMarketWinTitle => 'Purchase Complete!';
+
+  @override
+  String galacticMarketWinDesc(int coins, int bonusScore) {
+    return 'Exact change tendered! You used only $coins coins, earning $bonusScore trade points.';
+  }
+
+  @override
+  String get galacticMarketLoseTitle => 'Incorrect Amount!';
+
+  @override
+  String get galacticMarketLoseDesc =>
+      'The merchant frowns -- that\'s not the right amount. Try a different combination of coins, Commander.';
+
+  @override
+  String get creatureForgeTitle => 'Creature Forge';
+
+  @override
+  String get creatureForgeDesc =>
+      'The xenobiology bay has parts from multiple alien species! Combine heads, bodies, and tails to discover every possible creature. How many unique beings can you create?';
+
+  @override
+  String get creatureForgeInstructions =>
+      'Swipe through heads, bodies, and tails. Count all unique combinations, then enter your answer.';
+
+  @override
+  String get creatureForgeWinTitle => 'Species Catalog Complete!';
+
+  @override
+  String creatureForgeWinDesc(int count, int bonusScore) {
+    return 'You discovered all $count possible creatures! Your curiosity earned $bonusScore biology points.';
+  }
+
+  @override
+  String get creatureForgeLoseTitle => 'Missing Species!';
+
+  @override
+  String get creatureForgeLoseDesc =>
+      'You haven\'t found all the combinations yet. Remember: each head can pair with each body AND each tail, Commander.';
+
+  @override
+  String get asteroidDuelTitle => 'Asteroid Duel';
+
+  @override
+  String get asteroidDuelDesc =>
+      'A strategic standoff in the asteroid belt! Take turns mining rocks with your opponent. The commander who takes the last asteroid loses. Think ahead!';
+
+  @override
+  String asteroidDuelInstructions(int max) {
+    return 'Choose 1 to $max asteroids per turn. Force your opponent to take the last one!';
+  }
+
+  @override
+  String get asteroidDuelWinTitle => 'Duel Won!';
+
+  @override
+  String asteroidDuelWinDesc(int bonusScore) {
+    return 'Superior strategy! Your opponent is stranded. You earned $bonusScore tactical points.';
+  }
+
+  @override
+  String get asteroidDuelLoseTitle => 'Outmaneuvered!';
+
+  @override
+  String get asteroidDuelLoseDesc =>
+      'Your opponent forced you into the last asteroid. Study the patterns -- there\'s always a winning strategy, Commander.';
+
+  @override
+  String get chronoRepairTitle => 'Chrono Repair';
+
+  @override
+  String get chronoRepairDesc =>
+      'Relativistic effects have scrambled the station clocks! Some run fast, some are mirrored, some have broken segments. Deduce the real time!';
+
+  @override
+  String get chronoRepairInstructions =>
+      'Each clock has a specific malfunction (offset, mirror, broken segments). Figure out the correct time.';
+
+  @override
+  String get chronoRepairWinTitle => 'Time Synchronized!';
+
+  @override
+  String chronoRepairWinDesc(int bonusScore) {
+    return 'All clocks show the correct time! You earned $bonusScore temporal points.';
+  }
+
+  @override
+  String get chronoRepairLoseTitle => 'Still Out of Sync!';
+
+  @override
+  String get chronoRepairLoseDesc =>
+      'The displayed time is incorrect. Consider the specific malfunction of each clock, Commander.';
 }

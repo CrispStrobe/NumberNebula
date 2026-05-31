@@ -44,4 +44,41 @@ const Map<String, SkillCategory> gameSkillMap = {
 
   // Pure pattern/puzzle games (no per-problem SRI data)
   'magic_triangles': SkillCategory.patternRecognition,
+
+  // Batch F: Word/Cipher/Tile games
+  'star_chart_scan': SkillCategory.patternRecognition,
+  'comm_relay': SkillCategory.logicDeduction,
+  'hull_plating': SkillCategory.spatial2d,
+
+  // Batch B: Logic Deduction Games
+  'vault_cracker': SkillCategory.logicDeduction,
+  'crew_manifest': SkillCategory.logicDeduction,
+  'alien_tribunal': SkillCategory.logicDeduction,
+  'gravity_well': SkillCategory.arithmetic,
+
+  // Batch D: Pattern/Visual Games
+  'sector_painter': SkillCategory.logicDeduction,
+  'warp_fold': SkillCategory.spatial2d,
+  'cube_scanner': SkillCategory.spatial3d,
+  'circuit_repair': SkillCategory.logicDeduction,
+
+  // Batch C: Interactive/Spatial Games
+  'dark_matter_grid': SkillCategory.logicDeduction,
+  'dock_clearance': SkillCategory.spatial2d,
+  'ion_chain': SkillCategory.logicDeduction,
+  'launch_sequence': SkillCategory.logicDeduction,
+
+  // Batch A: Pure CSP Grid Games
+  'star_forge': SkillCategory.logicDeduction,
+  'nebula_matrix': SkillCategory.logicDeduction,
+  'orbital_towers': SkillCategory.logicDeduction,
+  'hive_station': SkillCategory.logicDeduction,
+  'relic_assembly': SkillCategory.spatial2d,
+
+  // Batch E: Math/Counting Games
+  'xenobiology_lab': SkillCategory.arithmetic,
+  'galactic_market': SkillCategory.arithmetic,
+  'creature_forge': SkillCategory.patternRecognition,
+  'asteroid_duel': SkillCategory.logicDeduction,
+  'chrono_repair': SkillCategory.arithmetic,
 };

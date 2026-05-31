@@ -2295,4 +2295,656 @@ class SDe extends S {
 
   @override
   String get solarPanelNext => 'Nächste Anlage';
+
+  @override
+  String get starChartScanTitle => 'Sternkarten-Scan';
+
+  @override
+  String get starChartScanDesc =>
+      'Versteckte Sternbildnamen sind in diesen Sternkartendaten eingebettet! Scanne horizontal, vertikal und diagonal, um sie alle zu finden. Ein Buchstabe bleibt ubrig...';
+
+  @override
+  String get starChartScanInstructions =>
+      'Wische uber Buchstaben, um versteckte Worter zu markieren. Worter konnen in jeder Richtung verlaufen. Finde alle Worter, um den Geheimnisbuchstaben zu enthullen!';
+
+  @override
+  String get starChartScanWinTitle => 'Karte entschlusselt!';
+
+  @override
+  String starChartScanWinDesc(String letter, int bonusScore) {
+    return 'Alle Sternbilder gefunden! Der Geheimnisbuchstabe ist \'$letter\'. Du hast $bonusScore Kartografiepunkte verdient.';
+  }
+
+  @override
+  String get starChartScanLoseTitle => 'Scan unvollstandig!';
+
+  @override
+  String get starChartScanLoseDesc =>
+      'Einige Sternbilder sind noch in den Daten verborgen. Versuche auch diagonal zu scannen, Commander.';
+
+  @override
+  String get commRelayTitle => 'Komm-Relais';
+
+  @override
+  String get commRelayDesc =>
+      'Eine verzerrte Ubertragung aus dem tiefen Weltraum! Das Kommunikationsrelais hat jeden Buchstaben verschoben. Knacke die Chiffre, um die Originalnachricht zu lesen!';
+
+  @override
+  String get commRelayInstructions =>
+      'Jeder Buchstabe wurde um einen festen Betrag im Alphabet verschoben. Finde die Verschiebung und entschlussle die Nachricht.';
+
+  @override
+  String get commRelayWinTitle => 'Nachricht entschlusselt!';
+
+  @override
+  String commRelayWinDesc(int bonusScore) {
+    return 'Die Ubertragung ist klar und deutlich! Du hast $bonusScore Intelligenzpunkte verdient.';
+  }
+
+  @override
+  String get commRelayLoseTitle => 'Rauschen!';
+
+  @override
+  String get commRelayLoseDesc =>
+      'Die Nachricht bleibt verzerrt. Probiere verschiedene Verschiebungswerte, Commander.';
+
+  @override
+  String get hullPlatingTitle => 'Rumpf-Panzerung';
+
+  @override
+  String get hullPlatingDesc =>
+      'Der Schiffsrumpf wurde getroffen! Decke den beschadigten Bereich mit Panzerplatten ab. Jede Lucke muss versiegelt werden, und Platten mussen fur die Strukturintegritat abwechselnd dunkel und hell sein.';
+
+  @override
+  String get hullPlatingInstructions =>
+      'Ziehe Panzerplatten auf den beschadigten Rumpf. Decke jede Zelle ab. Dunkle und helle Platten mussen abwechseln.';
+
+  @override
+  String get hullPlatingWinTitle => 'Rumpf versiegelt!';
+
+  @override
+  String hullPlatingWinDesc(int bonusScore) {
+    return 'Das Leck ist geflickt! Das Schiff ist wieder weltraumtauglich. Du hast $bonusScore Reparaturkredite verdient.';
+  }
+
+  @override
+  String get hullPlatingLoseTitle => 'Leck bleibt!';
+
+  @override
+  String get hullPlatingLoseDesc =>
+      'Es gibt noch Lucken in der Rumpfpanzerung. Versuche eine andere Anordnung, Commander.';
+
+  @override
+  String get vaultCrackerTitle => 'Tresor-Knacker';
+
+  @override
+  String get vaultCrackerDesc =>
+      'Ein uralter Alien-Tresor blockiert deinen Weg! Jeder Fehlversuch enthullt Hinweise: welche Ziffern korrekt, falsch platziert oder vollig falsch sind. Finde die Kombination!';
+
+  @override
+  String get vaultCrackerInstructions =>
+      'Studiere jeden Hinweisversuch. Grun = richtige Ziffer, richtige Position. Gelb = richtige Ziffer, falsche Position. Grau = Ziffer nicht im Code.';
+
+  @override
+  String get vaultCrackerWinTitle => 'Tresor geoffnet!';
+
+  @override
+  String vaultCrackerWinDesc(int attempts, int bonusScore) {
+    return 'Die Tresorturen schwingen auf! Du hast den Code in $attempts Versuchen geknackt und $bonusScore Archaologiepunkte verdient.';
+  }
+
+  @override
+  String get vaultCrackerLoseTitle => 'Tresor versiegelt!';
+
+  @override
+  String get vaultCrackerLoseDesc =>
+      'Zu viele Fehlversuche haben die Sperre ausgelost. Analysiere die Hinweismuster sorgfaltiger, Commander.';
+
+  @override
+  String get crewManifestTitle => 'Crew-Manifest';
+
+  @override
+  String get crewManifestDesc =>
+      'Die Crew-Datenbank ist durcheinander! Nutze die Hinweise aus dem Schiffslogbuch, um jedes Crew-Mitglied seiner Rolle, Kabine und seinem Heimatplaneten zuzuordnen.';
+
+  @override
+  String get crewManifestInstructions =>
+      'Lies die Hinweise und markiere das Logikgitter. Ein X bedeutet \'nicht moglich\', ein Haken bedeutet \'bestatigter Treffer\'.';
+
+  @override
+  String get crewManifestWinTitle => 'Manifest wiederhergestellt!';
+
+  @override
+  String crewManifestWinDesc(int bonusScore) {
+    return 'Jedes Crew-Mitglied zugeordnet! Deine Detektivarbeit hat $bonusScore Intelligenzpunkte eingebracht.';
+  }
+
+  @override
+  String get crewManifestLoseTitle => 'Datenbankfehler!';
+
+  @override
+  String get crewManifestLoseDesc =>
+      'Das Manifest enthalt Widerspruche. Lies die Hinweise sorgfaltig noch einmal, Commander.';
+
+  @override
+  String get alienTribunalTitle => 'Alien-Tribunal';
+
+  @override
+  String get alienTribunalDesc =>
+      'Galaktische Delegierte sagen aus, aber manche lugen immer! Wahrheitssprecher sagen immer die Wahrheit, Lugner lugen immer. Studiere ihre Aussagen und finde heraus, wer vertrauenswurdig ist!';
+
+  @override
+  String get alienTribunalInstructions =>
+      'Lies die Aussage jedes Delegierten. Markiere jeden als \'Wahrheitssprecher\' oder \'Lugner\'. Alle Aussagen mussen mit deinen Zuweisungen ubereinstimmen.';
+
+  @override
+  String get alienTribunalWinTitle => 'Gerechtigkeit!';
+
+  @override
+  String alienTribunalWinDesc(int bonusScore) {
+    return 'Das Urteil des Tribunals ist fundiert! Deine Deduktion hat $bonusScore Diplomatiepunkte eingebracht.';
+  }
+
+  @override
+  String get alienTribunalLoseTitle => 'Fehlurteil!';
+
+  @override
+  String get alienTribunalLoseDesc =>
+      'Deine Zuweisungen sind widerspruchlich. Wenn jemand ein Wahrheitssprecher ist, mussen seine Aussagen wahr sein, Commander.';
+
+  @override
+  String get gravityWellTitle => 'Gravitationsfeld';
+
+  @override
+  String get gravityWellDesc =>
+      'Kalibriere das Gravitationsfeld! Platziere Himmelsmassen auf kosmischen Waagen, bis ein perfektes Gleichgewicht erreicht ist. Der Warpantrieb funktioniert nur bei ausgeglichener Gravitation.';
+
+  @override
+  String get gravityWellInstructions =>
+      'Bestimme das Gewicht jedes Objekts anhand der balancierten Waagen. Ziehe deine Antwort auf die Zielwaage.';
+
+  @override
+  String get gravityWellWinTitle => 'Gravitation kalibriert!';
+
+  @override
+  String gravityWellWinDesc(int bonusScore) {
+    return 'Perfektes Gleichgewicht erreicht! Der Warpantrieb summt zum Leben. Du hast $bonusScore Kalibrierungspunkte verdient.';
+  }
+
+  @override
+  String get gravityWellLoseTitle => 'Gravitationsanomalie!';
+
+  @override
+  String get gravityWellLoseDesc =>
+      'Das unausgeglichene Gravitationsfeld hat die lokale Raumzeit verzerrt. Berechne die Massen neu, Commander.';
+
+  @override
+  String get sectorPainterTitle => 'Sektor-Maler';
+
+  @override
+  String get sectorPainterDesc =>
+      'Weise Kommunikationsfrequenzen den Sternkarten-Sektoren zu! Angrenzende Sektoren mussen verschiedene Frequenzen nutzen, um Signalstorungen zu vermeiden.';
+
+  @override
+  String get sectorPainterInstructions =>
+      'Farbe jeden Sektor ein, sodass keine zwei benachbarten Sektoren die gleiche Farbe haben. Verwende so wenige Farben wie moglich!';
+
+  @override
+  String get sectorPainterWinTitle => 'Frequenzen zugewiesen!';
+
+  @override
+  String sectorPainterWinDesc(int colors, int bonusScore) {
+    return 'Keine Interferenz auf der gesamten Sternkarte! Du hast es mit nur $colors Frequenzen gelost und $bonusScore Punkte verdient.';
+  }
+
+  @override
+  String get sectorPainterLoseTitle => 'Signalinterferenz!';
+
+  @override
+  String get sectorPainterLoseDesc =>
+      'Benachbarte Sektoren senden auf der gleichen Frequenz! Weise die Kanale neu zu, Commander.';
+
+  @override
+  String get warpFoldTitle => 'Warp-Faltung';
+
+  @override
+  String get warpFoldDesc =>
+      'Der Warpantrieb faltet den Raum selbst! Sage voraus, wie die Sternkarte nach der Raumfaltung und dem Schnitt aussieht. Raumliches Vorstellungsvermogen ist dein einziges Werkzeug!';
+
+  @override
+  String get warpFoldInstructions =>
+      'Beobachte die Faltanimation und wahle dann das korrekte entfaltete Ergebnis.';
+
+  @override
+  String get warpFoldWinTitle => 'Raum entfaltet!';
+
+  @override
+  String warpFoldWinDesc(int bonusScore) {
+    return 'Dein raumliches Denken ist makellos! Du hast $bonusScore Dimensionspunkte verdient.';
+  }
+
+  @override
+  String get warpFoldLoseTitle => 'Dimensionspanne!';
+
+  @override
+  String get warpFoldLoseDesc =>
+      'Der entfaltete Raum stimmte nicht mit deiner Vorhersage uberein. Verfolge die Faltungen Schritt fur Schritt, Commander.';
+
+  @override
+  String get cubeScannerTitle => 'Wurfel-Scanner';
+
+  @override
+  String get cubeScannerDesc =>
+      'Alien-Datenwurfel wurden geborgen! Dein Scanner zeigt einige Seiten, aber andere sind verborgen. Nutze die Regel -- gegenuber liegende Seiten ergeben immer 7 -- um die versteckten Werte zu bestimmen.';
+
+  @override
+  String get cubeScannerInstructions =>
+      'Studiere die sichtbaren Seiten jedes Wurfels. Gegenuber liegende Seiten ergeben 7. Bestimme die versteckten Seitenwerte.';
+
+  @override
+  String get cubeScannerWinTitle => 'Wurfel entschlusselt!';
+
+  @override
+  String cubeScannerWinDesc(int bonusScore) {
+    return 'Alle Wurfeldaten extrahiert! Deine Analyse hat $bonusScore Scannerpunkte eingebracht.';
+  }
+
+  @override
+  String get cubeScannerLoseTitle => 'Scan unvollstandig!';
+
+  @override
+  String get cubeScannerLoseDesc =>
+      'Einige Seitenwerte sind falsch. Denke daran: Gegenuber liegende Seiten ergeben immer 7, Commander.';
+
+  @override
+  String get circuitRepairTitle => 'Schaltkreis-Reparatur';
+
+  @override
+  String get circuitRepairDesc =>
+      'Das Cockpit-Display spinnt! Zwei Drahte wurden im 7-Segment-Schaltkreis vertauscht. Finde heraus, welche Segmente vertauscht wurden, und repariere die Anzeige!';
+
+  @override
+  String get circuitRepairInstructions =>
+      'Die Anzeige zeigt falsche Ziffern, weil zwei Drahtverbindungen vertauscht sind. Finde heraus, welche zwei Segmente zuruckgetauscht werden mussen.';
+
+  @override
+  String get circuitRepairWinTitle => 'Display repariert!';
+
+  @override
+  String circuitRepairWinDesc(int bonusScore) {
+    return 'Klare Anzeige wiederhergestellt! Deine Elektrokenntnisse haben $bonusScore Technikpunkte eingebracht.';
+  }
+
+  @override
+  String get circuitRepairLoseTitle => 'Immer noch gestort!';
+
+  @override
+  String get circuitRepairLoseDesc =>
+      'Die Anzeige zeigt immer noch falsche Ziffern. Uberlege, welche zwei Segmente, wenn vertauscht, alle Ziffern gultig machen, Commander.';
+
+  @override
+  String get darkMatterGridTitle => 'Dunkelmaterie-Gitter';
+
+  @override
+  String get darkMatterGridDesc =>
+      'Dunkelmaterie hat diesen Sektor verhullt! Schalte die Knoten um, um die Dunkelheit zuruckzudrangen. Aber Vorsicht -- jeder Knoten beeinflusst seine Nachbarn!';
+
+  @override
+  String get darkMatterGridInstructions =>
+      'Tippe auf einen Knoten, um ihn und alle benachbarten Knoten umzuschalten. Erleuchte das gesamte Gitter, um den Sektor zu befreien.';
+
+  @override
+  String get darkMatterGridWinTitle => 'Sektor erleuchtet!';
+
+  @override
+  String darkMatterGridWinDesc(int moves, int bonusScore) {
+    return 'Die Dunkelmaterie weicht zuruck! Du hast das Gitter in $moves Zugen befreit und $bonusScore Photonenpunkte verdient.';
+  }
+
+  @override
+  String get darkMatterGridLoseTitle => 'Dunkelheit bleibt!';
+
+  @override
+  String get darkMatterGridLoseDesc =>
+      'Das Dunkelmaterie-Gitter bleibt instabil. Uberlege, welche Knoten welche Nachbarn beeinflussen, Commander.';
+
+  @override
+  String get dockClearanceTitle => 'Dock-Freigabe';
+
+  @override
+  String get dockClearanceDesc =>
+      'Das Raumdock ist verstopft! Verschiebe die geparkten Schiffe, um einen Weg fur dein Raumschiff zur Startschleuse freizumachen. Keine Diagonalbewegungen -- Schiffe gleiten nur entlang ihrer Achse!';
+
+  @override
+  String get dockClearanceInstructions =>
+      'Verschiebe Schiffe horizontal oder vertikal, um einen freien Weg zu schaffen. Bringe das rote Schiff zum Ausgang!';
+
+  @override
+  String get dockClearanceWinTitle => 'Start frei!';
+
+  @override
+  String dockClearanceWinDesc(int moves, int bonusScore) {
+    return 'Dein Schiff schießt aus dem Dock! In $moves Zugen freigegeben, $bonusScore Dock-Kredite verdient.';
+  }
+
+  @override
+  String get dockClearanceLoseTitle => 'Immer noch blockiert!';
+
+  @override
+  String get dockClearanceLoseDesc =>
+      'Kein freier Weg zum Ausgang. Versuche, zuerst andere Schiffe zu verschieben, Commander.';
+
+  @override
+  String get ionChainTitle => 'Ionen-Kette';
+
+  @override
+  String get ionChainDesc =>
+      'Reihe Ionen entlang der Plasmaleitung auf! Jeder Ionentyp hat Regeln, welche Nachbarn er toleriert. Baue die Kette, ohne eine Reaktion auszulosen!';
+
+  @override
+  String get ionChainInstructions =>
+      'Platziere Ionen in der Reihenfolge. Lies die Einschrankungsregeln: Einige Typen durfen nicht nebeneinander stehen, andere mussen abwechseln.';
+
+  @override
+  String get ionChainWinTitle => 'Leitung stabil!';
+
+  @override
+  String ionChainWinDesc(int bonusScore) {
+    return 'Das Plasma fließt glatt durch deine Ionenkette! Du hast $bonusScore Chemiepunkte verdient.';
+  }
+
+  @override
+  String get ionChainLoseTitle => 'Kettenreaktion!';
+
+  @override
+  String get ionChainLoseDesc =>
+      'Inkompatible Ionen haben einen Plasmaschub verursacht! Uberprufe die Nachbarschaftsregeln, Commander.';
+
+  @override
+  String get launchSequenceTitle => 'Start-Sequenz';
+
+  @override
+  String get launchSequenceDesc =>
+      'Die Startreihenfolge ist durcheinander! Ordne die Flotte durch Tauschen benachbarter Schiffe neu. Bringe sie mit so wenigen Tauschvorgangen wie moglich in die richtige Reihenfolge!';
+
+  @override
+  String get launchSequenceInstructions =>
+      'Tippe auf zwei benachbarte Schiffe, um sie zu tauschen. Ordne alle Schiffe in der richtigen Reihenfolge. Weniger Tausche = mehr Punkte!';
+
+  @override
+  String get launchSequenceWinTitle => 'Flotte gestartet!';
+
+  @override
+  String launchSequenceWinDesc(int moves, int optimal, int bonusScore) {
+    return 'Perfekte Reihenfolge! Du hast die Flotte in $moves Tauschen sortiert (optimal: $optimal) und $bonusScore Effizienzpunkte verdient.';
+  }
+
+  @override
+  String get launchSequenceLoseTitle => 'Sequenzfehler!';
+
+  @override
+  String get launchSequenceLoseDesc =>
+      'Die Flotte ist immer noch durcheinander. Tausche weiter benachbarte Schiffe, Commander.';
+
+  @override
+  String get starForgeTitle => 'Sternen-Schmiede';
+
+  @override
+  String get starForgeDesc =>
+      'Entzunde einen neuen Stern! Verteile Energiewerte auf die Schmiedeknoten, sodass jeder Plasmaarm die gleiche Gesamtladung tragt. Der Stern entzundet sich, wenn alle Arme ubereinstimmen!';
+
+  @override
+  String get starForgeInstructions =>
+      'Platziere Zahlen in die leeren Knoten. Jede Linie durch den Stern muss die gleiche Summe haben.';
+
+  @override
+  String get starForgeWinTitle => 'Stern entzundet!';
+
+  @override
+  String starForgeWinDesc(int bonusScore) {
+    return 'Ein strahlender neuer Stern erwacht zum Leben! Deine Schmiedekunst hat $bonusScore Fusionspunkte eingebracht.';
+  }
+
+  @override
+  String get starForgeLoseTitle => 'Schmiedefehler!';
+
+  @override
+  String get starForgeLoseDesc =>
+      'Das Energieungleichgewicht hat ein Plasmaleck verursacht. Verteile die Ladung neu, Commander.';
+
+  @override
+  String get nebulaMatrixTitle => 'Nebel-Matrix';
+
+  @override
+  String get nebulaMatrixDesc =>
+      'Stabilisiere das Energiefeld! Fulle jede Zeile, Spalte und Zone des Nebelgitters, sodass sich keine Frequenz wiederholt. Eine falsche Resonanz und der Nebel kollabiert!';
+
+  @override
+  String get nebulaMatrixInstructions =>
+      'Platziere Zahlen, sodass jede Zeile und Spalte jeden Wert genau einmal enthalt. Farbige Zonen mussen ebenfalls jeden Wert einmal enthalten.';
+
+  @override
+  String get nebulaMatrixWinTitle => 'Nebel stabilisiert!';
+
+  @override
+  String nebulaMatrixWinDesc(int bonusScore) {
+    return 'Das Energiefeld ist perfekt ausbalanciert! Du hast $bonusScore Resonanzpunkte fur deine Prazision verdient.';
+  }
+
+  @override
+  String get nebulaMatrixLoseTitle => 'Feldkollaps!';
+
+  @override
+  String get nebulaMatrixLoseDesc =>
+      'Widerspruchliche Frequenzen haben den Nebel destabilisiert. Kalibriere deine Matrix neu, Commander.';
+
+  @override
+  String get orbitalTowersTitle => 'Orbital-Turme';
+
+  @override
+  String get orbitalTowersDesc =>
+      'Baue eine Weltraumstadt auf der Orbitalplattform! Die Satellitenkameras an jedem Rand melden, wie viele Turme sie sehen konnen. Hohere Turme verbergen niedrigere hinter sich.';
+
+  @override
+  String orbitalTowersInstructions(int size) {
+    return 'Platziere Turme der Hohe 1 bis $size, sodass jede Zeile und Spalte jede Hohe einmal hat. Randhinweise zeigen, wie viele Turme aus dieser Richtung sichtbar sind.';
+  }
+
+  @override
+  String get orbitalTowersWinTitle => 'Stadt errichtet!';
+
+  @override
+  String orbitalTowersWinDesc(int bonusScore) {
+    return 'Die Orbitalstadt erhebt sich! Alle Satellitenwerte stimmen perfekt uberein. Du hast $bonusScore Baukredite verdient.';
+  }
+
+  @override
+  String get orbitalTowersLoseTitle => 'Bauplanfehler!';
+
+  @override
+  String get orbitalTowersLoseDesc =>
+      'Die Satellitenkameras stimmen nicht mit deinem Layout uberein. Denke daran: Hohe Turme blockieren die Sicht auf niedrigere dahinter, Commander.';
+
+  @override
+  String get hiveStationTitle => 'Bienen-Station';
+
+  @override
+  String get hiveStationDesc =>
+      'Der Energiebienenstock der Station muss aufgeladen werden! Jede Zelle zeigt an, wie viele ihrer Nachbarn einen Energiekern enthalten. Finde heraus, welche Zellen Energie brauchen!';
+
+  @override
+  String get hiveStationInstructions =>
+      'Tippe auf sechseckige Zellen, um sie mit Energie zu fullen. Die Zahl in jeder Zelle sagt dir, wie viele benachbarte Zellen Energie enthalten.';
+
+  @override
+  String get hiveStationWinTitle => 'Bienenstock geladen!';
+
+  @override
+  String hiveStationWinDesc(int bonusScore) {
+    return 'Alle Energiekerne korrekt platziert! Die Station summt vor Energie. Du hast $bonusScore Ladepunkte verdient.';
+  }
+
+  @override
+  String get hiveStationLoseTitle => 'Energiefehler!';
+
+  @override
+  String get hiveStationLoseDesc =>
+      'Einige Zellen melden die falsche Nachbarzahl. Uberprufe deine Energieplatzierung, Commander.';
+
+  @override
+  String get relicAssemblyTitle => 'Relikte-Puzzle';
+
+  @override
+  String get relicAssemblyDesc =>
+      'Uralte Alien-Tafelfragmente wurden ausgegraben! Ordne die Stucke an, sodass die Glyphen an beruhrenden Kanten perfekt ubereinstimmen. Das Artefakt birgt den Schlussel zum nachsten Sternensystem!';
+
+  @override
+  String get relicAssemblyInstructions =>
+      'Platziere und drehe Tafelstucke im Gitter. Beruhrende Kanten mussen ubereinstimmende Glyphen zeigen.';
+
+  @override
+  String get relicAssemblyWinTitle => 'Artefakt restauriert!';
+
+  @override
+  String relicAssemblyWinDesc(int bonusScore) {
+    return 'Die uralte Tafel leuchtet voller Kraft! Deine Archaologie hat $bonusScore Entdeckungspunkte eingebracht.';
+  }
+
+  @override
+  String get relicAssemblyLoseTitle => 'Fragmente falsch ausgerichtet!';
+
+  @override
+  String get relicAssemblyLoseDesc =>
+      'Einige Kantenglyphen stimmen nicht mit ihren Nachbarn uberein. Versuche die Stucke zu drehen oder neu zu positionieren, Commander.';
+
+  @override
+  String get xenobiologyLabTitle => 'Xenobiologie-Labor';
+
+  @override
+  String get xenobiologyLabDesc =>
+      'Eine neue Spezies wurde entdeckt! Jede Unterart hat verschiedene Anzahlen von Augen, Tentakeln und Beinen. Nutze die Volkszahlungsdaten, um die Kolonie zu klassifizieren!';
+
+  @override
+  String get xenobiologyLabInstructions =>
+      'Zwei Alien-Typen leben zusammen. Du kennst die Gesamtzahl der Augen und Beine. Finde heraus, wie viele von jedem Typ es gibt!';
+
+  @override
+  String get xenobiologyLabWinTitle => 'Spezies katalogisiert!';
+
+  @override
+  String xenobiologyLabWinDesc(int bonusScore) {
+    return 'Feldbericht eingereicht! Deine Xenobiologie-Fahigkeiten haben $bonusScore Forschungskredite eingebracht.';
+  }
+
+  @override
+  String get xenobiologyLabLoseTitle => 'Volkszahlungsfehler!';
+
+  @override
+  String get xenobiologyLabLoseDesc =>
+      'Die Zahlen stimmen nicht uberein. Uberprufe die Merkmalszahlen fur jede Unterart, Commander.';
+
+  @override
+  String get galacticMarketTitle => 'Galaktischer Markt';
+
+  @override
+  String get galacticMarketDesc =>
+      'Willkommen auf dem Alien-Basar! Bezahle den genauen Preis mit der lokalen Wahrung. Manche Munzwerte sind knapp -- finde die Kombination, die funktioniert!';
+
+  @override
+  String get galacticMarketInstructions =>
+      'Ziehe Munzen auf das Bezahlfeld, um den genauen Zielbetrag zu erreichen. Benutze so wenige Munzen wie moglich fur Bonuspunkte!';
+
+  @override
+  String get galacticMarketWinTitle => 'Kauf abgeschlossen!';
+
+  @override
+  String galacticMarketWinDesc(int coins, int bonusScore) {
+    return 'Passendes Wechselgeld! Du hast nur $coins Munzen verwendet und $bonusScore Handelspunkte verdient.';
+  }
+
+  @override
+  String get galacticMarketLoseTitle => 'Falscher Betrag!';
+
+  @override
+  String get galacticMarketLoseDesc =>
+      'Der Handler runzelt die Stirn -- das ist nicht der richtige Betrag. Versuche eine andere Munzkombination, Commander.';
+
+  @override
+  String get creatureForgeTitle => 'Kreaturen-Schmiede';
+
+  @override
+  String get creatureForgeDesc =>
+      'Die Xenobiologie-Bucht hat Teile von mehreren Alien-Spezies! Kombiniere Kopfe, Korper und Schwanze, um jede mogliche Kreatur zu entdecken. Wie viele einzigartige Wesen kannst du erschaffen?';
+
+  @override
+  String get creatureForgeInstructions =>
+      'Wische durch Kopfe, Korper und Schwanze. Zahle alle einzigartigen Kombinationen und gib deine Antwort ein.';
+
+  @override
+  String get creatureForgeWinTitle => 'Spezieskatalog vollstandig!';
+
+  @override
+  String creatureForgeWinDesc(int count, int bonusScore) {
+    return 'Du hast alle $count moglichen Kreaturen entdeckt! Deine Neugier hat $bonusScore Biologiepunkte eingebracht.';
+  }
+
+  @override
+  String get creatureForgeLoseTitle => 'Fehlende Spezies!';
+
+  @override
+  String get creatureForgeLoseDesc =>
+      'Du hast noch nicht alle Kombinationen gefunden. Denke daran: Jeder Kopf kann mit jedem Korper UND jedem Schwanz kombiniert werden, Commander.';
+
+  @override
+  String get asteroidDuelTitle => 'Asteroiden-Duell';
+
+  @override
+  String get asteroidDuelDesc =>
+      'Ein strategisches Patt im Asteroidengurtel! Baut abwechselnd Gesteinsbrocken ab. Der Commander, der den letzten Asteroiden nimmt, verliert. Denke voraus!';
+
+  @override
+  String asteroidDuelInstructions(int max) {
+    return 'Wahle 1 bis $max Asteroiden pro Zug. Zwinge deinen Gegner, den letzten zu nehmen!';
+  }
+
+  @override
+  String get asteroidDuelWinTitle => 'Duell gewonnen!';
+
+  @override
+  String asteroidDuelWinDesc(int bonusScore) {
+    return 'Uberlegene Strategie! Dein Gegner ist gestrandet. Du hast $bonusScore Taktikpunkte verdient.';
+  }
+
+  @override
+  String get asteroidDuelLoseTitle => 'Ausmanoveriert!';
+
+  @override
+  String get asteroidDuelLoseDesc =>
+      'Dein Gegner hat dich zum letzten Asteroiden gezwungen. Studiere die Muster -- es gibt immer eine Gewinnstrategie, Commander.';
+
+  @override
+  String get chronoRepairTitle => 'Chrono-Reparatur';
+
+  @override
+  String get chronoRepairDesc =>
+      'Relativistische Effekte haben die Stationsuhren durcheinander gebracht! Manche gehen vor, manche sind gespiegelt, manche haben defekte Segmente. Finde die richtige Uhrzeit!';
+
+  @override
+  String get chronoRepairInstructions =>
+      'Jede Uhr hat eine bestimmte Fehlfunktion (Versatz, Spiegelung, defekte Segmente). Finde die korrekte Uhrzeit heraus.';
+
+  @override
+  String get chronoRepairWinTitle => 'Zeit synchronisiert!';
+
+  @override
+  String chronoRepairWinDesc(int bonusScore) {
+    return 'Alle Uhren zeigen die korrekte Zeit! Du hast $bonusScore Temporalpunkte verdient.';
+  }
+
+  @override
+  String get chronoRepairLoseTitle => 'Immer noch asynchron!';
+
+  @override
+  String get chronoRepairLoseDesc =>
+      'Die angezeigte Zeit ist falsch. Beachte die spezifische Fehlfunktion jeder Uhr, Commander.';
 }

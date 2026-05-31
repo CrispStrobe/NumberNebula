@@ -1294,6 +1294,350 @@
   "solarPanelWinTitle": "🌞 Station Powered!",
   "solarPanelWinDesc": "Amazing work! You earned {bonus} bonus watts!",
   "solarPanelNext": "Next Array",
-  "toTheBridge": "To Bridge"
+  "toTheBridge": "To Bridge",
+
+  "starChartScanTitle": "Star Chart Scan",
+  "starChartScanDesc": "Hidden constellation names are embedded in this star chart data! Scan horizontally, vertically, and diagonally to find them all. One letter will remain unclaimed...",
+  "starChartScanInstructions": "Swipe across letters to highlight hidden words. Words can run in any direction. Find all words to reveal the mystery letter!",
+  "starChartScanWinTitle": "Chart Decoded!",
+  "starChartScanWinDesc": "All constellations found! The mystery letter is '{letter}'. You earned {bonusScore} cartography points.",
+  "@starChartScanWinDesc": {
+    "placeholders": {
+      "letter": {"type": "String", "example": "X"},
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "starChartScanLoseTitle": "Scan Incomplete!",
+  "starChartScanLoseDesc": "Some constellations remain hidden in the data. Try scanning diagonally too, Commander.",
+
+  "commRelayTitle": "Comm Relay",
+  "commRelayDesc": "A garbled transmission from deep space! The communication relay has shifted every letter. Crack the cipher to read the original message!",
+  "commRelayInstructions": "Each letter has been shifted by a fixed amount in the alphabet. Find the shift and decode the message.",
+  "commRelayWinTitle": "Message Decoded!",
+  "commRelayWinDesc": "The transmission reads loud and clear! You earned {bonusScore} intelligence points.",
+  "@commRelayWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "commRelayLoseTitle": "Static!",
+  "commRelayLoseDesc": "The message remains garbled. Try different shift values, Commander.",
+
+  "hullPlatingTitle": "Hull Plating",
+  "hullPlatingDesc": "The ship's hull took a hit! Cover the damaged section with armor plates. Every gap must be sealed, and plates must alternate dark and light for structural integrity.",
+  "hullPlatingInstructions": "Drag armor plates onto the damaged hull. Cover every cell. Dark and light plates must alternate.",
+  "hullPlatingWinTitle": "Hull Sealed!",
+  "hullPlatingWinDesc": "The breach is patched! The ship is space-worthy again. You earned {bonusScore} repair credits.",
+  "@hullPlatingWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "hullPlatingLoseTitle": "Breach Remains!",
+  "hullPlatingLoseDesc": "Gaps remain in the hull plating. Try a different arrangement, Commander.",
+
+  "vaultCrackerTitle": "Vault Cracker",
+  "vaultCrackerDesc": "An ancient alien vault blocks your path! Each failed attempt reveals clues: which digits are correct, misplaced, or completely wrong. Deduce the combination!",
+  "vaultCrackerInstructions": "Study each clue attempt. Green = correct digit, correct position. Yellow = correct digit, wrong position. Gray = digit not in code.",
+  "vaultCrackerWinTitle": "Vault Breached!",
+  "vaultCrackerWinDesc": "The vault doors swing open! You cracked the code in {attempts} attempts, earning {bonusScore} archaeology points.",
+  "@vaultCrackerWinDesc": {
+    "placeholders": {
+      "attempts": {"type": "int", "example": "3"},
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "vaultCrackerLoseTitle": "Vault Sealed!",
+  "vaultCrackerLoseDesc": "Too many failed attempts triggered the lockout. Analyze the clue patterns more carefully, Commander.",
+
+  "crewManifestTitle": "Crew Manifest",
+  "crewManifestDesc": "The crew database is scrambled! Use the clues from the ship's log to match each crew member to their role, quarters, and home planet.",
+  "crewManifestInstructions": "Read the clues and mark the logic grid. An X means 'not possible', a check means 'confirmed match'.",
+  "crewManifestWinTitle": "Manifest Restored!",
+  "crewManifestWinDesc": "Every crew member accounted for! Your detective work earned {bonusScore} intelligence points.",
+  "@crewManifestWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "crewManifestLoseTitle": "Database Error!",
+  "crewManifestLoseDesc": "The manifest contains contradictions. Re-read the clues carefully, Commander.",
+
+  "alienTribunalTitle": "Alien Tribunal",
+  "alienTribunalDesc": "Galactic delegates are testifying, but some always lie! Truth-tellers always speak truth, liars always lie. Study their statements and identify who is trustworthy!",
+  "alienTribunalInstructions": "Read each delegate's statement. Mark each as 'Truth-Teller' or 'Liar'. All statements must be consistent with your assignments.",
+  "alienTribunalWinTitle": "Justice Served!",
+  "alienTribunalWinDesc": "The tribunal's verdict is sound! Your deduction earned {bonusScore} diplomacy points.",
+  "@alienTribunalWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "alienTribunalLoseTitle": "Mistrial!",
+  "alienTribunalLoseDesc": "Your assignments are contradictory. If someone is a truth-teller, their statements must be true, Commander.",
+
+  "gravityWellTitle": "Gravity Well",
+  "gravityWellDesc": "Calibrate the gravity well! Place celestial masses on cosmic scales until perfect equilibrium is achieved. The warp drive won't engage without balanced gravity.",
+  "gravityWellInstructions": "Determine the weight of each object by reading the balanced scales. Drag your answer onto the target scale.",
+  "gravityWellWinTitle": "Gravity Calibrated!",
+  "gravityWellWinDesc": "Perfect equilibrium achieved! The warp drive hums to life. You earned {bonusScore} calibration points.",
+  "@gravityWellWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "gravityWellLoseTitle": "Gravitational Anomaly!",
+  "gravityWellLoseDesc": "The imbalanced gravity well warped the local spacetime. Recalculate the masses, Commander.",
+
+  "sectorPainterTitle": "Sector Painter",
+  "sectorPainterDesc": "Assign communication frequencies to star map sectors! Bordering sectors must use different frequencies to avoid signal interference.",
+  "sectorPainterInstructions": "Color each sector so no two adjacent sectors share the same color. Use as few colors as possible!",
+  "sectorPainterWinTitle": "Frequencies Assigned!",
+  "sectorPainterWinDesc": "Zero interference across the star map! You solved it with only {colors} frequencies, earning {bonusScore} points.",
+  "@sectorPainterWinDesc": {
+    "placeholders": {
+      "colors": {"type": "int", "example": "3"},
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "sectorPainterLoseTitle": "Signal Interference!",
+  "sectorPainterLoseDesc": "Adjacent sectors are broadcasting on the same frequency! Reassign the channels, Commander.",
+
+  "warpFoldTitle": "Warp Fold",
+  "warpFoldDesc": "The warp drive folds space itself! Predict what the star chart looks like after space has been folded and cut. Spatial intuition is your only tool!",
+  "warpFoldInstructions": "Watch the folding animation, then choose which unfolded result is correct.",
+  "warpFoldWinTitle": "Space Unfolded!",
+  "warpFoldWinDesc": "Your spatial reasoning is flawless! You earned {bonusScore} dimensional points.",
+  "@warpFoldWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "warpFoldLoseTitle": "Dimensional Mishap!",
+  "warpFoldLoseDesc": "The unfolded space didn't match your prediction. Trace the folds step by step, Commander.",
+
+  "cubeScannerTitle": "Cube Scanner",
+  "cubeScannerDesc": "Alien data cubes have been recovered! Your scanner reveals some faces, but others are hidden. Use the rule -- opposite faces always sum to 7 -- to deduce the hidden values.",
+  "cubeScannerInstructions": "Study the visible faces of each cube. Opposite faces sum to 7. Determine the hidden face values.",
+  "cubeScannerWinTitle": "Cubes Decoded!",
+  "cubeScannerWinDesc": "All cube data extracted! Your analysis earned {bonusScore} scanner points.",
+  "@cubeScannerWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "cubeScannerLoseTitle": "Scan Incomplete!",
+  "cubeScannerLoseDesc": "Some face values are wrong. Remember: opposite faces always sum to 7, Commander.",
+
+  "circuitRepairTitle": "Circuit Repair",
+  "circuitRepairDesc": "The cockpit display is glitching! Two wires got crossed in the 7-segment circuit. Figure out which segments were swapped and fix the readout!",
+  "circuitRepairInstructions": "The display shows wrong digits because two wire connections are swapped. Find which two segments to swap back.",
+  "circuitRepairWinTitle": "Display Fixed!",
+  "circuitRepairWinDesc": "Clear readout restored! Your electrical skills earned {bonusScore} tech points.",
+  "@circuitRepairWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "circuitRepairLoseTitle": "Still Glitching!",
+  "circuitRepairLoseDesc": "The display is still showing wrong digits. Think about which two segments, when swapped, make all digits valid, Commander.",
+
+  "darkMatterGridTitle": "Dark Matter Grid",
+  "darkMatterGridDesc": "Dark matter has blanketed this sector! Toggle the nodes to push back the darkness. But beware -- each node affects its neighbors!",
+  "darkMatterGridInstructions": "Tap a node to toggle it and all adjacent nodes. Light up the entire grid to clear the sector.",
+  "darkMatterGridWinTitle": "Sector Illuminated!",
+  "darkMatterGridWinDesc": "The dark matter recedes! You cleared the grid in {moves} moves and earned {bonusScore} photon points.",
+  "@darkMatterGridWinDesc": {
+    "placeholders": {
+      "moves": {"type": "int", "example": "12"},
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "darkMatterGridLoseTitle": "Darkness Persists!",
+  "darkMatterGridLoseDesc": "The dark matter grid remains unstable. Think about which nodes affect which neighbors, Commander.",
+
+  "dockClearanceTitle": "Dock Clearance",
+  "dockClearanceDesc": "The space dock is jammed! Slide the parked ships to clear a path for your vessel to reach the launch tube. No diagonal moves -- ships only slide along their axis!",
+  "dockClearanceInstructions": "Slide ships horizontally or vertically to create a clear path. Get the red ship to the exit!",
+  "dockClearanceWinTitle": "Launch Clear!",
+  "dockClearanceWinDesc": "Your ship rockets out of the dock! Cleared in {moves} moves, earning {bonusScore} docking credits.",
+  "@dockClearanceWinDesc": {
+    "placeholders": {
+      "moves": {"type": "int", "example": "15"},
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "dockClearanceLoseTitle": "Still Jammed!",
+  "dockClearanceLoseDesc": "No clear path to the exit. Try sliding different ships first, Commander.",
+
+  "ionChainTitle": "Ion Chain",
+  "ionChainDesc": "String ions along the plasma conduit! Each ion type has rules about which neighbors it tolerates. Build the chain without causing a reaction!",
+  "ionChainInstructions": "Place ions in sequence. Read the constraint rules: some types cannot be adjacent, others must alternate.",
+  "ionChainWinTitle": "Conduit Stable!",
+  "ionChainWinDesc": "The plasma flows smoothly through your ion chain! You earned {bonusScore} chemistry points.",
+  "@ionChainWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "ionChainLoseTitle": "Chain Reaction!",
+  "ionChainLoseDesc": "Incompatible ions caused a plasma surge! Check the adjacency rules, Commander.",
+
+  "launchSequenceTitle": "Launch Sequence",
+  "launchSequenceDesc": "The launch queue is scrambled! Reorder the fleet by swapping adjacent ships. Get them in the correct sequence using the fewest swaps possible!",
+  "launchSequenceInstructions": "Tap two adjacent ships to swap them. Arrange all ships in the correct order. Fewer swaps = more points!",
+  "launchSequenceWinTitle": "Fleet Launched!",
+  "launchSequenceWinDesc": "Perfect sequence! You sorted the fleet in {moves} swaps (optimal: {optimal}), earning {bonusScore} efficiency points.",
+  "@launchSequenceWinDesc": {
+    "placeholders": {
+      "moves": {"type": "int", "example": "8"},
+      "optimal": {"type": "int", "example": "5"},
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "launchSequenceLoseTitle": "Sequence Error!",
+  "launchSequenceLoseDesc": "The fleet is still out of order. Keep swapping adjacent ships, Commander.",
+
+  "starForgeTitle": "Star Forge",
+  "starForgeDesc": "Ignite a new star! Distribute energy values across the forge nodes so every plasma arm carries the same total charge. The star ignites when all arms align!",
+  "starForgeInstructions": "Place numbers in the empty nodes. Each line through the star must have the same sum.",
+  "starForgeWinTitle": "Star Ignited!",
+  "starForgeWinDesc": "A brilliant new star blazes to life! Your forge mastery earned {bonusScore} fusion points.",
+  "@starForgeWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "starForgeLoseTitle": "Forge Misfire!",
+  "starForgeLoseDesc": "The energy imbalance caused a plasma leak. Redistribute the charge and try again, Commander.",
+
+  "nebulaMatrixTitle": "Nebula Matrix",
+  "nebulaMatrixDesc": "Stabilize the energy field! Fill every row, column, and zone of the nebula grid so no frequency repeats. One wrong resonance and the nebula collapses!",
+  "nebulaMatrixInstructions": "Place numbers so each row and column contains every value exactly once. Colored zones must also contain each value once.",
+  "nebulaMatrixWinTitle": "Nebula Stabilized!",
+  "nebulaMatrixWinDesc": "The energy field is perfectly balanced! You earned {bonusScore} resonance points for your precision.",
+  "@nebulaMatrixWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "nebulaMatrixLoseTitle": "Field Collapse!",
+  "nebulaMatrixLoseDesc": "Conflicting frequencies destabilized the nebula. Recalibrate your matrix and try again, Commander.",
+
+  "orbitalTowersTitle": "Orbital Towers",
+  "orbitalTowersDesc": "Build a space city on the orbital platform! The satellite cameras on each edge report how many towers they can see. Taller towers hide shorter ones behind them.",
+  "orbitalTowersInstructions": "Place towers of height 1 to {size} so each row and column has every height once. Edge clues show how many towers are visible from that direction.",
+  "@orbitalTowersInstructions": {
+    "placeholders": {
+      "size": {"type": "int", "example": "4"}
+    }
+  },
+  "orbitalTowersWinTitle": "City Constructed!",
+  "orbitalTowersWinDesc": "The orbital city rises into view! All satellite readings match perfectly. You earned {bonusScore} construction credits.",
+  "@orbitalTowersWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "orbitalTowersLoseTitle": "Blueprint Mismatch!",
+  "orbitalTowersLoseDesc": "The satellite cameras don't match your layout. Remember: tall towers block the view of shorter ones behind them, Commander.",
+
+  "hiveStationTitle": "Hive Station",
+  "hiveStationDesc": "The station's energy hive needs charging! Each cell displays how many of its neighbors hold an energy core. Deduce which cells need power!",
+  "hiveStationInstructions": "Tap hexagonal cells to fill them with energy. The number in each cell tells you how many adjacent cells contain energy.",
+  "hiveStationWinTitle": "Hive Charged!",
+  "hiveStationWinDesc": "All energy cores placed correctly! The station hums with power. You earned {bonusScore} charge points.",
+  "@hiveStationWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "hiveStationLoseTitle": "Power Mismatch!",
+  "hiveStationLoseDesc": "Some cells report the wrong neighbor count. Check your energy placement, Commander.",
+
+  "relicAssemblyTitle": "Relic Assembly",
+  "relicAssemblyDesc": "Ancient alien tablet fragments have been excavated! Arrange the pieces so the glyphs on touching edges match perfectly. The artifact holds the key to the next star system!",
+  "relicAssemblyInstructions": "Place and rotate tablet pieces in the grid. Touching edges must show matching glyphs.",
+  "relicAssemblyWinTitle": "Artifact Restored!",
+  "relicAssemblyWinDesc": "The ancient tablet glows with power! Your archaeology earned {bonusScore} discovery points.",
+  "@relicAssemblyWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "relicAssemblyLoseTitle": "Fragments Misaligned!",
+  "relicAssemblyLoseDesc": "Some edge glyphs don't match their neighbors. Try rotating or repositioning the pieces, Commander.",
+
+  "xenobiologyLabTitle": "Xenobiology Lab",
+  "xenobiologyLabDesc": "A new species has been discovered! Each subspecies has different numbers of eyes, tentacles, and legs. Use the census data to classify the colony!",
+  "xenobiologyLabInstructions": "Two alien types live together. You know the total eyes and legs. Figure out how many of each type there are!",
+  "xenobiologyLabWinTitle": "Species Cataloged!",
+  "xenobiologyLabWinDesc": "Field report filed! Your xenobiology skills earned {bonusScore} research credits.",
+  "@xenobiologyLabWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "xenobiologyLabLoseTitle": "Census Error!",
+  "xenobiologyLabLoseDesc": "The numbers don't add up. Double-check the trait counts for each subspecies, Commander.",
+
+  "galacticMarketTitle": "Galactic Market",
+  "galacticMarketDesc": "Welcome to the alien bazaar! Pay the exact price using the local currency. Some denominations are scarce -- find the combination that works!",
+  "galacticMarketInstructions": "Drag coins onto the payment pad to reach the exact target amount. Use as few coins as possible for bonus points!",
+  "galacticMarketWinTitle": "Purchase Complete!",
+  "galacticMarketWinDesc": "Exact change tendered! You used only {coins} coins, earning {bonusScore} trade points.",
+  "@galacticMarketWinDesc": {
+    "placeholders": {
+      "coins": {"type": "int", "example": "3"},
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "galacticMarketLoseTitle": "Incorrect Amount!",
+  "galacticMarketLoseDesc": "The merchant frowns -- that's not the right amount. Try a different combination of coins, Commander.",
+
+  "creatureForgeTitle": "Creature Forge",
+  "creatureForgeDesc": "The xenobiology bay has parts from multiple alien species! Combine heads, bodies, and tails to discover every possible creature. How many unique beings can you create?",
+  "creatureForgeInstructions": "Swipe through heads, bodies, and tails. Count all unique combinations, then enter your answer.",
+  "creatureForgeWinTitle": "Species Catalog Complete!",
+  "creatureForgeWinDesc": "You discovered all {count} possible creatures! Your curiosity earned {bonusScore} biology points.",
+  "@creatureForgeWinDesc": {
+    "placeholders": {
+      "count": {"type": "int", "example": "8"},
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "creatureForgeLoseTitle": "Missing Species!",
+  "creatureForgeLoseDesc": "You haven't found all the combinations yet. Remember: each head can pair with each body AND each tail, Commander.",
+
+  "asteroidDuelTitle": "Asteroid Duel",
+  "asteroidDuelDesc": "A strategic standoff in the asteroid belt! Take turns mining rocks with your opponent. The commander who takes the last asteroid loses. Think ahead!",
+  "asteroidDuelInstructions": "Choose 1 to {max} asteroids per turn. Force your opponent to take the last one!",
+  "@asteroidDuelInstructions": {
+    "placeholders": {
+      "max": {"type": "int", "example": "3"}
+    }
+  },
+  "asteroidDuelWinTitle": "Duel Won!",
+  "asteroidDuelWinDesc": "Superior strategy! Your opponent is stranded. You earned {bonusScore} tactical points.",
+  "@asteroidDuelWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "asteroidDuelLoseTitle": "Outmaneuvered!",
+  "asteroidDuelLoseDesc": "Your opponent forced you into the last asteroid. Study the patterns -- there's always a winning strategy, Commander.",
+
+  "chronoRepairTitle": "Chrono Repair",
+  "chronoRepairDesc": "Relativistic effects have scrambled the station clocks! Some run fast, some are mirrored, some have broken segments. Deduce the real time!",
+  "chronoRepairInstructions": "Each clock has a specific malfunction (offset, mirror, broken segments). Figure out the correct time.",
+  "chronoRepairWinTitle": "Time Synchronized!",
+  "chronoRepairWinDesc": "All clocks show the correct time! You earned {bonusScore} temporal points.",
+  "@chronoRepairWinDesc": {
+    "placeholders": {
+      "bonusScore": {"type": "int", "example": "150"}
+    }
+  },
+  "chronoRepairLoseTitle": "Still Out of Sync!",
+  "chronoRepairLoseDesc": "The displayed time is incorrect. Consider the specific malfunction of each clock, Commander."
 
 }

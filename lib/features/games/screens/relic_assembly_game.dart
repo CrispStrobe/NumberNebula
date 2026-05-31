@@ -1,0 +1,523 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'dart:math' as math;
+
+import '../../../core/theme/space_theme.dart';
+import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
+import '../providers/game_provider.dart';
+import '../widgets/space_background.dart';
+import '../widgets/game_ui.dart';
+import '../constants/difficulty_manager.dart';
+import '../services/relic_assembly_logic.dart';
+
+class RelicAssemblyGame extends StatefulWidget {
+  final int grade;
+  final int level;
+  const RelicAssemblyGame({super.key, required this.grade, required this.level});
+
+  @override
+  State<RelicAssemblyGame> createState() => _RelicAssemblyGameState();
+}
+
+class _RelicAssemblyGameState extends State<RelicAssemblyGame>
+    with TickerProviderStateMixin {
+  late AnimationController _glowController;
+  late Animation<double> _glowAnimation;
+  late AnimationController _successController;
+  late Animation<double> _successAnimation;
+
+  RelicAssemblyPuzzle? puzzle;
+  bool _isGenerating = true;
+  DifficultyConfig? currentDifficulty;
+
+  // Player's grid: position index -> tile index in playerTiles
+  late List<int> placement;
+  // Player's rotations: tile index -> rotation (0-3)
+  late List<int> rotations;
+  // Selected tile for placement (from tray)
+  int? selectedTileIndex;
+
+  // Glyph symbols for display
+  static const _glyphSymbols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+  static const _glyphColors = [
+    Color(0xFFFF6B35),
+    Color(0xFF6B48FF),
+    Color(0xFF06FFA5),
+    Color(0xFFE63946),
+    Color(0xFFFFD700),
+    Color(0xFF00C9DB),
+    Color(0xFFFF69B4),
+    Color(0xFF8B8B8B),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    _glowController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
+    );
+
+    _successController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final gp = context.read<GameProvider>();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
+        _generatePuzzle();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _glowController.dispose();
+    _successController.dispose();
+    super.dispose();
+  }
+
+  int _getRows() {
+    final grade = currentDifficulty?.grade ?? widget.grade;
+    if (grade <= 1) return 2;
+    if (grade <= 2) return 2;
+    return 3;
+  }
+
+  int _getCols() {
+    final grade = currentDifficulty?.grade ?? widget.grade;
+    if (grade <= 1) return 2;
+    if (grade <= 2) return 3;
+    return 3;
+  }
+
+  int _getEdgeValueCount() {
+    final level = currentDifficulty?.level ?? widget.level;
+    // More edge values = harder
+    const base = 3;
+    final bonus = (level / 5).floor();
+    return (base + bonus).clamp(3, 7);
+  }
+
+  void _generatePuzzle() async {
+    setState(() {
+      _isGenerating = true;
+      selectedTileIndex = null;
+      _successController.reset();
+    });
+
+    try {
+      final generator = RelicAssemblyGenerator();
+      final p = await generator.generate(
+        rows: _getRows(),
+        cols: _getCols(),
+        edgeValueCount: _getEdgeValueCount(),
+      );
+
+      if (mounted) {
+        setState(() {
+          puzzle = p;
+          placement = List.filled(p.rows * p.cols, -1);
+          rotations = List.generate(p.playerTiles.length, (i) => p.playerTiles[i].rotation);
+          _isGenerating = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('[RelicAssembly] Error generating puzzle: $e');
+    }
+  }
+
+  void _selectTile(int tileIdx) {
+    setState(() {
+      if (selectedTileIndex == tileIdx) {
+        selectedTileIndex = null;
+      } else {
+        selectedTileIndex = tileIdx;
+      }
+    });
+  }
+
+  void _rotateTile(int tileIdx) {
+    setState(() {
+      rotations[tileIdx] = (rotations[tileIdx] + 1) % 4;
+    });
+    HapticFeedback.selectionClick();
+  }
+
+  void _placeTileAt(int gridPos) {
+    if (selectedTileIndex == null) return;
+
+    setState(() {
+      // Remove tile from previous position if any
+      for (int i = 0; i < placement.length; i++) {
+        if (placement[i] == selectedTileIndex) {
+          placement[i] = -1;
+        }
+      }
+      // Place tile at this position
+      placement[gridPos] = selectedTileIndex!;
+      selectedTileIndex = null;
+
+      // If there was a tile here, don't auto-select it
+    });
+
+    HapticFeedback.lightImpact();
+    _checkSolution();
+  }
+
+  void _removeTileFromGrid(int gridPos) {
+    setState(() {
+      placement[gridPos] = -1;
+    });
+  }
+
+  void _checkSolution() {
+    // Check if all positions are filled
+    if (placement.any((p) => p < 0)) return;
+
+    if (puzzle!.validatePlacement(placement, rotations)) {
+      _handleWin();
+    }
+  }
+
+  void _handleWin() {
+    HapticFeedback.lightImpact();
+    int baseScore = 100 * widget.grade;
+    int levelBonus = widget.level * 25;
+    int totalScore = baseScore + levelBonus;
+
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      gameType: 'relic_assembly',
+      difficulty: widget.level,
+      score: totalScore,
+    ));
+
+    _successController.forward(from: 0.0);
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _buildWinDialog(totalScore),
+      );
+    }
+  }
+
+  Set<int> _getPlacedTileIndices() {
+    return placement.where((p) => p >= 0).toSet();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context)!;
+
+    if (puzzle == null || _isGenerating) {
+      return Scaffold(
+        body: SpaceBackground(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(s.loadingAdventure, style: SpaceTheme.bodyStyle),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      body: SpaceBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              GameUI(
+                title: s.relicAssemblyTitle,
+                level: widget.level,
+                onBack: () => Navigator.of(context).pop(),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Text(
+                  s.relicAssemblyInstructions,
+                  style: SpaceTheme.bodyStyle,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: _buildGridArea(),
+              ),
+              Expanded(
+                flex: 2,
+                child: _buildTileTray(),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGridArea() {
+    final rows = puzzle!.rows;
+    final cols = puzzle!.cols;
+    const maxCellSize = 80.0;
+    final cellSize = math.min(maxCellSize, (MediaQuery.of(context).size.width - 80) / cols);
+
+    return Center(
+      child: AnimatedBuilder(
+        animation: _glowAnimation,
+        builder: (context, child) {
+          return Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                colors: [
+                  SpaceTheme.planetOrange.withValues(alpha: 0.1 * _glowAnimation.value),
+                  SpaceTheme.deepSpace.withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: SpaceTheme.planetOrange.withValues(alpha: _glowAnimation.value),
+                width: 2,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(rows, (r) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(cols, (c) {
+                    final pos = r * cols + c;
+                    return _buildGridSlot(pos, cellSize);
+                  }),
+                );
+              }),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildGridSlot(int pos, double cellSize) {
+    final tileIdx = placement[pos];
+
+    if (tileIdx >= 0) {
+      final tile = puzzle!.playerTiles[tileIdx];
+      return GestureDetector(
+        onTap: () => _removeTileFromGrid(pos),
+        child: _buildTileWidget(tile, rotations[tileIdx], cellSize, false),
+      );
+    }
+
+    // Empty slot
+    return GestureDetector(
+      onTap: () => _placeTileAt(pos),
+      child: Container(
+        width: cellSize,
+        height: cellSize,
+        margin: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          color: selectedTileIndex != null
+              ? SpaceTheme.starYellow.withValues(alpha: 0.15)
+              : SpaceTheme.deepSpace.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: selectedTileIndex != null
+                ? SpaceTheme.starYellow
+                : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
+            width: selectedTileIndex != null ? 2 : 1,
+          ),
+        ),
+        child: Center(
+          child: Icon(
+            Icons.add,
+            color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
+            size: cellSize * 0.3,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTileWidget(RelicTile tile, int rotation, double size, bool isSelected) {
+    final effectiveTile = tile.copyWith(rotation: rotation);
+    final edgeSize = size * 0.25;
+
+    return Container(
+      width: size,
+      height: size,
+      margin: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: isSelected
+            ? SpaceTheme.starYellow.withValues(alpha: 0.3)
+            : SpaceTheme.deepSpace.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isSelected ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
+          width: isSelected ? 3 : 1,
+        ),
+      ),
+      child: Stack(
+        children: [
+          // Top edge
+          Positioned(
+            top: 2,
+            left: 0,
+            right: 0,
+            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(0), edgeSize)),
+          ),
+          // Right edge
+          Positioned(
+            right: 2,
+            top: 0,
+            bottom: 0,
+            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(1), edgeSize)),
+          ),
+          // Bottom edge
+          Positioned(
+            bottom: 2,
+            left: 0,
+            right: 0,
+            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(2), edgeSize)),
+          ),
+          // Left edge
+          Positioned(
+            left: 2,
+            top: 0,
+            bottom: 0,
+            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(3), edgeSize)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEdgeLabel(int value, double size) {
+    final colorIdx = (value - 1).clamp(0, _glyphColors.length - 1);
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: _glyphColors[colorIdx].withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Center(
+        child: Text(
+          _glyphSymbols[colorIdx],
+          style: TextStyle(
+            fontSize: size * 0.6,
+            fontWeight: FontWeight.bold,
+            color: _glyphColors[colorIdx],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTileTray() {
+    final placedIndices = _getPlacedTileIndices();
+    final availableTiles = <int>[];
+    for (int i = 0; i < puzzle!.playerTiles.length; i++) {
+      if (!placedIndices.contains(i)) {
+        availableTiles.add(i);
+      }
+    }
+
+    const tileSize = 65.0;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(8),
+      decoration: SpaceTheme.cardDecoration.copyWith(
+        border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
+      ),
+      child: availableTiles.isEmpty
+          ? Center(
+              child: Text(
+                S.of(context)!.relicAssemblyInstructions,
+                style: SpaceTheme.bodyStyle.copyWith(color: Colors.white70),
+              ),
+            )
+          : SingleChildScrollView(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: availableTiles.map((idx) {
+                  final isSelected = selectedTileIndex == idx;
+                  return GestureDetector(
+                    onTap: () => _selectTile(idx),
+                    onDoubleTap: () => _rotateTile(idx),
+                    child: _buildTileWidget(
+                      puzzle!.playerTiles[idx],
+                      rotations[idx],
+                      tileSize,
+                      isSelected,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildWinDialog(int score) {
+    final s = S.of(context)!;
+    return AnimatedBuilder(
+      animation: _successAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _successAnimation.value,
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: SpaceTheme.cardDecoration,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.dashboard_customize_outlined, size: 64, color: SpaceTheme.starYellow),
+                  const SizedBox(height: 16),
+                  Text(s.relicAssemblyWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  Text(s.relicAssemblyWinDesc(score), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                        style: SpaceTheme.secondaryButtonStyle,
+                        child: Text(s.playAgain),
+                      ),
+                      ElevatedButton(
+                        onPressed: () { Navigator.of(context).pop(); Navigator.of(context).pop(); },
+                        style: SpaceTheme.primaryButtonStyle,
+                        child: Text(s.backToMenu),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
