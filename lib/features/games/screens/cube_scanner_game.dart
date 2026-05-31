@@ -22,32 +22,59 @@ class CubeScannerGame extends StatefulWidget {
 
 class _CubeScannerGameState extends State<CubeScannerGame>
     with TickerProviderStateMixin {
+  // ---------------------------------------------------------------------------
+  // Animation controllers (per VISUAL_TEMPLATE.md)
+  // ---------------------------------------------------------------------------
   late AnimationController _glowController;
   late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
+  late AnimationController _feedbackController;
+  late Animation<double> _feedbackAnimation;
 
+  // ---------------------------------------------------------------------------
+  // Puzzle state
+  // ---------------------------------------------------------------------------
   CubeScannerPuzzle? _puzzle;
-  final Map<int, int?> _answers = {};
+  int? _selectedAnswer;
   bool _isGenerating = true;
+  bool _showResult = false;
+  bool _resultCorrect = false;
   DifficultyConfig? currentDifficulty;
 
   @override
   void initState() {
     super.initState();
+
+    // Glow (continuous, for borders/accents)
     _glowController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
+    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
+    );
 
+    // Pulse (continuous, for choice buttons)
+    // Success dialog (one-shot)
     _successController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    _successAnimation =
-        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+    _successAnimation = CurvedAnimation(
+      parent: _successController,
+      curve: Curves.elasticOut,
+    );
+
+    // Feedback flash (one-shot, for correct/wrong flash)
+    _feedbackController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _feedbackAnimation = CurvedAnimation(
+      parent: _feedbackController,
+      curve: Curves.easeOut,
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -62,14 +89,21 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   void dispose() {
     _glowController.dispose();
     _successController.dispose();
+    _feedbackController.dispose();
     super.dispose();
   }
 
+  // ---------------------------------------------------------------------------
+  // Puzzle generation
+  // ---------------------------------------------------------------------------
   void _generatePuzzle() {
     setState(() {
       _isGenerating = true;
-      _answers.clear();
+      _selectedAnswer = null;
+      _showResult = false;
+      _resultCorrect = false;
       _successController.reset();
+      _feedbackController.reset();
     });
 
     final generator =
@@ -78,42 +112,32 @@ class _CubeScannerGameState extends State<CubeScannerGame>
 
     setState(() {
       _puzzle = puzzle;
-      for (final key in puzzle.questions.keys) {
-        _answers[key] = null;
-      }
       _isGenerating = false;
     });
   }
 
-  void _setAnswer(int dieIndex, int value) {
+  // ---------------------------------------------------------------------------
+  // Interaction
+  // ---------------------------------------------------------------------------
+  void _selectAnswer(int value) {
+    if (_showResult) return;
     setState(() {
-      _answers[dieIndex] = value;
+      // Toggle: tap again to deselect
+      _selectedAnswer = (_selectedAnswer == value) ? null : value;
     });
   }
 
-  void _checkSolution() {
-    if (_puzzle == null) return;
+  void _submitAnswer() {
+    if (_puzzle == null || _selectedAnswer == null || _showResult) return;
 
-    if (_answers.values.any((v) => v == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(S.of(context)!.cubeScannerLoseDesc),
-          backgroundColor: SpaceTheme.rocketRed,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
+    final correct = _selectedAnswer == _puzzle!.correctAnswer;
+    setState(() {
+      _showResult = true;
+      _resultCorrect = correct;
+    });
+    _feedbackController.forward(from: 0.0);
 
-    bool allCorrect = true;
-    for (final entry in _puzzle!.correctAnswers.entries) {
-      if (_answers[entry.key] != entry.value) {
-        allCorrect = false;
-        break;
-      }
-    }
-
-    if (allCorrect) {
+    if (correct) {
       _handleWin();
     } else {
       _handleLoss();
@@ -122,10 +146,10 @@ class _CubeScannerGameState extends State<CubeScannerGame>
 
   void _handleWin() {
     HapticFeedback.lightImpact();
-    int baseScore = 100 * widget.grade;
-    int levelBonus = widget.level * 25;
-    int diceBonus = _puzzle!.diceCount * 75;
-    int totalScore = baseScore + levelBonus + diceBonus;
+    final baseScore = 100 * widget.grade;
+    final levelBonus = widget.level * 25;
+    final diceBonus = _puzzle!.diceCount * 75;
+    final totalScore = baseScore + levelBonus + diceBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'cube_scanner',
@@ -133,12 +157,16 @@ class _CubeScannerGameState extends State<CubeScannerGame>
       score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => _buildWinDialog(totalScore),
-    );
+    // Delay to let the green flash show, then show dialog
+    Future.delayed(const Duration(milliseconds: 700), () {
+      if (!mounted) return;
+      _successController.forward(from: 0.0);
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => _buildWinDialog(totalScore),
+      );
+    });
   }
 
   void _handleLoss() {
@@ -147,21 +175,11 @@ class _CubeScannerGameState extends State<CubeScannerGame>
       gameType: 'cube_scanner',
       difficulty: widget.level,
     ));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(S.of(context)!.cubeScannerLoseDesc)),
-          ],
-        ),
-        backgroundColor: SpaceTheme.rocketRed,
-        duration: const Duration(seconds: 2),
-      ),
-    );
   }
 
+  // ---------------------------------------------------------------------------
+  // Build
+  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     final s = S.of(context)!;
@@ -193,22 +211,13 @@ class _CubeScannerGameState extends State<CubeScannerGame>
                 level: widget.level,
                 onBack: () => Navigator.of(context).pop(),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  s.cubeScannerInstructions,
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 13),
-                  textAlign: TextAlign.center,
-                ),
-              ),
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final isWide = constraints.maxWidth > 650;
-                    if (isWide) {
-                      return _buildWideLayout(constraints);
-                    }
-                    return _buildTallLayout(constraints);
+                    final isWide = constraints.maxWidth > 700;
+                    return isWide
+                        ? _buildWideLayout(constraints)
+                        : _buildCompactLayout(constraints);
                   },
                 ),
               ),
@@ -219,208 +228,388 @@ class _CubeScannerGameState extends State<CubeScannerGame>
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Layouts (per VISUAL_TEMPLATE.md)
+  // ---------------------------------------------------------------------------
   Widget _buildWideLayout(BoxConstraints constraints) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Dice visuals on the left
-          Expanded(
-            flex: 5,
-            child: _buildDiceColumn(constraints.maxHeight - 24),
-          ),
-          const SizedBox(width: 16),
-          // Check button on the right
-          Expanded(
-            flex: 3,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildCheckButton(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTallLayout(BoxConstraints constraints) {
-    return Column(
+    return Row(
       children: [
         Expanded(
-          child: _buildDiceColumn(constraints.maxHeight * 0.85),
+          flex: 3,
+          child: Center(child: _buildDiceArea(constraints)),
         ),
-        _buildCheckButton(),
-        const SizedBox(height: 12),
+        const SizedBox(width: 24),
+        Expanded(
+          flex: 2,
+          child: _buildQuestionAndChoices(constraints),
+        ),
       ],
     );
   }
 
-  Widget _buildDiceColumn(double maxHeight) {
-    final dieCount = _puzzle!.diceCount;
-    // Divide available height among dice
-    final perDieHeight = (maxHeight / dieCount).clamp(180.0, 400.0);
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      itemCount: dieCount,
-      itemBuilder: (context, index) => _buildDieCard(index, perDieHeight),
+  Widget _buildCompactLayout(BoxConstraints constraints) {
+    return Column(
+      children: [
+        Expanded(
+          flex: 3,
+          child: Center(child: _buildDiceArea(constraints)),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          flex: 2,
+          child: _buildQuestionAndChoices(constraints),
+        ),
+      ],
     );
   }
 
-  Widget _buildDieCard(int dieIndex, double cardHeight) {
-    final die = _puzzle!.dice[dieIndex];
-    final visible = _puzzle!.visibleFaces[dieIndex];
-    final question = _puzzle!.questions[dieIndex]!;
+  // ---------------------------------------------------------------------------
+  // Dice area: draws the isometric die/dice
+  // ---------------------------------------------------------------------------
+  Widget _buildDiceArea(BoxConstraints constraints) {
+    final puzzle = _puzzle!;
+    return LayoutBuilder(
+      builder: (context, innerConstraints) {
+        if (puzzle.arrangement == DiceArrangement.single) {
+          return _buildSingleDie(innerConstraints);
+        } else if (puzzle.arrangement == DiceArrangement.verticalStack) {
+          return _buildStackedDice(innerConstraints);
+        } else {
+          return _buildRowDice(innerConstraints);
+        }
+      },
+    );
+  }
+
+  Widget _buildSingleDie(BoxConstraints constraints) {
+    final cubeSize = math.min(
+      constraints.maxWidth * 0.7,
+      constraints.maxHeight * 0.8,
+    ).clamp(200.0, 400.0);
 
     return AnimatedBuilder(
       animation: _glowAnimation,
       builder: (context, _) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: SpaceTheme.nebulaPurple.withValues(alpha: _glowAnimation.value),
-              width: 2,
+        return SizedBox(
+          width: cubeSize,
+          height: cubeSize,
+          child: CustomPaint(
+            painter: _IsometricDiePainter(
+              die: _puzzle!.dice[0],
+              visible: _puzzle!.visibleFaces[0],
+              glowValue: _glowAnimation.value,
+              label: null,
             ),
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              // Size the cube to fill ~60% of the card width
-              final cubeSize = (constraints.maxWidth * 0.55).clamp(140.0, 300.0);
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Header row with cube title and visible face chips
-                  Row(
-                    children: [
-                      Text(
-                        'Cube ${dieIndex + 1}',
-                        style: SpaceTheme.titleStyle.copyWith(
-                          color: SpaceTheme.starYellow,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const Spacer(),
-                      ...visible.visibleEntries.map((entry) {
-                        return Padding(
-                          padding: const EdgeInsets.only(left: 6),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: SpaceTheme.nebulaPurple,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              '${entry.key}: ${entry.value}',
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
-                            ),
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  // Cube wireframe visual
-                  SizedBox(
-                    width: cubeSize,
-                    height: cubeSize,
-                    child: CustomPaint(
-                      painter: _WireframeDiePainter(
-                        die: die,
-                        visible: visible,
-                        glowValue: _glowAnimation.value,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  // Question
-                  Text(
-                    'What is the $question face?',
-                    style: SpaceTheme.bodyStyle.copyWith(
-                      color: SpaceTheme.cosmicPink,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Answer buttons - larger
-                  Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: List.generate(6, (i) {
-                      final value = i + 1;
-                      final isSelected = _answers[dieIndex] == value;
-                      return GestureDetector(
-                        onTap: () => _setAnswer(dieIndex, value),
-                        child: Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? SpaceTheme.starYellow
-                                : SpaceTheme.deepSpace,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: isSelected
-                                  ? SpaceTheme.starYellow
-                                  : SpaceTheme.nebulaPurple,
-                              width: 2,
-                            ),
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: SpaceTheme.starYellow.withValues(alpha: 0.4),
-                                      blurRadius: 8,
-                                    )
-                                  ]
-                                : null,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '$value',
-                              style: SpaceTheme.titleStyle.copyWith(
-                                fontSize: 22,
-                                color: isSelected
-                                    ? SpaceTheme.deepSpace
-                                    : Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ],
-              );
-            },
           ),
         );
       },
     );
   }
 
-  Widget _buildCheckButton() {
+  Widget _buildStackedDice(BoxConstraints constraints) {
+    // Two dice stacked vertically
+    final cubeSize = math.min(
+      constraints.maxWidth * 0.5,
+      constraints.maxHeight * 0.38,
+    ).clamp(120.0, 250.0);
+
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (context, _) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Die 1 (top)
+            SizedBox(
+              width: cubeSize,
+              height: cubeSize,
+              child: CustomPaint(
+                painter: _IsometricDiePainter(
+                  die: _puzzle!.dice[0],
+                  visible: _puzzle!.visibleFaces[0],
+                  glowValue: _glowAnimation.value,
+                  label: '1',
+                ),
+              ),
+            ),
+            // Connecting indicator
+            Container(
+              width: 3,
+              height: 8,
+              decoration: BoxDecoration(
+                color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value),
+                boxShadow: [
+                  BoxShadow(
+                    color: SpaceTheme.starYellow.withValues(alpha: 0.4),
+                    blurRadius: 6,
+                  ),
+                ],
+              ),
+            ),
+            // Die 2 (bottom)
+            SizedBox(
+              width: cubeSize,
+              height: cubeSize,
+              child: CustomPaint(
+                painter: _IsometricDiePainter(
+                  die: _puzzle!.dice[1],
+                  visible: _puzzle!.visibleFaces[1],
+                  glowValue: _glowAnimation.value,
+                  label: '2',
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildRowDice(BoxConstraints constraints) {
+    final diceCount = _puzzle!.diceCount;
+    final cubeSize = math.min(
+      (constraints.maxWidth - 40) / diceCount,
+      constraints.maxHeight * 0.7,
+    ).clamp(100.0, 200.0);
+
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (context, _) {
+        final children = <Widget>[];
+        for (int i = 0; i < diceCount; i++) {
+          if (i > 0) {
+            // Connecting indicator between dice
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Container(
+                width: 12,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: SpaceTheme.starYellow
+                      .withValues(alpha: _glowAnimation.value),
+                  boxShadow: [
+                    BoxShadow(
+                      color: SpaceTheme.starYellow.withValues(alpha: 0.4),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+              ),
+            );
+            children.add(
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: Container(
+                  width: 12,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: SpaceTheme.starYellow
+                        .withValues(alpha: _glowAnimation.value),
+                  ),
+                ),
+              ),
+            );
+          }
+          children.add(
+            SizedBox(
+              width: cubeSize,
+              height: cubeSize,
+              child: CustomPaint(
+                painter: _IsometricDiePainter(
+                  die: _puzzle!.dice[i],
+                  visible: _puzzle!.visibleFaces[i],
+                  glowValue: _glowAnimation.value,
+                  label: '${i + 1}',
+                ),
+              ),
+            ),
+          );
+        }
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: children,
+        );
+      },
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Question + multiple choice
+  // ---------------------------------------------------------------------------
+  Widget _buildQuestionAndChoices(BoxConstraints constraints) {
+    final puzzle = _puzzle!;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: _checkSolution,
-          icon: const Icon(Icons.check_circle_outline),
-          label: Text(S.of(context)!.cubeScannerWinTitle),
-          style: SpaceTheme.primaryButtonStyle,
-        ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        children: [
+          // Question text
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: SpaceTheme.nebulaPurple.withValues(alpha: 0.6),
+              ),
+            ),
+            child: Text(
+              puzzle.questionText,
+              style: SpaceTheme.bodyStyle.copyWith(
+                color: SpaceTheme.cosmicPink,
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Hint text
+          Text(
+            S.of(context)!.cubeScannerInstructions,
+            style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          // Multiple choice buttons (A-E)
+          Expanded(
+            child: _buildChoiceButtons(puzzle),
+          ),
+          // Submit button
+          if (!_showResult || !_resultCorrect) ...[
+            const SizedBox(height: 8),
+            _buildActionButton(),
+            const SizedBox(height: 8),
+          ],
+        ],
       ),
     );
   }
 
+  Widget _buildChoiceButtons(CubeScannerPuzzle puzzle) {
+    const labels = ['A', 'B', 'C', 'D', 'E'];
+    return AnimatedBuilder(
+      animation: _feedbackAnimation,
+      builder: (context, _) {
+        return Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 10,
+          runSpacing: 10,
+          children: List.generate(puzzle.choices.length, (i) {
+            final value = puzzle.choices[i];
+            final isSelected = _selectedAnswer == value;
+            final label = i < labels.length ? labels[i] : '${i + 1}';
+
+            // Determine button color based on state
+            Color bgColor;
+            Color borderColor;
+            Color textColor;
+
+            if (_showResult) {
+              if (value == puzzle.correctAnswer) {
+                // Correct answer: green
+                final flash = _feedbackAnimation.value;
+                bgColor = SpaceTheme.alienGreen.withValues(alpha: 0.3 + flash * 0.5);
+                borderColor = SpaceTheme.alienGreen;
+                textColor = SpaceTheme.alienGreen;
+              } else if (isSelected && !_resultCorrect) {
+                // Wrong selection: red
+                final flash = _feedbackAnimation.value;
+                bgColor = SpaceTheme.rocketRed.withValues(alpha: 0.3 + flash * 0.3);
+                borderColor = SpaceTheme.rocketRed;
+                textColor = SpaceTheme.rocketRed;
+              } else {
+                bgColor = SpaceTheme.deepSpace;
+                borderColor = SpaceTheme.nebulaPurple.withValues(alpha: 0.4);
+                textColor = Colors.white38;
+              }
+            } else if (isSelected) {
+              bgColor = SpaceTheme.starYellow;
+              borderColor = SpaceTheme.starYellow;
+              textColor = SpaceTheme.deepSpace;
+            } else {
+              bgColor = SpaceTheme.deepSpace;
+              borderColor = SpaceTheme.nebulaPurple;
+              textColor = Colors.white;
+            }
+
+            return GestureDetector(
+              onTap: () => _selectAnswer(value),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: borderColor, width: 2),
+                  boxShadow: isSelected && !_showResult
+                      ? [
+                          BoxShadow(
+                            color: SpaceTheme.starYellow.withValues(alpha: 0.5),
+                            blurRadius: 12,
+                            spreadRadius: 2,
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: textColor.withValues(alpha: 0.6),
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '$value',
+                      style: SpaceTheme.titleStyle.copyWith(
+                        fontSize: 22,
+                        color: textColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+
+  Widget _buildActionButton() {
+    if (_showResult && !_resultCorrect) {
+      // After wrong answer: show "Try Again" to regenerate
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: _generatePuzzle,
+          icon: const Icon(Icons.refresh),
+          label: Text(S.of(context)!.playAgain),
+          style: SpaceTheme.secondaryButtonStyle,
+        ),
+      );
+    }
+
+    // Normal submit
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _selectedAnswer != null ? _submitAnswer : null,
+        icon: const Icon(Icons.check_circle_outline),
+        label: Text(S.of(context)!.cubeScannerWinTitle),
+        style: SpaceTheme.primaryButtonStyle,
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Win dialog
+  // ---------------------------------------------------------------------------
   Widget _buildWinDialog(int score) {
     return AnimatedBuilder(
       animation: _successAnimation,
@@ -438,13 +627,17 @@ class _CubeScannerGameState extends State<CubeScannerGame>
                   const Icon(Icons.emoji_events,
                       size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  Text(S.of(context)!.cubeScannerWinTitle,
-                      style: SpaceTheme.headlineStyle,
-                      textAlign: TextAlign.center),
+                  Text(
+                    S.of(context)!.cubeScannerWinTitle,
+                    style: SpaceTheme.headlineStyle,
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 16),
-                  Text(S.of(context)!.cubeScannerWinDesc(score),
-                      style: SpaceTheme.bodyStyle,
-                      textAlign: TextAlign.center),
+                  Text(
+                    S.of(context)!.cubeScannerWinDesc(score),
+                    style: SpaceTheme.bodyStyle,
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -477,42 +670,47 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   }
 }
 
-/// Wireframe/edge-glow isometric die painter.
-/// Draws cube edges as bright colored lines on a dark background with glow.
-class _WireframeDiePainter extends CustomPainter {
+// =============================================================================
+// Isometric die painter
+// =============================================================================
+/// Draws a single isometric die with 3 visible faces (top, left-front, right-front).
+/// Wireframe edges with glow, face values as big numbers.
+/// Face shading: top = lighter, left = medium, right = darker.
+class _IsometricDiePainter extends CustomPainter {
   final Die die;
   final VisibleFaces visible;
   final double glowValue;
+  final String? label;
 
-  _WireframeDiePainter({
+  _IsometricDiePainter({
     required this.die,
     required this.visible,
     required this.glowValue,
+    this.label,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
     final cy = size.height / 2;
-    // Scale the cube to fill ~60% of the available space
-    final s = math.min(size.width, size.height) * 0.38;
+    final s = math.min(size.width, size.height) * 0.40;
 
-    // Isometric projection factors
+    // Isometric projection angles
     const dxFactor = 0.866; // cos(30deg)
-    const dyFactor = 0.5;   // sin(30deg)
+    const dyFactor = 0.5; // sin(30deg)
 
-    // 8 vertices of an isometric cube centered at (cx, cy)
-    // Top face 4 corners, bottom face 4 corners
-    final topCenter = Offset(cx, cy - s * 0.6);
-    final topLeft = Offset(cx - s * dxFactor, cy - s * 0.6 + s * dyFactor);
-    final topRight = Offset(cx + s * dxFactor, cy - s * 0.6 + s * dyFactor);
-    final topFront = Offset(cx, cy - s * 0.6 + s * dyFactor * 2);
+    // 7 visible vertices of an isometric cube
+    final topCenter = Offset(cx, cy - s * 0.65);
+    final topLeft = Offset(cx - s * dxFactor, cy - s * 0.65 + s * dyFactor);
+    final topRight = Offset(cx + s * dxFactor, cy - s * 0.65 + s * dyFactor);
+    final topFront = Offset(cx, cy - s * 0.65 + s * dyFactor * 2);
+    final bottomCenter = Offset(cx, cy + s * 0.65);
+    final bottomLeft =
+        Offset(cx - s * dxFactor, cy + s * 0.65 - s * dyFactor);
+    final bottomRight =
+        Offset(cx + s * dxFactor, cy + s * 0.65 - s * dyFactor);
 
-    final bottomCenter = Offset(cx, cy + s * 0.6);
-    final bottomLeft = Offset(cx - s * dxFactor, cy + s * 0.6 - s * dyFactor);
-    final bottomRight = Offset(cx + s * dxFactor, cy + s * 0.6 - s * dyFactor);
-
-    // Face paths
+    // Three face paths
     final topFace = Path()
       ..moveTo(topCenter.dx, topCenter.dy)
       ..lineTo(topRight.dx, topRight.dy)
@@ -534,28 +732,28 @@ class _WireframeDiePainter extends CustomPainter {
       ..lineTo(bottomRight.dx, bottomRight.dy)
       ..close();
 
-    // Dark fill for faces (subtle differentiation)
-    final topFill = Paint()..color = const Color(0xFF1A1A3A);
-    final leftFill = Paint()..color = const Color(0xFF151530);
-    final rightFill = Paint()..color = const Color(0xFF101028);
+    // Face fills: top=lighter, left=medium, right=darker
+    final topFill = Paint()..color = const Color(0xFF252552);
+    final leftFill = Paint()..color = const Color(0xFF1A1A3E);
+    final rightFill = Paint()..color = const Color(0xFF12122A);
 
     canvas.drawPath(topFace, topFill);
     canvas.drawPath(leftFace, leftFill);
     canvas.drawPath(rightFace, rightFill);
 
-    // Glow edge paint
+    // Edge glow color
     final glowColor = Color.lerp(
       SpaceTheme.nebulaPurple,
       SpaceTheme.starYellow,
       glowValue * 0.6,
     )!;
 
-    // Outer glow (wider, transparent)
+    // Outer glow (wider, transparent, blurred)
     final outerGlow = Paint()
-      ..color = glowColor.withValues(alpha: glowValue * 0.3)
+      ..color = glowColor.withValues(alpha: glowValue * 0.35)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.0
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+      ..strokeWidth = 5.0
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
     canvas.drawPath(topFace, outerGlow);
     canvas.drawPath(leftFace, outerGlow);
     canvas.drawPath(rightFace, outerGlow);
@@ -569,7 +767,7 @@ class _WireframeDiePainter extends CustomPainter {
     canvas.drawPath(leftFace, edgePaint);
     canvas.drawPath(rightFace, edgePaint);
 
-    // Draw face values as text
+    // Face centers for text placement
     final topCenterPt = Offset(
       (topCenter.dx + topRight.dx + topFront.dx + topLeft.dx) / 4,
       (topCenter.dy + topRight.dy + topFront.dy + topLeft.dy) / 4,
@@ -583,22 +781,52 @@ class _WireframeDiePainter extends CustomPainter {
       (topRight.dy + topFront.dy + bottomCenter.dy + bottomRight.dy) / 4,
     );
 
-    final fontSize = s * 0.35;
+    final fontSize = s * 0.38;
 
+    // Draw face values (only visible ones)
     if (visible.top != null) {
-      _drawFaceValue(canvas, topCenterPt, visible.top!, fontSize, Colors.white);
+      _drawFaceValue(
+          canvas, topCenterPt, visible.top!, fontSize, Colors.white);
+    } else {
+      _drawQuestionMark(canvas, topCenterPt, fontSize * 0.8);
     }
-    // Left face shows front or left value
+
+    // Left face shows front value in isometric view
     final leftVal = visible.front ?? visible.left;
     if (leftVal != null) {
-      _drawFaceValue(canvas, leftCenterPt, leftVal, fontSize * 0.85, Colors.white70);
+      _drawFaceValue(
+          canvas, leftCenterPt, leftVal, fontSize * 0.85, Colors.white70);
+    } else {
+      _drawQuestionMark(canvas, leftCenterPt, fontSize * 0.7);
     }
+
     if (visible.right != null) {
-      _drawFaceValue(canvas, rightCenterPt, visible.right!, fontSize * 0.85, Colors.white70);
+      _drawFaceValue(canvas, rightCenterPt, visible.right!, fontSize * 0.85,
+          Colors.white70);
+    } else {
+      _drawQuestionMark(canvas, rightCenterPt, fontSize * 0.7);
+    }
+
+    // Die label (for multi-die puzzles)
+    if (label != null) {
+      final labelPainter = TextPainter(
+        text: TextSpan(
+          text: label,
+          style: TextStyle(
+            color: SpaceTheme.starYellow.withValues(alpha: 0.7),
+            fontSize: fontSize * 0.5,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      labelPainter.layout();
+      labelPainter.paint(canvas, Offset(4, size.height - labelPainter.height - 4));
     }
   }
 
-  void _drawFaceValue(Canvas canvas, Offset center, int value, double fontSize, Color color) {
+  void _drawFaceValue(
+      Canvas canvas, Offset center, int value, double fontSize, Color color) {
     final textPainter = TextPainter(
       text: TextSpan(
         text: '$value',
@@ -619,11 +847,32 @@ class _WireframeDiePainter extends CustomPainter {
     textPainter.layout();
     textPainter.paint(
       canvas,
-      Offset(center.dx - textPainter.width / 2, center.dy - textPainter.height / 2),
+      Offset(
+          center.dx - textPainter.width / 2, center.dy - textPainter.height / 2),
+    );
+  }
+
+  void _drawQuestionMark(Canvas canvas, Offset center, double fontSize) {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: '?',
+        style: TextStyle(
+          color: SpaceTheme.cosmicPink.withValues(alpha: 0.5),
+          fontSize: fontSize,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset(
+          center.dx - textPainter.width / 2, center.dy - textPainter.height / 2),
     );
   }
 
   @override
-  bool shouldRepaint(covariant _WireframeDiePainter oldDelegate) =>
+  bool shouldRepaint(covariant _IsometricDiePainter oldDelegate) =>
       oldDelegate.glowValue != glowValue;
 }

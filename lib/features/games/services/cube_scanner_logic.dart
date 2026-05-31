@@ -1,13 +1,15 @@
 import 'dart:math' as math;
 
-/// Standard die face layout: opposite faces sum to 7.
+/// Standard die: opposite faces sum to 7.
 /// Face indices: 0=top, 1=front, 2=right, 3=left, 4=back, 5=bottom
-/// Pairs: (0,5), (1,4), (2,3) -> each pair sums to 7.
 class Die {
-  /// The 6 face values [top, front, right, left, back, bottom].
   final List<int> faces;
 
-  Die(this.faces);
+  Die(this.faces)
+      : assert(faces.length == 6),
+        assert(faces[0] + faces[5] == 7),
+        assert(faces[1] + faces[4] == 7),
+        assert(faces[2] + faces[3] == 7);
 
   int get top => faces[0];
   int get front => faces[1];
@@ -16,112 +18,167 @@ class Die {
   int get back => faces[4];
   int get bottom => faces[5];
 
-  /// Generate a random valid die (opposite faces sum to 7).
-  factory Die.random(math.Random rng) {
-    // Standard die: 1-6, opposite faces sum to 7
-    // top+bottom=7, front+back=7, left+right=7
-    // We pick a random orientation
-    final orientations = _allOrientations();
-    return orientations[rng.nextInt(orientations.length)];
+  int faceByName(String name) {
+    switch (name) {
+      case 'top':
+        return top;
+      case 'front':
+        return front;
+      case 'right':
+        return right;
+      case 'left':
+        return left;
+      case 'back':
+        return back;
+      case 'bottom':
+        return bottom;
+      default:
+        throw ArgumentError('Unknown face: $name');
+    }
   }
 
+  /// All 24 valid orientations of a standard Western die.
+  /// Standard die: when 1 is on top and 2 faces you, 3 is on your right.
   static List<Die> _allOrientations() {
-    // Generate all 24 valid orientations of a standard die
-    // Base: top=1, front=2, right=3 -> left=4, back=5, bottom=6
+    // Build by enumerating all (top, front) pairs and computing right
+    // using the chirality of a standard Western die.
+    //
+    // Encode the standard die as a rotation group acting on face values.
+    // Base orientation: top=1, front=2, right=3, left=4, back=5, bottom=6
+    //
+    // We enumerate by placing each of the 6 values on top (6 choices),
+    // then rotating the 4 side faces (4 choices) = 24 orientations.
+
+    // For each face-on-top, define the cycle of (front, right, back, left)
+    // when rotating clockwise (viewed from top).
+    // These are determined by the standard Western die chirality.
+    final Map<int, List<List<int>>> topRotations = {
+      1: [
+        [2, 3, 5, 4],
+        [3, 5, 4, 2],
+        [5, 4, 2, 3],
+        [4, 2, 3, 5],
+      ],
+      2: [
+        [6, 3, 1, 4],
+        [3, 1, 4, 6],
+        [1, 4, 6, 3],
+        [4, 6, 3, 1],
+      ],
+      3: [
+        [2, 6, 5, 1],
+        [6, 5, 1, 2],
+        [5, 1, 2, 6],
+        [1, 2, 6, 5],
+      ],
+      4: [
+        [2, 1, 5, 6],
+        [1, 5, 6, 2],
+        [5, 6, 2, 1],
+        [6, 2, 1, 5],
+      ],
+      5: [
+        [1, 3, 6, 4],
+        [3, 6, 4, 1],
+        [6, 4, 1, 3],
+        [4, 1, 3, 6],
+      ],
+      6: [
+        [2, 4, 5, 3],
+        [4, 5, 3, 2],
+        [5, 3, 2, 4],
+        [3, 2, 4, 5],
+      ],
+    };
+
     final results = <Die>[];
-
-    // All possible (top, front) pairs for a standard die
-    final topFrontPairs = [
-      [1, 2], [1, 3], [1, 5], [1, 4],
-      [2, 6], [2, 3], [2, 1], [2, 4],
-      [3, 6], [3, 2], [3, 1], [3, 5],
-      [4, 1], [4, 2], [4, 6], [4, 5],
-      [5, 1], [5, 3], [5, 6], [5, 4],
-      [6, 2], [6, 4], [6, 5], [6, 3],
-    ];
-
-    for (final pair in topFrontPairs) {
-      final top = pair[0];
-      final front = pair[1];
-      final bottom = 7 - top;
-      final back = 7 - front;
-
-      // Determine right based on top and front using cross product logic
-      final right = _determineRight(top, front);
-      if (right == 0) continue;
-      final left = 7 - right;
-
-      results.add(Die([top, front, right, left, back, bottom]));
+    for (final topVal in topRotations.keys) {
+      final bottomVal = 7 - topVal;
+      for (final rot in topRotations[topVal]!) {
+        // rot = [front, right, back, left]
+        results.add(Die([topVal, rot[0], rot[1], rot[3], rot[2], bottomVal]));
+      }
     }
-
-    // Fallback: if logic is complex, just return a few standard orientations
-    if (results.isEmpty) {
-      results.add(Die([1, 2, 3, 4, 5, 6]));
-      results.add(Die([2, 1, 4, 3, 6, 5]));
-      results.add(Die([3, 1, 2, 5, 6, 4]));
-    }
-
     return results;
   }
 
-  static int _determineRight(int top, int front) {
-    // Given top and front of a standard die, determine the right face
-    // This is based on the standard die convention
-    final remaining = {1, 2, 3, 4, 5, 6}
-      ..remove(top)
-      ..remove(7 - top)
-      ..remove(front)
-      ..remove(7 - front);
+  static List<Die>? _cachedOrientations;
 
-    if (remaining.length != 2) return 0;
-    final sorted = remaining.toList()..sort();
-    // Convention: use first remaining value as right
-    return sorted[0];
+  factory Die.random(math.Random rng) {
+    _cachedOrientations ??= _allOrientations();
+    return _cachedOrientations![rng.nextInt(_cachedOrientations!.length)];
   }
 }
 
-/// Which faces of a die are visible to the player.
+/// Which faces of a die are visible in the isometric view.
+/// In our isometric projection we always show: top, left-front, right-front.
 class VisibleFaces {
   final int? top;
   final int? front;
   final int? right;
   final int? left;
 
-  VisibleFaces({this.top, this.front, this.right, this.left});
+  const VisibleFaces({this.top, this.front, this.right, this.left});
 
   List<MapEntry<String, int>> get visibleEntries {
     final entries = <MapEntry<String, int>>[];
-    if (top != null) entries.add(MapEntry('top', top!));
-    if (front != null) entries.add(MapEntry('front', front!));
-    if (right != null) entries.add(MapEntry('right', right!));
-    if (left != null) entries.add(MapEntry('left', left!));
+    if (top != null) entries.add(MapEntry('Top', top!));
+    if (front != null) entries.add(MapEntry('Front', front!));
+    if (right != null) entries.add(MapEntry('Right', right!));
+    if (left != null) entries.add(MapEntry('Left', left!));
     return entries;
+  }
+
+  int get visibleSum {
+    int s = 0;
+    if (top != null) s += top!;
+    if (front != null) s += front!;
+    if (right != null) s += right!;
+    if (left != null) s += left!;
+    return s;
   }
 }
 
-/// A puzzle where the player must deduce hidden face values.
+/// Types of questions we can ask.
+enum QuestionType {
+  /// "What value is on the BOTTOM face?" (single die, grade 1-2)
+  singleHiddenFace,
+
+  /// "What is the sum of the three HIDDEN faces?" (single die, grade 1-2)
+  hiddenFaceSum,
+
+  /// "What value is on face X of die Y?" (multi-die, grade 3-4)
+  chainedHiddenFace,
+}
+
+/// Arrangement of multiple dice.
+enum DiceArrangement {
+  single,
+  verticalStack, // die 1 bottom touches die 2 top
+  horizontalRow, // die 1 right touches die 2 left
+}
+
+/// A complete puzzle.
 class CubeScannerPuzzle {
-  /// The dice in the puzzle.
   final List<Die> dice;
-
-  /// Which faces are visible for each die.
   final List<VisibleFaces> visibleFaces;
-
-  /// The question: which face of which die to determine.
-  /// Map of dieIndex -> faceName (e.g., 'bottom')
-  final Map<int, String> questions;
-
-  /// The correct answers.
-  final Map<int, int> correctAnswers;
-
-  /// Number of dice.
+  final DiceArrangement arrangement;
+  final String questionText;
+  final int correctAnswer;
+  final List<int> choices; // 5 options including the correct one
   int get diceCount => dice.length;
+
+  // Kept for backward compatibility with existing code references
+  Map<int, String> get questions => {0: questionText};
+  Map<int, int> get correctAnswers => {0: correctAnswer};
 
   CubeScannerPuzzle({
     required this.dice,
     required this.visibleFaces,
-    required this.questions,
-    required this.correctAnswers,
+    required this.arrangement,
+    required this.questionText,
+    required this.correctAnswer,
+    required this.choices,
   });
 }
 
@@ -130,76 +187,160 @@ class CubeScannerGenerator {
 
   CubeScannerGenerator({int? seed}) : _random = math.Random(seed);
 
-  /// Generate a puzzle:
-  /// - grade 1: 1 die, 3 visible faces, find 1 hidden face
-  /// - grade 2: 2 dice (stacked), find hidden faces
-  /// - grade 3-4: 2-3 dice, fewer visible faces
   CubeScannerPuzzle generate({required int grade, required int level}) {
-    int numDice;
-    int visibleCount;
-
-    if (grade <= 1) {
-      numDice = 1;
-      visibleCount = 3;
-    } else if (grade <= 2) {
-      numDice = 2;
-      visibleCount = 2;
-    } else if (grade <= 3) {
-      numDice = 2 + (level > 8 ? 1 : 0);
-      visibleCount = 2;
+    if (grade <= 2) {
+      return _generateSingleDie(grade, level);
+    } else if (grade == 3) {
+      return _generateStackedDice(level);
     } else {
-      numDice = math.min(3, 2 + level ~/ 7);
-      visibleCount = level > 10 ? 1 : 2;
+      return level > 6
+          ? _generateRowDice(level)
+          : _generateStackedDice(level);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Single die (grade 1-2)
+  // ---------------------------------------------------------------------------
+  CubeScannerPuzzle _generateSingleDie(int grade, int level) {
+    final die = Die.random(_random);
+    // Isometric view: always show top, front, right
+    final visible = VisibleFaces(
+      top: die.top,
+      front: die.front,
+      right: die.right,
+    );
+
+    int correctAnswer;
+    String questionText;
+
+    if (grade <= 1 || level <= 4) {
+      // "What is on the BOTTOM face?"
+      correctAnswer = die.bottom; // = 7 - top
+      questionText = 'What value is on the BOTTOM face?';
+    } else {
+      // "What is the sum of the three HIDDEN faces?"
+      correctAnswer = 21 - visible.visibleSum;
+      questionText = 'What is the sum of the 3 hidden faces?';
     }
 
-    final dice = <Die>[];
-    final visible = <VisibleFaces>[];
-    final questions = <int, String>{};
-    final answers = <int, int>{};
-
-    for (int i = 0; i < numDice; i++) {
-      final die = Die.random(_random);
-      dice.add(die);
-
-      // Choose which faces to show
-      final allFaces = ['top', 'front', 'right', 'left'];
-      allFaces.shuffle(_random);
-      final shownFaces = allFaces.take(visibleCount).toSet();
-
-      visible.add(VisibleFaces(
-        top: shownFaces.contains('top') ? die.top : null,
-        front: shownFaces.contains('front') ? die.front : null,
-        right: shownFaces.contains('right') ? die.right : null,
-        left: shownFaces.contains('left') ? die.left : null,
-      ));
-
-      // Ask about a hidden face (opposite of a visible one)
-      final hiddenOptions = <String, int>{};
-      if (shownFaces.contains('top')) hiddenOptions['bottom'] = die.bottom;
-      if (shownFaces.contains('front')) hiddenOptions['back'] = die.back;
-      if (shownFaces.contains('right')) hiddenOptions['left'] = die.left;
-      if (shownFaces.contains('left')) hiddenOptions['right'] = die.right;
-
-      // Remove faces that are already shown from options
-      hiddenOptions.removeWhere((key, _) => shownFaces.contains(key));
-
-      if (hiddenOptions.isNotEmpty) {
-        final entry =
-            hiddenOptions.entries.elementAt(_random.nextInt(hiddenOptions.length));
-        questions[i] = entry.key;
-        answers[i] = entry.value;
-      } else {
-        // Fallback: ask about bottom
-        questions[i] = 'bottom';
-        answers[i] = die.bottom;
-      }
-    }
+    final choices = _generateChoices(correctAnswer,
+        min: grade <= 1 ? 1 : 3, max: grade <= 1 ? 6 : 18);
 
     return CubeScannerPuzzle(
-      dice: dice,
-      visibleFaces: visible,
-      questions: questions,
-      correctAnswers: answers,
+      dice: [die],
+      visibleFaces: [visible],
+      arrangement: DiceArrangement.single,
+      questionText: questionText,
+      correctAnswer: correctAnswer,
+      choices: choices,
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Two dice stacked vertically (grade 3)
+  // Bottom of die1 touches top of die2 -- touching faces are EQUAL.
+  // ---------------------------------------------------------------------------
+  CubeScannerPuzzle _generateStackedDice(int level) {
+    final die1 = Die.random(_random);
+    // die1.bottom == die2.top  (touching faces equal)
+    final touchValue = die1.bottom;
+
+    // Find an orientation for die2 where top == touchValue
+    Die? die2;
+    Die._cachedOrientations ??= Die._allOrientations();
+    final candidates = Die._cachedOrientations!
+        .where((d) => d.top == touchValue)
+        .toList();
+    die2 = candidates[_random.nextInt(candidates.length)];
+
+    final vis1 = VisibleFaces(top: die1.top, front: die1.front, right: die1.right);
+    final vis2 = VisibleFaces(top: null, front: die2.front, right: die2.right);
+    // die2.top is hidden (touching face)
+
+    // Ask about die2's bottom, which requires chaining:
+    // die1.bottom = X, die2.top = X, die2.bottom = 7 - X
+    final correctAnswer = die2.bottom;
+    const questionText =
+        'The bottom of Cube 1 touches the top of Cube 2 (touching faces are equal).\n'
+        'What value is on the BOTTOM of Cube 2?';
+
+    final choices = _generateChoices(correctAnswer, min: 1, max: 6);
+
+    return CubeScannerPuzzle(
+      dice: [die1, die2],
+      visibleFaces: [vis1, vis2],
+      arrangement: DiceArrangement.verticalStack,
+      questionText: questionText,
+      correctAnswer: correctAnswer,
+      choices: choices,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Three dice in a row (grade 4)
+  // die1.right == die2.left, die2.right == die3.left
+  // ---------------------------------------------------------------------------
+  CubeScannerPuzzle _generateRowDice(int level) {
+    final die1 = Die.random(_random);
+    final touch1 = die1.right; // die1.right == die2.left
+
+    Die._cachedOrientations ??= Die._allOrientations();
+
+    // Find die2 where left == touch1
+    final candidates2 = Die._cachedOrientations!
+        .where((d) => d.left == touch1)
+        .toList();
+    final die2 = candidates2[_random.nextInt(candidates2.length)];
+
+    final touch2 = die2.right; // die2.right == die3.left
+    final candidates3 = Die._cachedOrientations!
+        .where((d) => d.left == touch2)
+        .toList();
+    final die3 = candidates3[_random.nextInt(candidates3.length)];
+
+    final vis1 = VisibleFaces(top: die1.top, front: die1.front);
+    final vis2 = VisibleFaces(top: die2.top, front: die2.front);
+    final vis3 = VisibleFaces(top: die3.top, front: die3.front, right: die3.right);
+
+    // Ask about die3's bottom (requires knowing die3.top -> bottom = 7 - top)
+    // Or ask about die2's right (hidden, equals die3's left = 7 - die3.right)
+    // Let's ask about die1's right face (hidden, requires deduction)
+    final correctAnswer = die1.right;
+    const questionText =
+        'Three cubes in a row. Each cube\'s right face touches the next cube\'s left face (touching faces are equal).\n'
+        'What value is on the RIGHT face of Cube 1?';
+
+    final choices = _generateChoices(correctAnswer, min: 1, max: 6);
+
+    return CubeScannerPuzzle(
+      dice: [die1, die2, die3],
+      visibleFaces: [vis1, vis2, vis3],
+      arrangement: DiceArrangement.horizontalRow,
+      questionText: questionText,
+      correctAnswer: correctAnswer,
+      choices: choices,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Generate 5 multiple-choice options including the correct answer
+  // ---------------------------------------------------------------------------
+  List<int> _generateChoices(int correct, {required int min, required int max}) {
+    final choices = <int>{correct};
+    int attempts = 0;
+    while (choices.length < 5 && attempts < 100) {
+      final candidate = min + _random.nextInt(max - min + 1);
+      choices.add(candidate);
+      attempts++;
+    }
+    // If we couldn't get 5 unique, fill with sequential
+    int fill = min;
+    while (choices.length < 5) {
+      choices.add(fill);
+      fill++;
+    }
+    final list = choices.toList()..shuffle(_random);
+    return list;
   }
 }

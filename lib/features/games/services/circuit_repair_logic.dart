@@ -1,15 +1,7 @@
 import 'dart:math' as math;
 
-/// 7-segment display segments are labeled a-g:
-///  _a_
-/// |   |
-/// f   b
-/// |_g_|
-/// |   |
-/// e   c
-/// |_d_|
-///
-/// Each digit 0-9 maps to a set of active segments.
+/// 7-segment display encoding for digits 0-9.
+/// Used only for rendering -- the puzzle logic is about digit POSITION swaps.
 class SevenSegment {
   static const Map<int, Set<String>> digitSegments = {
     0: {'a', 'b', 'c', 'd', 'e', 'f'},
@@ -24,69 +16,89 @@ class SevenSegment {
     9: {'a', 'b', 'c', 'd', 'f', 'g'},
   };
 
-  static const List<String> allSegments = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
-
-  /// Get the segments for a digit.
+  /// Get the segments for a digit (0-9).
   static Set<String> getSegments(int digit) {
     return digitSegments[digit] ?? {};
   }
-
-  /// Try to determine which digit a set of segments represents.
-  /// Returns -1 if it doesn't match any valid digit.
-  static int identifyDigit(Set<String> segments) {
-    for (final entry in digitSegments.entries) {
-      if (entry.value.length == segments.length &&
-          entry.value.containsAll(segments)) {
-        return entry.key;
-      }
-    }
-    return -1;
-  }
-
-  /// Apply a segment swap to a digit's segments.
-  /// Swaps segA and segB in the wiring, then returns the resulting segments.
-  static Set<String> applySwap(Set<String> segments, String segA, String segB) {
-    final result = <String>{};
-    for (final seg in segments) {
-      if (seg == segA) {
-        result.add(segB);
-      } else if (seg == segB) {
-        result.add(segA);
-      } else {
-        result.add(seg);
-      }
-    }
-    return result;
-  }
 }
 
-/// A circuit repair puzzle.
+/// A circuit repair puzzle where two digit positions on a clock are swapped.
 class CircuitRepairPuzzle {
-  /// The intended digits (correct display).
+  /// The correct time digits [H1, H2, M1, M2].
   final List<int> correctDigits;
 
-  /// The corrupted digits (what the display shows after swap).
-  final List<int> corruptedDigits;
+  /// The displayed (invalid) digits after swapping two positions.
+  final List<int> displayedDigits;
 
-  /// The corrupted segment sets for each digit position.
-  final List<Set<String>> corruptedSegments;
+  /// The two swapped positions (indices 0-3).
+  final int swapPosA;
+  final int swapPosB;
 
-  /// The two segments that are swapped (the answer).
-  final String swappedSegA;
-  final String swappedSegB;
+  /// Max attempts allowed.
+  final int maxAttempts;
 
   CircuitRepairPuzzle({
     required this.correctDigits,
-    required this.corruptedDigits,
-    required this.corruptedSegments,
-    required this.swappedSegA,
-    required this.swappedSegB,
+    required this.displayedDigits,
+    required this.swapPosA,
+    required this.swapPosB,
+    required this.maxAttempts,
   });
 
-  /// Check if the player's answer is correct.
-  bool checkAnswer(String segA, String segB) {
-    return (segA == swappedSegA && segB == swappedSegB) ||
-        (segA == swappedSegB && segB == swappedSegA);
+  /// Format digits as "HH:MM".
+  String formatTime(List<int> digits) {
+    return '${digits[0]}${digits[1]}:${digits[2]}${digits[3]}';
+  }
+
+  String get correctTimeString => formatTime(correctDigits);
+  String get displayedTimeString => formatTime(displayedDigits);
+
+  /// Check if a set of 4 digits represents a valid time (00:00 - 23:59).
+  static bool isValidTime(List<int> digits) {
+    final hours = digits[0] * 10 + digits[1];
+    final minutes = digits[2] * 10 + digits[3];
+    return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
+  }
+
+  /// Apply a swap of two positions to a list of digits.
+  static List<int> applySwap(List<int> digits, int posA, int posB) {
+    final result = List<int>.from(digits);
+    final temp = result[posA];
+    result[posA] = result[posB];
+    result[posB] = temp;
+    return result;
+  }
+
+  /// Check if the player's swap produces a valid time.
+  bool checkAnswer(int posA, int posB) {
+    final a = math.min(posA, posB);
+    final b = math.max(posA, posB);
+    final correctA = math.min(swapPosA, swapPosB);
+    final correctB = math.max(swapPosA, swapPosB);
+    return a == correctA && b == correctB;
+  }
+
+  /// Apply a swap to the displayed digits and return the result.
+  List<int> previewSwap(int posA, int posB) {
+    return applySwap(displayedDigits, posA, posB);
+  }
+
+  /// Check if a specific pair of positions are the hours digits.
+  static bool isHourDigit(int pos) => pos == 0 || pos == 1;
+
+  /// Check if a specific pair of positions are the minute digits.
+  static bool isMinuteDigit(int pos) => pos == 2 || pos == 3;
+
+  /// Check whether the minutes portion of the displayed time is invalid (>= 60).
+  bool get minutesInvalid {
+    final minutes = displayedDigits[2] * 10 + displayedDigits[3];
+    return minutes > 59;
+  }
+
+  /// Check whether the hours portion of the displayed time is invalid (>= 24).
+  bool get hoursInvalid {
+    final hours = displayedDigits[0] * 10 + displayedDigits[1];
+    return hours > 23;
   }
 }
 
@@ -95,84 +107,92 @@ class CircuitRepairGenerator {
 
   CircuitRepairGenerator({int? seed}) : _random = math.Random(seed);
 
-  /// Generate a puzzle:
-  /// - grade 1: 1 digit display
-  /// - grade 2: 2 digits
-  /// - grade 3-4: 3+ digits
+  /// Generate a puzzle for the given grade and level.
   CircuitRepairPuzzle generate({required int grade, required int level}) {
-    int numDigits;
+    final maxAttempts = _maxAttempts(grade);
 
-    if (grade <= 1) {
-      numDigits = 1;
-    } else if (grade <= 2) {
-      numDigits = 2;
-    } else if (grade <= 3) {
-      numDigits = level > 8 ? 3 : 2;
-    } else {
-      numDigits = math.min(4, 2 + level ~/ 5);
+    // Try to produce a valid puzzle
+    for (int attempt = 0; attempt < 200; attempt++) {
+      final puzzle = _tryGenerate(grade: grade, maxAttempts: maxAttempts);
+      if (puzzle != null) return puzzle;
     }
 
-    return _generatePuzzle(numDigits);
+    // Fallback: the classic "15:69" -> "16:59" puzzle
+    return CircuitRepairPuzzle(
+      correctDigits: [1, 6, 5, 9],
+      displayedDigits: [1, 5, 6, 9],
+      swapPosA: 1,
+      swapPosB: 2,
+      maxAttempts: maxAttempts,
+    );
   }
 
-  CircuitRepairPuzzle _generatePuzzle(int numDigits) {
-    // Try multiple times to find a valid swap
-    for (int attempt = 0; attempt < 100; attempt++) {
-      // Generate random target digits
-      final correctDigits = List.generate(numDigits, (_) => _random.nextInt(10));
+  int _maxAttempts(int grade) {
+    if (grade <= 1) return 5;
+    if (grade <= 2) return 4;
+    return 3;
+  }
 
-      // Pick two segments to swap
-      final segments = List<String>.from(SevenSegment.allSegments);
-      segments.shuffle(_random);
-      final segA = segments[0];
-      final segB = segments[1];
+  CircuitRepairPuzzle? _tryGenerate({
+    required int grade,
+    required int maxAttempts,
+  }) {
+    // 1. Generate a valid time based on grade
+    final digits = _randomValidTime(grade);
 
-      // Apply the swap to all digits and check if the result is valid
-      // (each corrupted display should still form a recognizable but wrong digit,
-      // or at least a visually distinct pattern)
-      final corruptedSegments = <Set<String>>[];
-      final corruptedDigits = <int>[];
-      bool allValid = true;
+    // 2. Pick two positions to swap
+    final positions = [0, 1, 2, 3];
+    positions.shuffle(_random);
+    final posA = positions[0];
+    final posB = positions[1];
 
-      for (final digit in correctDigits) {
-        final original = SevenSegment.getSegments(digit);
-        final swapped = SevenSegment.applySwap(original, segA, segB);
-        final corruptedDigit = SevenSegment.identifyDigit(swapped);
+    // The two digits must be different (otherwise the swap does nothing)
+    if (digits[posA] == digits[posB]) return null;
 
-        corruptedSegments.add(swapped);
-        corruptedDigits.add(corruptedDigit);
+    // 3. Apply the swap
+    final displayed = CircuitRepairPuzzle.applySwap(digits, posA, posB);
 
-        // We need at least one digit to actually change
-        // It's OK if some digits stay the same (swap doesn't affect them)
-      }
+    // 4. The displayed time must be INVALID
+    if (CircuitRepairPuzzle.isValidTime(displayed)) return null;
 
-      // Check that at least one digit changed
-      bool anyChanged = false;
-      for (int i = 0; i < numDigits; i++) {
-        if (corruptedDigits[i] != correctDigits[i]) {
-          anyChanged = true;
-          break;
+    // 5. Ensure EXACTLY ONE swap of the displayed digits yields a valid time
+    //    (the reverse of our swap). Check all 6 possible swaps.
+    int validSwapCount = 0;
+    for (int i = 0; i < 4; i++) {
+      for (int j = i + 1; j < 4; j++) {
+        final candidate = CircuitRepairPuzzle.applySwap(displayed, i, j);
+        if (CircuitRepairPuzzle.isValidTime(candidate)) {
+          validSwapCount++;
         }
-      }
-
-      if (anyChanged && allValid) {
-        return CircuitRepairPuzzle(
-          correctDigits: correctDigits,
-          corruptedDigits: corruptedDigits,
-          corruptedSegments: corruptedSegments,
-          swappedSegA: segA,
-          swappedSegB: segB,
-        );
       }
     }
 
-    // Fallback: simple known-good puzzle
+    if (validSwapCount != 1) return null;
+
     return CircuitRepairPuzzle(
-      correctDigits: [8],
-      corruptedDigits: [0],
-      corruptedSegments: [SevenSegment.applySwap(SevenSegment.getSegments(8), 'g', 'a')],
-      swappedSegA: 'a',
-      swappedSegB: 'g',
+      correctDigits: digits,
+      displayedDigits: displayed,
+      swapPosA: posA,
+      swapPosB: posB,
+      maxAttempts: maxAttempts,
     );
+  }
+
+  /// Generate a random valid time depending on grade.
+  List<int> _randomValidTime(int grade) {
+    int hours;
+    int minutes;
+
+    if (grade <= 1) {
+      // Grade 1: 10:00 - 12:59 (simpler digits)
+      hours = 10 + _random.nextInt(3); // 10, 11, 12
+      minutes = _random.nextInt(60);
+    } else {
+      // Grade 2+: full 00:00 - 23:59
+      hours = _random.nextInt(24);
+      minutes = _random.nextInt(60);
+    }
+
+    return [hours ~/ 10, hours % 10, minutes ~/ 10, minutes % 10];
   }
 }

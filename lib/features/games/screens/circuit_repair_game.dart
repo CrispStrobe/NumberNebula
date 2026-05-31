@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -21,22 +23,35 @@ class CircuitRepairGame extends StatefulWidget {
 
 class _CircuitRepairGameState extends State<CircuitRepairGame>
     with TickerProviderStateMixin {
+  // -- Animation controllers --
   late AnimationController _glowController;
   late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
+  late AnimationController _swapController;
 
   CircuitRepairPuzzle? _puzzle;
-  String? _selectedSegA;
-  String? _selectedSegB;
+
+  /// Index of the first selected digit position (0-3), or null.
+  int? _selectedFirst;
+
+  /// Index of the second selected digit position (0-3), or null.
+  int? _selectedSecond;
+
+  /// Current digit values shown on the display (may be mid-swap preview).
+  List<int> _currentDigits = [];
+
   bool _isGenerating = true;
+  int _attemptsUsed = 0;
+  bool _solved = false;
   DifficultyConfig? currentDifficulty;
 
   @override
   void initState() {
     super.initState();
+
     _glowController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
@@ -58,6 +73,11 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
         .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
+    _swapController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
@@ -72,14 +92,17 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     _glowController.dispose();
     _successController.dispose();
     _pulseController.dispose();
+    _swapController.dispose();
     super.dispose();
   }
 
   void _generatePuzzle() {
     setState(() {
       _isGenerating = true;
-      _selectedSegA = null;
-      _selectedSegB = null;
+      _selectedFirst = null;
+      _selectedSecond = null;
+      _attemptsUsed = 0;
+      _solved = false;
       _successController.reset();
     });
 
@@ -89,41 +112,50 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
 
     setState(() {
       _puzzle = puzzle;
+      _currentDigits = List<int>.from(puzzle.displayedDigits);
       _isGenerating = false;
     });
   }
 
-  void _selectSegment(String seg) {
+  void _onDigitTapped(int position) {
+    if (_solved || _puzzle == null) return;
+
     setState(() {
-      if (_selectedSegA == seg) {
-        _selectedSegA = null;
-      } else if (_selectedSegB == seg) {
-        _selectedSegB = null;
-      } else if (_selectedSegA == null) {
-        _selectedSegA = seg;
-      } else if (_selectedSegB == null) {
-        _selectedSegB = seg;
+      if (_selectedFirst == position) {
+        // Deselect
+        _selectedFirst = null;
+      } else if (_selectedSecond == position) {
+        _selectedSecond = null;
+      } else if (_selectedFirst == null) {
+        _selectedFirst = position;
+      } else if (_selectedSecond == null) {
+        _selectedSecond = position;
+        // Perform visual swap with animation
+        _performSwap();
       } else {
-        _selectedSegA = seg;
-        _selectedSegB = null;
+        // Both already selected -- restart selection
+        _selectedFirst = position;
+        _selectedSecond = null;
+        // Revert to original displayed digits
+        _currentDigits = List<int>.from(_puzzle!.displayedDigits);
       }
     });
   }
 
-  /// Get the current display segments after applying the user's proposed swap.
-  List<Set<String>> _getPreviewSegments() {
-    if (_puzzle == null) return [];
-    if (_selectedSegA != null && _selectedSegB != null) {
-      // Show what the display would look like if we undo the user's swap
-      return _puzzle!.corruptedSegments.map((segs) {
-        return SevenSegment.applySwap(segs, _selectedSegA!, _selectedSegB!);
-      }).toList();
-    }
-    return _puzzle!.corruptedSegments;
+  void _performSwap() {
+    if (_selectedFirst == null || _selectedSecond == null || _puzzle == null) return;
+    final swapped = _puzzle!.previewSwap(_selectedFirst!, _selectedSecond!);
+    _swapController.forward(from: 0.0).then((_) {
+      if (mounted) {
+        setState(() {
+          _currentDigits = swapped;
+        });
+      }
+    });
   }
 
-  void _checkSolution() {
-    if (_puzzle == null || _selectedSegA == null || _selectedSegB == null) {
+  void _submitAnswer() {
+    if (_puzzle == null || _selectedFirst == null || _selectedSecond == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(S.of(context)!.circuitRepairInstructions),
@@ -134,19 +166,21 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
       return;
     }
 
-    if (_puzzle!.checkAnswer(_selectedSegA!, _selectedSegB!)) {
+    if (_puzzle!.checkAnswer(_selectedFirst!, _selectedSecond!)) {
       _handleWin();
     } else {
-      _handleLoss();
+      _handleWrongAnswer();
     }
   }
 
   void _handleWin() {
     HapticFeedback.lightImpact();
-    int baseScore = 100 * widget.grade;
-    int levelBonus = widget.level * 25;
-    int digitBonus = _puzzle!.correctDigits.length * 50;
-    int totalScore = baseScore + levelBonus + digitBonus;
+    setState(() => _solved = true);
+
+    final baseScore = 100 * widget.grade;
+    final levelBonus = widget.level * 25;
+    final attemptBonus = (_puzzle!.maxAttempts - _attemptsUsed) * 30;
+    final totalScore = baseScore + levelBonus + attemptBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'circuit_repair',
@@ -162,19 +196,44 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     );
   }
 
-  void _handleLoss() {
+  void _handleWrongAnswer() {
     HapticFeedback.heavyImpact();
-    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      gameType: 'circuit_repair',
-      difficulty: widget.level,
-    ));
+    _attemptsUsed++;
+
+    if (_attemptsUsed >= _puzzle!.maxAttempts) {
+      // Out of attempts
+      context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+        gameType: 'circuit_repair',
+        difficulty: widget.level,
+      ));
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => _buildLoseDialog(),
+      );
+      return;
+    }
+
+    // Revert swap: reset to original displayed digits
+    setState(() {
+      _selectedFirst = null;
+      _selectedSecond = null;
+      _currentDigits = List<int>.from(_puzzle!.displayedDigits);
+    });
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
             const Icon(Icons.error_outline, color: Colors.white),
             const SizedBox(width: 8),
-            Expanded(child: Text(S.of(context)!.circuitRepairLoseDesc)),
+            Expanded(
+              child: Text(
+                'Not a valid time! ${_puzzle!.maxAttempts - _attemptsUsed} attempts left.',
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
           ],
         ),
         backgroundColor: SpaceTheme.rocketRed,
@@ -182,6 +241,19 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
       ),
     );
   }
+
+  void _resetSelection() {
+    if (_solved || _puzzle == null) return;
+    setState(() {
+      _selectedFirst = null;
+      _selectedSecond = null;
+      _currentDigits = List<int>.from(_puzzle!.displayedDigits);
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // BUILD
+  // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -217,8 +289,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
-                  s.circuitRepairInstructions,
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
+                  'Two digits on this clock swapped places! Tap two digit positions to swap them back.',
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 13),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -244,18 +316,21 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
       children: [
         Expanded(
           flex: 3,
-          child: _buildCorruptedDisplay(constraints),
+          child: Center(child: _buildClockDisplay(constraints)),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 24),
         Expanded(
           flex: 2,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                _buildSegmentSelector(constraints),
-                const SizedBox(height: 16),
-                _buildCheckButton(),
-              ],
+          child: Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildStatusPanel(),
+                  const SizedBox(height: 16),
+                  _buildActionButtons(),
+                ],
+              ),
             ),
           ),
         ),
@@ -267,27 +342,31 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     return SingleChildScrollView(
       child: Column(
         children: [
-          const SizedBox(height: 8),
-          _buildCorruptedDisplay(constraints),
           const SizedBox(height: 12),
-          _buildSegmentSelector(constraints),
+          _buildClockDisplay(constraints),
+          const SizedBox(height: 16),
+          _buildStatusPanel(),
           const SizedBox(height: 12),
-          _buildCheckButton(),
+          _buildActionButtons(),
           const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _buildCorruptedDisplay(BoxConstraints constraints) {
-    // Make display LARGE: fill 60%+ of screen width
-    final displayWidth = constraints.maxWidth * 0.7;
-    final digitCount = _puzzle!.corruptedSegments.length;
-    final digitWidth = ((displayWidth - 32) / digitCount).clamp(50.0, 120.0);
-    final digitHeight = (digitWidth * 1.6).clamp(80.0, 200.0);
+  // ---------------------------------------------------------------------------
+  // CLOCK DISPLAY with tappable 7-segment digits
+  // ---------------------------------------------------------------------------
 
-    final previewSegments = _getPreviewSegments();
-    final isPreview = _selectedSegA != null && _selectedSegB != null;
+  Widget _buildClockDisplay(BoxConstraints constraints) {
+    final displayWidth = constraints.maxWidth * 0.85;
+    // 4 digits + colon: estimate ~4.8 digit widths total
+    final digitWidth = ((displayWidth - 64) / 4.8).clamp(50.0, 120.0);
+    final digitHeight = (digitWidth * 1.6).clamp(80.0, 200.0);
+    final colonWidth = digitWidth * 0.35;
+
+    final isPreview = _selectedFirst != null && _selectedSecond != null;
+    final previewValid = isPreview && CircuitRepairPuzzle.isValidTime(_currentDigits);
 
     return AnimatedBuilder(
       animation: _glowAnimation,
@@ -302,15 +381,27 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
               color: const Color(0xFF0A0A1A),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isPreview
+                color: _solved
                     ? SpaceTheme.alienGreen.withValues(alpha: _glowAnimation.value)
-                    : SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value),
+                    : isPreview
+                        ? (previewValid
+                            ? SpaceTheme.alienGreen
+                            : SpaceTheme.rocketRed)
+                            .withValues(alpha: _glowAnimation.value)
+                        : SpaceTheme.starYellow
+                            .withValues(alpha: _glowAnimation.value * 0.6),
                 width: 2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: (isPreview ? SpaceTheme.alienGreen : SpaceTheme.rocketRed)
-                      .withValues(alpha: 0.3 * _glowAnimation.value),
+                  color: (_solved
+                          ? SpaceTheme.alienGreen
+                          : isPreview
+                              ? (previewValid
+                                  ? SpaceTheme.alienGreen
+                                  : SpaceTheme.rocketRed)
+                              : SpaceTheme.starYellow)
+                      .withValues(alpha: 0.25 * _glowAnimation.value),
                   blurRadius: 20,
                 ),
               ],
@@ -322,38 +413,47 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
-                    isPreview ? 'PREVIEW (after swap)' : 'CORRUPTED DISPLAY',
+                    _solved
+                        ? 'FIXED!'
+                        : isPreview
+                            ? (previewValid ? 'VALID TIME' : 'STILL INVALID')
+                            : 'BROKEN CLOCK',
                     style: SpaceTheme.bodyStyle.copyWith(
                       fontSize: 11,
-                      color: isPreview ? SpaceTheme.alienGreen : SpaceTheme.rocketRed,
+                      color: _solved
+                          ? SpaceTheme.alienGreen
+                          : isPreview
+                              ? (previewValid
+                                  ? SpaceTheme.alienGreen
+                                  : SpaceTheme.rocketRed)
+                              : SpaceTheme.starYellow,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 2,
                     ),
                   ),
                 ),
-                // Digits
+                // Clock: digit digit : digit digit
                 Row(
                   mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: previewSegments.asMap().entries.map((entry) {
-                    return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: digitWidth * 0.1),
-                      child: SizedBox(
-                        width: digitWidth,
-                        height: digitHeight,
-                        child: CustomPaint(
-                          painter: _SevenSegmentPainter(
-                            segments: entry.value,
-                            activeColor: isPreview
-                                ? SpaceTheme.alienGreen
-                                : SpaceTheme.rocketRed,
-                            inactiveColor: const Color(0xFF1A1A2E),
-                            glowValue: _glowAnimation.value,
-                          ),
+                  children: [
+                    _buildTappableDigit(0, digitWidth, digitHeight),
+                    SizedBox(width: digitWidth * 0.08),
+                    _buildTappableDigit(1, digitWidth, digitHeight),
+                    // Colon
+                    SizedBox(
+                      width: colonWidth,
+                      height: digitHeight,
+                      child: CustomPaint(
+                        painter: _ColonPainter(
+                          color: SpaceTheme.starYellow
+                              .withValues(alpha: 0.6 + 0.4 * _glowAnimation.value),
                         ),
                       ),
-                    );
-                  }).toList(),
+                    ),
+                    _buildTappableDigit(2, digitWidth, digitHeight),
+                    SizedBox(width: digitWidth * 0.08),
+                    _buildTappableDigit(3, digitWidth, digitHeight),
+                  ],
                 ),
               ],
             ),
@@ -363,10 +463,79 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     );
   }
 
-  Widget _buildSegmentSelector(BoxConstraints constraints) {
-    // Interactive 7-segment diagram at a good size
-    final selectorSize = (constraints.maxWidth * 0.25).clamp(80.0, 140.0);
-    final selectorHeight = selectorSize * 1.6;
+  Widget _buildTappableDigit(int position, double digitWidth, double digitHeight) {
+    final isFirstSelected = _selectedFirst == position;
+    final isSecondSelected = _selectedSecond == position;
+    final isSelected = isFirstSelected || isSecondSelected;
+
+    // Determine if this digit position is part of an invalid group
+    final digit = _currentDigits[position];
+    final hoursVal = _currentDigits[0] * 10 + _currentDigits[1];
+    final minutesVal = _currentDigits[2] * 10 + _currentDigits[3];
+    final isInvalidPart =
+        (position < 2 && hoursVal > 23) || (position >= 2 && minutesVal > 59);
+
+    // Active color depends on state
+    Color activeColor;
+    if (_solved) {
+      activeColor = SpaceTheme.alienGreen;
+    } else if (isInvalidPart) {
+      activeColor = SpaceTheme.rocketRed;
+    } else {
+      activeColor = SpaceTheme.starYellow;
+    }
+
+    return GestureDetector(
+      onTap: () => _onDigitTapped(position),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isFirstSelected
+                ? SpaceTheme.starYellow
+                : isSecondSelected
+                    ? SpaceTheme.alienGreen
+                    : Colors.transparent,
+            width: isSelected ? 3 : 0,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: (isFirstSelected
+                            ? SpaceTheme.starYellow
+                            : SpaceTheme.alienGreen)
+                        .withValues(alpha: 0.5),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : null,
+        ),
+        padding: const EdgeInsets.all(4),
+        child: SizedBox(
+          width: digitWidth,
+          height: digitHeight,
+          child: CustomPaint(
+            painter: _SevenSegmentPainter(
+              segments: SevenSegment.getSegments(digit),
+              activeColor: activeColor,
+              inactiveColor: const Color(0xFF1A1A2E),
+              glowValue: _glowAnimation.value,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // STATUS PANEL (attempts, swap info)
+  // ---------------------------------------------------------------------------
+
+  Widget _buildStatusPanel() {
+    final remaining = _puzzle!.maxAttempts - _attemptsUsed;
+    final hasSwap = _selectedFirst != null && _selectedSecond != null;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -379,153 +548,124 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            'Select two segments to swap:',
-            style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 13),
-          ),
-          const SizedBox(height: 12),
+          // Attempts indicator
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Interactive 7-segment diagram
-              SizedBox(
-                width: selectorSize,
-                height: selectorHeight,
-                child: Stack(
-                  children: SevenSegment.allSegments.map((seg) {
-                    final isSelected =
-                        seg == _selectedSegA || seg == _selectedSegB;
-                    return Positioned.fill(
-                      child: GestureDetector(
-                        onTap: () => _selectSegment(seg),
-                        child: CustomPaint(
-                          painter: _SegmentHighlightPainter(
-                            segment: seg,
-                            isSelected: isSelected,
-                            isFirst: seg == _selectedSegA,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+              const Icon(Icons.favorite, color: SpaceTheme.rocketRed, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                'Attempts: $remaining / ${_puzzle!.maxAttempts}',
+                style: SpaceTheme.bodyStyle.copyWith(
+                  fontSize: 14,
+                  color: remaining <= 1 ? SpaceTheme.rocketRed : SpaceTheme.moonSilver,
                 ),
-              ),
-              const SizedBox(width: 20),
-              // Segment buttons as backup
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: ['a', 'b', 'c', 'd']
-                        .map((seg) => _buildSegButton(seg))
-                        .toList(),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: ['e', 'f', 'g']
-                        .map((seg) => _buildSegButton(seg))
-                        .toList(),
-                  ),
-                ],
               ),
             ],
           ),
-          if (_selectedSegA != null || _selectedSegB != null) ...[
-            const SizedBox(height: 12),
-            AnimatedBuilder(
-              animation: _pulseAnimation,
-              builder: (context, _) {
+          const SizedBox(height: 10),
+          // Swap description
+          AnimatedBuilder(
+            animation: _pulseAnimation,
+            builder: (context, _) {
+              if (_selectedFirst != null && _selectedSecond == null) {
                 return Transform.scale(
                   scale: _pulseAnimation.value,
                   child: Text(
-                    'Swap: ${_selectedSegA ?? "?"} \u2194 ${_selectedSegB ?? "?"}',
-                    style: SpaceTheme.titleStyle.copyWith(
-                      color: SpaceTheme.cosmicPink,
-                      fontSize: 18,
+                    'Position ${_selectedFirst! + 1} selected -- tap another digit',
+                    style: SpaceTheme.bodyStyle.copyWith(
+                      color: SpaceTheme.starYellow,
+                      fontSize: 14,
                     ),
                   ),
                 );
-              },
-            ),
-          ],
+              } else if (hasSwap) {
+                final previewDigits = _currentDigits;
+                final timeStr =
+                    '${previewDigits[0]}${previewDigits[1]}:${previewDigits[2]}${previewDigits[3]}';
+                final valid = CircuitRepairPuzzle.isValidTime(previewDigits);
+                return Column(
+                  children: [
+                    Text(
+                      'Swap: position ${_selectedFirst! + 1} <-> position ${_selectedSecond! + 1}',
+                      style: SpaceTheme.bodyStyle.copyWith(
+                        color: SpaceTheme.cosmicPink,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Result: $timeStr ${valid ? "(valid!)" : "(invalid)"}',
+                      style: SpaceTheme.bodyStyle.copyWith(
+                        color: valid ? SpaceTheme.alienGreen : SpaceTheme.rocketRed,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return Text(
+                'Tap a digit on the clock to start',
+                style: SpaceTheme.bodyStyle.copyWith(
+                  color: SpaceTheme.moonSilver,
+                  fontSize: 14,
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSegButton(String seg) {
-    final isSelected = seg == _selectedSegA || seg == _selectedSegB;
-    final isFirst = seg == _selectedSegA;
+  // ---------------------------------------------------------------------------
+  // ACTION BUTTONS
+  // ---------------------------------------------------------------------------
 
-    return Padding(
-      padding: const EdgeInsets.all(4),
-      child: GestureDetector(
-        onTap: () => _selectSegment(seg),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: isSelected
-                ? (isFirst ? SpaceTheme.cosmicPink : SpaceTheme.alienGreen)
-                : SpaceTheme.deepSpace,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isSelected
-                  ? SpaceTheme.starYellow
-                  : SpaceTheme.nebulaPurple,
-              width: isSelected ? 2 : 1,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: (isFirst ? SpaceTheme.cosmicPink : SpaceTheme.alienGreen)
-                          .withValues(alpha: 0.4),
-                      blurRadius: 8,
-                      spreadRadius: 1,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Center(
-            child: Text(
-              seg.toUpperCase(),
-              style: SpaceTheme.titleStyle.copyWith(
-                fontSize: 16,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget _buildActionButtons() {
+    final hasSwap = _selectedFirst != null && _selectedSecond != null;
 
-  Widget _buildCheckButton() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: SizedBox(
-        width: double.infinity,
-        child: AnimatedBuilder(
-          animation: _pulseAnimation,
-          builder: (context, child) {
-            final hasSelection = _selectedSegA != null && _selectedSegB != null;
-            return Transform.scale(
-              scale: hasSelection ? _pulseAnimation.value : 1.0,
-              child: ElevatedButton.icon(
-                onPressed: _checkSolution,
-                icon: const Icon(Icons.build_circle_outlined),
-                label: Text(S.of(context)!.circuitRepairWinTitle),
-                style: SpaceTheme.primaryButtonStyle,
-              ),
-            );
-          },
-        ),
+      child: Row(
+        children: [
+          // Reset button
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: _resetSelection,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Reset'),
+              style: SpaceTheme.secondaryButtonStyle,
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Submit button
+          Expanded(
+            flex: 2,
+            child: AnimatedBuilder(
+              animation: _pulseAnimation,
+              builder: (context, _) {
+                return Transform.scale(
+                  scale: hasSwap ? _pulseAnimation.value : 1.0,
+                  child: ElevatedButton.icon(
+                    onPressed: hasSwap ? _submitAnswer : null,
+                    icon: const Icon(Icons.check_circle_outline),
+                    label: Text(S.of(context)!.circuitRepairWinTitle),
+                    style: SpaceTheme.primaryButtonStyle,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // DIALOGS
+  // ---------------------------------------------------------------------------
 
   Widget _buildWinDialog(int score) {
     return AnimatedBuilder(
@@ -547,7 +687,16 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                   Text(S.of(context)!.circuitRepairWinTitle,
                       style: SpaceTheme.headlineStyle,
                       textAlign: TextAlign.center),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
+                  Text(
+                    'The clock now reads ${_puzzle!.correctTimeString}',
+                    style: SpaceTheme.bodyStyle.copyWith(
+                      color: SpaceTheme.alienGreen,
+                      fontSize: 18,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
                   Text(S.of(context)!.circuitRepairWinDesc(score),
                       style: SpaceTheme.bodyStyle,
                       textAlign: TextAlign.center),
@@ -581,9 +730,69 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
       },
     );
   }
+
+  Widget _buildLoseDialog() {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: SpaceTheme.cardDecoration,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.warning_amber_rounded,
+                size: 64, color: SpaceTheme.rocketRed),
+            const SizedBox(height: 16),
+            Text(S.of(context)!.circuitRepairLoseTitle,
+                style: SpaceTheme.headlineStyle,
+                textAlign: TextAlign.center),
+            const SizedBox(height: 8),
+            Text(
+              'The correct time was ${_puzzle!.correctTimeString}',
+              style: SpaceTheme.bodyStyle.copyWith(
+                color: SpaceTheme.starYellow,
+                fontSize: 16,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(S.of(context)!.circuitRepairLoseDesc,
+                style: SpaceTheme.bodyStyle,
+                textAlign: TextAlign.center),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _generatePuzzle();
+                  },
+                  style: SpaceTheme.secondaryButtonStyle,
+                  child: Text(S.of(context)!.playAgain),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  style: SpaceTheme.primaryButtonStyle,
+                  child: Text(S.of(context)!.backToMenu),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-/// Paints a 7-segment display at large scale with CustomPaint.
+// =============================================================================
+// CUSTOM PAINTERS
+// =============================================================================
+
+/// Paints a single 7-segment digit at large scale.
 class _SevenSegmentPainter extends CustomPainter {
   final Set<String> segments;
   final Color activeColor;
@@ -602,8 +811,16 @@ class _SevenSegmentPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
     final t = w * 0.15; // segment thickness
-    final gap = t * 0.2;
+    final gap = t * 0.25;
 
+    // Segment rectangles matching standard 7-segment layout:
+    //  _a_
+    // |   |
+    // f   b
+    // |_g_|
+    // |   |
+    // e   c
+    // |_d_|
     final segmentRects = <String, Rect>{
       'a': Rect.fromLTWH(gap, 0, w - 2 * gap, t),
       'b': Rect.fromLTWH(w - t, gap, t, h / 2 - gap),
@@ -620,104 +837,51 @@ class _SevenSegmentPainter extends CustomPainter {
         ..color = isActive
             ? activeColor.withValues(alpha: 0.8 + 0.2 * glowValue)
             : inactiveColor;
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(entry.value, Radius.circular(t * 0.3)),
-        paint,
-      );
+      final rr = RRect.fromRectAndRadius(entry.value, Radius.circular(t * 0.3));
+      canvas.drawRRect(rr, paint);
+
       if (isActive) {
         final glowPaint = Paint()
           ..color = activeColor.withValues(alpha: 0.3 * glowValue)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(entry.value, Radius.circular(t * 0.3)),
-          glowPaint,
-        );
+        canvas.drawRRect(rr, glowPaint);
       }
     }
   }
 
   @override
   bool shouldRepaint(covariant _SevenSegmentPainter oldDelegate) =>
-      oldDelegate.glowValue != glowValue || oldDelegate.segments != segments;
+      oldDelegate.glowValue != glowValue ||
+      oldDelegate.segments != segments ||
+      oldDelegate.activeColor != activeColor;
 }
 
-/// Highlights individual segments for selection.
-class _SegmentHighlightPainter extends CustomPainter {
-  final String segment;
-  final bool isSelected;
-  final bool isFirst;
+/// Paints the colon (:) between hours and minutes as two dots.
+class _ColonPainter extends CustomPainter {
+  final Color color;
 
-  _SegmentHighlightPainter({
-    required this.segment,
-    required this.isSelected,
-    required this.isFirst,
-  });
+  _ColonPainter({required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final t = w * 0.18;
-    final gap = t * 0.2;
-
-    final segmentRects = <String, Rect>{
-      'a': Rect.fromLTWH(gap, 0, w - 2 * gap, t),
-      'b': Rect.fromLTWH(w - t, gap, t, h / 2 - gap),
-      'c': Rect.fromLTWH(w - t, h / 2 + gap, t, h / 2 - gap),
-      'd': Rect.fromLTWH(gap, h - t, w - 2 * gap, t),
-      'e': Rect.fromLTWH(0, h / 2 + gap, t, h / 2 - gap),
-      'f': Rect.fromLTWH(0, gap, t, h / 2 - gap),
-      'g': Rect.fromLTWH(gap, h / 2 - t / 2, w - 2 * gap, t),
-    };
-
-    final rect = segmentRects[segment];
-    if (rect == null) return;
-
-    Color color;
-    if (isSelected) {
-      color = isFirst ? SpaceTheme.cosmicPink : SpaceTheme.alienGreen;
-    } else {
-      color = SpaceTheme.nebulaPurple.withValues(alpha: 0.4);
-    }
-
+    final dotRadius = math.min(size.width, size.height) * 0.15;
+    final cx = size.width / 2;
     final paint = Paint()..color = color;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, Radius.circular(t * 0.3)),
-      paint,
-    );
 
-    // Glow for selected segments
-    if (isSelected) {
-      final glowPaint = Paint()
-        ..color = color.withValues(alpha: 0.3)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, Radius.circular(t * 0.3)),
-        glowPaint,
-      );
-    }
+    // Upper dot at ~1/3 height
+    canvas.drawCircle(Offset(cx, size.height * 0.33), dotRadius, paint);
+    // Lower dot at ~2/3 height
+    canvas.drawCircle(Offset(cx, size.height * 0.67), dotRadius, paint);
 
-    // Draw segment label
-    final center = rect.center;
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: segment.toUpperCase(),
-        style: TextStyle(
-          color: Colors.white.withValues(alpha: isSelected ? 1.0 : 0.5),
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout();
-    textPainter.paint(
-      canvas,
-      Offset(center.dx - textPainter.width / 2, center.dy - textPainter.height / 2),
-    );
+    // Subtle glow
+    final glowPaint = Paint()
+      ..color = color.withValues(alpha: 0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+    canvas.drawCircle(Offset(cx, size.height * 0.33), dotRadius, glowPaint);
+    canvas.drawCircle(Offset(cx, size.height * 0.67), dotRadius, glowPaint);
   }
 
   @override
-  bool shouldRepaint(covariant _SegmentHighlightPainter oldDelegate) =>
-      oldDelegate.isSelected != isSelected;
+  bool shouldRepaint(covariant _ColonPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

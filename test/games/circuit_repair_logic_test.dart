@@ -1,8 +1,7 @@
 // Unit tests for circuit_repair_logic.dart.
 //
-// Tests the 7-segment display puzzle logic: segment definitions for digits
-// 0-9, segment swapping mechanics, digit identification, and generated
-// puzzle invariants (corrupted display, answer validation).
+// Tests the digit-position-swap clock puzzle logic: SevenSegment rendering
+// data, time validation, swap mechanics, puzzle generation invariants.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:space_math_academy/features/games/services/circuit_repair_logic.dart';
@@ -29,23 +28,6 @@ void main() {
       expect(SevenSegment.getSegments(0), {'a', 'b', 'c', 'd', 'e', 'f'});
     });
 
-    test('digit 7 uses a, b, c', () {
-      expect(SevenSegment.getSegments(7), {'a', 'b', 'c'});
-    });
-
-    test('digit 4 uses b, c, f, g', () {
-      expect(SevenSegment.getSegments(4), {'b', 'c', 'f', 'g'});
-    });
-
-    test('all segment names are from a-g', () {
-      for (int d = 0; d <= 9; d++) {
-        for (final seg in SevenSegment.getSegments(d)) {
-          expect(SevenSegment.allSegments.contains(seg), isTrue,
-              reason: 'digit $d has invalid segment $seg');
-        }
-      }
-    });
-
     test('no two digits have identical segment sets', () {
       final seen = <String>{};
       for (int d = 0; d <= 9; d++) {
@@ -57,177 +39,233 @@ void main() {
     });
   });
 
-  group('SevenSegment.identifyDigit', () {
-    test('identifies all digits 0-9 correctly', () {
-      for (int d = 0; d <= 9; d++) {
-        expect(SevenSegment.identifyDigit(SevenSegment.getSegments(d)), d);
-      }
+  group('CircuitRepairPuzzle.isValidTime', () {
+    test('00:00 is valid', () {
+      expect(CircuitRepairPuzzle.isValidTime([0, 0, 0, 0]), isTrue);
     });
 
-    test('returns -1 for invalid segment set', () {
-      expect(SevenSegment.identifyDigit({'a', 'g'}), -1);
-      expect(SevenSegment.identifyDigit({}), -1);
+    test('23:59 is valid', () {
+      expect(CircuitRepairPuzzle.isValidTime([2, 3, 5, 9]), isTrue);
+    });
+
+    test('24:00 is invalid', () {
+      expect(CircuitRepairPuzzle.isValidTime([2, 4, 0, 0]), isFalse);
+    });
+
+    test('15:69 is invalid (minutes >= 60)', () {
+      expect(CircuitRepairPuzzle.isValidTime([1, 5, 6, 9]), isFalse);
+    });
+
+    test('12:30 is valid', () {
+      expect(CircuitRepairPuzzle.isValidTime([1, 2, 3, 0]), isTrue);
+    });
+
+    test('99:99 is invalid', () {
+      expect(CircuitRepairPuzzle.isValidTime([9, 9, 9, 9]), isFalse);
     });
   });
 
-  group('SevenSegment.applySwap', () {
-    test('swapping segments a and g on digit 0 produces different set', () {
-      final original = SevenSegment.getSegments(0); // {a,b,c,d,e,f}
-      final swapped = SevenSegment.applySwap(original, 'a', 'g');
-      // 'a' becomes 'g', 'g' not in original stays absent
-      // original has a -> becomes g; original does not have g -> no change
-      expect(swapped.contains('a'), isFalse);
-      expect(swapped.contains('g'), isTrue);
+  group('CircuitRepairPuzzle.applySwap', () {
+    test('swapping positions 0 and 3 works', () {
+      final digits = [1, 5, 6, 9];
+      final swapped = CircuitRepairPuzzle.applySwap(digits, 0, 3);
+      expect(swapped, [9, 5, 6, 1]);
     });
 
-    test('swapping two segments that are both present swaps them', () {
-      final segments = {'a', 'b', 'c'};
-      final swapped = SevenSegment.applySwap(segments, 'a', 'c');
-      // a->c, c->a, b stays
-      expect(swapped, {'c', 'b', 'a'}); // same set since both were present
+    test('swapping positions 1 and 2 works', () {
+      final digits = [1, 5, 6, 9];
+      final swapped = CircuitRepairPuzzle.applySwap(digits, 1, 2);
+      expect(swapped, [1, 6, 5, 9]);
     });
 
-    test('swapping and swapping back restores original', () {
-      for (int d = 0; d <= 9; d++) {
-        final original = SevenSegment.getSegments(d);
-        final swapped = SevenSegment.applySwap(original, 'a', 'g');
-        final restored = SevenSegment.applySwap(swapped, 'a', 'g');
-        expect(restored, original,
-            reason: 'double swap must restore original for digit $d');
-      }
-    });
-
-    test('swapping a segment with itself is identity', () {
-      final original = SevenSegment.getSegments(5);
-      final swapped = SevenSegment.applySwap(original, 'b', 'b');
-      expect(swapped, original);
+    test('double swap restores original', () {
+      final digits = [2, 3, 4, 5];
+      final swapped = CircuitRepairPuzzle.applySwap(digits, 0, 2);
+      final restored = CircuitRepairPuzzle.applySwap(swapped, 0, 2);
+      expect(restored, digits);
     });
   });
 
   group('CircuitRepairPuzzle.checkAnswer', () {
     test('correct answer in either order passes', () {
       final puzzle = CircuitRepairPuzzle(
-        correctDigits: [8],
-        corruptedDigits: [0],
-        corruptedSegments: [SevenSegment.applySwap(SevenSegment.getSegments(8), 'a', 'g')],
-        swappedSegA: 'a',
-        swappedSegB: 'g',
+        correctDigits: [1, 6, 5, 9],
+        displayedDigits: [1, 5, 6, 9],
+        swapPosA: 1,
+        swapPosB: 2,
+        maxAttempts: 3,
       );
-      expect(puzzle.checkAnswer('a', 'g'), isTrue);
-      expect(puzzle.checkAnswer('g', 'a'), isTrue);
+      expect(puzzle.checkAnswer(1, 2), isTrue);
+      expect(puzzle.checkAnswer(2, 1), isTrue);
     });
 
     test('wrong answer fails', () {
       final puzzle = CircuitRepairPuzzle(
-        correctDigits: [8],
-        corruptedDigits: [0],
-        corruptedSegments: [SevenSegment.applySwap(SevenSegment.getSegments(8), 'a', 'g')],
-        swappedSegA: 'a',
-        swappedSegB: 'g',
+        correctDigits: [1, 6, 5, 9],
+        displayedDigits: [1, 5, 6, 9],
+        swapPosA: 1,
+        swapPosB: 2,
+        maxAttempts: 3,
       );
-      expect(puzzle.checkAnswer('a', 'b'), isFalse);
-      expect(puzzle.checkAnswer('c', 'd'), isFalse);
+      expect(puzzle.checkAnswer(0, 1), isFalse);
+      expect(puzzle.checkAnswer(2, 3), isFalse);
+      expect(puzzle.checkAnswer(0, 3), isFalse);
+    });
+  });
+
+  group('CircuitRepairPuzzle.formatTime', () {
+    test('formats as HH:MM', () {
+      final puzzle = CircuitRepairPuzzle(
+        correctDigits: [1, 6, 5, 9],
+        displayedDigits: [1, 5, 6, 9],
+        swapPosA: 1,
+        swapPosB: 2,
+        maxAttempts: 3,
+      );
+      expect(puzzle.correctTimeString, '16:59');
+      expect(puzzle.displayedTimeString, '15:69');
+    });
+  });
+
+  group('CircuitRepairPuzzle validity helpers', () {
+    test('minutesInvalid detects >= 60', () {
+      final puzzle = CircuitRepairPuzzle(
+        correctDigits: [1, 6, 5, 9],
+        displayedDigits: [1, 5, 6, 9], // 15:69
+        swapPosA: 1,
+        swapPosB: 2,
+        maxAttempts: 3,
+      );
+      expect(puzzle.minutesInvalid, isTrue);
+      expect(puzzle.hoursInvalid, isFalse);
+    });
+
+    test('hoursInvalid detects >= 24', () {
+      final puzzle = CircuitRepairPuzzle(
+        correctDigits: [1, 2, 3, 0],
+        displayedDigits: [3, 2, 1, 0], // 32:10
+        swapPosA: 0,
+        swapPosB: 2,
+        maxAttempts: 3,
+      );
+      expect(puzzle.hoursInvalid, isTrue);
     });
   });
 
   group('CircuitRepairGenerator.generate (invariants)', () {
     final gradeLevelPairs = <List<int>>[
-      [1, 1], // 1 digit
-      [2, 1], // 2 digits
-      [4, 1], // 2+ digits
-      [4, 10], // higher level
+      [1, 1],
+      [1, 5],
+      [2, 1],
+      [2, 5],
+      [3, 1],
+      [4, 1],
     ];
 
     for (final pair in gradeLevelPairs) {
       final grade = pair[0];
       final level = pair[1];
 
-      test('grade=$grade level=$level: swapping back restores correct digits', () {
-        for (int seed = 0; seed < 5; seed++) {
+      test('grade=$grade level=$level: correct digits form a valid time', () {
+        for (int seed = 0; seed < 10; seed++) {
           final gen = CircuitRepairGenerator(seed: seed);
           final puzzle = gen.generate(grade: grade, level: level);
 
-          final segA = puzzle.swappedSegA;
-          final segB = puzzle.swappedSegB;
-
-          // For each digit position, applying the swap to correctDigits segments
-          // should produce the corruptedSegments
-          for (int i = 0; i < puzzle.correctDigits.length; i++) {
-            final originalSegs =
-                SevenSegment.getSegments(puzzle.correctDigits[i]);
-            final swappedSegs =
-                SevenSegment.applySwap(originalSegs, segA, segB);
-            expect(swappedSegs, puzzle.corruptedSegments[i],
-                reason:
-                    'applying swap to correct digit $i must produce corrupted segments (seed=$seed)');
-          }
+          expect(puzzle.correctDigits.length, 4,
+              reason: 'always 4 digits for HH:MM (seed=$seed)');
+          expect(CircuitRepairPuzzle.isValidTime(puzzle.correctDigits), isTrue,
+              reason: 'correct time must be valid (seed=$seed)');
         }
       });
 
-      test('grade=$grade level=$level: at least one digit is actually corrupted',
-          () {
-        for (int seed = 0; seed < 5; seed++) {
+      test('grade=$grade level=$level: displayed time is INVALID', () {
+        for (int seed = 0; seed < 10; seed++) {
           final gen = CircuitRepairGenerator(seed: seed);
           final puzzle = gen.generate(grade: grade, level: level);
 
-          bool anyChanged = false;
-          for (int i = 0; i < puzzle.correctDigits.length; i++) {
-            if (puzzle.corruptedDigits[i] != puzzle.correctDigits[i]) {
-              anyChanged = true;
+          expect(CircuitRepairPuzzle.isValidTime(puzzle.displayedDigits), isFalse,
+              reason:
+                  'displayed time ${puzzle.displayedTimeString} must be invalid (seed=$seed)');
+        }
+      });
+
+      test('grade=$grade level=$level: swapping back restores correct time', () {
+        for (int seed = 0; seed < 10; seed++) {
+          final gen = CircuitRepairGenerator(seed: seed);
+          final puzzle = gen.generate(grade: grade, level: level);
+
+          final restored = CircuitRepairPuzzle.applySwap(
+              puzzle.displayedDigits, puzzle.swapPosA, puzzle.swapPosB);
+          expect(restored, puzzle.correctDigits,
+              reason:
+                  'swapping back must restore correct digits (seed=$seed)');
+        }
+      });
+
+      test('grade=$grade level=$level: exactly ONE swap produces a valid time',
+          () {
+        for (int seed = 0; seed < 10; seed++) {
+          final gen = CircuitRepairGenerator(seed: seed);
+          final puzzle = gen.generate(grade: grade, level: level);
+
+          int validSwapCount = 0;
+          for (int i = 0; i < 4; i++) {
+            for (int j = i + 1; j < 4; j++) {
+              final candidate =
+                  CircuitRepairPuzzle.applySwap(puzzle.displayedDigits, i, j);
+              if (CircuitRepairPuzzle.isValidTime(candidate)) {
+                validSwapCount++;
+              }
             }
           }
-          expect(anyChanged, isTrue,
-              reason: 'at least one digit must change (seed=$seed)');
+          expect(validSwapCount, 1,
+              reason:
+                  'exactly one swap should produce a valid time for ${puzzle.displayedTimeString} (seed=$seed)');
         }
       });
 
-      test('grade=$grade level=$level: checkAnswer accepts the stored swap', () {
-        for (int seed = 0; seed < 3; seed++) {
+      test('grade=$grade level=$level: swapped positions are distinct', () {
+        for (int seed = 0; seed < 5; seed++) {
           final gen = CircuitRepairGenerator(seed: seed);
           final puzzle = gen.generate(grade: grade, level: level);
 
-          expect(puzzle.checkAnswer(puzzle.swappedSegA, puzzle.swappedSegB),
-              isTrue);
+          expect(puzzle.swapPosA, isNot(puzzle.swapPosB));
+          expect(puzzle.swapPosA, inInclusiveRange(0, 3));
+          expect(puzzle.swapPosB, inInclusiveRange(0, 3));
         }
       });
 
-      test('grade=$grade level=$level: swapped segments are distinct', () {
-        for (int seed = 0; seed < 3; seed++) {
+      test('grade=$grade level=$level: checkAnswer accepts stored swap', () {
+        for (int seed = 0; seed < 5; seed++) {
           final gen = CircuitRepairGenerator(seed: seed);
           final puzzle = gen.generate(grade: grade, level: level);
 
-          expect(puzzle.swappedSegA, isNot(puzzle.swappedSegB),
-              reason: 'swapped segments must be different');
-          expect(
-            SevenSegment.allSegments.contains(puzzle.swappedSegA),
-            isTrue,
-          );
-          expect(
-            SevenSegment.allSegments.contains(puzzle.swappedSegB),
-            isTrue,
-          );
+          expect(puzzle.checkAnswer(puzzle.swapPosA, puzzle.swapPosB), isTrue);
         }
       });
     }
 
-    test('digit count scales with grade', () {
-      final gen1 = CircuitRepairGenerator(seed: 42);
-      final p1 = gen1.generate(grade: 1, level: 1);
-      final gen4 = CircuitRepairGenerator(seed: 42);
-      final p4 = gen4.generate(grade: 4, level: 1);
+    test('grade 1 generates times in 10:00-12:59 range', () {
+      for (int seed = 0; seed < 20; seed++) {
+        final gen = CircuitRepairGenerator(seed: seed);
+        final puzzle = gen.generate(grade: 1, level: 1);
 
-      expect(p1.correctDigits.length, 1);
-      expect(p4.correctDigits.length, greaterThanOrEqualTo(2));
+        final hours = puzzle.correctDigits[0] * 10 + puzzle.correctDigits[1];
+        expect(hours, inInclusiveRange(10, 12),
+            reason:
+                'grade 1 hours should be 10-12, got $hours (seed=$seed)');
+      }
     });
 
-    test('all correct digits are in 0..9', () {
-      for (int seed = 0; seed < 5; seed++) {
-        final gen = CircuitRepairGenerator(seed: seed);
-        final puzzle = gen.generate(grade: 3, level: 5);
-        for (final d in puzzle.correctDigits) {
-          expect(d, inInclusiveRange(0, 9));
-        }
-      }
+    test('maxAttempts scales with grade', () {
+      final gen = CircuitRepairGenerator(seed: 42);
+      final p1 = gen.generate(grade: 1, level: 1);
+      final p2 = gen.generate(grade: 2, level: 1);
+      final p3 = gen.generate(grade: 3, level: 1);
+
+      expect(p1.maxAttempts, 5);
+      expect(p2.maxAttempts, 4);
+      expect(p3.maxAttempts, 3);
     });
   });
 }
