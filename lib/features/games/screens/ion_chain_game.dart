@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
@@ -25,33 +26,35 @@ class _IonChainGameState extends State<IonChainGame>
   late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
-  late AnimationController _dropController;
-  late Animation<double> _dropAnimation;
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
-  late AnimationController _rejectController;
-  late Animation<double> _rejectAnimation;
 
-  DifficultyConfig? currentDifficulty;
   IonChainPuzzle? puzzle;
-  late List<IonType?> chain;
-  late List<IonType> availableIons;
+  DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
-  bool _won = false;
-  int _lastDroppedIndex = -1;
-  int _rejectedIndex = -1;
 
-  static const Map<IonType, Color> _ionColors = {
+  List<IonType?> _playerChain = [];
+
+  static const _beadColors = {
     IonType.red: Color(0xFFE63946),
-    IonType.blue: Color(0xFF00C9DB),
+    IonType.blue: Color(0xFF457B9D),
     IonType.green: Color(0xFF06FFA5),
     IonType.yellow: Color(0xFFFFD700),
-    IonType.purple: Color(0xFF6B48FF),
+    IonType.purple: Color(0xFFBB86FC),
+  };
+
+  static const _beadShapes = {
+    IonType.red: Icons.star,
+    IonType.blue: Icons.circle,
+    IonType.green: Icons.hexagon,
+    IonType.yellow: Icons.diamond,
+    IonType.purple: Icons.change_history,
   };
 
   @override
   void initState() {
     super.initState();
+
     _glowController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
@@ -63,13 +66,8 @@ class _IonChainGameState extends State<IonChainGame>
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
-
-    _dropController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-    _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
+    _successAnimation =
+        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
 
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1000),
@@ -77,19 +75,6 @@ class _IonChainGameState extends State<IonChainGame>
     )..repeat(reverse: true);
     _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
         .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
-
-    _rejectController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-    _rejectAnimation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _rejectController, curve: Curves.easeOut));
-    _rejectController.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        setState(() => _rejectedIndex = -1);
-        _rejectController.reset();
-      }
-    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -104,190 +89,109 @@ class _IonChainGameState extends State<IonChainGame>
   void dispose() {
     _glowController.dispose();
     _successController.dispose();
-    _dropController.dispose();
     _pulseController.dispose();
-    _rejectController.dispose();
     super.dispose();
   }
 
-  void _generatePuzzle() {
+  void _generatePuzzle() async {
     if (currentDifficulty == null) return;
-
-    setState(() {
-      _isGenerating = true;
-      _won = false;
-      _lastDroppedIndex = -1;
-      _rejectedIndex = -1;
-      _successController.reset();
-    });
+    setState(() { _isGenerating = true; _playerChain = []; _successController.reset(); });
 
     final grade = currentDifficulty!.grade;
-    int chainLength;
-    int ionTypeCount;
-    int ruleCount;
+    final level = currentDifficulty!.level;
 
+    // Map grade/level to puzzle parameters
+    int chainLength, ionTypeCount, ruleCount, blanksToRemove;
     if (grade <= 1) {
-      chainLength = 5;
-      ionTypeCount = 3;
-      ruleCount = 1;
+      chainLength = 5; ionTypeCount = 3; ruleCount = 1; blanksToRemove = 2;
     } else if (grade <= 2) {
-      chainLength = 7;
-      ionTypeCount = 3;
-      ruleCount = 2;
+      chainLength = 6 + (level > 5 ? 1 : 0); ionTypeCount = 3; ruleCount = 1 + (level > 5 ? 1 : 0); blanksToRemove = 3;
     } else {
-      chainLength = (9 + currentDifficulty!.level ~/ 4).clamp(9, 12);
-      ionTypeCount = 4;
-      ruleCount = (3 + currentDifficulty!.level ~/ 5).clamp(3, 5);
+      chainLength = 7 + (level > 5 ? 2 : 0); ionTypeCount = 4; ruleCount = 2 + (level > 8 ? 1 : 0); blanksToRemove = 3 + (level > 5 ? 1 : 0);
     }
 
-    final blanksToRemove = (chainLength * 0.4).ceil().clamp(2, chainLength - 2);
-
-    puzzle = IonChainPuzzle.generate(
+    final p = IonChainPuzzle.generate(
       chainLength: chainLength,
       ionTypeCount: ionTypeCount,
       ruleCount: ruleCount,
       blanksToRemove: blanksToRemove,
     );
 
-    setState(() {
-      chain = List<IonType?>.from(puzzle!.chain);
-      availableIons = List<IonType>.from(puzzle!.availableIons);
-      _isGenerating = false;
-    });
+    if (mounted) {
+      setState(() { puzzle = p; _playerChain = List<IonType?>.from(p.chain); _isGenerating = false; });
+    }
   }
 
-  bool _wouldViolateRules(IonType ion, int index) {
-    // Temporarily place and check adjacency rules
-    final testChain = List<IonType?>.from(chain);
-    testChain[index] = ion;
+  void _placeBeadInSlot(int slotIndex, IonType bead) {
+    if (_playerChain[slotIndex] != null) return;
+    if (puzzle!.chain[slotIndex] != null) return;
 
-    // Check left neighbor
-    if (index > 0 && testChain[index - 1] != null) {
+    final testChain = List<IonType?>.from(_playerChain);
+    testChain[slotIndex] = bead;
+
+    bool valid = true;
+    if (slotIndex > 0 && testChain[slotIndex - 1] != null) {
       for (final rule in puzzle!.rules) {
-        if (!rule.check(testChain[index - 1], ion)) return true;
+        if (!rule.check(testChain[slotIndex - 1], bead)) { valid = false; break; }
       }
     }
-    // Check right neighbor
-    if (index < testChain.length - 1 && testChain[index + 1] != null) {
+    if (valid && slotIndex < testChain.length - 1 && testChain[slotIndex + 1] != null) {
       for (final rule in puzzle!.rules) {
-        if (!rule.check(ion, testChain[index + 1])) return true;
+        if (!rule.check(bead, testChain[slotIndex + 1])) { valid = false; break; }
       }
     }
-    return false;
-  }
 
-  void _placeIon(IonType ion, int index) {
-    if (_won) return;
-    if (chain[index] != null) return;
-
-    // Validate adjacency rules before placing
-    if (_wouldViolateRules(ion, index)) {
+    if (!valid) {
       HapticFeedback.heavyImpact();
-      setState(() {
-        _rejectedIndex = index;
-      });
-      _rejectController.forward(from: 0.0);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Rule violation! This bead can\'t go here.'),
+        backgroundColor: SpaceTheme.rocketRed, duration: Duration(seconds: 1),
+      ));
       return;
     }
 
-    HapticFeedback.selectionClick();
+    HapticFeedback.lightImpact();
+    setState(() { _playerChain[slotIndex] = bead; });
 
-    setState(() {
-      chain[index] = ion;
-      availableIons.remove(ion);
-      _lastDroppedIndex = index;
-      _dropController.forward(from: 0.0);
-    });
-
-    _checkSolution();
-  }
-
-  void _removeIon(int index) {
-    if (puzzle!.chain[index] != null) return; // was pre-filled
-
-    final ion = chain[index];
-    if (ion == null) return;
-
-    HapticFeedback.selectionClick();
-    setState(() {
-      chain[index] = null;
-      availableIons.add(ion);
-      _lastDroppedIndex = -1;
-    });
-  }
-
-  void _checkSolution() {
-    if (chain.any((c) => c == null)) return;
-
-    if (IonChainPuzzle.validateChain(chain, puzzle!.rules)) {
-      _handleWin();
-    } else {
-      _handleIncorrect();
+    if (!_playerChain.contains(null)) {
+      if (IonChainPuzzle.validateChain(_playerChain, puzzle!.rules)) {
+        _handleWin();
+      }
     }
+  }
+
+  void _removeBeadFromSlot(int slotIndex) {
+    if (puzzle!.chain[slotIndex] != null) return;
+    if (_playerChain[slotIndex] == null) return;
+    HapticFeedback.lightImpact();
+    setState(() { _playerChain[slotIndex] = null; });
   }
 
   void _handleWin() {
-    _won = true;
     HapticFeedback.lightImpact();
-
-    int baseScore = 100 * widget.grade;
-    int levelBonus = widget.level * 25;
-    int ruleBonus = puzzle!.rules.length * 50;
-    int totalScore = baseScore + levelBonus + ruleBonus;
+    int totalScore = 100 * widget.grade + widget.level * 25;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      gameType: 'ion_chain',
-      difficulty: widget.level,
-      score: totalScore,
+      gameType: 'ion_chain', difficulty: widget.level, score: totalScore,
     ));
 
     _successController.forward(from: 0.0);
-
     if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _buildWinDialog(totalScore),
-      );
+      showDialog(context: context, barrierDismissible: false,
+        builder: (_) => _buildWinDialog(totalScore));
     }
-  }
-
-  void _handleIncorrect() {
-    HapticFeedback.heavyImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(S.of(context)!.ionChainLoseDesc)),
-          ],
-        ),
-        backgroundColor: SpaceTheme.rocketRed,
-        duration: const Duration(seconds: 2),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final s = S.of(context)!;
 
-    if (_isGenerating || puzzle == null) {
-      return Scaffold(
-        body: SpaceBackground(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: 16),
-                Text(s.loadingAdventure, style: SpaceTheme.bodyStyle),
-              ],
-            ),
-          ),
-        ),
-      );
+    if (puzzle == null || _isGenerating) {
+      return Scaffold(body: SpaceBackground(child: Center(child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [const CircularProgressIndicator(), const SizedBox(height: 16),
+          Text(s.loadingAdventure, style: SpaceTheme.bodyStyle)],
+      ))));
     }
 
     return Scaffold(
@@ -295,29 +199,23 @@ class _IonChainGameState extends State<IonChainGame>
         child: SafeArea(
           child: Column(
             children: [
-              GameUI(
-                title: s.ionChainTitle,
-                level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  s.ionChainInstructions,
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 4),
-              _buildRules(),
+              GameUI(title: s.ionChainTitle, level: widget.level,
+                onBack: () => Navigator.of(context).pop()),
               Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isWide = constraints.maxWidth > 700;
-                    return isWide
-                        ? _buildWideLayout(constraints)
-                        : _buildCompactLayout(constraints);
-                  },
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildInstructions(s),
+                      const SizedBox(height: 10),
+                      _buildRules(),
+                      const SizedBox(height: 14),
+                      _buildBracelet(),
+                      const SizedBox(height: 14),
+                      _buildBeadTray(),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -327,395 +225,232 @@ class _IonChainGameState extends State<IonChainGame>
     );
   }
 
-  Widget _buildWideLayout(BoxConstraints constraints) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+  Widget _buildInstructions(S s) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+      ),
+      child: Row(children: [
+        const Icon(Icons.info_outline, color: SpaceTheme.starYellow, size: 18),
+        const SizedBox(width: 8),
+        Expanded(child: Text(s.ionChainInstructions,
+          style: SpaceTheme.bodyStyle.copyWith(fontSize: 11))),
+      ]),
+    );
+  }
+
+  Widget _buildRules() {
+    final isDE = Localizations.localeOf(context).languageCode == 'de';
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: SpaceTheme.rocketRed.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: SpaceTheme.rocketRed.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            flex: 3,
-            child: _buildChainArea(),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 2,
-            child: _buildIonTray(),
-          ),
+          Text('RULES', style: SpaceTheme.bodyStyle.copyWith(
+            fontSize: 11, color: SpaceTheme.rocketRed, letterSpacing: 1.5)),
+          const SizedBox(height: 6),
+          ...puzzle!.rules.map((rule) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(children: [
+              const Icon(Icons.block, color: SpaceTheme.rocketRed, size: 14),
+              const SizedBox(width: 6),
+              Expanded(child: Text(isDE ? rule.descriptionDe : rule.description,
+                style: SpaceTheme.bodyStyle.copyWith(fontSize: 12))),
+            ]),
+          )),
         ],
       ),
     );
   }
 
-  Widget _buildCompactLayout(BoxConstraints constraints) {
-    return Column(
-      children: [
-        Expanded(
-          flex: 3,
-          child: _buildChainArea(),
-        ),
-        const SizedBox(height: 8),
-        Expanded(
-          flex: 2,
-          child: _buildIonTray(),
-        ),
-        const SizedBox(height: 8),
-      ],
-    );
-  }
+  Widget _buildBracelet() {
+    return LayoutBuilder(builder: (context, constraints) {
+      final slotCount = _playerChain.length;
+      final maxSlotSize = ((constraints.maxWidth - 32) / slotCount).clamp(40.0, 60.0);
 
-  Widget _buildRules() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF06FFA5).withValues(alpha: 0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: puzzle!.rules.map((rule) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Row(
-              children: [
-                const Icon(Icons.rule, color: Color(0xFF06FFA5), size: 14),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    rule.description,
-                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 11),
-                  ),
-                ),
-              ],
+      return AnimatedBuilder(
+        animation: _glowAnimation,
+        builder: (context, _) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+            decoration: BoxDecoration(
+              color: SpaceTheme.deepSpace.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value * 0.4),
+                width: 2),
             ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildChainArea() {
-    return Center(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // Size chain slots to fit available width
-          final maxSlotW = (constraints.maxWidth - 48) / puzzle!.chainLength;
-          final slotSize = maxSlotW.clamp(36.0, 60.0);
-
-          return AnimatedBuilder(
-            animation: Listenable.merge([_glowAnimation, _pulseAnimation, _rejectAnimation]),
-            builder: (context, child) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
-                margin: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    colors: [
-                      const Color(0xFF06FFA5)
-                          .withValues(alpha: 0.1 * _glowAnimation.value),
-                      SpaceTheme.deepSpace.withValues(alpha: 0.05),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFF06FFA5)
-                        .withValues(alpha: _glowAnimation.value * 0.5),
-                    width: 2,
-                  ),
-                ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(puzzle!.chainLength, (i) {
-                      // Draw connector line between slots
-                      final slot = _buildChainSlot(i, slotSize);
-                      if (i < puzzle!.chainLength - 1) {
-                        return Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            slot,
-                            Container(
-                              width: 8,
-                              height: 3,
-                              color: SpaceTheme.starYellow.withValues(alpha: 0.4),
-                            ),
-                          ],
-                        );
-                      }
-                      return slot;
-                    }),
-                  ),
-                ),
-              );
-            },
+            child: Column(children: [
+              Text('PLASMA CONDUIT', style: SpaceTheme.bodyStyle.copyWith(
+                fontSize: 11, color: SpaceTheme.starYellow, letterSpacing: 2)),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(slotCount, (i) => _buildSlot(i, maxSlotSize)),
+              ),
+            ]),
           );
         },
-      ),
-    );
+      );
+    });
   }
 
-  Widget _buildChainSlot(int index, double slotSize) {
-    final ion = chain[index];
-    final isPreFilled = puzzle!.chain[index] != null;
-    final isEmpty = ion == null;
-    final isLastDropped = index == _lastDroppedIndex;
-    final isRejected = index == _rejectedIndex;
+  Widget _buildSlot(int index, double size) {
+    final isClue = puzzle!.chain[index] != null;
+    final value = _playerChain[index];
 
-    Widget slot;
-    if (isEmpty) {
-      slot = DragTarget<IonType>(
-        builder: (context, candidateData, rejectedData) {
-          final isHovering = candidateData.isNotEmpty;
+    if (value == null) {
+      return DragTarget<IonType>(
+        builder: (context, candidates, _) {
+          final hover = candidates.isNotEmpty;
           return AnimatedBuilder(
             animation: _pulseAnimation,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: isHovering ? 1.1 : _pulseAnimation.value,
-                child: Container(
-                  width: slotSize,
-                  height: slotSize,
-                  decoration: BoxDecoration(
-                    color: isRejected
-                        ? SpaceTheme.rocketRed
-                            .withValues(alpha: 0.5 * (1.0 - _rejectAnimation.value))
-                        : isHovering
-                            ? const Color(0xFF06FFA5).withValues(alpha: 0.3)
-                            : SpaceTheme.deepSpace.withValues(alpha: 0.6),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isRejected
-                          ? SpaceTheme.rocketRed
-                          : isHovering
-                              ? const Color(0xFF06FFA5)
-                              : Colors.grey.shade600,
-                      width: isHovering ? 3 : 2,
-                    ),
-                    boxShadow: isHovering
-                        ? [
-                            BoxShadow(
-                              color: const Color(0xFF06FFA5).withValues(alpha: 0.6),
-                              blurRadius: 8,
-                              spreadRadius: 2,
-                            ),
-                          ]
-                        : isRejected
-                            ? [
-                                BoxShadow(
-                                  color: SpaceTheme.rocketRed
-                                      .withValues(alpha: 0.8 * (1.0 - _rejectAnimation.value)),
-                                  blurRadius: 12,
-                                  spreadRadius: 3,
-                                ),
-                              ]
-                            : null,
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.add,
-                      color: Colors.grey.shade500,
-                      size: slotSize * 0.35,
-                    ),
-                  ),
-                ),
-              );
-            },
+            builder: (context, _) => Container(
+              width: size, height: size,
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: hover ? SpaceTheme.starYellow.withValues(alpha: 0.3)
+                    : SpaceTheme.deepSpace.withValues(alpha: 0.4),
+                border: Border.all(
+                  color: hover ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
+                  width: hover ? 2.5 : 1.5),
+              ),
+              child: Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Icon(Icons.add, color: SpaceTheme.nebulaPurple, size: size * 0.35),
+              ),
+            ),
           );
         },
         onWillAcceptWithDetails: (_) => true,
-        onAcceptWithDetails: (details) => _placeIon(details.data, index),
-      );
-    } else {
-      final color = _ionColors[ion]!;
-      slot = GestureDetector(
-        onTap: isPreFilled ? null : () => _removeIon(index),
-        child: Container(
-          width: slotSize,
-          height: slotSize,
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              colors: [color, color.withValues(alpha: 0.6)],
-            ),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: isPreFilled ? Colors.white54 : color,
-              width: isPreFilled ? 3 : 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                  color: color.withValues(alpha: 0.5),
-                  blurRadius: 8,
-                  spreadRadius: 1),
-            ],
-          ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  ion.name[0].toUpperCase(),
-                  style: SpaceTheme.headlineStyle.copyWith(
-                      fontSize: slotSize * 0.35, color: Colors.white),
-                ),
-                if (!isPreFilled)
-                  Icon(Icons.close, color: Colors.white38, size: slotSize * 0.2),
-              ],
-            ),
-          ),
-        ),
+        onAcceptWithDetails: (d) => _placeBeadInSlot(index, d.data),
       );
     }
 
-    if (isLastDropped && !isEmpty) {
-      return ScaleTransition(scale: _dropAnimation, child: slot);
-    }
-    return slot;
-  }
+    final color = _beadColors[value] ?? SpaceTheme.starYellow;
+    final icon = _beadShapes[value] ?? Icons.circle;
 
-  Widget _buildIonTray() {
-    if (availableIons.isEmpty) {
-      return Center(
-        child: Text(
-          'All ions placed!',
-          style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow),
-        ),
-      );
-    }
-
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        padding: const EdgeInsets.all(12),
-        decoration: SpaceTheme.cardDecoration.copyWith(
-          border: Border.all(color: const Color(0xFF00C9DB), width: 2),
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final maxChipW = (constraints.maxWidth - 32) / 5;
-            final chipSize = maxChipW.clamp(36.0, 55.0);
-
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: List.generate(availableIons.length, (i) {
-                final ion = availableIons[i];
-                final color = _ionColors[ion]!;
-                return Draggable<IonType>(
-                  data: ion,
-                  feedback: Material(
-                    color: Colors.transparent,
-                    child: Container(
-                      width: chipSize + 10,
-                      height: chipSize + 10,
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          colors: [color, color.withValues(alpha: 0.6)],
-                        ),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                              color: color.withValues(alpha: 0.8),
-                              blurRadius: 20,
-                              spreadRadius: 5),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          ion.name[0].toUpperCase(),
-                          style: SpaceTheme.headlineStyle
-                              .copyWith(fontSize: chipSize * 0.4, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ),
-                  childWhenDragging: Opacity(
-                    opacity: 0.3,
-                    child: _buildIonChip(ion, color, chipSize),
-                  ),
-                  child: _buildIonChip(ion, color, chipSize),
-                );
-              }),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIonChip(IonType ion, Color color, double size) {
-    return Container(
-      width: size,
-      height: size,
+    Widget bead = Container(
+      width: size, height: size,
+      margin: const EdgeInsets.symmetric(horizontal: 2),
       decoration: BoxDecoration(
-        gradient: RadialGradient(
-          colors: [color, color.withValues(alpha: 0.6)],
-        ),
         shape: BoxShape.circle,
-        border: Border.all(color: color.withValues(alpha: 0.7), width: 2),
+        color: color.withValues(alpha: 0.35),
+        border: Border.all(color: color, width: 2),
+        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 6)],
       ),
-      child: Center(
-        child: Text(
-          ion.name[0].toUpperCase(),
-          style: SpaceTheme.headlineStyle
-              .copyWith(fontSize: size * 0.35, color: Colors.white),
+      child: Icon(icon, color: color, size: size * 0.45),
+    );
+
+    if (!isClue) {
+      bead = GestureDetector(onTap: () => _removeBeadFromSlot(index), child: bead);
+    } else {
+      bead = Stack(children: [bead,
+        Positioned(bottom: 0, right: 0,
+          child: Icon(Icons.lock, color: Colors.white30, size: size * 0.22))]);
+    }
+    return bead;
+  }
+
+  Widget _buildBeadTray() {
+    final available = <IonType, int>{};
+    for (final b in puzzle!.availableIons) { available[b] = (available[b] ?? 0) + 1; }
+    for (int i = 0; i < _playerChain.length; i++) {
+      if (puzzle!.chain[i] == null && _playerChain[i] != null) {
+        final t = _playerChain[i]!;
+        available[t] = (available[t] ?? 1) - 1;
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
+      ),
+      child: Column(children: [
+        Text('AVAILABLE BEADS', style: SpaceTheme.bodyStyle.copyWith(
+          fontSize: 11, color: SpaceTheme.starYellow, letterSpacing: 1.5)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 10, runSpacing: 8, alignment: WrapAlignment.center,
+          children: puzzle!.ionTypes.map((type) {
+            final count = available[type] ?? 0;
+            final color = _beadColors[type] ?? SpaceTheme.starYellow;
+            final icon = _beadShapes[type] ?? Icons.circle;
+
+            return Draggable<IonType>(
+              data: count > 0 ? type : null,
+              maxSimultaneousDrags: count > 0 ? 1 : 0,
+              feedback: Material(color: Colors.transparent, child: Container(
+                width: 50, height: 50,
+                decoration: BoxDecoration(shape: BoxShape.circle,
+                  color: color.withValues(alpha: 0.5),
+                  boxShadow: [BoxShadow(color: color.withValues(alpha: 0.7), blurRadius: 15, spreadRadius: 3)]),
+                child: Icon(icon, color: Colors.white, size: 28),
+              )),
+              childWhenDragging: Opacity(opacity: 0.3, child: _beadChip(type, color, icon, count)),
+              child: _beadChip(type, color, icon, count),
+            );
+          }).toList(),
         ),
-      ),
+      ]),
     );
   }
 
-  Widget _buildWinDialog(int bonusScore) {
+  Widget _beadChip(IonType type, Color color, IconData icon, int count) {
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      Container(
+        width: 52, height: 52,
+        decoration: BoxDecoration(shape: BoxShape.circle,
+          color: count > 0 ? color.withValues(alpha: 0.25) : Colors.white10,
+          border: Border.all(color: count > 0 ? color : Colors.white24, width: 2)),
+        child: Icon(icon, color: count > 0 ? color : Colors.white24, size: 26),
+      ),
+      const SizedBox(height: 4),
+      Text('×$count', style: SpaceTheme.bodyStyle.copyWith(
+        fontSize: 11, color: count > 0 ? color : Colors.white24)),
+    ]);
+  }
+
+  Widget _buildWinDialog(int score) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: _successAnimation,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _successAnimation.value,
-          child: Dialog(
-            backgroundColor: Colors.transparent,
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: SpaceTheme.cardDecoration,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.emoji_events, size: 64, color: SpaceTheme.starYellow),
-                  const SizedBox(height: 16),
-                  Text(s.ionChainWinTitle,
-                      style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
-                  const SizedBox(height: 16),
-                  Text(s.ionChainWinDesc(bonusScore),
-                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          _generatePuzzle();
-                        },
-                        style: SpaceTheme.secondaryButtonStyle,
-                        child: Text(s.playAgain),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
-                        },
-                        style: SpaceTheme.primaryButtonStyle,
-                        child: Text(s.backToMenu),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+      builder: (context, _) => Transform.scale(
+        scale: _successAnimation.value,
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: SpaceTheme.cardDecoration,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.link, size: 64, color: SpaceTheme.starYellow),
+              const SizedBox(height: 16),
+              Text(s.ionChainWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              Text(s.ionChainWinDesc(score), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+              const SizedBox(height: 24),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                ElevatedButton(onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                  style: SpaceTheme.secondaryButtonStyle, child: Text(s.playAgain)),
+                ElevatedButton(onPressed: () { Navigator.of(context).pop(); Navigator.of(context).pop(); },
+                  style: SpaceTheme.primaryButtonStyle, child: Text(s.backToMenu)),
+              ]),
+            ]),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
