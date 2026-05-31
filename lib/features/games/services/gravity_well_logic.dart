@@ -4,7 +4,9 @@ import 'package:flutter/foundation.dart';
 
 import '../constants/difficulty_manager.dart';
 
-/// A balance scale showing objects in equilibrium
+/// A balance scale showing objects in equilibrium.
+/// Players see labeled objects and numeric weights on each side.
+/// The scale is always balanced: leftTotal == rightTotal.
 class BalanceScale {
   final List<ScaleItem> leftSide;
   final List<ScaleItem> rightSide;
@@ -16,11 +18,13 @@ class BalanceScale {
   bool get isBalanced => leftTotal == rightTotal;
 }
 
-/// An item on a scale, either known or unknown weight
+/// An item on a scale: either a labeled object (A, B, C...) or a
+/// numeric weight block ("5 kg"). [isKnown] means the weight is
+/// directly visible to the player.
 class ScaleItem {
-  final String label; // e.g., 'A', 'B', 'C'
+  final String label;
   final int weight;
-  final bool isKnown; // whether weight is shown to player
+  final bool isKnown;
 
   const ScaleItem({
     required this.label,
@@ -31,8 +35,8 @@ class ScaleItem {
 
 class GravityWellPuzzle {
   final List<BalanceScale> scales;
-  final Map<String, int> unknownWeights; // label -> weight (the answers)
-  final Map<String, int> knownWeights; // label -> weight (shown to player)
+  final Map<String, int> unknownWeights; // label -> weight (answers)
+  final Map<String, int> knownWeights;   // label -> weight (given)
   final int objectCount;
 
   const GravityWellPuzzle({
@@ -42,7 +46,6 @@ class GravityWellPuzzle {
     required this.objectCount,
   });
 
-  /// Check if user's answers match the unknown weights
   bool checkSolution(Map<String, int> userAnswers) {
     for (final entry in unknownWeights.entries) {
       if (userAnswers[entry.key] != entry.value) return false;
@@ -58,60 +61,207 @@ class GravityWellLogic {
     final difficulty = args['difficulty'] as DifficultyConfig;
     final rng = math.Random();
 
-    debugPrint('[GRAVITY_WELL] Generating puzzle for grade=$grade, level=$level');
+    debugPrint('[GRAVITY_WELL] Generating grade=$grade level=$level');
 
-    // Difficulty scaling
-    int objectCount;
-    int scaleCount;
-    int maxWeight;
+    // Difficulty parameters
+    int objectCount, scaleCount, maxWeight;
 
     if (difficulty.grade <= 1) {
-      objectCount = 2;
-      scaleCount = 1;
+      objectCount = 3;   // A, B, C -- one unknown
+      scaleCount = 2;
       maxWeight = 10;
     } else if (difficulty.grade <= 2) {
-      objectCount = level <= 5 ? 2 : 3;
-      scaleCount = level <= 5 ? 1 : 2;
+      objectCount = 3;
+      scaleCount = 2;
       maxWeight = 15;
     } else if (difficulty.grade <= 3) {
-      objectCount = level <= 3 ? 3 : 4;
-      scaleCount = level <= 3 ? 2 : 3;
+      objectCount = 4;
+      scaleCount = 3;
       maxWeight = 20;
     } else {
-      objectCount = level <= 5 ? 4 : 5;
-      scaleCount = level <= 5 ? 3 : 4;
-      maxWeight = level <= 10 ? 20 : 30;
+      objectCount = 5;
+      scaleCount = 3 + (level > 10 ? 1 : 0);
+      maxWeight = 25;
     }
 
-    // Generate object labels and weights
-    final labels = List.generate(objectCount, (i) => String.fromCharCode(65 + i)); // A, B, C, ...
+    // How many unknowns to solve for
+    final unknownCount = (difficulty.grade <= 1) ? 1
+        : (difficulty.grade <= 2) ? (level <= 5 ? 1 : 2)
+        : (difficulty.grade <= 3) ? 2
+        : (level <= 5 ? 2 : 3);
+
+    for (int attempt = 0; attempt < 30; attempt++) {
+      final result = _tryGenerate(
+        objectCount, scaleCount, unknownCount, maxWeight, rng,
+      );
+      if (result != null) return result;
+    }
+
+    // Fallback: A=3, B=5, C=8. Scale 1: A+B = C. Scale 2: C = A+B.
+    // Unknown: C. Known: A=3, B=5.
+    debugPrint('[GRAVITY_WELL] Using fallback puzzle');
+    return const GravityWellPuzzle(
+      scales: [
+        BalanceScale(leftSide: [
+          ScaleItem(label: 'A', weight: 3, isKnown: true),
+          ScaleItem(label: 'B', weight: 5, isKnown: true),
+        ], rightSide: [
+          ScaleItem(label: 'C', weight: 8, isKnown: false),
+        ]),
+        BalanceScale(leftSide: [
+          ScaleItem(label: 'C', weight: 8, isKnown: false),
+          ScaleItem(label: '2 kg', weight: 2, isKnown: true),
+        ], rightSide: [
+          ScaleItem(label: 'A', weight: 3, isKnown: true),
+          ScaleItem(label: 'B', weight: 5, isKnown: true),
+          ScaleItem(label: '2 kg', weight: 2, isKnown: true),
+        ]),
+      ],
+      unknownWeights: {'C': 8},
+      knownWeights: {'A': 3, 'B': 5},
+      objectCount: 3,
+    );
+  }
+
+  static GravityWellPuzzle? _tryGenerate(
+    int objectCount, int scaleCount, int unknownCount,
+    int maxWeight, math.Random rng,
+  ) {
+    // Generate distinct weights for each object
+    final labels = List.generate(objectCount, (i) => String.fromCharCode(65 + i));
     final weights = <String, int>{};
+    final usedWeights = <int>{};
     for (final label in labels) {
-      weights[label] = rng.nextInt(maxWeight - 1) + 1; // 1 to maxWeight
+      int w;
+      int tries = 0;
+      do {
+        w = rng.nextInt(maxWeight - 1) + 2; // 2 to maxWeight
+        tries++;
+      } while (usedWeights.contains(w) && tries < 50);
+      usedWeights.add(w);
+      weights[label] = w;
     }
 
-    // Decide which objects are unknown (at least 1)
-    final unknownCount = (objectCount * 0.5).ceil().clamp(1, objectCount - 1);
-    final shuffledLabels = List<String>.from(labels)..shuffle(rng);
-    final unknownLabels = shuffledLabels.take(unknownCount).toSet();
+    // Pick unknowns
+    final shuffled = List<String>.from(labels)..shuffle(rng);
+    final unknownLabels = shuffled.take(unknownCount).toSet();
+    final knownLabels = labels.where((l) => !unknownLabels.contains(l)).toSet();
 
     final knownWeights = <String, int>{};
     final unknownWeights = <String, int>{};
-    for (final label in labels) {
-      if (unknownLabels.contains(label)) {
-        unknownWeights[label] = weights[label]!;
+    for (final l in labels) {
+      if (unknownLabels.contains(l)) {
+        unknownWeights[l] = weights[l]!;
       } else {
-        knownWeights[label] = weights[label]!;
+        knownWeights[l] = weights[l]!;
       }
     }
 
-    debugPrint('[GRAVITY_WELL] Weights: $weights, Unknown: ${unknownWeights.keys}');
+    // Build scales that form a solvable system.
+    // Strategy: create a chain of equations where each scale introduces
+    // or constrains exactly one unknown using known objects and previously
+    // solved unknowns.
+    final scales = <BalanceScale>[];
+    final solvedUnknowns = <String>{};
+    final unknownList = unknownLabels.toList()..shuffle(rng);
 
-    // Generate scales that help solve the unknowns
-    final scales = _generateScales(
-      labels, weights, knownWeights, unknownWeights,
-      scaleCount, objectCount, rng, maxWeight,
-    );
+    for (int i = 0; i < unknownList.length && scales.length < scaleCount; i++) {
+      final target = unknownList[i];
+      final targetWeight = weights[target]!;
+
+      // Build a scale where 'target' is on one side and known/solved
+      // objects are on the other, possibly with numeric weight blocks.
+      final availableKnown = <String>[
+        ...knownLabels,
+        ...solvedUnknowns,
+      ]..shuffle(rng);
+
+      // Pick 1-2 known objects for the other side
+      final otherSideLabels = <String>[];
+      int otherSideWeight = 0;
+      final howMany = math.min(1 + rng.nextInt(2), availableKnown.length);
+      for (int j = 0; j < howMany; j++) {
+        otherSideLabels.add(availableKnown[j]);
+        otherSideWeight += weights[availableKnown[j]]!;
+      }
+
+      if (otherSideLabels.isEmpty) continue;
+
+      // The difference must be bridged by a numeric weight block
+      final diff = targetWeight - otherSideWeight;
+
+      final leftSide = <ScaleItem>[
+        ScaleItem(label: target, weight: targetWeight, isKnown: false),
+      ];
+      final rightSide = <ScaleItem>[
+        ...otherSideLabels.map((l) => ScaleItem(
+          label: l,
+          weight: weights[l]!,
+          isKnown: knownLabels.contains(l),
+        )),
+      ];
+
+      if (diff > 0) {
+        // Right side is lighter, add weight block to right
+        rightSide.add(ScaleItem(
+          label: '$diff kg',
+          weight: diff,
+          isKnown: true,
+        ));
+      } else if (diff < 0) {
+        // Left side is lighter, add weight block to left
+        leftSide.add(ScaleItem(
+          label: '${-diff} kg',
+          weight: -diff,
+          isKnown: true,
+        ));
+      }
+      // diff == 0: perfectly balanced without extra weights
+
+      scales.add(BalanceScale(leftSide: leftSide, rightSide: rightSide));
+      solvedUnknowns.add(target);
+    }
+
+    // Add extra "redundant" scales for flavor and to make it feel richer.
+    // These mix known and already-solved objects in interesting combos.
+    while (scales.length < scaleCount) {
+      final allLabels = List<String>.from(labels)..shuffle(rng);
+      // Split into two groups
+      final split = 1 + rng.nextInt(math.max(1, allLabels.length - 1));
+      final left = allLabels.take(split).toList();
+      final right = allLabels.skip(split).toList();
+
+      if (left.isEmpty || right.isEmpty) continue;
+
+      final leftWeight = left.fold(0, (s, l) => s + weights[l]!);
+      final rightWeight = right.fold(0, (s, l) => s + weights[l]!);
+      final diff = leftWeight - rightWeight;
+
+      final leftItems = left.map((l) => ScaleItem(
+        label: l, weight: weights[l]!,
+        isKnown: knownLabels.contains(l),
+      )).toList();
+      final rightItems = right.map((l) => ScaleItem(
+        label: l, weight: weights[l]!,
+        isKnown: knownLabels.contains(l),
+      )).toList();
+
+      if (diff > 0) {
+        rightItems.add(ScaleItem(label: '$diff kg', weight: diff, isKnown: true));
+      } else if (diff < 0) {
+        leftItems.add(ScaleItem(label: '${-diff} kg', weight: -diff, isKnown: true));
+      }
+
+      scales.add(BalanceScale(leftSide: leftItems, rightSide: rightItems));
+    }
+
+    // Verify all scales balance
+    for (final s in scales) {
+      if (!s.isBalanced) return null;
+    }
+
+    // Shuffle scale order so the "solving chain" isn't obvious
+    scales.shuffle(rng);
 
     return GravityWellPuzzle(
       scales: scales,
@@ -119,119 +269,5 @@ class GravityWellLogic {
       knownWeights: knownWeights,
       objectCount: objectCount,
     );
-  }
-
-  static List<BalanceScale> _generateScales(
-    List<String> labels,
-    Map<String, int> weights,
-    Map<String, int> knownWeights,
-    Map<String, int> unknownWeights,
-    int scaleCount,
-    int objectCount,
-    math.Random rng,
-    int maxWeight,
-  ) {
-    final scales = <BalanceScale>[];
-
-    // Strategy: each scale must help deduce at least one unknown.
-    // For simple puzzles: put unknown on one side, known weight on other.
-    // For harder puzzles: combine known + unknown objects.
-
-    final unknownList = unknownWeights.keys.toList();
-    final knownList = knownWeights.keys.toList();
-
-    for (int s = 0; s < scaleCount; s++) {
-      List<ScaleItem> leftSide;
-      List<ScaleItem> rightSide;
-
-      if (s < unknownList.length && knownList.isNotEmpty) {
-        // Simple scale: one unknown on left, balance with known weight on right
-        final unknownLabel = unknownList[s % unknownList.length];
-        final unknownWeight = weights[unknownLabel]!;
-
-        leftSide = [
-          ScaleItem(label: unknownLabel, weight: unknownWeight, isKnown: false),
-        ];
-
-        // Add a numeric weight on the right side to balance
-        rightSide = [
-          ScaleItem(
-            label: '$unknownWeight kg',
-            weight: unknownWeight,
-            isKnown: true,
-          ),
-        ];
-
-        // For harder puzzles, add a known object to both sides
-        if (objectCount >= 3 && knownList.isNotEmpty && s > 0) {
-          final knownLabel = knownList[rng.nextInt(knownList.length)];
-          final knownWeight = weights[knownLabel]!;
-
-          leftSide.add(
-            ScaleItem(label: knownLabel, weight: knownWeight, isKnown: true),
-          );
-          // Add equivalent weight to right
-          rightSide = [
-            ScaleItem(
-              label: '${unknownWeight + knownWeight} kg',
-              weight: unknownWeight + knownWeight,
-              isKnown: true,
-            ),
-          ];
-        }
-      } else {
-        // Create a mixed scale with multiple objects
-        final availableLabels = List<String>.from(labels)..shuffle(rng);
-        final leftLabels = availableLabels.take((objectCount / 2).ceil()).toList();
-        final rightLabels = availableLabels.skip((objectCount / 2).ceil()).toList();
-
-        final leftTotal = leftLabels.fold(0, (sum, l) => sum + weights[l]!);
-        final rightTotal = rightLabels.fold(0, (sum, l) => sum + weights[l]!);
-
-        leftSide = leftLabels
-            .map((l) => ScaleItem(
-                  label: l,
-                  weight: weights[l]!,
-                  isKnown: !unknownWeights.containsKey(l),
-                ))
-            .toList();
-
-        // Balance with a numeric weight
-        if (leftTotal > rightTotal) {
-          rightSide = rightLabels
-              .map((l) => ScaleItem(
-                    label: l,
-                    weight: weights[l]!,
-                    isKnown: !unknownWeights.containsKey(l),
-                  ))
-              .toList();
-          rightSide.add(ScaleItem(
-            label: '${leftTotal - rightTotal} kg',
-            weight: leftTotal - rightTotal,
-            isKnown: true,
-          ));
-        } else {
-          rightSide = rightLabels
-              .map((l) => ScaleItem(
-                    label: l,
-                    weight: weights[l]!,
-                    isKnown: !unknownWeights.containsKey(l),
-                  ))
-              .toList();
-          if (rightTotal > leftTotal) {
-            leftSide.add(ScaleItem(
-              label: '${rightTotal - leftTotal} kg',
-              weight: rightTotal - leftTotal,
-              isKnown: true,
-            ));
-          }
-        }
-      }
-
-      scales.add(BalanceScale(leftSide: leftSide, rightSide: rightSide));
-    }
-
-    debugPrint('[GRAVITY_WELL] Generated ${scales.length} scales');
-    return scales;
   }
 }
