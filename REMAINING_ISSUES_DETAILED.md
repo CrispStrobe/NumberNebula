@@ -1,75 +1,66 @@
-# Detailed User Feedback -- All Open Issues
+# Complete Issue List for Fresh Session
 
-Captured 2026-05-31 ~17:30 UTC from live testing session.
+Updated 2026-05-31 ~18:00 UTC. All Kanguru source references included.
 
 ---
 
-## Gravity Well
-- Weight labels too small to read
-- Weights should be sized proportionally to their value (bigger number = bigger icon)
-- When player enters a value in the answer field, it should immediately appear on the scale visual
-- Needs touch/drag UI -- slider or scroll wheel for weight values, not keyboard TextField
-- The puzzle logic is NOW correct (multi-scale deduction) but the UI undersells it
+## Games That WORK (confirmed by user testing)
 
-## Cube Scanner
-- Gameflow broken: must click "decoded" to progress, then AGAIN click "play again" -- one click too many
-- Cubes still render as flat tiles, not as 3D cubes
-- For stacked/row dice: touching faces should be COLOR-CODED (same color = same value) to make the constraint visual
-- Face colors could differentiate the cubes
+1. **Dark Matter Grid** (Lights Out) -- OK
+2. **Star Forge** (Magic Star) -- OK, scaling fixed
+3. **Comm Relay** (Caesar cipher) -- OK after slider + partial decode fix
+4. **Alien Tribunal** (Liar's table) -- OK after infinite loop fix
+5. **Orbital Towers** (Skyscrapers) -- probably OK (drag-drop added)
+6. **Gravity Well** -- "real riddle now" but weights too small to read
+7. **Chrono Repair** -- just fixed with stepper buttons, needs testing
 
-## Warp Fold
-- Animation still doesn't meaningfully show paper being folded
-- The red/dark overlay doesn't convey "folding" -- needs actual perspective fold effect
-- The 5 answer grids are disconnected from the animation
-- The whole game concept may need rethinking for web/mobile
+---
 
-## Sector Painter
-- Overlapping circles (FIXED: now computes radius from min-distance)
-- Still needs better visual differentiation between nodes
+## Games That Need Fixes (roughly by priority)
 
-## Launch Sequence
-- STILL invisible: dark blue on dark blue
-- Ship cards and container blend with SpaceBackground
-- Needs fundamentally different background color for the game area
+### BROKEN / UNPLAYABLE
 
-## Ion Chain
-- Rule naming fixed (shapes not colors)
-- But puzzle logic may still generate trivial or contradictory puzzles
-- Needs verification that rules actually constrain meaningfully
+| Game | Issue | Kanguru Source | What It Should Be |
+|------|-------|---------------|-------------------|
+| **Launch Sequence** | Dark blue on dark blue, invisible | #10/2005_56 -- sort cards with min swaps | Bright colored ship cards, visible borders, distinct background |
+| **Creature Forge** | Clicks don't register on web, purpose unclear | C6/2024_56 -- 4 caterpillar parts, count combinations | 3 rows of tappable parts, build creatures, count total combos (multiplication) |
+| **Galactic Market** | Clicks may not register, too simple | A2/2023_34 -- 66 cent, 3 unknown same coins, deduce denomination | Show known + face-down coins, constraint text, select denomination |
+| **Warp Fold** | Animation meaningless, disconnected from answer options | B7/2026_56, C2/2025_34 -- paper folding + cutting | Show paper shrinking as it folds, then cut, then 5 unfolded options |
+| **Ion Chain** | Rules don't make sense, puzzle trivial | A6/2026_56 -- Luna's bracelet, shape constraints | Distinct shapes, visual constraint rules (crossed-out pairs), circular bracelet |
 
-## Creature Forge
-- Taps may not register on web (HitTestBehavior.opaque added but untested)
-- Need Playwright verification
+### WORKS BUT NEEDS IMPROVEMENT
 
-## Galactic Market
-- Same click issue as Creature Forge
-- HitTestBehavior.opaque added but untested
+| Game | Issue | Kanguru Source | Fix Needed |
+|------|-------|---------------|------------|
+| **Gravity Well** | Weight labels too small | C8/2025_34 -- balance scales with unknown weights | Bigger font, weights sized proportionally, live preview when entering values |
+| **Cube Scanner** | Flat tiles not 3D, gameflow extra click | A7/2026_56 -- dice opposite faces sum to 7 | Isometric 3D rendering, auto-advance on correct answer, color-code touching faces |
+| **Vault Cracker** | Text-only clues, no visual feedback | C1/2022_56 -- code lock with positional clues | Colored digit boxes (green/yellow/gray like Wordle) for each clue attempt |
+| **Hive Station** | 100% hints = click all blanks = trivial | C7/2024_34 -- honeycomb adjacency numbers | Need unique-solution verification at reduced hint rates, OR different mechanic |
+| **Sector Painter** | Overlapping circles (fixed?), needs testing | B2/2024_56 -- bus network graph coloring | Non-overlapping nodes, clear adjacency lines |
+| **Nebula Matrix** | Zones added to logic but not rendered | B8/2023_34, B1/2022_56 -- Latin square with zones | Color-code 2x2/2x3 zones in the grid cells |
+| **Circuit Repair** | No difficulty progression | C4/2026_56 -- clock shows 15:69, swap 2 digit positions | Grade 3+: 5-6 digit numbers or multiple valid-looking swaps |
+| **Hull Plating** | Ghost shows full shape now but rotation placement still buggy | Advent #2 -- domino/polyomino tiling | Test rotated piece placement thoroughly |
+| **Relic Assembly** | Numbers + drag + rotate button added, needs testing | #22/2005_56 -- edge-matching cards with numbers | Verify edge matching works visually |
+| **Xenobiology Lab** | Slider trial-and-error, not a riddle | B5/2026_34 -- monster types, deduce counts from totals | Replace sliders with number input + submit, no auto-feedback |
+| **Asteroid Duel** | Visuals still basic, asteroids small | C7/2023_56 -- Nim strategy game | Bigger jagged rock shapes, swipe to select multiple |
 
-## Circuit Repair
-- No difficulty progression -- always 4-digit clock
-- Grade 3+ should use 5-6 digit numbers or multiple swaps
+---
 
-## Xenobiology Lab
-- Gameplay is just "slide until green" -- not engaging
-- Needs more puzzle-like mechanic
+## Key Files for Next Session
 
-## Nebula Matrix
-- Zones added to logic but game screen doesn't render zone borders yet
-- Need to color-code zones in the grid UI
+- `GAME_IDEAS.md` -- original analysis of 1544 Kanguru problems, all 28 game concepts
+- `GAME_THEMING.md` -- space-themed titles, i18n strings (EN+DE), color assignments
+- `DESIGN_BRIEFS.md` + `DESIGN_BRIEFS_ROUND2.md` -- approved redesign specs
+- `VISUAL_TEMPLATE.md` -- mandatory drag-drop, sizing, animation patterns
+- `AGENT_IMPLEMENTATION_SPEC.md` -- game integration protocol
+- Kanguru PDFs in `/mnt/storage/downloads/kaenguru_pdfs/`
 
-## General Issues
-- Many games rely on keyboard TextField which doesn't work well on mobile/tablet
-- All number inputs should offer slider/roller/tap alternatives
-- HitTestBehavior.opaque may be needed on ALL GestureDetectors for Flutter web
+## Key Learnings
 
-## Additional Issues (latest feedback)
-
-- **Hive Station**: fixed back to 100% hints (was unsolvable with partial hints)
-- **Xenobiology Lab**: sliders make it trial-and-error not a riddle. Should use number input with submit, no auto-feedback. The MATH (system of equations) should be the puzzle.
-- **Nebula Matrix**: zones added to logic but not rendered in UI yet
-- **Cube Scanner**: still flat tiles, needs 3D isometric rendering
-- **Vault Cracker**: needs colored digit boxes with visual feedback (green/yellow/gray like Wordle), not just text descriptions
-- **Launch Sequence**: STILL invisible, needs fundamental background color fix
-- **Ion Chain**: rules use shape names now but puzzle logic may still be trivial
-- **Circuit Repair**: no difficulty progression
-- **Warp Fold**: animation still meaningless
+1. Agents produce code that compiles but has poor gameplay quality
+2. Always read the actual Kanguru PDF before designing a game
+3. Always test with Playwright or manual browser after each change
+4. `HitTestBehavior.opaque` needed on GestureDetectors for Flutter web
+5. `ListWheelScrollView` doesn't work well on Flutter web -- use tap steppers instead
+6. Dark-on-dark is invisible on SpaceBackground -- use distinct container colors
+7. Every game needs visible instructions, clear narrative, proper contrast
