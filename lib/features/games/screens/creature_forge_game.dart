@@ -354,6 +354,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
               final color = colors[i % colors.length];
               return Expanded(
                 child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () {
                     HapticFeedback.selectionClick();
                     onSelect(i);

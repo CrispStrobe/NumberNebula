@@ -81,12 +81,15 @@ class _HiveStationGameState extends State<HiveStationGame>
   double _getHintFraction() {
     final grade = currentDifficulty?.grade ?? widget.grade;
     final level = currentDifficulty?.level ?? widget.level;
-    // Like Kanguru: ALL non-energy cells show their number at easy levels.
-    // At harder levels, hide a small fraction to increase difficulty.
-    if (grade <= 2) return 1.0; // Show ALL hints -- pure logical deduction
-    // Grade 3+: gradually hide some hints
-    final reduction = (level - 1) * 0.02;
-    return (1.0 - reduction).clamp(0.7, 1.0);
+    // Show MOST hints but not all -- otherwise energy cells are trivially
+    // identifiable as "the only blank ones." Some non-energy cells must
+    // also be blank to create ambiguity that requires deduction.
+    if (grade <= 1) {
+      return 0.85; // Most hints shown, some blanks create easy deduction
+    } else if (grade <= 2) {
+      return (0.80 - (level - 1) * 0.02).clamp(0.65, 0.80);
+    }
+    return (0.70 - (level - 1) * 0.02).clamp(0.50, 0.70);
   }
 
   void _generatePuzzle() async {
@@ -310,12 +313,16 @@ class _HiveStationGameState extends State<HiveStationGame>
     int? hint,
   }) {
     Color bgColor;
+    Color borderColor;
     if (isMarked) {
-      bgColor = SpaceTheme.starYellow.withValues(alpha: 0.7);
+      bgColor = SpaceTheme.starYellow.withValues(alpha: 0.6);
+      borderColor = SpaceTheme.starYellow;
     } else if (isRevealed) {
-      bgColor = SpaceTheme.deepSpace.withValues(alpha: 0.8);
+      bgColor = const Color(0xFF1E2A4A); // slightly lighter than deep space
+      borderColor = const Color(0xFF4A5A8A); // visible light blue border
     } else {
-      bgColor = SpaceTheme.nebulaPurple.withValues(alpha: 0.4);
+      bgColor = const Color(0xFF2A1A3A); // dark purple, tappable cells
+      borderColor = const Color(0xFF6B48FF).withValues(alpha: 0.6); // brighter purple
     }
 
     return SizedBox(
@@ -324,7 +331,7 @@ class _HiveStationGameState extends State<HiveStationGame>
       child: CustomPaint(
         painter: _HexCellPainter(
           fillColor: bgColor,
-          borderColor: isMarked ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
+          borderColor: borderColor,
           glowColor: isMarked ? SpaceTheme.starYellow.withValues(alpha: 0.4) : null,
         ),
         child: Center(

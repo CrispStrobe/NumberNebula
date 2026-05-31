@@ -415,6 +415,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
             final color = _denomColors[denom] ?? SpaceTheme.starYellow;
 
             return GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () {
                 HapticFeedback.selectionClick();
                 _selectDenom(denom);
