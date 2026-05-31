@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -109,14 +110,44 @@ class _CommRelayGameState extends State<CommRelayGame>
     }
   }
 
+  /// Show every Nth letter of decoded text, rest as dots.
+  /// Grade 1: every letter. Grade 2: every 2nd. Grade 3: every 3rd. Grade 4: only 1st.
+  String _partialDecode() {
+    final decoded = CommRelayPuzzle.decryptCaesar(puzzle!.cipherText, _currentShift);
+    final grade = currentDifficulty?.grade ?? 1;
+    final level = currentDifficulty?.level ?? 1;
+
+    // How many letters to reveal: scales down with grade + level
+    int revealEvery;
+    if (grade <= 1) {
+      revealEvery = math.max(1, 2 - (level <= 3 ? 0 : 0)); // every 2nd, or every letter at very start
+      if (level <= 2) revealEvery = 1; // show all at very beginning
+    } else if (grade <= 2) {
+      revealEvery = 3; // every 3rd letter
+    } else if (grade <= 3) {
+      revealEvery = 4 + (level > 5 ? 1 : 0); // every 4th-5th
+    } else {
+      revealEvery = decoded.length; // only first letter
+    }
+
+    final buf = StringBuffer();
+    for (int i = 0; i < decoded.length; i++) {
+      if (decoded[i] == ' ') {
+        buf.write(' ');
+      } else if (i == 0 || i % revealEvery == 0) {
+        buf.write(decoded[i]);
+      } else {
+        buf.write('\u2022'); // bullet dot
+      }
+    }
+    return buf.toString();
+  }
+
   void _checkCaesarAnswer() {
     if (puzzle == null) return;
     _attempts++;
 
-    // Show the decoded preview
-    setState(() {
-          CommRelayPuzzle.decryptCaesar(puzzle!.cipherText, _currentShift);
-    });
+    setState(() {});
 
     if (puzzle!.checkShift(_currentShift)) {
       _handleWin();
@@ -340,7 +371,7 @@ class _CommRelayGameState extends State<CommRelayGame>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  CommRelayPuzzle.decryptCaesar(puzzle!.cipherText, _currentShift),
+                  _partialDecode(),
                   style: SpaceTheme.headlineStyle.copyWith(
                     fontSize: 22,
                     letterSpacing: 3,
