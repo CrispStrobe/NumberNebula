@@ -38,9 +38,7 @@ class _CommRelayGameState extends State<CommRelayGame>
   int _attempts = 0;
   int _maxAttempts = 5;
 
-  // Decoded text only shown after pressing Decode
-  String? _decodedPreview;
-  bool _showDecoded = false;
+  // Decoded preview (used by Atbash/keyword modes)
 
   @override
   void initState() {
@@ -91,8 +89,6 @@ class _CommRelayGameState extends State<CommRelayGame>
       _currentShift = 0;
       _answerController.clear();
       _attempts = 0;
-      _decodedPreview = null;
-      _showDecoded = false;
       _successController.reset();
     });
 
@@ -119,9 +115,7 @@ class _CommRelayGameState extends State<CommRelayGame>
 
     // Show the decoded preview
     setState(() {
-      _decodedPreview =
           CommRelayPuzzle.decryptCaesar(puzzle!.cipherText, _currentShift);
-      _showDecoded = true;
     });
 
     if (puzzle!.checkShift(_currentShift)) {
@@ -331,8 +325,8 @@ class _CommRelayGameState extends State<CommRelayGame>
                 ),
                 textAlign: TextAlign.center,
               ),
-              // Only show decoded result after pressing Decode
-              if (_showDecoded && _decodedPreview != null) ...[
+              // Show decoded text LIVE as slider changes (for Caesar cipher)
+              if (puzzle!.cipherType == CipherType.caesar) ...[
                 const SizedBox(height: 16),
                 const Divider(color: Colors.white24),
                 const SizedBox(height: 8),
@@ -346,7 +340,7 @@ class _CommRelayGameState extends State<CommRelayGame>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _decodedPreview!,
+                  CommRelayPuzzle.decryptCaesar(puzzle!.cipherText, _currentShift),
                   style: SpaceTheme.headlineStyle.copyWith(
                     fontSize: 22,
                     letterSpacing: 3,
@@ -445,9 +439,6 @@ class _CommRelayGameState extends State<CommRelayGame>
             onChanged: (value) {
               setState(() {
                 _currentShift = value.round();
-                // Hide previous decoded result when slider changes
-                _showDecoded = false;
-                _decodedPreview = null;
               });
             },
           ),
