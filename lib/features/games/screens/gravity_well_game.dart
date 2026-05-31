@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -31,11 +32,9 @@ class _GravityWellGameState extends State<GravityWellGame>
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
 
-  // User's answers for unknown weights: label -> entered weight
   Map<String, int?> _userAnswers = {};
   bool _gameOver = false;
 
-  // Text controllers for input fields
   final Map<String, TextEditingController> _controllers = {};
 
   @override
@@ -111,7 +110,6 @@ class _GravityWellGameState extends State<GravityWellGame>
   void _checkSolution() {
     if (puzzle == null || _gameOver) return;
 
-    // Parse all input fields
     for (final label in puzzle!.unknownWeights.keys) {
       final text = _controllers[label]?.text ?? '';
       _userAnswers[label] = int.tryParse(text);
@@ -215,7 +213,13 @@ class _GravityWellGameState extends State<GravityWellGame>
                 level: widget.level,
                 onBack: () => Navigator.of(context).pop(),
               ),
-              Expanded(child: _buildGameArea()),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return _buildGameArea(constraints);
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -223,25 +227,31 @@ class _GravityWellGameState extends State<GravityWellGame>
     );
   }
 
-  Widget _buildGameArea() {
+  Widget _buildGameArea(BoxConstraints constraints) {
     final s = S.of(context)!;
+    final scaleCount = puzzle!.scales.length;
+    // Distribute available height among scales + answer area
+    final availH = constraints.maxHeight;
+    final scaleHeight = ((availH - 140) / (scaleCount + 1)).clamp(100.0, 200.0);
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Instructions
           Text(
             s.gravityWellInstructions,
             style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
 
           // Known weights reference
           if (puzzle!.knownWeights.isNotEmpty)
             Container(
-              padding: const EdgeInsets.all(10),
-              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(8),
+              margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
                 color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(10),
@@ -260,14 +270,14 @@ class _GravityWellGameState extends State<GravityWellGame>
               ),
             ),
 
-          // Scales
-          ...List.generate(puzzle!.scales.length, (i) => _buildScaleCard(i)),
+          // Balance scales - drawn with CustomPaint
+          ...List.generate(scaleCount, (i) => _buildScaleVisual(i, constraints.maxWidth - 24, scaleHeight)),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Answer input section
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(12),
             decoration: SpaceTheme.cardDecoration.copyWith(
               border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.5)),
             ),
@@ -277,13 +287,13 @@ class _GravityWellGameState extends State<GravityWellGame>
                   'Enter unknown weights:',
                   style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 ...puzzle!.unknownWeights.keys.map((label) => _buildAnswerInput(label)),
               ],
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Submit button
           if (!_gameOver)
@@ -295,12 +305,13 @@ class _GravityWellGameState extends State<GravityWellGame>
                 style: SpaceTheme.primaryButtonStyle,
               ),
             ),
+          const SizedBox(height: 8),
         ],
       ),
     );
   }
 
-  Widget _buildScaleCard(int index) {
+  Widget _buildScaleVisual(int index, double width, double height) {
     final scale = puzzle!.scales[index];
 
     return Padding(
@@ -309,7 +320,7 @@ class _GravityWellGameState extends State<GravityWellGame>
         animation: _glowAnimation,
         builder: (context, child) {
           return Container(
-            padding: const EdgeInsets.all(12),
+            height: height,
             decoration: BoxDecoration(
               color: SpaceTheme.deepSpace.withValues(alpha: 0.85),
               borderRadius: BorderRadius.circular(14),
@@ -321,82 +332,32 @@ class _GravityWellGameState extends State<GravityWellGame>
             child: Column(
               children: [
                 // Scale header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.balance, color: SpaceTheme.starYellow, size: 18),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Scale ${index + 1}',
-                      style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    'Scale ${index + 1}',
+                    style: SpaceTheme.bodyStyle.copyWith(
+                      fontSize: 12,
+                      color: SpaceTheme.starYellow,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
+                  ),
                 ),
-                const SizedBox(height: 8),
-                // Scale visualization
-                Row(
-                  children: [
-                    // Left side
-                    Expanded(child: _buildScaleSide(scale.leftSide, Colors.cyan)),
-                    // Balance symbol
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: const Text(
-                        '=',
-                        style: TextStyle(
-                          color: SpaceTheme.starYellow,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                // Scale drawing
+                Expanded(
+                  child: CustomPaint(
+                    size: Size.infinite,
+                    painter: _BalanceScalePainter(
+                      scale: scale,
+                      unknownLabels: puzzle!.unknownWeights.keys.toSet(),
+                      glowValue: _glowAnimation.value,
                     ),
-                    // Right side
-                    Expanded(child: _buildScaleSide(scale.rightSide, Colors.orange)),
-                  ],
+                  ),
                 ),
               ],
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildScaleSide(List<ScaleItem> items, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        spacing: 6,
-        runSpacing: 6,
-        children: items.map((item) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: item.isKnown
-                  ? SpaceTheme.deepSpace.withValues(alpha: 0.8)
-                  : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: item.isKnown ? color : SpaceTheme.starYellow,
-                width: 1.5,
-              ),
-            ),
-            child: Text(
-              item.isKnown ? item.label : '${item.label} = ?',
-              style: SpaceTheme.bodyStyle.copyWith(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: item.isKnown ? Colors.white : SpaceTheme.starYellow,
-              ),
-            ),
-          );
-        }).toList(),
       ),
     );
   }
@@ -407,19 +368,19 @@ class _GravityWellGameState extends State<GravityWellGame>
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF06FFA5), Color(0xFF00C9DB)],
               ),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(18),
             ),
             child: Center(
               child: Text(
                 label,
                 style: SpaceTheme.headlineStyle.copyWith(
-                  fontSize: 18,
+                  fontSize: 16,
                   color: Colors.black,
                 ),
               ),
@@ -511,4 +472,212 @@ class _GravityWellGameState extends State<GravityWellGame>
       },
     );
   }
+}
+
+/// CustomPainter that draws a balance scale with fulcrum, beam, and pans.
+/// Uses wireframe/edge-line style with glowing accent colors.
+class _BalanceScalePainter extends CustomPainter {
+  final BalanceScale scale;
+  final Set<String> unknownLabels;
+  final double glowValue;
+
+  _BalanceScalePainter({
+    required this.scale,
+    required this.unknownLabels,
+    required this.glowValue,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final centerX = w / 2;
+    final baseY = h * 0.88;
+    final fulcrumTopY = h * 0.45;
+    final beamLen = w * 0.38;
+
+    // Compute tilt based on weight difference
+    final leftW = scale.leftTotal.toDouble();
+    final rightW = scale.rightTotal.toDouble();
+    final maxWeight = math.max(leftW, rightW);
+    double tiltAngle = 0;
+    if (maxWeight > 0) {
+      tiltAngle = ((rightW - leftW) / maxWeight) * 0.15; // max ~8 degrees
+    }
+
+    // Colors
+    final beamColor = Color.lerp(
+      const Color(0xFF4488CC),
+      SpaceTheme.starYellow,
+      glowValue * 0.3,
+    )!;
+    const fulcrumColor = SpaceTheme.moonSilver;
+
+    // Fulcrum triangle
+    final fulcrumPaint = Paint()
+      ..color = fulcrumColor.withValues(alpha: 0.6)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+    final fulcrumGlow = Paint()
+      ..color = fulcrumColor.withValues(alpha: glowValue * 0.2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+
+    final fulcrumPath = Path()
+      ..moveTo(centerX, fulcrumTopY)
+      ..lineTo(centerX - 14, baseY)
+      ..lineTo(centerX + 14, baseY)
+      ..close();
+    canvas.drawPath(fulcrumPath, fulcrumGlow);
+    canvas.drawPath(fulcrumPath, fulcrumPaint);
+
+    // Base line
+    canvas.drawLine(
+      Offset(centerX - 30, baseY),
+      Offset(centerX + 30, baseY),
+      fulcrumPaint,
+    );
+
+    // Beam (tilted line)
+    final cosA = math.cos(tiltAngle);
+    final sinA = math.sin(tiltAngle);
+    final leftEnd = Offset(
+      centerX - beamLen * cosA,
+      fulcrumTopY + beamLen * sinA,
+    );
+    final rightEnd = Offset(
+      centerX + beamLen * cosA,
+      fulcrumTopY - beamLen * sinA,
+    );
+
+    final beamPaint = Paint()
+      ..color = beamColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0;
+    final beamGlowPaint = Paint()
+      ..color = beamColor.withValues(alpha: glowValue * 0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6.0
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+
+    canvas.drawLine(leftEnd, rightEnd, beamGlowPaint);
+    canvas.drawLine(leftEnd, rightEnd, beamPaint);
+
+    // Fulcrum pivot dot
+    canvas.drawCircle(
+      Offset(centerX, fulcrumTopY),
+      4,
+      Paint()..color = beamColor,
+    );
+
+    // Pan strings
+    final panStringPaint = Paint()
+      ..color = Colors.white30
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    final panDepth = h * 0.12;
+
+    // Left pan
+    final leftPanTop = leftEnd;
+    final leftPanCenter = Offset(leftEnd.dx, leftEnd.dy + panDepth);
+    _drawPanStrings(canvas, leftPanTop, panDepth, beamLen * 0.35, panStringPaint);
+    _drawPan(canvas, leftPanCenter, beamLen * 0.35, const Color(0xFF00AACC));
+
+    // Right pan
+    final rightPanTop = rightEnd;
+    final rightPanCenter = Offset(rightEnd.dx, rightEnd.dy + panDepth);
+    _drawPanStrings(canvas, rightPanTop, panDepth, beamLen * 0.35, panStringPaint);
+    _drawPan(canvas, rightPanCenter, beamLen * 0.35, const Color(0xFFCC8800));
+
+    // Draw items on left pan
+    _drawItems(canvas, scale.leftSide, leftPanCenter, beamLen * 0.35);
+
+    // Draw items on right pan
+    _drawItems(canvas, scale.rightSide, rightPanCenter, beamLen * 0.35);
+  }
+
+  void _drawPanStrings(Canvas canvas, Offset top, double depth, double panHalfW, Paint paint) {
+    canvas.drawLine(top, Offset(top.dx - panHalfW, top.dy + depth), paint);
+    canvas.drawLine(top, Offset(top.dx + panHalfW, top.dy + depth), paint);
+  }
+
+  void _drawPan(Canvas canvas, Offset center, double halfW, Color color) {
+    final panPaint = Paint()
+      ..color = color.withValues(alpha: 0.3)
+      ..style = PaintingStyle.fill;
+    final panEdge = Paint()
+      ..color = color.withValues(alpha: 0.7 + glowValue * 0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+    final panGlow = Paint()
+      ..color = color.withValues(alpha: glowValue * 0.2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+
+    final panPath = Path()
+      ..moveTo(center.dx - halfW, center.dy)
+      ..quadraticBezierTo(center.dx, center.dy + halfW * 0.4, center.dx + halfW, center.dy);
+
+    canvas.drawPath(panPath, panGlow);
+    canvas.drawPath(panPath, panPaint);
+    canvas.drawPath(panPath, panEdge);
+  }
+
+  void _drawItems(Canvas canvas, List<ScaleItem> items, Offset panCenter, double panHalfW) {
+    if (items.isEmpty) return;
+
+    final itemCount = items.length;
+    final spacing = (panHalfW * 2) / (itemCount + 1);
+
+    for (int i = 0; i < itemCount; i++) {
+      final item = items[i];
+      final x = panCenter.dx - panHalfW + spacing * (i + 1);
+      final y = panCenter.dy - 14;
+      final isUnknown = unknownLabels.contains(item.label);
+
+      // Draw item box
+      const boxSize = 20.0;
+      final boxRect = Rect.fromCenter(center: Offset(x, y), width: boxSize, height: boxSize);
+
+      final boxFill = Paint()
+        ..color = isUnknown
+            ? SpaceTheme.nebulaPurple.withValues(alpha: 0.6)
+            : SpaceTheme.deepSpace.withValues(alpha: 0.8);
+      final boxEdge = Paint()
+        ..color = isUnknown ? SpaceTheme.starYellow : const Color(0xFF00AACC)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5;
+
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(boxRect, const Radius.circular(4)),
+        boxFill,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(boxRect, const Radius.circular(4)),
+        boxEdge,
+      );
+
+      // Draw label
+      final label = isUnknown ? '${item.label}=?' : item.label;
+      final tp = TextPainter(
+        text: TextSpan(
+          text: label,
+          style: TextStyle(
+            color: isUnknown ? SpaceTheme.starYellow : Colors.white,
+            fontSize: label.length > 3 ? 8 : 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      tp.layout();
+      tp.paint(canvas, Offset(x - tp.width / 2, y - tp.height / 2));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _BalanceScalePainter oldDelegate) =>
+      oldDelegate.glowValue != glowValue;
 }
