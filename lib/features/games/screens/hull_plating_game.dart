@@ -581,31 +581,54 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     );
   }
 
+  /// Group pieces by shape signature for cleaner tray display.
+  String _shapeKey(PlatingPiece piece) {
+    final sorted = piece.cells.toList()..sort((a, b) {
+      final r = a.$1.compareTo(b.$1);
+      return r != 0 ? r : a.$2.compareTo(b.$2);
+    });
+    return sorted.map((c) => '${c.$1},${c.$2}').join(';');
+  }
+
   Widget _buildPieceTray() {
-    return ListView.builder(
+    // Group unused pieces by shape, show each shape once with count
+    final unusedIndices = <int>[];
+    for (int i = 0; i < puzzle!.pieces.length; i++) {
+      if (!_usedPieceIds.contains(puzzle!.pieces[i].id)) {
+        unusedIndices.add(i);
+      }
+    }
+
+    // Group by shape key
+    final groups = <String, List<int>>{};
+    for (final idx in unusedIndices) {
+      final piece = _getRotatedPiece(idx);
+      final key = _shapeKey(piece);
+      groups.putIfAbsent(key, () => []).add(idx);
+    }
+
+    if (groups.isEmpty) {
+      return Center(
+        child: Text('All pieces placed!',
+            style: SpaceTheme.bodyStyle.copyWith(color: Colors.white54)),
+      );
+    }
+
+    return ListView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      itemCount: puzzle!.pieces.length,
-      itemBuilder: (context, index) {
-        final piece = puzzle!.pieces[index];
-        final isUsed = _usedPieceIds.contains(piece.id);
+      children: groups.entries.map((entry) {
+        final indices = entry.value;
+        final firstIdx = indices.first;
+        final piece = puzzle!.pieces[firstIdx];
         final color = _colorForPieceId(piece.id);
-        final displayPiece = _getRotatedPiece(index);
-
-        if (isUsed) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-            child: Opacity(
-              opacity: 0.2,
-              child: _buildMiniPiece(piece, color, 60.0),
-            ),
-          );
-        }
+        final displayPiece = _getRotatedPiece(firstIdx);
+        final count = indices.length;
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           child: Draggable<int>(
-            data: index,
+            data: firstIdx,
             feedback: Material(
               color: Colors.transparent,
               child: Container(
@@ -625,10 +648,27 @@ class _HullPlatingGameState extends State<HullPlatingGame>
               opacity: 0.3,
               child: _buildPieceTrayCard(displayPiece, color, false),
             ),
-            child: _buildPieceTrayCard(displayPiece, color, true),
+            child: Stack(
+              children: [
+                _buildPieceTrayCard(displayPiece, color, true),
+                if (count > 1)
+                  Positioned(
+                    top: 2, right: 2,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text('×$count',
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+              ],
+            ),
           ),
         );
-      },
+      }).toList(),
     );
   }
 
