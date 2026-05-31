@@ -26,54 +26,33 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
   late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
-
-  // Scroll controllers for the three columns
-  late FixedExtentScrollController _headScrollController;
-  late FixedExtentScrollController _bodyScrollController;
-  late FixedExtentScrollController _tailScrollController;
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
   bool _gameOver = false;
 
-  // Parts
-  int _headCount = 0;
-  int _bodyCount = 0;
-  int _tailCount = 0;
-  int _correctAnswer = 0;
-
-  // For higher grades: constraints that reduce valid combos
+  // Puzzle parameters
+  int _headCount = 2;
+  int _bodyCount = 2;
+  int _tailCount = 2;
   int _forbiddenCombos = 0;
+  int _correctAnswer = 8;
   bool _hasConstraints = false;
   String _constraintText = '';
 
-  // User exploration state
-  int _currentHead = 0;
-  int _currentBody = 0;
-  int _currentTail = 0;
+  // Player state
+  int _selectedHead = 0;
+  int _selectedBody = 0;
+  int _selectedTail = 0;
   final Set<String> _discoveredCombos = {};
-
-  // User answer
   final TextEditingController _answerController = TextEditingController();
 
   final _random = math.Random();
 
-  static const List<String> _headNames = ['Crystal', 'Flame', 'Frost', 'Shadow'];
-  static const List<String> _bodyNames = ['Armored', 'Winged', 'Aquatic', 'Elastic'];
-  static const List<String> _tailNames = ['Stinger', 'Feathered', 'Spiked', 'Luminous'];
-
-  // Colors for each variant
-  static const List<Color> _headColors = [
-    Color(0xFF00E5FF), Color(0xFFFF5722), Color(0xFF80DEEA), Color(0xFF7C4DFF),
-  ];
-  static const List<Color> _bodyColors = [
-    Color(0xFF78909C), Color(0xFFFFD700), Color(0xFF26C6DA), Color(0xFF69F0AE),
-  ];
-  static const List<Color> _tailColors = [
-    Color(0xFFFF9100), Color(0xFF66BB6A), Color(0xFFEF5350), Color(0xFFFFEE58),
-  ];
+  // Colors per part category
+  static const _headColors = [Color(0xFF06FFA5), Color(0xFFFFD700), Color(0xFFFF69B4), Color(0xFF00C9DB)];
+  static const _bodyColors = [Color(0xFF6B48FF), Color(0xFFFF6B35), Color(0xFF457B9D), Color(0xFFBB86FC)];
+  static const _tailColors = [Color(0xFFE63946), Color(0xFF06FFA5), Color(0xFFFFD700), Color(0xFF00C9DB)];
 
   @override
   void initState() {
@@ -93,17 +72,6 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
     _successAnimation =
         CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
 
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
-
-    _headScrollController = FixedExtentScrollController();
-    _bodyScrollController = FixedExtentScrollController();
-    _tailScrollController = FixedExtentScrollController();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
@@ -115,21 +83,16 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
 
   @override
   void dispose() {
-    _glowController.stop();
-    _successController.stop();
-    _pulseController.stop();
     _glowController.dispose();
     _successController.dispose();
-    _pulseController.dispose();
     _answerController.dispose();
-    _headScrollController.dispose();
-    _bodyScrollController.dispose();
-    _tailScrollController.dispose();
     super.dispose();
   }
 
   void _generatePuzzle() {
     if (currentDifficulty == null) return;
+
+    final grade = currentDifficulty!.grade;
 
     setState(() {
       _isGenerating = true;
@@ -137,12 +100,10 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       _discoveredCombos.clear();
       _answerController.clear();
       _successController.reset();
-      _currentHead = 0;
-      _currentBody = 0;
-      _currentTail = 0;
+      _selectedHead = 0;
+      _selectedBody = 0;
+      _selectedTail = 0;
     });
-
-    final grade = currentDifficulty!.grade;
 
     if (grade <= 2) {
       _headCount = 2;
@@ -157,42 +118,69 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       _tailCount = 3;
       _hasConstraints = true;
       _forbiddenCombos = _random.nextInt(3) + 2;
-      _constraintText = 'Wings require light body';
+      _constraintText = 'Winged bodies cannot pair with spiked tails';
     } else {
       _headCount = 4;
       _bodyCount = 4;
       _tailCount = 4;
       _hasConstraints = true;
       _forbiddenCombos = _random.nextInt(5) + 3;
-      _constraintText = 'Wings require light body\nFrost + Stinger is unstable';
+      _constraintText = 'Winged bodies need crystal heads\nAquatic bodies reject flame tails';
     }
 
     _correctAnswer = _headCount * _bodyCount * _tailCount - _forbiddenCombos;
 
-    // Reset scroll controllers
-    _headScrollController.dispose();
-    _bodyScrollController.dispose();
-    _tailScrollController.dispose();
-    _headScrollController = FixedExtentScrollController();
-    _bodyScrollController = FixedExtentScrollController();
-    _tailScrollController = FixedExtentScrollController();
-
-    if (mounted) {
-      setState(() {
-        _isGenerating = false;
-      });
-      _addDiscovery();
-    }
+    setState(() => _isGenerating = false);
   }
 
-  void _addDiscovery() {
-    final key = '$_currentHead-$_currentBody-$_currentTail';
+  String _comboKey(int h, int b, int t) => '$h-$b-$t';
+
+  bool _isForbidden(int h, int b, int t) {
+    if (!_hasConstraints) return false;
+    // Simple deterministic forbidden combos based on part indices
+    if (b == 1 && t == 2) return true; // Winged + spiked
+    if (_headCount >= 4) {
+      if (b == 2 && t == 1) return true; // Aquatic + feathered
+      if (b == 1 && h != 0) return true; // Winged needs crystal head (index 0)
+    }
+    return false;
+  }
+
+  void _addCreature() {
+    if (_gameOver) return;
+    final key = _comboKey(_selectedHead, _selectedBody, _selectedTail);
+
+    if (_discoveredCombos.contains(key)) {
+      HapticFeedback.heavyImpact();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Already discovered this creature!'),
+          backgroundColor: SpaceTheme.rocketRed,
+          duration: Duration(seconds: 1),
+        ),
+      );
+      return;
+    }
+
+    if (_isForbidden(_selectedHead, _selectedBody, _selectedTail)) {
+      HapticFeedback.heavyImpact();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Invalid combination! $_constraintText'),
+          backgroundColor: SpaceTheme.rocketRed,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    HapticFeedback.lightImpact();
     setState(() {
       _discoveredCombos.add(key);
     });
   }
 
-  void _checkAnswer() {
+  void _submitAnswer() {
     if (_gameOver) return;
     final answer = int.tryParse(_answerController.text);
     if (answer == null) return;
@@ -200,7 +188,14 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
     if (answer == _correctAnswer) {
       _handleWin();
     } else {
-      _handleLoss();
+      HapticFeedback.heavyImpact();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Not quite! You said $answer, try again.'),
+          backgroundColor: SpaceTheme.rocketRed,
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -210,7 +205,8 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
 
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
-    int totalScore = baseScore + levelBonus;
+    int discoveryBonus = _discoveredCombos.length * 10;
+    int totalScore = baseScore + levelBonus + discoveryBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'creature_forge',
@@ -219,36 +215,13 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
     ));
 
     _successController.forward(from: 0.0);
-
     if (mounted) {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => _buildWinDialog(totalScore),
+        builder: (_) => _buildWinDialog(totalScore),
       );
     }
-  }
-
-  void _handleLoss() {
-    HapticFeedback.heavyImpact();
-
-    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      gameType: 'creature_forge',
-      difficulty: widget.level,
-    ));
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(S.of(context)!.creatureForgeLoseDesc)),
-          ],
-        ),
-        backgroundColor: SpaceTheme.rocketRed,
-      ),
-    );
   }
 
   @override
@@ -282,21 +255,45 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
                 level: widget.level,
                 onBack: () => Navigator.of(context).pop(),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  s.creatureForgeInstructions,
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
-              ),
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final isWide = constraints.maxWidth > 700;
-                    return isWide
-                        ? _buildWideLayout(constraints)
-                        : _buildCompactLayout(constraints);
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        children: [
+                          // Instructions
+                          _buildInstructions(s),
+                          const SizedBox(height: 8),
+
+                          // Part selection rows
+                          _buildPartRow('HEADS', 0, _headCount, _selectedHead,
+                              _headColors, (i) => setState(() => _selectedHead = i)),
+                          const SizedBox(height: 8),
+                          _buildPartRow('BODIES', 1, _bodyCount, _selectedBody,
+                              _bodyColors, (i) => setState(() => _selectedBody = i)),
+                          const SizedBox(height: 8),
+                          _buildPartRow('TAILS', 2, _tailCount, _selectedTail,
+                              _tailColors, (i) => setState(() => _selectedTail = i)),
+
+                          const SizedBox(height: 12),
+
+                          // Preview + Add button
+                          _buildPreviewAndAdd(),
+
+                          if (_hasConstraints) ...[
+                            const SizedBox(height: 8),
+                            _buildConstraintBanner(),
+                          ],
+
+                          const SizedBox(height: 12),
+
+                          // Gallery + answer
+                          _buildGalleryAndAnswer(),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    );
                   },
                 ),
               ),
@@ -307,428 +304,296 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
     );
   }
 
-  Widget _buildWideLayout(BoxConstraints constraints) {
-    return Row(
-      children: [
-        // Scrollable columns on the left
-        Expanded(
-          flex: 3,
-          child: _buildScrollableColumns(constraints),
-        ),
-        const SizedBox(width: 16),
-        // Preview + answer on the right
-        Expanded(
-          flex: 2,
-          child: Column(
-            children: [
-              Expanded(child: _buildCreaturePreview(constraints)),
-              const SizedBox(height: 8),
-              _buildInfoAndAnswer(),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCompactLayout(BoxConstraints constraints) {
-    return Column(
-      children: [
-        // Parts info bar
-        _buildPartsInfoBar(),
-
-        if (_hasConstraints) _buildConstraintBar(),
-
-        const SizedBox(height: 4),
-
-        // Main area: scrollable columns + creature preview
-        Expanded(
-          child: Row(
-            children: [
-              // Three scrollable columns
-              Expanded(
-                flex: 3,
-                child: _buildScrollableColumns(constraints),
-              ),
-              // Combined creature preview in center
-              Expanded(
-                flex: 2,
-                child: _buildCreaturePreview(constraints),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 4),
-
-        // Discovery counter
-        AnimatedBuilder(
-          animation: _glowAnimation,
-          builder: (context, _) {
-            return Text(
-              '${_discoveredCombos.length} of ${_hasConstraints ? "?" : "${_headCount * _bodyCount * _tailCount}"} combinations found',
-              style: SpaceTheme.bodyStyle.copyWith(
-                color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value),
-                fontSize: 13,
-              ),
-            );
-          },
-        ),
-
-        const SizedBox(height: 8),
-
-        // Answer input
-        if (!_gameOver) _buildAnswerRow(),
-
-        const SizedBox(height: 8),
-      ],
-    );
-  }
-
-  Widget _buildPartsInfoBar() {
+  Widget _buildInstructions(S s) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildPartCount('Heads', _headCount, _headColors[0]),
-          _buildPartCount('Bodies', _bodyCount, _bodyColors[0]),
-          _buildPartCount('Tails', _tailCount, _tailColors[0]),
-          if (_hasConstraints)
-            Text(
-              'Total: ?',
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: SpaceTheme.starYellow),
-            )
-          else
-            Text(
-              'Total: ${_headCount * _bodyCount * _tailCount}',
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: SpaceTheme.starYellow),
+          const Icon(Icons.info_outline, color: SpaceTheme.starYellow, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              s.creatureForgeInstructions,
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 11),
             ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildPartCount(String label, int count, Color color) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text('$count', style: SpaceTheme.headlineStyle.copyWith(color: color, fontSize: 18)),
-        Text(label, style: SpaceTheme.bodyStyle.copyWith(fontSize: 10, color: Colors.white70)),
-      ],
-    );
-  }
-
-  Widget _buildConstraintBar() {
+  Widget _buildPartRow(String label, int partType, int count, int selected,
+      List<Color> colors, void Function(int) onSelect) {
     return Container(
-      padding: const EdgeInsets.all(6),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: SpaceTheme.rocketRed.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: SpaceTheme.rocketRed.withValues(alpha: 0.5)),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
       ),
-      child: Text(
-        '$_constraintText  ($_forbiddenCombos forbidden)',
-        style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: SpaceTheme.rocketRed),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-
-  Widget _buildScrollableColumns(BoxConstraints constraints) {
-    final columnHeight = constraints.maxHeight * 0.5;
-    const itemExtent = 70.0;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Head column
-          Expanded(
-            child: _buildPartWheel(
-              label: 'Head',
-              count: _headCount,
-              names: _headNames,
-              colors: _headColors,
-              controller: _headScrollController,
-              itemExtent: itemExtent,
-              height: columnHeight,
-              partType: 0,
-              onChanged: (i) {
-                _currentHead = i % _headCount;
-                _addDiscovery();
-              },
-            ),
-          ),
-          const SizedBox(width: 4),
-          // Body column
-          Expanded(
-            child: _buildPartWheel(
-              label: 'Body',
-              count: _bodyCount,
-              names: _bodyNames,
-              colors: _bodyColors,
-              controller: _bodyScrollController,
-              itemExtent: itemExtent,
-              height: columnHeight,
-              partType: 1,
-              onChanged: (i) {
-                _currentBody = i % _bodyCount;
-                _addDiscovery();
-              },
-            ),
-          ),
-          const SizedBox(width: 4),
-          // Tail column
-          Expanded(
-            child: _buildPartWheel(
-              label: 'Tail',
-              count: _tailCount,
-              names: _tailNames,
-              colors: _tailColors,
-              controller: _tailScrollController,
-              itemExtent: itemExtent,
-              height: columnHeight,
-              partType: 2,
-              onChanged: (i) {
-                _currentTail = i % _tailCount;
-                _addDiscovery();
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPartWheel({
-    required String label,
-    required int count,
-    required List<String> names,
-    required List<Color> colors,
-    required FixedExtentScrollController controller,
-    required double itemExtent,
-    required double height,
-    required int partType,
-    required void Function(int) onChanged,
-  }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(label,
+          Text(
+            '$label ($count)',
             style: SpaceTheme.bodyStyle.copyWith(
-                fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white70)),
-        const SizedBox(height: 4),
-        AnimatedBuilder(
-          animation: _glowAnimation,
-          builder: (context, _) {
-            return Container(
-              height: height.clamp(120.0, 300.0),
-              decoration: BoxDecoration(
-                color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: colors[0].withValues(alpha: _glowAnimation.value * 0.5),
-                ),
-              ),
-              child: ListWheelScrollView.useDelegate(
-                controller: controller,
-                itemExtent: itemExtent,
-                perspective: 0.003,
-                diameterRatio: 2.0,
-                physics: const FixedExtentScrollPhysics(),
-                onSelectedItemChanged: onChanged,
-                childDelegate: ListWheelChildLoopingListDelegate(
-                  children: List.generate(count, (i) {
-                    final color = colors[i % colors.length];
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: color.withValues(alpha: 0.6)),
+              fontSize: 11,
+              color: SpaceTheme.starYellow,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: List.generate(count, (i) {
+              final isSelected = i == selected;
+              final color = colors[i % colors.length];
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    onSelect(i);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? color.withValues(alpha: 0.25)
+                          : SpaceTheme.deepSpace.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isSelected ? color : Colors.white12,
+                        width: isSelected ? 2.5 : 1,
                       ),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 30,
-                              height: 30,
-                              child: CustomPaint(
-                                painter: _CreaturePartPainter(
-                                  partType: partType,
-                                  variant: i,
-                                  color: color,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              names[i % names.length],
-                              style: SpaceTheme.bodyStyle.copyWith(
-                                fontSize: 9,
-                                color: color,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
+                      boxShadow: isSelected
+                          ? [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 8)]
+                          : null,
+                    ),
+                    child: SizedBox(
+                      height: 50,
+                      child: CustomPaint(
+                        painter: _CreaturePartPainter(
+                          partType: partType,
+                          variant: i,
+                          color: color,
                         ),
                       ),
-                    );
-                  }),
-                ),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCreaturePreview(BoxConstraints constraints) {
-    final previewSize = math.min(constraints.maxWidth * 0.3, 160.0);
-
-    return Center(
-      child: AnimatedBuilder(
-        animation: _glowAnimation,
-        builder: (context, _) {
-          return Container(
-            width: previewSize,
-            height: previewSize * 1.5,
-            decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: SpaceTheme.alienGreen.withValues(alpha: _glowAnimation.value * 0.4),
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Head
-                SizedBox(
-                  width: previewSize * 0.5,
-                  height: previewSize * 0.35,
-                  child: CustomPaint(
-                    painter: _CreaturePartPainter(
-                      partType: 0,
-                      variant: _currentHead,
-                      color: _headColors[_currentHead % _headColors.length],
                     ),
                   ),
-                ),
-                // Body
-                SizedBox(
-                  width: previewSize * 0.5,
-                  height: previewSize * 0.4,
-                  child: CustomPaint(
-                    painter: _CreaturePartPainter(
-                      partType: 1,
-                      variant: _currentBody,
-                      color: _bodyColors[_currentBody % _bodyColors.length],
-                    ),
-                  ),
-                ),
-                // Tail
-                SizedBox(
-                  width: previewSize * 0.5,
-                  height: previewSize * 0.35,
-                  child: CustomPaint(
-                    painter: _CreaturePartPainter(
-                      partType: 2,
-                      variant: _currentTail,
-                      color: _tailColors[_currentTail % _tailColors.length],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildInfoAndAnswer() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildPartsInfoBar(),
-        if (_hasConstraints) _buildConstraintBar(),
-        const SizedBox(height: 8),
-        Text(
-          '${_discoveredCombos.length} of ${_hasConstraints ? "?" : "${_headCount * _bodyCount * _tailCount}"} combinations found',
-          style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 13),
-        ),
-        const SizedBox(height: 8),
-        if (!_gameOver) _buildAnswerRow(),
-        const SizedBox(height: 8),
-      ],
-    );
-  }
-
-  Widget _buildAnswerRow() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('Total creatures: ',
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 13)),
-          SizedBox(
-            width: 80,
-            child: TextField(
-              controller: _answerController,
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: SpaceTheme.deepSpace,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: SpaceTheme.starYellow),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: SpaceTheme.starYellow.withValues(alpha: 0.5)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: SpaceTheme.starYellow, width: 2),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          AnimatedBuilder(
-            animation: _pulseAnimation,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: _pulseAnimation.value,
-                child: ElevatedButton(
-                  onPressed: _checkAnswer,
-                  style: SpaceTheme.primaryButtonStyle,
-                  child: const Icon(Icons.check, size: 24),
                 ),
               );
-            },
+            }),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildWinDialog(int totalScore) {
+  Widget _buildPreviewAndAdd() {
+    final headColor = _headColors[_selectedHead % _headColors.length];
+    final bodyColor = _bodyColors[_selectedBody % _bodyColors.length];
+    final tailColor = _tailColors[_selectedTail % _tailColors.length];
+    final comboKey = _comboKey(_selectedHead, _selectedBody, _selectedTail);
+    final alreadyFound = _discoveredCombos.contains(comboKey);
+    final forbidden = _isForbidden(_selectedHead, _selectedBody, _selectedTail);
+
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (context, _) {
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: forbidden
+                  ? SpaceTheme.rocketRed.withValues(alpha: _glowAnimation.value)
+                  : alreadyFound
+                      ? Colors.white24
+                      : SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value * 0.6),
+              width: 2,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Preview: head + body + tail stacked
+              Column(
+                children: [
+                  SizedBox(
+                    width: 44, height: 44,
+                    child: CustomPaint(
+                      painter: _CreaturePartPainter(partType: 0, variant: _selectedHead, color: headColor),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 44, height: 44,
+                    child: CustomPaint(
+                      painter: _CreaturePartPainter(partType: 1, variant: _selectedBody, color: bodyColor),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 44, height: 44,
+                    child: CustomPaint(
+                      painter: _CreaturePartPainter(partType: 2, variant: _selectedTail, color: tailColor),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16),
+              Column(
+                children: [
+                  if (forbidden)
+                    const Text('FORBIDDEN', style: TextStyle(color: SpaceTheme.rocketRed, fontSize: 12, fontWeight: FontWeight.bold))
+                  else if (alreadyFound)
+                    const Text('ALREADY FOUND', style: TextStyle(color: Colors.white54, fontSize: 12))
+                  else
+                    const Text('NEW SPECIES!', style: TextStyle(color: SpaceTheme.alienGreen, fontSize: 12, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: (alreadyFound || forbidden || _gameOver) ? null : _addCreature,
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('ADD'),
+                    style: SpaceTheme.primaryButtonStyle.copyWith(
+                      padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildConstraintBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: SpaceTheme.rocketRed.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: SpaceTheme.rocketRed.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.warning_amber, color: SpaceTheme.rocketRed, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              _constraintText,
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: SpaceTheme.rocketRed),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGalleryAndAnswer() {
+    final total = _headCount * _bodyCount * _tailCount;
+    return Column(
+      children: [
+        // Discovery counter
+        Text(
+          '${_discoveredCombos.length} discovered${_hasConstraints ? "" : " of $total"}',
+          style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 16),
+        ),
+        const SizedBox(height: 8),
+
+        // Gallery grid of discovered creatures
+        if (_discoveredCombos.isNotEmpty)
+          Container(
+            height: 80,
+            decoration: BoxDecoration(
+              color: SpaceTheme.deepSpace.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.all(4),
+              itemCount: _discoveredCombos.length,
+              itemBuilder: (context, index) {
+                final key = _discoveredCombos.elementAt(index);
+                final parts = key.split('-').map(int.parse).toList();
+                return Container(
+                  width: 36,
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(height: 20, width: 20,
+                        child: CustomPaint(painter: _CreaturePartPainter(
+                          partType: 0, variant: parts[0],
+                          color: _headColors[parts[0] % _headColors.length],
+                        ))),
+                      SizedBox(height: 20, width: 20,
+                        child: CustomPaint(painter: _CreaturePartPainter(
+                          partType: 1, variant: parts[1],
+                          color: _bodyColors[parts[1] % _bodyColors.length],
+                        ))),
+                      SizedBox(height: 20, width: 20,
+                        child: CustomPaint(painter: _CreaturePartPainter(
+                          partType: 2, variant: parts[2],
+                          color: _tailColors[parts[2] % _tailColors.length],
+                        ))),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+
+        const SizedBox(height: 12),
+
+        // Answer input
+        if (!_gameOver)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Total possible: ', style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
+              SizedBox(
+                width: 60,
+                child: TextField(
+                  controller: _answerController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 22),
+                  decoration: InputDecoration(
+                    hintText: '?',
+                    hintStyle: SpaceTheme.bodyStyle.copyWith(color: Colors.white30),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: SpaceTheme.nebulaPurple),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: SpaceTheme.starYellow, width: 2),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: _submitAnswer,
+                style: SpaceTheme.primaryButtonStyle,
+                child: const Text('SUBMIT'),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  Widget _buildWinDialog(int score) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: _successAnimation,
@@ -747,8 +612,14 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
                   const SizedBox(height: 16),
                   Text(s.creatureForgeWinTitle,
                       style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
-                  const SizedBox(height: 16),
-                  Text(s.creatureForgeWinDesc(_correctAnswer, totalScore),
+                  const SizedBox(height: 12),
+                  Text(
+                    'You found ${_discoveredCombos.length} species!\nCorrect total: $_correctAnswer',
+                    style: SpaceTheme.bodyStyle,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(s.creatureForgeWinDesc(_correctAnswer, score),
                       style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
                   Row(
@@ -782,19 +653,14 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
   }
 }
 
-/// Draws simple geometric alien body parts via CustomPaint.
-/// partType: 0=head, 1=body, 2=tail
-/// variant: 0-3 different shapes per part type
+/// Draws simple geometric alien body parts.
+/// partType: 0=head, 1=body, 2=tail. variant: 0-3 different shapes per type.
 class _CreaturePartPainter extends CustomPainter {
   final int partType;
   final int variant;
   final Color color;
 
-  _CreaturePartPainter({
-    required this.partType,
-    required this.variant,
-    required this.color,
-  });
+  _CreaturePartPainter({required this.partType, required this.variant, required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -802,184 +668,113 @@ class _CreaturePartPainter extends CustomPainter {
     final h = size.height;
     final cx = w / 2;
     final cy = h / 2;
+    final r = math.min(w, h) * 0.4;
 
-    final fillPaint = Paint()
-      ..color = color.withValues(alpha: 0.4)
-      ..style = PaintingStyle.fill;
-    final edgePaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+    final fillPaint = Paint()..color = color.withValues(alpha: 0.4)..style = PaintingStyle.fill;
+    final edgePaint = Paint()..color = color..style = PaintingStyle.stroke..strokeWidth = 2.0;
 
     if (partType == 0) {
       // HEADS
       switch (variant % 4) {
-        case 0: // Triangle head (crystal)
-          final path = Path()
-            ..moveTo(cx, 2)
-            ..lineTo(w - 2, h - 2)
-            ..lineTo(2, h - 2)
-            ..close();
+        case 0: // Triangle (crystal)
+          final path = Path()..moveTo(cx, 2)..lineTo(w - 2, h - 2)..lineTo(2, h - 2)..close();
           canvas.drawPath(path, fillPaint);
           canvas.drawPath(path, edgePaint);
-          // Eyes
-          _drawEye(canvas, cx - w * 0.15, cy + h * 0.1, 3, color);
-          _drawEye(canvas, cx + w * 0.15, cy + h * 0.1, 3, color);
-          break;
-        case 1: // Circle head (flame)
-          canvas.drawCircle(Offset(cx, cy), math.min(w, h) * 0.4, fillPaint);
-          canvas.drawCircle(Offset(cx, cy), math.min(w, h) * 0.4, edgePaint);
-          // Flame spikes on top
-          final spikePaint = Paint()..color = color..style = PaintingStyle.stroke..strokeWidth = 1.5;
-          canvas.drawLine(Offset(cx - 6, cy - h * 0.3), Offset(cx - 3, cy - h * 0.45), spikePaint);
-          canvas.drawLine(Offset(cx, cy - h * 0.35), Offset(cx, cy - h * 0.5), spikePaint);
-          canvas.drawLine(Offset(cx + 6, cy - h * 0.3), Offset(cx + 3, cy - h * 0.45), spikePaint);
-          _drawEye(canvas, cx - 5, cy, 2, color);
-          _drawEye(canvas, cx + 5, cy, 2, color);
-          break;
-        case 2: // Hexagon head (frost)
-          final r = math.min(w, h) * 0.38;
+          _drawEye(canvas, cx - w * 0.12, cy + h * 0.08, math.max(2, r * 0.15), color);
+          _drawEye(canvas, cx + w * 0.12, cy + h * 0.08, math.max(2, r * 0.15), color);
+        case 1: // Circle (flame)
+          canvas.drawCircle(Offset(cx, cy), r, fillPaint);
+          canvas.drawCircle(Offset(cx, cy), r, edgePaint);
+          final sp = Paint()..color = color..style = PaintingStyle.stroke..strokeWidth = 1.5;
+          canvas.drawLine(Offset(cx - 4, cy - r * 0.7), Offset(cx - 2, cy - r * 1.1), sp);
+          canvas.drawLine(Offset(cx, cy - r * 0.8), Offset(cx, cy - r * 1.2), sp);
+          canvas.drawLine(Offset(cx + 4, cy - r * 0.7), Offset(cx + 2, cy - r * 1.1), sp);
+          _drawEye(canvas, cx - r * 0.3, cy, math.max(2, r * 0.12), color);
+          _drawEye(canvas, cx + r * 0.3, cy, math.max(2, r * 0.12), color);
+        case 2: // Hexagon (frost)
           final path = Path();
           for (int i = 0; i < 6; i++) {
             final angle = (i * 60 - 90) * math.pi / 180;
             final px = cx + r * math.cos(angle);
             final py = cy + r * math.sin(angle);
-            if (i == 0) {
-              path.moveTo(px, py);
-            } else {
-              path.lineTo(px, py);
-            }
+            i == 0 ? path.moveTo(px, py) : path.lineTo(px, py);
           }
           path.close();
           canvas.drawPath(path, fillPaint);
           canvas.drawPath(path, edgePaint);
-          _drawEye(canvas, cx - 5, cy, 2, color);
-          _drawEye(canvas, cx + 5, cy, 2, color);
-          break;
-        case 3: // Diamond head (shadow)
-          final path = Path()
-            ..moveTo(cx, 2)
-            ..lineTo(w - 2, cy)
-            ..lineTo(cx, h - 2)
-            ..lineTo(2, cy)
-            ..close();
+          _drawEye(canvas, cx - r * 0.3, cy, math.max(2, r * 0.12), color);
+          _drawEye(canvas, cx + r * 0.3, cy, math.max(2, r * 0.12), color);
+        default: // Diamond (shadow)
+          final path = Path()..moveTo(cx, 2)..lineTo(w - 2, cy)..lineTo(cx, h - 2)..lineTo(2, cy)..close();
           canvas.drawPath(path, fillPaint);
           canvas.drawPath(path, edgePaint);
-          _drawEye(canvas, cx - 5, cy, 2, color);
-          _drawEye(canvas, cx + 5, cy, 2, color);
-          break;
+          _drawEye(canvas, cx - r * 0.25, cy, math.max(2, r * 0.12), color);
+          _drawEye(canvas, cx + r * 0.25, cy, math.max(2, r * 0.12), color);
       }
     } else if (partType == 1) {
       // BODIES
       switch (variant % 4) {
-        case 0: // Rectangle body (armored)
+        case 0: // Rectangle (armored)
           final rect = Rect.fromCenter(center: Offset(cx, cy), width: w * 0.7, height: h * 0.8);
           canvas.drawRect(rect, fillPaint);
           canvas.drawRect(rect, edgePaint);
-          // Armor lines
-          final linePaint = Paint()..color = color.withValues(alpha: 0.5)..style = PaintingStyle.stroke..strokeWidth = 1;
-          canvas.drawLine(Offset(cx - w * 0.3, cy - h * 0.15), Offset(cx + w * 0.3, cy - h * 0.15), linePaint);
-          canvas.drawLine(Offset(cx - w * 0.3, cy + h * 0.15), Offset(cx + w * 0.3, cy + h * 0.15), linePaint);
-          break;
-        case 1: // Rectangle with wings (winged)
+          final lp = Paint()..color = color.withValues(alpha: 0.5)..style = PaintingStyle.stroke..strokeWidth = 1;
+          canvas.drawLine(Offset(cx - w * 0.3, cy - h * 0.12), Offset(cx + w * 0.3, cy - h * 0.12), lp);
+          canvas.drawLine(Offset(cx - w * 0.3, cy + h * 0.12), Offset(cx + w * 0.3, cy + h * 0.12), lp);
+        case 1: // Winged
           final rect = Rect.fromCenter(center: Offset(cx, cy), width: w * 0.5, height: h * 0.8);
           canvas.drawRect(rect, fillPaint);
           canvas.drawRect(rect, edgePaint);
-          // Wings
-          final wingPath = Path()
-            ..moveTo(cx - w * 0.25, cy - h * 0.1)
-            ..lineTo(2, cy - h * 0.3)
-            ..lineTo(cx - w * 0.25, cy + h * 0.1);
-          canvas.drawPath(wingPath, edgePaint);
-          final wingPath2 = Path()
-            ..moveTo(cx + w * 0.25, cy - h * 0.1)
-            ..lineTo(w - 2, cy - h * 0.3)
-            ..lineTo(cx + w * 0.25, cy + h * 0.1);
-          canvas.drawPath(wingPath2, edgePaint);
-          break;
-        case 2: // Oval body (aquatic)
-          canvas.drawOval(
-            Rect.fromCenter(center: Offset(cx, cy), width: w * 0.75, height: h * 0.7),
-            fillPaint,
-          );
-          canvas.drawOval(
-            Rect.fromCenter(center: Offset(cx, cy), width: w * 0.75, height: h * 0.7),
-            edgePaint,
-          );
-          // Fin lines
-          final finPaint = Paint()..color = color.withValues(alpha: 0.5)..style = PaintingStyle.stroke..strokeWidth = 1;
-          canvas.drawLine(Offset(cx - w * 0.35, cy), Offset(cx - w * 0.15, cy - h * 0.15), finPaint);
-          canvas.drawLine(Offset(cx + w * 0.35, cy), Offset(cx + w * 0.15, cy - h * 0.15), finPaint);
-          break;
-        case 3: // Rounded rectangle (elastic)
+          final wp = Path()..moveTo(cx - w * 0.25, cy - h * 0.1)..lineTo(2, cy - h * 0.3)..lineTo(cx - w * 0.25, cy + h * 0.1);
+          canvas.drawPath(wp, edgePaint);
+          final wp2 = Path()..moveTo(cx + w * 0.25, cy - h * 0.1)..lineTo(w - 2, cy - h * 0.3)..lineTo(cx + w * 0.25, cy + h * 0.1);
+          canvas.drawPath(wp2, edgePaint);
+        case 2: // Oval (aquatic)
+          canvas.drawOval(Rect.fromCenter(center: Offset(cx, cy), width: w * 0.75, height: h * 0.7), fillPaint);
+          canvas.drawOval(Rect.fromCenter(center: Offset(cx, cy), width: w * 0.75, height: h * 0.7), edgePaint);
+        default: // Rounded rect (elastic)
           final rrect = RRect.fromRectAndRadius(
             Rect.fromCenter(center: Offset(cx, cy), width: w * 0.65, height: h * 0.85),
-            const Radius.circular(12),
+            const Radius.circular(10),
           );
           canvas.drawRRect(rrect, fillPaint);
           canvas.drawRRect(rrect, edgePaint);
-          // Stretch marks
-          final markPaint = Paint()..color = color.withValues(alpha: 0.4)..style = PaintingStyle.stroke..strokeWidth = 1;
-          for (int j = -1; j <= 1; j++) {
-            canvas.drawLine(
-              Offset(cx - 4, cy + j * h * 0.15),
-              Offset(cx + 4, cy + j * h * 0.15),
-              markPaint,
-            );
-          }
-          break;
       }
     } else {
       // TAILS
       switch (variant % 4) {
-        case 0: // Sharp stinger
+        case 0: // Stinger
           final path = Path()
-            ..moveTo(cx - w * 0.2, 2)
-            ..lineTo(cx + w * 0.2, 2)
-            ..quadraticBezierTo(cx + w * 0.15, cy, cx, h - 2)
-            ..quadraticBezierTo(cx - w * 0.15, cy, cx - w * 0.2, 2);
+            ..moveTo(cx - w * 0.18, 2)..lineTo(cx + w * 0.18, 2)
+            ..quadraticBezierTo(cx + w * 0.12, cy, cx, h - 2)
+            ..quadraticBezierTo(cx - w * 0.12, cy, cx - w * 0.18, 2);
           canvas.drawPath(path, fillPaint);
           canvas.drawPath(path, edgePaint);
-          break;
-        case 1: // Feathered (curved lines)
-          final basePath = Path()
-            ..moveTo(cx, 2)
-            ..quadraticBezierTo(cx + w * 0.3, cy, cx, h - 2);
-          canvas.drawPath(basePath, edgePaint);
-          // Feather branches
-          final featherPaint = Paint()..color = color.withValues(alpha: 0.6)..style = PaintingStyle.stroke..strokeWidth = 1;
+        case 1: // Feathered
+          final bp = Path()..moveTo(cx, 2)..quadraticBezierTo(cx + w * 0.3, cy, cx, h - 2);
+          canvas.drawPath(bp, edgePaint);
+          final fp = Paint()..color = color.withValues(alpha: 0.6)..style = PaintingStyle.stroke..strokeWidth = 1;
           for (int j = 1; j <= 3; j++) {
             final fY = h * j / 4;
-            canvas.drawLine(Offset(cx, fY), Offset(cx - w * 0.3, fY - h * 0.08), featherPaint);
-            canvas.drawLine(Offset(cx, fY), Offset(cx + w * 0.3, fY - h * 0.08), featherPaint);
+            canvas.drawLine(Offset(cx, fY), Offset(cx - w * 0.25, fY - h * 0.06), fp);
+            canvas.drawLine(Offset(cx, fY), Offset(cx + w * 0.25, fY - h * 0.06), fp);
           }
-          break;
         case 2: // Spiked
           final path = Path()..moveTo(cx, 2);
           for (int j = 0; j < 4; j++) {
             final sY = 2 + (h - 4) * j / 4;
-            final sDir = j.isEven ? 1.0 : -1.0;
-            path.lineTo(cx + sDir * w * 0.35, sY + (h - 4) / 8);
+            final d = j.isEven ? 1.0 : -1.0;
+            path.lineTo(cx + d * w * 0.3, sY + (h - 4) / 8);
             path.lineTo(cx, sY + (h - 4) / 4);
           }
           canvas.drawPath(path, fillPaint);
           canvas.drawPath(path, edgePaint);
-          break;
-        case 3: // Luminous (curved tail with glow dot)
-          final path = Path()
-            ..moveTo(cx - w * 0.15, 2)
-            ..quadraticBezierTo(cx + w * 0.3, cy, cx, h - 8);
+        default: // Luminous
+          final path = Path()..moveTo(cx - w * 0.12, 2)..quadraticBezierTo(cx + w * 0.25, cy, cx, h - 8);
           canvas.drawPath(path, edgePaint);
-          // Glow dot at end
-          canvas.drawCircle(Offset(cx, h - 6), 4, Paint()..color = color);
-          canvas.drawCircle(
-            Offset(cx, h - 6),
-            6,
-            Paint()
-              ..color = color.withValues(alpha: 0.3)
-              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
-          );
-          break;
+          canvas.drawCircle(Offset(cx, h - 6), 3, Paint()..color = color);
+          canvas.drawCircle(Offset(cx, h - 6), 5,
+            Paint()..color = color.withValues(alpha: 0.3)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3));
       }
     }
   }
@@ -990,6 +785,6 @@ class _CreaturePartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _CreaturePartPainter oldDelegate) =>
-      oldDelegate.variant != variant || oldDelegate.partType != partType;
+  bool shouldRepaint(covariant _CreaturePartPainter old) =>
+      old.variant != variant || old.partType != partType || old.color != color;
 }
