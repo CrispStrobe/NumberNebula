@@ -68,6 +68,7 @@ class RelicAssemblyPuzzle {
         // Check right neighbor
         if (c < cols - 1) {
           final rightTileIdx = placement[idx + 1];
+          if (rightTileIdx < 0 || rightTileIdx >= playerTiles.length) return false;
           final rightTile = playerTiles[rightTileIdx].copyWith(rotation: rotations[rightTileIdx]);
           if (tile.getEdge(1) != rightTile.getEdge(3)) return false;
         }
@@ -75,6 +76,7 @@ class RelicAssemblyPuzzle {
         // Check bottom neighbor
         if (r < rows - 1) {
           final bottomTileIdx = placement[idx + cols];
+          if (bottomTileIdx < 0 || bottomTileIdx >= playerTiles.length) return false;
           final bottomTile = playerTiles[bottomTileIdx].copyWith(rotation: rotations[bottomTileIdx]);
           if (tile.getEdge(2) != bottomTile.getEdge(0)) return false;
         }
