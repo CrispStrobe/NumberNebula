@@ -52,8 +52,8 @@ class IonChainPuzzle {
   static final List<IonRule Function(IonType, IonType)> _ruleFactories = [
     // Rule: no two of type A adjacent
     (IonType a, IonType _) => IonRule(
-      description: 'No two ${a.name} ions adjacent',
-      descriptionDe: 'Keine zwei ${_ionNameDe(a)}-Ionen nebeneinander',
+      description: 'No two ${_ionNameEn(a)}s adjacent',
+      descriptionDe: 'Keine zwei ${_ionNameDe(a)}e nebeneinander',
       check: (left, right) {
         if (left == null || right == null) return true;
         return !(left == a && right == a);
@@ -61,7 +61,7 @@ class IonChainPuzzle {
     ),
     // Rule: type A must not be next to type B
     (IonType a, IonType b) => IonRule(
-      description: '${a.name} must not neighbor ${b.name}',
+      description: '${_ionNameEn(a)} must not neighbor ${_ionNameEn(b)}',
       descriptionDe: '${_ionNameDe(a)} darf nicht neben ${_ionNameDe(b)} stehen',
       check: (left, right) {
         if (left == null || right == null) return true;
@@ -70,13 +70,23 @@ class IonChainPuzzle {
     ),
   ];
 
+  static String _ionNameEn(IonType type) {
+    switch (type) {
+      case IonType.red: return 'Star';
+      case IonType.blue: return 'Circle';
+      case IonType.green: return 'Hexagon';
+      case IonType.yellow: return 'Diamond';
+      case IonType.purple: return 'Triangle';
+    }
+  }
+
   static String _ionNameDe(IonType type) {
     switch (type) {
-      case IonType.red: return 'Rot';
-      case IonType.blue: return 'Blau';
-      case IonType.green: return 'Grun';
-      case IonType.yellow: return 'Gelb';
-      case IonType.purple: return 'Lila';
+      case IonType.red: return 'Stern';
+      case IonType.blue: return 'Kreis';
+      case IonType.green: return 'Sechseck';
+      case IonType.yellow: return 'Raute';
+      case IonType.purple: return 'Dreieck';
     }
   }
 
