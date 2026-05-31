@@ -35,6 +35,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   final Map<int, int> _coloring = {};
   int _selectedColor = 0;
   bool _isGenerating = true;
+  bool _won = false;
   DifficultyConfig? currentDifficulty;
   Set<int> _conflictRegions = {};
 
@@ -104,6 +105,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   void _generatePuzzle() {
     setState(() {
       _isGenerating = true;
+      _won = false;
       _coloring.clear();
       _conflictRegions = {};
       _successController.reset();
@@ -130,18 +132,21 @@ class _SectorPainterGameState extends State<SectorPainterGame>
     });
 
     // Check for adjacent same-color conflicts and flash
-    _checkConflicts();
+    final hasConflicts = _checkConflicts();
 
-    // Auto-check win when all regions colored
-    if (_coloring.length == _puzzle!.regions.length) {
+    // Auto-check win when all regions colored with no conflicts
+    if (!hasConflicts && _coloring.length == _puzzle!.regions.length) {
       if (_puzzle!.validateColoring(_coloring)) {
-        _handleWin();
+        // Small delay so the last color is visible before win dialog
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted && !_won) _handleWin();
+        });
       }
     }
   }
 
-  void _checkConflicts() {
-    if (_puzzle == null) return;
+  bool _checkConflicts() {
+    if (_puzzle == null) return false;
     final conflicts = _puzzle!.findConflicts(_coloring);
     if (conflicts.isNotEmpty) {
       final regions = <int>{};
@@ -152,10 +157,14 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       setState(() => _conflictRegions = regions);
       _conflictController.forward(from: 0.0);
       HapticFeedback.heavyImpact();
+      return true;
     }
+    return false;
   }
 
   void _handleWin() {
+    if (_won) return;
+    _won = true;
     HapticFeedback.lightImpact();
     final colorsUsed = _puzzle!.countColors(_coloring);
     int baseScore = 100 * widget.grade;
