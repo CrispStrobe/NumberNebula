@@ -79,11 +79,14 @@ class _HiveStationGameState extends State<HiveStationGame>
   }
 
   double _getHintFraction() {
+    final grade = currentDifficulty?.grade ?? widget.grade;
     final level = currentDifficulty?.level ?? widget.level;
-    // Higher level = fewer hints
-    const base = 0.8;
-    final reduction = level * 0.03;
-    return (base - reduction).clamp(0.3, 0.9);
+    // Like Kanguru: ALL non-energy cells show their number at easy levels.
+    // At harder levels, hide a small fraction to increase difficulty.
+    if (grade <= 2) return 1.0; // Show ALL hints -- pure logical deduction
+    // Grade 3+: gradually hide some hints
+    final reduction = (level - 1) * 0.02;
+    return (1.0 - reduction).clamp(0.7, 1.0);
   }
 
   void _generatePuzzle() async {

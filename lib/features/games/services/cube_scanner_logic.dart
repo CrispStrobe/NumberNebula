@@ -214,7 +214,9 @@ class CubeScannerGenerator {
     int correctAnswer;
     String questionText;
 
-    if (grade <= 1 || level <= 4) {
+    final bool askBottomFace = grade <= 1 || level <= 4;
+
+    if (askBottomFace) {
       // "What is on the BOTTOM face?"
       correctAnswer = die.bottom; // = 7 - top
       questionText = 'What value is on the BOTTOM face?';
@@ -224,8 +226,10 @@ class CubeScannerGenerator {
       questionText = 'What is the sum of the 3 hidden faces?';
     }
 
-    final choices = _generateChoices(correctAnswer,
-        min: grade <= 1 ? 1 : 3, max: grade <= 1 ? 6 : 18);
+    // Choices MUST match the question type's valid range
+    final choices = askBottomFace
+        ? _generateChoices(correctAnswer, min: 1, max: 6)
+        : _generateChoices(correctAnswer, min: 3, max: 18);
 
     return CubeScannerPuzzle(
       dice: [die],

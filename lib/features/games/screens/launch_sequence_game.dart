@@ -358,17 +358,18 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: RadialGradient(
-                colors: [
-                  const Color(0xFFE63946).withValues(alpha: 0.1 * _glowAnimation.value),
-                  SpaceTheme.deepSpace.withValues(alpha: 0.05),
-                ],
-              ),
+              color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value * 0.5),
+                color: SpaceTheme.starYellow.withValues(alpha: 0.4 + _glowAnimation.value * 0.3),
                 width: 2,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: SpaceTheme.nebulaPurple.withValues(alpha: 0.2),
+                  blurRadius: 10,
+                ),
+              ],
             ),
             child: SizedBox(
               height: cardHeight + 24,
