@@ -173,6 +173,15 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     final placement = _computePlacement(piece, row, col);
     if (placement == null) {
       HapticFeedback.heavyImpact();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Piece doesn\'t fit here! Try rotating or a different position.'),
+            backgroundColor: SpaceTheme.rocketRed,
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
       return;
     }
 
@@ -620,7 +629,20 @@ class _HullPlatingGameState extends State<HullPlatingGame>
           width: 2,
         ),
       ),
-      child: _buildMiniPiece(piece, color, 60.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildMiniPiece(piece, color, 60.0),
+          const SizedBox(height: 4),
+          Text(
+            '${piece.cells.length} cells',
+            style: SpaceTheme.bodyStyle.copyWith(
+              fontSize: 10,
+              color: color.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
