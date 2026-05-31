@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'dart:math' as math;
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -24,7 +23,6 @@ class HullPlatingGame extends StatefulWidget {
 class _HullPlatingGameState extends State<HullPlatingGame>
     with TickerProviderStateMixin {
   late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
 
@@ -32,12 +30,21 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
 
-  // Player-placed dominoes
-  final List<Domino> _placedDominoes = [];
-  int _nextDominoId = 0;
+  // Player state
+  final List<PlacedPiece> _placedPieces = [];
+  int? _selectedPieceIndex; // index in puzzle!.pieces
+  int _selectedRotation = 0; // how many 90-degree rotations applied
+  final Set<int> _usedPieceIds = {};
 
-  // Selection state for placing dominoes
-  (int, int)? _firstCell;
+  // Piece colors for display
+  static const _pieceColors = [
+    Color(0xFFE63946), // red
+    Color(0xFF457B9D), // blue
+    Color(0xFF06FFA5), // green
+    Color(0xFFFFD700), // yellow
+    Color(0xFF00C9DB), // cyan
+    Color(0xFFBB86FC), // purple
+  ];
 
   @override
   void initState() {
@@ -47,9 +54,6 @@ class _HullPlatingGameState extends State<HullPlatingGame>
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
-    );
 
     _successController = AnimationController(
       duration: const Duration(milliseconds: 600),
@@ -79,9 +83,10 @@ class _HullPlatingGameState extends State<HullPlatingGame>
 
     setState(() {
       _isGenerating = true;
-      _placedDominoes.clear();
-      _nextDominoId = 0;
-      _firstCell = null;
+      _placedPieces.clear();
+      _usedPieceIds.clear();
+      _selectedPieceIndex = null;
+      _selectedRotation = 0;
       _successController.reset();
     });
 
@@ -98,110 +103,101 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     }
   }
 
-  void _onCellTap(int row, int col) {
-    if (puzzle == null) return;
-    if (!puzzle!.board[row][col]) return; // Can't tap holes
+  PlatingPiece? get _currentPiece {
+    if (_selectedPieceIndex == null || puzzle == null) return null;
+    var piece = puzzle!.pieces[_selectedPieceIndex!];
+    for (int i = 0; i < _selectedRotation; i++) {
+      piece = piece.rotated();
+    }
+    return piece;
+  }
 
-    // Check if cell is already covered by a placed domino
-    final existingDomino = _getDominoAt(row, col);
-    if (existingDomino != null) {
-      // Remove the domino
+  void _selectPiece(int index) {
+    if (_usedPieceIds.contains(puzzle!.pieces[index].id)) return;
+    setState(() {
+      _selectedPieceIndex = index;
+      _selectedRotation = 0;
+    });
+  }
+
+  void _rotatePiece() {
+    if (_selectedPieceIndex == null) return;
+    setState(() {
+      _selectedRotation = (_selectedRotation + 1) % 4;
+    });
+  }
+
+  void _onBoardTap(int row, int col) {
+    final piece = _currentPiece;
+    if (piece == null || puzzle == null) return;
+
+    // Check if tapping on an already-placed piece to remove it
+    final existing = _getPlacedPieceAt(row, col);
+    if (existing != null) {
       HapticFeedback.lightImpact();
       setState(() {
-        _placedDominoes.remove(existingDomino);
-        _firstCell = null;
+        _usedPieceIds.remove(existing.pieceId);
+        _placedPieces.remove(existing);
       });
       return;
     }
 
-    if (_firstCell == null) {
-      // Select first cell
-      setState(() {
-        _firstCell = (row, col);
-      });
-    } else {
-      // Try to place domino between first cell and this cell
-      final first = _firstCell!;
-      final dr = (first.$1 - row).abs();
-      final dc = (first.$2 - col).abs();
+    // Try to place current piece with (row, col) as the anchor (first cell)
+    final anchor = piece.cells.first;
+    final dr = row - anchor.$1;
+    final dc = col - anchor.$2;
 
-      if (dr + dc == 1) {
-        // Adjacent cells - can place domino
-        // Check both cells are free
-        if (_getDominoAt(row, col) == null &&
-            _getDominoAt(first.$1, first.$2) == null) {
-          // Check checkerboard constraint
-          final dark1 = HullPlatingPuzzle.isDarkCell(first.$1, first.$2);
-          final dark2 = HullPlatingPuzzle.isDarkCell(row, col);
+    final absoluteCells =
+        piece.cells.map((c) => (c.$1 + dr, c.$2 + dc)).toList();
 
-          if (dark1 != dark2) {
-            HapticFeedback.lightImpact();
-            setState(() {
-              _placedDominoes.add(Domino(
-                id: _nextDominoId++,
-                cell1: first,
-                cell2: (row, col),
-              ));
-              _firstCell = null;
-            });
-
-            // Check if puzzle is solved
-            _checkSolution();
-          } else {
-            // Same color cells - invalid
-            HapticFeedback.heavyImpact();
-            setState(() {
-              _firstCell = null;
-            });
-          }
-        } else {
-          setState(() {
-            _firstCell = null;
-          });
-        }
-      } else {
-        // Not adjacent - reset selection to this cell
-        setState(() {
-          _firstCell = (row, col);
-        });
+    // Validate placement
+    for (final cell in absoluteCells) {
+      if (cell.$1 < 0 || cell.$1 >= puzzle!.rows ||
+          cell.$2 < 0 || cell.$2 >= puzzle!.cols) {
+        HapticFeedback.heavyImpact();
+        return; // out of bounds
+      }
+      if (!puzzle!.board[cell.$1][cell.$2]) {
+        HapticFeedback.heavyImpact();
+        return; // hole
+      }
+      if (_getPlacedPieceAt(cell.$1, cell.$2) != null) {
+        HapticFeedback.heavyImpact();
+        return; // overlap
       }
     }
+
+    // Place it
+    HapticFeedback.lightImpact();
+    setState(() {
+      _placedPieces.add(PlacedPiece(
+        pieceId: puzzle!.pieces[_selectedPieceIndex!].id,
+        absoluteCells: absoluteCells,
+      ));
+      _usedPieceIds.add(puzzle!.pieces[_selectedPieceIndex!].id);
+      _selectedPieceIndex = null;
+      _selectedRotation = 0;
+    });
+
+    _checkSolution();
   }
 
-  Domino? _getDominoAt(int row, int col) {
-    for (final domino in _placedDominoes) {
-      if (domino.covers(row, col)) return domino;
+  PlacedPiece? _getPlacedPieceAt(int row, int col) {
+    for (final p in _placedPieces) {
+      if (p.covers(row, col)) return p;
     }
     return null;
   }
 
   void _checkSolution() {
     if (puzzle == null) return;
+    if (_placedPieces.length != puzzle!.pieces.length) return;
 
-    // Count covered cells
-    int coveredCount = _placedDominoes.length * 2;
+    final isValid = HullPlatingPuzzle.validatePlacement(
+      _placedPieces, puzzle!.board, puzzle!.rows, puzzle!.cols,
+    );
 
-    // Count active cells
-    int activeCount = 0;
-    for (int r = 0; r < puzzle!.rows; r++) {
-      for (int c = 0; c < puzzle!.cols; c++) {
-        if (puzzle!.board[r][c]) activeCount++;
-      }
-    }
-
-    if (coveredCount == activeCount) {
-      // All cells covered - validate
-      final isValid = HullPlatingPuzzle.validatePlacement(
-        _placedDominoes,
-        puzzle!.board,
-        puzzle!.rows,
-        puzzle!.cols,
-      );
-
-      if (isValid) {
-        _handleWin();
-      }
-    }
+    if (isValid) _handleWin();
   }
 
   void _handleWin() {
@@ -209,7 +205,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
 
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
-    int sizeBonus = puzzle!.rows * puzzle!.cols * 10;
+    int sizeBonus = puzzle!.pieces.length * 30;
     int totalScore = baseScore + levelBonus + sizeBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
@@ -232,9 +228,15 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   void _clearBoard() {
     HapticFeedback.lightImpact();
     setState(() {
-      _placedDominoes.clear();
-      _firstCell = null;
+      _placedPieces.clear();
+      _usedPieceIds.clear();
+      _selectedPieceIndex = null;
+      _selectedRotation = 0;
     });
+  }
+
+  Color _colorForPieceId(int pieceId) {
+    return _pieceColors[pieceId % _pieceColors.length];
   }
 
   @override
@@ -269,8 +271,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
                 onBack: () => Navigator.of(context).pop(),
               ),
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
                   s.hullPlatingInstructions,
                   style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
@@ -280,7 +281,6 @@ class _HullPlatingGameState extends State<HullPlatingGame>
                 ),
               ),
               Expanded(child: _buildGameArea()),
-              _buildBottomBar(),
             ],
           ),
         ),
@@ -289,226 +289,194 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   }
 
   Widget _buildGameArea() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final maxW = constraints.maxWidth - 48;
-        final maxH = constraints.maxHeight - 16;
-        final cellSize = math.min(
-          maxW / puzzle!.cols,
-          maxH / puzzle!.rows,
-        ).clamp(30.0, 80.0);
+    return Column(
+      children: [
+        // Board
+        Expanded(
+          flex: 3,
+          child: Center(child: _buildBoard()),
+        ),
+        // Controls row
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.rotate_right, color: SpaceTheme.starYellow),
+                iconSize: 32,
+                onPressed: _selectedPieceIndex != null ? _rotatePiece : null,
+                tooltip: 'Rotate',
+              ),
+              const SizedBox(width: 16),
+              IconButton(
+                icon: const Icon(Icons.delete_sweep, color: SpaceTheme.rocketRed),
+                iconSize: 32,
+                onPressed: _placedPieces.isNotEmpty ? _clearBoard : null,
+                tooltip: 'Clear',
+              ),
+              const SizedBox(width: 16),
+              Text(
+                '${_placedPieces.length}/${puzzle!.pieces.length}',
+                style: SpaceTheme.headlineStyle.copyWith(fontSize: 18),
+              ),
+            ],
+          ),
+        ),
+        // Piece tray
+        SizedBox(
+          height: 100,
+          child: _buildPieceTray(),
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
 
-        final gridWidth = cellSize * puzzle!.cols;
-        final gridHeight = cellSize * puzzle!.rows;
+  Widget _buildBoard() {
+    final cellSize = _calculateCellSize();
 
-        return Center(
-          child: AnimatedBuilder(
-            animation: _glowAnimation,
-            builder: (context, child) {
-              return Container(
-                width: gridWidth + 16,
-                height: gridHeight + 16,
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFF8B8B8B)
-                        .withValues(alpha: _glowAnimation.value * 0.6),
-                    width: 2,
-                  ),
-                  gradient: RadialGradient(
-                    colors: [
-                      SpaceTheme.deepSpace.withValues(alpha: 0.9),
-                      const Color(0xFF1A1A2E).withValues(alpha: 0.7),
-                    ],
-                  ),
-                ),
-                child: _buildGrid(cellSize),
-              );
-            },
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: SpaceTheme.starYellow.withValues(alpha: 0.3),
+          width: 2,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(puzzle!.rows, (r) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(puzzle!.cols, (c) {
+              return _buildCell(r, c, cellSize);
+            }),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildCell(int row, int col, double size) {
+    final isActive = puzzle!.board[row][col];
+    final placed = _getPlacedPieceAt(row, col);
+    final isDark = HullPlatingPuzzle.isDarkCell(row, col);
+
+    Color cellColor;
+    if (!isActive) {
+      cellColor = Colors.transparent;
+    } else if (placed != null) {
+      cellColor = _colorForPieceId(placed.pieceId).withValues(alpha: 0.8);
+    } else if (isDark) {
+      cellColor = SpaceTheme.deepSpace.withValues(alpha: 0.8);
+    } else {
+      cellColor = SpaceTheme.deepSpace.withValues(alpha: 0.5);
+    }
+
+    return GestureDetector(
+      onTap: isActive ? () => _onBoardTap(row, col) : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: cellColor,
+          border: Border.all(
+            color: isActive
+                ? SpaceTheme.nebulaPurple.withValues(alpha: 0.5)
+                : Colors.transparent,
+            width: 1,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPieceTray() {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      itemCount: puzzle!.pieces.length,
+      itemBuilder: (context, index) {
+        final piece = puzzle!.pieces[index];
+        final isUsed = _usedPieceIds.contains(piece.id);
+        final isSelected = _selectedPieceIndex == index;
+
+        return GestureDetector(
+          onTap: isUsed ? null : () => _selectPiece(index),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: isUsed
+                  ? Colors.white10
+                  : isSelected
+                      ? SpaceTheme.starYellow.withValues(alpha: 0.3)
+                      : SpaceTheme.deepSpace.withValues(alpha: 0.6),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isSelected
+                    ? SpaceTheme.starYellow
+                    : isUsed
+                        ? Colors.white10
+                        : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
+                width: isSelected ? 2 : 1,
+              ),
+            ),
+            child: Opacity(
+              opacity: isUsed ? 0.2 : 1.0,
+              child: _buildMiniPiece(
+                isSelected ? _currentPiece! : piece,
+                _colorForPieceId(piece.id),
+              ),
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildGrid(double cellSize) {
-    // Build color map for dominoes
-    final dominoColors = <int, Color>{};
-    final colorPalette = [
-      const Color(0xFF4A90D9),
-      const Color(0xFF50C878),
-      const Color(0xFFE8A317),
-      const Color(0xFFCC4444),
-      const Color(0xFF8A6BBE),
-      const Color(0xFF33CCCC),
-      const Color(0xFFFF7F50),
-      const Color(0xFF6495ED),
-      const Color(0xFFDDA0DD),
-      const Color(0xFF98FB98),
-      const Color(0xFFF4A460),
-      const Color(0xFF87CEEB),
-      const Color(0xFFFFB6C1),
-      const Color(0xFFADD8E6),
-      const Color(0xFFE6E6FA),
-      const Color(0xFFFFA07A),
-      const Color(0xFF90EE90),
-      const Color(0xFFDEB887),
-    ];
-    for (final domino in _placedDominoes) {
-      dominoColors[domino.id] =
-          colorPalette[domino.id % colorPalette.length];
-    }
+  Widget _buildMiniPiece(PlatingPiece piece, Color color) {
+    const miniCellSize = 14.0;
+    final h = piece.height;
+    final w = piece.width;
+    final cellSet = piece.cells.toSet();
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(puzzle!.rows, (row) {
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(puzzle!.cols, (col) {
-            return _buildCell(row, col, cellSize, dominoColors);
-          }),
-        );
-      }),
-    );
-  }
-
-  Widget _buildCell(
-      int row, int col, double cellSize, Map<int, Color> dominoColors) {
-    final isActive = puzzle!.board[row][col];
-    final isDark = HullPlatingPuzzle.isDarkCell(row, col);
-    final isSelected = _firstCell != null &&
-        _firstCell!.$1 == row &&
-        _firstCell!.$2 == col;
-    final domino = _getDominoAt(row, col);
-
-    Color bgColor;
-    if (!isActive) {
-      bgColor = Colors.transparent;
-    } else if (domino != null) {
-      bgColor = dominoColors[domino.id]!.withValues(alpha: 0.7);
-    } else if (isSelected) {
-      bgColor = SpaceTheme.starYellow.withValues(alpha: 0.5);
-    } else if (isDark) {
-      bgColor = const Color(0xFF2A2A4A);
-    } else {
-      bgColor = const Color(0xFF404070);
-    }
-
-    // Determine domino border styling
-    BorderRadius? borderRadius;
-    if (domino != null) {
-      final isCell1 =
-          domino.cell1.$1 == row && domino.cell1.$2 == col;
-      final otherRow =
-          isCell1 ? domino.cell2.$1 : domino.cell1.$1;
-      final otherCol =
-          isCell1 ? domino.cell2.$2 : domino.cell1.$2;
-
-      if (otherRow == row) {
-        // Horizontal domino
-        if (col < otherCol) {
-          borderRadius = const BorderRadius.only(
-            topLeft: Radius.circular(8),
-            bottomLeft: Radius.circular(8),
-          );
-        } else {
-          borderRadius = const BorderRadius.only(
-            topRight: Radius.circular(8),
-            bottomRight: Radius.circular(8),
-          );
-        }
-      } else {
-        // Vertical domino
-        if (row < otherRow) {
-          borderRadius = const BorderRadius.only(
-            topLeft: Radius.circular(8),
-            topRight: Radius.circular(8),
-          );
-        } else {
-          borderRadius = const BorderRadius.only(
-            bottomLeft: Radius.circular(8),
-            bottomRight: Radius.circular(8),
-          );
-        }
-      }
-    }
-
-    return GestureDetector(
-      onTap: isActive ? () => _onCellTap(row, col) : null,
-      child: Container(
-        width: cellSize,
-        height: cellSize,
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: borderRadius ?? BorderRadius.circular(2),
-          border: isActive
-              ? Border.all(
-                  color: isSelected
-                      ? SpaceTheme.starYellow
-                      : domino != null
-                          ? dominoColors[domino.id]!
-                          : Colors.grey.shade600,
-                  width: isSelected ? 3 : 1,
-                )
-              : null,
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: SpaceTheme.starYellow.withValues(alpha: 0.5),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                  ),
-                ]
-              : null,
-        ),
-        child: isActive && domino == null
-            ? Center(
-                child: Icon(
-                  isDark ? Icons.brightness_3 : Icons.wb_sunny,
-                  size: cellSize * 0.3,
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.2)
-                      : Colors.white.withValues(alpha: 0.15),
+    return SizedBox(
+      width: w * miniCellSize,
+      height: h * miniCellSize,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(h, (r) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(w, (c) {
+              final filled = cellSet.contains((r, c));
+              return Container(
+                width: miniCellSize,
+                height: miniCellSize,
+                decoration: BoxDecoration(
+                  color: filled ? color : Colors.transparent,
+                  border: filled
+                      ? Border.all(color: Colors.white24, width: 0.5)
+                      : null,
                 ),
-              )
-            : null,
+              );
+            }),
+          );
+        }),
       ),
     );
   }
 
-  Widget _buildBottomBar() {
-    final s = S.of(context)!;
-    final placed = _placedDominoes.length;
-    final total = puzzle!.dominoCount;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: SpaceTheme.nebulaPurple),
-            ),
-            child: Text(
-              '$placed / $total',
-              style: SpaceTheme.headlineStyle.copyWith(fontSize: 16),
-            ),
-          ),
-          ElevatedButton.icon(
-            onPressed: _clearBoard,
-            icon: const Icon(Icons.refresh, size: 18),
-            label: Text(s.playAgain),
-            style: SpaceTheme.secondaryButtonStyle,
-          ),
-        ],
-      ),
-    );
+  double _calculateCellSize() {
+    final screenWidth = MediaQuery.of(context).size.width - 64;
+    final screenHeight = MediaQuery.of(context).size.height * 0.45;
+    final cellW = screenWidth / puzzle!.cols;
+    final cellH = screenHeight / puzzle!.rows;
+    return cellW < cellH ? cellW : cellH;
   }
 
   Widget _buildWinDialog(int bonusScore) {
@@ -526,7 +494,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.view_compact,
+                  const Icon(Icons.shield,
                       size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.hullPlatingWinTitle,

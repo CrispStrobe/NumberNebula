@@ -36,7 +36,11 @@ class _CommRelayGameState extends State<CommRelayGame>
   // For Atbash/keyword: player types the decoded message
   final TextEditingController _answerController = TextEditingController();
   int _attempts = 0;
-  static const int _maxAttempts = 5;
+  int _maxAttempts = 5;
+
+  // Decoded text only shown after pressing Decode
+  String? _decodedPreview;
+  bool _showDecoded = false;
 
   @override
   void initState() {
@@ -77,11 +81,18 @@ class _CommRelayGameState extends State<CommRelayGame>
   void _generatePuzzle() {
     if (currentDifficulty == null) return;
 
+    // Scale max attempts: grade 1 level 1 = 5 tries, grade 4 level 20 = 1 try
+    final grade = currentDifficulty!.grade.clamp(1, 4);
+    final level = widget.level.clamp(1, 20);
+    _maxAttempts = (6 - grade - (level - 1) ~/ 5).clamp(1, 5);
+
     setState(() {
       _isGenerating = true;
       _currentShift = 0;
       _answerController.clear();
       _attempts = 0;
+      _decodedPreview = null;
+      _showDecoded = false;
       _successController.reset();
     });
 
@@ -106,6 +117,13 @@ class _CommRelayGameState extends State<CommRelayGame>
     if (puzzle == null) return;
     _attempts++;
 
+    // Show the decoded preview
+    setState(() {
+      _decodedPreview =
+          CommRelayPuzzle.decryptCaesar(puzzle!.cipherText, _currentShift);
+      _showDecoded = true;
+    });
+
     if (puzzle!.checkShift(_currentShift)) {
       _handleWin();
     } else if (_attempts >= _maxAttempts) {
@@ -118,7 +136,11 @@ class _CommRelayGameState extends State<CommRelayGame>
             children: [
               const Icon(Icons.error_outline, color: Colors.white),
               const SizedBox(width: 8),
-              Expanded(child: Text(S.of(context)!.commRelayLoseDesc)),
+              Expanded(
+                child: Text(
+                  '${S.of(context)!.commRelayLoseDesc} (${_maxAttempts - _attempts} left)',
+                ),
+              ),
             ],
           ),
           backgroundColor: SpaceTheme.rocketRed,
@@ -269,15 +291,6 @@ class _CommRelayGameState extends State<CommRelayGame>
     return AnimatedBuilder(
       animation: _glowAnimation,
       builder: (context, child) {
-        // For Caesar cipher, show the live-decoded text
-        String displayText;
-        if (puzzle!.cipherType == CipherType.caesar) {
-          displayText =
-              CommRelayPuzzle.decryptCaesar(puzzle!.cipherText, _currentShift);
-        } else {
-          displayText = puzzle!.cipherText;
-        }
-
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
@@ -301,9 +314,7 @@ class _CommRelayGameState extends State<CommRelayGame>
           child: Column(
             children: [
               Text(
-                puzzle!.cipherType == CipherType.caesar
-                    ? 'ENCRYPTED SIGNAL'
-                    : 'ENCRYPTED MESSAGE',
+                'ENCRYPTED SIGNAL',
                 style: SpaceTheme.bodyStyle.copyWith(
                   color: SpaceTheme.starYellow,
                   fontSize: 12,
@@ -320,7 +331,8 @@ class _CommRelayGameState extends State<CommRelayGame>
                 ),
                 textAlign: TextAlign.center,
               ),
-              if (puzzle!.cipherType == CipherType.caesar) ...[
+              // Only show decoded result after pressing Decode
+              if (_showDecoded && _decodedPreview != null) ...[
                 const SizedBox(height: 16),
                 const Divider(color: Colors.white24),
                 const SizedBox(height: 8),
@@ -334,7 +346,7 @@ class _CommRelayGameState extends State<CommRelayGame>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  displayText,
+                  _decodedPreview!,
                   style: SpaceTheme.headlineStyle.copyWith(
                     fontSize: 22,
                     letterSpacing: 3,
@@ -418,21 +430,24 @@ class _CommRelayGameState extends State<CommRelayGame>
       child: Column(
         children: [
           Text(
-            'SHIFT: $_currentShift',
+            'SHIFT: ${_currentShift > 0 ? '+' : ''}$_currentShift',
             style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
           ),
           const SizedBox(height: 8),
           Slider(
             value: _currentShift.toDouble(),
-            min: 0,
-            max: 25,
-            divisions: 25,
+            min: -13,
+            max: 13,
+            divisions: 26,
             activeColor: SpaceTheme.starYellow,
             inactiveColor: SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
             label: _currentShift.toString(),
             onChanged: (value) {
               setState(() {
                 _currentShift = value.round();
+                // Hide previous decoded result when slider changes
+                _showDecoded = false;
+                _decodedPreview = null;
               });
             },
           ),
@@ -440,7 +455,7 @@ class _CommRelayGameState extends State<CommRelayGame>
           ElevatedButton(
             onPressed: _checkCaesarAnswer,
             style: SpaceTheme.primaryButtonStyle,
-            child: const Text('DECODE'),
+            child: Text('DECODE  (${_maxAttempts - _attempts} left)'),
           ),
         ],
       ),

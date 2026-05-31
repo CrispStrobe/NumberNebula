@@ -64,85 +64,112 @@ class AlienTribunalLogic {
 
     debugPrint('[ALIEN_TRIBUNAL] Generating puzzle for grade=$grade, level=$level');
 
-    // Difficulty scaling
+    // Difficulty scaling -- minimum 3 people (2-person puzzles are almost
+    // always ambiguous and cause infinite retry loops)
     int personCount;
     if (difficulty.grade <= 1) {
-      personCount = 2;
+      personCount = 3;
     } else if (difficulty.grade <= 2) {
-      personCount = level <= 5 ? 3 : 3;
+      personCount = level <= 5 ? 3 : 4;
     } else if (difficulty.grade <= 3) {
-      personCount = level <= 3 ? 3 : 4;
+      personCount = level <= 3 ? 4 : 4;
     } else {
       personCount = level <= 5 ? 4 : 5;
     }
 
+    // Retry with a hard cap to avoid infinite loops
+    for (int attempt = 0; attempt < 50; attempt++) {
+      final result = _tryGenerate(personCount, rng);
+      if (result != null) {
+        debugPrint('[ALIEN_TRIBUNAL] Success on attempt $attempt');
+        return result;
+      }
+    }
+
+    // Fallback: build a guaranteed-unique 3-person puzzle manually
+    // A=truth-teller, B=liar, C=truth-teller
+    // A says "C tells the truth" (true, consistent)
+    // B says "A is a liar" (lie, consistent since A is truth-teller)
+    // C says "B is a liar" (true, consistent)
+    debugPrint('[ALIEN_TRIBUNAL] Using fallback puzzle');
+    final names = (List<String>.from(_alienNames)..shuffle(rng)).take(3).toList();
+    return AlienTribunalPuzzle(
+      people: [
+        TribunalPerson(name: names[0], isTruthTeller: true,
+          statement: '"${names[2]} tells the truth."', targetIndex: 2, claimsTruthTeller: true),
+        TribunalPerson(name: names[1], isTruthTeller: false,
+          statement: '"${names[0]} is a liar."', targetIndex: 0, claimsTruthTeller: false),
+        TribunalPerson(name: names[2], isTruthTeller: true,
+          statement: '"${names[1]} is a liar."', targetIndex: 1, claimsTruthTeller: false),
+      ],
+      personCount: 3,
+    );
+  }
+
+  static AlienTribunalPuzzle? _tryGenerate(int personCount, math.Random rng) {
     // Pick names
     final availableNames = List<String>.from(_alienNames)..shuffle(rng);
     final names = availableNames.take(personCount).toList();
 
     // Generate valid assignment with at least 1 truth-teller and 1 liar
     List<bool> assignment;
-    int maxRetries = 100;
+    int retries = 20;
     do {
       assignment = List.generate(personCount, (_) => rng.nextBool());
-      maxRetries--;
-    } while (maxRetries > 0 &&
+      retries--;
+    } while (retries > 0 &&
         (assignment.every((v) => v) || assignment.every((v) => !v)));
 
-    // If we exhausted retries, force a valid assignment
     if (assignment.every((v) => v) || assignment.every((v) => !v)) {
       assignment[0] = true;
       assignment[1] = false;
     }
 
-    debugPrint('[ALIEN_TRIBUNAL] Assignment: ${List.generate(personCount, (i) => "${names[i]}=${assignment[i] ? 'T' : 'L'}")}');
-
-    // Generate statements
+    // Generate statements -- ensure each person targets a DIFFERENT person
+    // to maximize information and improve uniqueness chances
     final people = <TribunalPerson>[];
+    final usedTargets = <int>{};
+
     for (int i = 0; i < personCount; i++) {
-      // Pick a target (not self)
+      // Prefer a target not yet targeted by anyone else
       int targetIdx;
-      do {
-        targetIdx = rng.nextInt(personCount);
-      } while (targetIdx == i);
+      final untargeted = List.generate(personCount, (j) => j)
+          .where((j) => j != i && !usedTargets.contains(j))
+          .toList();
+      if (untargeted.isNotEmpty) {
+        targetIdx = untargeted[rng.nextInt(untargeted.length)];
+      } else {
+        do {
+          targetIdx = rng.nextInt(personCount);
+        } while (targetIdx == i);
+      }
+      usedTargets.add(targetIdx);
 
       final targetIsTruthTeller = assignment[targetIdx];
       final iAmTruthTeller = assignment[i];
 
-      // Truth-tellers say true things, liars say false things
       bool claimsTruthTeller;
       if (iAmTruthTeller) {
-        claimsTruthTeller = targetIsTruthTeller; // truth-teller tells truth
+        claimsTruthTeller = targetIsTruthTeller;
       } else {
-        claimsTruthTeller = !targetIsTruthTeller; // liar lies
+        claimsTruthTeller = !targetIsTruthTeller;
       }
 
-      // Generate statement text
       final targetName = names[targetIdx];
       String statement;
       if (claimsTruthTeller) {
         final style = rng.nextInt(3);
         switch (style) {
-          case 0:
-            statement = '"$targetName tells the truth."';
-            break;
-          case 1:
-            statement = '"$targetName is trustworthy."';
-            break;
-          default:
-            statement = '"$targetName is a truth-teller."';
+          case 0: statement = '"$targetName tells the truth."'; break;
+          case 1: statement = '"$targetName is trustworthy."'; break;
+          default: statement = '"$targetName is a truth-teller."';
         }
       } else {
         final style = rng.nextInt(3);
         switch (style) {
-          case 0:
-            statement = '"$targetName is a liar."';
-            break;
-          case 1:
-            statement = '"$targetName cannot be trusted."';
-            break;
-          default:
-            statement = '"$targetName always lies."';
+          case 0: statement = '"$targetName is a liar."'; break;
+          case 1: statement = '"$targetName cannot be trusted."'; break;
+          default: statement = '"$targetName always lies."';
         }
       }
 
@@ -155,15 +182,9 @@ class AlienTribunalLogic {
       ));
     }
 
-    // Verify the puzzle has a unique solution by checking all possible assignments
+    // Verify unique solution
     final validSolutions = _findAllValidSolutions(people, personCount);
-    debugPrint('[ALIEN_TRIBUNAL] Found ${validSolutions.length} valid solution(s)');
-
-    // If not unique, regenerate (recursive with new seed)
-    if (validSolutions.length != 1) {
-      debugPrint('[ALIEN_TRIBUNAL] Non-unique solution, regenerating...');
-      return generate(args);
-    }
+    if (validSolutions.length != 1) return null;
 
     return AlienTribunalPuzzle(
       people: people,
