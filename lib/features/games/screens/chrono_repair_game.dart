@@ -300,18 +300,27 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   }
 
   Widget _buildCompactLayout(BoxConstraints constraints) {
-    return SingleChildScrollView(
+    // Do NOT use SingleChildScrollView here -- it steals scroll
+    // gestures from the ListWheelScrollView rollers inside _buildRollerInput.
+    return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           _buildMalfunctionHint(),
-          const SizedBox(height: 16),
-          _buildClockDisplay(constraints),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
+          Expanded(
+            flex: 3,
+            child: _buildClockDisplay(constraints),
+          ),
+          const SizedBox(height: 6),
           _buildDigitalDisplay(),
-          const SizedBox(height: 20),
-          if (!_gameOver) _buildRollerInput(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
+          if (!_gameOver)
+            Expanded(
+              flex: 4,
+              child: _buildRollerInput(),
+            ),
+          const SizedBox(height: 8),
         ],
       ),
     );
