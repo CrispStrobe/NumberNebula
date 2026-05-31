@@ -38,6 +38,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   String _lastDroppedCell = '';
   DifficultyConfig? currentDifficulty;
 
+  // Track completed rows/columns that flash green
+  final Set<String> _validatedLines = {};
+
   @override
   void initState() {
     super.initState();
@@ -115,6 +118,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     setState(() {
       _isGenerating = true;
       userSolution.clear();
+      _validatedLines.clear();
       _successController.reset();
     });
 
@@ -143,6 +147,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
       _lastDroppedCell = cellId;
       _dropController.forward(from: 0.0);
     });
+    _checkLineCompletion(cellId);
     _checkSolution();
   }
 
@@ -150,6 +155,42 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     setState(() {
       userSolution.remove(cellId);
     });
+  }
+
+  void _checkLineCompletion(String cellId) {
+    if (puzzle == null) return;
+    final size = puzzle!.size;
+    // Parse row/col from cellId
+    final parts = cellId.split('c');
+    final row = int.parse(parts[0].substring(1));
+    final col = int.parse(parts[1]);
+
+    final complete = Map<String, int>.from(puzzle!.clues);
+    complete.addAll(userSolution);
+
+    // Check if row is complete
+    bool rowComplete = true;
+    final rowVals = <int>{};
+    for (int c = 0; c < size; c++) {
+      final v = complete['r${row}c$c'];
+      if (v == null) { rowComplete = false; break; }
+      rowVals.add(v);
+    }
+    if (rowComplete && rowVals.length == size) {
+      _validatedLines.add('row_$row');
+    }
+
+    // Check if col is complete
+    bool colComplete = true;
+    final colVals = <int>{};
+    for (int r = 0; r < size; r++) {
+      final v = complete['r${r}c$col'];
+      if (v == null) { colComplete = false; break; }
+      colVals.add(v);
+    }
+    if (colComplete && colVals.length == size) {
+      _validatedLines.add('col_$col');
+    }
   }
 
   void _checkSolution() {
@@ -202,6 +243,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     );
   }
 
+  bool _isRowValidated(int row) => _validatedLines.contains('row_$row');
+  bool _isColValidated(int col) => _validatedLines.contains('col_$col');
+
   @override
   Widget build(BuildContext context) {
     final s = S.of(context)!;
@@ -241,9 +285,16 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                   textAlign: TextAlign.center,
                 ),
               ),
-              Expanded(child: _buildGridWithClues()),
-              _buildNumberPad(),
-              const SizedBox(height: 8),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 700;
+                    return isWide
+                        ? _buildWideLayout(constraints)
+                        : _buildCompactLayout(constraints);
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -251,11 +302,47 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     );
   }
 
-  Widget _buildGridWithClues() {
+  Widget _buildWideLayout(BoxConstraints constraints) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            flex: 3,
+            child: _buildGridWithClues(constraints),
+          ),
+          const SizedBox(width: 24),
+          Expanded(
+            flex: 2,
+            child: _buildNumberPad(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactLayout(BoxConstraints constraints) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        children: [
+          Expanded(
+            flex: 3,
+            child: _buildGridWithClues(constraints),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            flex: 2,
+            child: _buildNumberPad(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGridWithClues(BoxConstraints outerConstraints) {
     final size = puzzle!.size;
-    const maxCellSize = 55.0;
-    final cellSize = math.min(maxCellSize, (MediaQuery.of(context).size.width - 120) / (size + 2));
-    final clueSize = cellSize * 0.7;
 
     return Center(
       child: AnimatedBuilder(
@@ -276,48 +363,56 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                 width: 2,
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Top edge clues
-                Row(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Account for clue columns (2 extra) and rows (2 extra)
+                final maxCellW = (constraints.maxWidth - 16) / (size + 2);
+                final maxCellH = (constraints.maxHeight - 16) / (size + 2);
+                final cellSize = math.min(maxCellW, maxCellH).clamp(30.0, 70.0);
+                final clueSize = cellSize * 0.7;
+
+                return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(width: clueSize), // corner
-                    ...List.generate(size, (c) {
-                      final clue = puzzle!.edgeClues['top_$c'];
-                      return _buildEdgeClue(clue, clueSize);
+                    // Top edge clues
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(width: clueSize),
+                        ...List.generate(size, (c) {
+                          return _buildEdgeClue(puzzle!.edgeClues['top_$c'], clueSize);
+                        }),
+                        SizedBox(width: clueSize),
+                      ],
+                    ),
+                    // Grid rows with left/right clues
+                    ...List.generate(size, (r) {
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildEdgeClue(puzzle!.edgeClues['left_$r'], clueSize),
+                          ...List.generate(size, (c) {
+                            final cellId = 'r${r}c$c';
+                            return _buildCell(cellId, r, c, cellSize);
+                          }),
+                          _buildEdgeClue(puzzle!.edgeClues['right_$r'], clueSize),
+                        ],
+                      );
                     }),
-                    SizedBox(width: clueSize), // corner
+                    // Bottom edge clues
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(width: clueSize),
+                        ...List.generate(size, (c) {
+                          return _buildEdgeClue(puzzle!.edgeClues['bottom_$c'], clueSize);
+                        }),
+                        SizedBox(width: clueSize),
+                      ],
+                    ),
                   ],
-                ),
-                // Grid rows with left/right clues
-                ...List.generate(size, (r) {
-                  return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildEdgeClue(puzzle!.edgeClues['left_$r'], clueSize),
-                      ...List.generate(size, (c) {
-                        final cellId = 'r${r}c$c';
-                        return _buildCell(cellId, cellSize);
-                      }),
-                      _buildEdgeClue(puzzle!.edgeClues['right_$r'], clueSize),
-                    ],
-                  );
-                }),
-                // Bottom edge clues
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(width: clueSize),
-                    ...List.generate(size, (c) {
-                      final clue = puzzle!.edgeClues['bottom_$c'];
-                      return _buildEdgeClue(clue, clueSize);
-                    }),
-                    SizedBox(width: clueSize),
-                  ],
-                ),
-              ],
+                );
+              },
             ),
           );
         },
@@ -337,11 +432,13 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                   color: SpaceTheme.starYellow.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Text(
-                  clue.toString(),
-                  style: SpaceTheme.headlineStyle.copyWith(
-                    fontSize: size * 0.5,
-                    color: SpaceTheme.starYellow,
+                child: FittedBox(
+                  child: Text(
+                    clue.toString(),
+                    style: SpaceTheme.headlineStyle.copyWith(
+                      fontSize: size * 0.5,
+                      color: SpaceTheme.starYellow,
+                    ),
                   ),
                 ),
               ),
@@ -350,40 +447,51 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     );
   }
 
-  Widget _buildCell(String cellId, double cellSize) {
+  Widget _buildCell(String cellId, int row, int col, double cellSize) {
     final isClue = puzzle!.clues.containsKey(cellId);
     final hasUserValue = userSolution.containsKey(cellId);
     final value = isClue ? puzzle!.clues[cellId] : userSolution[cellId];
     final isLastDropped = cellId == _lastDroppedCell;
+    final isRowValid = _isRowValidated(row);
+    final isColValid = _isColValidated(col);
+    final isHighlighted = isRowValid || isColValid;
 
     if (isClue) {
       return Container(
         width: cellSize,
         height: cellSize,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace],
+          gradient: LinearGradient(
+            colors: isHighlighted
+                ? [SpaceTheme.alienGreen, SpaceTheme.alienGreen.withValues(alpha: 0.6)]
+                : [SpaceTheme.alienGreen.withValues(alpha: 0.4), SpaceTheme.deepSpace],
           ),
           border: Border.all(color: Colors.grey.shade600, width: 1),
         ),
         child: Center(
-          child: _buildTowerIcon(value!, cellSize),
+          child: _buildTowerVisual(value!, cellSize),
         ),
       );
     }
 
     if (hasUserValue) {
-      Widget cell = Container(
+      Widget cell = AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
         width: cellSize,
         height: cellSize,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple],
+          gradient: LinearGradient(
+            colors: isHighlighted
+                ? [SpaceTheme.alienGreen.withValues(alpha: 0.3), SpaceTheme.deepSpace]
+                : [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple],
           ),
-          border: Border.all(color: Colors.grey.shade600, width: 1),
+          border: Border.all(
+            color: isHighlighted ? SpaceTheme.alienGreen : Colors.grey.shade600,
+            width: isHighlighted ? 2 : 1,
+          ),
         ),
         child: Center(
-          child: _buildTowerIcon(value!, cellSize),
+          child: _buildTowerVisual(value!, cellSize),
         ),
       );
 
@@ -394,29 +502,41 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
       return GestureDetector(onTap: () => _removeNumber(cellId), child: cell);
     }
 
+    // Empty cell -- DragTarget
     return DragTarget<int>(
       builder: (context, candidateData, rejectedData) {
         final isHovering = candidateData.isNotEmpty;
-        return AnimatedBuilder(
-          animation: _pulseAnimation,
-          builder: (context, child) {
-            return Container(
-              width: cellSize,
-              height: cellSize,
-              decoration: BoxDecoration(
-                gradient: isHovering
-                    ? const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
-                    : const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
-                border: Border.all(color: Colors.grey.shade600, width: 1),
-              ),
-              child: Transform.scale(
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: cellSize,
+          height: cellSize,
+          decoration: BoxDecoration(
+            gradient: isHovering
+                ? const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
+                : const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
+            border: Border.all(
+              color: isHovering ? SpaceTheme.starYellow : Colors.grey.shade600,
+              width: isHovering ? 3 : 1,
+            ),
+            boxShadow: isHovering
+                ? [BoxShadow(
+                    color: SpaceTheme.starYellow.withValues(alpha: 0.6),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  )]
+                : null,
+          ),
+          child: AnimatedBuilder(
+            animation: _pulseAnimation,
+            builder: (context, child) {
+              return Transform.scale(
                 scale: _pulseAnimation.value,
                 child: Center(
                   child: Icon(Icons.add, color: SpaceTheme.nebulaPurple, size: cellSize * 0.3),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         );
       },
       onWillAcceptWithDetails: (_) => true,
@@ -424,16 +544,42 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     );
   }
 
-  Widget _buildTowerIcon(int height, double cellSize) {
-    // Show tower height as a number with a small building icon
+  /// Visual tower representation: stacked blocks proportional to height
+  Widget _buildTowerVisual(int height, double cellSize) {
+    final size = puzzle!.size;
+    final blockHeight = (cellSize * 0.7) / size;
+    final blockWidth = cellSize * 0.5;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        Icon(Icons.location_city, size: cellSize * 0.3, color: SpaceTheme.starYellow),
+        // Number label on top
         Text(
           height.toString(),
-          style: SpaceTheme.headlineStyle.copyWith(fontSize: cellSize * 0.3),
+          style: SpaceTheme.headlineStyle.copyWith(
+            fontSize: cellSize * 0.22,
+            color: SpaceTheme.starYellow,
+          ),
         ),
+        // Stacked blocks
+        ...List.generate(height, (i) {
+          final shade = (i + 1) / size;
+          return Container(
+            width: blockWidth,
+            height: blockHeight.clamp(2.0, 10.0),
+            margin: const EdgeInsets.only(top: 1),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  SpaceTheme.planetOrange.withValues(alpha: 0.5 + shade * 0.5),
+                  SpaceTheme.rocketRed.withValues(alpha: 0.3 + shade * 0.4),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          );
+        }).toList().reversed,
       ],
     );
   }
@@ -441,49 +587,59 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   Widget _buildNumberPad() {
     final numbers = puzzle!.numberPool;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(8),
-      decoration: SpaceTheme.cardDecoration.copyWith(
-        border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
-      ),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        alignment: WrapAlignment.center,
-        children: numbers.map((n) {
-          return Draggable<int>(
-            data: n,
-            feedback: Material(
-              color: Colors.transparent,
-              child: Container(
-                width: 50, height: 50,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  gradient: SpaceTheme.starGradient,
-                  boxShadow: [BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.8), blurRadius: 20)],
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: SpaceTheme.cardDecoration.copyWith(
+            border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
+          ),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: numbers.map((n) {
+              return Draggable<int>(
+                data: n,
+                feedback: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    width: 60, height: 60,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      gradient: SpaceTheme.starGradient,
+                      boxShadow: [BoxShadow(
+                        color: SpaceTheme.starYellow.withValues(alpha: 0.8),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      )],
+                    ),
+                    child: Center(
+                      child: Text(n.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 22)),
+                    ),
+                  ),
                 ),
-                child: Center(child: Text(n.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 20))),
-              ),
-            ),
-            childWhenDragging: Opacity(opacity: 0.4, child: _buildTrayTile(n)),
-            child: _buildTrayTile(n),
-          );
-        }).toList(),
-      ),
+                childWhenDragging: Opacity(opacity: 0.3, child: _buildTrayTile(n)),
+                child: _buildTrayTile(n),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildTrayTile(int number) {
     return Container(
-      width: 44, height: 44,
+      width: 50, height: 50,
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
       ),
       child: Center(
-        child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 16)),
+        child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 18)),
       ),
     );
   }

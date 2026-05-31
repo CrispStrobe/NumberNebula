@@ -1297,10 +1297,10 @@
   "toTheBridge": "To Bridge",
 
   "starChartScanTitle": "Star Chart Scan",
-  "starChartScanDesc": "Hidden constellation names are embedded in this star chart data! Scan horizontally, vertically, and diagonally to find them all. One letter will remain unclaimed...",
-  "starChartScanInstructions": "Swipe across letters to highlight hidden words. Words can run in any direction. Find all words to reveal the mystery letter!",
+  "starChartScanDesc": "Hidden equations are embedded in this star chart data! Scan horizontally, vertically, and diagonally to find math equations like 3+4=7 hidden in the number grid.",
+  "starChartScanInstructions": "Swipe across cells to highlight hidden equations (e.g. 3+4=7, 9-2=7). Equations can run in any direction. Find all equations to decode the chart!",
   "starChartScanWinTitle": "Chart Decoded!",
-  "starChartScanWinDesc": "All constellations found! The mystery letter is '{letter}'. You earned {bonusScore} cartography points.",
+  "starChartScanWinDesc": "All {letter} equations found! You earned {bonusScore} cartography points.",
   "@starChartScanWinDesc": {
     "placeholders": {
       "letter": {"type": "String", "example": "X"},
@@ -1308,7 +1308,7 @@
     }
   },
   "starChartScanLoseTitle": "Scan Incomplete!",
-  "starChartScanLoseDesc": "Some constellations remain hidden in the data. Try scanning diagonally too, Commander.",
+  "starChartScanLoseDesc": "Some equations remain hidden in the data. Try scanning diagonally too, Commander.",
 
   "commRelayTitle": "Comm Relay",
   "commRelayDesc": "A garbled transmission from deep space! The communication relay has shifted every letter. Crack the cipher to read the original message!",
@@ -1338,7 +1338,7 @@
 
   "vaultCrackerTitle": "Vault Cracker",
   "vaultCrackerDesc": "An ancient alien vault blocks your path! Each failed attempt reveals clues: which digits are correct, misplaced, or completely wrong. Deduce the combination!",
-  "vaultCrackerInstructions": "Study each clue attempt. Green = correct digit, correct position. Yellow = correct digit, wrong position. Gray = digit not in code.",
+  "vaultCrackerInstructions": "Study the failed attempts and their clues. Deduce the secret code from the hints, then enter it below.",
   "vaultCrackerWinTitle": "Vault Breached!",
   "vaultCrackerWinDesc": "The vault doors swing open! You cracked the code in {attempts} attempts, earning {bonusScore} archaeology points.",
   "@vaultCrackerWinDesc": {

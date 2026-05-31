@@ -24,35 +24,34 @@ class XenobiologyLabGame extends StatefulWidget {
 class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     with TickerProviderStateMixin {
   late AnimationController _glowController;
+  late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
   bool _gameOver = false;
 
   // Puzzle data
-  // Two alien types: e.g. type A has eyesA eyes and legsA legs
-  // type B has eyesB eyes and legsB legs
-  // Total creatures: countA of type A, countB of type B
-  // Player sees: total eyes = countA*eyesA + countB*eyesB, total legs = countA*legsA + countB*legsB
-  // Player must deduce countA and countB
   int _eyesA = 0, _legsA = 0;
   int _eyesB = 0, _legsB = 0;
   int _countA = 0, _countB = 0;
   int _totalEyes = 0, _totalLegs = 0;
   String _nameA = '', _nameB = '';
 
-  // For grade 3-4: optional third type
+  // Optional third type for grade 3+
   bool _hasThirdType = false;
   int _eyesC = 0, _legsC = 0;
   int _countC = 0;
   String _nameC = '';
 
-  // User input
-  final TextEditingController _answerAController = TextEditingController();
-  final TextEditingController _answerBController = TextEditingController();
-  final TextEditingController _answerCController = TextEditingController();
+  // Player input via sliders
+  int _sliderA = 0;
+  int _sliderB = 0;
+  int _sliderC = 0;
+  int _maxSliderValue = 10;
 
   // Math problems for SRI
   final List<MathProblem> _mathProblems = [];
@@ -72,6 +71,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
+    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
+        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
 
     _successController = AnimationController(
       duration: const Duration(milliseconds: 600),
@@ -79,6 +80,13 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     );
     _successAnimation =
         CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
+        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -91,13 +99,9 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
   @override
   void dispose() {
-    _glowController.stop();
-    _successController.stop();
     _glowController.dispose();
     _successController.dispose();
-    _answerAController.dispose();
-    _answerBController.dispose();
-    _answerCController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -108,38 +112,35 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
       _isGenerating = true;
       _gameOver = false;
       _mathProblems.clear();
-      _answerAController.clear();
-      _answerBController.clear();
-      _answerCController.clear();
+      _sliderA = 0;
+      _sliderB = 0;
+      _sliderC = 0;
       _successController.reset();
     });
 
     final grade = currentDifficulty!.grade;
     _hasThirdType = grade >= 3;
 
-    // Pick unique alien names
     final shuffledNames = List<String>.from(_alienNames)..shuffle(_random);
     _nameA = shuffledNames[0];
     _nameB = shuffledNames[1];
 
     if (grade <= 2) {
-      // Simple: small trait numbers, small counts
-      _eyesA = _random.nextInt(3) + 2; // 2-4
+      _eyesA = _random.nextInt(3) + 2;
       _legsA = _random.nextInt(3) + 2;
       _eyesB = _random.nextInt(3) + 2;
       _legsB = _random.nextInt(3) + 2;
 
-      // Ensure traits differ enough to have a unique solution
       while (_eyesA * _legsB == _eyesB * _legsA) {
         _eyesB = _random.nextInt(3) + 2;
         _legsB = _random.nextInt(3) + 2;
       }
 
-      _countA = _random.nextInt(5) + 1; // 1-5
+      _countA = _random.nextInt(5) + 1;
       _countB = _random.nextInt(5) + 1;
+      _maxSliderValue = 8;
     } else {
-      // Harder: larger numbers
-      _eyesA = _random.nextInt(4) + 2; // 2-5
+      _eyesA = _random.nextInt(4) + 2;
       _legsA = _random.nextInt(5) + 2;
       _eyesB = _random.nextInt(4) + 2;
       _legsB = _random.nextInt(5) + 2;
@@ -149,21 +150,21 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
         _legsB = _random.nextInt(5) + 2;
       }
 
-      _countA = _random.nextInt(6) + 2; // 2-7
+      _countA = _random.nextInt(6) + 2;
       _countB = _random.nextInt(6) + 2;
+      _maxSliderValue = 12;
 
       if (_hasThirdType) {
         _nameC = shuffledNames[2];
         _eyesC = _random.nextInt(3) + 1;
         _legsC = _random.nextInt(4) + 2;
-        _countC = _random.nextInt(3) + 1; // 1-3
+        _countC = _random.nextInt(3) + 1;
       }
     }
 
     _totalEyes = _countA * _eyesA + _countB * _eyesB + (_hasThirdType ? _countC * _eyesC : 0);
     _totalLegs = _countA * _legsA + _countB * _legsB + (_hasThirdType ? _countC * _legsC : 0);
 
-    // Create MathProblem instances for SRI tracking
     _mathProblems.add(MathProblem.multiplication(_countA, _eyesA, difficulty: grade));
     _mathProblems.add(MathProblem.multiplication(_countB, _legsB, difficulty: grade));
     _mathProblems.add(MathProblem.addition(_countA * _eyesA, _countB * _eyesB, difficulty: grade));
@@ -175,22 +176,22 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     }
   }
 
+  // Computed totals based on slider values
+  int get _computedEyes =>
+      _sliderA * _eyesA + _sliderB * _eyesB + (_hasThirdType ? _sliderC * _eyesC : 0);
+  int get _computedLegs =>
+      _sliderA * _legsA + _sliderB * _legsB + (_hasThirdType ? _sliderC * _legsC : 0);
+
+  bool get _eyesMatch => _computedEyes == _totalEyes;
+  bool get _legsMatch => _computedLegs == _totalLegs;
+  bool get _allMatch => _eyesMatch && _legsMatch;
+
   void _checkSolution() {
     if (_gameOver) return;
 
-    final answerA = int.tryParse(_answerAController.text);
-    final answerB = int.tryParse(_answerBController.text);
-    int? answerC;
+    bool correct = _sliderA == _countA && _sliderB == _countB;
     if (_hasThirdType) {
-      answerC = int.tryParse(_answerCController.text);
-      if (answerC == null) return;
-    }
-
-    if (answerA == null || answerB == null) return;
-
-    bool correct = answerA == _countA && answerB == _countB;
-    if (_hasThirdType) {
-      correct = correct && answerC == _countC;
+      correct = correct && _sliderC == _countC;
     }
 
     if (correct) {
@@ -208,8 +209,6 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     int levelBonus = widget.level * 25;
     int complexityBonus = _hasThirdType ? 100 : 50;
     int totalScore = baseScore + levelBonus + complexityBonus;
-
-
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'xenobiology_lab',
@@ -283,15 +282,16 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
                 level: widget.level,
                 onBack: () => Navigator.of(context).pop(),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  s.xenobiologyLabInstructions,
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
-                  textAlign: TextAlign.center,
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 700;
+                    return isWide
+                        ? _buildWideLayout(constraints)
+                        : _buildCompactLayout(constraints);
+                  },
                 ),
               ),
-              Expanded(child: _buildGameArea()),
             ],
           ),
         ),
@@ -299,145 +299,323 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     );
   }
 
-  Widget _buildGameArea() {
+  Widget _buildWideLayout(BoxConstraints constraints) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 3,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildCreatureCards(),
+                  const SizedBox(height: 16),
+                  _buildCensusDisplay(),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 24),
+          Expanded(
+            flex: 2,
+            child: SingleChildScrollView(
+              child: _buildSlidersAndSubmit(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactLayout(BoxConstraints constraints) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Alien type cards
-          _buildAlienCard(_nameA, _eyesA, _legsA, const Color(0xFF06FFA5)),
-          const SizedBox(height: 12),
-          _buildAlienCard(_nameB, _eyesB, _legsB, const Color(0xFFFFD700)),
-          if (_hasThirdType) ...[
-            const SizedBox(height: 12),
-            _buildAlienCard(_nameC, _eyesC, _legsC, const Color(0xFFFF69B4)),
-          ],
-          const SizedBox(height: 20),
-          // Census data
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
-            ),
-            child: Column(
-              children: [
-                Text('Census Data',
-                    style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow)),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildStatChip('Total Eyes', _totalEyes),
-                    _buildStatChip('Total Legs', _totalLegs),
-                  ],
-                ),
-                if (_hasThirdType) ...[
-                  const SizedBox(height: 8),
-                  _buildStatChip('Total Creatures', _countA + _countB + _countC),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Answer input
-          _buildAnswerInput(_nameA, _answerAController, const Color(0xFF06FFA5)),
-          const SizedBox(height: 8),
-          _buildAnswerInput(_nameB, _answerBController, const Color(0xFFFFD700)),
-          if (_hasThirdType) ...[
-            const SizedBox(height: 8),
-            _buildAnswerInput(_nameC, _answerCController, const Color(0xFFFF69B4)),
-          ],
+          _buildCreatureCards(),
           const SizedBox(height: 16),
-          if (!_gameOver)
-            ElevatedButton(
-              onPressed: _checkSolution,
-              style: SpaceTheme.primaryButtonStyle,
-              child: const Icon(Icons.check, size: 28),
-            ),
+          _buildCensusDisplay(),
+          const SizedBox(height: 16),
+          _buildSlidersAndSubmit(),
+          const SizedBox(height: 16),
         ],
       ),
+    );
+  }
+
+  Widget _buildCreatureCards() {
+    return Column(
+      children: [
+        _buildAlienCard(_nameA, _eyesA, _legsA, const Color(0xFF06FFA5)),
+        const SizedBox(height: 12),
+        _buildAlienCard(_nameB, _eyesB, _legsB, const Color(0xFFFFD700)),
+        if (_hasThirdType) ...[
+          const SizedBox(height: 12),
+          _buildAlienCard(_nameC, _eyesC, _legsC, const Color(0xFFFF69B4)),
+        ],
+      ],
     );
   }
 
   Widget _buildAlienCard(String name, int eyes, int legs, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.pest_control, color: color, size: 36),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (context, child) {
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: color.withValues(alpha: 0.3 + _glowAnimation.value * 0.3),
+              width: 2,
+            ),
+          ),
+          child: Row(
             children: [
-              Text(name, style: SpaceTheme.titleStyle.copyWith(color: color, fontSize: 16)),
-              Text('$eyes eyes, $legs legs',
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 13)),
+              // Visual creature representation
+              _buildCreatureVisual(eyes, legs, color),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: SpaceTheme.titleStyle.copyWith(color: color, fontSize: 16)),
+                    const SizedBox(height: 4),
+                    _buildTraitRow(Icons.visibility, '$eyes eyes', color),
+                    const SizedBox(height: 2),
+                    _buildTraitRow(Icons.directions_walk, '$legs legs', color),
+                  ],
+                ),
+              ),
             ],
           ),
-        ],
+        );
+      },
+    );
+  }
+
+  Widget _buildTraitRow(IconData icon, String text, Color color) {
+    return Row(
+      children: [
+        Icon(icon, color: color.withValues(alpha: 0.7), size: 16),
+        const SizedBox(width: 6),
+        Text(text, style: SpaceTheme.bodyStyle.copyWith(fontSize: 13)),
+      ],
+    );
+  }
+
+  /// Draw a simple alien creature with visible eye and leg counts.
+  Widget _buildCreatureVisual(int eyes, int legs, Color color) {
+    return SizedBox(
+      width: 64,
+      height: 64,
+      child: CustomPaint(
+        painter: _AlienPainter(eyes: eyes, legs: legs, color: color),
       ),
     );
   }
 
-  Widget _buildStatChip(String label, int value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  Widget _buildCensusDisplay() {
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (context, child) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3 + _glowAnimation.value * 0.3),
+              width: 2,
+            ),
+          ),
+          child: Column(
+            children: [
+              Text('Census Targets',
+                  style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow)),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildTargetChip(
+                    Icons.visibility,
+                    'Total Eyes',
+                    _totalEyes,
+                    _computedEyes,
+                    _eyesMatch,
+                  ),
+                  _buildTargetChip(
+                    Icons.directions_walk,
+                    'Total Legs',
+                    _totalLegs,
+                    _computedLegs,
+                    _legsMatch,
+                  ),
+                ],
+              ),
+              if (_hasThirdType) ...[
+                const SizedBox(height: 8),
+                _buildTargetChip(
+                  Icons.pest_control,
+                  'Total Creatures',
+                  _countA + _countB + _countC,
+                  _sliderA + _sliderB + _sliderC,
+                  (_sliderA + _sliderB + _sliderC) == (_countA + _countB + _countC),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTargetChip(
+    IconData icon,
+    String label,
+    int target,
+    int computed,
+    bool matches,
+  ) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
+        color: matches
+            ? SpaceTheme.alienGreen.withValues(alpha: 0.2)
+            : SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: matches ? SpaceTheme.alienGreen : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
+          width: matches ? 2 : 1,
+        ),
       ),
       child: Column(
         children: [
+          Icon(icon, color: matches ? SpaceTheme.alienGreen : Colors.white54, size: 20),
+          const SizedBox(height: 4),
           Text(label, style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: Colors.white70)),
-          Text('$value',
-              style: SpaceTheme.headlineStyle.copyWith(fontSize: 24, color: SpaceTheme.starYellow)),
+          const SizedBox(height: 2),
+          AnimatedBuilder(
+            animation: _pulseAnimation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: matches ? 1.0 : _pulseAnimation.value,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '$computed',
+                      style: SpaceTheme.headlineStyle.copyWith(
+                        fontSize: 22,
+                        color: matches ? SpaceTheme.alienGreen : SpaceTheme.starYellow,
+                      ),
+                    ),
+                    Text(
+                      ' / $target',
+                      style: SpaceTheme.bodyStyle.copyWith(
+                        fontSize: 14,
+                        color: matches ? SpaceTheme.alienGreen : Colors.white54,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildAnswerInput(String name, TextEditingController controller, Color color) {
-    return Row(
+  Widget _buildSlidersAndSubmit() {
+    return Column(
       children: [
-        SizedBox(
-          width: 120,
-          child: Text('$name:', style: SpaceTheme.bodyStyle.copyWith(color: color, fontSize: 14)),
-        ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 80,
-          child: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            style: SpaceTheme.bodyStyle.copyWith(fontSize: 18),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: SpaceTheme.deepSpace,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: color),
+        _buildSlider(_nameA, _sliderA, const Color(0xFF06FFA5), (v) {
+          setState(() => _sliderA = v);
+        }),
+        const SizedBox(height: 12),
+        _buildSlider(_nameB, _sliderB, const Color(0xFFFFD700), (v) {
+          setState(() => _sliderB = v);
+        }),
+        if (_hasThirdType) ...[
+          const SizedBox(height: 12),
+          _buildSlider(_nameC, _sliderC, const Color(0xFFFF69B4), (v) {
+            setState(() => _sliderC = v);
+          }),
+        ],
+        const SizedBox(height: 20),
+        // Submit button - only enabled when all totals match
+        if (!_gameOver)
+          ElevatedButton.icon(
+            onPressed: _allMatch ? _checkSolution : null,
+            icon: const Icon(Icons.check, size: 28),
+            label: Text(_allMatch ? 'Submit Census' : 'Totals must match'),
+            style: _allMatch
+                ? SpaceTheme.primaryButtonStyle
+                : ElevatedButton.styleFrom(
+                    backgroundColor: SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
+                    foregroundColor: Colors.white38,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSlider(String name, int value, Color color, ValueChanged<int> onChanged) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(name, style: SpaceTheme.titleStyle.copyWith(color: color, fontSize: 14)),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: color.withValues(alpha: 0.5)),
+                ),
+                child: Text(
+                  '$value',
+                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 20, color: color),
+                ),
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: color.withValues(alpha: 0.5)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: color, width: 2),
-              ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 8),
+            ],
+          ),
+          const SizedBox(height: 4),
+          SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: color,
+              inactiveTrackColor: color.withValues(alpha: 0.2),
+              thumbColor: color,
+              overlayColor: color.withValues(alpha: 0.2),
+              valueIndicatorColor: color,
+              valueIndicatorTextStyle: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+            ),
+            child: Slider(
+              value: value.toDouble(),
+              min: 0,
+              max: _maxSliderValue.toDouble(),
+              divisions: _maxSliderValue,
+              label: value.toString(),
+              onChanged: (v) => onChanged(v.round()),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -493,4 +671,76 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
       },
     );
   }
+}
+
+/// Custom painter that draws a simple alien creature
+class _AlienPainter extends CustomPainter {
+  final int eyes;
+  final int legs;
+  final Color color;
+
+  _AlienPainter({required this.eyes, required this.legs, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withValues(alpha: 0.7)
+      ..style = PaintingStyle.fill;
+
+    final outlinePaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    final cx = size.width / 2;
+    final bodyTop = size.height * 0.2;
+    final bodyBottom = size.height * 0.65;
+    final bodyRadius = size.width * 0.3;
+
+    // Body (oval)
+    final bodyRect = Rect.fromCenter(
+      center: Offset(cx, (bodyTop + bodyBottom) / 2),
+      width: bodyRadius * 2,
+      height: bodyBottom - bodyTop,
+    );
+    canvas.drawOval(bodyRect, paint);
+    canvas.drawOval(bodyRect, outlinePaint);
+
+    // Eyes
+    final eyePaint = Paint()..color = Colors.white;
+    final pupilPaint = Paint()..color = Colors.black;
+    final eyeY = bodyTop + (bodyBottom - bodyTop) * 0.3;
+    final eyeSpacing = bodyRadius * 1.6 / (eyes + 1);
+
+    for (int i = 0; i < eyes; i++) {
+      final eyeX = cx - bodyRadius * 0.8 + eyeSpacing * (i + 1);
+      canvas.drawCircle(Offset(eyeX, eyeY), 4, eyePaint);
+      canvas.drawCircle(Offset(eyeX, eyeY), 2, pupilPaint);
+    }
+
+    // Legs
+    final legPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+
+    final legSpacing = bodyRadius * 2 / (legs + 1);
+    for (int i = 0; i < legs; i++) {
+      final legX = cx - bodyRadius + legSpacing * (i + 1);
+      final legEnd = size.height * 0.95;
+      // Slight zigzag for knees
+      final kneeY = bodyBottom + (legEnd - bodyBottom) * 0.5;
+      final kneeOffset = (i % 2 == 0 ? 1 : -1) * 3.0;
+      final path = Path()
+        ..moveTo(legX, bodyBottom)
+        ..lineTo(legX + kneeOffset, kneeY)
+        ..lineTo(legX, legEnd);
+      canvas.drawPath(path, legPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _AlienPainter oldDelegate) =>
+      oldDelegate.eyes != eyes || oldDelegate.legs != legs || oldDelegate.color != color;
 }

@@ -27,18 +27,16 @@ class _StarChartScanGameState extends State<StarChartScanGame>
   late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
-  late AnimationController _revealController;
-  late Animation<double> _revealAnimation;
 
   StarChartScanPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
 
-  // Tracking found words and current selection
-  final Set<String> _foundWords = {};
+  // Tracking found equations and current selection
+  final Set<String> _foundEquations = {};
   final Set<String> _foundCells = {}; // 'row,col' keys
-  // Track which cells belong to which found word (for colored highlighting)
-  final Map<String, int> _cellWordIndex = {};
+  // Track which cells belong to which found equation (for colored highlighting)
+  final Map<String, int> _cellEquationIndex = {};
   List<(int, int)> _currentSelection = [];
   bool _isDragging = false;
 
@@ -53,17 +51,6 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     Color(0xFF8BC34A), // light green
     Color(0xFF9C27B0), // deep purple
     Color(0xFFFF9800), // amber
-  ];
-
-  static const _enWords = [
-    'STAR', 'MOON', 'SUN', 'ORBIT', 'COMET', 'MARS', 'VENUS', 'PLUTO',
-    'NOVA', 'NEBULA', 'QUASAR', 'COSMOS', 'GALAXY', 'METEOR', 'ROCKET',
-    'PLANET', 'SATURN', 'URANUS', 'EARTH', 'SOLAR',
-  ];
-  static const _deWords = [
-    'STERN', 'MOND', 'SONNE', 'ORBIT', 'KOMET', 'MARS', 'VENUS', 'PLUTO',
-    'NOVA', 'NEBEL', 'QUASAR', 'KOSMOS', 'GALAXIS', 'METEOR', 'RAKETE',
-    'PLANET', 'SATURN', 'URANUS', 'ERDE', 'SOLAR',
   ];
 
   @override
@@ -85,14 +72,6 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     _successAnimation =
         CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
 
-    _revealController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-    _revealAnimation = CurvedAnimation(
-      parent: _revealController, curve: Curves.elasticOut,
-    );
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
@@ -106,7 +85,6 @@ class _StarChartScanGameState extends State<StarChartScanGame>
   void dispose() {
     _glowController.dispose();
     _successController.dispose();
-    _revealController.dispose();
     super.dispose();
   }
 
@@ -115,42 +93,46 @@ class _StarChartScanGameState extends State<StarChartScanGame>
 
     setState(() {
       _isGenerating = true;
-      _foundWords.clear();
+      _foundEquations.clear();
       _foundCells.clear();
-      _cellWordIndex.clear();
+      _cellEquationIndex.clear();
       _currentSelection.clear();
       _successController.reset();
-      _revealController.reset();
     });
-
-    final locale = Localizations.localeOf(context);
-    final isGerman = locale.languageCode == 'de';
-    final wordPool = isGerman ? _deWords : _enWords;
 
     final grade = currentDifficulty!.grade;
     int gridSize;
-    int wordCount;
+    int equationCount;
     bool allowDiagonal;
+    List<String> operators;
 
     if (grade <= 1) {
-      gridSize = 6;
-      wordCount = 4;
+      gridSize = 7;
+      equationCount = 3;
       allowDiagonal = false;
+      operators = ['+'];
     } else if (grade <= 2) {
       gridSize = 8;
-      wordCount = 6;
+      equationCount = 5;
+      allowDiagonal = false;
+      operators = ['+', '-'];
+    } else if (grade <= 3) {
+      gridSize = 9;
+      equationCount = 6;
       allowDiagonal = true;
+      operators = ['+', '-', 'x'];
     } else {
       gridSize = 10;
-      wordCount = 10;
+      equationCount = 8;
       allowDiagonal = true;
+      operators = ['+', '-', 'x'];
     }
 
     final generated = StarChartScanPuzzle.generate(
-      wordPool: wordPool,
       gridSize: gridSize,
-      wordCount: wordCount,
+      equationCount: equationCount,
       allowDiagonal: allowDiagonal,
+      operators: operators,
     );
 
     if (mounted) {
@@ -161,8 +143,10 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     }
   }
 
-  void _onPanStart(DragStartDetails details, double cellSize, Offset gridOrigin) {
-    final pos = _getCellFromPosition(details.localPosition, cellSize, gridOrigin);
+  void _onPanStart(
+      DragStartDetails details, double cellSize, Offset gridOrigin) {
+    final pos =
+        _getCellFromPosition(details.localPosition, cellSize, gridOrigin);
     if (pos != null) {
       setState(() {
         _isDragging = true;
@@ -171,9 +155,11 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     }
   }
 
-  void _onPanUpdate(DragUpdateDetails details, double cellSize, Offset gridOrigin) {
+  void _onPanUpdate(
+      DragUpdateDetails details, double cellSize, Offset gridOrigin) {
     if (!_isDragging) return;
-    final pos = _getCellFromPosition(details.localPosition, cellSize, gridOrigin);
+    final pos =
+        _getCellFromPosition(details.localPosition, cellSize, gridOrigin);
     if (pos != null && _currentSelection.isNotEmpty) {
       if (_currentSelection.length == 1 || _isValidLineExtension(pos)) {
         if (!_currentSelection.contains(pos)) {
@@ -194,34 +180,34 @@ class _StarChartScanGameState extends State<StarChartScanGame>
       return;
     }
 
-    final word = _currentSelection
+    final selectedStr = _currentSelection
         .map((pos) => puzzle!.grid[pos.$1][pos.$2])
         .join();
 
-    final reverseWord = word.split('').reversed.join();
-    String? matchedWord;
+    final reverseStr = selectedStr.split('').reversed.join();
+    String? matchedEquation;
 
-    for (final target in puzzle!.wordsToFind) {
-      if (_foundWords.contains(target)) continue;
-      if (word == target || reverseWord == target) {
-        matchedWord = target;
+    for (final target in puzzle!.equationsToFind) {
+      if (_foundEquations.contains(target)) continue;
+      if (selectedStr == target || reverseStr == target) {
+        matchedEquation = target;
         break;
       }
     }
 
-    if (matchedWord != null) {
+    if (matchedEquation != null) {
       HapticFeedback.lightImpact();
-      final wordIdx = _foundWords.length;
+      final eqIdx = _foundEquations.length;
       setState(() {
-        _foundWords.add(matchedWord!);
+        _foundEquations.add(matchedEquation!);
         for (final pos in _currentSelection) {
           final key = '${pos.$1},${pos.$2}';
           _foundCells.add(key);
-          _cellWordIndex[key] = wordIdx;
+          _cellEquationIndex[key] = eqIdx;
         }
       });
 
-      if (_foundWords.length == puzzle!.wordsToFind.length) {
+      if (_foundEquations.length == puzzle!.equationsToFind.length) {
         _handleWin();
       }
     }
@@ -247,7 +233,8 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     return newDr == dr && newDc == dc;
   }
 
-  (int, int)? _getCellFromPosition(Offset position, double cellSize, Offset gridOrigin) {
+  (int, int)? _getCellFromPosition(
+      Offset position, double cellSize, Offset gridOrigin) {
     final relX = position.dx - gridOrigin.dx;
     final relY = position.dy - gridOrigin.dy;
 
@@ -268,8 +255,8 @@ class _StarChartScanGameState extends State<StarChartScanGame>
 
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
-    int wordBonus = puzzle!.wordsToFind.length * 30;
-    int totalScore = baseScore + levelBonus + wordBonus;
+    int eqBonus = puzzle!.equationsToFind.length * 30;
+    int totalScore = baseScore + levelBonus + eqBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'star_chart_scan',
@@ -278,7 +265,6 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     ));
 
     _successController.forward(from: 0.0);
-    _revealController.forward(from: 0.0);
 
     if (mounted) {
       Future.delayed(const Duration(milliseconds: 600), () {
@@ -382,10 +368,11 @@ class _StarChartScanGameState extends State<StarChartScanGame>
             decoration: BoxDecoration(
               color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: SpaceTheme.alienGreen.withValues(alpha: 0.5)),
+              border: Border.all(
+                  color: SpaceTheme.alienGreen.withValues(alpha: 0.5)),
             ),
             child: Text(
-              '${_foundWords.length}/${puzzle?.wordsToFind.length ?? 0}',
+              '${_foundEquations.length}/${puzzle?.equationsToFind.length ?? 0}',
               style: const TextStyle(
                 color: SpaceTheme.alienGreen,
                 fontSize: 12,
@@ -411,7 +398,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
           const SizedBox(width: 16),
           Expanded(
             flex: 1,
-            child: _buildWordListPanel(),
+            child: _buildEquationListPanel(),
           ),
         ],
       ),
@@ -422,7 +409,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     return Column(
       children: [
         Expanded(child: _buildGameArea()),
-        _buildWordList(),
+        _buildEquationList(),
       ],
     );
   }
@@ -430,8 +417,8 @@ class _StarChartScanGameState extends State<StarChartScanGame>
   Widget _buildGameArea() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Use as much space as possible
-        final maxDim = math.min(constraints.maxWidth - 16, constraints.maxHeight - 16);
+        final maxDim =
+            math.min(constraints.maxWidth - 16, constraints.maxHeight - 16);
         final cellSize = maxDim / puzzle!.gridSize;
         final gridSide = cellSize * puzzle!.gridSize;
 
@@ -458,10 +445,8 @@ class _StarChartScanGameState extends State<StarChartScanGame>
                   ),
                 ),
                 child: GestureDetector(
-                  onPanStart: (d) =>
-                      _onPanStart(d, cellSize, Offset.zero),
-                  onPanUpdate: (d) =>
-                      _onPanUpdate(d, cellSize, Offset.zero),
+                  onPanStart: (d) => _onPanStart(d, cellSize, Offset.zero),
+                  onPanUpdate: (d) => _onPanUpdate(d, cellSize, Offset.zero),
                   onPanEnd: _onPanEnd,
                   child: CustomPaint(
                     size: Size(gridSide, gridSide),
@@ -469,7 +454,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
                       puzzle: puzzle!,
                       cellSize: cellSize,
                       foundCells: _foundCells,
-                      cellWordIndex: _cellWordIndex,
+                      cellEquationIndex: _cellEquationIndex,
                       highlightColors: _highlightColors,
                       currentSelection: _currentSelection,
                       glowValue: _glowAnimation.value,
@@ -484,7 +469,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     );
   }
 
-  Widget _buildWordListPanel() {
+  Widget _buildEquationListPanel() {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: SpaceTheme.cardDecoration.copyWith(
@@ -494,36 +479,41 @@ class _StarChartScanGameState extends State<StarChartScanGame>
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Words',
-            style: SpaceTheme.titleStyle.copyWith(fontSize: 16),
+            '=',
+            style: SpaceTheme.titleStyle.copyWith(fontSize: 20),
           ),
           const SizedBox(height: 8),
           Flexible(
             child: ListView(
               shrinkWrap: true,
-              children: puzzle!.wordsToFind.asMap().entries.map((entry) {
-                final word = entry.value;
-                final found = _foundWords.contains(word);
+              children:
+                  puzzle!.equationsToFind.asMap().entries.map((entry) {
+                final eq = entry.value;
+                final found = _foundEquations.contains(eq);
                 final color = found
-                    ? _highlightColors[_getWordColorIndex(word) % _highlightColors.length]
+                    ? _highlightColors[
+                        _getEqColorIndex(eq) % _highlightColors.length]
                     : Colors.white70;
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 3),
                   child: Row(
                     children: [
                       Icon(
-                        found ? Icons.check_circle : Icons.circle_outlined,
+                        found
+                            ? Icons.check_circle
+                            : Icons.circle_outlined,
                         color: color,
                         size: 18,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          word,
+                          found ? eq : '? ? ? = ?',
                           style: SpaceTheme.bodyStyle.copyWith(
                             fontSize: 14,
                             color: color,
-                            decoration: found ? TextDecoration.lineThrough : null,
+                            decoration:
+                                found ? TextDecoration.lineThrough : null,
                             decorationColor: color,
                           ),
                         ),
@@ -540,10 +530,11 @@ class _StarChartScanGameState extends State<StarChartScanGame>
             decoration: BoxDecoration(
               color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: SpaceTheme.alienGreen.withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: SpaceTheme.alienGreen.withValues(alpha: 0.3)),
             ),
             child: Text(
-              '${_foundWords.length}/${puzzle!.wordsToFind.length}',
+              '${_foundEquations.length}/${puzzle!.equationsToFind.length}',
               style: const TextStyle(
                 color: SpaceTheme.alienGreen,
                 fontSize: 14,
@@ -556,23 +547,25 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     );
   }
 
-  int _getWordColorIndex(String word) {
-    final idx = puzzle!.wordsToFind.indexOf(word);
+  int _getEqColorIndex(String eq) {
+    final idx = puzzle!.equationsToFind.indexOf(eq);
     return idx >= 0 ? idx : 0;
   }
 
-  Widget _buildWordList() {
+  Widget _buildEquationList() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Wrap(
         spacing: 8,
         runSpacing: 4,
         alignment: WrapAlignment.center,
-        children: puzzle!.wordsToFind.asMap().entries.map((entry) {
-          final word = entry.value;
-          final found = _foundWords.contains(word);
+        children:
+            puzzle!.equationsToFind.asMap().entries.map((entry) {
+          final eq = entry.value;
+          final found = _foundEquations.contains(eq);
           final color = found
-              ? _highlightColors[_getWordColorIndex(word) % _highlightColors.length]
+              ? _highlightColors[
+                  _getEqColorIndex(eq) % _highlightColors.length]
               : null;
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -586,7 +579,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
               ),
             ),
             child: Text(
-              word,
+              found ? eq : '? ? ? = ?',
               style: SpaceTheme.bodyStyle.copyWith(
                 fontSize: 12,
                 color: found ? color : Colors.white70,
@@ -615,71 +608,16 @@ class _StarChartScanGameState extends State<StarChartScanGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.travel_explore,
+                  const Icon(Icons.functions,
                       size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.starChartScanWinTitle,
                       style: SpaceTheme.headlineStyle,
                       textAlign: TextAlign.center),
                   const SizedBox(height: 16),
-                  // Mystery letter reveal with animation
-                  AnimatedBuilder(
-                    animation: _revealAnimation,
-                    builder: (context, child) {
-                      return Transform.scale(
-                        scale: 0.5 + _revealAnimation.value * 0.5,
-                        child: Opacity(
-                          opacity: _revealAnimation.value.clamp(0.0, 1.0),
-                          child: Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: RadialGradient(
-                                colors: [
-                                  SpaceTheme.starYellow.withValues(alpha: 0.8),
-                                  SpaceTheme.planetOrange.withValues(alpha: 0.4),
-                                  Colors.transparent,
-                                ],
-                              ),
-                              border: Border.all(
-                                color: SpaceTheme.starYellow,
-                                width: 3,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: SpaceTheme.starYellow.withValues(
-                                    alpha: _revealAnimation.value * 0.6,
-                                  ),
-                                  blurRadius: 20,
-                                  spreadRadius: 5,
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Text(
-                                puzzle!.mysteryLetter,
-                                style: SpaceTheme.headlineStyle.copyWith(
-                                  fontSize: 36,
-                                  color: Colors.white,
-                                  shadows: [
-                                    const Shadow(
-                                      color: SpaceTheme.starYellow,
-                                      blurRadius: 12,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
                   Text(
                     s.starChartScanWinDesc(
-                        puzzle!.mysteryLetter, bonusScore),
+                        '${puzzle!.equationsToFind.length}', bonusScore),
                     style: SpaceTheme.bodyStyle,
                     textAlign: TextAlign.center,
                   ),
@@ -719,7 +657,7 @@ class _GridPainter extends CustomPainter {
   final StarChartScanPuzzle puzzle;
   final double cellSize;
   final Set<String> foundCells;
-  final Map<String, int> cellWordIndex;
+  final Map<String, int> cellEquationIndex;
   final List<Color> highlightColors;
   final List<(int, int)> currentSelection;
   final double glowValue;
@@ -728,7 +666,7 @@ class _GridPainter extends CustomPainter {
     required this.puzzle,
     required this.cellSize,
     required this.foundCells,
-    required this.cellWordIndex,
+    required this.cellEquationIndex,
     required this.highlightColors,
     required this.currentSelection,
     required this.glowValue,
@@ -741,8 +679,7 @@ class _GridPainter extends CustomPainter {
       selectionSet.add('${pos.$1},${pos.$2}');
     }
 
-    // Ensure minimum font size of 20, scale up with cell
-    final fontSize = math.max(20.0, cellSize * 0.5);
+    final fontSize = math.max(18.0, cellSize * 0.45);
 
     for (int r = 0; r < puzzle.gridSize; r++) {
       for (int c = 0; c < puzzle.gridSize; c++) {
@@ -756,12 +693,13 @@ class _GridPainter extends CustomPainter {
         final key = '$r,$c';
         final isFound = foundCells.contains(key);
         final isSelected = selectionSet.contains(key);
-        final wordIdx = cellWordIndex[key];
+        final eqIdx = cellEquationIndex[key];
 
         // Draw cell background
         final bgPaint = Paint();
-        if (isFound && wordIdx != null) {
-          final highlightColor = highlightColors[wordIdx % highlightColors.length];
+        if (isFound && eqIdx != null) {
+          final highlightColor =
+              highlightColors[eqIdx % highlightColors.length];
           bgPaint.color = highlightColor.withValues(alpha: 0.3);
         } else if (isSelected) {
           bgPaint.color = const Color(0xFFFFD700).withValues(alpha: 0.35);
@@ -777,22 +715,28 @@ class _GridPainter extends CustomPainter {
           ..strokeWidth = 0.5;
         canvas.drawRect(rect, borderPaint);
 
-        // Determine letter color
-        Color letterColor;
-        if (isFound && wordIdx != null) {
-          letterColor = highlightColors[wordIdx % highlightColors.length];
+        // Determine character color
+        Color charColor;
+        final cellChar = puzzle.grid[r][c];
+        final isOperator =
+            cellChar == '+' || cellChar == '-' || cellChar == 'x' || cellChar == '=';
+
+        if (isFound && eqIdx != null) {
+          charColor = highlightColors[eqIdx % highlightColors.length];
         } else if (isSelected) {
-          letterColor = const Color(0xFFFFD700);
+          charColor = const Color(0xFFFFD700);
+        } else if (isOperator) {
+          charColor = const Color(0xFF06FFA5).withValues(alpha: 0.9);
         } else {
-          letterColor = Colors.white.withValues(alpha: 0.9);
+          charColor = Colors.white.withValues(alpha: 0.9);
         }
 
-        // Draw letter
+        // Draw character
         final textPainter = TextPainter(
           text: TextSpan(
-            text: puzzle.grid[r][c],
+            text: cellChar,
             style: TextStyle(
-              color: letterColor,
+              color: charColor,
               fontSize: fontSize,
               fontWeight: FontWeight.bold,
               fontFamily: 'SpaceGrotesk',
@@ -811,9 +755,9 @@ class _GridPainter extends CustomPainter {
       }
     }
 
-    // Draw a colored stripe across found word cells
+    // Draw colored stripes across found equation cells
     if (foundCells.isNotEmpty) {
-      _drawFoundWordStripes(canvas);
+      _drawFoundEquationStripes(canvas);
     }
 
     // Draw selection line
@@ -822,14 +766,13 @@ class _GridPainter extends CustomPainter {
     }
   }
 
-  void _drawFoundWordStripes(Canvas canvas) {
-    // Group cells by word index
-    final wordGroups = <int, List<String>>{};
-    for (final entry in cellWordIndex.entries) {
-      wordGroups.putIfAbsent(entry.value, () => []).add(entry.key);
+  void _drawFoundEquationStripes(Canvas canvas) {
+    final eqGroups = <int, List<String>>{};
+    for (final entry in cellEquationIndex.entries) {
+      eqGroups.putIfAbsent(entry.value, () => []).add(entry.key);
     }
 
-    for (final entry in wordGroups.entries) {
+    for (final entry in eqGroups.entries) {
       final idx = entry.key;
       final cells = entry.value;
       if (cells.length < 2) continue;
@@ -841,7 +784,6 @@ class _GridPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round;
 
-      // Parse first and last cell to draw a line
       final firstParts = cells.first.split(',');
       final lastParts = cells.last.split(',');
       final startR = int.parse(firstParts[0]);
@@ -879,6 +821,6 @@ class _GridPainter extends CustomPainter {
     return oldDelegate.foundCells != foundCells ||
         oldDelegate.currentSelection != currentSelection ||
         oldDelegate.glowValue != glowValue ||
-        oldDelegate.cellWordIndex != cellWordIndex;
+        oldDelegate.cellEquationIndex != cellEquationIndex;
   }
 }

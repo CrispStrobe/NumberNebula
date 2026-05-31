@@ -92,12 +92,22 @@ class _StarForgeGameState extends State<StarForgeGame>
 
   int _getClueCount() {
     final level = currentDifficulty?.level ?? widget.level;
+    final grade = currentDifficulty?.grade ?? widget.grade;
     final points = _getStarPoints();
     final nodeCount = points * 2;
-    // Higher level = fewer clues
-    final base = (nodeCount * 0.6).round();
-    final reduction = (level / 5).floor();
-    return (base - reduction).clamp(2, nodeCount - 2);
+
+    // Grade 1, level 1: reveal 80% (only 2 empty nodes on a 10-node star)
+    // Progressively remove clues as grade and level increase
+    double clueRatio;
+    if (grade <= 1) {
+      clueRatio = 0.80 - (level - 1) * 0.03; // 80% -> 62% over 6 levels
+    } else if (grade <= 2) {
+      clueRatio = 0.70 - (level - 1) * 0.03; // 70% -> 52%
+    } else {
+      clueRatio = 0.60 - (level - 1) * 0.02; // 60% -> 42%
+    }
+    final count = (nodeCount * clueRatio).round();
+    return count.clamp(2, nodeCount - 2);
   }
 
   void _generatePuzzle() async {

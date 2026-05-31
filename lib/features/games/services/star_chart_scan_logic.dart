@@ -1,41 +1,38 @@
-// lib/features/games/services/star_chart_scan_logic.dart
 import 'dart:math' as math;
 
-/// Direction offsets for word placement: (dr, dc)
-class WordDirection {
+/// Direction offsets for equation placement: (dr, dc)
+class EquationDirection {
   final int dr;
   final int dc;
   final String name;
-  const WordDirection(this.dr, this.dc, this.name);
+  const EquationDirection(this.dr, this.dc, this.name);
 }
 
-const List<WordDirection> allDirections = [
-  WordDirection(0, 1, 'right'),
-  WordDirection(0, -1, 'left'),
-  WordDirection(1, 0, 'down'),
-  WordDirection(-1, 0, 'up'),
-  WordDirection(1, 1, 'downRight'),
-  WordDirection(1, -1, 'downLeft'),
-  WordDirection(-1, 1, 'upRight'),
-  WordDirection(-1, -1, 'upLeft'),
+const List<EquationDirection> allDirections = [
+  EquationDirection(0, 1, 'right'),
+  EquationDirection(1, 0, 'down'),
+  EquationDirection(1, 1, 'downRight'),
+  EquationDirection(1, -1, 'downLeft'),
+  EquationDirection(0, -1, 'left'),
+  EquationDirection(-1, 0, 'up'),
+  EquationDirection(-1, -1, 'upLeft'),
+  EquationDirection(-1, 1, 'upRight'),
 ];
 
-const List<WordDirection> cardinalDirections = [
-  WordDirection(0, 1, 'right'),
-  WordDirection(0, -1, 'left'),
-  WordDirection(1, 0, 'down'),
-  WordDirection(-1, 0, 'up'),
+const List<EquationDirection> cardinalDirections = [
+  EquationDirection(0, 1, 'right'),
+  EquationDirection(1, 0, 'down'),
 ];
 
-class PlacedWord {
-  final String word;
+class PlacedEquation {
+  final String equation; // e.g. "3+4=7"
   final int startRow;
   final int startCol;
-  final WordDirection direction;
+  final EquationDirection direction;
   final List<(int, int)> cells;
 
-  PlacedWord({
-    required this.word,
+  PlacedEquation({
+    required this.equation,
     required this.startRow,
     required this.startCol,
     required this.direction,
@@ -46,111 +43,81 @@ class PlacedWord {
 class StarChartScanPuzzle {
   final int gridSize;
   final List<List<String>> grid;
-  final List<PlacedWord> placedWords;
-  final List<String> wordsToFind;
-  final String mysteryLetter;
+  final List<PlacedEquation> placedEquations;
+  final List<String> equationsToFind;
 
   StarChartScanPuzzle({
     required this.gridSize,
     required this.grid,
-    required this.placedWords,
-    required this.wordsToFind,
-    required this.mysteryLetter,
+    required this.placedEquations,
+    required this.equationsToFind,
   });
 
-  /// Generate a word search puzzle.
-  /// [wordPool] list of candidate words to choose from.
-  /// [gridSize] size of the square grid.
-  /// [wordCount] number of words to place.
-  /// [allowDiagonal] whether diagonal directions are allowed.
-  static StarChartScanPuzzle generate({
-    required List<String> wordPool,
-    required int gridSize,
-    required int wordCount,
-    required bool allowDiagonal,
-    int? seed,
-  }) {
-    final random = math.Random(seed);
-    final directions = allowDiagonal ? allDirections : cardinalDirections;
+  /// Generate valid equations for the given operators
+  static List<String> _generateEquations(
+      List<String> operators, int count, math.Random random) {
+    final equations = <String>{};
+    int attempts = 0;
 
-    // Sort words by length descending so longer words get placed first
-    final shuffled = List<String>.from(wordPool)..shuffle(random);
-    shuffled.sort((a, b) => b.length.compareTo(a.length));
+    while (equations.length < count && attempts < 500) {
+      attempts++;
+      final op = operators[random.nextInt(operators.length)];
+      int a, b, result;
 
-    // Filter words that fit in the grid
-    final candidates = shuffled.where((w) => w.length <= gridSize).toList();
-
-    // Initialize empty grid
-    final grid = List.generate(gridSize, (_) => List.filled(gridSize, ''));
-
-    final placedWords = <PlacedWord>[];
-
-    for (final word in candidates) {
-      if (placedWords.length >= wordCount) break;
-
-      final placed = _tryPlaceWord(grid, word, gridSize, directions, random);
-      if (placed != null) {
-        placedWords.add(placed);
-      }
-    }
-
-    // Count how many cells are used by words
-    final usedCells = <String>{};
-    for (final pw in placedWords) {
-      for (final cell in pw.cells) {
-        usedCells.add('${cell.$1},${cell.$2}');
-      }
-    }
-
-    // Fill remaining cells with random letters
-    // Choose the mystery letter first
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    final mysteryLetter = alphabet[random.nextInt(26)];
-
-    // We need exactly one cell for the mystery letter
-    // Find first empty cell to place mystery letter
-    bool mysteryPlaced = false;
-    for (int r = 0; r < gridSize; r++) {
-      for (int c = 0; c < gridSize; c++) {
-        if (grid[r][c].isEmpty) {
-          if (!mysteryPlaced) {
-            grid[r][c] = mysteryLetter;
-            mysteryPlaced = true;
-          } else {
-            grid[r][c] = alphabet[random.nextInt(26)];
+      switch (op) {
+        case '+':
+          a = random.nextInt(9) + 1; // 1-9
+          b = random.nextInt(9) + 1;
+          result = a + b;
+          if (result > 9) {
+            // Keep single-digit results for simpler equations
+            // but allow double-digit sometimes for variety
+            if (result > 18) continue;
           }
-        }
+          break;
+        case '-':
+          result = random.nextInt(8) + 1; // 1-8
+          b = random.nextInt(8) + 1; // 1-8
+          a = result + b;
+          if (a > 9) continue; // Keep a single digit
+          break;
+        case 'x':
+          a = random.nextInt(8) + 2; // 2-9
+          b = random.nextInt(8) + 2; // 2-9
+          result = a * b;
+          if (result > 81) continue;
+          break;
+        default:
+          continue;
       }
+
+      final eq = '$a$op$b=$result';
+      // Only allow equations where all parts are representable
+      // in the grid (each character is one cell)
+      equations.add(eq);
     }
 
-    return StarChartScanPuzzle(
-      gridSize: gridSize,
-      grid: grid,
-      placedWords: placedWords,
-      wordsToFind: placedWords.map((pw) => pw.word).toList(),
-      mysteryLetter: mysteryLetter,
-    );
+    return equations.toList()..shuffle(random);
   }
 
-  static PlacedWord? _tryPlaceWord(
+  /// Try to place an equation on the grid
+  static PlacedEquation? _tryPlaceEquation(
     List<List<String>> grid,
-    String word,
+    String equation,
     int gridSize,
-    List<WordDirection> directions,
+    List<EquationDirection> directions,
     math.Random random,
   ) {
-    // Try random positions and directions
-    final dirList = List<WordDirection>.from(directions)..shuffle(random);
+    final dirList = List<EquationDirection>.from(directions)..shuffle(random);
+    final chars = equation.split('');
 
     for (final dir in dirList) {
-      // Calculate valid start positions for this direction
       final positions = <(int, int)>[];
 
       for (int r = 0; r < gridSize; r++) {
         for (int c = 0; c < gridSize; c++) {
-          // Check if word fits starting at (r, c) in this direction
-          final endR = r + dir.dr * (word.length - 1);
-          final endC = c + dir.dc * (word.length - 1);
+          final endR = r + dir.dr * (chars.length - 1);
+          final endC = c + dir.dc * (chars.length - 1);
 
           if (endR >= 0 && endR < gridSize && endC >= 0 && endC < gridSize) {
             positions.add((r, c));
@@ -161,31 +128,30 @@ class StarChartScanPuzzle {
       positions.shuffle(random);
 
       for (final (startR, startC) in positions) {
-        // Check if word can be placed here (no conflicts)
         bool canPlace = true;
         final cells = <(int, int)>[];
 
-        for (int i = 0; i < word.length; i++) {
+        for (int i = 0; i < chars.length; i++) {
           final r = startR + dir.dr * i;
           final c = startC + dir.dc * i;
           cells.add((r, c));
 
-          if (grid[r][c].isNotEmpty && grid[r][c] != word[i]) {
+          if (grid[r][c].isNotEmpty && grid[r][c] != chars[i]) {
             canPlace = false;
             break;
           }
         }
 
         if (canPlace) {
-          // Place the word
-          for (int i = 0; i < word.length; i++) {
+          // Place the equation
+          for (int i = 0; i < chars.length; i++) {
             final r = startR + dir.dr * i;
             final c = startC + dir.dc * i;
-            grid[r][c] = word[i];
+            grid[r][c] = chars[i];
           }
 
-          return PlacedWord(
-            word: word,
+          return PlacedEquation(
+            equation: equation,
             startRow: startR,
             startCol: startC,
             direction: dir,
@@ -195,6 +161,54 @@ class StarChartScanPuzzle {
       }
     }
 
-    return null; // Could not place word
+    return null;
+  }
+
+  /// Generate an equation search puzzle.
+  static StarChartScanPuzzle generate({
+    required int gridSize,
+    required int equationCount,
+    required bool allowDiagonal,
+    required List<String> operators,
+    int? seed,
+  }) {
+    final random = math.Random(seed);
+    final directions = allowDiagonal ? allDirections : cardinalDirections;
+
+    // Generate more candidate equations than needed
+    final candidateEquations =
+        _generateEquations(operators, equationCount * 3, random);
+
+    // Initialize empty grid
+    final grid = List.generate(gridSize, (_) => List.filled(gridSize, ''));
+
+    final placedEquations = <PlacedEquation>[];
+
+    for (final eq in candidateEquations) {
+      if (placedEquations.length >= equationCount) break;
+
+      final placed =
+          _tryPlaceEquation(grid, eq, gridSize, directions, random);
+      if (placed != null) {
+        placedEquations.add(placed);
+      }
+    }
+
+    // Fill remaining empty cells with random numbers and operators
+    const fillerChars = '0123456789+-x=';
+    for (int r = 0; r < gridSize; r++) {
+      for (int c = 0; c < gridSize; c++) {
+        if (grid[r][c].isEmpty) {
+          grid[r][c] = fillerChars[random.nextInt(fillerChars.length)];
+        }
+      }
+    }
+
+    return StarChartScanPuzzle(
+      gridSize: gridSize,
+      grid: grid,
+      placedEquations: placedEquations,
+      equationsToFind: placedEquations.map((pe) => pe.equation).toList(),
+    );
   }
 }

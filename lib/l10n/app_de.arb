@@ -1217,10 +1217,10 @@
   "toTheBridge": "Zur Brücke",
 
   "starChartScanTitle": "Sternkarten-Scan",
-  "starChartScanDesc": "Versteckte Sternbildnamen sind in diesen Sternkartendaten eingebettet! Scanne horizontal, vertikal und diagonal, um sie alle zu finden. Ein Buchstabe bleibt ubrig...",
-  "starChartScanInstructions": "Wische uber Buchstaben, um versteckte Worter zu markieren. Worter konnen in jeder Richtung verlaufen. Finde alle Worter, um den Geheimnisbuchstaben zu enthullen!",
+  "starChartScanDesc": "Versteckte Gleichungen sind in diesen Sternkartendaten eingebettet! Scanne horizontal, vertikal und diagonal, um Mathe-Gleichungen wie 3+4=7 im Zahlenraster zu finden.",
+  "starChartScanInstructions": "Wische uber Zellen, um versteckte Gleichungen zu markieren (z.B. 3+4=7, 9-2=7). Gleichungen konnen in jeder Richtung verlaufen. Finde alle Gleichungen!",
   "starChartScanWinTitle": "Karte entschlusselt!",
-  "starChartScanWinDesc": "Alle Sternbilder gefunden! Der Geheimnisbuchstabe ist '{letter}'. Du hast {bonusScore} Kartografiepunkte verdient.",
+  "starChartScanWinDesc": "Alle {letter} Gleichungen gefunden! Du hast {bonusScore} Kartografiepunkte verdient.",
   "@starChartScanWinDesc": {
     "placeholders": {
       "letter": {"type": "String", "example": "X"},
@@ -1228,7 +1228,7 @@
     }
   },
   "starChartScanLoseTitle": "Scan unvollstandig!",
-  "starChartScanLoseDesc": "Einige Sternbilder sind noch in den Daten verborgen. Versuche auch diagonal zu scannen, Commander.",
+  "starChartScanLoseDesc": "Einige Gleichungen sind noch in den Daten verborgen. Versuche auch diagonal zu scannen, Commander.",
 
   "commRelayTitle": "Komm-Relais",
   "commRelayDesc": "Eine verzerrte Ubertragung aus dem tiefen Weltraum! Das Kommunikationsrelais hat jeden Buchstaben verschoben. Knacke die Chiffre, um die Originalnachricht zu lesen!",
@@ -1258,7 +1258,7 @@
 
   "vaultCrackerTitle": "Tresor-Knacker",
   "vaultCrackerDesc": "Ein uralter Alien-Tresor blockiert deinen Weg! Jeder Fehlversuch enthullt Hinweise: welche Ziffern korrekt, falsch platziert oder vollig falsch sind. Finde die Kombination!",
-  "vaultCrackerInstructions": "Studiere jeden Hinweisversuch. Grun = richtige Ziffer, richtige Position. Gelb = richtige Ziffer, falsche Position. Grau = Ziffer nicht im Code.",
+  "vaultCrackerInstructions": "Studiere die fehlgeschlagenen Versuche und ihre Hinweise. Leite den Geheimcode aus den Hinweisen ab und gib ihn unten ein.",
   "vaultCrackerWinTitle": "Tresor geoffnet!",
   "vaultCrackerWinDesc": "Die Tresorturen schwingen auf! Du hast den Code in {attempts} Versuchen geknackt und {bonusScore} Archaologiepunkte verdient.",
   "@vaultCrackerWinDesc": {

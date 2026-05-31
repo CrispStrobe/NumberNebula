@@ -11,6 +11,9 @@ import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../services/crew_manifest_logic.dart';
 
+/// Cell state in the logic grid: empty, check (confirmed match), or X (eliminated).
+enum CellMark { empty, check, cross }
+
 class CrewManifestGame extends StatefulWidget {
   final int grade;
   final int level;
@@ -26,14 +29,20 @@ class _CrewManifestGameState extends State<CrewManifestGame>
   late Animation<double> _glowAnimation;
   late AnimationController _successController;
   late Animation<double> _successAnimation;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   CrewManifestPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
-
-  // User's current assignments: crewName -> itemName (or null)
-  Map<String, String?> _userAssignment = {};
   bool _gameOver = false;
+
+  // Logic grid: Map<'crewIndex_itemIndex', CellMark>
+  final Map<String, CellMark> _gridState = {};
+
+  // Highlighted row/col for visual feedback
+  int? _highlightedRow;
+  int? _highlightedCol;
 
   @override
   void initState() {
@@ -53,6 +62,13 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     _successAnimation =
         CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
 
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
+        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
@@ -64,12 +80,16 @@ class _CrewManifestGameState extends State<CrewManifestGame>
 
   @override
   void dispose() {
-    _glowController.stop();
-    _successController.stop();
     _glowController.dispose();
     _successController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
+
+  String _cellKey(int row, int col) => '${row}_$col';
+
+  CellMark _getMark(int row, int col) =>
+      _gridState[_cellKey(row, col)] ?? CellMark.empty;
 
   void _generatePuzzle() {
     if (currentDifficulty == null) return;
@@ -77,6 +97,9 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     setState(() {
       _isGenerating = true;
       _gameOver = false;
+      _gridState.clear();
+      _highlightedRow = null;
+      _highlightedCol = null;
       _successController.reset();
     });
 
@@ -89,32 +112,116 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     if (mounted) {
       setState(() {
         puzzle = generated;
-        _userAssignment = {for (final name in generated.crewNames) name: null};
+        // Initialize all cells to empty
+        for (int r = 0; r < generated.size; r++) {
+          for (int c = 0; c < generated.size; c++) {
+            _gridState[_cellKey(r, c)] = CellMark.empty;
+          }
+        }
         _isGenerating = false;
       });
     }
   }
 
-  void _assignItem(String crewName, String? itemName) {
+  void _toggleCell(int row, int col) {
     if (_gameOver) return;
+
     setState(() {
-      // If this item is already assigned to someone else, clear that assignment
-      if (itemName != null) {
-        for (final key in _userAssignment.keys) {
-          if (_userAssignment[key] == itemName && key != crewName) {
-            _userAssignment[key] = null;
+      _highlightedRow = row;
+      _highlightedCol = col;
+
+      final current = _getMark(row, col);
+      switch (current) {
+        case CellMark.empty:
+          // Place a check mark -> auto-X other cells in same row and col
+          _gridState[_cellKey(row, col)] = CellMark.check;
+          _autoEliminate(row, col);
+          break;
+        case CellMark.check:
+          // Cycle to X, and un-eliminate the rest
+          _gridState[_cellKey(row, col)] = CellMark.cross;
+          _unAutoEliminate(row, col);
+          break;
+        case CellMark.cross:
+          // Cycle to empty
+          _gridState[_cellKey(row, col)] = CellMark.empty;
+          break;
+      }
+    });
+
+    HapticFeedback.selectionClick();
+  }
+
+  /// When a check is placed at (row, col), mark all other cells in the same
+  /// row and column as X (if they are empty).
+  void _autoEliminate(int row, int col) {
+    final size = puzzle!.size;
+    for (int c = 0; c < size; c++) {
+      if (c != col && _getMark(row, c) == CellMark.empty) {
+        _gridState[_cellKey(row, c)] = CellMark.cross;
+      }
+    }
+    for (int r = 0; r < size; r++) {
+      if (r != row && _getMark(r, col) == CellMark.empty) {
+        _gridState[_cellKey(r, col)] = CellMark.cross;
+      }
+    }
+  }
+
+  /// When removing a check from (row, col), revert auto-eliminations -- set
+  /// the auto-X'd cells back to empty UNLESS they were set by another check.
+  void _unAutoEliminate(int row, int col) {
+    final size = puzzle!.size;
+    // For cells in the same row: only un-X if no other check in their column
+    for (int c = 0; c < size; c++) {
+      if (c != col && _getMark(row, c) == CellMark.cross) {
+        // Check if any other check in column c requires this X
+        bool neededByOther = false;
+        for (int r = 0; r < size; r++) {
+          if (r != row && _getMark(r, c) == CellMark.check) {
+            neededByOther = true;
+            break;
           }
         }
+        if (!neededByOther) {
+          _gridState[_cellKey(row, c)] = CellMark.empty;
+        }
       }
-      _userAssignment[crewName] = itemName;
-    });
+    }
+    // For cells in the same column: only un-X if no other check in their row
+    for (int r = 0; r < size; r++) {
+      if (r != row && _getMark(r, col) == CellMark.cross) {
+        bool neededByOther = false;
+        for (int c = 0; c < size; c++) {
+          if (c != col && _getMark(r, c) == CellMark.check) {
+            neededByOther = true;
+            break;
+          }
+        }
+        if (!neededByOther) {
+          _gridState[_cellKey(r, col)] = CellMark.empty;
+        }
+      }
+    }
   }
 
   void _checkSolution() {
     if (puzzle == null || _gameOver) return;
 
-    // Check all assigned
-    if (_userAssignment.values.any((v) => v == null)) {
+    // Build user assignment from check marks
+    final userMap = <String, String>{};
+    final size = puzzle!.size;
+
+    for (int r = 0; r < size; r++) {
+      for (int c = 0; c < size; c++) {
+        if (_getMark(r, c) == CellMark.check) {
+          userMap[puzzle!.crewNames[r]] = puzzle!.itemNames[c];
+        }
+      }
+    }
+
+    // Check if all crew have an assignment
+    if (userMap.length != size) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(S.of(context)!.crewManifestLoseDesc),
@@ -124,7 +231,6 @@ class _CrewManifestGameState extends State<CrewManifestGame>
       return;
     }
 
-    final userMap = _userAssignment.map((k, v) => MapEntry(k, v!));
     if (puzzle!.checkSolution(userMap)) {
       _handleWin();
     } else {
@@ -212,7 +318,16 @@ class _CrewManifestGameState extends State<CrewManifestGame>
                 level: widget.level,
                 onBack: () => Navigator.of(context).pop(),
               ),
-              Expanded(child: _buildGameArea()),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 700;
+                    return isWide
+                        ? _buildWideLayout(constraints)
+                        : _buildCompactLayout(constraints);
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -220,164 +335,294 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     );
   }
 
-  Widget _buildGameArea() {
-    final s = S.of(context)!;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _buildWideLayout(BoxConstraints constraints) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Instructions
-          Text(
-            s.crewManifestInstructions,
-            style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
-            textAlign: TextAlign.center,
+          Expanded(
+            flex: 3,
+            child: _buildGridArea(constraints),
           ),
-          const SizedBox(height: 12),
-
-          // Clues section
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: SpaceTheme.cardDecoration.copyWith(
-              border: Border.all(color: SpaceTheme.nebulaPurple, width: 1),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.lightbulb, color: SpaceTheme.starYellow, size: 18),
-                    const SizedBox(width: 8),
-                    Text('Clues:', style: SpaceTheme.titleStyle.copyWith(fontSize: 14)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ...puzzle!.clues.map((clue) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('  ', style: TextStyle(color: SpaceTheme.starYellow)),
-                          Expanded(
-                            child: Text(
-                              clue,
-                              style: SpaceTheme.bodyStyle.copyWith(fontSize: 13),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )),
-              ],
-            ),
+          const SizedBox(width: 24),
+          Expanded(
+            flex: 2,
+            child: _buildCluesAndSubmit(),
           ),
-          const SizedBox(height: 16),
-
-          // Assignment grid
-          ...puzzle!.crewNames.map((crewName) => _buildCrewRow(crewName)),
-
-          const SizedBox(height: 16),
-
-          // Submit button
-          if (!_gameOver)
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: _checkSolution,
-                icon: const Icon(Icons.check),
-                label: Text(s.backToMenu.contains('Menu') ? 'Submit' : 'OK'),
-                style: SpaceTheme.primaryButtonStyle,
-              ),
-            ),
         ],
       ),
     );
   }
 
-  Widget _buildCrewRow(String crewName) {
-    final assignedItem = _userAssignment[crewName];
-    final availableItems = puzzle!.itemNames.where((item) {
-      // Show all items, but mark already-assigned ones
-      return true;
-    }).toList();
+  Widget _buildCompactLayout(BoxConstraints constraints) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        children: [
+          _buildGridArea(constraints),
+          const SizedBox(height: 12),
+          _buildCluesAndSubmit(),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+  Widget _buildGridArea(BoxConstraints outerConstraints) {
+    return Center(
       child: AnimatedBuilder(
         animation: _glowAnimation,
         builder: (context, child) {
           return Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-              borderRadius: BorderRadius.circular(12),
+              gradient: RadialGradient(
+                colors: [
+                  SpaceTheme.nebulaPurple.withValues(alpha: 0.1 * _glowAnimation.value),
+                  SpaceTheme.deepSpace.withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: assignedItem != null
-                    ? SpaceTheme.alienGreen.withValues(alpha: 0.7)
-                    : SpaceTheme.nebulaPurple.withValues(alpha: _glowAnimation.value),
-                width: 1.5,
+                color: SpaceTheme.nebulaPurple.withValues(alpha: _glowAnimation.value),
+                width: 2,
               ),
             ),
-            child: Row(
-              children: [
-                // Crew member name
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF00C9DB), Color(0xFF06FFA5)],
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    crewName,
-                    style: SpaceTheme.titleStyle.copyWith(fontSize: 14, color: Colors.black),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Icon(Icons.arrow_forward, color: Colors.white38, size: 16),
-                const SizedBox(width: 8),
-                // Item dropdown
-                Expanded(
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: assignedItem,
-                      hint: Text(
-                        '-- select --',
-                        style: SpaceTheme.bodyStyle.copyWith(
-                          color: Colors.white38,
-                          fontSize: 13,
-                        ),
-                      ),
-                      dropdownColor: SpaceTheme.deepSpace,
-                      isExpanded: true,
-                      items: [
-                        const DropdownMenuItem<String>(
-                          value: null,
-                          child: Text('-- none --', style: TextStyle(color: Colors.white38)),
-                        ),
-                        ...availableItems.map((item) {
-                          final isUsedElsewhere = _userAssignment.entries
-                              .any((e) => e.key != crewName && e.value == item);
-                          return DropdownMenuItem<String>(
-                            value: item,
-                            child: Text(
-                              item,
-                              style: TextStyle(
-                                color: isUsedElsewhere ? Colors.white24 : Colors.white,
-                                fontSize: 13,
-                              ),
-                            ),
-                          );
-                        }),
-                      ],
-                      onChanged: (value) => _assignItem(crewName, value),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            child: _buildLogicGrid(),
           );
         },
       ),
+    );
+  }
+
+  Widget _buildLogicGrid() {
+    final size = puzzle!.size;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // +1 for header column/row
+        final maxCellW = (constraints.maxWidth - 16) / (size + 1);
+        final maxCellH = maxCellW; // keep square
+        final cellSize = maxCellH.clamp(36.0, 64.0);
+        final headerW = cellSize * 1.2;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header row: empty corner + item names
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(width: headerW, height: cellSize),
+                ...List.generate(size, (c) {
+                  return SizedBox(
+                    width: cellSize,
+                    height: cellSize,
+                    child: Center(
+                      child: RotatedBox(
+                        quarterTurns: -1,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: FittedBox(
+                            child: Text(
+                              puzzle!.itemNames[c],
+                              style: SpaceTheme.titleStyle.copyWith(
+                                fontSize: 12,
+                                color: SpaceTheme.starYellow,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+            // Grid rows: crew name + cells
+            ...List.generate(size, (r) {
+              final isHighlightedRow = _highlightedRow == r;
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Crew name header
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: headerW,
+                    height: cellSize,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: isHighlightedRow
+                          ? SpaceTheme.alienGreen.withValues(alpha: 0.15)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: FittedBox(
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Text(
+                            puzzle!.crewNames[r],
+                            style: SpaceTheme.titleStyle.copyWith(
+                              fontSize: 13,
+                              color: const Color(0xFF00C9DB),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Grid cells
+                  ...List.generate(size, (c) {
+                    return _buildGridCell(r, c, cellSize);
+                  }),
+                ],
+              );
+            }),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildGridCell(int row, int col, double cellSize) {
+    final mark = _getMark(row, col);
+    final isHighlightedRow = _highlightedRow == row;
+    final isHighlightedCol = _highlightedCol == col;
+    final isHighlighted = isHighlightedRow || isHighlightedCol;
+
+    Color bgColor;
+    Widget? content;
+
+    switch (mark) {
+      case CellMark.check:
+        bgColor = SpaceTheme.alienGreen.withValues(alpha: 0.25);
+        content = Icon(Icons.check_circle, color: SpaceTheme.alienGreen, size: cellSize * 0.6);
+        break;
+      case CellMark.cross:
+        bgColor = SpaceTheme.rocketRed.withValues(alpha: 0.15);
+        content = Icon(Icons.close, color: SpaceTheme.rocketRed.withValues(alpha: 0.7), size: cellSize * 0.5);
+        break;
+      case CellMark.empty:
+        bgColor = isHighlighted
+            ? SpaceTheme.nebulaPurple.withValues(alpha: 0.3)
+            : SpaceTheme.deepSpace.withValues(alpha: 0.5);
+        content = AnimatedBuilder(
+          animation: _pulseAnimation,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _pulseAnimation.value,
+              child: Icon(
+                Icons.radio_button_unchecked,
+                color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
+                size: cellSize * 0.3,
+              ),
+            );
+          },
+        );
+        break;
+    }
+
+    return GestureDetector(
+      onTap: () => _toggleCell(row, col),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: cellSize,
+        height: cellSize,
+        decoration: BoxDecoration(
+          color: bgColor,
+          border: Border.all(
+            color: isHighlighted
+                ? SpaceTheme.starYellow.withValues(alpha: 0.5)
+                : SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
+            width: isHighlighted ? 2 : 1,
+          ),
+        ),
+        child: Center(child: content),
+      ),
+    );
+  }
+
+  Widget _buildCluesAndSubmit() {
+    final s = S.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Instructions
+        Text(
+          s.crewManifestInstructions,
+          style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 12),
+        // Clues section
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: SpaceTheme.cardDecoration.copyWith(
+            border: Border.all(color: SpaceTheme.nebulaPurple, width: 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.lightbulb, color: SpaceTheme.starYellow, size: 18),
+                  const SizedBox(width: 8),
+                  Text('Clues:', style: SpaceTheme.titleStyle.copyWith(fontSize: 14)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ...puzzle!.clues.map((clue) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: Icon(Icons.arrow_right, color: SpaceTheme.starYellow, size: 16),
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            clue,
+                            style: SpaceTheme.bodyStyle.copyWith(fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Legend
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.check_circle, color: SpaceTheme.alienGreen, size: 18),
+            const SizedBox(width: 4),
+            Text('Match', style: SpaceTheme.bodyStyle.copyWith(fontSize: 11)),
+            const SizedBox(width: 16),
+            const Icon(Icons.close, color: SpaceTheme.rocketRed, size: 18),
+            const SizedBox(width: 4),
+            Text('Eliminate', style: SpaceTheme.bodyStyle.copyWith(fontSize: 11)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // Submit button
+        if (!_gameOver)
+          Center(
+            child: ElevatedButton.icon(
+              onPressed: _checkSolution,
+              icon: const Icon(Icons.check),
+              label: const Text('Submit'),
+              style: SpaceTheme.primaryButtonStyle,
+            ),
+          ),
+      ],
     );
   }
 

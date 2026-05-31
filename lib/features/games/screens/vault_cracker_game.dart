@@ -31,11 +31,8 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
 
-  // Current guess being built
-  List<int?> _currentGuess = [];
-  // History of past guesses with feedback
-  final List<VaultClue> _guessHistory = [];
-  int _attemptsRemaining = 0;
+  // Player's answer input
+  List<int?> _answer = [];
   bool _gameOver = false;
 
   @override
@@ -79,7 +76,6 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
 
     setState(() {
       _isGenerating = true;
-      _guessHistory.clear();
       _gameOver = false;
       _successController.reset();
     });
@@ -93,8 +89,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
     if (mounted) {
       setState(() {
         puzzle = generated;
-        _currentGuess = List.filled(generated.codeLength, null);
-        _attemptsRemaining = generated.maxAttempts;
+        _answer = List.filled(generated.codeLength, null);
         _isGenerating = false;
       });
     }
@@ -103,44 +98,36 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   void _setDigit(int position, int digit) {
     if (_gameOver) return;
     setState(() {
-      _currentGuess[position] = digit;
+      _answer[position] = digit;
     });
   }
 
-  void _submitGuess() {
-    if (_gameOver || puzzle == null) return;
-    if (_currentGuess.any((d) => d == null)) return;
-
-    final guess = _currentGuess.map((d) => d!).toList();
-    final feedback = puzzle!.evaluate(guess);
-
+  void _clearAnswer() {
+    if (_gameOver) return;
     setState(() {
-      _guessHistory.add(VaultClue(guess: guess, feedback: feedback));
-      _attemptsRemaining--;
-      _currentGuess = List.filled(puzzle!.codeLength, null);
+      _answer = List.filled(puzzle?.codeLength ?? 3, null);
     });
+  }
+
+  void _submitAnswer() {
+    if (_gameOver || puzzle == null) return;
+    if (_answer.any((d) => d == null)) return;
+
+    final guess = _answer.map((d) => d!).toList();
 
     if (puzzle!.isCorrect(guess)) {
       _handleWin();
-    } else if (_attemptsRemaining <= 0) {
+    } else {
       _handleLoss();
     }
-  }
-
-  void _clearGuess() {
-    setState(() {
-      _currentGuess = List.filled(puzzle?.codeLength ?? 3, null);
-    });
   }
 
   void _handleWin() {
     HapticFeedback.lightImpact();
     _gameOver = true;
-    final attempts = _guessHistory.length;
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
-    int speedBonus = (_attemptsRemaining * 50);
-    int totalScore = baseScore + levelBonus + speedBonus;
+    int totalScore = baseScore + levelBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'vault_cracker',
@@ -154,7 +141,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => _buildWinDialog(attempts, totalScore),
+        builder: (ctx) => _buildWinDialog(1, totalScore),
       );
     }
   }
@@ -216,18 +203,6 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
                   textAlign: TextAlign.center,
                 ),
               ),
-              // Attempts remaining
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Text(
-                  '${s.level}: $_attemptsRemaining',
-                  style: SpaceTheme.titleStyle.copyWith(
-                    color: _attemptsRemaining <= 2
-                        ? SpaceTheme.rocketRed
-                        : SpaceTheme.starYellow,
-                  ),
-                ),
-              ),
               Expanded(child: _buildGameArea()),
             ],
           ),
@@ -237,21 +212,25 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   }
 
   Widget _buildGameArea() {
+    final locale = Localizations.localeOf(context);
+    final isGerman = locale.languageCode == 'de';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          // Guess history
+          // Clue attempts list
           Expanded(
             child: ListView.builder(
-              itemCount: _guessHistory.length,
-              itemBuilder: (context, index) => _buildClueRow(_guessHistory[index]),
+              itemCount: puzzle!.clues.length,
+              itemBuilder: (context, index) =>
+                  _buildClueRow(puzzle!.clues[index], index, isGerman),
             ),
           ),
           const SizedBox(height: 8),
-          // Current guess input
+          // Answer input row
           if (!_gameOver) ...[
-            _buildCurrentGuessRow(),
+            _buildAnswerRow(),
             const SizedBox(height: 8),
             _buildDigitPad(),
             const SizedBox(height: 8),
@@ -259,13 +238,14 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  onPressed: _clearGuess,
+                  onPressed: _clearAnswer,
                   style: SpaceTheme.secondaryButtonStyle,
                   child: Text(S.of(context)!.playAgain),
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
-                  onPressed: _currentGuess.any((d) => d == null) ? null : _submitGuess,
+                  onPressed:
+                      _answer.any((d) => d == null) ? null : _submitAnswer,
                   style: SpaceTheme.primaryButtonStyle,
                   child: const Icon(Icons.check),
                 ),
@@ -278,81 +258,116 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
     );
   }
 
-  Widget _buildClueRow(VaultClue clue) {
+  Widget _buildClueRow(VaultClue clue, int index, bool isGerman) {
+    final clueText = isGerman ? clue.clueTextDe : clue.clueTextEn;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(clue.guess.length, (i) {
-          Color bgColor;
-          switch (clue.feedback[i]) {
-            case DigitFeedback.green:
-              bgColor = Colors.green;
-              break;
-            case DigitFeedback.yellow:
-              bgColor = Colors.amber;
-              break;
-            case DigitFeedback.gray:
-              bgColor = Colors.grey.shade700;
-              break;
-          }
-          return Container(
-            width: 48,
-            height: 48,
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.white24),
-            ),
-            child: Center(
-              child: Text(
-                clue.guess[i].toString(),
-                style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Attempt number label
+            Text(
+              '#${index + 1}',
+              style: SpaceTheme.bodyStyle.copyWith(
+                fontSize: 11,
+                color: Colors.white38,
               ),
             ),
-          );
-        }),
+            const SizedBox(height: 4),
+            // Digit boxes
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(clue.attempt.length, (i) {
+                return Container(
+                  width: 44,
+                  height: 44,
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade800,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: Center(
+                    child: Text(
+                      clue.attempt[i].toString(),
+                      style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
+                    ),
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 6),
+            // Clue text
+            Text(
+              clueText,
+              style: SpaceTheme.bodyStyle.copyWith(
+                fontSize: 12,
+                color: SpaceTheme.starYellow,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildCurrentGuessRow() {
+  Widget _buildAnswerRow() {
     return AnimatedBuilder(
       animation: _glowAnimation,
       builder: (context, child) {
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(puzzle!.codeLength, (i) {
-            final hasDigit = _currentGuess[i] != null;
-            return Container(
-              width: 52,
-              height: 52,
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              decoration: BoxDecoration(
-                color: SpaceTheme.deepSpace,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: hasDigit
-                      ? SpaceTheme.starYellow
-                      : SpaceTheme.nebulaPurple.withValues(alpha: _glowAnimation.value),
-                  width: 2,
+            final hasDigit = _answer[i] != null;
+            return GestureDetector(
+              onTap: () {
+                // Tapping a filled slot clears it
+                if (hasDigit) {
+                  setState(() {
+                    _answer[i] = null;
+                  });
+                }
+              },
+              child: Container(
+                width: 52,
+                height: 52,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: SpaceTheme.deepSpace,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: hasDigit
+                        ? SpaceTheme.starYellow
+                        : SpaceTheme.nebulaPurple
+                            .withValues(alpha: _glowAnimation.value),
+                    width: 2,
+                  ),
+                  boxShadow: hasDigit
+                      ? [
+                          BoxShadow(
+                            color: SpaceTheme.starYellow.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                          )
+                        ]
+                      : null,
                 ),
-                boxShadow: hasDigit
-                    ? [
-                        BoxShadow(
-                          color: SpaceTheme.starYellow.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                        )
-                      ]
-                    : null,
-              ),
-              child: Center(
-                child: Text(
-                  hasDigit ? _currentGuess[i].toString() : '?',
-                  style: SpaceTheme.headlineStyle.copyWith(
-                    fontSize: 22,
-                    color: hasDigit ? Colors.white : Colors.white38,
+                child: Center(
+                  child: Text(
+                    hasDigit ? _answer[i].toString() : '?',
+                    style: SpaceTheme.headlineStyle.copyWith(
+                      fontSize: 22,
+                      color: hasDigit ? Colors.white : Colors.white38,
+                    ),
                   ),
                 ),
               ),
@@ -374,7 +389,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
           onTap: () {
             // Place in first empty slot
             for (int i = 0; i < puzzle!.codeLength; i++) {
-              if (_currentGuess[i] == null) {
+              if (_answer[i] == null) {
                 _setDigit(i, digit);
                 break;
               }
@@ -387,7 +402,8 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
               gradient: SpaceTheme.starGradient,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                  color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
+                  color: SpaceTheme.starYellow.withValues(alpha: 0.7),
+                  width: 2),
             ),
             child: Center(
               child: Text(
@@ -416,13 +432,16 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.lock_open, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.lock_open,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.vaultCrackerWinTitle,
-                      style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(s.vaultCrackerWinDesc(attempts, totalScore),
-                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                      style: SpaceTheme.bodyStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -467,7 +486,8 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
             const Icon(Icons.lock, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(s.vaultCrackerLoseTitle,
-                style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                style: SpaceTheme.headlineStyle,
+                textAlign: TextAlign.center),
             const SizedBox(height: 16),
             Text(s.vaultCrackerLoseDesc,
                 style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
@@ -475,7 +495,8 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
             // Show secret code
             Text(
               'Code: ${puzzle!.secretCode.join('')}',
-              style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow),
+              style:
+                  SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow),
             ),
             const SizedBox(height: 24),
             Row(
