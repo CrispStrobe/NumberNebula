@@ -360,6 +360,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
     if (tileIdx >= 0) {
       final tile = puzzle!.playerTiles[tileIdx];
       return GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () => _removeTileFromGrid(pos),
         child: _buildTileWidget(tile, rotations[tileIdx], cellSize, false, gridPos: pos),
       );
@@ -370,6 +371,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
       builder: (context, candidates, _) {
         final isHovering = candidates.isNotEmpty;
         return GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: () => _placeTileAt(pos),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
@@ -562,6 +564,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
                       ),
                     ),
                     child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: () => _selectTile(idx),
                       onLongPress: () => _rotateTile(idx),
                       child: Stack(
@@ -573,6 +576,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
                           Positioned(
                             top: 0, right: 0,
                             child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
                               onTap: () => _rotateTile(idx),
                               child: Container(
                                 width: 22, height: 22,

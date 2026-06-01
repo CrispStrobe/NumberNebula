@@ -536,6 +536,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     }
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () => _toggleCell(row, col),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),

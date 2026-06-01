@@ -293,6 +293,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
         animation: _glowAnimation,
         builder: (context, child) {
           return GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () => _toggleAssignment(index),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),

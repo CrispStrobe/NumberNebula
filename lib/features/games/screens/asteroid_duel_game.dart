@@ -435,6 +435,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
                     children: List.generate(_remaining, (i) {
                       final isSelected = _selectedAsteroids.contains(i);
                       return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
                         onTap: _isPlayerTurn && !_gameOver && !_isAiThinking
                             ? () => _toggleAsteroidSelection(i)
                             : null,

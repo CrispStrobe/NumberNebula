@@ -286,6 +286,7 @@ class _HiveStationGameState extends State<HiveStationGame>
         left: pixelPos.dx - hexSize * 0.8,
         top: pixelPos.dy - hexSize * 0.8,
         child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: () => _toggleCell(coord),
           child: _buildHexCell(
             hexSize: hexSize * 1.6,

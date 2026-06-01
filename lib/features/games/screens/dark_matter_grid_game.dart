@@ -254,6 +254,7 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
     final isLit = grid[row][col];
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () => _onCellTap(row, col),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),

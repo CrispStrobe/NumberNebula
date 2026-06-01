@@ -331,6 +331,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
         children: List.generate(_puzzle!.availableColors, (index) {
           final isSelected = _selectedColor == index;
           return GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () => setState(() => _selectedColor = index),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
@@ -466,6 +467,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
                         left: x - nodeRadius,
                         top: y - nodeRadius,
                         child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: () => _paintRegion(region),
                           child: _buildRegionNode(
                             region, nodeRadius * 2, isColored, isConflict,
