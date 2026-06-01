@@ -360,9 +360,11 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
 
   Widget _buildClockDisplay(BoxConstraints constraints) {
     final displayWidth = constraints.maxWidth * 0.85;
-    // 4 digits + colon: estimate ~4.8 digit widths total
-    final digitWidth = ((displayWidth - 64) / 4.8).clamp(50.0, 120.0);
-    final digitHeight = (digitWidth * 1.6).clamp(80.0, 200.0);
+    // 4 digits + 1 colon = ~4.8 widths. 6 digits + 2 colons = ~7.5 widths.
+    final is6Digit = _currentDigits.length == 6;
+    final totalWidths = is6Digit ? 7.5 : 4.8;
+    final digitWidth = ((displayWidth - 64) / totalWidths).clamp(40.0, is6Digit ? 80.0 : 120.0);
+    final digitHeight = (digitWidth * 1.6).clamp(65.0, 200.0);
     final colonWidth = digitWidth * 0.35;
 
     final isPreview = _selectedFirst != null && _selectedSecond != null;
@@ -432,7 +434,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                     ),
                   ),
                 ),
-                // Clock: digit digit : digit digit
+                // Clock: digit digit : digit digit [: digit digit]
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -453,6 +455,22 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                     _buildTappableDigit(2, digitWidth, digitHeight),
                     SizedBox(width: digitWidth * 0.08),
                     _buildTappableDigit(3, digitWidth, digitHeight),
+                    // Seconds (6-digit mode)
+                    if (_currentDigits.length == 6) ...[
+                      SizedBox(
+                        width: colonWidth,
+                        height: digitHeight,
+                        child: CustomPaint(
+                          painter: _ColonPainter(
+                            color: SpaceTheme.starYellow
+                                .withValues(alpha: 0.6 + 0.4 * _glowAnimation.value),
+                          ),
+                        ),
+                      ),
+                      _buildTappableDigit(4, digitWidth, digitHeight),
+                      SizedBox(width: digitWidth * 0.08),
+                      _buildTappableDigit(5, digitWidth, digitHeight),
+                    ],
                   ],
                 ),
               ],
@@ -472,8 +490,13 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     final digit = _currentDigits[position];
     final hoursVal = _currentDigits[0] * 10 + _currentDigits[1];
     final minutesVal = _currentDigits[2] * 10 + _currentDigits[3];
+    final secondsVal = _currentDigits.length == 6
+        ? _currentDigits[4] * 10 + _currentDigits[5]
+        : 0;
     final isInvalidPart =
-        (position < 2 && hoursVal > 23) || (position >= 2 && minutesVal > 59);
+        (position < 2 && hoursVal > 23) ||
+        (position >= 2 && position < 4 && minutesVal > 59) ||
+        (position >= 4 && secondsVal > 59);
 
     // Active color depends on state
     Color activeColor;

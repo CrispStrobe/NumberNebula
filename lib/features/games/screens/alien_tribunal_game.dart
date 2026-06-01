@@ -222,32 +222,42 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
 
   Widget _buildGameArea() {
     final s = S.of(context)!;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Instructions
-          Text(
-            s.alienTribunalInstructions,
-            style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
-            textAlign: TextAlign.center,
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Text(
+              s.alienTribunalInstructions,
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
           ),
-          const SizedBox(height: 16),
 
-          // Person cards
-          ...List.generate(puzzle!.personCount, (i) => _buildPersonCard(i)),
-
-          const SizedBox(height: 20),
+          // Person cards — fill available space
+          Expanded(
+            child: ListView.builder(
+              itemCount: puzzle!.personCount,
+              itemBuilder: (context, i) => _buildPersonCard(i),
+            ),
+          ),
 
           // Submit button
           if (!_gameOver)
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: _checkSolution,
-                icon: const Icon(Icons.gavel),
-                label: const Text('Submit Verdict'),
-                style: SpaceTheme.primaryButtonStyle,
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: _checkSolution,
+                  icon: const Icon(Icons.gavel, size: 24),
+                  label: const Text('Submit Verdict', style: TextStyle(fontSize: 18)),
+                  style: SpaceTheme.primaryButtonStyle,
+                ),
               ),
             ),
         ],
@@ -285,7 +295,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
           return GestureDetector(
             onTap: () => _toggleAssignment(index),
             child: Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
               decoration: BoxDecoration(
                 color: SpaceTheme.deepSpace.withValues(alpha: 0.85),
                 borderRadius: BorderRadius.circular(16),
@@ -309,22 +319,22 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                 children: [
                   // Avatar
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: 56,
+                    height: 56,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [Color(0xFF6B48FF), Color(0xFFE63946)],
                       ),
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(28),
                     ),
                     child: Center(
                       child: Text(
                         person.name[0],
-                        style: SpaceTheme.headlineStyle.copyWith(fontSize: 22),
+                        style: SpaceTheme.headlineStyle.copyWith(fontSize: 26),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   // Name and statement
                   Expanded(
                     child: Column(
@@ -332,13 +342,13 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                       children: [
                         Text(
                           person.name,
-                          style: SpaceTheme.titleStyle.copyWith(fontSize: 16),
+                          style: SpaceTheme.titleStyle.copyWith(fontSize: 20),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Text(
                           person.statement,
                           style: SpaceTheme.bodyStyle.copyWith(
-                            fontSize: 13,
+                            fontSize: 16,
                             fontStyle: FontStyle.italic,
                             color: Colors.white70,
                           ),
@@ -346,17 +356,17 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   // Status indicator
                   Column(
                     children: [
-                      Icon(statusIcon, color: borderColor, size: 28),
+                      Icon(statusIcon, color: borderColor, size: 36),
                       const SizedBox(height: 2),
                       Text(
                         statusText,
                         style: TextStyle(
                           color: borderColor,
-                          fontSize: 11,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

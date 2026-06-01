@@ -693,22 +693,26 @@ class _IsometricDiePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
     final cy = size.height / 2;
-    final s = math.min(size.width, size.height) * 0.40;
 
     // Isometric projection angles
     const dxFactor = 0.866; // cos(30deg)
     const dyFactor = 0.5; // sin(30deg)
 
-    // 7 visible vertices of an isometric cube
-    final topCenter = Offset(cx, cy - s * 0.65);
-    final topLeft = Offset(cx - s * dxFactor, cy - s * 0.65 + s * dyFactor);
-    final topRight = Offset(cx + s * dxFactor, cy - s * 0.65 + s * dyFactor);
-    final topFront = Offset(cx, cy - s * 0.65 + s * dyFactor * 2);
-    final bottomCenter = Offset(cx, cy + s * 0.65);
-    final bottomLeft =
-        Offset(cx - s * dxFactor, cy + s * 0.65 - s * dyFactor);
-    final bottomRight =
-        Offset(cx + s * dxFactor, cy + s * 0.65 - s * dyFactor);
+    // Compute scale s so the cube fits within the widget.
+    // True isometric cube: width = 2 * s * dxFactor, height = 2 * s.
+    // Fit to both dimensions with margin.
+    final sFromWidth = (size.width * 0.85) / (2 * dxFactor);
+    final sFromHeight = (size.height * 0.85) / 2.0;
+    final s = math.min(sFromWidth, sFromHeight);
+
+    // 7 visible vertices of a proper isometric cube (height = 2s, width = 2s*cos30)
+    final topCenter = Offset(cx, cy - s);
+    final topLeft = Offset(cx - s * dxFactor, cy - s + s * dyFactor);
+    final topRight = Offset(cx + s * dxFactor, cy - s + s * dyFactor);
+    final topFront = Offset(cx, cy - s + s * dyFactor * 2);
+    final bottomCenter = Offset(cx, cy + s);
+    final bottomLeft = Offset(cx - s * dxFactor, cy + s - s * dyFactor);
+    final bottomRight = Offset(cx + s * dxFactor, cy + s - s * dyFactor);
 
     // Three face paths
     final topFace = Path()

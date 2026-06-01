@@ -365,7 +365,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
           Expanded(
             child: Text(
               s.xenobiologyLabInstructions,
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 15),
             ),
           ),
         ],
@@ -462,36 +462,30 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
           ),
           child: Column(
             children: [
-              Text('Census Targets',
-                  style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow)),
+              Text('Census Report',
+                  style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 18)),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildTargetChip(
+                  _buildTargetOnly(
                     Icons.visibility,
                     'Total Eyes',
                     _totalEyes,
-                    _computedEyes,
-                    _eyesMatch,
                   ),
-                  _buildTargetChip(
+                  _buildTargetOnly(
                     Icons.directions_walk,
                     'Total Legs',
                     _totalLegs,
-                    _computedLegs,
-                    _legsMatch,
                   ),
                 ],
               ),
               if (_hasThirdType) ...[
                 const SizedBox(height: 8),
-                _buildTargetChip(
+                _buildTargetOnly(
                   Icons.pest_control,
                   'Total Creatures',
                   _countA + _countB + _countC,
-                  _sliderA + _sliderB + _sliderC,
-                  (_sliderA + _sliderB + _sliderC) == (_countA + _countB + _countC),
                 ),
               ],
             ],
@@ -501,58 +495,30 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     );
   }
 
-  Widget _buildTargetChip(
-    IconData icon,
-    String label,
-    int target,
-    int computed,
-    bool matches,
-  ) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+  /// Shows only the target value (no live computed comparison).
+  /// Player must calculate mentally whether their slider values produce these totals.
+  Widget _buildTargetOnly(IconData icon, String label, int target) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: matches
-            ? SpaceTheme.alienGreen.withValues(alpha: 0.2)
-            : SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
+        color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: matches ? SpaceTheme.alienGreen : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
-          width: matches ? 2 : 1,
+          color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
         ),
       ),
       child: Column(
         children: [
-          Icon(icon, color: matches ? SpaceTheme.alienGreen : Colors.white54, size: 20),
+          Icon(icon, color: SpaceTheme.starYellow, size: 24),
           const SizedBox(height: 4),
-          Text(label, style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: Colors.white70)),
-          const SizedBox(height: 2),
-          AnimatedBuilder(
-            animation: _pulseAnimation,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: matches ? 1.0 : _pulseAnimation.value,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '$computed',
-                      style: SpaceTheme.headlineStyle.copyWith(
-                        fontSize: 22,
-                        color: matches ? SpaceTheme.alienGreen : SpaceTheme.starYellow,
-                      ),
-                    ),
-                    Text(
-                      ' / $target',
-                      style: SpaceTheme.bodyStyle.copyWith(
-                        fontSize: 14,
-                        color: matches ? SpaceTheme.alienGreen : Colors.white54,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+          Text(label, style: SpaceTheme.bodyStyle.copyWith(fontSize: 13, color: Colors.white70)),
+          const SizedBox(height: 4),
+          Text(
+            '$target',
+            style: SpaceTheme.headlineStyle.copyWith(
+              fontSize: 28,
+              color: SpaceTheme.starYellow,
+            ),
           ),
         ],
       ),
@@ -576,19 +542,16 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
           }),
         ],
         const SizedBox(height: 20),
-        // Submit button - only enabled when all totals match
+        // Submit button - always enabled (player must think before submitting)
         if (!_gameOver)
-          ElevatedButton.icon(
-            onPressed: _allMatch ? _checkSolution : null,
-            icon: const Icon(Icons.check, size: 28),
-            label: Text(_allMatch ? 'Submit Census' : 'Totals must match'),
-            style: _allMatch
-                ? SpaceTheme.primaryButtonStyle
-                : ElevatedButton.styleFrom(
-                    backgroundColor: SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
-                    foregroundColor: Colors.white38,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  ),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _checkSolution,
+              icon: const Icon(Icons.check, size: 28),
+              label: const Text('Submit Census', style: TextStyle(fontSize: 16)),
+              style: SpaceTheme.primaryButtonStyle,
+            ),
           ),
       ],
     );

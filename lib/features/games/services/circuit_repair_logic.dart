@@ -45,19 +45,30 @@ class CircuitRepairPuzzle {
     required this.maxAttempts,
   });
 
-  /// Format digits as "HH:MM".
+  /// Number of digit positions (4 for HH:MM, 6 for HH:MM:SS).
+  int get digitCount => correctDigits.length;
+
+  /// Format digits as "HH:MM" or "HH:MM:SS".
   String formatTime(List<int> digits) {
+    if (digits.length == 6) {
+      return '${digits[0]}${digits[1]}:${digits[2]}${digits[3]}:${digits[4]}${digits[5]}';
+    }
     return '${digits[0]}${digits[1]}:${digits[2]}${digits[3]}';
   }
 
   String get correctTimeString => formatTime(correctDigits);
   String get displayedTimeString => formatTime(displayedDigits);
 
-  /// Check if a set of 4 digits represents a valid time (00:00 - 23:59).
+  /// Check if a set of 4 or 6 digits represents a valid time.
   static bool isValidTime(List<int> digits) {
     final hours = digits[0] * 10 + digits[1];
     final minutes = digits[2] * 10 + digits[3];
-    return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
+    if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return false;
+    if (digits.length == 6) {
+      final seconds = digits[4] * 10 + digits[5];
+      if (seconds < 0 || seconds > 59) return false;
+    }
+    return true;
   }
 
   /// Apply a swap of two positions to a list of digits.
@@ -137,11 +148,15 @@ class CircuitRepairGenerator {
     required int grade,
     required int maxAttempts,
   }) {
+    // Determine digit count: 4 for grade 1-2, 6 for grade 3+
+    final use6Digits = grade >= 3;
+
     // 1. Generate a valid time based on grade
-    final digits = _randomValidTime(grade);
+    final digits = _randomValidTime(grade, use6Digits);
+    final digitCount = digits.length;
 
     // 2. Pick two positions to swap
-    final positions = [0, 1, 2, 3];
+    final positions = List.generate(digitCount, (i) => i);
     positions.shuffle(_random);
     final posA = positions[0];
     final posB = positions[1];
@@ -156,10 +171,9 @@ class CircuitRepairGenerator {
     if (CircuitRepairPuzzle.isValidTime(displayed)) return null;
 
     // 5. Ensure EXACTLY ONE swap of the displayed digits yields a valid time
-    //    (the reverse of our swap). Check all 6 possible swaps.
     int validSwapCount = 0;
-    for (int i = 0; i < 4; i++) {
-      for (int j = i + 1; j < 4; j++) {
+    for (int i = 0; i < digitCount; i++) {
+      for (int j = i + 1; j < digitCount; j++) {
         final candidate = CircuitRepairPuzzle.applySwap(displayed, i, j);
         if (CircuitRepairPuzzle.isValidTime(candidate)) {
           validSwapCount++;
@@ -179,7 +193,7 @@ class CircuitRepairGenerator {
   }
 
   /// Generate a random valid time depending on grade.
-  List<int> _randomValidTime(int grade) {
+  List<int> _randomValidTime(int grade, bool use6Digits) {
     int hours;
     int minutes;
 
@@ -193,6 +207,13 @@ class CircuitRepairGenerator {
       minutes = _random.nextInt(60);
     }
 
-    return [hours ~/ 10, hours % 10, minutes ~/ 10, minutes % 10];
+    final digits = [hours ~/ 10, hours % 10, minutes ~/ 10, minutes % 10];
+
+    if (use6Digits) {
+      final seconds = _random.nextInt(60);
+      digits.addAll([seconds ~/ 10, seconds % 10]);
+    }
+
+    return digits;
   }
 }

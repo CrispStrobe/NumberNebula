@@ -211,6 +211,47 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
     }
   }
 
+  /// Check if the edge of a placed tile at grid position [pos] matches
+  /// its neighbor on the given [side] (0=top, 1=right, 2=bottom, 3=left).
+  /// Returns null if no neighbor, true if match, false if mismatch.
+  bool? _edgeMatches(int pos, int side) {
+    if (puzzle == null) return null;
+    final tileIdx = placement[pos];
+    if (tileIdx < 0) return null;
+
+    final row = pos ~/ puzzle!.cols;
+    final col = pos % puzzle!.cols;
+    int neighborPos = -1;
+    int neighborSide = -1;
+
+    switch (side) {
+      case 0: // top
+        if (row == 0) return null;
+        neighborPos = pos - puzzle!.cols;
+        neighborSide = 2; // neighbor's bottom
+      case 1: // right
+        if (col >= puzzle!.cols - 1) return null;
+        neighborPos = pos + 1;
+        neighborSide = 3; // neighbor's left
+      case 2: // bottom
+        if (row >= puzzle!.rows - 1) return null;
+        neighborPos = pos + puzzle!.cols;
+        neighborSide = 0; // neighbor's top
+      case 3: // left
+        if (col == 0) return null;
+        neighborPos = pos - 1;
+        neighborSide = 1; // neighbor's right
+    }
+
+    if (neighborPos < 0 || neighborPos >= placement.length) return null;
+    final neighborTileIdx = placement[neighborPos];
+    if (neighborTileIdx < 0) return null;
+
+    final tile = puzzle!.playerTiles[tileIdx].copyWith(rotation: rotations[tileIdx]);
+    final neighbor = puzzle!.playerTiles[neighborTileIdx].copyWith(rotation: rotations[neighborTileIdx]);
+    return tile.getEdge(side) == neighbor.getEdge(neighborSide);
+  }
+
   Set<int> _getPlacedTileIndices() {
     return placement.where((p) => p >= 0).toSet();
   }
@@ -320,7 +361,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
       final tile = puzzle!.playerTiles[tileIdx];
       return GestureDetector(
         onTap: () => _removeTileFromGrid(pos),
-        child: _buildTileWidget(tile, rotations[tileIdx], cellSize, false),
+        child: _buildTileWidget(tile, rotations[tileIdx], cellSize, false, gridPos: pos),
       );
     }
 
@@ -372,9 +413,15 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
     );
   }
 
-  Widget _buildTileWidget(RelicTile tile, int rotation, double size, bool isSelected) {
+  Widget _buildTileWidget(RelicTile tile, int rotation, double size, bool isSelected, {int? gridPos}) {
     final effectiveTile = tile.copyWith(rotation: rotation);
     final edgeSize = size * 0.25;
+
+    // Check edge matches if this tile is placed on the grid
+    final topMatch = gridPos != null ? _edgeMatches(gridPos, 0) : null;
+    final rightMatch = gridPos != null ? _edgeMatches(gridPos, 1) : null;
+    final bottomMatch = gridPos != null ? _edgeMatches(gridPos, 2) : null;
+    final leftMatch = gridPos != null ? _edgeMatches(gridPos, 3) : null;
 
     return Container(
       width: size,
@@ -397,42 +444,56 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
             top: 2,
             left: 0,
             right: 0,
-            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(0), edgeSize)),
+            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(0), edgeSize, matchState: topMatch)),
           ),
           // Right edge
           Positioned(
             right: 2,
             top: 0,
             bottom: 0,
-            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(1), edgeSize)),
+            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(1), edgeSize, matchState: rightMatch)),
           ),
           // Bottom edge
           Positioned(
             bottom: 2,
             left: 0,
             right: 0,
-            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(2), edgeSize)),
+            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(2), edgeSize, matchState: bottomMatch)),
           ),
           // Left edge
           Positioned(
             left: 2,
             top: 0,
             bottom: 0,
-            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(3), edgeSize)),
+            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(3), edgeSize, matchState: leftMatch)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEdgeLabel(int value, double size) {
+  Widget _buildEdgeLabel(int value, double size, {bool? matchState}) {
     final colorIdx = (value - 1).clamp(0, _glyphColors.length - 1);
+    // Edge match feedback: green border for match, red for mismatch
+    Color bgColor = _glyphColors[colorIdx].withValues(alpha: 0.3);
+    Color? borderColor;
+    if (matchState == true) {
+      bgColor = SpaceTheme.alienGreen.withValues(alpha: 0.4);
+      borderColor = SpaceTheme.alienGreen;
+    } else if (matchState == false) {
+      bgColor = SpaceTheme.rocketRed.withValues(alpha: 0.4);
+      borderColor = SpaceTheme.rocketRed;
+    }
+
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: _glyphColors[colorIdx].withValues(alpha: 0.3),
+        color: bgColor,
         borderRadius: BorderRadius.circular(4),
+        border: borderColor != null
+            ? Border.all(color: borderColor, width: 1.5)
+            : null,
       ),
       child: Center(
         child: Text(

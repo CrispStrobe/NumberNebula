@@ -319,7 +319,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
           Expanded(
             child: Text(
               s.creatureForgeInstructions,
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 11),
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
             ),
           ),
         ],
@@ -342,7 +342,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
           Text(
             '$label ($count)',
             style: SpaceTheme.bodyStyle.copyWith(
-              fontSize: 11,
+              fontSize: 14,
               color: SpaceTheme.starYellow,
               letterSpacing: 1.5,
             ),
@@ -489,7 +489,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
           Expanded(
             child: Text(
               _constraintText,
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: SpaceTheme.rocketRed),
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 14, color: SpaceTheme.rocketRed),
             ),
           ),
         ],

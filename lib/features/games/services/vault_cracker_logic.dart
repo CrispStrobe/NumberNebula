@@ -4,22 +4,18 @@ import 'package:flutter/foundation.dart';
 
 import '../constants/difficulty_manager.dart';
 
-/// A clue for a single attempt: the attempted code + text describing feedback
+/// A mathematical constraint clue about the secret code.
+/// Each clue describes a property of the digits (sum, comparison, parity, etc.)
 class VaultClue {
-  final List<int> attempt;
-  final int correctPosition; // digits correct and in right position
-  final int correctDigit; // digits correct but wrong position
-  final int wrong; // digits not in code at all
   final String clueTextEn;
   final String clueTextDe;
+  /// Function that checks if a candidate code satisfies this clue
+  final bool Function(List<int>) check;
 
   const VaultClue({
-    required this.attempt,
-    required this.correctPosition,
-    required this.correctDigit,
-    required this.wrong,
     required this.clueTextEn,
     required this.clueTextDe,
+    required this.check,
   });
 }
 
@@ -27,7 +23,7 @@ class VaultClue {
 class VaultCrackerPuzzle {
   final List<int> secretCode;
   final int codeLength;
-  final int digitRange; // digits go from 0 to digitRange-1
+  final int digitRange; // digits go from 1 to digitRange
   final List<VaultClue> clues;
 
   const VaultCrackerPuzzle({
@@ -47,95 +43,27 @@ class VaultCrackerPuzzle {
   }
 }
 
+/// Clue template: generates a clue from a secret code.
+/// Returns null if the clue is trivial or unhelpful for this particular code.
+typedef _ClueFactory = VaultClue? Function(List<int> secret, int digitRange);
+
 class VaultCrackerLogic {
-  /// Evaluate how many digits are correct-position, correct-but-misplaced, and wrong
-  static (int correctPos, int correctDigit, int wrong) _evaluate(
-      List<int> secret, List<int> guess) {
-    final len = secret.length;
-    final secretUsed = List<bool>.filled(len, false);
-    final guessUsed = List<bool>.filled(len, false);
-    int correctPos = 0;
-    int correctDigit = 0;
-
-    // First pass: exact matches
-    for (int i = 0; i < len; i++) {
-      if (guess[i] == secret[i]) {
-        correctPos++;
-        secretUsed[i] = true;
-        guessUsed[i] = true;
-      }
-    }
-
-    // Second pass: misplaced
-    for (int i = 0; i < len; i++) {
-      if (guessUsed[i]) continue;
-      for (int j = 0; j < len; j++) {
-        if (secretUsed[j]) continue;
-        if (guess[i] == secret[j]) {
-          correctDigit++;
-          secretUsed[j] = true;
-          break;
-        }
-      }
-    }
-
-    final wrong = len - correctPos - correctDigit;
-    return (correctPos, correctDigit, wrong);
-  }
-
-  /// Build clue text from feedback counts
-  static (String en, String de) _buildClueText(
-      int correctPos, int correctDigit, int wrong, int codeLength) {
-    final partsEn = <String>[];
-    final partsDe = <String>[];
-
-    if (correctPos == codeLength) {
-      return ('All digits correct and in the right position!',
-          'Alle Ziffern korrekt und an der richtigen Stelle!');
-    }
-
-    if (correctPos > 0) {
-      partsEn.add(
-          '$correctPos ${correctPos == 1 ? "digit" : "digits"} correct, in the right position');
-      partsDe.add(
-          '$correctPos ${correctPos == 1 ? "Ziffer" : "Ziffern"} korrekt, an der richtigen Stelle');
-    }
-    if (correctDigit > 0) {
-      partsEn.add(
-          '$correctDigit ${correctDigit == 1 ? "digit" : "digits"} correct, but in the wrong position');
-      partsDe.add(
-          '$correctDigit ${correctDigit == 1 ? "Ziffer" : "Ziffern"} korrekt, aber an falscher Stelle');
-    }
-    if (wrong == codeLength) {
-      return ('All digits wrong', 'Alle Ziffern falsch');
-    }
-    if (wrong > 0) {
-      partsEn
-          .add('$wrong ${wrong == 1 ? "digit" : "digits"} completely wrong');
-      partsDe.add(
-          '$wrong ${wrong == 1 ? "Ziffer" : "Ziffern"} komplett falsch');
-    }
-
-    return (partsEn.join(', '), partsDe.join(', '));
-  }
-
-  /// Check that exactly one code in the given range satisfies all clues
-  static bool _hasUniqueSolution(
-      List<VaultClue> clues, List<int> secret, int codeLength, int digitRange) {
+  /// Count how many codes in the given range satisfy ALL clues.
+  /// Returns the count (stops at 2 for efficiency — we only need to know if unique).
+  static int _countSolutions(
+      List<VaultClue> clues, int codeLength, int digitRange) {
     int solutions = 0;
 
     void search(List<int> candidate, int pos) {
-      if (solutions > 1) return; // early exit
+      if (solutions > 1) return;
       if (pos == codeLength) {
-        // Check all clues
         for (final clue in clues) {
-          final (cp, cd, _) = _evaluate(candidate, clue.attempt);
-          if (cp != clue.correctPosition || cd != clue.correctDigit) return;
+          if (!clue.check(candidate)) return;
         }
         solutions++;
         return;
       }
-      for (int d = 0; d < digitRange; d++) {
+      for (int d = 1; d <= digitRange; d++) {
         candidate[pos] = d;
         search(candidate, pos + 1);
         if (solutions > 1) return;
@@ -143,74 +71,187 @@ class VaultCrackerLogic {
     }
 
     search(List<int>.filled(codeLength, 0), 0);
-    return solutions == 1;
+    return solutions;
   }
 
-  /// Generate a set of clue-attempts that uniquely determine the secret code
-  static List<VaultClue> _generateClues(
-      List<int> secret, int codeLength, int digitRange, int clueCount,
-      math.Random rng) {
-    // We generate random attempts and compute their feedback.
-    // Then we verify the clue set uniquely determines the secret.
-    // If not, we add more clues until it does (up to a limit).
-
-    for (int globalAttempt = 0; globalAttempt < 100; globalAttempt++) {
-      final clues = <VaultClue>[];
-
-      // Generate candidate clue-attempts
-      for (int i = 0; i < clueCount + 5; i++) {
-        final attempt = List.generate(codeLength, (_) => rng.nextInt(digitRange));
-        // Skip if attempt IS the secret
-        bool isSame = true;
-        for (int j = 0; j < codeLength; j++) {
-          if (attempt[j] != secret[j]) {
-            isSame = false;
-            break;
+  /// All available clue factories. Each takes the secret code and digit range,
+  /// and returns a VaultClue if applicable, or null if trivial.
+  static final List<_ClueFactory> _clueFactories = [
+    // Sum of all digits
+    (secret, range) {
+      final sum = secret.fold(0, (s, d) => s + d);
+      return VaultClue(
+        clueTextEn: 'The sum of all digits is $sum.',
+        clueTextDe: 'Die Summe aller Ziffern ist $sum.',
+        check: (c) => c.fold(0, (s, d) => s + d) == sum,
+      );
+    },
+    // Product of first two digits
+    (secret, range) {
+      if (secret.length < 2) return null;
+      final prod = secret[0] * secret[1];
+      return VaultClue(
+        clueTextEn: 'The product of the 1st and 2nd digit is $prod.',
+        clueTextDe: 'Das Produkt der 1. und 2. Ziffer ist $prod.',
+        check: (c) => c[0] * c[1] == prod,
+      );
+    },
+    // Difference of first and last
+    (secret, range) {
+      final diff = (secret.first - secret.last).abs();
+      return VaultClue(
+        clueTextEn: 'The difference between the 1st and last digit is $diff.',
+        clueTextDe: 'Die Differenz zwischen 1. und letzter Ziffer ist $diff.',
+        check: (c) => (c.first - c.last).abs() == diff,
+      );
+    },
+    // A specific digit is even/odd
+    (secret, range) {
+      final pos = secret.length > 2 ? 1 : 0; // 2nd digit if available
+      final isEven = secret[pos] % 2 == 0;
+      final posLabel = pos == 0 ? '1st' : '${pos + 1}${pos == 1 ? 'nd' : pos == 2 ? 'rd' : 'th'}';
+      final posLabelDe = '${pos + 1}.';
+      return VaultClue(
+        clueTextEn: 'The $posLabel digit is ${isEven ? "even" : "odd"}.',
+        clueTextDe: 'Die $posLabelDe Ziffer ist ${isEven ? "gerade" : "ungerade"}.',
+        check: (c) => (c[pos] % 2 == 0) == isEven,
+      );
+    },
+    // One digit is greater than another
+    (secret, range) {
+      if (secret.length < 2) return null;
+      final i = 0, j = secret.length - 1;
+      if (secret[i] == secret[j]) return null;
+      final greater = secret[i] > secret[j];
+      return VaultClue(
+        clueTextEn: greater
+            ? 'The 1st digit is larger than the last digit.'
+            : 'The 1st digit is smaller than the last digit.',
+        clueTextDe: greater
+            ? 'Die 1. Ziffer ist größer als die letzte Ziffer.'
+            : 'Die 1. Ziffer ist kleiner als die letzte Ziffer.',
+        check: (c) => greater ? c[i] > c[j] : c[i] < c[j],
+      );
+    },
+    // No digit repeats (or some digit repeats)
+    (secret, range) {
+      final unique = secret.toSet().length == secret.length;
+      return VaultClue(
+        clueTextEn: unique
+            ? 'All digits are different.'
+            : 'At least two digits are the same.',
+        clueTextDe: unique
+            ? 'Alle Ziffern sind verschieden.'
+            : 'Mindestens zwei Ziffern sind gleich.',
+        check: (c) => (c.toSet().length == c.length) == unique,
+      );
+    },
+    // A specific digit value is known
+    (secret, range) {
+      final pos = secret.length > 2 ? 2 : 0;
+      final posLabel = pos == 0 ? '1st' : '${pos + 1}${pos == 1 ? 'nd' : pos == 2 ? 'rd' : 'th'}';
+      final posLabelDe = '${pos + 1}.';
+      return VaultClue(
+        clueTextEn: 'The $posLabel digit is ${secret[pos]}.',
+        clueTextDe: 'Die $posLabelDe Ziffer ist ${secret[pos]}.',
+        check: (c) => c[pos] == secret[pos],
+      );
+    },
+    // Sum of first two equals last (or similar arithmetic relation)
+    (secret, range) {
+      if (secret.length < 3) return null;
+      final sumFirst = secret[0] + secret[1];
+      if (sumFirst != secret[2] || sumFirst > range) return null;
+      return VaultClue(
+        clueTextEn: 'The 3rd digit equals the sum of the 1st and 2nd.',
+        clueTextDe: 'Die 3. Ziffer ist die Summe der 1. und 2. Ziffer.',
+        check: (c) => c[0] + c[1] == c[2],
+      );
+    },
+    // Digits are in ascending/descending order
+    (secret, range) {
+      bool ascending = true, descending = true;
+      for (int i = 1; i < secret.length; i++) {
+        if (secret[i] <= secret[i - 1]) ascending = false;
+        if (secret[i] >= secret[i - 1]) descending = false;
+      }
+      if (!ascending && !descending) {
+        return VaultClue(
+          clueTextEn: 'The digits are NOT in ascending or descending order.',
+          clueTextDe: 'Die Ziffern sind NICHT auf- oder absteigend sortiert.',
+          check: (c) {
+            bool asc = true, desc = true;
+            for (int i = 1; i < c.length; i++) {
+              if (c[i] <= c[i - 1]) asc = false;
+              if (c[i] >= c[i - 1]) desc = false;
+            }
+            return !asc && !desc;
+          },
+        );
+      }
+      if (ascending) {
+        return VaultClue(
+          clueTextEn: 'The digits are in ascending order.',
+          clueTextDe: 'Die Ziffern sind aufsteigend sortiert.',
+          check: (c) {
+            for (int i = 1; i < c.length; i++) {
+              if (c[i] <= c[i - 1]) return false;
+            }
+            return true;
+          },
+        );
+      }
+      return VaultClue(
+        clueTextEn: 'The digits are in descending order.',
+        clueTextDe: 'Die Ziffern sind absteigend sortiert.',
+        check: (c) {
+          for (int i = 1; i < c.length; i++) {
+            if (c[i] >= c[i - 1]) return false;
           }
-        }
-        if (isSame) continue;
-
-        final (cp, cd, w) = _evaluate(secret, attempt);
-        final (en, de) = _buildClueText(cp, cd, w, codeLength);
-        clues.add(VaultClue(
-          attempt: attempt,
-          correctPosition: cp,
-          correctDigit: cd,
-          wrong: w,
-          clueTextEn: en,
-          clueTextDe: de,
-        ));
-      }
-
-      // Try subsets of increasing size starting from clueCount
-      for (int size = clueCount;
-          size <= clues.length && size <= clueCount + 3;
-          size++) {
-        final subset = clues.sublist(0, size);
-        if (_hasUniqueSolution(subset, secret, codeLength, digitRange)) {
-          return subset;
-        }
-      }
-    }
-
-    // Fallback: return all generated clues (should rarely happen with small digit ranges)
-    debugPrint('[VAULT_CRACKER] Warning: could not guarantee unique solution');
-    final fallbackClues = <VaultClue>[];
-    for (int d = 0; d < digitRange && fallbackClues.length < clueCount; d++) {
-      final attempt = List.generate(codeLength, (_) => d);
-      final (cp, cd, w) = _evaluate(secret, attempt);
-      final (en, de) = _buildClueText(cp, cd, w, codeLength);
-      fallbackClues.add(VaultClue(
-        attempt: attempt,
-        correctPosition: cp,
-        correctDigit: cd,
-        wrong: w,
-        clueTextEn: en,
-        clueTextDe: de,
-      ));
-    }
-    return fallbackClues;
-  }
+          return true;
+        },
+      );
+    },
+    // Maximum digit value
+    (secret, range) {
+      final maxVal = secret.reduce(math.max);
+      return VaultClue(
+        clueTextEn: 'The largest digit is $maxVal.',
+        clueTextDe: 'Die größte Ziffer ist $maxVal.',
+        check: (c) => c.reduce(math.max) == maxVal,
+      );
+    },
+    // Minimum digit value
+    (secret, range) {
+      final minVal = secret.reduce(math.min);
+      return VaultClue(
+        clueTextEn: 'The smallest digit is $minVal.',
+        clueTextDe: 'Die kleinste Ziffer ist $minVal.',
+        check: (c) => c.reduce(math.min) == minVal,
+      );
+    },
+    // Middle digit parity (for 3+ digit codes)
+    (secret, range) {
+      if (secret.length < 3) return null;
+      final mid = secret.length ~/ 2;
+      final isEven = secret[mid] % 2 == 0;
+      return VaultClue(
+        clueTextEn: 'The middle digit is ${isEven ? "even" : "odd"}.',
+        clueTextDe: 'Die mittlere Ziffer ist ${isEven ? "gerade" : "ungerade"}.',
+        check: (c) => (c[c.length ~/ 2] % 2 == 0) == isEven,
+      );
+    },
+    // Product of all digits
+    (secret, range) {
+      final prod = secret.fold(1, (p, d) => p * d);
+      if (prod > 100) return null; // too large, not helpful
+      return VaultClue(
+        clueTextEn: 'The product of all digits is $prod.',
+        clueTextDe: 'Das Produkt aller Ziffern ist $prod.',
+        check: (c) => c.fold(1, (p, d) => p * d) == prod,
+      );
+    },
+  ];
 
   static VaultCrackerPuzzle generate(Map<String, dynamic> args) {
     final grade = args['grade'] as int;
@@ -219,40 +260,93 @@ class VaultCrackerLogic {
     final rng = math.Random();
 
     debugPrint(
-        '[VAULT_CRACKER] Generating static deduction puzzle for grade=$grade, level=$level');
+        '[VAULT_CRACKER] Generating algebraic constraint puzzle for grade=$grade, level=$level');
 
     // Difficulty scaling
     int codeLength;
-    int digitRange;
-    int clueCount;
+    int digitRange; // digits 1..digitRange
+    int targetClueCount;
 
     if (difficulty.grade <= 1) {
       codeLength = 3;
-      digitRange = 5; // digits 0-4
-      clueCount = 4;
+      digitRange = 5;
+      targetClueCount = 4;
     } else if (difficulty.grade <= 2) {
-      codeLength = level <= 5 ? 3 : 4;
-      digitRange = level <= 5 ? 6 : 6;
-      clueCount = level <= 5 ? 4 : 5;
+      codeLength = level <= 5 ? 3 : 3;
+      digitRange = level <= 5 ? 6 : 7;
+      targetClueCount = level <= 5 ? 4 : 5;
     } else if (difficulty.grade <= 3) {
-      codeLength = level <= 3 ? 4 : 4;
-      digitRange = level <= 3 ? 6 : 7;
-      clueCount = level <= 3 ? 4 : 5;
+      codeLength = level <= 3 ? 3 : 4;
+      digitRange = level <= 3 ? 6 : 6;
+      targetClueCount = level <= 3 ? 4 : 5;
     } else {
-      codeLength = level <= 5 ? 4 : 5;
+      codeLength = level <= 5 ? 4 : 4;
       digitRange = level <= 5 ? 7 : 8;
-      clueCount = level <= 5 ? 5 : 5;
+      targetClueCount = level <= 5 ? 5 : 6;
     }
 
-    // Generate secret code
-    final secretCode = List.generate(codeLength, (_) => rng.nextInt(digitRange));
+    // Try generating puzzles until we find one with a unique solution
+    for (int attempt = 0; attempt < 200; attempt++) {
+      // Generate secret code with digits 1..digitRange
+      final secretCode = List.generate(codeLength, (_) => rng.nextInt(digitRange) + 1);
 
-    final clues =
-        _generateClues(secretCode, codeLength, digitRange, clueCount, rng);
+      // Generate all applicable clues for this code
+      final applicableClues = <VaultClue>[];
+      final shuffledFactories = List<_ClueFactory>.from(_clueFactories)..shuffle(rng);
 
-    debugPrint(
-        '[VAULT_CRACKER] Generated code: $secretCode, clues=${clues.length}, '
-        'codeLength=$codeLength, digitRange=$digitRange');
+      for (final factory in shuffledFactories) {
+        final clue = factory(secretCode, digitRange);
+        if (clue != null) {
+          applicableClues.add(clue);
+        }
+      }
+
+      if (applicableClues.length < targetClueCount) continue;
+
+      // Try subsets of clues to find one that uniquely determines the code
+      for (int size = targetClueCount;
+          size <= applicableClues.length && size <= targetClueCount + 2;
+          size++) {
+        final clueSubset = applicableClues.sublist(0, size);
+        final solutions = _countSolutions(clueSubset, codeLength, digitRange);
+
+        if (solutions == 1) {
+          debugPrint(
+              '[VAULT_CRACKER] Generated code: $secretCode, clues=${clueSubset.length}, '
+              'codeLength=$codeLength, digitRange=1-$digitRange');
+
+          return VaultCrackerPuzzle(
+            secretCode: secretCode,
+            codeLength: codeLength,
+            digitRange: digitRange,
+            clues: clueSubset,
+          );
+        }
+      }
+    }
+
+    // Fallback: generate a simple puzzle with direct digit clues
+    debugPrint('[VAULT_CRACKER] Warning: falling back to direct-clue puzzle');
+    final secretCode = List.generate(codeLength, (_) => rng.nextInt(digitRange) + 1);
+    final clues = <VaultClue>[];
+
+    // Give away all but one digit directly, plus the sum
+    for (int i = 0; i < codeLength - 1; i++) {
+      final pos = i;
+      final val = secretCode[pos];
+      final posLabel = '${pos + 1}${pos == 0 ? 'st' : pos == 1 ? 'nd' : pos == 2 ? 'rd' : 'th'}';
+      clues.add(VaultClue(
+        clueTextEn: 'The $posLabel digit is $val.',
+        clueTextDe: 'Die ${pos + 1}. Ziffer ist $val.',
+        check: (c) => c[pos] == val,
+      ));
+    }
+    final sum = secretCode.fold(0, (s, d) => s + d);
+    clues.add(VaultClue(
+      clueTextEn: 'The sum of all digits is $sum.',
+      clueTextDe: 'Die Summe aller Ziffern ist $sum.',
+      check: (c) => c.fold(0, (s, d) => s + d) == sum,
+    ));
 
     return VaultCrackerPuzzle(
       secretCode: secretCode,

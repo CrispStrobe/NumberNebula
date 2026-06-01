@@ -1,4 +1,4 @@
-// Unit tests for vault_cracker_logic.dart (static deduction redesign).
+// Unit tests for vault_cracker_logic.dart (algebraic constraint redesign).
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:space_math_academy/features/games/constants/app_constants.dart';
@@ -64,14 +64,14 @@ void main() {
   });
 
   group('VaultCrackerLogic.generate: structure', () {
-    test('grade 1: 3-digit code, digits in range', () {
+    test('grade 1: 3-digit code, digits 1-digitRange', () {
       for (int i = 0; i < 5; i++) {
         final puzzle = _generate(grade: 1);
         expect(puzzle.codeLength, 3);
         expect(puzzle.secretCode.length, 3);
         for (final d in puzzle.secretCode) {
-          expect(d, greaterThanOrEqualTo(0));
-          expect(d, lessThan(puzzle.digitRange));
+          expect(d, greaterThanOrEqualTo(1));
+          expect(d, lessThanOrEqualTo(puzzle.digitRange));
         }
       }
     });
@@ -92,31 +92,13 @@ void main() {
     });
   });
 
-  group('VaultCrackerLogic.generate: clue consistency', () {
-    test('clue attempt length matches code length', () {
+  group('VaultCrackerLogic.generate: clue validity', () {
+    test('all clues accept the secret code', () {
       for (int i = 0; i < 5; i++) {
         final puzzle = _generate(grade: 2);
         for (final clue in puzzle.clues) {
-          expect(clue.attempt.length, puzzle.codeLength);
-        }
-      }
-    });
-
-    test('clue feedback sums to code length', () {
-      for (int i = 0; i < 5; i++) {
-        final puzzle = _generate(grade: 2);
-        for (final clue in puzzle.clues) {
-          expect(clue.correctPosition + clue.correctDigit + clue.wrong,
-              puzzle.codeLength);
-        }
-      }
-    });
-
-    test('no clue is the exact secret code', () {
-      for (int i = 0; i < 10; i++) {
-        final puzzle = _generate(grade: 2);
-        for (final clue in puzzle.clues) {
-          expect(clue.correctPosition, lessThan(puzzle.codeLength));
+          expect(clue.check(puzzle.secretCode), isTrue,
+              reason: 'Clue "${clue.clueTextEn}" should accept secret ${puzzle.secretCode}');
         }
       }
     });
@@ -126,6 +108,23 @@ void main() {
       for (final clue in puzzle.clues) {
         expect(clue.clueTextEn.isNotEmpty, isTrue);
         expect(clue.clueTextDe.isNotEmpty, isTrue);
+      }
+    });
+
+    test('clues reject at least some wrong codes', () {
+      final puzzle = _generate(grade: 2);
+      // Try a clearly wrong code
+      final wrongCode = List.generate(puzzle.codeLength, (_) => 1);
+      if (wrongCode.toString() != puzzle.secretCode.toString()) {
+        bool anyRejects = false;
+        for (final clue in puzzle.clues) {
+          if (!clue.check(wrongCode)) {
+            anyRejects = true;
+            break;
+          }
+        }
+        expect(anyRejects, isTrue,
+            reason: 'At least one clue should reject a wrong code');
       }
     });
   });

@@ -2301,18 +2301,18 @@ class SDe extends S {
 
   @override
   String get starChartScanDesc =>
-      'Versteckte Sternbildnamen sind in diesen Sternkartendaten eingebettet! Scanne horizontal, vertikal und diagonal, um sie alle zu finden. Ein Buchstabe bleibt ubrig...';
+      'Versteckte Gleichungen sind in diesen Sternkartendaten eingebettet! Scanne horizontal, vertikal und diagonal, um Mathe-Gleichungen wie 3+4=7 im Zahlenraster zu finden.';
 
   @override
   String get starChartScanInstructions =>
-      'Wische uber Buchstaben, um versteckte Worter zu markieren. Worter konnen in jeder Richtung verlaufen. Finde alle Worter, um den Geheimnisbuchstaben zu enthullen!';
+      'Wische uber Zellen, um versteckte Gleichungen zu markieren (z.B. 3+4=7, 9-2=7). Gleichungen konnen in jeder Richtung verlaufen. Finde alle Gleichungen!';
 
   @override
   String get starChartScanWinTitle => 'Karte entschlusselt!';
 
   @override
   String starChartScanWinDesc(String letter, int bonusScore) {
-    return 'Alle Sternbilder gefunden! Der Geheimnisbuchstabe ist \'$letter\'. Du hast $bonusScore Kartografiepunkte verdient.';
+    return 'Alle $letter Gleichungen gefunden! Du hast $bonusScore Kartografiepunkte verdient.';
   }
 
   @override
@@ -2320,7 +2320,7 @@ class SDe extends S {
 
   @override
   String get starChartScanLoseDesc =>
-      'Einige Sternbilder sind noch in den Daten verborgen. Versuche auch diagonal zu scannen, Commander.';
+      'Einige Gleichungen sind noch in den Daten verborgen. Versuche auch diagonal zu scannen, Commander.';
 
   @override
   String get commRelayTitle => 'Komm-Relais';
@@ -2353,11 +2353,11 @@ class SDe extends S {
 
   @override
   String get hullPlatingDesc =>
-      'Der Schiffsrumpf wurde getroffen! Decke den beschadigten Bereich mit Panzerplatten ab. Jede Lucke muss versiegelt werden, und Platten mussen fur die Strukturintegritat abwechselnd dunkel und hell sein.';
+      'Der Schiffsrumpf wurde getroffen! Decke den beschadigten Bereich mit verschieden geformten Panzerplatten ab. Jede Lucke muss versiegelt werden — drehe und platziere jede Platte genau!';
 
   @override
   String get hullPlatingInstructions =>
-      'Ziehe Panzerplatten auf den beschadigten Rumpf. Decke jede Zelle ab. Dunkle und helle Platten mussen abwechseln.';
+      'Ziehe Panzerplatten aus der Ablage auf das Rumpfgitter. Drehe Platten mit dem Button. Decke jede Zelle ohne Uberlappung ab!';
 
   @override
   String get hullPlatingWinTitle => 'Rumpf versiegelt!';
@@ -2379,11 +2379,11 @@ class SDe extends S {
 
   @override
   String get vaultCrackerDesc =>
-      'Ein uralter Alien-Tresor blockiert deinen Weg! Jeder Fehlversuch enthullt Hinweise: welche Ziffern korrekt, falsch platziert oder vollig falsch sind. Finde die Kombination!';
+      'Ein uralter Alien-Tresor blockiert deinen Weg! Mathematische Hinweise beschreiben den Geheimcode. Nutze Logik und Rechnen, um die Kombination herauszufinden!';
 
   @override
   String get vaultCrackerInstructions =>
-      'Studiere jeden Hinweisversuch. Grun = richtige Ziffer, richtige Position. Gelb = richtige Ziffer, falsche Position. Grau = Ziffer nicht im Code.';
+      'Lies die mathematischen Hinweise sorgfaltig. Jeder beschreibt eine Eigenschaft des Geheimcodes (Summen, Produkte, Vergleiche). Finde alle Ziffern und gib den Code ein.';
 
   @override
   String get vaultCrackerWinTitle => 'Tresor geoffnet!';
@@ -2561,11 +2561,11 @@ class SDe extends S {
 
   @override
   String get circuitRepairDesc =>
-      'Das Cockpit-Display spinnt! Zwei Drahte wurden im 7-Segment-Schaltkreis vertauscht. Finde heraus, welche Segmente vertauscht wurden, und repariere die Anzeige!';
+      'Die Cockpit-Uhr spinnt! Zwei Ziffernpositionen wurden vertauscht und zeigen eine unmogliche Uhrzeit. Finde die zwei Positionen zum Zurucktauschen!';
 
   @override
   String get circuitRepairInstructions =>
-      'Die Anzeige zeigt falsche Ziffern, weil zwei Drahtverbindungen vertauscht sind. Finde heraus, welche zwei Segmente zuruckgetauscht werden mussen.';
+      'Die Uhr zeigt eine ungultige Zeit, weil zwei Ziffernpositionen vertauscht sind. Tippe auf zwei Ziffern, um sie zu tauschen. Das Ergebnis muss eine gultige Uhrzeit sein!';
 
   @override
   String get circuitRepairWinTitle => 'Display repariert!';
@@ -2635,22 +2635,22 @@ class SDe extends S {
       'Kein freier Weg zum Ausgang. Versuche, zuerst andere Schiffe zu verschieben, Commander.';
 
   @override
-  String get ionChainTitle => 'Ionen-Kette';
+  String get ionChainTitle => 'Ionen-Ring';
 
   @override
   String get ionChainDesc =>
-      'Reihe Ionen entlang der Plasmaleitung auf! Jeder Ionentyp hat Regeln, welche Nachbarn er toleriert. Baue die Kette, ohne eine Reaktion auszulosen!';
+      'Vervollstandige den Ionen-Ring! Ordne geladene Teilchen um die Plasmaschleife an, sodass jedes Nachbarpaar die Regeln erfullt. Eine falsche Platzierung und der Ring wird instabil!';
 
   @override
   String get ionChainInstructions =>
-      'Platziere Ionen in der Reihenfolge. Lies die Einschrankungsregeln: Einige Typen durfen nicht nebeneinander stehen, andere mussen abwechseln.';
+      'Ziehe Ionen auf den Ring. Lies die Regeln: Manche Formen durfen nicht nebeneinander stehen. Der Ring ist kreisformig — die letzte Perle grenzt an die erste!';
 
   @override
-  String get ionChainWinTitle => 'Leitung stabil!';
+  String get ionChainWinTitle => 'Ring stabilisiert!';
 
   @override
   String ionChainWinDesc(int bonusScore) {
-    return 'Das Plasma fließt glatt durch deine Ionenkette! Du hast $bonusScore Chemiepunkte verdient.';
+    return 'Das Plasma fließt in einer perfekten Schleife! Du hast $bonusScore Chemiepunkte verdient.';
   }
 
   @override
@@ -2826,7 +2826,7 @@ class SDe extends S {
 
   @override
   String get xenobiologyLabInstructions =>
-      'Zwei Alien-Typen leben zusammen. Du kennst die Gesamtzahl der Augen und Beine. Finde heraus, wie viele von jedem Typ es gibt!';
+      'Zwei Alien-Typen leben zusammen. Du kennst die Merkmale jedes Typs und die beobachteten Gesamtzahlen an Augen und Beinen. Berechne, wie viele von jedem Typ es geben muss!';
 
   @override
   String get xenobiologyLabWinTitle => 'Spezies katalogisiert!';
@@ -2848,11 +2848,11 @@ class SDe extends S {
 
   @override
   String get galacticMarketDesc =>
-      'Willkommen auf dem Alien-Basar! Bezahle den genauen Preis mit der lokalen Wahrung. Manche Munzwerte sind knapp -- finde die Kombination, die funktioniert!';
+      'Der Alien-Handler gab dir Wechselgeld, aber einige Munzen liegen verdeckt! Du kennst die Gesamtsumme und siehst manche Munzen. Finde den versteckten Nennwert!';
 
   @override
   String get galacticMarketInstructions =>
-      'Ziehe Munzen auf das Bezahlfeld, um den genauen Zielbetrag zu erreichen. Benutze so wenige Munzen wie moglich fur Bonuspunkte!';
+      'Schau dir das Gesamtwechselgeld und die sichtbaren Munzen an. Die verdeckten Munzen haben alle denselben Wert. Rechne: (Gesamt - bekannte Munzen) / Anzahl verdeckter = ?';
 
   @override
   String get galacticMarketWinTitle => 'Kauf abgeschlossen!';
@@ -2874,11 +2874,11 @@ class SDe extends S {
 
   @override
   String get creatureForgeDesc =>
-      'Die Xenobiologie-Bucht hat Teile von mehreren Alien-Spezies! Kombiniere Kopfe, Korper und Schwanze, um jede mogliche Kreatur zu entdecken. Wie viele einzigartige Wesen kannst du erschaffen?';
+      'Die Xenobiologie-Bucht hat Teile von mehreren Alien-Spezies! Tippe um Kopfe, Korper und Schwanze auszuwahlen und baue Kreaturen. Wie viele einzigartige Wesen kannst du erschaffen?';
 
   @override
   String get creatureForgeInstructions =>
-      'Wische durch Kopfe, Korper und Schwanze. Zahle alle einzigartigen Kombinationen und gib deine Antwort ein.';
+      'Wahle je ein Teil aus jeder Reihe, dann tippe BAUEN um die Kreatur zur Galerie hinzuzufugen. Finde alle gultigen Kombinationen und gib die Gesamtzahl ein!';
 
   @override
   String get creatureForgeWinTitle => 'Spezieskatalog vollstandig!';

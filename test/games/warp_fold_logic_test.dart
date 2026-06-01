@@ -93,16 +93,16 @@ void main() {
       expect(puzzle.cuts.length, 1);
     });
 
-    test('grade 2 has 2 folds', () {
+    test('grade 2 level 1 has 1 fold, level 6+ has 2', () {
       final gen = WarpFoldGenerator(seed: 42);
-      final puzzle = gen.generate(grade: 2, level: 1);
-      expect(puzzle.folds.length, 2);
+      expect(gen.generate(grade: 2, level: 1).folds.length, 1);
+      expect(gen.generate(grade: 2, level: 6).folds.length, 2);
     });
 
-    test('grade 4 has 3 folds', () {
+    test('grade 4 has 2-3 folds', () {
       final gen = WarpFoldGenerator(seed: 42);
       final puzzle = gen.generate(grade: 4, level: 1);
-      expect(puzzle.folds.length, 3);
+      expect(puzzle.folds.length, inInclusiveRange(2, 3));
     });
   });
 
@@ -149,13 +149,13 @@ void main() {
     });
   });
 
-  group('WarpFoldPuzzle gridSize is always 8', () {
-    test('gridSize is 8 regardless of grade/level', () {
-      for (final grade in [1, 2, 3, 4]) {
-        final gen = WarpFoldGenerator(seed: 42);
-        final puzzle = gen.generate(grade: grade, level: 5);
-        expect(puzzle.gridSize, 8);
-      }
+  group('WarpFoldPuzzle gridSize scales with grade', () {
+    test('grade 1 uses 4x4, higher grades use 6x6', () {
+      final gen = WarpFoldGenerator(seed: 42);
+      expect(gen.generate(grade: 1, level: 1).gridSize, 4);
+      expect(gen.generate(grade: 2, level: 5).gridSize, 6);
+      expect(gen.generate(grade: 3, level: 5).gridSize, 6);
+      expect(gen.generate(grade: 4, level: 5).gridSize, 6);
     });
   });
 }

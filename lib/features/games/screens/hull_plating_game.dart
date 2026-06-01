@@ -146,9 +146,10 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   }
 
   List<(int, int)>? _computePlacement(PlatingPiece piece, int row, int col) {
-    final anchor = piece.cells.first;
-    final dr = row - anchor.$1;
-    final dc = col - anchor.$2;
+    // Always anchor at (0,0) = top-left of piece bounding box.
+    // The drop cell is where the top-left goes, piece extends right/down.
+    final dr = row;
+    final dc = col;
 
     final absoluteCells =
         piece.cells.map((c) => (c.$1 + dr, c.$2 + dc)).toList();
@@ -274,10 +275,9 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     }
     final piece = _getRotatedPiece(_hoveringPieceIndex!);
 
-    // Compute absolute cells regardless of validity
-    final anchor = piece.cells.first;
-    final dr = _hoverRow! - anchor.$1;
-    final dc = _hoverCol! - anchor.$2;
+    // Compute absolute cells regardless of validity -- anchor at (0,0)
+    final dr = _hoverRow!;
+    final dc = _hoverCol!;
     final absoluteCells = piece.cells.map((c) => (c.$1 + dr, c.$2 + dc)).toList();
 
     // Check validity
@@ -340,7 +340,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
                     const Icon(Icons.info_outline, color: SpaceTheme.starYellow, size: 16),
                     const SizedBox(width: 8),
                     Expanded(child: Text(s.hullPlatingInstructions,
-                      style: SpaceTheme.bodyStyle.copyWith(fontSize: 11))),
+                      style: SpaceTheme.bodyStyle.copyWith(fontSize: 14))),
                   ]),
                 ),
               ),
@@ -682,7 +682,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text('×$count',
-                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                     ),
                   ),
               ],

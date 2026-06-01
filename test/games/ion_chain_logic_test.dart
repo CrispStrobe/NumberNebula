@@ -43,7 +43,7 @@ void main() {
       );
     });
 
-    test('chain with nulls is considered valid (nulls are unfilled slots)', () {
+    test('chain with nulls skips null-adjacent checks', () {
       final rule = IonRule(
         description: 'No two red adjacent',
         descriptionDe: 'Keine zwei Rot nebeneinander',
@@ -52,7 +52,9 @@ void main() {
           return !(left == IonType.red && right == IonType.red);
         },
       );
-      final chain = <IonType?>[IonType.red, null, IonType.red];
+      // In a circular chain, red-null-blue: red is not adjacent to blue,
+      // and nulls are skipped → should pass
+      final chain = <IonType?>[IonType.red, null, IonType.blue];
       expect(IonChainPuzzle.validateChain(chain, [rule]), isTrue);
     });
 

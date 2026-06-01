@@ -237,10 +237,11 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: _clearAnswer,
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('Clear'),
                   style: SpaceTheme.secondaryButtonStyle,
-                  child: Text(S.of(context)!.playAgain),
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
@@ -261,9 +262,9 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   Widget _buildClueRow(VaultClue clue, int index, bool isGerman) {
     final clueText = isGerman ? clue.clueTextDe : clue.clueTextEn;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(10),
@@ -271,49 +272,35 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
             color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: Row(
           children: [
-            // Attempt number label
-            Text(
-              '#${index + 1}',
-              style: SpaceTheme.bodyStyle.copyWith(
-                fontSize: 11,
-                color: Colors.white38,
+            // Clue number badge
+            Container(
+              width: 28, height: 28,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: SpaceTheme.starYellow.withValues(alpha: 0.2),
+                border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.5)),
+              ),
+              child: Center(
+                child: Text(
+                  '${index + 1}',
+                  style: SpaceTheme.bodyStyle.copyWith(
+                    fontSize: 13, color: SpaceTheme.starYellow, fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 4),
-            // Digit boxes
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(clue.attempt.length, (i) {
-                return Container(
-                  width: 44,
-                  height: 44,
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade800,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white24),
-                  ),
-                  child: Center(
-                    child: Text(
-                      clue.attempt[i].toString(),
-                      style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
-                    ),
-                  ),
-                );
-              }),
-            ),
-            const SizedBox(height: 6),
-            // Clue text
-            Text(
-              clueText,
-              style: SpaceTheme.bodyStyle.copyWith(
-                fontSize: 12,
-                color: SpaceTheme.starYellow,
+            const SizedBox(width: 12),
+            // Clue text — mathematical constraint
+            Expanded(
+              child: Text(
+                clueText,
+                style: SpaceTheme.bodyStyle.copyWith(
+                  fontSize: 14,
+                  color: Colors.white,
+                ),
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -384,7 +371,8 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
       alignment: WrapAlignment.center,
       spacing: 8,
       runSpacing: 8,
-      children: List.generate(digitRange, (digit) {
+      children: List.generate(digitRange, (index) {
+        final digit = index + 1; // 1-based digits
         return GestureDetector(
           onTap: () {
             // Place in first empty slot

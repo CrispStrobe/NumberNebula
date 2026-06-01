@@ -206,45 +206,52 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
   Widget _buildGrid() {
     final gridSize = puzzle!.size;
     return Center(
-      child: AnimatedBuilder(
-        animation: _glowAnimation,
-        builder: (context, child) {
-          return Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                colors: [
-                  const Color(0xFF6B48FF).withValues(alpha: 0.1 * _glowAnimation.value),
-                  SpaceTheme.deepSpace.withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: const Color(0xFF6B48FF).withValues(alpha: _glowAnimation.value),
-                width: 2,
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(gridSize, (row) {
-                return Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxCellW = (constraints.maxWidth - 56) / gridSize;
+          final maxCellH = (constraints.maxHeight - 56) / gridSize;
+          final cellSize = maxCellW < maxCellH ? maxCellW : maxCellH;
+          final clampedSize = cellSize.clamp(40.0, 80.0);
+
+          return AnimatedBuilder(
+            animation: _glowAnimation,
+            builder: (context, child) {
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFF6B48FF).withValues(alpha: 0.1 * _glowAnimation.value),
+                      SpaceTheme.deepSpace.withValues(alpha: 0.05),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFF6B48FF).withValues(alpha: _glowAnimation.value),
+                    width: 2,
+                  ),
+                ),
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: List.generate(gridSize, (col) {
-                    return _buildCell(row, col);
+                  children: List.generate(gridSize, (row) {
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(gridSize, (col) {
+                        return _buildCell(row, col, clampedSize);
+                      }),
+                    );
                   }),
-                );
-              }),
-            ),
+                ),
+              );
+            },
           );
         },
       ),
     );
   }
 
-  Widget _buildCell(int row, int col) {
+  Widget _buildCell(int row, int col, double clampedSize) {
     final isLit = grid[row][col];
-    final cellSize = (MediaQuery.of(context).size.width - 80) / puzzle!.size;
-    final clampedSize = cellSize.clamp(40.0, 80.0);
 
     return GestureDetector(
       onTap: () => _onCellTap(row, col),

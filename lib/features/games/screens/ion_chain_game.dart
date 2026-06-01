@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -129,15 +130,19 @@ class _IonChainGameState extends State<IonChainGame>
     final testChain = List<IonType?>.from(_playerChain);
     testChain[slotIndex] = bead;
 
+    // Check circular neighbors (bracelet: slot 0 is adjacent to last slot)
     bool valid = true;
-    if (slotIndex > 0 && testChain[slotIndex - 1] != null) {
+    final prevIdx = (slotIndex - 1 + testChain.length) % testChain.length;
+    final nextIdx = (slotIndex + 1) % testChain.length;
+
+    if (testChain[prevIdx] != null) {
       for (final rule in puzzle!.rules) {
-        if (!rule.check(testChain[slotIndex - 1], bead)) { valid = false; break; }
+        if (!rule.check(testChain[prevIdx], bead)) { valid = false; break; }
       }
     }
-    if (valid && slotIndex < testChain.length - 1 && testChain[slotIndex + 1] != null) {
+    if (valid && testChain[nextIdx] != null) {
       for (final rule in puzzle!.rules) {
-        if (!rule.check(bead, testChain[slotIndex + 1])) { valid = false; break; }
+        if (!rule.check(bead, testChain[nextIdx])) { valid = false; break; }
       }
     }
 
@@ -237,7 +242,7 @@ class _IonChainGameState extends State<IonChainGame>
         const Icon(Icons.info_outline, color: SpaceTheme.starYellow, size: 18),
         const SizedBox(width: 8),
         Expanded(child: Text(s.ionChainInstructions,
-          style: SpaceTheme.bodyStyle.copyWith(fontSize: 11))),
+          style: SpaceTheme.bodyStyle.copyWith(fontSize: 14))),
       ]),
     );
   }
@@ -255,7 +260,7 @@ class _IonChainGameState extends State<IonChainGame>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('RULES', style: SpaceTheme.bodyStyle.copyWith(
-            fontSize: 11, color: SpaceTheme.rocketRed, letterSpacing: 1.5)),
+            fontSize: 14, color: SpaceTheme.rocketRed, letterSpacing: 1.5)),
           const SizedBox(height: 6),
           ...puzzle!.rules.map((rule) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 2),
@@ -263,7 +268,7 @@ class _IonChainGameState extends State<IonChainGame>
               const Icon(Icons.block, color: SpaceTheme.rocketRed, size: 14),
               const SizedBox(width: 6),
               Expanded(child: Text(isDE ? rule.descriptionDe : rule.description,
-                style: SpaceTheme.bodyStyle.copyWith(fontSize: 12))),
+                style: SpaceTheme.bodyStyle.copyWith(fontSize: 15))),
             ]),
           )),
         ],
@@ -274,30 +279,42 @@ class _IonChainGameState extends State<IonChainGame>
   Widget _buildBracelet() {
     return LayoutBuilder(builder: (context, constraints) {
       final slotCount = _playerChain.length;
-      final maxSlotSize = ((constraints.maxWidth - 32) / slotCount).clamp(40.0, 60.0);
+      // Circular layout: compute radius and bead size from available space
+      final availSize = math.min(constraints.maxWidth - 24, constraints.maxHeight - 48);
+      final ringRadius = availSize * 0.35;
+      final slotSize = (2 * math.pi * ringRadius / slotCount * 0.65).clamp(36.0, 56.0);
 
       return AnimatedBuilder(
         animation: _glowAnimation,
         builder: (context, _) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
-            decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value * 0.4),
-                width: 2),
-            ),
-            child: Column(children: [
-              Text('PLASMA CONDUIT', style: SpaceTheme.bodyStyle.copyWith(
-                fontSize: 11, color: SpaceTheme.starYellow, letterSpacing: 2)),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(slotCount, (i) => _buildSlot(i, maxSlotSize)),
+          return Column(children: [
+            Text('ION RING', style: SpaceTheme.bodyStyle.copyWith(
+              fontSize: 14, color: SpaceTheme.starYellow, letterSpacing: 2)),
+            const SizedBox(height: 6),
+            SizedBox(
+              width: ringRadius * 2 + slotSize + 16,
+              height: ringRadius * 2 + slotSize + 16,
+              child: CustomPaint(
+                painter: _RingPainter(
+                  slotCount: slotCount,
+                  ringRadius: ringRadius,
+                  glowValue: _glowAnimation.value,
+                ),
+                child: Stack(
+                  children: List.generate(slotCount, (i) {
+                    final angle = (2 * math.pi * i / slotCount) - math.pi / 2;
+                    final cx = ringRadius + slotSize / 2 + 8 + ringRadius * math.cos(angle) - slotSize / 2;
+                    final cy = ringRadius + slotSize / 2 + 8 + ringRadius * math.sin(angle) - slotSize / 2;
+                    return Positioned(
+                      left: cx,
+                      top: cy,
+                      child: _buildSlot(i, slotSize),
+                    );
+                  }),
+                ),
               ),
-            ]),
-          );
+            ),
+          ]);
         },
       );
     });
@@ -380,7 +397,7 @@ class _IonChainGameState extends State<IonChainGame>
       ),
       child: Column(children: [
         Text('AVAILABLE BEADS', style: SpaceTheme.bodyStyle.copyWith(
-          fontSize: 11, color: SpaceTheme.starYellow, letterSpacing: 1.5)),
+          fontSize: 14, color: SpaceTheme.starYellow, letterSpacing: 1.5)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 10, runSpacing: 8, alignment: WrapAlignment.center,
@@ -419,7 +436,7 @@ class _IonChainGameState extends State<IonChainGame>
       ),
       const SizedBox(height: 4),
       Text('×$count', style: SpaceTheme.bodyStyle.copyWith(
-        fontSize: 11, color: count > 0 ? color : Colors.white24)),
+        fontSize: 14, color: count > 0 ? color : Colors.white24)),
     ]);
   }
 
@@ -453,4 +470,36 @@ class _IonChainGameState extends State<IonChainGame>
       ),
     );
   }
+}
+
+/// Draws a circular ring connecting bead positions.
+class _RingPainter extends CustomPainter {
+  final int slotCount;
+  final double ringRadius;
+  final double glowValue;
+
+  _RingPainter({required this.slotCount, required this.ringRadius, required this.glowValue});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+
+    // Draw the ring
+    final ringPaint = Paint()
+      ..color = SpaceTheme.starYellow.withValues(alpha: 0.15 + glowValue * 0.15)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0;
+    canvas.drawCircle(center, ringRadius, ringPaint);
+
+    // Glow ring
+    final glowPaint = Paint()
+      ..color = SpaceTheme.starYellow.withValues(alpha: glowValue * 0.08)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8.0
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawCircle(center, ringRadius, glowPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _RingPainter old) => old.glowValue != glowValue;
 }

@@ -1324,8 +1324,8 @@
   "commRelayLoseDesc": "The message remains garbled. Try different shift values, Commander.",
 
   "hullPlatingTitle": "Hull Plating",
-  "hullPlatingDesc": "The ship's hull took a hit! Cover the damaged section with armor plates. Every gap must be sealed, and plates must alternate dark and light for structural integrity.",
-  "hullPlatingInstructions": "Drag armor plates onto the damaged hull. Cover every cell. Dark and light plates must alternate.",
+  "hullPlatingDesc": "The ship's hull took a hit! Cover the damaged section with armor plates of different shapes. Every gap must be sealed — rotate and place each plate precisely!",
+  "hullPlatingInstructions": "Drag armor plates from the tray onto the hull grid. Rotate plates with the button. Cover every cell with no overlaps!",
   "hullPlatingWinTitle": "Hull Sealed!",
   "hullPlatingWinDesc": "The breach is patched! The ship is space-worthy again. You earned {bonusScore} repair credits.",
   "@hullPlatingWinDesc": {
@@ -1337,8 +1337,8 @@
   "hullPlatingLoseDesc": "Gaps remain in the hull plating. Try a different arrangement, Commander.",
 
   "vaultCrackerTitle": "Vault Cracker",
-  "vaultCrackerDesc": "An ancient alien vault blocks your path! Each failed attempt reveals clues: which digits are correct, misplaced, or completely wrong. Deduce the combination!",
-  "vaultCrackerInstructions": "Study the failed attempts and their clues. Deduce the secret code from the hints, then enter it below.",
+  "vaultCrackerDesc": "An ancient alien vault blocks your path! Mathematical clues describe the secret code. Use logic and arithmetic to deduce the combination!",
+  "vaultCrackerInstructions": "Read the mathematical clues carefully. Each describes a property of the secret code (sums, products, comparisons). Deduce all digits, then enter the code.",
   "vaultCrackerWinTitle": "Vault Breached!",
   "vaultCrackerWinDesc": "The vault doors swing open! You cracked the code in {attempts} attempts, earning {bonusScore} archaeology points.",
   "@vaultCrackerWinDesc": {
@@ -1430,8 +1430,8 @@
   "cubeScannerLoseDesc": "Some face values are wrong. Remember: opposite faces always sum to 7, Commander.",
 
   "circuitRepairTitle": "Circuit Repair",
-  "circuitRepairDesc": "The cockpit display is glitching! Two wires got crossed in the 7-segment circuit. Figure out which segments were swapped and fix the readout!",
-  "circuitRepairInstructions": "The display shows wrong digits because two wire connections are swapped. Find which two segments to swap back.",
+  "circuitRepairDesc": "The cockpit clock is glitching! Two digit positions got swapped, showing an impossible time. Find the two positions to swap back and restore the correct readout!",
+  "circuitRepairInstructions": "The clock shows an invalid time because two digit positions are swapped. Tap two digits to swap them. The result must be a valid time!",
   "circuitRepairWinTitle": "Display Fixed!",
   "circuitRepairWinDesc": "Clear readout restored! Your electrical skills earned {bonusScore} tech points.",
   "@circuitRepairWinDesc": {
@@ -1470,11 +1470,11 @@
   "dockClearanceLoseTitle": "Still Jammed!",
   "dockClearanceLoseDesc": "No clear path to the exit. Try sliding different ships first, Commander.",
 
-  "ionChainTitle": "Ion Chain",
-  "ionChainDesc": "String ions along the plasma conduit! Each ion type has rules about which neighbors it tolerates. Build the chain without causing a reaction!",
-  "ionChainInstructions": "Place ions in sequence. Read the constraint rules: some types cannot be adjacent, others must alternate.",
-  "ionChainWinTitle": "Conduit Stable!",
-  "ionChainWinDesc": "The plasma flows smoothly through your ion chain! You earned {bonusScore} chemistry points.",
+  "ionChainTitle": "Ion Ring",
+  "ionChainDesc": "Complete the ion ring! Arrange charged particles around the plasma loop so every neighbor pair obeys the constraint rules. One wrong placement and the ring destabilizes!",
+  "ionChainInstructions": "Drag ions onto the ring. Read the rules carefully — some shapes cannot be neighbors. The ring is circular: the last bead is adjacent to the first!",
+  "ionChainWinTitle": "Ring Stabilized!",
+  "ionChainWinDesc": "The plasma flows in a perfect loop! You earned {bonusScore} chemistry points.",
   "@ionChainWinDesc": {
     "placeholders": {
       "bonusScore": {"type": "int", "example": "150"}
@@ -1570,7 +1570,7 @@
 
   "xenobiologyLabTitle": "Xenobiology Lab",
   "xenobiologyLabDesc": "A new species has been discovered! Each subspecies has different numbers of eyes, tentacles, and legs. Use the census data to classify the colony!",
-  "xenobiologyLabInstructions": "Two alien types live together. You know the total eyes and legs. Figure out how many of each type there are!",
+  "xenobiologyLabInstructions": "Two alien types live together. You know each type's traits and the total eyes and legs observed. Calculate how many of each type there must be, then submit!",
   "xenobiologyLabWinTitle": "Species Cataloged!",
   "xenobiologyLabWinDesc": "Field report filed! Your xenobiology skills earned {bonusScore} research credits.",
   "@xenobiologyLabWinDesc": {
@@ -1582,8 +1582,8 @@
   "xenobiologyLabLoseDesc": "The numbers don't add up. Double-check the trait counts for each subspecies, Commander.",
 
   "galacticMarketTitle": "Galactic Market",
-  "galacticMarketDesc": "Welcome to the alien bazaar! Pay the exact price using the local currency. Some denominations are scarce -- find the combination that works!",
-  "galacticMarketInstructions": "Drag coins onto the payment pad to reach the exact target amount. Use as few coins as possible for bonus points!",
+  "galacticMarketDesc": "The alien shopkeeper gave you change, but some coins landed face-down! You know the total and can see some coins. Deduce the hidden denomination!",
+  "galacticMarketInstructions": "Look at the total change and the visible coins. The face-down coins all have the same value. Calculate: (total - known coins) / number of hidden coins = ?",
   "galacticMarketWinTitle": "Purchase Complete!",
   "galacticMarketWinDesc": "Exact change tendered! You used only {coins} coins, earning {bonusScore} trade points.",
   "@galacticMarketWinDesc": {
@@ -1596,8 +1596,8 @@
   "galacticMarketLoseDesc": "The merchant frowns -- that's not the right amount. Try a different combination of coins, Commander.",
 
   "creatureForgeTitle": "Creature Forge",
-  "creatureForgeDesc": "The xenobiology bay has parts from multiple alien species! Combine heads, bodies, and tails to discover every possible creature. How many unique beings can you create?",
-  "creatureForgeInstructions": "Swipe through heads, bodies, and tails. Count all unique combinations, then enter your answer.",
+  "creatureForgeDesc": "The xenobiology bay has parts from multiple alien species! Tap to select heads, bodies, and tails, then build creatures. How many unique beings can you create?",
+  "creatureForgeInstructions": "Select one part from each row, then tap BUILD to add the creature to your gallery. Find all valid combinations, then enter the total count!",
   "creatureForgeWinTitle": "Species Catalog Complete!",
   "creatureForgeWinDesc": "You discovered all {count} possible creatures! Your curiosity earned {bonusScore} biology points.",
   "@creatureForgeWinDesc": {

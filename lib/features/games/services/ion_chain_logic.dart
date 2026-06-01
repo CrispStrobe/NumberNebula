@@ -39,11 +39,15 @@ class IonChainPuzzle {
     required this.ionTypes,
   });
 
-  /// Validate if a completed chain satisfies all rules.
+  /// Validate if a completed circular chain satisfies all rules.
+  /// Checks all adjacent pairs INCLUDING last-to-first (bracelet/ring).
+  /// Skips pairs where either element is null (unfilled slots).
   static bool validateChain(List<IonType?> chain, List<IonRule> rules) {
-    for (int i = 0; i < chain.length - 1; i++) {
+    if (chain.length <= 1) return true;
+    for (int i = 0; i < chain.length; i++) {
+      final next = (i + 1) % chain.length;
       for (final rule in rules) {
-        if (!rule.check(chain[i], chain[i + 1])) return false;
+        if (!rule.check(chain[i], chain[next])) return false;
       }
     }
     return true;
@@ -193,7 +197,13 @@ class IonChainPuzzle {
     List<IonRule> rules,
     math.Random rng,
   ) {
-    if (partial.length == length) return true;
+    if (partial.length == length) {
+      // For circular chain: also check last-to-first adjacency
+      for (final rule in rules) {
+        if (!rule.check(partial.last, partial.first)) return false;
+      }
+      return true;
+    }
 
     final shuffledTypes = List<IonType>.from(types)..shuffle(rng);
     for (final type in shuffledTypes) {

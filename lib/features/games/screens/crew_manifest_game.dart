@@ -356,14 +356,24 @@ class _CrewManifestGameState extends State<CrewManifestGame>
   }
 
   Widget _buildCompactLayout(BoxConstraints constraints) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Column(
         children: [
-          _buildGridArea(constraints),
-          const SizedBox(height: 12),
-          _buildCluesAndSubmit(),
-          const SizedBox(height: 16),
+          // Grid takes priority space
+          Expanded(
+            flex: 3,
+            child: _buildGridArea(constraints),
+          ),
+          const SizedBox(height: 8),
+          // Clues + submit scroll if needed
+          Expanded(
+            flex: 2,
+            child: SingleChildScrollView(
+              child: _buildCluesAndSubmit(),
+            ),
+          ),
+          const SizedBox(height: 8),
         ],
       ),
     );
@@ -401,11 +411,11 @@ class _CrewManifestGameState extends State<CrewManifestGame>
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // +1 for header column/row
-        final maxCellW = (constraints.maxWidth - 16) / (size + 1);
-        final maxCellH = maxCellW; // keep square
-        final cellSize = maxCellH.clamp(36.0, 64.0);
-        final headerW = cellSize * 1.2;
+        // +1 for header column/row. Fill available space.
+        final maxCellW = (constraints.maxWidth - 16) / (size + 1.3);
+        final maxCellH = (constraints.maxHeight - 16) / (size + 1.3);
+        final cellSize = (maxCellW < maxCellH ? maxCellW : maxCellH).clamp(38.0, 72.0);
+        final headerW = cellSize * 1.3;
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -428,7 +438,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
                             child: Text(
                               puzzle!.itemNames[c],
                               style: SpaceTheme.titleStyle.copyWith(
-                                fontSize: 12,
+                                fontSize: 14,
                                 color: SpaceTheme.starYellow,
                               ),
                             ),
@@ -466,7 +476,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
                           child: Text(
                             puzzle!.crewNames[r],
                             style: SpaceTheme.titleStyle.copyWith(
-                              fontSize: 13,
+                              fontSize: 15,
                               color: const Color(0xFF00C9DB),
                             ),
                           ),
@@ -554,7 +564,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
         // Instructions
         Text(
           s.crewManifestInstructions,
-          style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
+          style: SpaceTheme.bodyStyle.copyWith(fontSize: 15),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 12),
@@ -588,7 +598,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
                         Expanded(
                           child: Text(
                             clue,
-                            style: SpaceTheme.bodyStyle.copyWith(fontSize: 13),
+                            style: SpaceTheme.bodyStyle.copyWith(fontSize: 15),
                           ),
                         ),
                       ],
@@ -604,21 +614,23 @@ class _CrewManifestGameState extends State<CrewManifestGame>
           children: [
             const Icon(Icons.check_circle, color: SpaceTheme.alienGreen, size: 18),
             const SizedBox(width: 4),
-            Text('Match', style: SpaceTheme.bodyStyle.copyWith(fontSize: 11)),
+            Text('Match', style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
             const SizedBox(width: 16),
             const Icon(Icons.close, color: SpaceTheme.rocketRed, size: 18),
             const SizedBox(width: 4),
-            Text('Eliminate', style: SpaceTheme.bodyStyle.copyWith(fontSize: 11)),
+            Text('Eliminate', style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
           ],
         ),
         const SizedBox(height: 12),
         // Submit button
         if (!_gameOver)
-          Center(
+          SizedBox(
+            width: double.infinity,
+            height: 48,
             child: ElevatedButton.icon(
               onPressed: _checkSolution,
-              icon: const Icon(Icons.check),
-              label: const Text('Submit'),
+              icon: const Icon(Icons.assignment_turned_in, size: 22),
+              label: const Text('Submit Manifest', style: TextStyle(fontSize: 16)),
               style: SpaceTheme.primaryButtonStyle,
             ),
           ),

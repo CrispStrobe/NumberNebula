@@ -34,10 +34,8 @@ class _GravityWellGameState extends State<GravityWellGame>
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
 
-  Map<String, int?> _userAnswers = {};
+  Map<String, int> _userAnswers = {};
   bool _gameOver = false;
-
-  final Map<String, TextEditingController> _controllers = {};
 
   @override
   void initState() {
@@ -81,9 +79,6 @@ class _GravityWellGameState extends State<GravityWellGame>
     _glowController.dispose();
     _successController.dispose();
     _pulseController.dispose();
-    for (final c in _controllers.values) {
-      c.dispose();
-    }
     super.dispose();
   }
 
@@ -94,10 +89,6 @@ class _GravityWellGameState extends State<GravityWellGame>
       _isGenerating = true;
       _gameOver = false;
       _successController.reset();
-      for (final c in _controllers.values) {
-        c.dispose();
-      }
-      _controllers.clear();
     });
 
     final generated = GravityWellLogic.generate({
@@ -109,10 +100,7 @@ class _GravityWellGameState extends State<GravityWellGame>
     if (mounted) {
       setState(() {
         puzzle = generated;
-        _userAnswers = {for (final label in generated.unknownWeights.keys) label: null};
-        for (final label in generated.unknownWeights.keys) {
-          _controllers[label] = TextEditingController();
-        }
+        _userAnswers = {for (final label in generated.unknownWeights.keys) label: 1};
         _isGenerating = false;
       });
     }
@@ -121,23 +109,7 @@ class _GravityWellGameState extends State<GravityWellGame>
   void _checkSolution() {
     if (puzzle == null || _gameOver) return;
 
-    for (final label in puzzle!.unknownWeights.keys) {
-      final text = _controllers[label]?.text ?? '';
-      _userAnswers[label] = int.tryParse(text);
-    }
-
-    if (_userAnswers.values.any((v) => v == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(S.of(context)!.gravityWellLoseDesc),
-          backgroundColor: SpaceTheme.rocketRed,
-        ),
-      );
-      return;
-    }
-
-    final userMap = _userAnswers.map((k, v) => MapEntry(k, v!));
-    if (puzzle!.checkSolution(userMap)) {
+    if (puzzle!.checkSolution(_userAnswers)) {
       _handleWin();
     } else {
       _handleLoss();
@@ -432,10 +404,15 @@ class _GravityWellGameState extends State<GravityWellGame>
   }
 
   Widget _buildAnswerInput(String label) {
+    final value = _userAnswers[label] ?? 1;
+    const maxWeight = 30; // reasonable upper bound
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Label badge
           Container(
             width: 36,
             height: 36,
@@ -457,32 +434,44 @@ class _GravityWellGameState extends State<GravityWellGame>
           ),
           const SizedBox(width: 12),
           const Text('= ', style: TextStyle(color: Colors.white, fontSize: 18)),
-          SizedBox(
-            width: 80,
-            child: TextField(
-              controller: _controllers[label],
-              keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.white, fontSize: 18),
-              textAlign: TextAlign.center,
-              enabled: !_gameOver,
-              decoration: InputDecoration(
-                hintText: '?',
-                hintStyle: const TextStyle(color: Colors.white38),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: SpaceTheme.nebulaPurple),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: SpaceTheme.starYellow, width: 2),
-                ),
-                filled: true,
-                fillColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+          // Minus button
+          IconButton(
+            icon: const Icon(Icons.remove_circle_outline, color: SpaceTheme.starYellow),
+            iconSize: 28,
+            onPressed: _gameOver ? null : () {
+              HapticFeedback.selectionClick();
+              setState(() {
+                _userAnswers[label] = (value - 1).clamp(1, maxWeight);
+              });
+            },
+          ),
+          // Value display
+          Container(
+            width: 56, height: 42,
+            decoration: BoxDecoration(
+              color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: SpaceTheme.starYellow, width: 2),
+            ),
+            child: Center(
+              child: Text(
+                '$value',
+                style: SpaceTheme.headlineStyle.copyWith(fontSize: 22),
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          // Plus button
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline, color: SpaceTheme.starYellow),
+            iconSize: 28,
+            onPressed: _gameOver ? null : () {
+              HapticFeedback.selectionClick();
+              setState(() {
+                _userAnswers[label] = (value + 1).clamp(1, maxWeight);
+              });
+            },
+          ),
+          const SizedBox(width: 4),
           const Text('kg', style: TextStyle(color: Colors.white54, fontSize: 14)),
         ],
       ),

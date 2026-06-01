@@ -4105,13 +4105,13 @@ abstract class S {
   /// No description provided for @starChartScanDesc.
   ///
   /// In en, this message translates to:
-  /// **'Hidden constellation names are embedded in this star chart data! Scan horizontally, vertically, and diagonally to find them all. One letter will remain unclaimed...'**
+  /// **'Hidden equations are embedded in this star chart data! Scan horizontally, vertically, and diagonally to find math equations like 3+4=7 hidden in the number grid.'**
   String get starChartScanDesc;
 
   /// No description provided for @starChartScanInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Swipe across letters to highlight hidden words. Words can run in any direction. Find all words to reveal the mystery letter!'**
+  /// **'Swipe across cells to highlight hidden equations (e.g. 3+4=7, 9-2=7). Equations can run in any direction. Find all equations to decode the chart!'**
   String get starChartScanInstructions;
 
   /// No description provided for @starChartScanWinTitle.
@@ -4123,7 +4123,7 @@ abstract class S {
   /// No description provided for @starChartScanWinDesc.
   ///
   /// In en, this message translates to:
-  /// **'All constellations found! The mystery letter is \'{letter}\'. You earned {bonusScore} cartography points.'**
+  /// **'All {letter} equations found! You earned {bonusScore} cartography points.'**
   String starChartScanWinDesc(String letter, int bonusScore);
 
   /// No description provided for @starChartScanLoseTitle.
@@ -4135,7 +4135,7 @@ abstract class S {
   /// No description provided for @starChartScanLoseDesc.
   ///
   /// In en, this message translates to:
-  /// **'Some constellations remain hidden in the data. Try scanning diagonally too, Commander.'**
+  /// **'Some equations remain hidden in the data. Try scanning diagonally too, Commander.'**
   String get starChartScanLoseDesc;
 
   /// No description provided for @commRelayTitle.
@@ -4189,13 +4189,13 @@ abstract class S {
   /// No description provided for @hullPlatingDesc.
   ///
   /// In en, this message translates to:
-  /// **'The ship\'s hull took a hit! Cover the damaged section with armor plates. Every gap must be sealed, and plates must alternate dark and light for structural integrity.'**
+  /// **'The ship\'s hull took a hit! Cover the damaged section with armor plates of different shapes. Every gap must be sealed — rotate and place each plate precisely!'**
   String get hullPlatingDesc;
 
   /// No description provided for @hullPlatingInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Drag armor plates onto the damaged hull. Cover every cell. Dark and light plates must alternate.'**
+  /// **'Drag armor plates from the tray onto the hull grid. Rotate plates with the button. Cover every cell with no overlaps!'**
   String get hullPlatingInstructions;
 
   /// No description provided for @hullPlatingWinTitle.
@@ -4231,13 +4231,13 @@ abstract class S {
   /// No description provided for @vaultCrackerDesc.
   ///
   /// In en, this message translates to:
-  /// **'An ancient alien vault blocks your path! Each failed attempt reveals clues: which digits are correct, misplaced, or completely wrong. Deduce the combination!'**
+  /// **'An ancient alien vault blocks your path! Mathematical clues describe the secret code. Use logic and arithmetic to deduce the combination!'**
   String get vaultCrackerDesc;
 
   /// No description provided for @vaultCrackerInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Study each clue attempt. Green = correct digit, correct position. Yellow = correct digit, wrong position. Gray = digit not in code.'**
+  /// **'Read the mathematical clues carefully. Each describes a property of the secret code (sums, products, comparisons). Deduce all digits, then enter the code.'**
   String get vaultCrackerInstructions;
 
   /// No description provided for @vaultCrackerWinTitle.
@@ -4525,13 +4525,13 @@ abstract class S {
   /// No description provided for @circuitRepairDesc.
   ///
   /// In en, this message translates to:
-  /// **'The cockpit display is glitching! Two wires got crossed in the 7-segment circuit. Figure out which segments were swapped and fix the readout!'**
+  /// **'The cockpit clock is glitching! Two digit positions got swapped, showing an impossible time. Find the two positions to swap back and restore the correct readout!'**
   String get circuitRepairDesc;
 
   /// No description provided for @circuitRepairInstructions.
   ///
   /// In en, this message translates to:
-  /// **'The display shows wrong digits because two wire connections are swapped. Find which two segments to swap back.'**
+  /// **'The clock shows an invalid time because two digit positions are swapped. Tap two digits to swap them. The result must be a valid time!'**
   String get circuitRepairInstructions;
 
   /// No description provided for @circuitRepairWinTitle.
@@ -4645,31 +4645,31 @@ abstract class S {
   /// No description provided for @ionChainTitle.
   ///
   /// In en, this message translates to:
-  /// **'Ion Chain'**
+  /// **'Ion Ring'**
   String get ionChainTitle;
 
   /// No description provided for @ionChainDesc.
   ///
   /// In en, this message translates to:
-  /// **'String ions along the plasma conduit! Each ion type has rules about which neighbors it tolerates. Build the chain without causing a reaction!'**
+  /// **'Complete the ion ring! Arrange charged particles around the plasma loop so every neighbor pair obeys the constraint rules. One wrong placement and the ring destabilizes!'**
   String get ionChainDesc;
 
   /// No description provided for @ionChainInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Place ions in sequence. Read the constraint rules: some types cannot be adjacent, others must alternate.'**
+  /// **'Drag ions onto the ring. Read the rules carefully — some shapes cannot be neighbors. The ring is circular: the last bead is adjacent to the first!'**
   String get ionChainInstructions;
 
   /// No description provided for @ionChainWinTitle.
   ///
   /// In en, this message translates to:
-  /// **'Conduit Stable!'**
+  /// **'Ring Stabilized!'**
   String get ionChainWinTitle;
 
   /// No description provided for @ionChainWinDesc.
   ///
   /// In en, this message translates to:
-  /// **'The plasma flows smoothly through your ion chain! You earned {bonusScore} chemistry points.'**
+  /// **'The plasma flows in a perfect loop! You earned {bonusScore} chemistry points.'**
   String ionChainWinDesc(int bonusScore);
 
   /// No description provided for @ionChainLoseTitle.
@@ -4951,7 +4951,7 @@ abstract class S {
   /// No description provided for @xenobiologyLabInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Two alien types live together. You know the total eyes and legs. Figure out how many of each type there are!'**
+  /// **'Two alien types live together. You know each type\'s traits and the total eyes and legs observed. Calculate how many of each type there must be, then submit!'**
   String get xenobiologyLabInstructions;
 
   /// No description provided for @xenobiologyLabWinTitle.
@@ -4987,13 +4987,13 @@ abstract class S {
   /// No description provided for @galacticMarketDesc.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to the alien bazaar! Pay the exact price using the local currency. Some denominations are scarce -- find the combination that works!'**
+  /// **'The alien shopkeeper gave you change, but some coins landed face-down! You know the total and can see some coins. Deduce the hidden denomination!'**
   String get galacticMarketDesc;
 
   /// No description provided for @galacticMarketInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Drag coins onto the payment pad to reach the exact target amount. Use as few coins as possible for bonus points!'**
+  /// **'Look at the total change and the visible coins. The face-down coins all have the same value. Calculate: (total - known coins) / number of hidden coins = ?'**
   String get galacticMarketInstructions;
 
   /// No description provided for @galacticMarketWinTitle.
@@ -5029,13 +5029,13 @@ abstract class S {
   /// No description provided for @creatureForgeDesc.
   ///
   /// In en, this message translates to:
-  /// **'The xenobiology bay has parts from multiple alien species! Combine heads, bodies, and tails to discover every possible creature. How many unique beings can you create?'**
+  /// **'The xenobiology bay has parts from multiple alien species! Tap to select heads, bodies, and tails, then build creatures. How many unique beings can you create?'**
   String get creatureForgeDesc;
 
   /// No description provided for @creatureForgeInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Swipe through heads, bodies, and tails. Count all unique combinations, then enter your answer.'**
+  /// **'Select one part from each row, then tap BUILD to add the creature to your gallery. Find all valid combinations, then enter the total count!'**
   String get creatureForgeInstructions;
 
   /// No description provided for @creatureForgeWinTitle.

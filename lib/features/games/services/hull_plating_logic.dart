@@ -16,6 +16,11 @@ class PlatingPiece {
     final minR = rotated.map((c) => c.$1).reduce(math.min);
     final minC = rotated.map((c) => c.$2).reduce(math.min);
     final normalized = rotated.map((c) => (c.$1 - minR, c.$2 - minC)).toList();
+    // Sort by row then column so cells.first is always top-left (0,0)
+    normalized.sort((a, b) {
+      final r = a.$1.compareTo(b.$1);
+      return r != 0 ? r : a.$2.compareTo(b.$2);
+    });
     return PlatingPiece(id: id, cells: normalized, color: color);
   }
 

@@ -1244,8 +1244,8 @@
   "commRelayLoseDesc": "Die Nachricht bleibt verzerrt. Probiere verschiedene Verschiebungswerte, Commander.",
 
   "hullPlatingTitle": "Rumpf-Panzerung",
-  "hullPlatingDesc": "Der Schiffsrumpf wurde getroffen! Decke den beschadigten Bereich mit Panzerplatten ab. Jede Lucke muss versiegelt werden, und Platten mussen fur die Strukturintegritat abwechselnd dunkel und hell sein.",
-  "hullPlatingInstructions": "Ziehe Panzerplatten auf den beschadigten Rumpf. Decke jede Zelle ab. Dunkle und helle Platten mussen abwechseln.",
+  "hullPlatingDesc": "Der Schiffsrumpf wurde getroffen! Decke den beschadigten Bereich mit verschieden geformten Panzerplatten ab. Jede Lucke muss versiegelt werden — drehe und platziere jede Platte genau!",
+  "hullPlatingInstructions": "Ziehe Panzerplatten aus der Ablage auf das Rumpfgitter. Drehe Platten mit dem Button. Decke jede Zelle ohne Uberlappung ab!",
   "hullPlatingWinTitle": "Rumpf versiegelt!",
   "hullPlatingWinDesc": "Das Leck ist geflickt! Das Schiff ist wieder weltraumtauglich. Du hast {bonusScore} Reparaturkredite verdient.",
   "@hullPlatingWinDesc": {
@@ -1257,8 +1257,8 @@
   "hullPlatingLoseDesc": "Es gibt noch Lucken in der Rumpfpanzerung. Versuche eine andere Anordnung, Commander.",
 
   "vaultCrackerTitle": "Tresor-Knacker",
-  "vaultCrackerDesc": "Ein uralter Alien-Tresor blockiert deinen Weg! Jeder Fehlversuch enthullt Hinweise: welche Ziffern korrekt, falsch platziert oder vollig falsch sind. Finde die Kombination!",
-  "vaultCrackerInstructions": "Studiere die fehlgeschlagenen Versuche und ihre Hinweise. Leite den Geheimcode aus den Hinweisen ab und gib ihn unten ein.",
+  "vaultCrackerDesc": "Ein uralter Alien-Tresor blockiert deinen Weg! Mathematische Hinweise beschreiben den Geheimcode. Nutze Logik und Rechnen, um die Kombination herauszufinden!",
+  "vaultCrackerInstructions": "Lies die mathematischen Hinweise sorgfaltig. Jeder beschreibt eine Eigenschaft des Geheimcodes (Summen, Produkte, Vergleiche). Finde alle Ziffern und gib den Code ein.",
   "vaultCrackerWinTitle": "Tresor geoffnet!",
   "vaultCrackerWinDesc": "Die Tresorturen schwingen auf! Du hast den Code in {attempts} Versuchen geknackt und {bonusScore} Archaologiepunkte verdient.",
   "@vaultCrackerWinDesc": {
@@ -1350,8 +1350,8 @@
   "cubeScannerLoseDesc": "Einige Seitenwerte sind falsch. Denke daran: Gegenuber liegende Seiten ergeben immer 7, Commander.",
 
   "circuitRepairTitle": "Schaltkreis-Reparatur",
-  "circuitRepairDesc": "Das Cockpit-Display spinnt! Zwei Drahte wurden im 7-Segment-Schaltkreis vertauscht. Finde heraus, welche Segmente vertauscht wurden, und repariere die Anzeige!",
-  "circuitRepairInstructions": "Die Anzeige zeigt falsche Ziffern, weil zwei Drahtverbindungen vertauscht sind. Finde heraus, welche zwei Segmente zuruckgetauscht werden mussen.",
+  "circuitRepairDesc": "Die Cockpit-Uhr spinnt! Zwei Ziffernpositionen wurden vertauscht und zeigen eine unmogliche Uhrzeit. Finde die zwei Positionen zum Zurucktauschen!",
+  "circuitRepairInstructions": "Die Uhr zeigt eine ungultige Zeit, weil zwei Ziffernpositionen vertauscht sind. Tippe auf zwei Ziffern, um sie zu tauschen. Das Ergebnis muss eine gultige Uhrzeit sein!",
   "circuitRepairWinTitle": "Display repariert!",
   "circuitRepairWinDesc": "Klare Anzeige wiederhergestellt! Deine Elektrokenntnisse haben {bonusScore} Technikpunkte eingebracht.",
   "@circuitRepairWinDesc": {
@@ -1390,11 +1390,11 @@
   "dockClearanceLoseTitle": "Immer noch blockiert!",
   "dockClearanceLoseDesc": "Kein freier Weg zum Ausgang. Versuche, zuerst andere Schiffe zu verschieben, Commander.",
 
-  "ionChainTitle": "Ionen-Kette",
-  "ionChainDesc": "Reihe Ionen entlang der Plasmaleitung auf! Jeder Ionentyp hat Regeln, welche Nachbarn er toleriert. Baue die Kette, ohne eine Reaktion auszulosen!",
-  "ionChainInstructions": "Platziere Ionen in der Reihenfolge. Lies die Einschrankungsregeln: Einige Typen durfen nicht nebeneinander stehen, andere mussen abwechseln.",
-  "ionChainWinTitle": "Leitung stabil!",
-  "ionChainWinDesc": "Das Plasma flie\u00dft glatt durch deine Ionenkette! Du hast {bonusScore} Chemiepunkte verdient.",
+  "ionChainTitle": "Ionen-Ring",
+  "ionChainDesc": "Vervollstandige den Ionen-Ring! Ordne geladene Teilchen um die Plasmaschleife an, sodass jedes Nachbarpaar die Regeln erfullt. Eine falsche Platzierung und der Ring wird instabil!",
+  "ionChainInstructions": "Ziehe Ionen auf den Ring. Lies die Regeln: Manche Formen durfen nicht nebeneinander stehen. Der Ring ist kreisformig — die letzte Perle grenzt an die erste!",
+  "ionChainWinTitle": "Ring stabilisiert!",
+  "ionChainWinDesc": "Das Plasma flie\u00dft in einer perfekten Schleife! Du hast {bonusScore} Chemiepunkte verdient.",
   "@ionChainWinDesc": {
     "placeholders": {
       "bonusScore": {"type": "int", "example": "150"}
@@ -1490,7 +1490,7 @@
 
   "xenobiologyLabTitle": "Xenobiologie-Labor",
   "xenobiologyLabDesc": "Eine neue Spezies wurde entdeckt! Jede Unterart hat verschiedene Anzahlen von Augen, Tentakeln und Beinen. Nutze die Volkszahlungsdaten, um die Kolonie zu klassifizieren!",
-  "xenobiologyLabInstructions": "Zwei Alien-Typen leben zusammen. Du kennst die Gesamtzahl der Augen und Beine. Finde heraus, wie viele von jedem Typ es gibt!",
+  "xenobiologyLabInstructions": "Zwei Alien-Typen leben zusammen. Du kennst die Merkmale jedes Typs und die beobachteten Gesamtzahlen an Augen und Beinen. Berechne, wie viele von jedem Typ es geben muss!",
   "xenobiologyLabWinTitle": "Spezies katalogisiert!",
   "xenobiologyLabWinDesc": "Feldbericht eingereicht! Deine Xenobiologie-Fahigkeiten haben {bonusScore} Forschungskredite eingebracht.",
   "@xenobiologyLabWinDesc": {
@@ -1502,8 +1502,8 @@
   "xenobiologyLabLoseDesc": "Die Zahlen stimmen nicht uberein. Uberprufe die Merkmalszahlen fur jede Unterart, Commander.",
 
   "galacticMarketTitle": "Galaktischer Markt",
-  "galacticMarketDesc": "Willkommen auf dem Alien-Basar! Bezahle den genauen Preis mit der lokalen Wahrung. Manche Munzwerte sind knapp -- finde die Kombination, die funktioniert!",
-  "galacticMarketInstructions": "Ziehe Munzen auf das Bezahlfeld, um den genauen Zielbetrag zu erreichen. Benutze so wenige Munzen wie moglich fur Bonuspunkte!",
+  "galacticMarketDesc": "Der Alien-Handler gab dir Wechselgeld, aber einige Munzen liegen verdeckt! Du kennst die Gesamtsumme und siehst manche Munzen. Finde den versteckten Nennwert!",
+  "galacticMarketInstructions": "Schau dir das Gesamtwechselgeld und die sichtbaren Munzen an. Die verdeckten Munzen haben alle denselben Wert. Rechne: (Gesamt - bekannte Munzen) / Anzahl verdeckter = ?",
   "galacticMarketWinTitle": "Kauf abgeschlossen!",
   "galacticMarketWinDesc": "Passendes Wechselgeld! Du hast nur {coins} Munzen verwendet und {bonusScore} Handelspunkte verdient.",
   "@galacticMarketWinDesc": {
@@ -1516,8 +1516,8 @@
   "galacticMarketLoseDesc": "Der Handler runzelt die Stirn -- das ist nicht der richtige Betrag. Versuche eine andere Munzkombination, Commander.",
 
   "creatureForgeTitle": "Kreaturen-Schmiede",
-  "creatureForgeDesc": "Die Xenobiologie-Bucht hat Teile von mehreren Alien-Spezies! Kombiniere Kopfe, Korper und Schwanze, um jede mogliche Kreatur zu entdecken. Wie viele einzigartige Wesen kannst du erschaffen?",
-  "creatureForgeInstructions": "Wische durch Kopfe, Korper und Schwanze. Zahle alle einzigartigen Kombinationen und gib deine Antwort ein.",
+  "creatureForgeDesc": "Die Xenobiologie-Bucht hat Teile von mehreren Alien-Spezies! Tippe um Kopfe, Korper und Schwanze auszuwahlen und baue Kreaturen. Wie viele einzigartige Wesen kannst du erschaffen?",
+  "creatureForgeInstructions": "Wahle je ein Teil aus jeder Reihe, dann tippe BAUEN um die Kreatur zur Galerie hinzuzufugen. Finde alle gultigen Kombinationen und gib die Gesamtzahl ein!",
   "creatureForgeWinTitle": "Spezieskatalog vollstandig!",
   "creatureForgeWinDesc": "Du hast alle {count} moglichen Kreaturen entdeckt! Deine Neugier hat {bonusScore} Biologiepunkte eingebracht.",
   "@creatureForgeWinDesc": {

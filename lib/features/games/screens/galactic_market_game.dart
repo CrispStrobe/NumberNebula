@@ -270,7 +270,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
           Expanded(
             child: Text(
               s.galacticMarketInstructions,
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 11),
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
             ),
           ),
         ],

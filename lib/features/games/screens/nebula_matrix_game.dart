@@ -272,40 +272,80 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
     );
   }
 
+  // Zone background tint colors (alternating for visual distinction)
+  static const _zoneTints = [
+    Color(0x15FF6B35), // warm orange tint
+    Color(0x1506FFA5), // green tint
+    Color(0x156B48FF), // purple tint
+    Color(0x15FFD700), // yellow tint
+    Color(0x15FF69B4), // pink tint
+    Color(0x1500C9DB), // cyan tint
+  ];
+
   Widget _buildGrid() {
     final gridSize = puzzle!.size;
-    const maxCellSize = 60.0;
-    final cellSize = math.min(maxCellSize, (MediaQuery.of(context).size.width - 80) / gridSize);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(gridSize, (row) {
-        return Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxCellW = (constraints.maxWidth - 32) / gridSize;
+        final maxCellH = (constraints.maxHeight - 32) / gridSize;
+        final cellSize = math.min(maxCellW, maxCellH).clamp(30.0, 65.0);
+
+        return Column(
           mainAxisSize: MainAxisSize.min,
-          children: List.generate(gridSize, (col) {
-            final cellId = 'r${row}c$col';
-            return _buildCell(cellId, cellSize);
+          children: List.generate(gridSize, (row) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(gridSize, (col) {
+                final cellId = 'r${row}c$col';
+                return _buildCell(cellId, cellSize, row, col);
+              }),
+            );
           }),
         );
-      }),
+      },
     );
   }
 
-  Widget _buildCell(String cellId, double cellSize) {
+  Widget _buildCell(String cellId, double cellSize, int row, int col) {
     final isClue = puzzle!.clues.containsKey(cellId);
     final hasUserValue = userSolution.containsKey(cellId);
     final value = isClue ? puzzle!.clues[cellId] : userSolution[cellId];
     final isLastDropped = cellId == _lastDroppedCell;
+
+    // Zone-aware border: thicker on zone boundaries
+    final zoneIdx = puzzle!.getZoneIndex(row, col);
+    final hasZones = puzzle!.zones.isNotEmpty;
+    final zoneTint = hasZones && zoneIdx >= 0
+        ? _zoneTints[zoneIdx % _zoneTints.length]
+        : Colors.transparent;
+
+    // Compute thick borders on zone edges
+    double borderTop = 1, borderBottom = 1, borderLeft = 1, borderRight = 1;
+    if (hasZones && zoneIdx >= 0) {
+      if (row == 0 || puzzle!.getZoneIndex(row - 1, col) != zoneIdx) borderTop = 2.5;
+      if (row == puzzle!.size - 1 || puzzle!.getZoneIndex(row + 1, col) != zoneIdx) borderBottom = 2.5;
+      if (col == 0 || puzzle!.getZoneIndex(row, col - 1) != zoneIdx) borderLeft = 2.5;
+      if (col == puzzle!.size - 1 || puzzle!.getZoneIndex(row, col + 1) != zoneIdx) borderRight = 2.5;
+    }
+
+    Border cellBorder = Border(
+      top: BorderSide(color: SpaceTheme.moonSilver.withValues(alpha: 0.6), width: borderTop),
+      bottom: BorderSide(color: SpaceTheme.moonSilver.withValues(alpha: 0.6), width: borderBottom),
+      left: BorderSide(color: SpaceTheme.moonSilver.withValues(alpha: 0.6), width: borderLeft),
+      right: BorderSide(color: SpaceTheme.moonSilver.withValues(alpha: 0.6), width: borderRight),
+    );
 
     if (isClue) {
       return Container(
         width: cellSize,
         height: cellSize,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace],
+          color: zoneTint,
+          gradient: LinearGradient(
+            colors: [SpaceTheme.alienGreen.withValues(alpha: 0.3), SpaceTheme.deepSpace.withValues(alpha: 0.8)],
           ),
-          border: Border.all(color: Colors.grey.shade600, width: 1),
+          border: cellBorder,
         ),
         child: Center(
           child: Text(
@@ -321,10 +361,11 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
         width: cellSize,
         height: cellSize,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple],
+          color: zoneTint,
+          gradient: LinearGradient(
+            colors: [SpaceTheme.deepSpace.withValues(alpha: 0.7), SpaceTheme.nebulaPurple.withValues(alpha: 0.4)],
           ),
-          border: Border.all(color: Colors.grey.shade600, width: 1),
+          border: cellBorder,
         ),
         child: Center(
           child: Text(
@@ -355,10 +396,11 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
               width: cellSize,
               height: cellSize,
               decoration: BoxDecoration(
+                color: isHovering ? null : zoneTint,
                 gradient: isHovering
                     ? const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
-                    : const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
-                border: Border.all(color: Colors.grey.shade600, width: 1),
+                    : null,
+                border: cellBorder,
               ),
               child: Transform.scale(
                 scale: _pulseAnimation.value,

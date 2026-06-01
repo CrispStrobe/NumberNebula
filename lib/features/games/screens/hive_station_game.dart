@@ -79,13 +79,17 @@ class _HiveStationGameState extends State<HiveStationGame>
   }
 
   double _getHintFraction() {
-    // Show ALL non-energy cell hints. The puzzle is deducible because
-    // energy cells have NO number while non-energy cells DO. The player
-    // must identify the blank cells as energy. With 100% hints this is
-    // trivially "click all blanks" BUT that's the correct Kanguru mechanic
-    // (C7/2024_34 shows ALL numbers). Difficulty comes from grid size
-    // and energy count, not from hiding hints.
-    return 1.0;
+    // Grade 1-2: show ALL non-energy hints (100%). Player just taps blanks.
+    // This matches the Kanguru mechanic (C7/2024_34 shows ALL numbers).
+    //
+    // Grade 3+: hide SOME number cells (shown as "?" in the UI).
+    // Now blank cells could be energy OR hidden-number, requiring real
+    // deduction from surrounding hint values. This is the Minesweeper depth.
+    if (currentDifficulty == null) return 1.0;
+    final grade = currentDifficulty!.grade;
+    if (grade <= 2) return 1.0; // trivial: all hints visible
+    if (grade == 3) return 0.80; // some hidden
+    return 0.65; // more hidden, harder deduction
   }
 
   void _generatePuzzle() async {

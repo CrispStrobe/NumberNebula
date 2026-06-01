@@ -2287,18 +2287,18 @@ class SEn extends S {
 
   @override
   String get starChartScanDesc =>
-      'Hidden constellation names are embedded in this star chart data! Scan horizontally, vertically, and diagonally to find them all. One letter will remain unclaimed...';
+      'Hidden equations are embedded in this star chart data! Scan horizontally, vertically, and diagonally to find math equations like 3+4=7 hidden in the number grid.';
 
   @override
   String get starChartScanInstructions =>
-      'Swipe across letters to highlight hidden words. Words can run in any direction. Find all words to reveal the mystery letter!';
+      'Swipe across cells to highlight hidden equations (e.g. 3+4=7, 9-2=7). Equations can run in any direction. Find all equations to decode the chart!';
 
   @override
   String get starChartScanWinTitle => 'Chart Decoded!';
 
   @override
   String starChartScanWinDesc(String letter, int bonusScore) {
-    return 'All constellations found! The mystery letter is \'$letter\'. You earned $bonusScore cartography points.';
+    return 'All $letter equations found! You earned $bonusScore cartography points.';
   }
 
   @override
@@ -2306,7 +2306,7 @@ class SEn extends S {
 
   @override
   String get starChartScanLoseDesc =>
-      'Some constellations remain hidden in the data. Try scanning diagonally too, Commander.';
+      'Some equations remain hidden in the data. Try scanning diagonally too, Commander.';
 
   @override
   String get commRelayTitle => 'Comm Relay';
@@ -2339,11 +2339,11 @@ class SEn extends S {
 
   @override
   String get hullPlatingDesc =>
-      'The ship\'s hull took a hit! Cover the damaged section with armor plates. Every gap must be sealed, and plates must alternate dark and light for structural integrity.';
+      'The ship\'s hull took a hit! Cover the damaged section with armor plates of different shapes. Every gap must be sealed — rotate and place each plate precisely!';
 
   @override
   String get hullPlatingInstructions =>
-      'Drag armor plates onto the damaged hull. Cover every cell. Dark and light plates must alternate.';
+      'Drag armor plates from the tray onto the hull grid. Rotate plates with the button. Cover every cell with no overlaps!';
 
   @override
   String get hullPlatingWinTitle => 'Hull Sealed!';
@@ -2365,11 +2365,11 @@ class SEn extends S {
 
   @override
   String get vaultCrackerDesc =>
-      'An ancient alien vault blocks your path! Each failed attempt reveals clues: which digits are correct, misplaced, or completely wrong. Deduce the combination!';
+      'An ancient alien vault blocks your path! Mathematical clues describe the secret code. Use logic and arithmetic to deduce the combination!';
 
   @override
   String get vaultCrackerInstructions =>
-      'Study each clue attempt. Green = correct digit, correct position. Yellow = correct digit, wrong position. Gray = digit not in code.';
+      'Read the mathematical clues carefully. Each describes a property of the secret code (sums, products, comparisons). Deduce all digits, then enter the code.';
 
   @override
   String get vaultCrackerWinTitle => 'Vault Breached!';
@@ -2547,11 +2547,11 @@ class SEn extends S {
 
   @override
   String get circuitRepairDesc =>
-      'The cockpit display is glitching! Two wires got crossed in the 7-segment circuit. Figure out which segments were swapped and fix the readout!';
+      'The cockpit clock is glitching! Two digit positions got swapped, showing an impossible time. Find the two positions to swap back and restore the correct readout!';
 
   @override
   String get circuitRepairInstructions =>
-      'The display shows wrong digits because two wire connections are swapped. Find which two segments to swap back.';
+      'The clock shows an invalid time because two digit positions are swapped. Tap two digits to swap them. The result must be a valid time!';
 
   @override
   String get circuitRepairWinTitle => 'Display Fixed!';
@@ -2621,22 +2621,22 @@ class SEn extends S {
       'No clear path to the exit. Try sliding different ships first, Commander.';
 
   @override
-  String get ionChainTitle => 'Ion Chain';
+  String get ionChainTitle => 'Ion Ring';
 
   @override
   String get ionChainDesc =>
-      'String ions along the plasma conduit! Each ion type has rules about which neighbors it tolerates. Build the chain without causing a reaction!';
+      'Complete the ion ring! Arrange charged particles around the plasma loop so every neighbor pair obeys the constraint rules. One wrong placement and the ring destabilizes!';
 
   @override
   String get ionChainInstructions =>
-      'Place ions in sequence. Read the constraint rules: some types cannot be adjacent, others must alternate.';
+      'Drag ions onto the ring. Read the rules carefully — some shapes cannot be neighbors. The ring is circular: the last bead is adjacent to the first!';
 
   @override
-  String get ionChainWinTitle => 'Conduit Stable!';
+  String get ionChainWinTitle => 'Ring Stabilized!';
 
   @override
   String ionChainWinDesc(int bonusScore) {
-    return 'The plasma flows smoothly through your ion chain! You earned $bonusScore chemistry points.';
+    return 'The plasma flows in a perfect loop! You earned $bonusScore chemistry points.';
   }
 
   @override
@@ -2812,7 +2812,7 @@ class SEn extends S {
 
   @override
   String get xenobiologyLabInstructions =>
-      'Two alien types live together. You know the total eyes and legs. Figure out how many of each type there are!';
+      'Two alien types live together. You know each type\'s traits and the total eyes and legs observed. Calculate how many of each type there must be, then submit!';
 
   @override
   String get xenobiologyLabWinTitle => 'Species Cataloged!';
@@ -2834,11 +2834,11 @@ class SEn extends S {
 
   @override
   String get galacticMarketDesc =>
-      'Welcome to the alien bazaar! Pay the exact price using the local currency. Some denominations are scarce -- find the combination that works!';
+      'The alien shopkeeper gave you change, but some coins landed face-down! You know the total and can see some coins. Deduce the hidden denomination!';
 
   @override
   String get galacticMarketInstructions =>
-      'Drag coins onto the payment pad to reach the exact target amount. Use as few coins as possible for bonus points!';
+      'Look at the total change and the visible coins. The face-down coins all have the same value. Calculate: (total - known coins) / number of hidden coins = ?';
 
   @override
   String get galacticMarketWinTitle => 'Purchase Complete!';
@@ -2860,11 +2860,11 @@ class SEn extends S {
 
   @override
   String get creatureForgeDesc =>
-      'The xenobiology bay has parts from multiple alien species! Combine heads, bodies, and tails to discover every possible creature. How many unique beings can you create?';
+      'The xenobiology bay has parts from multiple alien species! Tap to select heads, bodies, and tails, then build creatures. How many unique beings can you create?';
 
   @override
   String get creatureForgeInstructions =>
-      'Swipe through heads, bodies, and tails. Count all unique combinations, then enter your answer.';
+      'Select one part from each row, then tap BUILD to add the creature to your gallery. Find all valid combinations, then enter the total count!';
 
   @override
   String get creatureForgeWinTitle => 'Species Catalog Complete!';

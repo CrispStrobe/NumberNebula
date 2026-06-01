@@ -171,8 +171,9 @@ void main() {
           final gen = CircuitRepairGenerator(seed: seed);
           final puzzle = gen.generate(grade: grade, level: level);
 
-          expect(puzzle.correctDigits.length, 4,
-              reason: 'always 4 digits for HH:MM (seed=$seed)');
+          final expectedLen = grade >= 3 ? 6 : 4;
+          expect(puzzle.correctDigits.length, expectedLen,
+              reason: '$expectedLen digits for grade $grade (seed=$seed)');
           expect(CircuitRepairPuzzle.isValidTime(puzzle.correctDigits), isTrue,
               reason: 'correct time must be valid (seed=$seed)');
         }
@@ -207,10 +208,11 @@ void main() {
         for (int seed = 0; seed < 10; seed++) {
           final gen = CircuitRepairGenerator(seed: seed);
           final puzzle = gen.generate(grade: grade, level: level);
+          final digitCount = puzzle.correctDigits.length;
 
           int validSwapCount = 0;
-          for (int i = 0; i < 4; i++) {
-            for (int j = i + 1; j < 4; j++) {
+          for (int i = 0; i < digitCount; i++) {
+            for (int j = i + 1; j < digitCount; j++) {
               final candidate =
                   CircuitRepairPuzzle.applySwap(puzzle.displayedDigits, i, j);
               if (CircuitRepairPuzzle.isValidTime(candidate)) {
@@ -228,10 +230,11 @@ void main() {
         for (int seed = 0; seed < 5; seed++) {
           final gen = CircuitRepairGenerator(seed: seed);
           final puzzle = gen.generate(grade: grade, level: level);
+          final maxPos = puzzle.correctDigits.length - 1;
 
           expect(puzzle.swapPosA, isNot(puzzle.swapPosB));
-          expect(puzzle.swapPosA, inInclusiveRange(0, 3));
-          expect(puzzle.swapPosB, inInclusiveRange(0, 3));
+          expect(puzzle.swapPosA, inInclusiveRange(0, maxPos));
+          expect(puzzle.swapPosB, inInclusiveRange(0, maxPos));
         }
       });
 

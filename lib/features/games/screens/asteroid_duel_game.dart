@@ -467,7 +467,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
                           child: Center(
                             child: CustomPaint(
                               size: Size(cellSize * 0.6, cellSize * 0.6),
-                              painter: _AsteroidPainter(isSelected: isSelected),
+                              painter: _AsteroidPainter(isSelected: isSelected, seed: i * 7 + 13),
                             ),
                           ),
                         ),
@@ -671,6 +671,21 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
             const SizedBox(height: 16),
             Text(s.asteroidDuelLoseDesc,
                 style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: SpaceTheme.starYellow.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                'Hint: Try to leave ${_maxPerTurn + 1}+1 = ${_maxPerTurn + 2} asteroids for the AI. '
+                'The key pattern is multiples of ${_maxPerTurn + 1}, plus 1.',
+                style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: SpaceTheme.starYellow),
+                textAlign: TextAlign.center,
+              ),
+            ),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -702,18 +717,19 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
 
 class _AsteroidPainter extends CustomPainter {
   final bool isSelected;
+  final int seed;
 
-  _AsteroidPainter({required this.isSelected});
+  _AsteroidPainter({required this.isSelected, this.seed = 42});
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
 
-    // Draw jagged asteroid shape
+    // Draw jagged asteroid shape -- each asteroid unique via seed
     final path = Path();
     const segments = 8;
-    final random = math.Random(42); // Fixed seed for consistent shape
+    final random = math.Random(seed);
 
     for (int i = 0; i < segments; i++) {
       final angle = (i * 2 * math.pi / segments) - math.pi / 2;
@@ -738,7 +754,7 @@ class _AsteroidPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _AsteroidPainter oldDelegate) {
-    return oldDelegate.isSelected != isSelected;
+    return oldDelegate.isSelected != isSelected || oldDelegate.seed != seed;
   }
 }
 
