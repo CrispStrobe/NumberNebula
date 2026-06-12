@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'dart:async';
 
 import '../models/game_outcome.dart';
+import '../models/math_problem.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -58,6 +59,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   
   int score = 0;
   int rowsCleared = 0;
+  final List<MathProblem> _clearedRowProblems = [];
   int bonusesEarned = 0;
   int combo = 0;
   bool gameActive = true;
@@ -794,7 +796,21 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       combo = 0;
       return;
     }
-    
+
+    // Extract addition problems from cleared rows
+    for (final row in fullRows) {
+      final values = grid[row].map((c) => c!.value).toList();
+      // Decompose row sum into binary addition pairs: a+b=c, c+d=e, ...
+      int runningSum = values[0];
+      for (int i = 1; i < values.length; i++) {
+        _clearedRowProblems.add(MathProblem.addition(
+          runningSum, values[i],
+          difficulty: widget.grade,
+        ));
+        runningSum += values[i];
+      }
+    }
+
     combo++;
     final basePoints = 100 * fullRows.length * fullRows.length;
     final comboBonus = combo > 1 ? (combo - 1) * 50 * fullRows.length : 0;
@@ -858,6 +874,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       gameType: 'cargo_bay_arranger',
       difficulty: widget.grade + (widget.level ~/ 5),
       score: totalScore,
+      mathProblems: _clearedRowProblems,
     ));
     
     Future.delayed(const Duration(milliseconds: 1200), () {
@@ -879,6 +896,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'cargo_bay_arranger',
       difficulty: widget.grade + (widget.level ~/ 5),
+      mathProblems: _clearedRowProblems,
     ));
     
     Future.delayed(const Duration(milliseconds: 1000), () {
@@ -894,6 +912,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     setState(() {
       gameActive = true; hasWon = false; hasLost = false;
       score = 0; rowsCleared = 0; bonusesEarned = 0; combo = 0;
+      _clearedRowProblems.clear();
       particles.clear(); clearingRows.clear();
       heldPiece = null; hasUsedHold = false;
       activeEffects.clear(); bonusNotifications.clear();

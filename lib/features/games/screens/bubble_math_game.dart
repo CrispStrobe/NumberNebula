@@ -8,6 +8,7 @@ import '../constants/app_constants.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -33,6 +34,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
   Timer? _gameTimer;
 
   List<Bubble> bubbles = [];
+  List<MathProblem> _levelProblems = [];
   List<int> targetOrder = [];
   int currentTargetIndex = 0;
   int timeLeft = 60;
@@ -71,6 +73,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
     if (!mounted) return;
     bubbles.clear();
     targetOrder.clear();
+    _levelProblems.clear();
     currentTargetIndex = 0;
     
     final screenSize = MediaQuery.of(context).size;
@@ -103,7 +106,8 @@ class _BubbleMathGameState extends State<BubbleMathGame>
       }
 
       usedAnswers.add(problem.answer);
-      
+      _levelProblems.add(problem);
+
       final bubbleSize = 85.0 + random.nextDouble() * 40;
       final bubbleSpeed = 60.0 + random.nextDouble() * 20;
 
@@ -189,7 +193,6 @@ class _BubbleMathGameState extends State<BubbleMathGame>
         bubbles.remove(bubble);
         currentTargetIndex++;
       });
-      context.read<GameProvider>().addScore(10);
       if (currentTargetIndex >= targetOrder.length) {
         _winGame();
       }
@@ -224,7 +227,16 @@ class _BubbleMathGameState extends State<BubbleMathGame>
     if (!gameActive) return;
     setState(() => gameActive = false);
     _gameTimer?.cancel();
-    context.read<GameProvider>().addScore(timeLeft * 5); // Time bonus
+
+    final int totalScore = 10 * currentTargetIndex + timeLeft * 5;
+
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      gameType: 'bubble_math',
+      difficulty: widget.level,
+      score: totalScore,
+      mathProblems: _levelProblems,
+    ));
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -236,6 +248,13 @@ class _BubbleMathGameState extends State<BubbleMathGame>
     if (!gameActive) return;
     setState(() => gameActive = false);
     _gameTimer?.cancel();
+
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      gameType: 'bubble_math',
+      difficulty: widget.level,
+      mathProblems: _levelProblems,
+    ));
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -419,6 +438,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
     setState(() {
       timeLeft = 60;
       gameActive = true;
+      _levelProblems = [];
     });
     _generateBubbles();
     _startGameTimer();

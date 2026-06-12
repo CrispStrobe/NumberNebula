@@ -95,13 +95,20 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     debugPrint("Result: ${wasSuccessful ? 'WIN' : 'LOSS'} | Final Score: $finalScore");
 
     // 3. Make the single, unified call to the GameProvider.
-    context.read<GameProvider>().reportOutcome(GameOutcome(
-      gameType: 'puzzle_math',
-      difficulty: widget.level,
-      score: 0,
-      wasSuccessful: wasSuccessful,
-      mathProblems: allProblems,
-    ));
+    if (wasSuccessful) {
+      context.read<GameProvider>().reportOutcome(GameOutcome.win(
+        gameType: 'puzzle_math',
+        difficulty: widget.level,
+        score: finalScore,
+        mathProblems: allProblems,
+      ));
+    } else {
+      context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+        gameType: 'puzzle_math',
+        difficulty: widget.level,
+        mathProblems: allProblems,
+      ));
+    }
 
     // 4. Show the appropriate dialog to the user.
     if (wasSuccessful) {

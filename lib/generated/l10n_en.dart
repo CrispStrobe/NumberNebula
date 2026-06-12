@@ -872,6 +872,13 @@ class SEn extends S {
       'The alien codes proved too complex to crack in time. Don\'t worry - even the best codebreakers need practice!';
 
   @override
+  String get codebreakerOutOfMoves => 'Out of Moves!';
+
+  @override
+  String get codebreakerOutOfMovesDesc =>
+      'Too many placements! Think carefully about each code assignment to crack the transmission efficiently.';
+
+  @override
   String get problemCustomization => 'Problem Customization';
 
   @override
@@ -2699,6 +2706,13 @@ class SEn extends S {
       'The energy imbalance caused a plasma leak. Redistribute the charge and try again, Commander.';
 
   @override
+  String get starForgeOutOfMoves => 'Out of Moves!';
+
+  @override
+  String get starForgeOutOfMovesDesc =>
+      'Too many node placements! Plan your energy distribution carefully to ignite the star.';
+
+  @override
   String get nebulaMatrixTitle => 'Nebula Matrix';
 
   @override
@@ -2723,6 +2737,13 @@ class SEn extends S {
   @override
   String get nebulaMatrixLoseDesc =>
       'Conflicting frequencies destabilized the nebula. Recalibrate your matrix and try again, Commander.';
+
+  @override
+  String get nebulaMatrixOutOfMoves => 'Out of Moves!';
+
+  @override
+  String get nebulaMatrixOutOfMovesDesc =>
+      'Too many placements! Place each frequency carefully to stabilize the nebula.';
 
   @override
   String get orbitalTowersTitle => 'Orbital Towers';
@@ -2750,6 +2771,13 @@ class SEn extends S {
   @override
   String get orbitalTowersLoseDesc =>
       'The satellite cameras don\'t match your layout. Remember: tall towers block the view of shorter ones behind them, Commander.';
+
+  @override
+  String get orbitalTowersOutOfMoves => 'Out of Moves!';
+
+  @override
+  String get orbitalTowersOutOfMovesDesc =>
+      'Too many tower placements! Study the edge clues carefully before placing each tower.';
 
   @override
   String get hiveStationTitle => 'Hive Station';

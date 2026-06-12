@@ -317,6 +317,8 @@
         }
     },
     "codebreakerLoseDesc": "Die Alien-Codes waren zu komplex, um sie rechtzeitig zu knacken. Keine Sorge – selbst die besten Codeknacker brauchen Übung!",
+    "codebreakerOutOfMoves": "Alle Züge verbraucht!",
+    "codebreakerOutOfMovesDesc": "Überlege dir jeden Zug genau, um die Übertragung effizient zu entschlüsseln!",
     "problemCustomization": "Aufgaben-Anpassung",
     "problemCustomizationDesc": "Passe die Rechenarten und Zahlenbereiche in den Spielen an.",
     "problemCustomizationUnlock": "Diese Funktion erfordert die Vollversion.",
@@ -1430,6 +1432,8 @@
   },
   "starForgeLoseTitle": "Schmiedefehler!",
   "starForgeLoseDesc": "Das Energieungleichgewicht hat ein Plasmaleck verursacht. Verteile die Ladung neu, Commander.",
+  "starForgeOutOfMoves": "Alle Züge verbraucht!",
+  "starForgeOutOfMovesDesc": "Plane die Energieverteilung genau, um den Stern zu entzünden!",
 
   "nebulaMatrixTitle": "Nebel-Matrix",
   "nebulaMatrixDesc": "Stabilisiere das Energiefeld! Fulle jede Zeile, Spalte und Zone des Nebelgitters, sodass sich keine Frequenz wiederholt. Eine falsche Resonanz und der Nebel kollabiert!",
@@ -1443,6 +1447,8 @@
   },
   "nebulaMatrixLoseTitle": "Feldkollaps!",
   "nebulaMatrixLoseDesc": "Widerspruchliche Frequenzen haben den Nebel destabilisiert. Kalibriere deine Matrix neu, Commander.",
+  "nebulaMatrixOutOfMoves": "Alle Züge verbraucht!",
+  "nebulaMatrixOutOfMovesDesc": "Setze jede Frequenz gezielt ein, um den Nebel zu stabilisieren!",
 
   "orbitalTowersTitle": "Orbital-Turme",
   "orbitalTowersDesc": "Baue eine Weltraumstadt auf der Orbitalplattform! Die Satellitenkameras an jedem Rand melden, wie viele Turme sie sehen konnen. Hohere Turme verbergen niedrigere hinter sich.",
@@ -1461,6 +1467,8 @@
   },
   "orbitalTowersLoseTitle": "Bauplanfehler!",
   "orbitalTowersLoseDesc": "Die Satellitenkameras stimmen nicht mit deinem Layout uberein. Denke daran: Hohe Turme blockieren die Sicht auf niedrigere dahinter, Commander.",
+  "orbitalTowersOutOfMoves": "Alle Züge verbraucht!",
+  "orbitalTowersOutOfMovesDesc": "Studiere die Randhinweise genau, bevor du jeden Turm platzierst!",
 
   "hiveStationTitle": "Bienen-Station",
   "hiveStationDesc": "Der Energiebienenstock der Station muss aufgeladen werden! Jede Zelle zeigt an, wie viele ihrer Nachbarn einen Energiekern enthalten. Finde heraus, welche Zellen Energie brauchen!",

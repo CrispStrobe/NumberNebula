@@ -53,9 +53,10 @@ class GridFillerGame extends StatefulWidget {
 
 class _GridFillerGameState extends State<GridFillerGame>
     with TickerProviderStateMixin {
-  
-  static const int gridSize = 45;
-  
+
+  late int _pieceTypes; // N: pieces 1×1 through N×N
+  late int gridSize;    // Derived: (N*(N+1)/2)
+
   late List<GridPiece> availablePieces;
   List<PlacedPiece> placedPieces = [];
   
@@ -125,7 +126,26 @@ class _GridFillerGameState extends State<GridFillerGame>
   
   void _initializeGame() {
     debugPrint('🎮 Initializing game...');
-    
+
+    // Scale piece types (N) by grade + level
+    // N=4 → 10×10, N=5 → 15×15, N=6 → 21×21, N=7 → 28×28, N=8 → 36×36, N=9 → 45×45
+    final complexity = widget.grade + (widget.level / 5.0);
+    if (complexity <= 2.0) {
+      _pieceTypes = 4;  // 10×10
+    } else if (complexity <= 3.0) {
+      _pieceTypes = 5;  // 15×15
+    } else if (complexity <= 4.0) {
+      _pieceTypes = 6;  // 21×21
+    } else if (complexity <= 5.5) {
+      _pieceTypes = 7;  // 28×28
+    } else if (complexity <= 7.0) {
+      _pieceTypes = 8;  // 36×36
+    } else {
+      _pieceTypes = 9;  // 45×45
+    }
+    gridSize = _pieceTypes * (_pieceTypes + 1) ~/ 2;
+    debugPrint('🎮 Difficulty: complexity=$complexity, pieceTypes=$_pieceTypes, gridSize=$gridSize');
+
     final colors = [
       SpaceTheme.starYellow,
       SpaceTheme.planetOrange,
@@ -137,8 +157,8 @@ class _GridFillerGameState extends State<GridFillerGame>
       const Color(0xFF00E676),
       const Color(0xFFFF6F00),
     ];
-    
-    availablePieces = List.generate(9, (i) {
+
+    availablePieces = List.generate(_pieceTypes, (i) {
       final size = i + 1;
       return GridPiece(
         size: size,
@@ -258,8 +278,8 @@ class _GridFillerGameState extends State<GridFillerGame>
       _winController.forward();
       
       final baseScore = 200 * widget.grade;
-      final bonusScore = (baseScore * 0.5).round();
-      final totalScore = baseScore + bonusScore;
+      final complexityBonus = _pieceTypes * 30;
+      final totalScore = baseScore + complexityBonus;
       
       debugPrint('🎉 WINNER! Score: $totalScore');
       
@@ -385,7 +405,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                             ),
                           ),
                           Text(
-                            'Fill the 45${context.read<GameProvider>().multiplicationSymbol}45 grid',
+                            'Fill the $gridSize${context.read<GameProvider>().multiplicationSymbol}$gridSize grid',
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.7),
                               fontSize: 14,
@@ -409,7 +429,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                             const Icon(Icons.grid_on, color: SpaceTheme.alienGreen, size: 20),
                             const SizedBox(width: 8),
                             Text(
-                              '${placedPieces.length}/45',
+                              '${placedPieces.length}/${_pieceTypes * (_pieceTypes + 1) ~/ 2}',
                               style: const TextStyle(
                                 color: SpaceTheme.alienGreen,
                                 fontSize: 18,

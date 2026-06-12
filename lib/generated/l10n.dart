@@ -1657,6 +1657,18 @@ abstract class S {
   /// **'The alien codes proved too complex to crack in time. Don\'t worry - even the best codebreakers need practice!'**
   String get codebreakerLoseDesc;
 
+  /// No description provided for @codebreakerOutOfMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of Moves!'**
+  String get codebreakerOutOfMoves;
+
+  /// No description provided for @codebreakerOutOfMovesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many placements! Think carefully about each code assignment to crack the transmission efficiently.'**
+  String get codebreakerOutOfMovesDesc;
+
   /// No description provided for @problemCustomization.
   ///
   /// In en, this message translates to:
@@ -4768,6 +4780,18 @@ abstract class S {
   /// **'The energy imbalance caused a plasma leak. Redistribute the charge and try again, Commander.'**
   String get starForgeLoseDesc;
 
+  /// No description provided for @starForgeOutOfMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of Moves!'**
+  String get starForgeOutOfMoves;
+
+  /// No description provided for @starForgeOutOfMovesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many node placements! Plan your energy distribution carefully to ignite the star.'**
+  String get starForgeOutOfMovesDesc;
+
   /// No description provided for @nebulaMatrixTitle.
   ///
   /// In en, this message translates to:
@@ -4810,6 +4834,18 @@ abstract class S {
   /// **'Conflicting frequencies destabilized the nebula. Recalibrate your matrix and try again, Commander.'**
   String get nebulaMatrixLoseDesc;
 
+  /// No description provided for @nebulaMatrixOutOfMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of Moves!'**
+  String get nebulaMatrixOutOfMoves;
+
+  /// No description provided for @nebulaMatrixOutOfMovesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many placements! Place each frequency carefully to stabilize the nebula.'**
+  String get nebulaMatrixOutOfMovesDesc;
+
   /// No description provided for @orbitalTowersTitle.
   ///
   /// In en, this message translates to:
@@ -4851,6 +4887,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'The satellite cameras don\'t match your layout. Remember: tall towers block the view of shorter ones behind them, Commander.'**
   String get orbitalTowersLoseDesc;
+
+  /// No description provided for @orbitalTowersOutOfMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of Moves!'**
+  String get orbitalTowersOutOfMoves;
+
+  /// No description provided for @orbitalTowersOutOfMovesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tower placements! Study the edge clues carefully before placing each tower.'**
+  String get orbitalTowersOutOfMovesDesc;
 
   /// No description provided for @hiveStationTitle.
   ///

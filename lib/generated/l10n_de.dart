@@ -878,6 +878,13 @@ class SDe extends S {
       'Die Alien-Codes waren zu komplex, um sie rechtzeitig zu knacken. Keine Sorge – selbst die besten Codeknacker brauchen Übung!';
 
   @override
+  String get codebreakerOutOfMoves => 'Alle Züge verbraucht!';
+
+  @override
+  String get codebreakerOutOfMovesDesc =>
+      'Überlege dir jeden Zug genau, um die Übertragung effizient zu entschlüsseln!';
+
+  @override
   String get problemCustomization => 'Aufgaben-Anpassung';
 
   @override
@@ -2713,6 +2720,13 @@ class SDe extends S {
       'Das Energieungleichgewicht hat ein Plasmaleck verursacht. Verteile die Ladung neu, Commander.';
 
   @override
+  String get starForgeOutOfMoves => 'Alle Züge verbraucht!';
+
+  @override
+  String get starForgeOutOfMovesDesc =>
+      'Plane die Energieverteilung genau, um den Stern zu entzünden!';
+
+  @override
   String get nebulaMatrixTitle => 'Nebel-Matrix';
 
   @override
@@ -2737,6 +2751,13 @@ class SDe extends S {
   @override
   String get nebulaMatrixLoseDesc =>
       'Widerspruchliche Frequenzen haben den Nebel destabilisiert. Kalibriere deine Matrix neu, Commander.';
+
+  @override
+  String get nebulaMatrixOutOfMoves => 'Alle Züge verbraucht!';
+
+  @override
+  String get nebulaMatrixOutOfMovesDesc =>
+      'Setze jede Frequenz gezielt ein, um den Nebel zu stabilisieren!';
 
   @override
   String get orbitalTowersTitle => 'Orbital-Turme';
@@ -2764,6 +2785,13 @@ class SDe extends S {
   @override
   String get orbitalTowersLoseDesc =>
       'Die Satellitenkameras stimmen nicht mit deinem Layout uberein. Denke daran: Hohe Turme blockieren die Sicht auf niedrigere dahinter, Commander.';
+
+  @override
+  String get orbitalTowersOutOfMoves => 'Alle Züge verbraucht!';
+
+  @override
+  String get orbitalTowersOutOfMovesDesc =>
+      'Studiere die Randhinweise genau, bevor du jeden Turm platzierst!';
 
   @override
   String get hiveStationTitle => 'Bienen-Station';

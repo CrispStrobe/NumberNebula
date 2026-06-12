@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -116,6 +117,50 @@ class _GravityWellGameState extends State<GravityWellGame>
     }
   }
 
+  /// Extract arithmetic problems from balance scales.
+  /// Each scale where the unknown appears produces an addition/subtraction problem.
+  List<MathProblem> _extractMathProblems() {
+    if (puzzle == null) return [];
+    final problems = <MathProblem>[];
+
+    for (final scale in puzzle!.scales) {
+      // Sum known weights on each side to derive the equation
+      final leftKnown = scale.leftSide
+          .where((item) => !puzzle!.unknownWeights.containsKey(item.label))
+          .fold(0, (sum, item) => sum + item.weight);
+      final rightKnown = scale.rightSide
+          .where((item) => !puzzle!.unknownWeights.containsKey(item.label))
+          .fold(0, (sum, item) => sum + item.weight);
+      final leftUnknown = scale.leftSide
+          .where((item) => puzzle!.unknownWeights.containsKey(item.label));
+      final rightUnknown = scale.rightSide
+          .where((item) => puzzle!.unknownWeights.containsKey(item.label));
+
+      // Simple case: one unknown on one side, known values on other
+      if (leftUnknown.length == 1 && rightUnknown.isEmpty) {
+        // unknown = rightKnown - leftKnown (subtraction)
+        final unknownWeight = leftUnknown.first.weight;
+        if (rightKnown > leftKnown) {
+          problems.add(MathProblem.subtraction(rightKnown, leftKnown,
+              difficulty: widget.grade));
+        } else {
+          problems.add(MathProblem.addition(leftKnown, unknownWeight,
+              difficulty: widget.grade));
+        }
+      } else if (rightUnknown.length == 1 && leftUnknown.isEmpty) {
+        final unknownWeight = rightUnknown.first.weight;
+        if (leftKnown > rightKnown) {
+          problems.add(MathProblem.subtraction(leftKnown, rightKnown,
+              difficulty: widget.grade));
+        } else {
+          problems.add(MathProblem.addition(rightKnown, unknownWeight,
+              difficulty: widget.grade));
+        }
+      }
+    }
+    return problems;
+  }
+
   void _handleWin() {
     HapticFeedback.lightImpact();
     _gameOver = true;
@@ -125,10 +170,13 @@ class _GravityWellGameState extends State<GravityWellGame>
     int complexityBonus = puzzle!.scales.length * 30 + puzzle!.unknownWeights.length * 40;
     int totalScore = baseScore + levelBonus + complexityBonus;
 
+    final mathProblems = _extractMathProblems();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'gravity_well',
       difficulty: widget.level,
       score: totalScore,
+      mathProblems: mathProblems,
     ));
 
     _successController.forward(from: 0.0);
@@ -148,6 +196,7 @@ class _GravityWellGameState extends State<GravityWellGame>
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'gravity_well',
       difficulty: widget.level,
+      mathProblems: _extractMathProblems(),
     ));
 
     ScaffoldMessenger.of(context).showSnackBar(

@@ -384,6 +384,8 @@
         }
     },
     "codebreakerLoseDesc": "The alien codes proved too complex to crack in time. Don't worry - even the best codebreakers need practice!",
+    "codebreakerOutOfMoves": "Out of Moves!",
+    "codebreakerOutOfMovesDesc": "Too many placements! Think carefully about each code assignment to crack the transmission efficiently.",
     "problemCustomization": "Problem Customization",
     "problemCustomizationDesc": "Customize the math operations and number ranges used in games.",
     "problemCustomizationUnlock": "This feature requires the full version.",
@@ -1510,6 +1512,8 @@
   },
   "starForgeLoseTitle": "Forge Misfire!",
   "starForgeLoseDesc": "The energy imbalance caused a plasma leak. Redistribute the charge and try again, Commander.",
+  "starForgeOutOfMoves": "Out of Moves!",
+  "starForgeOutOfMovesDesc": "Too many node placements! Plan your energy distribution carefully to ignite the star.",
 
   "nebulaMatrixTitle": "Nebula Matrix",
   "nebulaMatrixDesc": "Stabilize the energy field! Fill every row, column, and zone of the nebula grid so no frequency repeats. One wrong resonance and the nebula collapses!",
@@ -1523,6 +1527,8 @@
   },
   "nebulaMatrixLoseTitle": "Field Collapse!",
   "nebulaMatrixLoseDesc": "Conflicting frequencies destabilized the nebula. Recalibrate your matrix and try again, Commander.",
+  "nebulaMatrixOutOfMoves": "Out of Moves!",
+  "nebulaMatrixOutOfMovesDesc": "Too many placements! Place each frequency carefully to stabilize the nebula.",
 
   "orbitalTowersTitle": "Orbital Towers",
   "orbitalTowersDesc": "Build a space city on the orbital platform! The satellite cameras on each edge report how many towers they can see. Taller towers hide shorter ones behind them.",
@@ -1541,6 +1547,8 @@
   },
   "orbitalTowersLoseTitle": "Blueprint Mismatch!",
   "orbitalTowersLoseDesc": "The satellite cameras don't match your layout. Remember: tall towers block the view of shorter ones behind them, Commander.",
+  "orbitalTowersOutOfMoves": "Out of Moves!",
+  "orbitalTowersOutOfMovesDesc": "Too many tower placements! Study the edge clues carefully before placing each tower.",
 
   "hiveStationTitle": "Hive Station",
   "hiveStationDesc": "The station's energy hive needs charging! Each cell displays how many of its neighbors hold an energy core. Deduce which cells need power!",

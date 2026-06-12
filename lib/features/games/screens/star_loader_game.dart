@@ -512,7 +512,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'star_loader_game',
       difficulty: widget.level,
-      score: 0,
+      score: totalScore,
     ));
 
     showDialog(

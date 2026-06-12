@@ -36,6 +36,9 @@ class _StarForgeGameState extends State<StarForgeGame>
   int _lastDroppedNode = -1;
   DifficultyConfig? currentDifficulty;
 
+  int _movesRemaining = 0;
+  int _maxMoves = 0;
+
   @override
   void initState() {
     super.initState();
@@ -127,8 +130,15 @@ class _StarForgeGameState extends State<StarForgeGame>
       if (mounted) {
         setState(() {
           puzzle = p;
+
+          // Calculate max moves: 2x empty nodes (generous safety net)
+          final emptyCount = p.emptyNodes.length;
+          _maxMoves = emptyCount * 2;
+          _movesRemaining = _maxMoves;
+
           _isGenerating = false;
         });
+        debugPrint('[StarForge] Max moves allowed: $_maxMoves for ${p.emptyNodes.length} empty nodes');
       }
     } catch (e) {
       debugPrint('[StarForge] Error generating puzzle: $e');
@@ -142,7 +152,18 @@ class _StarForgeGameState extends State<StarForgeGame>
       userSolution[nodeIdx] = number;
       _lastDroppedNode = nodeIdx;
       _dropController.forward(from: 0.0);
+
+      // Decrement moves on placement
+      _movesRemaining--;
+      debugPrint('[StarForge] Moves remaining: $_movesRemaining/$_maxMoves');
     });
+
+    // Check if out of moves BEFORE checking solution
+    if (_movesRemaining <= 0 && userSolution.length < puzzle!.emptyNodes.length) {
+      _handleOutOfMoves();
+      return;
+    }
+
     _checkSolution();
   }
 
@@ -201,6 +222,114 @@ class _StarForgeGameState extends State<StarForgeGame>
     );
   }
 
+  void _handleFailure() {
+    debugPrint('[StarForge] FAILURE - recording loss');
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      gameType: 'star_forge',
+      difficulty: widget.level,
+    ));
+  }
+
+  void _handleOutOfMoves() {
+    debugPrint('[StarForge] Out of moves! Game over.');
+    _handleFailure();
+
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => _buildOutOfMovesDialog(),
+      );
+    }
+  }
+
+  Widget _buildOutOfMovesDialog() {
+    final s = S.of(context)!;
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: SpaceTheme.cardDecoration.copyWith(
+          border: Border.all(color: SpaceTheme.rocketRed, width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
+            const SizedBox(height: 16),
+            Text(
+              s.starForgeOutOfMoves,
+              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              s.starForgeOutOfMovesDesc,
+              style: SpaceTheme.bodyStyle,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _generatePuzzle();
+                  },
+                  style: SpaceTheme.secondaryButtonStyle,
+                  child: Text(s.tryAgain),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  style: SpaceTheme.primaryButtonStyle,
+                  child: Text(s.backToMenu),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMovesIndicator() {
+    Color indicatorColor;
+    if (_movesRemaining <= 3) {
+      indicatorColor = SpaceTheme.rocketRed;
+    } else if (_movesRemaining <= 5) {
+      indicatorColor = SpaceTheme.planetOrange;
+    } else {
+      indicatorColor = SpaceTheme.cosmicPink;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: indicatorColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.touch_app, color: indicatorColor, size: 18),
+          const SizedBox(width: 6),
+          Text(
+            '$_movesRemaining',
+            style: SpaceTheme.titleStyle.copyWith(
+              fontSize: 14,
+              color: indicatorColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = S.of(context)!;
@@ -234,10 +363,22 @@ class _StarForgeGameState extends State<StarForgeGame>
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  s.starForgeInstructions,
-                  style: SpaceTheme.bodyStyle,
-                  textAlign: TextAlign.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        s.starForgeInstructions,
+                        style: SpaceTheme.bodyStyle,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildMovesIndicator(),
+                  ],
                 ),
               ),
               Expanded(child: _buildStarArea()),

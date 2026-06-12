@@ -49,6 +49,9 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   bool _isDragging = false;
   int? _draggingNumber;
 
+  int _movesRemaining = 0;
+  int _maxMoves = 0;
+
   @override
   void initState() {
     super.initState();
@@ -137,9 +140,16 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         setState(() {
           puzzle = generatedPuzzle;
           numberPool = List.from(generatedPuzzle.numberPool);
+
+          // Calculate max moves: 2x hidden symbols (generous safety net)
+          final emptyCount = generatedPuzzle.hiddenSymbols.length;
+          _maxMoves = emptyCount * 2;
+          _movesRemaining = _maxMoves;
+
           _isGenerating = false;
         });
         debugPrint("🎯 [CODEBREAKER UI] UI state updated with new puzzle");
+        debugPrint("🎯 [CODEBREAKER UI] Max moves allowed: $_maxMoves for ${generatedPuzzle.hiddenSymbols.length} hidden symbols");
         debugPrint("🎯 [CODEBREAKER UI] Number pool: ${numberPool.join(', ')}");
         debugPrint("🎯 [CODEBREAKER UI] Hidden symbols: ${generatedPuzzle.hiddenSymbols.join(', ')}");
       }
@@ -200,11 +210,11 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     setState(() {
         // Remove this number from any other positions first
         userSolution.removeWhere((key, value) => value == number);
-        
+
         // Find all positions with this symbol and fill them
         for (int eqIndex = 0; eqIndex < puzzle!.equations.length; eqIndex++) {
         final equation = puzzle!.equations[eqIndex];
-        
+
         // Check term1
         if (equation.term1 is String) {
             final currentSymbol = equation.term1 as String;
@@ -214,7 +224,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             debugPrint("🎮 [CODEBREAKER UI] Auto-filled position $currentPositionId with $number");
             }
         }
-        
+
         // Check term2
         if (equation.term2 is String) {
             final currentSymbol = equation.term2 as String;
@@ -224,7 +234,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             debugPrint("🎮 [CODEBREAKER UI] Auto-filled position $currentPositionId with $number");
             }
         }
-        
+
         // Check result
         if (equation.result is String) {
             final currentSymbol = equation.result as String;
@@ -235,16 +245,27 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             }
         }
         }
-      
+
         numberPool.remove(number);
         _lastDroppedPosition = positionId;
         _dropController.forward(from: 0.0);
+
+        // Decrement moves on placement
+        _movesRemaining--;
+        debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
     });
 
     debugPrint("🎮 [PLACE] User solution after: $userSolution");
     debugPrint("🎮 [PLACE] Number pool after: $numberPool");
     debugPrint("🎮 [PLACE] === PLACEMENT COMPLETE ===");
     _debugCurrentState();
+
+    // Check if out of moves BEFORE checking solution
+    if (_movesRemaining <= 0 && userSolution.length < puzzle!.hiddenPositions.length) {
+      _handleOutOfMoves();
+      return;
+    }
+
     _checkSolution();
   }
 
@@ -431,6 +452,111 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     ));
   }
 
+  void _handleOutOfMoves() {
+    debugPrint("❌ [CODEBREAKER UI] Out of moves! Game over.");
+    _handleFailure();
+
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => _buildOutOfMovesDialog(),
+      );
+    }
+  }
+
+  Widget _buildOutOfMovesDialog() {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: SpaceTheme.cardDecoration.copyWith(
+          border: Border.all(color: SpaceTheme.rocketRed, width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
+            const SizedBox(height: 16),
+            Text(
+              S.of(context)!.codebreakerOutOfMoves,
+              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              S.of(context)!.codebreakerOutOfMovesDesc,
+              style: SpaceTheme.bodyStyle,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _generatePuzzle();
+                  },
+                  style: SpaceTheme.secondaryButtonStyle,
+                  child: Text(S.of(context)!.tryAgain),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  style: SpaceTheme.primaryButtonStyle,
+                  child: Text(S.of(context)!.backToMenu),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMovesIndicator({required bool isCompact}) {
+    final fontSize = isCompact ? 12.0 : 14.0;
+    final iconSize = isCompact ? 16.0 : 20.0;
+
+    Color indicatorColor;
+    if (_movesRemaining <= 3) {
+      indicatorColor = SpaceTheme.rocketRed;
+    } else if (_movesRemaining <= 5) {
+      indicatorColor = SpaceTheme.planetOrange;
+    } else {
+      indicatorColor = SpaceTheme.alienGreen;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 8 : 10,
+        vertical: isCompact ? 4 : 6,
+      ),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: indicatorColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.touch_app, color: indicatorColor, size: iconSize),
+          SizedBox(width: isCompact ? 4 : 6),
+          Text(
+            '$_movesRemaining',
+            style: SpaceTheme.titleStyle.copyWith(
+              fontSize: fontSize,
+              color: indicatorColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   int _getOperationBonus(String operation) {
     switch (operation) {
       case '+': return 0;
@@ -513,10 +639,22 @@ class _CodebreakerGameState extends State<CodebreakerGame>
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text(
-              S.of(context)!.codebreakerInstructions,
-              style: SpaceTheme.bodyStyle,
-              textAlign: TextAlign.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    S.of(context)!.codebreakerInstructions,
+                    style: SpaceTheme.bodyStyle,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                _buildMovesIndicator(isCompact: false),
+              ],
             ),
           ),
         ],
@@ -552,10 +690,12 @@ class _CodebreakerGameState extends State<CodebreakerGame>
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          _buildLevelIndicator(isCompact: true),
           const SizedBox(width: 8),
+          _buildLevelIndicator(isCompact: true),
+          const SizedBox(width: 4),
           _buildScoreIndicator(isCompact: true),
+          const SizedBox(width: 4),
+          _buildMovesIndicator(isCompact: true),
         ],
       ),
     );

@@ -631,7 +631,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'perspective_puzzle',
       difficulty: currentPuzzle?.difficulty ?? 1,
-      score: 0,
+      score: finalScore,
     ));
     
     // 3. Trigger UI feedback.

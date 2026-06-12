@@ -100,6 +100,14 @@ class GameProvider extends ChangeNotifier {
 
   Map<String, int> _currentLevelWins = {};
 
+  /// Best star rating achieved per game (1-3). Persisted.
+  Map<String, int> _bestStars = {};
+  /// Star rating from the most recent reportOutcome call.
+  int _lastStars = 0;
+
+  int get lastStars => _lastStars;
+  Map<String, int> get bestStars => Map.unmodifiable(_bestStars);
+
   // Getter
   bool get isFullVersionUnlocked => _isFullVersionUnlocked;
 
@@ -186,6 +194,13 @@ class GameProvider extends ChangeNotifier {
         '${outcome.wasSuccessful ? "WIN" : "LOSS"} at difficulty ${outcome.difficulty}');
 
     if (outcome.wasSuccessful) addScore(outcome.score);
+
+    // Compute normalized star rating
+    _lastStars = scoreToStars(outcome.gameType, outcome.score, outcome.wasSuccessful);
+    if (_lastStars > (_bestStars[outcome.gameType] ?? 0)) {
+      _bestStars[outcome.gameType] = _lastStars;
+    }
+    debugPrint('[GAME_PROVIDER] ⭐ Stars: $_lastStars (best: ${_bestStars[outcome.gameType]})');
 
     _currentLevelWins[outcome.gameType] =
         (_currentLevelWins[outcome.gameType] ?? 0) +
@@ -484,6 +499,7 @@ class GameProvider extends ChangeNotifier {
     _lives = 3;
     _achievements.clear(); // Also clear achievements for a full reset
     _gameProgress.clear();
+    _bestStars.clear();
     notifyListeners();
     _saveProgress();
   }
@@ -539,6 +555,7 @@ class GameProvider extends ChangeNotifier {
       'soundEnabled': _soundEnabled,
       'musicEnabled': _musicEnabled,
       'gameProgress': _gameProgress,
+      'bestStars': _bestStars,
       'achievements': _achievements.map((a) => a.toJson()).toList(),
       'useAdaptiveDifficulty': _useAdaptiveDifficulty,
       'difficultyMode': _difficultyMode.index,
@@ -562,6 +579,7 @@ class GameProvider extends ChangeNotifier {
     _soundEnabled = json['soundEnabled'] ?? true;
     _musicEnabled = json['musicEnabled'] ?? true;
     _gameProgress = Map<String, int>.from(json['gameProgress'] ?? {});
+    _bestStars = Map<String, int>.from(json['bestStars'] ?? {});
     _useAdaptiveDifficulty = json['useAdaptiveDifficulty'] ?? false;
     final modeIndex = json['difficultyMode'] as int? ??
         DifficultyMode.normal.index;

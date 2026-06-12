@@ -446,7 +446,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'arithmatic_square',
       difficulty: widget.level,
-      score: 0,
+      score: totalScore,
     ));
     
     _successController.forward(from: 0.0);
