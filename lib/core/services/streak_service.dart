@@ -20,10 +20,16 @@ class StreakService extends ChangeNotifier {
   static const _kLongestKey = 'streak_longest';
   static const _kLastDayKey = 'streak_lastDay';
 
+  /// Injectable clock for deterministic testing. Defaults to [DateTime.now].
+  final DateTime Function() getNow;
+
   int _current = 0;
   int _longest = 0;
   DateTime? _lastPlayedDay;
   bool _loaded = false;
+
+  StreakService({DateTime Function()? getNow})
+      : getNow = getNow ?? DateTime.now;
 
   int get currentStreak => _current;
   int get longestStreak => _longest;
@@ -35,7 +41,7 @@ class StreakService extends ChangeNotifier {
   bool get playedToday {
     final last = _lastPlayedDay;
     if (last == null) return false;
-    return _sameDay(last, DateTime.now());
+    return _sameDay(last, getNow());
   }
 
   Future<void> load() async {
@@ -50,7 +56,7 @@ class StreakService extends ChangeNotifier {
     // to trigger markPlayed.
     final last = _lastPlayedDay;
     if (last != null && _current > 0) {
-      final today = _dateOnly(DateTime.now());
+      final today = _dateOnly(getNow());
       final diff = today.difference(_dateOnly(last)).inDays;
       if (diff >= 2) {
         _current = 0;
@@ -67,7 +73,7 @@ class StreakService extends ChangeNotifier {
   Future<void> markPlayed() async {
     if (!_loaded) await load();
 
-    final now = DateTime.now();
+    final now = getNow();
     final today = _dateOnly(now);
     final last = _lastPlayedDay == null ? null : _dateOnly(_lastPlayedDay!);
 

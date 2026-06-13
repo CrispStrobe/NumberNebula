@@ -48,9 +48,15 @@ class SriProblemData {
 class SriService with ChangeNotifier {
   Map<String, SriProblemData> _sriDatabase = {};
   static const _sriStorageKey = 'sri_database';
-  
+
+  /// Injectable clock for deterministic testing. Defaults to [DateTime.now].
+  final DateTime Function() getNow;
+
   final Set<String> _alreadyReturnedThisSession = {};
   DateTime? _sessionStartTime;
+
+  SriService({DateTime Function()? getNow})
+      : getNow = getNow ?? DateTime.now;
 
   void _log(String message) {
     if (kDebugMode) debugPrint('[SRI_SERVICE] 🧠 $message');
@@ -58,13 +64,13 @@ class SriService with ChangeNotifier {
 
   void resetSession() {
     _alreadyReturnedThisSession.clear();
-    _sessionStartTime = DateTime.now();
+    _sessionStartTime = getNow();
     _log('Session reset. Clearing returned problems cache.');
   }
 
   void _checkSessionExpiry() {
     if (_sessionStartTime == null || 
-        DateTime.now().difference(_sessionStartTime!).inMinutes > 10) {
+        getNow().difference(_sessionStartTime!).inMinutes > 10) {
       resetSession();
     }
   }
@@ -214,7 +220,7 @@ class SriService with ChangeNotifier {
 
     final data = _sriDatabase[problemId] ?? SriProblemData(
       problemId: problemId,
-      nextReviewDate: DateTime.now(),
+      nextReviewDate: getNow(),
     );
 
     if (wasCorrect) {
@@ -245,7 +251,7 @@ class SriService with ChangeNotifier {
       intervalInDays = (data.repetitions - 1) * data.easinessFactor.round();
     }
 
-    data.nextReviewDate = DateTime.now().add(Duration(days: intervalInDays));
+    data.nextReviewDate = getNow().add(Duration(days: intervalInDays));
     
     _sriDatabase[problemId] = data;
     _log('Updated SRI for "$problemId": EF=${data.easinessFactor.toStringAsFixed(2)}, Reps=${data.repetitions}, NextReview=${data.nextReviewDate.toIso8601String().substring(0, 10)}');
@@ -265,7 +271,7 @@ class SriService with ChangeNotifier {
       _checkSessionExpiry();
     }
 
-    final now = DateTime.now();
+    final now = getNow();
     final allExcluded = <String>{
       ..._alreadyReturnedThisSession,
       ...?excludeIds,
@@ -299,7 +305,7 @@ class SriService with ChangeNotifier {
   int getAvailableReviewCount({Set<String>? excludeIds}) {
     _checkSessionExpiry();
     
-    final now = DateTime.now();
+    final now = getNow();
     final allExcluded = <String>{
       ..._alreadyReturnedThisSession,
       ...?excludeIds,
@@ -399,7 +405,7 @@ class SriService with ChangeNotifier {
   Future<void> moveItemToBox(String problemId, int targetBox) async {
     final data = _sriDatabase[problemId];
     if (data == null) return;
-    final now = DateTime.now();
+    final now = getNow();
     switch (targetBox) {
       case 1:
         data.repetitions = 0;
