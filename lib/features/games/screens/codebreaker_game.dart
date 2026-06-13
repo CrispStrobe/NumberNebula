@@ -1,4 +1,4 @@
-// ignore_for_file: constant_identifier_names, unused_element, unused_field
+// ignore_for_file: constant_identifier_names
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,8 +46,8 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   String _lastDroppedPosition = '';
   DifficultyConfig? currentDifficulty;
 
-  bool _isDragging = false;
-  int? _draggingNumber;
+  bool _isDragging = false; // ignore: unused_field
+  int? _draggingNumber; // ignore: unused_field
 
   int _movesRemaining = 0;
   int _maxMoves = 0;

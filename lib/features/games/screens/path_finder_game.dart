@@ -99,8 +99,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     _screenShakeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 300))
       ..addListener(_updateScreenShake);
     
-    _feedbackController = AnimationController(vsync: this, duration: const Duration(milliseconds: 500))
-      ..addListener(() => setState(() {}));
+    _feedbackController = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
 
     _shipController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
     
@@ -520,9 +519,12 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
               ),
             ),
             ),
-            IgnorePointer(
-              child: Container(
-                color: feedbackColor.withValues(alpha: feedbackColor.a * _feedbackController.value),
+            AnimatedBuilder(
+              animation: _feedbackController,
+              builder: (context, _) => IgnorePointer(
+                child: Container(
+                  color: feedbackColor.withValues(alpha: feedbackColor.a * _feedbackController.value),
+                ),
               ),
             ),
             // UI elements that should not interfere with taps

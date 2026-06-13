@@ -1,4 +1,3 @@
-// ignore_for_file: unused_element, unused_field
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -128,21 +127,6 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     for (final eq in currentPuzzle.equations) {
       debugPrint("🔐 [CryptexLockBreaker] Equation: ${eq.toString()}");
     }
-  }
-
-  void _rotateDial(int dialIndex, int delta) {
-    if (!gameActive || isUnlocked) return;
-    
-    HapticFeedback.selectionClick();
-    _dialController.forward(from: 0.0);
-    
-    setState(() {
-      dialValues[dialIndex] = ((dialValues[dialIndex] + delta) % 10).abs();
-      if (dialValues[dialIndex] < 0) dialValues[dialIndex] += 10;
-    });
-    
-    debugPrint("🔐 [CryptexLockBreaker] Dial $dialIndex rotated to ${dialValues[dialIndex]}");
-    _checkSolution();
   }
 
   void _onPanStart(DragStartDetails details, int dialIndex) {

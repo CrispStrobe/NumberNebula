@@ -1,4 +1,3 @@
-// ignore_for_file: unused_element, unused_field
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -75,7 +74,7 @@ class _GridFillerGameState extends State<GridFillerGame>
   late AnimationController _placeController;
   late AnimationController _winController;
   late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
+  late Animation<double> _pulseAnimation; // ignore: unused_field
   
   double _currentCellSize = 10.0;
   

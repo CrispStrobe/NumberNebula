@@ -1,4 +1,3 @@
-// ignore_for_file: unused_element, unused_field
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -37,7 +36,6 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   late Animation<double> _pulseAnimation;
   late Animation<double> _scanAnimation;
   late Animation<double> _successAnimation;
-  late Animation<double> _feedbackAnimation;
   late Animation<double> _glyphAnimation;
   late Animation<double> _headerAnimation;
 
@@ -107,9 +105,6 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    _feedbackAnimation = CurvedAnimation(
-        parent: _feedbackController, curve: Curves.easeOut);
-
     _glyphController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
@@ -624,36 +619,6 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
           const SizedBox(height: 8),
           _buildPreviousGuesses(),
         ],
-      ),
-    );
-  }
-
-  Widget _buildCompactInstructions() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: SpaceTheme.cardDecoration.copyWith(
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        S.of(context)!.signalTriangulationInstructions,
-        style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
-        textAlign: TextAlign.center,
-        maxLines: 3,
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
-
-  Widget _buildInstructions() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: SpaceTheme.cardDecoration.copyWith(
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        S.of(context)!.signalTriangulationInstructions,
-        style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
-        textAlign: TextAlign.center,
       ),
     );
   }

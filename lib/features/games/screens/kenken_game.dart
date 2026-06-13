@@ -238,7 +238,8 @@ class _KenkenGameState extends State<KenkenGame>
         continue;
       }
       
-      final values = cage.cells.map((cell) => completeGrid[cell.id]!).toList();
+      final values = cage.cells.map((cell) => completeGrid[cell.id] ?? 0).toList();
+      if (values.contains(0)) continue; // skip cage with missing data
       final operation = cage.operation!;
       
       debugPrint("🔲 [KENKEN] Processing cage: ${cage.clue} with ${values.length} cells = $values");
@@ -1211,7 +1212,7 @@ class KenkenPuzzle {
     for (int r = 0; r < size; r++) {
       final rowValues = <int>[];
       for (int c = 0; c < size; c++) {
-        rowValues.add(completeGrid['r${r}c$c']!);
+        rowValues.add(completeGrid['r${r}c$c'] ?? 0);
       }
       if (!_isValidLatinSequence(rowValues)) {
         debugPrint("✅ [KENKEN VALIDATION] ❌ Row $r violates Latin square property: $rowValues");
@@ -1222,7 +1223,7 @@ class KenkenPuzzle {
     for (int c = 0; c < size; c++) {
       final colValues = <int>[];
       for (int r = 0; r < size; r++) {
-        colValues.add(completeGrid['r${r}c$c']!);
+        colValues.add(completeGrid['r${r}c$c'] ?? 0);
       }
       if (!_isValidLatinSequence(colValues)) {
         debugPrint("✅ [KENKEN VALIDATION] ❌ Column $c violates Latin square property: $colValues");

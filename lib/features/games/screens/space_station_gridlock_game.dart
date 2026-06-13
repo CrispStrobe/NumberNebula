@@ -1,4 +1,3 @@
-// ignore_for_file: unused_element, unused_field
 // space_station_gridlock_game.dart - Responsive UI Update
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1519,8 +1518,6 @@ class GridPainter extends CustomPainter {
 class PuzzleGenerator {
   static const int gridSize = 6;
   static const int targetCarRow = 2;
-  static final _random = math.Random();
-
   static Future<PuzzleConfiguration> generate(int grade, int level) async {
     return PuzzleConfiguration(
       minMoves: 10,
@@ -1540,22 +1537,3 @@ class PuzzleConfiguration {
   PuzzleConfiguration({required this.ships, required this.minMoves});
 }
 
-class _SolverState {
-  final List<Map<String, dynamic>> ships;
-  final int moves;
-  late final String hashKey;
-  
-  _SolverState(this.ships, this.moves) {
-    final sorted = List<Map<String, dynamic>>.from(ships);
-    sorted.sort((a, b) {
-      final rowComp = (a['row'] as int).compareTo(b['row'] as int);
-      if (rowComp != 0) return rowComp;
-      final colComp = (a['col'] as int).compareTo(b['col'] as int);
-      if (colComp != 0) return colComp;
-      return (a['length'] as int).compareTo(b['length'] as int);
-    });
-    hashKey = sorted.map((s) => 
-      '${s['row']},${s['col']},${s['length']},${s['isHorizontal'] ? "H" : "V"}'
-    ).join('|');
-  }
-}

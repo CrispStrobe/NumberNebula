@@ -1,4 +1,3 @@
-// ignore_for_file: unused_element, unused_field
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -53,7 +52,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   List<int> numberPool = [];
   
   bool _isGenerating = true;
-  bool _isWarping = false;
+  bool _isWarping = false; // ignore: unused_field
   int _lastPlacedCellIndex = -1;
   bool _isDraggingOver = false;
   bool _showPanelExpansion = false;

@@ -1,4 +1,3 @@
-// ignore_for_file: unused_element, unused_field
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
 
-import '../constants/app_constants.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
@@ -56,7 +54,6 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   List<int> numberPool = [];
   
   bool _isGenerating = true;
-  bool _isWarping = false;
   int _lastPlacedCellIndex = -1;
   bool _isDraggingOver = false;
 
@@ -139,7 +136,6 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     
     setState(() {
       _isGenerating = true;
-      _isWarping = false;
       _shouldShowOperationHint = true;
       _warpController.reset();
       _successController.reset();
@@ -316,18 +312,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     return problemsToLog;
   }
 
-  MathOperation _convertWallOperationToMathOperation(WallOperation wallOp) {
-    switch (wallOp) {
-      case WallOperation.addition: return MathOperation.addition;
-      case WallOperation.subtraction: return MathOperation.subtraction;
-      case WallOperation.multiplication: return MathOperation.multiplication;
-      case WallOperation.division: return MathOperation.division;
-    }
-  }
-
   void _handleSuccess(int totalScoreGained) {
     HapticFeedback.lightImpact();
-    setState(() => _isWarping = true);
     _warpController.forward();
 
     void listener(AnimationStatus status) {
@@ -721,84 +707,6 @@ class _NumberWallsGameState extends State<NumberWallsGame>
           number.toString(), 
           style: SpaceTheme.headlineStyle.copyWith(fontSize: 14)
         ),
-      ),
-    );
-  }
-
-  Widget _buildCompactOperationIndicator() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        gradient: _getOperationGradient(currentPuzzle!.operation),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _getOperationColor(currentPuzzle!.operation), width: 2),
-      ),
-      child: Row(
-        children: [
-          AnimatedBuilder(
-            animation: _operationAnimation,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: _operationAnimation.value * 0.8,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    _getOperationIcon(currentPuzzle!.operation), 
-                    color: Colors.white, 
-                    size: 20
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _getOperationTitle(currentPuzzle!.operation),
-                  style: SpaceTheme.titleStyle.copyWith(
-                    color: Colors.white, 
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  _getOperationDescription(currentPuzzle!.operation),
-                  style: SpaceTheme.bodyStyle.copyWith(
-                    color: Colors.white70, 
-                    fontSize: 11,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          if (kTweakProblems)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'TWEAK',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-        ],
       ),
     );
   }
@@ -1209,19 +1117,6 @@ class _NumberWallsGameState extends State<NumberWallsGame>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildBrick(int number) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: SpaceTheme.starGradient,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
-      ),
-      child: Center(
-        child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 18))
-      ),
     );
   }
 

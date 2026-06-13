@@ -1,4 +1,3 @@
-// ignore_for_file: unused_element, unused_field
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -57,7 +56,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   late AnimationController _bonusController;
   
   late Animation<double> _pulseAnimation;
-  late Animation<double> _shakeAnimation;
+  late Animation<double> _shakeAnimation; // ignore: unused_field
   late Animation<double> _cardGlowAnimation;
   late Animation<double> _energyTransferAnimation;
   late Animation<double> _damageAnimation;
@@ -75,7 +74,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   List<MathCard> _discardCards = [];
   
   // Opponent State (for PvP)
-  List<MathCard> _opponentHand = [];
+  List<MathCard> _opponentHand = []; // ignore: unused_field
   final List<MathCard> _opponentBattlefield = [];
   bool _isOpponentTurn = false;
   
@@ -105,7 +104,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   Timer? _statusTimer;
 
   // turn skip
-  bool _canSkipTurn = false;
+  bool _canSkipTurn = false; // ignore: unused_field
   int _accumulatedEnergy = 0;
   bool _showInstructions = false;
 
@@ -373,31 +372,6 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         }
       }
     });
-  }
-
-  // Split parentheses cards into separate ( and ) cards
-  List<MathCard> _splitParenthesesCards(List<MathCard> cards) {
-    List<MathCard> result = [];
-    
-    for (final card in cards) {
-      if (card.type == CardType.parentheses && card.name == "Parentheses") {
-        // Split into two separate cards
-        result.add(MathCard(
-          name: "Open Parenthesis",
-          type: CardType.parentheses,
-          cost: card.cost,
-        ));
-        result.add(MathCard(
-          name: "Close Parenthesis", 
-          type: CardType.parentheses,
-          cost: card.cost,
-        ));
-      } else {
-        result.add(card);
-      }
-    }
-    
-    return result;
   }
 
   void _createShieldEffects() {

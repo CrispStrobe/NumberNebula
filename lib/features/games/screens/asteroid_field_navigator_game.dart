@@ -1,4 +1,3 @@
-// ignore_for_file: unused_element, unused_field
 // All imports remain the same...
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,7 +36,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
   
   late Animation<double> _pulseAnimation;
   late Animation<double> _scanAnimation;
-  late Animation<double> _explosionAnimation;
+  late Animation<double> _explosionAnimation; // ignore: unused_field
   late Animation<double> _revealAnimation;
   late Animation<double> _successAnimation;
 
@@ -428,15 +427,6 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
         }
       }
     });
-  }
-
-  double _calculateCellSize(Size screenSize) {
-    final availableWidth = screenSize.width - 40;
-    final availableHeight = screenSize.height - 300;
-    return math.min(
-      availableWidth / gridCols,
-      availableHeight / gridRows,
-    ).clamp(18.0, 55.0);
   }
 
   @override

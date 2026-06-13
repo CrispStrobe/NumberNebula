@@ -1,4 +1,3 @@
-// ignore_for_file: unused_element, unused_field
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -219,60 +218,6 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         );
       }
     }
-  }
-
-  void _showGenerationFailedDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: SpaceTheme.cardDecoration,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 64, color: SpaceTheme.rocketRed),
-              const SizedBox(height: 16),
-              const Text(
-                'Puzzle Generation Failed',
-                style: SpaceTheme.headlineStyle,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Unable to generate a puzzle at this difficulty. Try again or return to the menu.',
-                style: SpaceTheme.bodyStyle,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Close dialog
-                      Navigator.of(context).pop(); // Exit game
-                    },
-                    style: SpaceTheme.secondaryButtonStyle,
-                    child: Text(S.of(context)!.backToMenu),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Close dialog
-                      _generatePuzzle(); // Try again
-                    },
-                    style: SpaceTheme.primaryButtonStyle,
-                    child: const Text('Try Again'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   void _initializeNumberPool(CrosswordPuzzle generatedPuzzle) {

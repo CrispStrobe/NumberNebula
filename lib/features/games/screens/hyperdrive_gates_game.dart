@@ -201,8 +201,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     _thrusterController = AnimationController(vsync: this, duration: const Duration(milliseconds: 150))
       ..repeat(reverse: true);
       
-    _screenShakeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 400))
-        ..addListener(() => setState(() {}));
+    _screenShakeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
         
     _problemGlowController = AnimationController(vsync: this, duration: const Duration(seconds: 2))
         ..repeat(reverse: true);

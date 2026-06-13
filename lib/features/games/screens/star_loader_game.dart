@@ -1,4 +1,4 @@
-// ignore_for_file: constant_identifier_names, unused_element, unused_field
+// ignore_for_file: constant_identifier_names
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -62,7 +62,6 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   late List<Offset> _boxPositions;
   late List<Offset> _targetPositions;
   late int _optimalMoves;
-  int _userRating = 0;
   // In production, set this to false to hide the rating UI
   static const bool ENABLE_LEVEL_RATING = true; // kDebugMode; 
   int _currentRating = 0; // Local state for the dialog
@@ -84,7 +83,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   late AnimationController _pushController; 
 
   late Animation<double> _winPulseAnimation;
-  late Animation<double> _glowAnimation;
+  late Animation<double> _glowAnimation; // ignore: unused_field
   late Animation<double> _pushAnimation; 
 
   final FocusNode _focusNode = FocusNode();
@@ -1016,27 +1015,6 @@ class _StarLoaderGameState extends State<StarLoaderGame>
       ),
       ),
     );
-  }
-
-  Widget _buildRatingStars(StateSetter setState) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(5, (index) {
-        return IconButton(
-          icon: Icon(
-            index < _userRating ? Icons.star : Icons.star_border,
-            color: SpaceTheme.starYellow,
-            size: 32,
-          ),
-          onPressed: () {
-            setState(() {
-              _userRating = index + 1;
-            });
-            HapticFeedback.selectionClick();
-          },
-        );
-      }),
-    );  
   }
 
   Widget _buildSuccessDialog(

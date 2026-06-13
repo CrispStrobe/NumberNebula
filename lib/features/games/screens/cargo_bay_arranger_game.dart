@@ -1,4 +1,3 @@
-// ignore_for_file: unused_element, unused_field
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -37,6 +36,8 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   late AnimationController _lockController;
   late Animation<double> _lockAnimation;
   late AnimationController _bonusController;
+  // _bonusController is used directly via .forward(); animation value not read
+  // ignore: unused_field
   late Animation<double> _bonusAnimation;
   
   // Game Constants
@@ -1238,92 +1239,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     );
   }
 
-  Widget _buildGameArea(BoxConstraints constraints) {
-    return LayoutBuilder(
-      builder: (context, gameConstraints) {
-        final maxCellW = (gameConstraints.maxWidth - 20) / gridCols;
-        final maxCellH = (gameConstraints.maxHeight - 20) / gridRows;
-        final cellSize = math.min(maxCellW, maxCellH).clamp(20.0, 40.0);
-        
-        final gridWidth = cellSize * gridCols;
-        final gridHeight = cellSize * gridRows;
-        
-        return Center(
-          child: GestureDetector(
-            onTapDown: (details) => _handleTapOnGrid(details.localPosition, cellSize),
-            onPanStart: (details) => _handlePanStart(details, cellSize),
-            onPanUpdate: (details) => _handlePanUpdate(details, cellSize),
-            onPanEnd: _handlePanEnd,
-            child: Container(
-              width: gridWidth + 4,
-              height: gridHeight + 4,
-              decoration: BoxDecoration(
-                border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5), width: 2),
-                borderRadius: BorderRadius.circular(8),
-                color: Colors.black.withValues(alpha: 0.3),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: Stack(
-                  children: [
-                    CustomPaint(
-                      size: Size(gridWidth, gridHeight),
-                      painter: GridPainter(cellSize: cellSize, intensity: _pulseAnimation.value),
-                    ),
-                    ..._buildPlacedCubes(cellSize),
-                    ..._buildGhostPiece(cellSize),
-                    ..._buildCurrentPiece(cellSize),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildLeftSidebar() {
-    return Container(
-      color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-      padding: const EdgeInsets.all(12), // Reduced from 16
-      child: Column(
-        children: [
-          const SizedBox(height: 40), // Reduced from 50
-          
-          // Hold piece
-          Text(
-            'HOLD',
-            style: SpaceTheme.titleStyle.copyWith(fontSize: 12), // Reduced from 14
-          ),
-          const SizedBox(height: 4),
-          _buildPiecePreview(heldPiece, hasUsedHold),
-          
-          const SizedBox(height: 16), // Reduced from 24
-          
-          // Next piece
-          Text(
-            'NEXT',
-            style: SpaceTheme.titleStyle.copyWith(fontSize: 12),
-          ),
-          const SizedBox(height: 4),
-          _buildPiecePreview(nextPiece, false),
-          
-          const Spacer(),
-          
-          // Controls
-          if (gameActive) ...[
-            _buildSideButton(Icons.rotate_right, _rotatePiece),
-            const SizedBox(height: 6),
-            _buildSideButton(Icons.arrow_downward, _hardDrop),
-            const SizedBox(height: 6),
-            _buildSideButton(Icons.swap_horiz, _holdPiece),
-          ],
-        ],
-      ),
-    );
-  }
-
   Widget _buildRightSidebar() {
     return Container(
       color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
@@ -1426,148 +1341,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
             onPressed: () => setState(() => showBonusPanel = true),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPiecePreview(CargoPiece? piece, bool disabled) {
-    const size = 80.0; // Reduced from 100
-    const cellSize = 16.0; // Reduced from 20
-
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: disabled ? Colors.grey.shade800.withValues(alpha: 0.5) : SpaceTheme.deepSpace.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: disabled ? Colors.grey.shade600 : SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
-        ),
-      ),
-      child: piece == null
-          ? Center(
-              child: Text(
-                disabled ? 'USED' : '?',
-                style: TextStyle(
-                  color: disabled ? Colors.grey.shade600 : Colors.white24,
-                  fontSize: 20,
-                ),
-              ),
-            )
-          : Stack(
-              alignment: Alignment.center,
-              children: [
-                for (int i = 0; i < piece.shape.length; i++)
-                  for (int j = 0; j < piece.shape[i].length; j++)
-                    if (piece.shape[i][j])
-                      Positioned(
-                        left: (size / 2) - (piece.shape[0].length * cellSize / 2) + j * cellSize,
-                        top: (size / 2) - (piece.shape.length * cellSize / 2) + i * cellSize,
-                        child: _buildMiniCube(piece.cubes[i][j]!, cellSize),
-                      ),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildMobileHoldPreview() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        children: [
-          const Text('HOLD:', style: TextStyle(color: Colors.white54, fontSize: 12)),
-          const SizedBox(width: 8),
-          _buildTinyPiecePreview(heldPiece),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMobileNextPreview() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        children: [
-          const Text('NEXT:', style: TextStyle(color: Colors.white54, fontSize: 12)),
-          const SizedBox(width: 8),
-          _buildTinyPiecePreview(nextPiece),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTinyPiecePreview(CargoPiece? piece) {
-    const size = 40.0;
-    const cellSize = 8.0;
-    
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
-      ),
-      child: piece == null
-          ? const Center(
-              child: Text('?', style: TextStyle(color: Colors.white24, fontSize: 14)),
-            )
-          : Stack(
-              alignment: Alignment.center,
-              children: [
-                for (int i = 0; i < piece.shape.length; i++)
-                  for (int j = 0; j < piece.shape[i].length; j++)
-                    if (piece.shape[i][j])
-                      Positioned(
-                        left: (size / 2) - (piece.shape[0].length * cellSize / 2) + j * cellSize,
-                        top: (size / 2) - (piece.shape.length * cellSize / 2) + i * cellSize,
-                        child: Container(
-                          width: cellSize - 1,
-                          height: cellSize - 1,
-                          decoration: BoxDecoration(
-                            color: piece.cubes[i][j]!.color,
-                            borderRadius: BorderRadius.circular(1),
-                          ),
-                        ),
-                      ),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildSideButton(IconData icon, VoidCallback onPressed) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
-        foregroundColor: SpaceTheme.alienGreen,
-        padding: const EdgeInsets.all(12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-      child: Icon(icon, size: 24),
-    );
-  }
-
-  Widget _buildMiniCube(CargoCube cube, double size) {
-    return Container(
-      width: size - 2,
-      height: size - 2,
-      margin: const EdgeInsets.all(1),
-      decoration: BoxDecoration(
-        color: cube.color,
-        borderRadius: BorderRadius.circular(size * 0.15),
-      ),
-      child: Center(
-        child: Text(
-          cube.value.toString(),
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: size * 0.5,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
       ),
     );
   }
