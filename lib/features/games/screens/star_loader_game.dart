@@ -13,6 +13,7 @@ import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../services/starloader_level_manager.dart';
+import 'package:flutter/foundation.dart';
 
 
 // --- Enums for Game Logic ---
@@ -77,13 +78,11 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
   // --- 4. Animation & Controls ---
   late AnimationController _winPulseController;
-  late AnimationController _glowController;
   late AnimationController _particleController;
   late AnimationController _celebrationController;
   late AnimationController _pushController; 
 
   late Animation<double> _winPulseAnimation;
-  late Animation<double> _glowAnimation; // ignore: unused_field
   late Animation<double> _pushAnimation; 
 
   final FocusNode _focusNode = FocusNode();
@@ -111,13 +110,6 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     )..repeat(reverse: true);
     _winPulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
         CurvedAnimation(parent: _winPulseController, curve: Curves.easeInOut));
-
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-        CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
 
     _particleController = AnimationController(
       duration: const Duration(milliseconds: 16),
@@ -290,7 +282,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
     if (!mounted) return;
     
-    debugPrint('🚀 [Game] Loading Level ID: ${levelData.id} (Moves: ${levelData.optimalMoves})');
+    if (kDebugMode) debugPrint('🚀 [Game] Loading Level ID: ${levelData.id} (Moves: ${levelData.optimalMoves})');
 
     _currentLevelData = levelData;
     _resetCurrentLevel(); 
@@ -303,7 +295,6 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   @override
   void dispose() {
     _winPulseController.dispose();
-    _glowController.dispose();
     _particleController.dispose();
     _celebrationController.dispose();
     _pushController.dispose();

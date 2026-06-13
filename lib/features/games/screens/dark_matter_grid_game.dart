@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -21,11 +22,7 @@ class DarkMatterGridGame extends StatefulWidget {
 }
 
 class _DarkMatterGridGameState extends State<DarkMatterGridGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<DarkMatterGridGame> {
   late AnimationController _tapController;
 
   DifficultyConfig? currentDifficulty;
@@ -38,18 +35,7 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
   @override
   void initState() {
     super.initState();
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
-
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+    initGameAnimations(usePulse: false);
 
     _tapController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -67,9 +53,8 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
     _tapController.dispose();
+    disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
@@ -80,7 +65,7 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
       _isGenerating = true;
       _won = false;
       moveCount = 0;
-      _successController.reset();
+      successController.reset();
     });
 
     final grade = currentDifficulty!.grade;
@@ -102,7 +87,7 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
     );
 
     setState(() {
-      grid = puzzle!.grid.map((row) => List<bool>.from(row)).toList();
+      grid = puzzle!.grid.map(List<bool>.from).toList();
       _isGenerating = false;
     });
   }
@@ -138,7 +123,7 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
       score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
 
     if (mounted) {
       showDialog(
@@ -214,20 +199,20 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
           final clampedSize = cellSize.clamp(40.0, 80.0);
 
           return AnimatedBuilder(
-            animation: _glowAnimation,
+            animation: glowAnimation,
             builder: (context, child) {
               return Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF6B48FF).withValues(alpha: 0.1 * _glowAnimation.value),
+                      const Color(0xFF6B48FF).withValues(alpha: 0.1 * glowAnimation.value),
                       SpaceTheme.deepSpace.withValues(alpha: 0.05),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: const Color(0xFF6B48FF).withValues(alpha: _glowAnimation.value),
+                    color: const Color(0xFF6B48FF).withValues(alpha: glowAnimation.value),
                     width: 2,
                   ),
                 ),
@@ -304,10 +289,10 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
   Widget _buildWinDialog(int bonusScore) {
     final s = S.of(context)!;
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

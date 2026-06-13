@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -29,16 +30,10 @@ class KenkenGame extends StatefulWidget {
 }
 
 class _KenkenGameState extends State<KenkenGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, GameAnimationsMixin<KenkenGame> {
   
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   KenkenPuzzle? puzzle;
   Map<String, int> userSolution = {};
@@ -54,20 +49,9 @@ class _KenkenGameState extends State<KenkenGame>
   @override
   void initState() {
     super.initState();
-    debugPrint("🔲 [KENKEN] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
+    initGameAnimations();
+    if (kDebugMode) debugPrint("🔲 [KENKEN] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
     
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000), 
-      vsync: this
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
-    
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600), 
-      vsync: this,
-    );
-    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
     
     _dropController = AnimationController(
       duration: const Duration(milliseconds: 500), 
@@ -75,19 +59,13 @@ class _KenkenGameState extends State<KenkenGame>
     );
     _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
 
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
     
     // Initialize difficulty from the framework
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gameProvider = context.read<GameProvider>();
         currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level);
-        debugPrint("🔲 [KENKEN] Difficulty initialized: ${currentDifficulty?.grade}");
+        if (kDebugMode) debugPrint("🔲 [KENKEN] Difficulty initialized: ${currentDifficulty?.grade}");
         _generatePuzzle();
       }
     });
@@ -95,33 +73,31 @@ class _KenkenGameState extends State<KenkenGame>
 
   @override
   void dispose() {
-    debugPrint("🔲 [KENKEN] Disposing game and cleaning up resources");
+    if (kDebugMode) debugPrint("🔲 [KENKEN] Disposing game and cleaning up resources");
     
-    _glowController.stop();
-    _successController.stop();
+    glowController.stop();
+    successController.stop();
     _dropController.stop();
-    _pulseController.stop();
+    pulseController.stop();
     
-    _glowController.dispose();
-    _successController.dispose();
     _dropController.dispose();
-    _pulseController.dispose();
     
     puzzle = null;
     userSolution.clear();
     numberPool.clear();
     
+    disposeGameAnimations();
     super.dispose();
   }
 
   void _generatePuzzle() async {
     if (currentDifficulty == null) return;
     
-    debugPrint("🎯 [KENKEN] Starting puzzle generation process");
+    if (kDebugMode) debugPrint("🎯 [KENKEN] Starting puzzle generation process");
     
     setState(() {
       _isGenerating = true;
-      _successController.reset();
+      successController.reset();
       userSolution.clear();
     });
 
@@ -137,7 +113,7 @@ class _KenkenGameState extends State<KenkenGame>
         'customMax': gameProvider.customRangeMax,
       };
 
-      debugPrint("🎯 [KENKEN] Calling compute function with args: $puzzleArgs");
+      if (kDebugMode) debugPrint("🎯 [KENKEN] Calling compute function with args: $puzzleArgs");
       final generatedPuzzle = await compute(KenkenPuzzle.generate, puzzleArgs);
       
       debugPrint("🎯 [KENKEN] Puzzle generation completed successfully");
@@ -154,19 +130,19 @@ class _KenkenGameState extends State<KenkenGame>
 
           _isGenerating = false;
         });
-        debugPrint("🎯 [KENKEN] UI state updated with new puzzle");
+        if (kDebugMode) debugPrint("🎯 [KENKEN] UI state updated with new puzzle");
         debugPrint("🎯 [KENKEN] Max moves allowed: $_maxMoves for ${generatedPuzzle.emptyCells.length} empty cells");
         debugPrint("🎯 [KENKEN] Number pool: ${numberPool.join(', ')}");
         debugPrint("🎯 [KENKEN] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
       }
     } catch (e, stackTrace) {
-      debugPrint("❌ [KENKEN] Error generating puzzle: $e");
+      if (kDebugMode) debugPrint("❌ [KENKEN] Error generating puzzle: $e");
       debugPrint("❌ [KENKEN] StackTrace: $stackTrace");
     }
   }
 
   void _placeNumber(int number, String cellId) {
-    debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
+    if (kDebugMode) debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
     
     setState(() {
       userSolution[cellId] = number;
@@ -176,11 +152,11 @@ class _KenkenGameState extends State<KenkenGame>
 
       // Decrement moves on placement
       _movesRemaining--;
-      debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
+      if (kDebugMode) debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
     });
 
     debugPrint("🎮 [PLACE] User solution after: $userSolution");
-    debugPrint("🎮 [PLACE] Number pool remains: $numberPool");
+    if (kDebugMode) debugPrint("🎮 [PLACE] Number pool remains: $numberPool");
 
     // Check if out of moves BEFORE checking solution
     if (_movesRemaining <= 0 && userSolution.length < puzzle!.emptyCells.length) {
@@ -192,7 +168,7 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   void _removeNumber(String cellId) {
-    debugPrint("🗑️ [KENKEN] Removing number from cell $cellId");
+    if (kDebugMode) debugPrint("🗑️ [KENKEN] Removing number from cell $cellId");
     
     setState(() {
       userSolution.remove(cellId);
@@ -201,12 +177,12 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   void _checkSolution() {
-    debugPrint("✅ [KENKEN] Checking solution...");
+    if (kDebugMode) debugPrint("✅ [KENKEN] Checking solution...");
     debugPrint("✅ [KENKEN] User solution: $userSolution");
     debugPrint("✅ [KENKEN] Required cells: ${puzzle!.emptyCells.length}");
     
     if (userSolution.length == puzzle!.emptyCells.length) {
-      debugPrint("✅ [KENKEN] All cells filled, validating solution");
+      if (kDebugMode) debugPrint("✅ [KENKEN] All cells filled, validating solution");
       
       final isValid = puzzle!.validateSolution(userSolution);
       debugPrint("✅ [KENKEN] Solution validation result: $isValid");
@@ -219,12 +195,12 @@ class _KenkenGameState extends State<KenkenGame>
         _handleIncorrect();
       }
     } else {
-      debugPrint("✅ [KENKEN] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
+      if (kDebugMode) debugPrint("✅ [KENKEN] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
     }
   }
 
   List<MathProblem> _extractMathProblems(Map<String, int> solution) {
-    debugPrint("🔲 [KENKEN] Extracting math problems from completed puzzle...");
+    if (kDebugMode) debugPrint("🔲 [KENKEN] Extracting math problems from completed puzzle...");
     final problems = <MathProblem>[];
     
     // Create the complete grid with user solutions
@@ -242,7 +218,7 @@ class _KenkenGameState extends State<KenkenGame>
       if (values.contains(0)) continue; // skip cage with missing data
       final operation = cage.operation!;
       
-      debugPrint("🔲 [KENKEN] Processing cage: ${cage.clue} with ${values.length} cells = $values");
+      if (kDebugMode) debugPrint("🔲 [KENKEN] Processing cage: ${cage.clue} with ${values.length} cells = $values");
       
       switch (operation.symbol) {
         case '+':
@@ -260,7 +236,7 @@ class _KenkenGameState extends State<KenkenGame>
                 difficulty: widget.grade,
               );
               problems.add(problem);
-              debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+              if (kDebugMode) debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
               accumulator = problem.answer;
             }
           }
@@ -280,7 +256,7 @@ class _KenkenGameState extends State<KenkenGame>
               difficulty: widget.grade,
             );
             problems.add(problem);
-            debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+            if (kDebugMode) debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
           }
           break;
           
@@ -299,7 +275,7 @@ class _KenkenGameState extends State<KenkenGame>
                 difficulty: widget.grade,
               );
               problems.add(problem);
-              debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+              if (kDebugMode) debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
               accumulator = problem.answer;
             }
           }
@@ -320,29 +296,29 @@ class _KenkenGameState extends State<KenkenGame>
                 difficulty: widget.grade,
               );
               problems.add(problem);
-              debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+              if (kDebugMode) debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
             }
           }
           break;
       }
     }
     
-    debugPrint("🔲 [KENKEN] Extracted ${problems.length} math problems total");
+    if (kDebugMode) debugPrint("🔲 [KENKEN] Extracted ${problems.length} math problems total");
     return problems;
   }
 
   void _handleSuccess(List<MathProblem> mathProblems) {
-    debugPrint("🎉 [KENKEN] SUCCESS! Player solved the puzzle!");
+    if (kDebugMode) debugPrint("🎉 [KENKEN] SUCCESS! Player solved the puzzle!");
     HapticFeedback.lightImpact();
 
     int baseScore = 300 * widget.grade;
     int complexityBonus = puzzle!.size * puzzle!.size * 15 + puzzle!.cages.length * 20;
     int operationBonus = puzzle!.getAllOperators()
-        .map((op) => _getOperationBonus(op))
+        .map(_getOperationBonus)
         .fold(0, (a, b) => a + b);
     
     int totalScore = baseScore + complexityBonus + operationBonus;
-    debugPrint("🎉 [KENKEN] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
+    if (kDebugMode) debugPrint("🎉 [KENKEN] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
     
     // SINGLE CALL to unified progression system
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
@@ -352,7 +328,7 @@ class _KenkenGameState extends State<KenkenGame>
       mathProblems: mathProblems,
     ));
     
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
     
     if (mounted) {
       showDialog(
@@ -374,7 +350,7 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   void _handleIncorrect() {
-    debugPrint("❌ [KENKEN] Incorrect solution - showing error message");
+    if (kDebugMode) debugPrint("❌ [KENKEN] Incorrect solution - showing error message");
     HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -392,7 +368,7 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   void _handleFailure() {
-    debugPrint("❌ [KENKEN] FAILURE - recording loss");
+    if (kDebugMode) debugPrint("❌ [KENKEN] FAILURE - recording loss");
     final mathProblems = _extractMathProblems(userSolution);
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'kenken',
@@ -402,7 +378,7 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   void _handleOutOfMoves() {
-    debugPrint("❌ [KENKEN] Out of moves! Game over.");
+    if (kDebugMode) debugPrint("❌ [KENKEN] Out of moves! Game over.");
     _handleFailure();
 
     if (mounted) {
@@ -666,20 +642,20 @@ class _KenkenGameState extends State<KenkenGame>
   Widget _buildGridArea({required bool isCompact}) {
     return Center(
       child: AnimatedBuilder(
-        animation: _glowAnimation,
+        animation: glowAnimation,
         builder: (context, child) {
           return Container(
             padding: EdgeInsets.all(isCompact ? 8 : 12), // Reduced padding
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.cosmicPink.withValues(alpha: 0.1 * _glowAnimation.value),
+                  SpaceTheme.cosmicPink.withValues(alpha: 0.1 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.cosmicPink.withValues(alpha: _glowAnimation.value),
+                color: SpaceTheme.cosmicPink.withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -859,10 +835,10 @@ class _KenkenGameState extends State<KenkenGame>
                   ),
                 // Pulse animation in center
                 AnimatedBuilder(
-                  animation: _pulseAnimation,
+                  animation: pulseAnimation,
                   builder: (context, child) {
                     return Transform.scale(
-                      scale: _pulseAnimation.value,
+                      scale: pulseAnimation.value,
                       child: Center(
                         child: Icon(
                           Icons.add,
@@ -1105,10 +1081,10 @@ class _KenkenGameState extends State<KenkenGame>
 
   Widget _buildSuccessDialog(int bonusScore) {
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(
@@ -1176,7 +1152,7 @@ class KenkenPuzzle {
   });
 
   static Future<KenkenPuzzle> generate(Map<String, dynamic> args) async {
-    debugPrint("🎯 [KENKEN FACTORY] Starting puzzle generation with args: $args");
+    if (kDebugMode) debugPrint("🎯 [KENKEN FACTORY] Starting puzzle generation with args: $args");
     
     final grade = args['grade'] as int;
     final level = args['level'] as int;
@@ -1186,7 +1162,7 @@ class KenkenPuzzle {
     final customMin = args['customMin'] as int;
     final customMax = args['customMax'] as int;
     
-    debugPrint("🎯 [KENKEN FACTORY] Using difficulty config: ${difficultyConfig.grade}");
+    if (kDebugMode) debugPrint("🎯 [KENKEN FACTORY] Using difficulty config: ${difficultyConfig.grade}");
     
     final generator = KenkenGenerator(
       grade: grade,
@@ -1202,7 +1178,7 @@ class KenkenPuzzle {
   }
 
   bool validateSolution(Map<String, int> userSolution) {
-    debugPrint("✅ [KENKEN VALIDATION] Starting solution validation");
+    if (kDebugMode) debugPrint("✅ [KENKEN VALIDATION] Starting solution validation");
     
     // Create complete grid
     final completeGrid = Map<String, int>.from(clues);
@@ -1215,7 +1191,7 @@ class KenkenPuzzle {
         rowValues.add(completeGrid['r${r}c$c'] ?? 0);
       }
       if (!_isValidLatinSequence(rowValues)) {
-        debugPrint("✅ [KENKEN VALIDATION] ❌ Row $r violates Latin square property: $rowValues");
+        if (kDebugMode) debugPrint("✅ [KENKEN VALIDATION] ❌ Row $r violates Latin square property: $rowValues");
         return false;
       }
     }
@@ -1226,7 +1202,7 @@ class KenkenPuzzle {
         colValues.add(completeGrid['r${r}c$c'] ?? 0);
       }
       if (!_isValidLatinSequence(colValues)) {
-        debugPrint("✅ [KENKEN VALIDATION] ❌ Column $c violates Latin square property: $colValues");
+        if (kDebugMode) debugPrint("✅ [KENKEN VALIDATION] ❌ Column $c violates Latin square property: $colValues");
         return false;
       }
     }
@@ -1234,12 +1210,12 @@ class KenkenPuzzle {
     // Validate all cage constraints
     for (final cage in cages) {
       if (!cage.validateConstraint(completeGrid)) {
-        debugPrint("✅ [KENKEN VALIDATION] ❌ Cage constraint failed: ${cage.clue}");
+        if (kDebugMode) debugPrint("✅ [KENKEN VALIDATION] ❌ Cage constraint failed: ${cage.clue}");
         return false;
       }
     }
     
-    debugPrint("✅ [KENKEN VALIDATION] ✅ Solution is valid!");
+    if (kDebugMode) debugPrint("✅ [KENKEN VALIDATION] ✅ Solution is valid!");
     return true;
   }
 
@@ -1247,8 +1223,8 @@ class KenkenPuzzle {
     final expected = List.generate(size, (i) => i + 1);
     final sorted = List.from(values)..sort();
     return sorted.length == expected.length && 
-           sorted.every((val) => expected.contains(val)) &&
-           expected.every((val) => sorted.contains(val));
+           sorted.every(expected.contains) &&
+           expected.every(sorted.contains);
   }
 
   KenkenCage? getCageForCell(KenkenCell cell) {
@@ -1430,7 +1406,7 @@ class KenkenGenerator {
   }
 
   Future<KenkenPuzzle> generate() async {
-    debugPrint("🔧 [KENKEN GENERATOR] Starting Kenken generation");
+    if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Starting Kenken generation");
     
     // Initialize parameters based on grade/level (following blueprint logic)
     _initializeParameters();
@@ -1439,7 +1415,7 @@ class KenkenGenerator {
     const maxRetries = 1000;
     
     for (int seedTry = 1; seedTry <= maxSeeds; seedTry++) {
-      debugPrint("🔧 [KENKEN GENERATOR] === SEED $seedTry/$maxSeeds ===");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] === SEED $seedTry/$maxSeeds ===");
       
       int currentBaseSeed = _random.nextInt(1000000000);
       
@@ -1449,12 +1425,12 @@ class KenkenGenerator {
         try {
           final puzzle = await _attemptGeneration(currentSeed);
           if (puzzle != null) {
-            debugPrint("🔧 [KENKEN GENERATOR] ✅ SUCCESS! Generated valid puzzle on seed $seedTry, attempt $attempt");
+            if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] ✅ SUCCESS! Generated valid puzzle on seed $seedTry, attempt $attempt");
             return puzzle;
           }
         } catch (e) {
           if (attempt <= 3) {
-            debugPrint("🔧 [KENKEN GENERATOR] ❌ Attempt $attempt failed: $e");
+            if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] ❌ Attempt $attempt failed: $e");
           }
         }
       }
@@ -1493,7 +1469,7 @@ class KenkenGenerator {
     strictOperations = false; // BLUEPRINT DEFAULT: allow fallback to addition
     verbose = true; // NEW: verbose logging
     
-    debugPrint("🔧 [KENKEN GENERATOR] Initialized: size=$size, maxGroupSize=$maxGroupSize, operations=${operations.map((o) => o.symbol).join(',')}, range=${minResult ?? 'any'}-${maxResult ?? 'any'}");
+    if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Initialized: size=$size, maxGroupSize=$maxGroupSize, operations=${operations.map((o) => o.symbol).join(',')}, range=${minResult ?? 'any'}-${maxResult ?? 'any'}");
   }
 
   List<KenkenOperation> _getAvailableOperations() {
@@ -1524,31 +1500,31 @@ class KenkenGenerator {
     board.clear();
     
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] Generating ${size}x$size Kenken puzzle (seed: $seed)...");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Generating ${size}x$size Kenken puzzle (seed: $seed)...");
     }
     
     // Step 1: Create Latin Square (exact copy from blueprint)
     _createLatinSquare();
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] [1] Created Latin square");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] [1] Created Latin square");
     }
     
     // Step 2: Shuffle Board (exact copy from blueprint)
     _shuffleBoard();
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] [2] Shuffled board");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] [2] Shuffled board");
     }
     
     // Step 3: Create Cages and Clues (exact copy from blueprint)
     _createCagesAndClues();
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] [3] Created ${cages.length} cages");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] [3] Created ${cages.length} cages");
     }
     
     // Step 4: Merge Single Cell Cages (exact copy from blueprint)
     _mergeSingleCellCages();
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] [4] Merged single cell cages, final count: ${cages.length}");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] [4] Merged single cell cages, final count: ${cages.length}");
     }
     
     // Step 5: Print ASCII debug output (exact copy from blueprint)
@@ -1607,7 +1583,7 @@ class KenkenGenerator {
   // EXACT copy from blueprint
   void _createCagesAndClues() {
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] Creating cages and clues...");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Creating cages and clues...");
     }
     
     int cageId = 1;
@@ -1623,7 +1599,7 @@ class KenkenGenerator {
           }
 
           if (verbose) {
-            debugPrint("🔧 [KENKEN GENERATOR] Created cage ${newCage.id} with ${newCage.cells.length} cells");
+            if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Created cage ${newCage.id} with ${newCage.cells.length} cells");
           }
 
           _assignOperationToCage(newCage);
@@ -1633,14 +1609,14 @@ class KenkenGenerator {
     }
     
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] Created ${cages.length} cages total");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Created ${cages.length} cages total");
     }
   }
 
   // EXACT copy from blueprint
   void _mergeSingleCellCages() {
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] Merging single cell cages...");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Merging single cell cages...");
     }
     
     bool hadToMerge = true;
@@ -1656,7 +1632,7 @@ class KenkenGenerator {
           final targetCage = neighbors[_random.nextInt(neighbors.length)].group!;
           
           if (verbose) {
-            debugPrint("🔧 [KENKEN GENERATOR]   Merging single cell cage ${cage.id} into cage ${targetCage.id}");
+            if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR]   Merging single cell cage ${cage.id} into cage ${targetCage.id}");
           }
           
           // Perform the merge
@@ -1674,7 +1650,7 @@ class KenkenGenerator {
     }
     
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] Merged $mergeCount single cell cages");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Merged $mergeCount single cell cages");
     }
   }
 
@@ -1697,7 +1673,7 @@ class KenkenGenerator {
       cage.clue = cage.cells.first.value.toString();
       cage.operation = null;
       if (verbose) {
-        debugPrint("🔧 [KENKEN GENERATOR]   Single cell cage: ${cage.clue}");
+        if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR]   Single cell cage: ${cage.clue}");
       }
       return;
     }
@@ -1706,19 +1682,19 @@ class KenkenGenerator {
     final availableOps = List<KenkenOperation>.from(operations)..shuffle(_random);
 
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR]   Assigning operation to cage with ${cage.cells.length} cells, values: $cageValues");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR]   Assigning operation to cage with ${cage.cells.length} cells, values: $cageValues");
     }
 
     for (final op in availableOps) {
       if (cage.cells.length < op.minCells) {
         if (verbose) {
-          debugPrint("🔧 [KENKEN GENERATOR]     ${op.symbol}: SKIP - need ${op.minCells} cells, have ${cage.cells.length}");
+          if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR]     ${op.symbol}: SKIP - need ${op.minCells} cells, have ${cage.cells.length}");
         }
         continue;
       }
       if (op.maxCells != null && cage.cells.length > op.maxCells!) {
         if (verbose) {
-          debugPrint("🔧 [KENKEN GENERATOR]     ${op.symbol}: SKIP - max ${op.maxCells} cells, have ${cage.cells.length}");
+          if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR]     ${op.symbol}: SKIP - max ${op.maxCells} cells, have ${cage.cells.length}");
         }
         continue;
       }
@@ -1730,20 +1706,20 @@ class KenkenGenerator {
         if (maxResult != null && result > maxResult!) inRange = false;
         
         if (verbose) {
-          debugPrint("🔧 [KENKEN GENERATOR]     ${op.symbol}: result=$result, inRange=$inRange (range: ${minResult ?? 'any'}-${maxResult ?? 'any'})");
+          if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR]     ${op.symbol}: result=$result, inRange=$inRange (range: ${minResult ?? 'any'}-${maxResult ?? 'any'})");
         }
         
         if (inRange) {
           cage.clue = '$result${op.symbol}';
           cage.operation = op;
           if (verbose) {
-            debugPrint("🔧 [KENKEN GENERATOR]     SUCCESS: ${cage.clue}");
+            if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR]     SUCCESS: ${cage.clue}");
           }
           return;
         }
       } else {
         if (verbose) {
-          debugPrint("🔧 [KENKEN GENERATOR]     ${op.symbol}: INVALID - cannot calculate result");
+          if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR]     ${op.symbol}: INVALID - cannot calculate result");
         }
       }
     }
@@ -1751,7 +1727,7 @@ class KenkenGenerator {
     // NEW: Strict operation enforcement
     if (strictOperations) {
       if (verbose) {
-        debugPrint("🔧 [KENKEN GENERATOR]     FAILED: No valid operations found for cage with values $cageValues");
+        if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR]     FAILED: No valid operations found for cage with values $cageValues");
       }
       throw Exception('Cannot generate valid clue for cage with values $cageValues using specified operations and constraints');
     }
@@ -1768,13 +1744,13 @@ class KenkenGenerator {
   // EXACT copy from blueprint
   void _printAsciiDebug() {
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] [5] ASCII Debug Output:");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] [5] ASCII Debug Output:");
       final asciiOutput = _toAsciiString(showSolution: false);
       for (final line in asciiOutput.split('\n')) {
         debugPrint("🔧 [ASCII] $line");
       }
       
-      debugPrint("🔧 [KENKEN GENERATOR] [5] ASCII Solution:");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] [5] ASCII Solution:");
       final solutionOutput = _toAsciiString(showSolution: true);
       for (final line in solutionOutput.split('\n')) {
         debugPrint("🔧 [ASCII] $line");
@@ -1829,7 +1805,7 @@ class KenkenGenerator {
 
   (Map<String, int>, Set<String>, List<int>) _createPuzzleData() {
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] [6] Creating puzzle data...");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] [6] Creating puzzle data...");
     }
     
     final clues = <String, int>{};
@@ -1850,7 +1826,7 @@ class KenkenGenerator {
     }
     
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] Total cells: ${allCells.length}, numClues: $numClues");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Total cells: ${allCells.length}, numClues: $numClues");
     }
     
     // Randomly select a few cells to pre-fill
@@ -1859,7 +1835,7 @@ class KenkenGenerator {
     final clueCells = shuffledCells.take(numClues).toList();
     
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] Selected clue cells: $clueCells");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Selected clue cells: $clueCells");
     }
     
     // Set clues
@@ -1878,7 +1854,7 @@ class KenkenGenerator {
     }
     
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] Clues: $clues");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Clues: $clues");
       debugPrint("🔧 [KENKEN GENERATOR] Empty cells: ${emptyCells.length}");
     }
     
@@ -1892,13 +1868,13 @@ class KenkenGenerator {
     }
     
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] Correct numbers: $correctNumbers");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Correct numbers: $correctNumbers");
     }
     
     final numberPool = _generateNumberPool(correctNumbers);
     
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] Final number pool: $numberPool");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Final number pool: $numberPool");
     }
     
     return (clues, emptyCells, numberPool);
@@ -1913,14 +1889,14 @@ class KenkenGenerator {
 
   List<int> _generateNumberPool(List<int> correctNumbers) {
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] Creating clean number pool for size $size grid");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Creating clean number pool for size $size grid");
     }
     
     // CLEAN number pool: Just 1-size, each number once, reusable
     final pool = List.generate(size, (i) => i + 1);
     
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] Clean number pool: $pool");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Clean number pool: $pool");
     }
     
     return pool;
@@ -1928,7 +1904,7 @@ class KenkenGenerator {
 
   Map<String, int> _createFullSolution() {
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] [7] Creating full solution...");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] [7] Creating full solution...");
     }
     
     final solution = <String, int>{};
@@ -1940,7 +1916,7 @@ class KenkenGenerator {
     }
     
     if (verbose) {
-      debugPrint("🔧 [KENKEN GENERATOR] Full solution created with ${solution.length} entries");
+      if (kDebugMode) debugPrint("🔧 [KENKEN GENERATOR] Full solution created with ${solution.length} entries");
     }
     
     return solution;

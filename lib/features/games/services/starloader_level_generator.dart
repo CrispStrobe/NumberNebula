@@ -192,7 +192,7 @@ class LevelGenerator {
       _log('Keeping largest component with ${largestComponent.length} tiles');
 
       // Wall off smaller components
-      List<List<int>> result = room.map((row) => List<int>.from(row)).toList();
+      List<List<int>> result = room.map(List<int>.from).toList();
       for (int i = 0; i < dimX; i++) {
         for (int j = 0; j < dimY; j++) {
           if (result[i][j] == FLOOR) {
@@ -365,7 +365,7 @@ class LevelGenerator {
   }
 
   List<List<int>> _placePlayerAndTargets(List<List<int>> room, int numBoxes) {
-    List<List<int>> result = room.map((row) => List<int>.from(row)).toList();
+    List<List<int>> result = room.map(List<int>.from).toList();
     List<List<int>> floorPositions = [];
     for (int i = 0; i < result.length; i++) {
       for (int j = 0; j < result[i].length; j++) {
@@ -464,7 +464,7 @@ class LevelGenerator {
 
     if (score > _bestScore) {
       if (_verbose && score > 0) _log('New Best Score: $score (Swaps: $boxSwaps, Disp: $displacement)');
-      _bestRoom = roomState.map((row) => List<int>.from(row)).toList();
+      _bestRoom = roomState.map(List<int>.from).toList();
       _bestScore = score;
       _bestBoxMapping = Map<String, List<int>>.from(boxMapping);
     }
@@ -518,7 +518,7 @@ class LevelGenerator {
     Map<String, List<int>> boxMapping,
     int action,
   ) {
-    List<List<int>> newRoom = roomState.map((row) => List<int>.from(row)).toList();
+    List<List<int>> newRoom = roomState.map(List<int>.from).toList();
     Map<String, List<int>> newBoxMapping = Map.from(boxMapping);
 
     // Find player

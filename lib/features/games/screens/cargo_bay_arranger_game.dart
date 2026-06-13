@@ -11,6 +11,7 @@ import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
+import 'package:flutter/foundation.dart';
 
 class CargoBayArrangerGame extends StatefulWidget {
   final int grade;
@@ -37,8 +38,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   late Animation<double> _lockAnimation;
   late AnimationController _bonusController;
   // _bonusController is used directly via .forward(); animation value not read
-  // ignore: unused_field
-  late Animation<double> _bonusAnimation;
   
   // Game Constants
   static const int gridRows = 18;
@@ -92,7 +91,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   @override
   void initState() {
     super.initState();
-    debugPrint("📦 [CargoBay] Initializing game - Grade: ${widget.grade}, Level: ${widget.level}");
+    if (kDebugMode) debugPrint("📦 [CargoBay] Initializing game - Grade: ${widget.grade}, Level: ${widget.level}");
     
     _setupAnimationControllers();
     _initializeGameParameters();
@@ -135,8 +134,6 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    _bonusAnimation =
-        CurvedAnimation(parent: _bonusController, curve: Curves.elasticOut);
   }
 
   void _initializeGameParameters() {
@@ -159,7 +156,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       numberMin = 5; numberMax = 20; targetSum = 75; dropSpeed = 400; rowsToWin = 20;
     }
     
-    debugPrint("📦 [CargoBay] Numbers: $numberMin-$numberMax, Target: $targetSum, Speed: ${dropSpeed}ms, Rows: $rowsToWin");
+    if (kDebugMode) debugPrint("📦 [CargoBay] Numbers: $numberMin-$numberMax, Target: $targetSum, Speed: ${dropSpeed}ms, Rows: $rowsToWin");
   }
 
   void _initializeGrid() {
@@ -681,7 +678,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   void _handleBonuses(List<BonusMatch> bonuses) {
     if (bonuses.isEmpty) return;
     
-    debugPrint("🎯 [Bonuses] Found ${bonuses.length} bonus patterns!");
+    if (kDebugMode) debugPrint("🎯 [Bonuses] Found ${bonuses.length} bonus patterns!");
     
     int totalBonus = 0;
     int newBonusesFound = 0;
@@ -691,7 +688,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       final bonusKey = '${bonus.type.name}_${posKey.join('_')}';
       
       if (awardedBonuses.contains(bonusKey)) {
-        debugPrint("   Skipping already awarded: ${bonus.type.name}");
+        if (kDebugMode) debugPrint("   Skipping already awarded: ${bonus.type.name}");
         continue;
       }
       
@@ -720,7 +717,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
         particles.add(CargoParticle.bonus(centerPos, _getBonusColor(bonus.type)));
       }
       
-      debugPrint("   ${bonus.type.name}: +$points (${bonus.values.join(',')})");
+      if (kDebugMode) debugPrint("   ${bonus.type.name}: +$points (${bonus.values.join(',')})");
     }
     
     if (newBonusesFound == 0) return;
@@ -1480,7 +1477,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
           style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        ...types.map((type) => _buildBonusItem(type)),
+        ...types.map(_buildBonusItem),
       ],
     );
   }

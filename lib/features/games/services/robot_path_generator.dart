@@ -303,7 +303,7 @@ class RobotPathGenerator {
           Position afterPos = path[idx + 1];
 
           // 1. Check for bypass
-          List<List<int>> bypassTestGrid = grid.map((row) => List<int>.from(row)).toList();
+          List<List<int>> bypassTestGrid = grid.map(List<int>.from).toList();
           bypassTestGrid[pos.x][pos.y] = WALL; 
           bypassTestGrid[pocketPos.x][pocketPos.y] = PATH;
           bypassTestGrid[actionPos.x][actionPos.y] = PATH;
@@ -313,7 +313,7 @@ class RobotPathGenerator {
           if (createsBypass) continue;
           
           // 2. Check if solvable
-          List<List<int>> testGrid = grid.map((row) => List<int>.from(row)).toList();
+          List<List<int>> testGrid = grid.map(List<int>.from).toList();
           testGrid[pos.x][pos.y] = MOVABLE;
           testGrid[pocketPos.x][pocketPos.y] = PATH;
           testGrid[actionPos.x][actionPos.y] = PATH;
@@ -424,7 +424,7 @@ class RobotPathGenerator {
             
             if (canReachObject) {
               // Simulate the push
-              List<List<int>> testGrid = grid.map((row) => List<int>.from(row)).toList();
+              List<List<int>> testGrid = grid.map(List<int>.from).toList();
               testGrid[objectPos.x][objectPos.y] = PATH; // Old object spot is now path
               testGrid[pushTo.x][pushTo.y] = MOVABLE;    // New object spot
               
@@ -494,7 +494,7 @@ class RobotPathGenerator {
 
                 if (canReachObject) {
                     // Simulate the pull
-                    List<List<int>> testGrid = grid.map((row) => List<int>.from(row)).toList();
+                    List<List<int>> testGrid = grid.map(List<int>.from).toList();
                     testGrid[objectPos.x][objectPos.y] = PATH; // Old object spot is now path
                     testGrid[objectMovePos.x][objectMovePos.y] = MOVABLE; // New object spot (where robot was)
 

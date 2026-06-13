@@ -14,6 +14,7 @@ import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../../../core/services/sri_service.dart';
+import 'package:flutter/foundation.dart';
 
 // ================================================================
 // GAME CONFIGURATION CONSTANTS
@@ -349,15 +350,15 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
               ? margin - asteroid.position.dx 
               : asteroid.position.dx - (screenSize.width - margin);
           
-          debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          if (kDebugMode) debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
           debugPrint('🎯 HORIZONTAL BOUNCE - Asteroid #${asteroid.id}');
           debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
           debugPrint('📝 Problem: ${asteroid.mathProblem} = ${asteroid.answer}');
-          debugPrint('🧱 Wall Hit: $side (boundary at ${boundaryX.toStringAsFixed(1)})');
+          if (kDebugMode) debugPrint('🧱 Wall Hit: $side (boundary at ${boundaryX.toStringAsFixed(1)})');
           debugPrint('📏 Penetration Depth: ${penetrationDepth.toStringAsFixed(2)} pixels');
           debugPrint('📍 Position Before: (${oldPosition.dx.toStringAsFixed(1)}, ${oldPosition.dy.toStringAsFixed(1)})');
           debugPrint('📍 Position After:  (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
-          debugPrint('🏃 Velocity Before: (${oldVelocity.dx.toStringAsFixed(2)}, ${oldVelocity.dy.toStringAsFixed(2)})');
+          if (kDebugMode) debugPrint('🏃 Velocity Before: (${oldVelocity.dx.toStringAsFixed(2)}, ${oldVelocity.dy.toStringAsFixed(2)})');
           
           // Apply bounce physics
           asteroid.velocity = Offset(
@@ -365,7 +366,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
             asteroid.velocity.dy
           );
           
-          debugPrint('🏃 Velocity After:  (${asteroid.velocity.dx.toStringAsFixed(2)}, ${asteroid.velocity.dy.toStringAsFixed(2)})');
+          if (kDebugMode) debugPrint('🏃 Velocity After:  (${asteroid.velocity.dx.toStringAsFixed(2)}, ${asteroid.velocity.dy.toStringAsFixed(2)})');
           debugPrint('⚡ Speed Loss: ${((1.0 - GameConfig.asteroidBounceDeceleration) * 100).toStringAsFixed(1)}%');
           debugPrint('🔄 New Speed: ${asteroid.velocity.distance.toStringAsFixed(2)} units/sec');
           
@@ -373,7 +374,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
           final newX = asteroid.position.dx.clamp(margin, screenSize.width - margin);
           asteroid.position = Offset(newX, asteroid.position.dy);
           
-          debugPrint('🔧 Position Clamped: (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
+          if (kDebugMode) debugPrint('🔧 Position Clamped: (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
           debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         }
         
@@ -386,15 +387,15 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
               ? margin - asteroid.position.dy 
               : asteroid.position.dy - (screenSize.height - margin);
           
-          debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          if (kDebugMode) debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
           debugPrint('🎯 VERTICAL BOUNCE - Asteroid #${asteroid.id}');
           debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
           debugPrint('📝 Problem: ${asteroid.mathProblem} = ${asteroid.answer}');
-          debugPrint('🧱 Wall Hit: $side (boundary at ${boundaryY.toStringAsFixed(1)})');
+          if (kDebugMode) debugPrint('🧱 Wall Hit: $side (boundary at ${boundaryY.toStringAsFixed(1)})');
           debugPrint('📏 Penetration Depth: ${penetrationDepth.toStringAsFixed(2)} pixels');
           debugPrint('📍 Position Before: (${oldPosition.dx.toStringAsFixed(1)}, ${oldPosition.dy.toStringAsFixed(1)})');
           debugPrint('📍 Position After:  (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
-          debugPrint('🏃 Velocity Before: (${oldVelocity.dx.toStringAsFixed(2)}, ${oldVelocity.dy.toStringAsFixed(2)})');
+          if (kDebugMode) debugPrint('🏃 Velocity Before: (${oldVelocity.dx.toStringAsFixed(2)}, ${oldVelocity.dy.toStringAsFixed(2)})');
           
           // Apply bounce physics
           asteroid.velocity = Offset(
@@ -402,7 +403,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
             -asteroid.velocity.dy * GameConfig.asteroidBounceDeceleration
           );
           
-          debugPrint('🏃 Velocity After:  (${asteroid.velocity.dx.toStringAsFixed(2)}, ${asteroid.velocity.dy.toStringAsFixed(2)})');
+          if (kDebugMode) debugPrint('🏃 Velocity After:  (${asteroid.velocity.dx.toStringAsFixed(2)}, ${asteroid.velocity.dy.toStringAsFixed(2)})');
           debugPrint('⚡ Speed Loss: ${((1.0 - GameConfig.asteroidBounceDeceleration) * 100).toStringAsFixed(1)}%');
           debugPrint('🔄 New Speed: ${asteroid.velocity.distance.toStringAsFixed(2)} units/sec');
           
@@ -410,13 +411,13 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
           final newY = asteroid.position.dy.clamp(margin, screenSize.height - margin);
           asteroid.position = Offset(asteroid.position.dx, newY);
           
-          debugPrint('🔧 Position Clamped: (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
+          if (kDebugMode) debugPrint('🔧 Position Clamped: (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)})');
           debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         }
         
         // Log continuous movement every 100 frames for asteroids that didn't bounce
         if (!bounced && asteroid.id == 0 && _gameLoopController.value < 0.05) {
-          debugPrint('📊 Asteroid #${asteroid.id} (${asteroid.answer}) - Cruising...');
+          if (kDebugMode) debugPrint('📊 Asteroid #${asteroid.id} (${asteroid.answer}) - Cruising...');
           debugPrint('   Pos: (${asteroid.position.dx.toStringAsFixed(1)}, ${asteroid.position.dy.toStringAsFixed(1)}) | '
                 'Vel: (${asteroid.velocity.dx.toStringAsFixed(2)}, ${asteroid.velocity.dy.toStringAsFixed(2)}) | '
                 'Speed: ${asteroid.velocity.distance.toStringAsFixed(2)}');
@@ -427,7 +428,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       explosions.removeWhere((e) {
         final wasComplete = e.isComplete;
         if (wasComplete) {
-          debugPrint('💥 Explosion completed and removed from scene');
+          if (kDebugMode) debugPrint('💥 Explosion completed and removed from scene');
         }
         return wasComplete;
       });
@@ -435,7 +436,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       laserBeams.removeWhere((l) {
         final wasComplete = l.isComplete;
         if (wasComplete) {
-          debugPrint('⚡ Laser beam faded and removed from scene');
+          if (kDebugMode) debugPrint('⚡ Laser beam faded and removed from scene');
         }
         return wasComplete;
       });
@@ -443,7 +444,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       floatingScores.removeWhere((s) {
         final wasComplete = s.isComplete;
         if (wasComplete) {
-          debugPrint('✨ Floating score "${s.text}" completed animation and removed');
+          if (kDebugMode) debugPrint('✨ Floating score "${s.text}" completed animation and removed');
         }
         return wasComplete;
       });

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'package:dart_csp/dart_csp.dart';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -30,16 +31,10 @@ class ArithmeticSquareGame extends StatefulWidget {
 }
 
 class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, GameAnimationsMixin<ArithmeticSquareGame> {
   
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   ArithmeticSquarePuzzle? puzzle;
   Map<String, int> userSolution = {};
@@ -57,20 +52,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   @override
   void initState() {
     super.initState();
-    debugPrint("🔢 [ARITHMETIC SQUARE] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
+    initGameAnimations();
+    if (kDebugMode) debugPrint("🔢 [ARITHMETIC SQUARE] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
     
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000), 
-      vsync: this
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
-    
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600), 
-      vsync: this,
-    );
-    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
     
     _dropController = AnimationController(
       duration: const Duration(milliseconds: 500), 
@@ -78,12 +62,6 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     );
     _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
 
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
     _moveWarningController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -98,7 +76,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       if (mounted) {
         final gameProvider = context.read<GameProvider>();
         currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level);
-        debugPrint("🔢 [ARITHMETIC SQUARE] Difficulty initialized: ${currentDifficulty?.grade}");
+        if (kDebugMode) debugPrint("🔢 [ARITHMETIC SQUARE] Difficulty initialized: ${currentDifficulty?.grade}");
         _generatePuzzle();
       }
     });
@@ -106,34 +84,32 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
 
   @override
   void dispose() {
-    debugPrint("🔢 [ARITHMETIC SQUARE] Disposing game and cleaning up resources");
+    if (kDebugMode) debugPrint("🔢 [ARITHMETIC SQUARE] Disposing game and cleaning up resources");
     
-    _glowController.stop();
-    _successController.stop();
+    glowController.stop();
+    successController.stop();
     _dropController.stop();
-    _pulseController.stop();
+    pulseController.stop();
     
-    _glowController.dispose();
-    _successController.dispose();
     _dropController.dispose();
-    _pulseController.dispose();
     _moveWarningController.dispose();
     
     puzzle = null;
     userSolution.clear();
     numberPool.clear();
     
+    disposeGameAnimations();
     super.dispose();
   }
 
   void _generatePuzzle() async {
     if (currentDifficulty == null) return;
     
-    debugPrint("🎯 [ARITHMETIC SQUARE] Starting puzzle generation process");
+    if (kDebugMode) debugPrint("🎯 [ARITHMETIC SQUARE] Starting puzzle generation process");
     
     setState(() {
       _isGenerating = true;
-      _successController.reset();
+      successController.reset();
       userSolution.clear();
       _loggedEquations.clear(); // Reset equation tracking for new puzzle
     });
@@ -150,7 +126,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         'customMax': gameProvider.customRangeMax,
       };
 
-      debugPrint("🎯 [ARITHMETIC SQUARE] Calling compute function with args: $puzzleArgs");
+      if (kDebugMode) debugPrint("🎯 [ARITHMETIC SQUARE] Calling compute function with args: $puzzleArgs");
       final generatedPuzzle = await compute(ArithmeticSquarePuzzle.generate, puzzleArgs);
       
       debugPrint("🎯 [ARITHMETIC SQUARE] Puzzle generation completed successfully");
@@ -167,21 +143,21 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
           
           _isGenerating = false;
           
-          debugPrint("🎯 [ARITHMETIC SQUARE] Max moves allowed: $_maxMoves for $emptyCount empty cells");
+          if (kDebugMode) debugPrint("🎯 [ARITHMETIC SQUARE] Max moves allowed: $_maxMoves for $emptyCount empty cells");
         });
         debugPrint("🎯 [ARITHMETIC SQUARE] UI state updated with new puzzle");
         debugPrint("🎯 [ARITHMETIC SQUARE] Number pool (sorted): ${numberPool.join(', ')}");
-        debugPrint("🎯 [ARITHMETIC SQUARE] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+        if (kDebugMode) debugPrint("🎯 [ARITHMETIC SQUARE] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
         debugPrint("🎯 [ARITHMETIC SQUARE] Player hints: ${generatedPuzzle.playerHints.keys.join(', ')}");
       }
     } catch (e, stackTrace) {
-      debugPrint("❌ [ARITHMETIC SQUARE] Error generating puzzle: $e");
+      if (kDebugMode) debugPrint("❌ [ARITHMETIC SQUARE] Error generating puzzle: $e");
       debugPrint("❌ [ARITHMETIC SQUARE] StackTrace: $stackTrace");
     }
   }
 
   void _placeNumber(int number, String cellId) {
-    debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
+    if (kDebugMode) debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
     
     setState(() {
       userSolution[cellId] = number;
@@ -191,7 +167,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       
       // Decrement moves
       _movesRemaining--;
-      debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
+      if (kDebugMode) debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
       
       // Warning animation when low on moves
       if (_movesRemaining <= 3 && _movesRemaining > 0) {
@@ -201,7 +177,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       }
     });
 
-    debugPrint("🎮 [PLACE] User solution after: $userSolution");
+    if (kDebugMode) debugPrint("🎮 [PLACE] User solution after: $userSolution");
     debugPrint("🎮 [PLACE] Number pool after: $numberPool");
     
     // Check if out of moves BEFORE checking solution
@@ -214,7 +190,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   void _handleOutOfMoves() {
-    debugPrint("❌ [ARITHMETIC SQUARE] Out of moves! Game over.");
+    if (kDebugMode) debugPrint("❌ [ARITHMETIC SQUARE] Out of moves! Game over.");
     
     // Call the failure handler
     _handleFailure();
@@ -281,7 +257,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   void _removeNumber(String cellId) {
-    debugPrint("🗑️ [ARITHMETIC SQUARE] Removing number from cell $cellId");
+    if (kDebugMode) debugPrint("🗑️ [ARITHMETIC SQUARE] Removing number from cell $cellId");
     
     setState(() {
       final number = userSolution[cellId];
@@ -292,13 +268,13 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         
         // IMPORTANT: Removing doesn't restore moves (prevents abuse)
         // Player learns to think before placing
-        debugPrint("🗑️ [ARITHMETIC SQUARE] Removed $number (moves not restored)");
+        if (kDebugMode) debugPrint("🗑️ [ARITHMETIC SQUARE] Removed $number (moves not restored)");
       }
     });
   }
 
   void _checkSolution() {
-    debugPrint("✅ [ARITHMETIC SQUARE] Checking solution...");
+    if (kDebugMode) debugPrint("✅ [ARITHMETIC SQUARE] Checking solution...");
     debugPrint("✅ [ARITHMETIC SQUARE] User solution: $userSolution");
     debugPrint("✅ [ARITHMETIC SQUARE] Required cells: ${puzzle!.emptyCells.length}");
     
@@ -306,7 +282,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     _checkAndLogCompletedEquations();
     
     if (userSolution.length == puzzle!.emptyCells.length) {
-      debugPrint("✅ [ARITHMETIC SQUARE] All cells filled, validating solution");
+      if (kDebugMode) debugPrint("✅ [ARITHMETIC SQUARE] All cells filled, validating solution");
       
       final isValid = puzzle!.validateSolution(userSolution);
       debugPrint("✅ [ARITHMETIC SQUARE] Solution validation result: $isValid");
@@ -317,7 +293,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         _handleIncorrect();
       }
     } else {
-      debugPrint("✅ [ARITHMETIC SQUARE] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
+      if (kDebugMode) debugPrint("✅ [ARITHMETIC SQUARE] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
     }
   }
   
@@ -361,7 +337,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
             // The equation is complete - validate it
             final isCorrect = puzzle!.validateSingleEquation(currentGrid, r, true);
             sriService.recordResponse(problem, isCorrect);
-            debugPrint("🔢 SRI: Logged row $r problem -> ${problem.expression} (correct: $isCorrect)");
+            if (kDebugMode) debugPrint("🔢 SRI: Logged row $r problem -> ${problem.expression} (correct: $isCorrect)");
           }
         }
         _loggedEquations.add(equationId);
@@ -397,7 +373,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
             // The equation is complete - validate it
             final isCorrect = puzzle!.validateSingleEquation(currentGrid, c, false);
             sriService.recordResponse(problem, isCorrect);
-            debugPrint("🔢 SRI: Logged column $c problem -> ${problem.expression} (correct: $isCorrect)");
+            if (kDebugMode) debugPrint("🔢 SRI: Logged column $c problem -> ${problem.expression} (correct: $isCorrect)");
           }
         }
         _loggedEquations.add(equationId);
@@ -430,16 +406,16 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
 
   void _handleSuccess() {
     HapticFeedback.lightImpact();
-    debugPrint("🎉 [ARITHMETIC SQUARE] SUCCESS! Player solved the puzzle!");
+    if (kDebugMode) debugPrint("🎉 [ARITHMETIC SQUARE] SUCCESS! Player solved the puzzle!");
     
     int baseScore = 200 * widget.grade;
     int complexityBonus = puzzle!.gridSize * puzzle!.gridSize * 10;
     int operationBonus = puzzle!.getAllOperators()
-        .map((op) => _getOperationBonus(op))
+        .map(_getOperationBonus)
         .fold(0, (a, b) => a + b);
     
     int totalScore = baseScore + complexityBonus + operationBonus;
-    debugPrint("🎉 [ARITHMETIC SQUARE] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
+    if (kDebugMode) debugPrint("🎉 [ARITHMETIC SQUARE] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
     
     // SINGLE CALL to unified progression system
     // NO mathProblems parameter - already tracked in real-time via _checkAndLogCompletedEquations()
@@ -449,7 +425,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       score: totalScore,
     ));
     
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
     
     if (mounted) {
       showDialog(
@@ -461,7 +437,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   void _handleFailure() {
-    debugPrint("❌ [ARITHMETIC SQUARE] Player gave up or failed");
+    if (kDebugMode) debugPrint("❌ [ARITHMETIC SQUARE] Player gave up or failed");
     
     // Record the failure - equations were already tracked via SRI as they were completed
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
@@ -484,7 +460,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   void _handleIncorrect() {
-    debugPrint("❌ [ARITHMETIC SQUARE] Incorrect solution - showing error message");
+    if (kDebugMode) debugPrint("❌ [ARITHMETIC SQUARE] Incorrect solution - showing error message");
     HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -697,20 +673,20 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   Widget _buildGridArea({required bool isCompact}) {
     return Center(
       child: AnimatedBuilder(
-        animation: _glowAnimation,
+        animation: glowAnimation,
         builder: (context, child) {
           return Container(
             padding: EdgeInsets.all(isCompact ? 12 : 16),
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.nebulaPurple.withValues(alpha: 0.1 * _glowAnimation.value),
+                  SpaceTheme.nebulaPurple.withValues(alpha: 0.1 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.nebulaPurple.withValues(alpha: _glowAnimation.value),
+                color: SpaceTheme.nebulaPurple.withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -891,10 +867,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
               ] : null,
             ),
             child: AnimatedBuilder(
-              animation: _pulseAnimation,
+              animation: pulseAnimation,
               builder: (context, child) {
                 return Transform.scale(
-                  scale: _pulseAnimation.value,
+                  scale: pulseAnimation.value,
                   child: Center(
                     child: Icon(
                       Icons.add,
@@ -1089,10 +1065,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
 
   Widget _buildSuccessDialog(int bonusScore) {
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(
@@ -1162,7 +1138,7 @@ class ArithmeticSquarePuzzle {
   });
 
   static Future<ArithmeticSquarePuzzle> generate(Map<String, dynamic> args) async {
-    debugPrint("🎯 [ARITHMETIC SQUARE FACTORY] Starting puzzle generation with args: $args");
+    if (kDebugMode) debugPrint("🎯 [ARITHMETIC SQUARE FACTORY] Starting puzzle generation with args: $args");
     
     final grade = args['grade'] as int;
     final level = args['level'] as int;
@@ -1172,7 +1148,7 @@ class ArithmeticSquarePuzzle {
     final customMin = args['customMin'] as int;
     final customMax = args['customMax'] as int;
     
-    debugPrint("🎯 [ARITHMETIC SQUARE FACTORY] Using difficulty config: ${difficultyConfig.grade}");
+    if (kDebugMode) debugPrint("🎯 [ARITHMETIC SQUARE FACTORY] Using difficulty config: ${difficultyConfig.grade}");
     
     final generator = ArithmeticSquareGenerator(
       grade: grade,
@@ -1188,7 +1164,7 @@ class ArithmeticSquarePuzzle {
   }
 
   bool validateSolution(Map<String, int> userSolution) {
-    debugPrint("✅ [VALIDATION] Starting solution validation");
+    if (kDebugMode) debugPrint("✅ [VALIDATION] Starting solution validation");
     
     // Create complete grid with CSP clues, player hints, and user solution
     final completeGrid = Map<String, int>.from(clues);
@@ -1198,7 +1174,7 @@ class ArithmeticSquarePuzzle {
     // Validate all rows
     for (int r = 0; r < gridSize; r++) {
       if (!validateSingleEquation(completeGrid, r, true)) {
-        debugPrint("✅ [VALIDATION] ❌ Row $r validation failed");
+        if (kDebugMode) debugPrint("✅ [VALIDATION] ❌ Row $r validation failed");
         return false;
       }
     }
@@ -1206,12 +1182,12 @@ class ArithmeticSquarePuzzle {
     // Validate all columns
     for (int c = 0; c < gridSize; c++) {
       if (!validateSingleEquation(completeGrid, c, false)) {
-        debugPrint("✅ [VALIDATION] ❌ Column $c validation failed");
+        if (kDebugMode) debugPrint("✅ [VALIDATION] ❌ Column $c validation failed");
         return false;
       }
     }
     
-    debugPrint("✅ [VALIDATION] ✅ Solution is valid!");
+    if (kDebugMode) debugPrint("✅ [VALIDATION] ✅ Solution is valid!");
     return true;
   }
   
@@ -1234,7 +1210,7 @@ class ArithmeticSquarePuzzle {
     final expectedResult = values.last;
     
     final isValid = calculatedResult == expectedResult;
-    debugPrint("✅ [VALIDATION] ${isRow ? 'Row' : 'Column'} $index: calculated=$calculatedResult, expected=$expectedResult, valid=$isValid");
+    if (kDebugMode) debugPrint("✅ [VALIDATION] ${isRow ? 'Row' : 'Column'} $index: calculated=$calculatedResult, expected=$expectedResult, valid=$isValid");
     
     return isValid;
   }
@@ -1303,21 +1279,21 @@ class ArithmeticSquareGenerator {
   });
 
   Future<ArithmeticSquarePuzzle> generate() async {
-    debugPrint("🔧 [GENERATOR] Starting arithmetic square generation");
+    if (kDebugMode) debugPrint("🔧 [GENERATOR] Starting arithmetic square generation");
     
     const maxAttempts = 250; // Same as gensq.dart
     
     for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-      debugPrint("🔧 [GENERATOR] === Attempt $attempt/$maxAttempts ===");
+      if (kDebugMode) debugPrint("🔧 [GENERATOR] === Attempt $attempt/$maxAttempts ===");
       
       try {
         final puzzle = await _attemptGeneration();
         if (puzzle != null) {
-          debugPrint("🔧 [GENERATOR] ✅ SUCCESS! Generated valid puzzle on attempt $attempt");
+          if (kDebugMode) debugPrint("🔧 [GENERATOR] ✅ SUCCESS! Generated valid puzzle on attempt $attempt");
           return puzzle;
         }
       } catch (e) {
-        debugPrint("🔧 [GENERATOR] ❌ Attempt $attempt failed: $e");
+        if (kDebugMode) debugPrint("🔧 [GENERATOR] ❌ Attempt $attempt failed: $e");
       }
     }
     
@@ -1349,7 +1325,7 @@ class ArithmeticSquareGenerator {
       columnOperators.add(ops);
     }
     
-    debugPrint("🔧 [GENERATOR] Generated ${gridSize}x$gridSize grid with operators");
+    if (kDebugMode) debugPrint("🔧 [GENERATOR] Generated ${gridSize}x$gridSize grid with operators");
     
     // Step 3: Generate CSP clues (minimal, just for solving)
     final clues = <String, int>{};
@@ -1370,21 +1346,21 @@ class ArithmeticSquareGenerator {
       clues[cellId] = _randChoice(domain);
     }
     
-    debugPrint("🔧 [GENERATOR] Generated $numCSPClues CSP clues: $clues");
+    if (kDebugMode) debugPrint("🔧 [GENERATOR] Generated $numCSPClues CSP clues: $clues");
     
     // Step 4: Solve using CSP
     final solution = await _solveWithCSP(gridSize, rowOperators, columnOperators, clues);
     
     if (solution == null) {
-      debugPrint("🔧 [GENERATOR] ❌ CSP solver failed");
+      if (kDebugMode) debugPrint("🔧 [GENERATOR] ❌ CSP solver failed");
       return null;
     }
     
-    debugPrint("🔧 [GENERATOR] ✅ CSP solved successfully");
+    if (kDebugMode) debugPrint("🔧 [GENERATOR] ✅ CSP solved successfully");
     
     // Step 5: PLAYER HINTS - Strategic selection for gameplay
     final playerHints = _selectPlayerHints(gridSize, rowOperators, columnOperators, solution, clues);
-    debugPrint("🔧 [GENERATOR] 🎯 Selected ${playerHints.length} player hints: $playerHints");
+    if (kDebugMode) debugPrint("🔧 [GENERATOR] 🎯 Selected ${playerHints.length} player hints: $playerHints");
     
     // Step 6: Create empty cells (excluding both CSP clues and player hints)
     final emptyCells = <String>{};
@@ -1418,7 +1394,7 @@ class ArithmeticSquareGenerator {
     Map<String, int> solution,
     Map<String, int> cspClues,
   ) {
-    debugPrint("🎯 [PLAYER HINTS] Starting strategic hint selection");
+    if (kDebugMode) debugPrint("🎯 [PLAYER HINTS] Starting strategic hint selection");
     
     final playerHints = <String, int>{};
     final allCells = <String>[];
@@ -1441,7 +1417,7 @@ class ArithmeticSquareGenerator {
     final totalEquations = gridSize * 2; // rows + columns
     final maxHints = math.min(totalEquations, _calculateTargetHints(gridSize, grade, level));
     
-    debugPrint("🎯 [PLAYER HINTS] Target hints: $maxHints out of $totalEquations equations");
+    if (kDebugMode) debugPrint("🎯 [PLAYER HINTS] Target hints: $maxHints out of $totalEquations equations");
     
     // Priority 1: Add hints to equations with more complex operations
     final candidates = <_HintCandidate>[];
@@ -1480,11 +1456,11 @@ class ArithmeticSquareGenerator {
         rowsWithHints.add(candidate.row);
         colsWithHints.add(candidate.col);
         
-        debugPrint("🎯 [PLAYER HINTS] Added hint at ${candidate.cellId} (value: ${solution[candidate.cellId]}) - row ${ candidate.row}, col ${candidate.col}, complexity: ${candidate.complexity}");
+        if (kDebugMode) debugPrint("🎯 [PLAYER HINTS] Added hint at ${candidate.cellId} (value: ${solution[candidate.cellId]}) - row ${ candidate.row}, col ${candidate.col}, complexity: ${candidate.complexity}");
       }
     }
     
-    debugPrint("🎯 [PLAYER HINTS] Final selection: ${playerHints.length} hints placed");
+    if (kDebugMode) debugPrint("🎯 [PLAYER HINTS] Final selection: ${playerHints.length} hints placed");
     debugPrint("🎯 [PLAYER HINTS] Rows with hints: $rowsWithHints");
     debugPrint("🎯 [PLAYER HINTS] Columns with hints: $colsWithHints");
     return playerHints;
@@ -1583,7 +1559,7 @@ class ArithmeticSquareGenerator {
     Map<String, int> clues,
   ) async {
     
-    debugPrint("🔧 [CSP] Building CSP problem...");
+    if (kDebugMode) debugPrint("🔧 [CSP] Building CSP problem...");
     
     // Build Problem exactly like gensq.dart does
     final p = Problem();
@@ -1613,21 +1589,21 @@ class ArithmeticSquareGenerator {
       p.addConstraint(colVars, _createPredicate(colVars, columnOperators[c]));
     }
     
-    debugPrint("🔧 [CSP] Solving with ${gridSize * gridSize} variables...");
+    if (kDebugMode) debugPrint("🔧 [CSP] Solving with ${gridSize * gridSize} variables...");
     
     try {
       final solution = await p.getSolution().timeout(const Duration(seconds: 30));
       
       if (solution == 'FAILURE') {
-        debugPrint("🔧 [CSP] ❌ No solution found");
+        if (kDebugMode) debugPrint("🔧 [CSP] ❌ No solution found");
         return null;
       }
       
-      debugPrint("🔧 [CSP] ✅ Solution found: $solution");
+      if (kDebugMode) debugPrint("🔧 [CSP] ✅ Solution found: $solution");
       return solution.cast<String, int>();
       
     } catch (e) {
-      debugPrint("🔧 [CSP] ❌ Solver timeout or error: $e");
+      if (kDebugMode) debugPrint("🔧 [CSP] ❌ Solver timeout or error: $e");
       return null;
     }
   }
@@ -1695,7 +1671,7 @@ class ArithmeticSquareGenerator {
       pool.remove(num);
     }
     
-    debugPrint("🎯 [NUMBER POOL] Removed unique hint numbers: $numbersToRemove");
+    if (kDebugMode) debugPrint("🎯 [NUMBER POOL] Removed unique hint numbers: $numbersToRemove");
     
     final domain = _getNumberDomain();
     
@@ -1713,7 +1689,7 @@ class ArithmeticSquareGenerator {
     pool.addAll(decoys);
     pool.shuffle(_random);
     
-    debugPrint("🎯 [NUMBER POOL] Final pool size: ${pool.length}, contents: $pool");
+    if (kDebugMode) debugPrint("🎯 [NUMBER POOL] Final pool size: ${pool.length}, contents: $pool");
     return pool;
   }
 

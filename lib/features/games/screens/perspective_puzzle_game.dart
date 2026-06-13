@@ -522,7 +522,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     final decoys = <PerspectiveView>{};
     final random = math.Random();
     while (decoys.length < count) {
-        var newView = correctView.map((row) => List<Block?>.from(row)).toList();
+        var newView = correctView.map(List<Block?>.from).toList();
         int modType = random.nextInt(3);
         if (modType == 0 && newView.isNotEmpty && newView[0].length > 1) {
             int col1 = random.nextInt(newView[0].length);
@@ -646,7 +646,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   void _handleFailure() {
     if (!mounted) return;
 
-    debugPrint("Perspective Puzzle Failed: Ran out of lives.");
+    if (kDebugMode) debugPrint("Perspective Puzzle Failed: Ran out of lives.");
 
     // Report the failure to the GameProvider.
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(

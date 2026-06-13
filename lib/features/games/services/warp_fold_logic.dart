@@ -119,7 +119,7 @@ class WarpFoldGenerator {
     final cuts = <CutPosition>[];
     for (int i = 0; i < numCuts; i++) {
       // Place cut within visible area with margin
-      final margin = 0.08;
+      const margin = 0.08;
       final x = (visMinX + margin) + _random.nextDouble() * (visMaxX - visMinX - 2 * margin);
       final y = (visMinY + margin) + _random.nextDouble() * (visMaxY - visMinY - 2 * margin);
       cuts.add(CutPosition(x.clamp(0.05, 0.95), y.clamp(0.05, 0.95), 0.1));
@@ -144,7 +144,7 @@ class WarpFoldGenerator {
     }
     // Fill remaining with random flips if needed
     while (allOptions.length < 5) {
-      final d = correctResult.map((row) => List<bool>.from(row)).toList();
+      final d = correctResult.map(List<bool>.from).toList();
       for (int m = 0; m < 4; m++) {
         d[_random.nextInt(gridSize)][_random.nextInt(gridSize)] = _random.nextBool();
       }
@@ -268,7 +268,7 @@ class WarpFoldGenerator {
       return shifted;
     } else if (strategy == 1) {
       // Break symmetry: for one fold axis, don't mirror
-      final d = correct.map((row) => List<bool>.from(row)).toList();
+      final d = correct.map(List<bool>.from).toList();
       // Remove holes from one half
       final axis = _random.nextBool(); // true = vertical, false = horizontal
       for (int r = 0; r < gridSize; r++) {
@@ -288,7 +288,7 @@ class WarpFoldGenerator {
   }
 
   List<List<bool>> _flipRandomCells(List<List<bool>> correct, int gridSize) {
-    final d = correct.map((row) => List<bool>.from(row)).toList();
+    final d = correct.map(List<bool>.from).toList();
     final modifications = 2 + _random.nextInt(3);
     for (int m = 0; m < modifications; m++) {
       d[_random.nextInt(gridSize)][_random.nextInt(gridSize)] =

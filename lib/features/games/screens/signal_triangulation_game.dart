@@ -9,6 +9,7 @@ import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
+import 'package:flutter/foundation.dart';
 
 class SignalTriangulationGame extends StatefulWidget {
   final int grade;
@@ -63,7 +64,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   @override
   void initState() {
     super.initState();
-    debugPrint("🎯 [SignalTriangulation] Initializing game - Grade: ${widget.grade}, Level: ${widget.level}");
+    if (kDebugMode) debugPrint("🎯 [SignalTriangulation] Initializing game - Grade: ${widget.grade}, Level: ${widget.level}");
     
     _setupAnimationControllers();
     _initializeGameParameters();
@@ -76,7 +77,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       }
     });
     
-    debugPrint("🎯 [SignalTriangulation] Secret sequence: ${secretSequence.map((g) => g.name).join(', ')}");
+    if (kDebugMode) debugPrint("🎯 [SignalTriangulation] Secret sequence: ${secretSequence.map((g) => g.name).join(', ')}");
   }
 
   void _setupAnimationControllers() {
@@ -157,7 +158,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     previousGuesses = [];
     currentPosition = 0;
     
-    debugPrint("🎯 [SignalTriangulation] Game parameters: length=$sequenceLength, guesses=$maxGuesses, glyphs=${availableGlyphs.length}");
+    if (kDebugMode) debugPrint("🎯 [SignalTriangulation] Game parameters: length=$sequenceLength, guesses=$maxGuesses, glyphs=${availableGlyphs.length}");
   }
 
   void _generateSecretSequence() {
@@ -178,7 +179,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       currentPosition++;
     });
     
-    debugPrint("🎯 [SignalTriangulation] Selected glyph: ${glyph.name} at position $currentPosition");
+    if (kDebugMode) debugPrint("🎯 [SignalTriangulation] Selected glyph: ${glyph.name} at position $currentPosition");
     
     // Auto-submit when sequence is complete
     if (currentPosition >= sequenceLength) {
@@ -198,7 +199,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   void _submitGuess() async {
     if (!gameActive || currentGuess.any((g) => g == SignalGlyph.empty)) return;
     
-    debugPrint("🎯 [SignalTriangulation] Submitting guess: ${currentGuess.map((g) => g.name).join(', ')}");
+    if (kDebugMode) debugPrint("🎯 [SignalTriangulation] Submitting guess: ${currentGuess.map((g) => g.name).join(', ')}");
     
     // Calculate feedback
     final feedback = _calculateFeedback(currentGuess, secretSequence);
@@ -294,7 +295,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   }
 
   void _handleSuccess() {
-    debugPrint("🎉 [SignalTriangulation] Success! Signal triangulated successfully");
+    if (kDebugMode) debugPrint("🎉 [SignalTriangulation] Success! Signal triangulated successfully");
     
     setState(() {
       gameActive = false;
@@ -335,7 +336,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   }
 
   void _handleFailure() {
-    debugPrint("❌ [SignalTriangulation] Failed - Signal source remains hidden");
+    if (kDebugMode) debugPrint("❌ [SignalTriangulation] Failed - Signal source remains hidden");
 
     setState(() {
       gameActive = false;
@@ -805,7 +806,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
           ),
           const SizedBox(height: 16),
           Column(
-            children: previousGuesses.reversed.take(5).map((result) => _buildGuessResult(result)).toList(),
+            children: previousGuesses.reversed.take(5).map(_buildGuessResult).toList(),
           ),
         ],
       ),

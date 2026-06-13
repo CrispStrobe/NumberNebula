@@ -13,6 +13,7 @@ import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../../../core/services/sri_service.dart';
+import 'package:flutter/foundation.dart';
 
 // Main Game Widget
 class PuzzleMathGame extends StatefulWidget {
@@ -43,11 +44,11 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
 
   void _initializeGame() {
     // REFACTORED: Using debugPrint for CLI output
-    debugPrint("--- INITIALIZING NEW GAME ---");
+    if (kDebugMode) debugPrint("--- INITIALIZING NEW GAME ---");
     final gameProvider = context.read<GameProvider>();
     
     currentPuzzleImage = PuzzleImageService.instance.getImageForLevel(widget.level);
-    debugPrint("🖼️ LOADED IMAGE: $currentPuzzleImage for level ${widget.level}");
+    if (kDebugMode) debugPrint("🖼️ LOADED IMAGE: $currentPuzzleImage for level ${widget.level}");
     
     _generatePuzzle();
     if (gameProvider.puzzleTimerEnabled) {
@@ -58,14 +59,14 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   void _startTimer() {
     _timeLeft = 120; // Or get from DifficultyManager
     _timer?.cancel();
-    debugPrint("TIMER: Starting timer. Duration: $_timeLeft seconds.");
+    if (kDebugMode) debugPrint("TIMER: Starting timer. Duration: $_timeLeft seconds.");
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted && _timeLeft > 0) {
         setState(() => _timeLeft--);
       } else {
         timer.cancel();
         if (mounted) {
-          debugPrint("TIMER: Timer finished.");
+          if (kDebugMode) debugPrint("TIMER: Timer finished.");
           // CHANGED: Call the central endgame handler with a failure status.
           _endGame(wasSuccessful: false); 
         }
@@ -90,7 +91,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
       finalScore = 100 + timeBonus; // Base score + bonus
     }
     
-    debugPrint("--- GAME END ---");
+    if (kDebugMode) debugPrint("--- GAME END ---");
     debugPrint("Result: ${wasSuccessful ? 'WIN' : 'LOSS'} | Final Score: $finalScore");
 
     // 3. Make the single, unified call to the GameProvider.
@@ -120,7 +121,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   @override
   void dispose() {
     _timer?.cancel();
-    debugPrint("Disposing PuzzleMathGame widget.");
+    if (kDebugMode) debugPrint("Disposing PuzzleMathGame widget.");
     super.dispose();
   }
 
@@ -137,7 +138,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     } else {
       columns = 3; rows = 4;
     }
-    debugPrint("PUZZLE: Grid set to ${columns}x$rows = ${columns * rows} pieces (Grade: $difficulty)");
+    if (kDebugMode) debugPrint("PUZZLE: Grid set to ${columns}x$rows = ${columns * rows} pieces (Grade: $difficulty)");
 
     final pieceCount = columns * rows;
     _generateEdgeShapes(); 
@@ -158,7 +159,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         rotation: 0, 
       ));
     }
-    debugPrint("PUZZLE: Generated ${pieceData.length} pieces with math problems.");
+    if (kDebugMode) debugPrint("PUZZLE: Generated ${pieceData.length} pieces with math problems.");
 
     setState(() {
       pieces = pieceData..shuffle(math.Random());
@@ -181,12 +182,12 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         _edgeShapes['v-$r-$c'] = random.nextBool() ? JigsawSide.knob : JigsawSide.hole;
       }
     }
-    debugPrint("PUZZLE: Generated ${_edgeShapes.length} unique interior edge shapes.");
+    if (kDebugMode) debugPrint("PUZZLE: Generated ${_edgeShapes.length} unique interior edge shapes.");
   }
 
   void _onToggleTimer(bool isEnabled) {
     context.read<GameProvider>().setPuzzleTimer(isEnabled);
-    debugPrint("TIMER: Timer toggled: ${isEnabled ? 'ON' : 'OFF'}");
+    if (kDebugMode) debugPrint("TIMER: Timer toggled: ${isEnabled ? 'ON' : 'OFF'}");
     if (isEnabled) {
       _startTimer();
     } else {
@@ -199,7 +200,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     setState(() {
       final piece = pieces.firstWhere((p) => p.id == pieceId);
       piece.rotation = (piece.rotation + 90) % 360;
-      debugPrint("INTERACTION: Rotated piece ID $pieceId to ${piece.rotation} degrees.");
+      if (kDebugMode) debugPrint("INTERACTION: Rotated piece ID $pieceId to ${piece.rotation} degrees.");
     });
   }
 
@@ -207,7 +208,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     setState(() {
       final pieceId = placedPieces[slotId];
       placedPieces.remove(slotId);
-      debugPrint("INTERACTION: Removed piece ID $pieceId from slot ID $slotId.");
+      if (kDebugMode) debugPrint("INTERACTION: Removed piece ID $pieceId from slot ID $slotId.");
     });
   }
 
@@ -244,7 +245,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: LayoutBuilder(builder: (context, constraints) {
-                    debugPrint("==================== LAYOUT REBUILD ====================");
+                    if (kDebugMode) debugPrint("==================== LAYOUT REBUILD ====================");
                     debugPrint("LAYOUT: Available constraints: MaxW=${constraints.maxWidth.toStringAsFixed(1)}, MaxH=${constraints.maxHeight.toStringAsFixed(1)}");
                     return Row(
                       children: [
@@ -393,7 +394,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     final pieceSide = math.min(pieceWidth, pieceHeight);
     
     // REFACTORED: Verbose logging
-    debugPrint("SIZING: Calculating piece size...");
+    if (kDebugMode) debugPrint("SIZING: Calculating piece size...");
     debugPrint("SIZING:   -> Available for board: W=${availableWidth.toStringAsFixed(1)}, H=${availableHeight.toStringAsFixed(1)}");
     debugPrint("SIZING:   -> Using constraints: W=${boardConstraints.maxWidth.toStringAsFixed(1)}, H=${boardConstraints.maxHeight.toStringAsFixed(1)}");
     debugPrint("SIZING:   -> Calculated side length: ${pieceSide.toStringAsFixed(2)}");
@@ -411,11 +412,11 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     final coreHeight = pieceSize.height * rows;
     
     // REFACTORED: Verbose logging for all board dimensions
-    debugPrint("-------------------- Puzzle Board Build --------------------");
+    if (kDebugMode) debugPrint("-------------------- Puzzle Board Build --------------------");
     debugPrint("BOARD: Piece Size (Core): ${pieceSize.width.toStringAsFixed(1)} x ${pieceSize.height.toStringAsFixed(1)}");
     debugPrint("BOARD: Bump Size: ${bumpSize.toStringAsFixed(1)}");
     debugPrint("BOARD: Core Grid Dimensions: ${coreWidth.toStringAsFixed(1)} x ${coreHeight.toStringAsFixed(1)}");
-    debugPrint("----------------------------------------------------------");
+    if (kDebugMode) debugPrint("----------------------------------------------------------");
 
     return Center(
       child: Container(
@@ -449,7 +450,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
             final slotWidgetLeft = coreLeft - bumpSize;
             final slotWidgetTop = coreTop - bumpSize;
 
-            debugPrint("BOARD: Slot ${slotData.id} (R:$row, C:$col) | Core Pos: (${coreLeft.toStringAsFixed(1)}, ${coreTop.toStringAsFixed(1)}) | Widget Pos: (${slotWidgetLeft.toStringAsFixed(1)}, ${slotWidgetTop.toStringAsFixed(1)})");
+            if (kDebugMode) debugPrint("BOARD: Slot ${slotData.id} (R:$row, C:$col) | Core Pos: (${coreLeft.toStringAsFixed(1)}, ${coreTop.toStringAsFixed(1)}) | Widget Pos: (${slotWidgetLeft.toStringAsFixed(1)}, ${slotWidgetTop.toStringAsFixed(1)})");
 
             return Positioned(
               left: slotWidgetLeft,
@@ -480,7 +481,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                 onWillAcceptWithDetails: (details) {
                   final pieceId = details.data;
                   final willAccept = !isPlaced;
-                  debugPrint("DRAG: Piece ID $pieceId hovering over slot ${slotData.id}. Will Accept: $willAccept");
+                  if (kDebugMode) debugPrint("DRAG: Piece ID $pieceId hovering over slot ${slotData.id}. Will Accept: $willAccept");
                   return willAccept;
                 },
                 // Inside the DragTarget's onAccept callback in _buildPuzzleBoard
@@ -490,12 +491,12 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                   final slotData = pieces.firstWhere((p) => p.row == row && p.col == col);
                   final isCorrect = pieceData.answer == slotData.answer && pieceData.rotation == 0;
 
-                  debugPrint("DROP: Attempting place piece ID $pieceId (Ans: ${pieceData.answer}, Rot: ${pieceData.rotation}) -> slot ${slotData.id} (Ans: ${slotData.answer})");
+                  if (kDebugMode) debugPrint("DROP: Attempting place piece ID $pieceId (Ans: ${pieceData.answer}, Rot: ${pieceData.rotation}) -> slot ${slotData.id} (Ans: ${slotData.answer})");
                   
                   // REMOVED: Direct call to sriService.recordResponse. This will be handled at the end of the game.
 
                   if (isCorrect) {
-                    debugPrint("DROP: SUCCESS! Correct placement.");
+                    if (kDebugMode) debugPrint("DROP: SUCCESS! Correct placement.");
                     setState(() => placedPieces[slotData.id] = pieceId);
                     
                     // REMOVED: Direct call to gameProvider.addScore. This is now part of the final score calculation.
@@ -505,7 +506,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                       _endGame(wasSuccessful: true);
                     }
                   } else {
-                    debugPrint("DROP: FAILURE! Incorrect. Reason: ${pieceData.answer != slotData.answer ? 'Wrong Answer' : 'Wrong Rotation'}");
+                    if (kDebugMode) debugPrint("DROP: FAILURE! Incorrect. Reason: ${pieceData.answer != slotData.answer ? 'Wrong Answer' : 'Wrong Rotation'}");
                     _showIncorrectPlacement();
                   }
                 },
@@ -546,7 +547,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
       boardPieceSize.height * sizeMultiplier
     );
     
-    debugPrint("TRAY: ${availablePieces.length} pieces, $crossAxisCount columns, size multiplier: $sizeMultiplier");
+    if (kDebugMode) debugPrint("TRAY: ${availablePieces.length} pieces, $crossAxisCount columns, size multiplier: $sizeMultiplier");
     
     return Container(
       padding: EdgeInsets.all(isSmallScreen ? 2 : 4), // Minimal padding
@@ -885,10 +886,12 @@ class PuzzlePieceWidget extends StatelessWidget {
     final extendedWidgetHeight = pieceSize.height + (bumpSize * 2);
 
     // REFACTORED: Verbose logging for piece widget rendering
-    debugPrint("PIECE WIDGET ${data.id} (R:${data.row},C:${data.col}): "
+    if (kDebugMode) {
+      debugPrint("PIECE WIDGET ${data.id} (R:${data.row},C:${data.col}): "
         "CoreSize=${pieceSize.width.toStringAsFixed(1)}, "
         "ExtendedSize=${extendedWidgetWidth.toStringAsFixed(1)}, "
         "ImageOffset=(${imageOffsetX.toStringAsFixed(1)}, ${imageOffsetY.toStringAsFixed(1)})");
+    }
 
     return Semantics(
       label: isPlaced ? 'Placed puzzle piece' : 'Unplaced puzzle piece',

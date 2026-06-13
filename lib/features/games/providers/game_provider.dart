@@ -124,14 +124,14 @@ class GameProvider extends ChangeNotifier {
   void debugSetGameLevels(int newLevel, List<String> gameKeys) {
     if (gameKeys.isEmpty) return; // Do nothing if no keys are selected
 
-    debugPrint('[DEBUG] Forcing ${gameKeys.length} game(s) to level $newLevel');
+    if (kDebugMode) debugPrint('[DEBUG] Forcing ${gameKeys.length} game(s) to level $newLevel');
     
     for (final gameKey in gameKeys) {
       // We check if the key is valid by looking in the official gameSkillMap
       if (gameSkillMap.containsKey(gameKey)) {
         _gameProgress[gameKey] = newLevel;
       } else {
-        debugPrint('[DEBUG] Unknown game key: $gameKey. Skipping.');
+        if (kDebugMode) debugPrint('[DEBUG] Unknown game key: $gameKey. Skipping.');
       }
     }
     
@@ -189,9 +189,11 @@ class GameProvider extends ChangeNotifier {
   /// Returns true iff the player advanced to the next level as a result
   /// of this outcome.
   bool reportOutcome(GameOutcome outcome) {
-    debugPrint(
+    if (kDebugMode) {
+      debugPrint(
         '[GAME_PROVIDER] 🎯 Recording ${outcome.gameType} result: '
         '${outcome.wasSuccessful ? "WIN" : "LOSS"} at difficulty ${outcome.difficulty}');
+    }
 
     if (outcome.wasSuccessful) addScore(outcome.score);
 
@@ -200,7 +202,7 @@ class GameProvider extends ChangeNotifier {
     if (_lastStars > (_bestStars[outcome.gameType] ?? 0)) {
       _bestStars[outcome.gameType] = _lastStars;
     }
-    debugPrint('[GAME_PROVIDER] ⭐ Stars: $_lastStars (best: ${_bestStars[outcome.gameType]})');
+    if (kDebugMode) debugPrint('[GAME_PROVIDER] ⭐ Stars: $_lastStars (best: ${_bestStars[outcome.gameType]})');
 
     _currentLevelWins[outcome.gameType] =
         (_currentLevelWins[outcome.gameType] ?? 0) +
@@ -208,7 +210,7 @@ class GameProvider extends ChangeNotifier {
 
     final skill = gameSkillMap[outcome.gameType];
     if (skill == null) {
-      debugPrint('[GAME_PROVIDER] ⚠️ Unknown game type: ${outcome.gameType}');
+      if (kDebugMode) debugPrint('[GAME_PROVIDER] ⚠️ Unknown game type: ${outcome.gameType}');
       return false;
     }
 
@@ -217,11 +219,15 @@ class GameProvider extends ChangeNotifier {
         for (final problem in outcome.mathProblems) {
           _sriService.recordResponse(problem, outcome.wasSuccessful);
         }
-        debugPrint(
+        if (kDebugMode) {
+          debugPrint(
             '[GAME_PROVIDER] Recorded ${outcome.mathProblems.length} math problem(s) for ${outcome.gameType}');
+        }
       } else {
-        debugPrint(
+        if (kDebugMode) {
+          debugPrint(
             '[GAME_PROVIDER] ⚠️ Arithmetic game ${outcome.gameType} missing MathProblem data');
+        }
       }
     } else {
       _cognitiveProfileService.recordAttempt(
@@ -265,8 +271,10 @@ class GameProvider extends ChangeNotifier {
 
   bool canAdvanceToNextLevel(String gameType, int currentLevel) {
     if ((_currentLevelWins[gameType] ?? 0) < kWinsRequiredForLevelUp) {
-      debugPrint('[GAME_PROVIDER] ❌ $gameType: '
+      if (kDebugMode) {
+        debugPrint('[GAME_PROVIDER] ❌ $gameType: '
           'Only ${_currentLevelWins[gameType] ?? 0}/$kWinsRequiredForLevelUp wins');
+      }
       return false;
     }
 
@@ -281,7 +289,7 @@ class GameProvider extends ChangeNotifier {
   }
 
   void advanceLevel(String gameType) {
-    debugPrint('[GAME_PROVIDER] 📈 $gameType advancing to level ${(_gameProgress[gameType] ?? 1) + 1}');
+    if (kDebugMode) debugPrint('[GAME_PROVIDER] 📈 $gameType advancing to level ${(_gameProgress[gameType] ?? 1) + 1}');
     updateGameProgress(gameType, (_gameProgress[gameType] ?? 1) + 1);
     _currentLevelWins[gameType] = 0;
   }
@@ -313,7 +321,7 @@ class GameProvider extends ChangeNotifier {
     
     final hasMastery = totalTracked >= kMinTrackedProblemsForMastery &&
         (totalMastered / totalTracked) >= kDefaultPassThreshold;
-    debugPrint('[GAME_PROVIDER] Arithmetic mastery @ $difficulty: $totalMastered/$totalTracked ${hasMastery ? "✓" : "✗"}');
+    if (kDebugMode) debugPrint('[GAME_PROVIDER] Arithmetic mastery @ $difficulty: $totalMastered/$totalTracked ${hasMastery ? "✓" : "✗"}');
     return hasMastery;
   }
 

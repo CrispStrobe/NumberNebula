@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -32,18 +33,12 @@ class SolarPanelGame extends StatefulWidget {
 }
 
 class _SolarPanelGameState extends State<SolarPanelGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, GameAnimationsMixin<SolarPanelGame> {
   final GlobalKey _dragTargetKey = GlobalKey();
 
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
   late AnimationController _warpController;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
   late AnimationController _panelExpandController;
   late Animation<double> _panelExpandAnimation;
 
@@ -52,7 +47,6 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   List<int> numberPool = [];
   
   bool _isGenerating = true;
-  bool _isWarping = false; // ignore: unused_field
   int _lastPlacedCellIndex = -1;
   bool _isDraggingOver = false;
   bool _showPanelExpansion = false;
@@ -65,18 +59,9 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   @override
   void initState() {
     super.initState();
-    debugPrint("☀️ SolarPanelGame.initState() - Grade ${widget.grade}, Level ${widget.level}");
+    initGameAnimations();
+    if (kDebugMode) debugPrint("☀️ SolarPanelGame.initState() - Grade ${widget.grade}, Level ${widget.level}");
     
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000), vsync: this
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
-    
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600), vsync: this,
-    );
-    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
     
     _dropController = AnimationController(
       duration: const Duration(milliseconds: 500), vsync: this
@@ -87,11 +72,6 @@ class _SolarPanelGameState extends State<SolarPanelGame>
       duration: const Duration(milliseconds: 1500), vsync: this
     );
 
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000), vsync: this
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.7, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
     
     _panelExpandController = AnimationController(
       duration: const Duration(milliseconds: 2000), vsync: this
@@ -125,27 +105,24 @@ class _SolarPanelGameState extends State<SolarPanelGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
     _dropController.dispose();
     _warpController.dispose();
-    _pulseController.dispose();
     _panelExpandController.dispose();
     _fadeController.dispose();
     _fadeTimer?.cancel();
+    disposeGameAnimations();
     super.dispose();
   }
 
   void _generatePuzzle() async {
-    debugPrint("☀️ _generatePuzzle() - Starting puzzle generation");
+    if (kDebugMode) debugPrint("☀️ _generatePuzzle() - Starting puzzle generation");
     
     setState(() {
       _isGenerating = true;
-      _isWarping = false;
       _shouldShowHint = true;
       _showPanelExpansion = false;
       _warpController.reset();
-      _successController.reset();
+      successController.reset();
       _fadeController.reset();
       _panelExpandController.reset();
     });
@@ -169,11 +146,11 @@ class _SolarPanelGameState extends State<SolarPanelGame>
           numberPool = List.from(currentPuzzle!.numberPool);
           _isGenerating = false;
         });
-        debugPrint("☀️ Puzzle generated: ${currentPuzzle!.baseNumbers}");
+        if (kDebugMode) debugPrint("☀️ Puzzle generated: ${currentPuzzle!.baseNumbers}");
         _startFadeTimer();
       }
     } catch (e, stackTrace) {
-      debugPrint("❌ Error in _generatePuzzle: $e");
+      if (kDebugMode) debugPrint("❌ Error in _generatePuzzle: $e");
       debugPrint("❌ StackTrace: $stackTrace");
     }
   }
@@ -237,7 +214,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   }
 
   List<MathProblem> _getSolvedProblems() {
-    debugPrint("☀️ Gathering all solved problems...");
+    if (kDebugMode) debugPrint("☀️ Gathering all solved problems...");
     final puzzle = currentPuzzle!;
     final List<MathProblem> problemsToLog = [];
     
@@ -268,13 +245,12 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     Future.delayed(const Duration(milliseconds: 2000), () {
       if (!mounted) return;
       
-      setState(() => _isWarping = true);
       _warpController.forward();
 
       void listener(AnimationStatus status) {
         if (status == AnimationStatus.completed) {
           _warpController.removeStatusListener(listener);
-          _successController.forward(from: 0.0);
+          successController.forward(from: 0.0);
           
           if (mounted) {
             showDialog(
@@ -374,10 +350,10 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   AnimatedBuilder(
-                    animation: _pulseAnimation,
+                    animation: pulseAnimation,
                     builder: (context, child) {
                       return Transform.scale(
-                        scale: _pulseAnimation.value * 0.8,
+                        scale: pulseAnimation.value * 0.8,
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
@@ -573,11 +549,11 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                   children: [
                     Positioned.fill(
                       child: AnimatedBuilder(
-                        animation: Listenable.merge([_glowController, _warpController]),
+                        animation: Listenable.merge([glowController, _warpController]),
                         builder: (context, child) {
                           return CustomPaint(
                             painter: SolarPanelBackgroundPainter(
-                              glowIntensity: _glowAnimation.value,
+                              glowIntensity: glowAnimation.value,
                               warpActivation: _warpController.value,
                             ),
                           );
@@ -698,10 +674,10 @@ class _SolarPanelGameState extends State<SolarPanelGame>
       left: position.dx - 16,
       top: position.dy - 16,
       child: AnimatedBuilder(
-        animation: _pulseAnimation,
+        animation: pulseAnimation,
         builder: (context, child) {
           return Transform.scale(
-            scale: _pulseAnimation.value * 0.9,
+            scale: pulseAnimation.value * 0.9,
             child: Container(
               width: 32, height: 32,
               decoration: BoxDecoration(
@@ -942,10 +918,10 @@ class _SolarPanelGameState extends State<SolarPanelGame>
 
   Widget _buildSuccessDialog(int bonusScore) {
     return AnimatedBuilder(
-        animation: _successAnimation,
+        animation: successAnimation,
         builder: (context, child) {
         return Transform.scale(
-            scale: _successAnimation.value,
+            scale: successAnimation.value,
             child: Align(
             alignment: Alignment.bottomCenter,
             child: Padding(

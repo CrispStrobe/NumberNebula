@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -22,11 +23,7 @@ class SectorPainterGame extends StatefulWidget {
 }
 
 class _SectorPainterGameState extends State<SectorPainterGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<SectorPainterGame> {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
   late AnimationController _conflictController;
@@ -51,19 +48,9 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   @override
   void initState() {
     super.initState();
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
-
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation =
-        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+    initGameAnimations(usePulse: false);
+    successAnimation =
+        CurvedAnimation(parent: successController, curve: Curves.elasticOut);
 
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -96,10 +83,9 @@ class _SectorPainterGameState extends State<SectorPainterGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
     _pulseController.dispose();
     _conflictController.dispose();
+    disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
@@ -109,7 +95,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       _won = false;
       _coloring.clear();
       _conflictRegions = {};
-      _successController.reset();
+      successController.reset();
     });
 
     final puzzle = await compute(generateSectorPainterPuzzle, {
@@ -184,7 +170,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -429,7 +415,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
 
         return Center(
           child: AnimatedBuilder(
-            animation: Listenable.merge([_glowAnimation, _pulseAnimation, _conflictAnimation]),
+            animation: Listenable.merge([glowAnimation, _pulseAnimation, _conflictAnimation]),
             builder: (context, child) {
               return Container(
                 width: availW + 16,
@@ -439,7 +425,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: SpaceTheme.starYellow
-                        .withValues(alpha: _glowAnimation.value * 0.5),
+                        .withValues(alpha: glowAnimation.value * 0.5),
                     width: 2,
                   ),
                   gradient: RadialGradient(
@@ -454,7 +440,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
                     puzzle: _puzzle!,
                     coloring: _coloring,
                     paletteColors: _paletteColors,
-                    glowValue: _glowAnimation.value,
+                    glowValue: glowAnimation.value,
                     conflictRegions: _conflictRegions,
                     conflictValue: _conflictAnimation.value,
                     width: availW,
@@ -602,10 +588,10 @@ class _SectorPainterGameState extends State<SectorPainterGame>
 
   Widget _buildWinDialog(int score, int colorsUsed) {
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

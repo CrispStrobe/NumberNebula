@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -22,15 +23,9 @@ class HullPlatingGame extends StatefulWidget {
 }
 
 class _HullPlatingGameState extends State<HullPlatingGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<HullPlatingGame> {
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   HullPlatingPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
@@ -60,20 +55,10 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   @override
   void initState() {
     super.initState();
+    initGameAnimations();
 
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
-
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation =
-        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+    successAnimation =
+        CurvedAnimation(parent: successController, curve: Curves.elasticOut);
 
     _dropController = AnimationController(
       duration: const Duration(milliseconds: 500),
@@ -81,12 +66,6 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     );
     _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
 
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -99,10 +78,8 @@ class _HullPlatingGameState extends State<HullPlatingGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
     _dropController.dispose();
-    _pulseController.dispose();
+    disposeGameAnimations();
     super.dispose();
   }
 
@@ -115,7 +92,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
       _usedPieceIds.clear();
       _selectedRotation = 0;
       _hoveringPieceIndex = null;
-      _successController.reset();
+      successController.reset();
     });
 
     final generated = HullPlatingPuzzle.generate(
@@ -244,7 +221,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
       score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
 
     if (mounted) {
       showDialog(
@@ -404,20 +381,20 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   Widget _buildBoardArea(BoxConstraints outerConstraints) {
     return Center(
       child: AnimatedBuilder(
-        animation: _glowAnimation,
+        animation: glowAnimation,
         builder: (context, child) {
           return Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.cosmicPink.withValues(alpha: 0.1 * _glowAnimation.value),
+                  SpaceTheme.cosmicPink.withValues(alpha: 0.1 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.cosmicPink.withValues(alpha: _glowAnimation.value),
+                color: SpaceTheme.cosmicPink.withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -524,10 +501,10 @@ class _HullPlatingGameState extends State<HullPlatingGame>
                 : null,
           ),
           child: AnimatedBuilder(
-            animation: _pulseAnimation,
+            animation: pulseAnimation,
             builder: (context, child) {
               return Transform.scale(
-                scale: _pulseAnimation.value,
+                scale: pulseAnimation.value,
                 child: Center(
                   child: Icon(
                     Icons.add,
@@ -762,10 +739,10 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   Widget _buildWinDialog(int bonusScore) {
     final s = S.of(context)!;
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

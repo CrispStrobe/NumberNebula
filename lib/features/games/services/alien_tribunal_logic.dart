@@ -62,7 +62,7 @@ class AlienTribunalLogic {
     final difficulty = args['difficulty'] as DifficultyConfig;
     final rng = math.Random();
 
-    debugPrint('[ALIEN_TRIBUNAL] Generating puzzle for grade=$grade, level=$level');
+    if (kDebugMode) debugPrint('[ALIEN_TRIBUNAL] Generating puzzle for grade=$grade, level=$level');
 
     // Difficulty scaling -- minimum 3 people (2-person puzzles are almost
     // always ambiguous and cause infinite retry loops)
@@ -81,7 +81,7 @@ class AlienTribunalLogic {
     for (int attempt = 0; attempt < 50; attempt++) {
       final result = _tryGenerate(personCount, rng);
       if (result != null) {
-        debugPrint('[ALIEN_TRIBUNAL] Success on attempt $attempt');
+        if (kDebugMode) debugPrint('[ALIEN_TRIBUNAL] Success on attempt $attempt');
         return result;
       }
     }
@@ -91,7 +91,7 @@ class AlienTribunalLogic {
     // A says "C tells the truth" (true, consistent)
     // B says "A is a liar" (lie, consistent since A is truth-teller)
     // C says "B is a liar" (true, consistent)
-    debugPrint('[ALIEN_TRIBUNAL] Using fallback puzzle');
+    if (kDebugMode) debugPrint('[ALIEN_TRIBUNAL] Using fallback puzzle');
     final names = (List<String>.from(_alienNames)..shuffle(rng)).take(3).toList();
     return AlienTribunalPuzzle(
       people: [

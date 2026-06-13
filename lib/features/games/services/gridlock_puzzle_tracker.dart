@@ -12,7 +12,7 @@ class GridlockPuzzleTracker with ChangeNotifier {
 
   /// Load played puzzle IDs from storage
   Future<void> loadPlayedPuzzles() async {
-    debugPrint('[GRIDLOCK_TRACKER] Loading played puzzles...');
+    if (kDebugMode) debugPrint('[GRIDLOCK_TRACKER] Loading played puzzles...');
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
@@ -20,12 +20,12 @@ class GridlockPuzzleTracker with ChangeNotifier {
       if (jsonString != null) {
         final List<dynamic> jsonList = json.decode(jsonString);
         _playedPuzzleIds = Set<String>.from(jsonList);
-        debugPrint('[GRIDLOCK_TRACKER] ✅ Loaded ${_playedPuzzleIds.length} played puzzles');
+        if (kDebugMode) debugPrint('[GRIDLOCK_TRACKER] ✅ Loaded ${_playedPuzzleIds.length} played puzzles');
       } else {
         debugPrint('[GRIDLOCK_TRACKER] No saved data found, starting fresh');
       }
     } catch (e) {
-      debugPrint('[GRIDLOCK_TRACKER] ❌ Error loading data: $e');
+      if (kDebugMode) debugPrint('[GRIDLOCK_TRACKER] ❌ Error loading data: $e');
       _playedPuzzleIds = {};
     }
     notifyListeners();
@@ -37,7 +37,7 @@ class GridlockPuzzleTracker with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = json.encode(_playedPuzzleIds.toList());
       await prefs.setString(_storageKey, jsonString);
-      debugPrint('[GRIDLOCK_TRACKER] ✅ Saved ${_playedPuzzleIds.length} played puzzles');
+      if (kDebugMode) debugPrint('[GRIDLOCK_TRACKER] ✅ Saved ${_playedPuzzleIds.length} played puzzles');
     } catch (e) {
       debugPrint('[GRIDLOCK_TRACKER] ❌ Error saving data: $e');
     }
@@ -46,7 +46,7 @@ class GridlockPuzzleTracker with ChangeNotifier {
   /// Mark a puzzle as played
   void markPuzzleAsPlayed(String puzzleId) {
     if (_playedPuzzleIds.add(puzzleId)) {
-      debugPrint('[GRIDLOCK_TRACKER] Marked puzzle $puzzleId as played (${_playedPuzzleIds.length} total)');
+      if (kDebugMode) debugPrint('[GRIDLOCK_TRACKER] Marked puzzle $puzzleId as played (${_playedPuzzleIds.length} total)');
       _savePlayedPuzzles();
       notifyListeners();
     }
@@ -62,7 +62,7 @@ class GridlockPuzzleTracker with ChangeNotifier {
 
   /// Reset all played puzzles (useful for testing or reset functionality)
   Future<void> resetPlayedPuzzles() async {
-    debugPrint('[GRIDLOCK_TRACKER] Resetting all played puzzles');
+    if (kDebugMode) debugPrint('[GRIDLOCK_TRACKER] Resetting all played puzzles');
     _playedPuzzleIds.clear();
     await _savePlayedPuzzles();
     notifyListeners();

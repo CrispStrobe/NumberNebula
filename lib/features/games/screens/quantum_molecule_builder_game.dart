@@ -12,6 +12,7 @@ import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 
 import 'levels.dart';
+import 'package:flutter/foundation.dart';
 
 // ============================================================================
 // ATOMIX LEVEL DATA INTEGRATION
@@ -237,7 +238,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   @override
   void initState() {
     super.initState();
-    debugPrint("\n${"=" * 60}\n⚛️  QUANTUM MOLECULE BUILDER\n   Grade: ${widget.grade}, Level: ${widget.level}\n${"=" * 60}");
+    if (kDebugMode) debugPrint("\n${"=" * 60}\n⚛️  QUANTUM MOLECULE BUILDER\n   Grade: ${widget.grade}, Level: ${widget.level}\n${"=" * 60}");
     
     _setupAnimationControllers();
     
@@ -259,7 +260,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         _startingLevel = savedProgress > 0 ? savedProgress : 1;
         _currentLevel = _startingLevel;
         
-        debugPrint("🎮 Starting at level $_startingLevel (last level with 2+ wins)");
+        if (kDebugMode) debugPrint("🎮 Starting at level $_startingLevel (last level with 2+ wins)");
         _loadLevel();
         }
     });
@@ -520,7 +521,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           }
         }
       }
-      debugPrint("  - Found ${atoms.length} atoms on playfield.");
+      if (kDebugMode) debugPrint("  - Found ${atoms.length} atoms on playfield.");
 
       _calculateVisibleBounds();
       targetPattern = _buildPatternFromSolution(level);
@@ -542,7 +543,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       moveLimit = (baseMoveLimit * gradeModifier).round().clamp(20, 150);
       // --- End of modification ---
 
-      debugPrint("✅ Level ${level.levelNumber}: ${level.name} loaded (${atoms.length} atoms, $moveLimit moves [Grade: ${widget.grade}])");
+      if (kDebugMode) debugPrint("✅ Level ${level.levelNumber}: ${level.name} loaded (${atoms.length} atoms, $moveLimit moves [Grade: ${widget.grade}])");
 
     } catch (e) {
       debugPrint("❌ Error loading level $_currentLevel: $e");
@@ -1096,7 +1097,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       focusNode: _focusNode,
       onKeyEvent: _handleKeyEvent,
       child: GestureDetector(
-        onTap: () => _focusNode.requestFocus(),
+        onTap: _focusNode.requestFocus,
         child: Scaffold(
           body: SpaceBackground(
             child: SafeArea(

@@ -11,6 +11,7 @@ import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../../../core/services/sri_service.dart';
+import 'package:flutter/foundation.dart';
 
 class PlanetHoppingGame extends StatefulWidget {
   final int grade;
@@ -60,7 +61,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   @override
   void initState() {
     super.initState();
-    debugPrint("[Game Init] 🚀 Planet Hopping game initializing...");
+    if (kDebugMode) debugPrint("[Game Init] 🚀 Planet Hopping game initializing...");
 
     _gameController = AnimationController(
       duration: const Duration(milliseconds: 16), // ~60 FPS
@@ -92,7 +93,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
   @override
   void dispose() {
-    debugPrint("[Game Dispose] 🛑 Disposing all controllers and timers.");
+    if (kDebugMode) debugPrint("[Game Dispose] 🛑 Disposing all controllers and timers.");
     _gameController.dispose();
     _gravityController.dispose();
     _planetController.dispose();
@@ -102,7 +103,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   void _initializeGame() {
-    debugPrint("[Gameplay] ✨ Initializing new game board.");
+    if (kDebugMode) debugPrint("[Gameplay] ✨ Initializing new game board.");
     _generateBackgroundStars();
     _generatePlanets();
     _generateTargetSequence();
@@ -150,7 +151,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     
     final problems = <MathProblem>[];
     final usedAnswers = <int>{};
-    debugPrint("[Gameplay] Generating $planetCount unique planets...");
+    if (kDebugMode) debugPrint("[Gameplay] Generating $planetCount unique planets...");
 
     final sriService = context.read<SriService>();
     final gameProvider = context.read<GameProvider>();
@@ -215,7 +216,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     }
     
     // Fallback if no position could be found after many attempts (rare)
-    debugPrint("Could not find a non-overlapping position after $maxAttempts attempts. Placing randomly.");
+    if (kDebugMode) debugPrint("Could not find a non-overlapping position after $maxAttempts attempts. Placing randomly.");
     return Offset(
       random.nextDouble() * (screenSize.width - newPlanetRadius * 2) + newPlanetRadius,
       random.nextDouble() * (screenSize.height - newPlanetRadius * 2 - 150) + newPlanetRadius + 75,
@@ -235,11 +236,11 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         break;
     }
     nextTargetIndex = 0;
-    debugPrint("[Gameplay] 🎯 New target sequence: $targetSequence");
+    if (kDebugMode) debugPrint("[Gameplay] 🎯 New target sequence: $targetSequence");
   }
 
   void _landOnPlanet(Planet planet) {
-    debugPrint("[Gameplay] 💥 Landing attempt on Planet ${planet.id} (${planet.answer})");
+    if (kDebugMode) debugPrint("[Gameplay] 💥 Landing attempt on Planet ${planet.id} (${planet.answer})");
     setState(() => _showNextTargetHint = false);
     _startHintTimer();
 
@@ -253,7 +254,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
     // Track this attempt - we'll report all attempts at the end
     _attemptedProblems.add(planet.problem);
-    debugPrint("[Gameplay] 📝 Tracked problem: ${planet.problem.expression} (${isCorrect ? 'correct' : 'incorrect'})");
+    if (kDebugMode) debugPrint("[Gameplay] 📝 Tracked problem: ${planet.problem.expression} (${isCorrect ? 'correct' : 'incorrect'})");
 
     if (isCorrect) {
       debugPrint("[Gameplay] ✅ CORRECT landing!");
@@ -266,7 +267,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
       if (nextTargetIndex >= targetSequence.length) _winGame();
     } else {
-      debugPrint("[Gameplay] ❌ WRONG landing!");
+      if (kDebugMode) debugPrint("[Gameplay] ❌ WRONG landing!");
       HapticFeedback.heavyImpact();
       lives--;
       _addErrorParticles(planet);
@@ -420,7 +421,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         children: [
           IconButton(
             onPressed: () {
-              debugPrint("[UI] 🔙 Back button pressed, popping navigator.");
+              if (kDebugMode) debugPrint("[UI] 🔙 Back button pressed, popping navigator.");
               Navigator.of(context).pop();
             },
             icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
@@ -526,7 +527,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
             // Player clicked on a planet - fly directly to it
             _targetPlanet = clickedPlanet;
             hopper.takeOff(clickedPlanet.position);
-            debugPrint("[Gameplay] 🎯 Flying to planet ${clickedPlanet.id} (${clickedPlanet.answer})");
+            if (kDebugMode) debugPrint("[Gameplay] 🎯 Flying to planet ${clickedPlanet.id} (${clickedPlanet.answer})");
           } else {
             // Player clicked on empty space - normal takeoff
             _targetPlanet = null;
@@ -620,7 +621,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   void _addSuccessParticles(Planet planet) {
-    debugPrint("[Animation] ✨ Spawning SUCCESS particles at ${planet.position}");
+    if (kDebugMode) debugPrint("[Animation] ✨ Spawning SUCCESS particles at ${planet.position}");
     for (int i = 0; i < 15; i++) {
       particles.add(ParticleEffect(
           position: planet.position,
@@ -633,7 +634,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   void _addErrorParticles(Planet planet) {
-    debugPrint("[Animation] 🔥 Spawning ERROR particles at ${planet.position}");
+    if (kDebugMode) debugPrint("[Animation] 🔥 Spawning ERROR particles at ${planet.position}");
     for (int i = 0; i < 10; i++) {
       particles.add(ParticleEffect(
           position: planet.position,
@@ -647,7 +648,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
   void _winGame() {
     if (!gameActive) return;
-    debugPrint("[Gameplay] 🎉 WIN! Game finished.");
+    if (kDebugMode) debugPrint("[Gameplay] 🎉 WIN! Game finished.");
     gameActive = false;
     _hintTimer?.cancel();
     
@@ -662,7 +663,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       mathProblems: _attemptedProblems,
     ));
     
-    debugPrint("[Gameplay] 📊 Reported ${_attemptedProblems.length} attempted problems");
+    if (kDebugMode) debugPrint("[Gameplay] 📊 Reported ${_attemptedProblems.length} attempted problems");
     
     showDialog(
       context: context,
@@ -673,7 +674,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
   void _gameOver() {
     if (!gameActive) return;
-    debugPrint("[Gameplay] ☠️ GAME OVER! Ran out of lives.");
+    if (kDebugMode) debugPrint("[Gameplay] ☠️ GAME OVER! Ran out of lives.");
     gameActive = false;
     _hintTimer?.cancel();
     
@@ -684,7 +685,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       mathProblems: _attemptedProblems,
     ));
     
-    debugPrint("[Gameplay] 📊 Reported ${_attemptedProblems.length} attempted problems (loss)");
+    if (kDebugMode) debugPrint("[Gameplay] 📊 Reported ${_attemptedProblems.length} attempted problems (loss)");
     
     showDialog(
       context: context,
@@ -694,7 +695,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   void _resetGame() {
-    debugPrint("[Gameplay] 🔄 Resetting game board.");
+    if (kDebugMode) debugPrint("[Gameplay] 🔄 Resetting game board.");
     setState(() {
       gameActive = true;
       lives = 3;
@@ -799,12 +800,12 @@ class SpaceHopper {
   }
 
   void takeOff(Offset tapPosition) {
-    debugPrint("[Physics] 🚀 Hopper takeoff towards $tapPosition");
+    if (kDebugMode) debugPrint("[Physics] 🚀 Hopper takeoff towards $tapPosition");
     isLanded = false;
     landedOnPlanetId = null;
     final direction = (tapPosition - position).normalize();
     velocity = direction * 450;
-    debugPrint("[Physics] 🚀 New velocity: $velocity");
+    if (kDebugMode) debugPrint("[Physics] 🚀 New velocity: $velocity");
   }
 }
 

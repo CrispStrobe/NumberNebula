@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -21,13 +22,7 @@ class AsteroidDuelGame extends StatefulWidget {
 }
 
 class _AsteroidDuelGameState extends State<AsteroidDuelGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<AsteroidDuelGame> {
   late AnimationController _removeController;
 
   DifficultyConfig? currentDifficulty;
@@ -50,27 +45,11 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
   @override
   void initState() {
     super.initState();
+    initGameAnimations();
 
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
+    pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
+        .animate(CurvedAnimation(parent: pulseController, curve: Curves.easeInOut));
 
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
-
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation =
-        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
 
     _removeController = AnimationController(
       duration: const Duration(milliseconds: 400),
@@ -88,14 +67,12 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
 
   @override
   void dispose() {
-    _glowController.stop();
-    _successController.stop();
-    _pulseController.stop();
+    glowController.stop();
+    successController.stop();
+    pulseController.stop();
     _removeController.stop();
-    _glowController.dispose();
-    _successController.dispose();
-    _pulseController.dispose();
     _removeController.dispose();
+    disposeGameAnimations();
     super.dispose();
   }
 
@@ -109,7 +86,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
       _isPlayerTurn = true;
       _isAiThinking = false;
       _selectedAsteroids.clear();
-      _successController.reset();
+      successController.reset();
       _removeController.reset();
     });
 
@@ -238,7 +215,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
       score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
 
     if (mounted) {
       showDialog(
@@ -416,7 +393,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
           final cellSize = math.min(maxCellW, maxCellH).clamp(35.0, 70.0);
 
           return AnimatedBuilder(
-            animation: _glowAnimation,
+            animation: glowAnimation,
             builder: (context, child) {
               return Container(
                 padding: const EdgeInsets.all(12),
@@ -424,7 +401,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
                   color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: SpaceTheme.nebulaPurple.withValues(alpha: _glowAnimation.value * 0.7),
+                    color: SpaceTheme.nebulaPurple.withValues(alpha: glowAnimation.value * 0.7),
                   ),
                 ),
                 child: Center(
@@ -509,10 +486,10 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
         children: [
           if (_selectedAsteroids.isNotEmpty) ...[
             AnimatedBuilder(
-              animation: _pulseAnimation,
+              animation: pulseAnimation,
               builder: (context, child) {
                 return Transform.scale(
-                  scale: _pulseAnimation.value * 0.1 + 0.9,
+                  scale: pulseAnimation.value * 0.1 + 0.9,
                   child: ElevatedButton.icon(
                     onPressed: _confirmSelection,
                     icon: const Icon(Icons.rocket_launch, size: 20),
@@ -605,10 +582,10 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
   Widget _buildWinDialog(int totalScore) {
     final s = S.of(context)!;
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

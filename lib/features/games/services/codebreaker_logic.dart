@@ -59,7 +59,7 @@ class PuzzleSolver {
     final knownValues = <String, int>{};
     
     if (verbose) {
-      debugPrint("🧠 [SOLVER] Equations to solve:");
+      if (kDebugMode) debugPrint("🧠 [SOLVER] Equations to solve:");
       for (int i = 0; i < equations.length; i++) {
         debugPrint("🧠 [SOLVER]   Eq$i: ${equations[i]}");
       }
@@ -581,7 +581,7 @@ class AdvancedPuzzleGenerator {
         result = symbols[2];
       } else {
         // Subsequent equations: ensure at least one connection to previous equations
-        final availableSymbols = symbols.where((s) => usedSymbols.contains(s)).toList();
+        final availableSymbols = symbols.where(usedSymbols.contains).toList();
         if (availableSymbols.isEmpty) {
           return null; // Cannot create connected equations
         }
@@ -923,12 +923,12 @@ class AdvancedCodebreakerPuzzle {
   Map<String, int> get fullSolution => _fullSolution;
 
   static Future<AdvancedCodebreakerPuzzle> generate(Map<String, dynamic> args) async {
-    debugPrint("🎯 [PUZZLE FACTORY] Starting puzzle generation with args: $args");
+    if (kDebugMode) debugPrint("🎯 [PUZZLE FACTORY] Starting puzzle generation with args: $args");
     
     final difficultyConfig = args['difficulty'] as DifficultyConfig;
     final useCSP = args['useCSP'] as bool;
     
-    debugPrint("🎯 [PUZZLE FACTORY] Using ${useCSP ? 'CSP' : 'ORIGINAL'} generation approach");
+    if (kDebugMode) debugPrint("🎯 [PUZZLE FACTORY] Using ${useCSP ? 'CSP' : 'ORIGINAL'} generation approach");
     
     // FIX: Handle the enum conversion properly
     final customOpsRaw = args['customOps'] as List<dynamic>;
@@ -978,7 +978,7 @@ class AdvancedCodebreakerPuzzle {
       }
     }
     
-    debugPrint("🎯 [PUZZLE FACTORY] Solution validation passed ✓");
+    if (kDebugMode) debugPrint("🎯 [PUZZLE FACTORY] Solution validation passed ✓");
     debugPrint("🎯 [PUZZLE FACTORY] Generated ${puzzleEquations.length} equations");
     
     final allSymbols = generator.symbols;
@@ -986,7 +986,7 @@ class AdvancedCodebreakerPuzzle {
     // NEW: Select visible positions (not symbols)
     final visiblePositions = _selectVisiblePositions(puzzleEquations, allSymbols);
     
-    debugPrint("🎯 [PUZZLE FACTORY] Visible positions: $visiblePositions");
+    if (kDebugMode) debugPrint("🎯 [PUZZLE FACTORY] Visible positions: $visiblePositions");
     
     // Build known values map only for visible positions
     final knownValues = <String, int>{};
@@ -1011,7 +1011,7 @@ class AdvancedCodebreakerPuzzle {
     final numberRange = generator.params['valueRange'] as List<int>;
     final maxVal = numberRange[1];
 
-    debugPrint("🎯 [PUZZLE FACTORY] Correct numbers needed: ${correctNumbersList.join(', ')}");
+    if (kDebugMode) debugPrint("🎯 [PUZZLE FACTORY] Correct numbers needed: ${correctNumbersList.join(', ')}");
 
     // Generate strategic decoys
     for (final correct in correctNumbersSet) {
@@ -1040,7 +1040,7 @@ class AdvancedCodebreakerPuzzle {
     numberPool.shuffle();
     final finalPool = numberPool;
 
-    debugPrint("🎯 [PUZZLE FACTORY] Final number pool: ${finalPool.join(', ')}");
+    if (kDebugMode) debugPrint("🎯 [PUZZLE FACTORY] Final number pool: ${finalPool.join(', ')}");
     
     // Build hidden positions (all symbol positions except visible ones)
     final hiddenPositions = <String>[];
@@ -1062,7 +1062,7 @@ class AdvancedCodebreakerPuzzle {
       }
     }
     
-    debugPrint("🎯 [PUZZLE FACTORY] Hidden positions: $hiddenPositions");
+    if (kDebugMode) debugPrint("🎯 [PUZZLE FACTORY] Hidden positions: $hiddenPositions");
     debugPrint("🎯 [PUZZLE FACTORY] Puzzle generation complete!");
     
     return AdvancedCodebreakerPuzzle(
@@ -1092,7 +1092,7 @@ class AdvancedCodebreakerPuzzle {
       }
     }
     
-    debugPrint("🎯 [CLUE SELECTION] Pure symbol equations: $pureEquations out of ${equations.length}");
+    if (kDebugMode) debugPrint("🎯 [CLUE SELECTION] Pure symbol equations: $pureEquations out of ${equations.length}");
     
     // Only reveal from pure equations, max 1 position total
     if (pureEquations.isNotEmpty) {
@@ -1107,7 +1107,7 @@ class AdvancedCodebreakerPuzzle {
       if (symbolPositions.isNotEmpty) {
         final posToReveal = symbolPositions[random.nextInt(symbolPositions.length)];
         visiblePositions.add(posToReveal);
-        debugPrint("🎯 [CLUE SELECTION] Revealing position: $posToReveal");
+        if (kDebugMode) debugPrint("🎯 [CLUE SELECTION] Revealing position: $posToReveal");
       }
     } else {
       debugPrint("🎯 [CLUE SELECTION] No pure equations available, puzzle will be harder!");
@@ -1137,7 +1137,7 @@ class AdvancedCodebreakerPuzzle {
   }
 
   bool validateSolution(Map<String, int> userSolution) {
-    debugPrint("✅ [VALIDATION] Starting solution validation");
+    if (kDebugMode) debugPrint("✅ [VALIDATION] Starting solution validation");
     debugPrint("✅ [VALIDATION] User solution: $userSolution");
     debugPrint("✅ [VALIDATION] Full solution: $_fullSolution");
     
@@ -1146,7 +1146,7 @@ class AdvancedCodebreakerPuzzle {
       final expectedValue = _fullSolution[symbol];
       final userValue = entry.value;
       
-      debugPrint("✅ [VALIDATION] Position ${entry.key}: symbol=$symbol, user=$userValue, expected=$expectedValue");
+      if (kDebugMode) debugPrint("✅ [VALIDATION] Position ${entry.key}: symbol=$symbol, user=$userValue, expected=$expectedValue");
       
       if (userValue != expectedValue) {
         debugPrint("✅ [VALIDATION] ❌ Validation failed: $symbol should be $expectedValue but user provided $userValue");
@@ -1157,12 +1157,12 @@ class AdvancedCodebreakerPuzzle {
     // Check all hidden positions are filled
     for (final pos in hiddenPositions) {
       if (!userSolution.containsKey(pos)) {
-        debugPrint("✅ [VALIDATION] ❌ Missing value for position $pos");
+        if (kDebugMode) debugPrint("✅ [VALIDATION] ❌ Missing value for position $pos");
         return false;
       }
     }
     
-    debugPrint("✅ [VALIDATION] ✓ Solution is valid!");
+    if (kDebugMode) debugPrint("✅ [VALIDATION] ✓ Solution is valid!");
     return true;
   }
 

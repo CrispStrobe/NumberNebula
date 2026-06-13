@@ -59,7 +59,7 @@ class HiveStationPuzzle {
 
   bool validateSolution(Set<HexCoord> userMarked) {
     if (userMarked.length != energyCells.length) return false;
-    return userMarked.every((c) => energyCells.contains(c));
+    return userMarked.every(energyCells.contains);
   }
 }
 

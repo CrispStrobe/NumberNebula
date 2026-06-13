@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -30,11 +31,7 @@ class CodebreakerGame extends StatefulWidget {
 }
 
 class _CodebreakerGameState extends State<CodebreakerGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<CodebreakerGame> {
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
 
@@ -46,8 +43,6 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   String _lastDroppedPosition = '';
   DifficultyConfig? currentDifficulty;
 
-  bool _isDragging = false; // ignore: unused_field
-  int? _draggingNumber; // ignore: unused_field
 
   int _movesRemaining = 0;
   int _maxMoves = 0;
@@ -55,21 +50,10 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   @override
   void initState() {
     super.initState();
-    debugPrint("🚀 [CODEBREAKER UI] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
+    initGameAnimations(usePulse: false);
+    if (kDebugMode) debugPrint("🚀 [CODEBREAKER UI] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
     debugPrint("🚀 [CODEBREAKER UI] Using ${USE_CSP_GENERATION ? 'CSP' : 'ORIGINAL'} generation algorithm");
     
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000), 
-      vsync: this
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
-    
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600), 
-      vsync: this,
-    );
-    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
     
     _dropController = AnimationController(
       duration: const Duration(milliseconds: 500), 
@@ -82,7 +66,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
       if (mounted) {
         final gameProvider = context.read<GameProvider>();
         currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level);
-        debugPrint("🚀 [CODEBREAKER UI] Difficulty initialized: ${currentDifficulty?.grade}");
+        if (kDebugMode) debugPrint("🚀 [CODEBREAKER UI] Difficulty initialized: ${currentDifficulty?.grade}");
         _generatePuzzle();
       }
     });
@@ -90,31 +74,30 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
   @override
   void dispose() {
-    debugPrint("🚀 [CODEBREAKER UI] Disposing game and cleaning up resources");
+    if (kDebugMode) debugPrint("🚀 [CODEBREAKER UI] Disposing game and cleaning up resources");
     
-    _glowController.stop();
-    _successController.stop();
+    glowController.stop();
+    successController.stop();
     _dropController.stop();
     
-    _glowController.dispose();
-    _successController.dispose();
     _dropController.dispose();
     
     puzzle = null;
     userSolution.clear();
     numberPool.clear();
     
+    disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
   void _generatePuzzle() async {
     if (currentDifficulty == null) return;
     
-    debugPrint("🎯 [CODEBREAKER UI] Starting puzzle generation process");
+    if (kDebugMode) debugPrint("🎯 [CODEBREAKER UI] Starting puzzle generation process");
     
     setState(() {
       _isGenerating = true;
-      _successController.reset();
+      successController.reset();
       userSolution.clear();
     });
 
@@ -131,7 +114,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         'useCSP': USE_CSP_GENERATION,
       };
 
-      debugPrint("🎯 [CODEBREAKER UI] Calling compute function with args: $puzzleArgs");
+      if (kDebugMode) debugPrint("🎯 [CODEBREAKER UI] Calling compute function with args: $puzzleArgs");
       final generatedPuzzle = await compute(AdvancedCodebreakerPuzzle.generate, puzzleArgs);
       
       debugPrint("🎯 [CODEBREAKER UI] Puzzle generation completed successfully");
@@ -148,13 +131,13 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
           _isGenerating = false;
         });
-        debugPrint("🎯 [CODEBREAKER UI] UI state updated with new puzzle");
+        if (kDebugMode) debugPrint("🎯 [CODEBREAKER UI] UI state updated with new puzzle");
         debugPrint("🎯 [CODEBREAKER UI] Max moves allowed: $_maxMoves for ${generatedPuzzle.hiddenSymbols.length} hidden symbols");
         debugPrint("🎯 [CODEBREAKER UI] Number pool: ${numberPool.join(', ')}");
         debugPrint("🎯 [CODEBREAKER UI] Hidden symbols: ${generatedPuzzle.hiddenSymbols.join(', ')}");
       }
     } catch (e, stackTrace) {
-      debugPrint("❌ [CODEBREAKER UI] Error generating puzzle: $e");
+      if (kDebugMode) debugPrint("❌ [CODEBREAKER UI] Error generating puzzle: $e");
       debugPrint("❌ [CODEBREAKER UI] StackTrace: $stackTrace");
       
       // CRITICAL: Never crash - always provide graceful fallback
@@ -193,17 +176,17 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   }
 
   void _placeNumber(int number, String positionId) {
-    debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT POSITION $positionId ===");
+    if (kDebugMode) debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT POSITION $positionId ===");
     
     final symbol = puzzle!.getSymbolFromPosition(positionId);
     debugPrint("🎮 [PLACE] Position $positionId corresponds to symbol: $symbol");
-    debugPrint("🎮 [PLACE] Is symbol hidden? ${puzzle!.hiddenSymbols.contains(symbol)}");
+    if (kDebugMode) debugPrint("🎮 [PLACE] Is symbol hidden? ${puzzle!.hiddenSymbols.contains(symbol)}");
     debugPrint("🎮 [PLACE] Current user solution: $userSolution");
     debugPrint("🎮 [PLACE] Number pool before: $numberPool");
     
     // Validation check
     if (!puzzle!.hiddenSymbols.contains(symbol)) {
-        debugPrint("🎮 [PLACE] ❌ ERROR: Trying to place number on visible symbol $symbol!");
+        if (kDebugMode) debugPrint("🎮 [PLACE] ❌ ERROR: Trying to place number on visible symbol $symbol!");
         return;
     }
     
@@ -221,7 +204,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             final currentPositionId = 'eq${eqIndex}_term1';
             if (currentSymbol == symbol && puzzle!.hiddenSymbols.contains(currentSymbol)) {
             userSolution[currentPositionId] = number;
-            debugPrint("🎮 [CODEBREAKER UI] Auto-filled position $currentPositionId with $number");
+            if (kDebugMode) debugPrint("🎮 [CODEBREAKER UI] Auto-filled position $currentPositionId with $number");
             }
         }
 
@@ -231,7 +214,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             final currentPositionId = 'eq${eqIndex}_term2';
             if (currentSymbol == symbol && puzzle!.hiddenSymbols.contains(currentSymbol)) {
             userSolution[currentPositionId] = number;
-            debugPrint("🎮 [CODEBREAKER UI] Auto-filled position $currentPositionId with $number");
+            if (kDebugMode) debugPrint("🎮 [CODEBREAKER UI] Auto-filled position $currentPositionId with $number");
             }
         }
 
@@ -241,7 +224,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             final currentPositionId = 'eq${eqIndex}_result';
             if (currentSymbol == symbol && puzzle!.hiddenSymbols.contains(currentSymbol)) {
             userSolution[currentPositionId] = number;
-            debugPrint("🎮 [CODEBREAKER UI] Auto-filled position $currentPositionId with $number");
+            if (kDebugMode) debugPrint("🎮 [CODEBREAKER UI] Auto-filled position $currentPositionId with $number");
             }
         }
         }
@@ -252,11 +235,11 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
         // Decrement moves on placement
         _movesRemaining--;
-        debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
+        if (kDebugMode) debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
     });
 
     debugPrint("🎮 [PLACE] User solution after: $userSolution");
-    debugPrint("🎮 [PLACE] Number pool after: $numberPool");
+    if (kDebugMode) debugPrint("🎮 [PLACE] Number pool after: $numberPool");
     debugPrint("🎮 [PLACE] === PLACEMENT COMPLETE ===");
     _debugCurrentState();
 
@@ -270,13 +253,13 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   }
 
   void _removeNumber(String positionId) {
-    debugPrint("🗑️ [CODEBREAKER UI] Removing number from position $positionId");
+    if (kDebugMode) debugPrint("🗑️ [CODEBREAKER UI] Removing number from position $positionId");
     
     setState(() {
       final number = userSolution[positionId];
       if (number != null) {
         final symbol = puzzle!.getSymbolFromPosition(positionId);
-        debugPrint("🗑️ [CODEBREAKER UI] Removing all instances of symbol $symbol (value $number)");
+        if (kDebugMode) debugPrint("🗑️ [CODEBREAKER UI] Removing all instances of symbol $symbol (value $number)");
         
         // Remove all positions with this symbol
         final positionsToRemove = <String>[];
@@ -313,7 +296,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         
         for (final pos in positionsToRemove) {
           userSolution.remove(pos);
-          debugPrint("🗑️ [CODEBREAKER UI] Removed position: $pos");
+          if (kDebugMode) debugPrint("🗑️ [CODEBREAKER UI] Removed position: $pos");
         }
         
         numberPool.add(number);
@@ -323,12 +306,12 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   }
 
   void _checkSolution() {
-    debugPrint("✅ [CODEBREAKER UI] Checking solution...");
+    if (kDebugMode) debugPrint("✅ [CODEBREAKER UI] Checking solution...");
     debugPrint("✅ [CODEBREAKER UI] User solution: $userSolution");
     debugPrint("✅ [CODEBREAKER UI] Required positions: ${puzzle!.hiddenPositions.length}");
     
     if (userSolution.length == puzzle!.hiddenPositions.length) {
-      debugPrint("✅ [CODEBREAKER UI] All positions filled, validating solution");
+      if (kDebugMode) debugPrint("✅ [CODEBREAKER UI] All positions filled, validating solution");
       
       final isValid = puzzle!.validateSolution(userSolution);
       debugPrint("✅ [CODEBREAKER UI] Solution validation result: $isValid");
@@ -339,7 +322,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         _handleIncorrect();
       }
     } else {
-      debugPrint("✅ [CODEBREAKER UI] Solution incomplete: ${userSolution.length}/${puzzle!.hiddenPositions.length} positions filled");
+      if (kDebugMode) debugPrint("✅ [CODEBREAKER UI] Solution incomplete: ${userSolution.length}/${puzzle!.hiddenPositions.length} positions filled");
     }
   }
 
@@ -403,7 +386,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   }
 
   void _handleSuccess() {
-    debugPrint("🎉 [CODEBREAKER UI] SUCCESS! Player solved the puzzle!");
+    if (kDebugMode) debugPrint("🎉 [CODEBREAKER UI] SUCCESS! Player solved the puzzle!");
     HapticFeedback.lightImpact();
 
     int baseScore = 150 * widget.grade;
@@ -413,11 +396,11 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         .fold(0, (a, b) => a + b);
     
     int totalScore = baseScore + complexityBonus + operationBonus;
-    debugPrint("🎉 [CODEBREAKER UI] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
+    if (kDebugMode) debugPrint("🎉 [CODEBREAKER UI] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
     
     // Extract all math problems from the puzzle
     final mathProblems = _extractMathProblems();
-    debugPrint("🎉 [CODEBREAKER UI] Extracted ${mathProblems.length} math problems for SRI tracking");
+    if (kDebugMode) debugPrint("🎉 [CODEBREAKER UI] Extracted ${mathProblems.length} math problems for SRI tracking");
     
     // SINGLE CALL to unified progression system
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
@@ -427,7 +410,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
       mathProblems: mathProblems,
     ));
     
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
     
     if (mounted) {
       showDialog(
@@ -439,7 +422,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   } // handleSuccess
 
   void _handleFailure() {
-    debugPrint("❌ [CODEBREAKER UI] FAILURE! Player gave up or failed");
+    if (kDebugMode) debugPrint("❌ [CODEBREAKER UI] FAILURE! Player gave up or failed");
     
     // Extract problems for learning purposes
     final mathProblems = _extractMathProblems();
@@ -453,7 +436,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   }
 
   void _handleOutOfMoves() {
-    debugPrint("❌ [CODEBREAKER UI] Out of moves! Game over.");
+    if (kDebugMode) debugPrint("❌ [CODEBREAKER UI] Out of moves! Game over.");
     _handleFailure();
 
     if (mounted) {
@@ -568,7 +551,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   }
 
   void _handleIncorrect() {
-    debugPrint("❌ [CODEBREAKER UI] Incorrect solution - showing error message");
+    if (kDebugMode) debugPrint("❌ [CODEBREAKER UI] Incorrect solution - showing error message");
     HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -828,7 +811,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
   Widget _buildEquationDisplay({required bool isCompact, required bool isExtraCompact}) {
     return AnimatedBuilder(
-      animation: _glowAnimation,
+      animation: glowAnimation,
       builder: (context, child) {
         return Container(
           // Reduce padding even more in the most compact layouts.
@@ -836,13 +819,13 @@ class _CodebreakerGameState extends State<CodebreakerGame>
           decoration: BoxDecoration(
             gradient: RadialGradient(
               colors: [
-                SpaceTheme.alienGreen.withValues(alpha: 0.1 * _glowAnimation.value),
+                SpaceTheme.alienGreen.withValues(alpha: 0.1 * glowAnimation.value),
                 SpaceTheme.deepSpace.withValues(alpha: 0.05),
               ],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: SpaceTheme.alienGreen.withValues(alpha: _glowAnimation.value),
+              color: SpaceTheme.alienGreen.withValues(alpha: glowAnimation.value),
               width: 2,
             ),
           ),
@@ -861,7 +844,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   }
 
   void _debugCurrentState() {
-    debugPrint("🔍 [STATE] Need to fill: ${puzzle!.hiddenPositions.where((pos) => !userSolution.containsKey(pos)).join(', ')}");
+    if (kDebugMode) debugPrint("🔍 [STATE] Need to fill: ${puzzle!.hiddenPositions.where((pos) => !userSolution.containsKey(pos)).join(', ')}");
   }
 
   Widget _buildSingleEquation(PuzzleEquation equation, int equationIndex, {required bool isCompact, required bool isExtraCompact}) {
@@ -1132,7 +1115,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             },
             onWillAcceptWithDetails: (details) => true,
             onAcceptWithDetails: (details) {
-              debugPrint("🎯 [DROPPED] ✅ ${details.data} → $positionId");
+              if (kDebugMode) debugPrint("🎯 [DROPPED] ✅ ${details.data} → $positionId");
               _placeNumber(details.data, positionId);
             },
           ),
@@ -1220,18 +1203,8 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                   // pipeline and silently swallow drag input.
                   return Draggable<int>(
                     data: number,
-                    onDragStarted: () {
-                      setState(() {
-                        _isDragging = true;
-                        _draggingNumber = number;
-                      });
-                    },
-                    onDragEnd: (details) {
-                      setState(() {
-                        _isDragging = false;
-                        _draggingNumber = null;
-                      });
-                    },
+                    onDragStarted: () {},
+                    onDragEnd: (details) {},
                     feedback: _buildDraggableFeedback(number),
                     childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
                     child: Semantics(
@@ -1286,10 +1259,10 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
   Widget _buildSuccessDialog(int bonusScore) {
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

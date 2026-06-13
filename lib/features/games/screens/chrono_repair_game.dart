@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -24,12 +25,7 @@ class ChronoRepairGame extends StatefulWidget {
 enum ClockMalfunction { offset, mirror, combined }
 
 class _ChronoRepairGameState extends State<ChronoRepairGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
-  late AnimationController _pulseController;
+    with TickerProviderStateMixin, GameAnimationsMixin<ChronoRepairGame> {
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -57,28 +53,12 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   @override
   void initState() {
     super.initState();
+    initGameAnimations();
 
     
     
 
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
 
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation =
-        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -91,14 +71,12 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
 
   @override
   void dispose() {
-    _glowController.stop();
-    _successController.stop();
-    _pulseController.stop();
-    _glowController.dispose();
-    _successController.dispose();
-    _pulseController.dispose();
+    glowController.stop();
+    successController.stop();
+    pulseController.stop();
     
     
+    disposeGameAnimations();
     super.dispose();
   }
 
@@ -109,7 +87,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       _isGenerating = true;
       _gameOver = false;
       _mathProblems.clear();
-      _successController.reset();
+      successController.reset();
     });
 
     final grade = currentDifficulty!.grade;
@@ -235,7 +213,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       mathProblems: _mathProblems,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
 
     if (mounted) {
       showDialog(
@@ -394,7 +372,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
 
   Widget _buildMalfunctionHint() {
     return AnimatedBuilder(
-      animation: _glowAnimation,
+      animation: glowAnimation,
       builder: (context, child) {
         return Container(
           padding: const EdgeInsets.all(12),
@@ -402,7 +380,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
             color: SpaceTheme.starYellow.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value * 0.7),
+              color: SpaceTheme.starYellow.withValues(alpha: glowAnimation.value * 0.7),
             ),
           ),
           child: Row(
@@ -529,10 +507,10 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   Widget _buildWinDialog(int totalScore) {
     final s = S.of(context)!;
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

@@ -60,7 +60,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   @override
   void initState() {
     super.initState();
-    debugPrint("🔤 [ARITHMANCER CROSSWORDS] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
+    if (kDebugMode) debugPrint("🔤 [ARITHMANCER CROSSWORDS] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
     
     _glowController = AnimationController(
       duration: const Duration(milliseconds: 2000), 
@@ -101,7 +101,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       if (mounted) {
         final gameProvider = context.read<GameProvider>();
         currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level);
-        debugPrint("🔤 [ARITHMANCER CROSSWORDS] Difficulty initialized: ${currentDifficulty?.grade}");
+        if (kDebugMode) debugPrint("🔤 [ARITHMANCER CROSSWORDS] Difficulty initialized: ${currentDifficulty?.grade}");
         _generatePuzzle();
       }
     });
@@ -109,7 +109,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
 
   @override
   void dispose() {
-    debugPrint("🔤 [ARITHMANCER CROSSWORDS] Disposing game and cleaning up resources");
+    if (kDebugMode) debugPrint("🔤 [ARITHMANCER CROSSWORDS] Disposing game and cleaning up resources");
     
     _glowController.dispose();
     _successController.dispose();
@@ -127,7 +127,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   void _generatePuzzle() async {
     if (currentDifficulty == null) return;
     
-    debugPrint("🎯 [ARITHMANCER CROSSWORDS] Starting puzzle generation process");
+    if (kDebugMode) debugPrint("🎯 [ARITHMANCER CROSSWORDS] Starting puzzle generation process");
     
     setState(() {
       _isGenerating = true;
@@ -148,16 +148,16 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         'customMax': gameProvider.customRangeMax,
       };
 
-      debugPrint("🎯 [ARITHMANCER CROSSWORDS] Calling compute function");
+      if (kDebugMode) debugPrint("🎯 [ARITHMANCER CROSSWORDS] Calling compute function");
       
       // STEP 1: Generate the puzzle (this is where the variable is declared and assigned)
       CrosswordPuzzle? generatedPuzzle = await compute(CrosswordPuzzle.generate, puzzleArgs);
       
-      debugPrint("🎯 [GEN-RESULT] Generation complete. Result: ${generatedPuzzle != null ? 'SUCCESS' : 'FAILURE'}");
+      if (kDebugMode) debugPrint("🎯 [GEN-RESULT] Generation complete. Result: ${generatedPuzzle != null ? 'SUCCESS' : 'FAILURE'}");
       
       // STEP 2: Now we can use generatedPuzzle
       if (generatedPuzzle != null) {
-        debugPrint("✅ [GEN-RESULT] Puzzle details:");
+        if (kDebugMode) debugPrint("✅ [GEN-RESULT] Puzzle details:");
         debugPrint("✅ [GEN-RESULT]   - Clues: ${generatedPuzzle.clues.length}");
         debugPrint("✅ [GEN-RESULT]   - Empty cells: ${generatedPuzzle.emptyCells.length}");
         debugPrint("✅ [GEN-RESULT]   - Equations: ${generatedPuzzle.equations.length}");
@@ -176,7 +176,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
             
             _isGenerating = false;
             
-            debugPrint("🎯 [ARITHMANCER CROSSWORDS] Max moves allowed: $_maxMoves for $emptyCount empty cells");
+            if (kDebugMode) debugPrint("🎯 [ARITHMANCER CROSSWORDS] Max moves allowed: $_maxMoves for $emptyCount empty cells");
             debugPrint("🎯 [ARITHMANCER CROSSWORDS] UI state updated with new puzzle");
             debugPrint("🎯 [ARITHMANCER CROSSWORDS] Number pool: ${numberPool.join(', ')}");
             debugPrint("✅ [GEN-RESULT] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
@@ -186,7 +186,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         throw Exception("Puzzle generation returned null");
       }
     } catch (e, stackTrace) {
-      debugPrint("❌ [ARITHMANCER CROSSWORDS] Error generating puzzle: $e");
+      if (kDebugMode) debugPrint("❌ [ARITHMANCER CROSSWORDS] Error generating puzzle: $e");
       debugPrint("❌ [ARITHMANCER CROSSWORDS] StackTrace: $stackTrace");
       
       if (mounted) {
@@ -232,13 +232,13 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     
     numberPool = List.from(generatedPuzzle.numberPool)..sort();  // sorted!
     
-    debugPrint("🎯 [POOL INIT] Correct numbers: $correctNumbers");
+    if (kDebugMode) debugPrint("🎯 [POOL INIT] Correct numbers: $correctNumbers");
     debugPrint("🎯 [POOL INIT] Decoy numbers: $decoyNumbers");
     debugPrint("🎯 [POOL INIT] Initial pool (sorted): $numberPool");
   }
 
   void _placeNumber(int number, String cellId) {
-    debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
+    if (kDebugMode) debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
     
     setState(() {
       userSolution[cellId] = number;
@@ -248,7 +248,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       
       // Decrement moves
       _movesRemaining--;
-      debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
+      if (kDebugMode) debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
       
       // Warning animation when low on moves
       if (_movesRemaining <= 3 && _movesRemaining > 0) {
@@ -258,7 +258,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       }
     });
 
-    debugPrint("🎮 [PLACE] User solution after: $userSolution");
+    if (kDebugMode) debugPrint("🎮 [PLACE] User solution after: $userSolution");
     debugPrint("🎮 [PLACE] Updated pool: $numberPool");
     
     // Check if out of moves BEFORE checking solution
@@ -271,7 +271,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   void _removeNumber(String cellId) {
-    debugPrint("🗑️ [REMOVE] Removing number from cell $cellId");
+    if (kDebugMode) debugPrint("🗑️ [REMOVE] Removing number from cell $cellId");
     
     setState(() {
       userSolution.remove(cellId);
@@ -281,7 +281,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       // Player learns to think before placing
     });
     
-    debugPrint("🗑️ [REMOVE] Updated pool: $numberPool");
+    if (kDebugMode) debugPrint("🗑️ [REMOVE] Updated pool: $numberPool");
   }
 
   void _updateNumberPool() {
@@ -321,18 +321,18 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     
     numberPool = newPool;
     
-    debugPrint("🔄 [POOL UPDATE] Solution needs: $solutionCounts");
+    if (kDebugMode) debugPrint("🔄 [POOL UPDATE] Solution needs: $solutionCounts");
     debugPrint("🔄 [POOL UPDATE] User placed: $placedCounts");
     debugPrint("🔄 [POOL UPDATE] New pool size: ${newPool.length}");
   }
 
   void _checkSolution() {
-    debugPrint("✅ [ARITHMANCER CROSSWORDS] Checking solution...");
+    if (kDebugMode) debugPrint("✅ [ARITHMANCER CROSSWORDS] Checking solution...");
     debugPrint("✅ [ARITHMANCER CROSSWORDS] User solution: $userSolution");
     debugPrint("✅ [ARITHMANCER CROSSWORDS] Required cells: ${puzzle!.emptyCells.length}");
     
     if (userSolution.length == puzzle!.emptyCells.length) {
-      debugPrint("✅ [ARITHMANCER CROSSWORDS] All cells filled, validating solution");
+      if (kDebugMode) debugPrint("✅ [ARITHMANCER CROSSWORDS] All cells filled, validating solution");
       
       final isValid = puzzle!.validateSolution(userSolution);
       debugPrint("✅ [ARITHMANCER CROSSWORDS] Solution validation result: $isValid");
@@ -343,12 +343,12 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         _handleIncorrect(); // We keep this! ==> Error message...
       }
     } else {
-      debugPrint("✅ [ARITHMANCER CROSSWORDS] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
+      if (kDebugMode) debugPrint("✅ [ARITHMANCER CROSSWORDS] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
     }
   }
 
   List<MathProblem> _extractMathProblems(Map<String, int> solution) {
-    debugPrint("📤 [CROSSWORDS] Extracting all math problems from completed crossword...");
+    if (kDebugMode) debugPrint("📤 [CROSSWORDS] Extracting all math problems from completed crossword...");
     
     final problems = <MathProblem>[];
     
@@ -388,30 +388,30 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       
       if (problem != null) {
         problems.add(problem);
-        debugPrint("📤 [CROSSWORDS] Extracted: ${problem.expression}");
+        if (kDebugMode) debugPrint("📤 [CROSSWORDS] Extracted: ${problem.expression}");
       }
     }
     
-    debugPrint("📤 [CROSSWORDS] Extracted ${problems.length} problems total");
+    if (kDebugMode) debugPrint("📤 [CROSSWORDS] Extracted ${problems.length} problems total");
     return problems;
   }
 
   void _handleSuccess(Map<String, int> userSolution) {
-    debugPrint("🎉 [ARITHMANCER CROSSWORDS] SUCCESS! Player solved the puzzle!");
+    if (kDebugMode) debugPrint("🎉 [ARITHMANCER CROSSWORDS] SUCCESS! Player solved the puzzle!");
     HapticFeedback.lightImpact();
 
     int baseScore = 250 * widget.grade;
     int complexityBonus = puzzle!.equations.length * 15 + puzzle!.emptyCells.length * 5;
     int operationBonus = puzzle!.getAllOperators()
-        .map((op) => _getOperationBonus(op))
+        .map(_getOperationBonus)
         .fold(0, (a, b) => a + b);
     
     int totalScore = baseScore + complexityBonus + operationBonus;
-    debugPrint("🎉 [ARITHMANCER CROSSWORDS] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
+    if (kDebugMode) debugPrint("🎉 [ARITHMANCER CROSSWORDS] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
     
     // Extract all math problems from the solved crossword
     final mathProblems = _extractMathProblems(userSolution);
-    debugPrint("🎉 [ARITHMANCER CROSSWORDS] Extracted ${mathProblems.length} math problems for tracking");
+    if (kDebugMode) debugPrint("🎉 [ARITHMANCER CROSSWORDS] Extracted ${mathProblems.length} math problems for tracking");
     
     // SINGLE CALL to unified progression system
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
@@ -446,7 +446,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   void _handleIncorrect() {
-    debugPrint("❌ [ARITHMANCER CROSSWORDS] Incorrect solution - showing error message");
+    if (kDebugMode) debugPrint("❌ [ARITHMANCER CROSSWORDS] Incorrect solution - showing error message");
     HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -464,7 +464,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   void _handleOutOfMoves() {
-    debugPrint("❌ [ARITHMANCER CROSSWORDS] Out of moves! Game over.");
+    if (kDebugMode) debugPrint("❌ [ARITHMANCER CROSSWORDS] Out of moves! Game over.");
     
     // Call the failure handler
     _handleFailure();
@@ -590,7 +590,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   void _handleFailure() {
-    debugPrint("❌ [ARITHMANCER CROSSWORDS] FAILURE! Player gave up");
+    if (kDebugMode) debugPrint("❌ [ARITHMANCER CROSSWORDS] FAILURE! Player gave up");
     
     // Extract problems for learning purposes (using partial solution if any)
     final mathProblems = userSolution.isNotEmpty 

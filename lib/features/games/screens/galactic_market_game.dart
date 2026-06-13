@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -22,11 +23,7 @@ class GalacticMarketGame extends StatefulWidget {
 }
 
 class _GalacticMarketGameState extends State<GalacticMarketGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<GalacticMarketGame> {
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -60,20 +57,10 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
   @override
   void initState() {
     super.initState();
+    initGameAnimations(usePulse: false);
 
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
-
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation =
-        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+    successAnimation =
+        CurvedAnimation(parent: successController, curve: Curves.elasticOut);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -86,8 +73,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
+    disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
@@ -99,7 +85,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
       _gameOver = false;
       _selectedDenom = null;
       _mathProblems.clear();
-      _successController.reset();
+      successController.reset();
     });
 
     final grade = currentDifficulty!.grade;
@@ -186,7 +172,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
       mathProblems: _mathProblems,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
     if (mounted) {
       showDialog(
         context: context,
@@ -280,7 +266,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
 
   Widget _buildChangeDisplay() {
     return AnimatedBuilder(
-      animation: _glowAnimation,
+      animation: glowAnimation,
       builder: (context, _) {
         return Container(
           padding: const EdgeInsets.all(16),
@@ -288,7 +274,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
             color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value * 0.5),
+              color: SpaceTheme.starYellow.withValues(alpha: glowAnimation.value * 0.5),
               width: 2,
             ),
           ),
@@ -469,10 +455,10 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
   Widget _buildWinDialog(int score) {
     final s = S.of(context)!;
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

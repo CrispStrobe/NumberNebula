@@ -3046,10 +3046,12 @@ class SEn extends S {
   String get puzzleGenerationFailed => 'Puzzle Generation Failed';
 
   @override
-  String get puzzleGenerationFailedDesc => 'Unable to generate puzzle. Please try again.';
+  String get puzzleGenerationFailedDesc =>
+      'Unable to generate puzzle. Please try again.';
 
   @override
-  String get puzzleGenerationFailedDescAlt => 'Unable to generate a puzzle. Would you like to try again or return to the main menu?';
+  String get puzzleGenerationFailedDescAlt =>
+      'Unable to generate a puzzle. Would you like to try again or return to the main menu?';
 
   @override
   String get retry => 'Retry';
@@ -3058,7 +3060,8 @@ class SEn extends S {
   String get tryAgainButton => 'Try Again';
 
   @override
-  String get creatureForgeAlreadyDiscovered => 'Already discovered this creature!';
+  String get creatureForgeAlreadyDiscovered =>
+      'Already discovered this creature!';
 
   @override
   String creatureForgeInvalidCombo(String constraint) {
@@ -3082,10 +3085,12 @@ class SEn extends S {
   }
 
   @override
-  String get creatureForgeConstraintWingedSpiked => 'Winged bodies cannot pair with spiked tails';
+  String get creatureForgeConstraintWingedSpiked =>
+      'Winged bodies cannot pair with spiked tails';
 
   @override
-  String get creatureForgeConstraintAdvanced => 'Winged bodies need crystal heads\nAquatic bodies reject flame tails';
+  String get creatureForgeConstraintAdvanced =>
+      'Winged bodies need crystal heads\nAquatic bodies reject flame tails';
 
   @override
   String get bubbleNextTarget => 'Next target: ';
@@ -3139,7 +3144,7 @@ class SEn extends S {
 
   @override
   String warpCutHoles(int count) {
-    return 'Cut $count hole${count > 1 ? "s" : ""}...';
+    return 'Cut $count hole(s)...';
   }
 
   @override
@@ -3151,16 +3156,16 @@ class SEn extends S {
   }
 
   @override
-  String get warpDirLeft => '\u2190 Left';
+  String get warpDirLeft => '← Left';
 
   @override
-  String get warpDirRight => '\u2192 Right';
+  String get warpDirRight => '→ Right';
 
   @override
-  String get warpDirUp => '\u2191 Up';
+  String get warpDirUp => '↑ Up';
 
   @override
-  String get warpDirDown => '\u2193 Down';
+  String get warpDirDown => '↓ Down';
 
   @override
   String circuitInvalidTime(int remaining) {
@@ -3168,7 +3173,8 @@ class SEn extends S {
   }
 
   @override
-  String get circuitSwapInstruction => 'Two digits on this clock swapped places! Tap two digit positions to swap them back.';
+  String get circuitSwapInstruction =>
+      'Two digits on this clock swapped places! Tap two digit positions to swap them back.';
 
   @override
   String circuitAttempts(int remaining, int total) {
@@ -3261,7 +3267,7 @@ class SEn extends S {
   String get signalNoAttemptsYet => 'No attempts yet';
 
   @override
-  String get perspectiveDragHint => 'Drag \u00b115\u00b0';
+  String get perspectiveDragHint => 'Drag ±15°';
 
   @override
   String get allTargetsPopped => 'All targets popped';

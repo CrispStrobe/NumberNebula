@@ -199,7 +199,7 @@ void main() {
 
       // Answer indices are a contiguous 0..hidden-1 range with no gaps/dupes.
       final answerIdxs =
-          sortedHidden.map((g) => p.getAnswerIndex(g)).toList()..sort();
+          sortedHidden.map(p.getAnswerIndex).toList()..sort();
       expect(answerIdxs, List.generate(sortedHidden.length, (i) => i));
 
       // A non-hidden (visible) index returns the sentinel -1.

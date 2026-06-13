@@ -3060,10 +3060,12 @@ class SDe extends S {
   String get puzzleGenerationFailed => 'Puzzle-Erzeugung fehlgeschlagen';
 
   @override
-  String get puzzleGenerationFailedDesc => 'Puzzle konnte nicht erzeugt werden. Bitte versuche es erneut.';
+  String get puzzleGenerationFailedDesc =>
+      'Puzzle konnte nicht erzeugt werden. Bitte versuche es erneut.';
 
   @override
-  String get puzzleGenerationFailedDescAlt => 'Puzzle konnte nicht erzeugt werden. Möchtest du es erneut versuchen oder zum Hauptmenü zurückkehren?';
+  String get puzzleGenerationFailedDescAlt =>
+      'Puzzle konnte nicht erzeugt werden. Möchtest du es erneut versuchen oder zum Hauptmenü zurückkehren?';
 
   @override
   String get retry => 'Erneut versuchen';
@@ -3072,7 +3074,8 @@ class SDe extends S {
   String get tryAgainButton => 'Nochmal';
 
   @override
-  String get creatureForgeAlreadyDiscovered => 'Diese Kreatur wurde bereits entdeckt!';
+  String get creatureForgeAlreadyDiscovered =>
+      'Diese Kreatur wurde bereits entdeckt!';
 
   @override
   String creatureForgeInvalidCombo(String constraint) {
@@ -3096,10 +3099,12 @@ class SDe extends S {
   }
 
   @override
-  String get creatureForgeConstraintWingedSpiked => 'Geflügelte Körper passen nicht zu Stachelschwänzen';
+  String get creatureForgeConstraintWingedSpiked =>
+      'Geflügelte Körper passen nicht zu Stachelschwänzen';
 
   @override
-  String get creatureForgeConstraintAdvanced => 'Geflügelte Körper brauchen Kristallköpfe\nAquatische Körper lehnen Flammenschwänze ab';
+  String get creatureForgeConstraintAdvanced =>
+      'Geflügelte Körper brauchen Kristallköpfe\nAquatische Körper lehnen Flammenschwänze ab';
 
   @override
   String get bubbleNextTarget => 'Nächstes Ziel: ';
@@ -3153,7 +3158,7 @@ class SDe extends S {
 
   @override
   String warpCutHoles(int count) {
-    return '$count Loch${count > 1 ? "/Löcher" : ""} schneiden...';
+    return '$count Loch/Löcher schneiden...';
   }
 
   @override
@@ -3165,16 +3170,16 @@ class SDe extends S {
   }
 
   @override
-  String get warpDirLeft => '\u2190 Links';
+  String get warpDirLeft => '← Links';
 
   @override
-  String get warpDirRight => '\u2192 Rechts';
+  String get warpDirRight => '→ Rechts';
 
   @override
-  String get warpDirUp => '\u2191 Oben';
+  String get warpDirUp => '↑ Oben';
 
   @override
-  String get warpDirDown => '\u2193 Unten';
+  String get warpDirDown => '↓ Unten';
 
   @override
   String circuitInvalidTime(int remaining) {
@@ -3182,7 +3187,8 @@ class SDe extends S {
   }
 
   @override
-  String get circuitSwapInstruction => 'Zwei Ziffern dieser Uhr sind vertauscht! Tippe auf zwei Ziffernpositionen, um sie zurückzutauschen.';
+  String get circuitSwapInstruction =>
+      'Zwei Ziffern dieser Uhr sind vertauscht! Tippe auf zwei Ziffernpositionen, um sie zurückzutauschen.';
 
   @override
   String circuitAttempts(int remaining, int total) {
@@ -3191,7 +3197,7 @@ class SDe extends S {
 
   @override
   String circuitPositionSelected(int pos) {
-    return 'Position $pos ausgewählt \u2013 tippe auf eine andere Ziffer';
+    return 'Position $pos ausgewählt – tippe auf eine andere Ziffer';
   }
 
   @override
@@ -3275,7 +3281,7 @@ class SDe extends S {
   String get signalNoAttemptsYet => 'Noch keine Versuche';
 
   @override
-  String get perspectiveDragHint => 'Ziehen \u00b115\u00b0';
+  String get perspectiveDragHint => 'Ziehen ±15°';
 
   @override
   String get allTargetsPopped => 'Alle Ziele getroffen';

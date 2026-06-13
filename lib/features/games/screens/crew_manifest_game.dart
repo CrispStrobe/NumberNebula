@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -25,13 +26,7 @@ class CrewManifestGame extends StatefulWidget {
 }
 
 class _CrewManifestGameState extends State<CrewManifestGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<CrewManifestGame> {
 
   CrewManifestPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
@@ -48,27 +43,11 @@ class _CrewManifestGameState extends State<CrewManifestGame>
   @override
   void initState() {
     super.initState();
+    initGameAnimations();
 
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
+    successAnimation =
+        CurvedAnimation(parent: successController, curve: Curves.elasticOut);
 
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation =
-        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
-
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -81,9 +60,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
-    _pulseController.dispose();
+    disposeGameAnimations();
     super.dispose();
   }
 
@@ -101,7 +78,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
       _gridState.clear();
       _highlightedRow = null;
       _highlightedCol = null;
-      _successController.reset();
+      successController.reset();
     });
 
     final generated = await compute(CrewManifestLogic.generate, {
@@ -254,7 +231,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
       score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
 
     if (mounted) {
       showDialog(
@@ -383,20 +360,20 @@ class _CrewManifestGameState extends State<CrewManifestGame>
   Widget _buildGridArea(BoxConstraints outerConstraints) {
     return Center(
       child: AnimatedBuilder(
-        animation: _glowAnimation,
+        animation: glowAnimation,
         builder: (context, child) {
           return Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.nebulaPurple.withValues(alpha: 0.1 * _glowAnimation.value),
+                  SpaceTheme.nebulaPurple.withValues(alpha: 0.1 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.nebulaPurple.withValues(alpha: _glowAnimation.value),
+                color: SpaceTheme.nebulaPurple.withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -521,10 +498,10 @@ class _CrewManifestGameState extends State<CrewManifestGame>
             ? SpaceTheme.nebulaPurple.withValues(alpha: 0.3)
             : SpaceTheme.deepSpace.withValues(alpha: 0.5);
         content = AnimatedBuilder(
-          animation: _pulseAnimation,
+          animation: pulseAnimation,
           builder: (context, child) {
             return Transform.scale(
-              scale: _pulseAnimation.value,
+              scale: pulseAnimation.value,
               child: Icon(
                 Icons.radio_button_unchecked,
                 color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
@@ -643,10 +620,10 @@ class _CrewManifestGameState extends State<CrewManifestGame>
   Widget _buildWinDialog(int totalScore) {
     final s = S.of(context)!;
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

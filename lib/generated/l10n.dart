@@ -2678,13 +2678,13 @@ abstract class S {
   /// **'Oops! The solution doesn\'t satisfy all constraints. Check the cage math and Latin square rules!'**
   String get kenkenError;
 
-  /// No description provided for @kenkenOutOfMoves.
+  /// Title for KenKen out-of-moves dialog
   ///
   /// In en, this message translates to:
   /// **'Out of Moves!'**
   String get kenkenOutOfMoves;
 
-  /// No description provided for @kenkenOutOfMovesDesc.
+  /// Description for KenKen out-of-moves dialog
   ///
   /// In en, this message translates to:
   /// **'Too many placements! Think carefully about each number to solve the KenKen grid efficiently.'**
@@ -5527,25 +5527,25 @@ abstract class S {
   /// No description provided for @warpDirLeft.
   ///
   /// In en, this message translates to:
-  /// **'\u2190 Left'**
+  /// **'← Left'**
   String get warpDirLeft;
 
   /// No description provided for @warpDirRight.
   ///
   /// In en, this message translates to:
-  /// **'\u2192 Right'**
+  /// **'→ Right'**
   String get warpDirRight;
 
   /// No description provided for @warpDirUp.
   ///
   /// In en, this message translates to:
-  /// **'\u2191 Up'**
+  /// **'↑ Up'**
   String get warpDirUp;
 
   /// No description provided for @warpDirDown.
   ///
   /// In en, this message translates to:
-  /// **'\u2193 Down'**
+  /// **'↓ Down'**
   String get warpDirDown;
 
   /// No description provided for @circuitInvalidTime.

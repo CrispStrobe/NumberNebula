@@ -464,7 +464,7 @@ class AsciiRenderer {
 
 /// MAIN GENERATOR
 Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
-  debugPrint('🔧 [GENERATOR] ========================================');
+  if (kDebugMode) debugPrint('🔧 [GENERATOR] ========================================');
   debugPrint('🔧 [GENERATOR] MATH CROSSWORD PUZZLE GENERATOR & SOLVER');
   debugPrint('🔧 [GENERATOR] Config: Range=${config.minN}-${config.maxN}, Ops=${config.ops}, Edges=${config.targetEdges}, Clues=${config.numClues}, NoDups=${config.noDups}, Timeout=${config.timeoutSeconds}s');
 
@@ -478,21 +478,21 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
 
   for (int attempt = 1; attempt <= maxAttempts; attempt++) {
     if (totalStopwatch.elapsed.inSeconds >= maxTotalSeconds) {
-      debugPrint("⏰ [GENERATOR] Hard timeout at ${totalStopwatch.elapsed.inSeconds}s (max: ${maxTotalSeconds}s)");
+      if (kDebugMode) debugPrint("⏰ [GENERATOR] Hard timeout at ${totalStopwatch.elapsed.inSeconds}s (max: ${maxTotalSeconds}s)");
       break;
     }
     
-    debugPrint('🔧 [GENERATOR] ------------------------------------------------------------');
+    if (kDebugMode) debugPrint('🔧 [GENERATOR] ------------------------------------------------------------');
     debugPrint('🔧 [GENERATOR] ATTEMPT $attempt/$maxAttempts (elapsed: ${totalStopwatch.elapsed.inSeconds}s)');
 
     // STEP 1: Generate a valid pattern
-    debugPrint("🔧 [GENERATOR] [1] Generating pattern...");
+    if (kDebugMode) debugPrint("🔧 [GENERATOR] [1] Generating pattern...");
     PuzzleParser? puzzle;
     int patternAttempt = 0;
     do {
       patternAttempt++;
       if (patternAttempt > 20) { // Don't spend forever on pattern
-        debugPrint("🔧 [GENERATOR]   -> Pattern generation taking too long, restarting attempt");
+        if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> Pattern generation taking too long, restarting attempt");
         break;
       }
       final generator = GridPatternGenerator(targetEdges: config.targetEdges);
@@ -501,13 +501,13 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
     } while (puzzle.isPatternValid() != true && patternAttempt < 20);
 
     if (puzzle == null || !puzzle.isPatternValid()) {
-      debugPrint("🔧 [GENERATOR]   -> FAILED to generate valid pattern, retrying...");
+      if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> FAILED to generate valid pattern, retrying...");
       continue;
     }
 
     final allVarNames =
         puzzle.numberCellLocations.map((p) => 'C_${p.y}_${p.x}').toList();
-    debugPrint("🔧 [GENERATOR]   -> Pattern OK: ${puzzle.equations.length} equations, ${allVarNames.length} cells");
+    if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> Pattern OK: ${puzzle.equations.length} equations, ${allVarNames.length} cells");
 
     // STEP 2: Generate clues (keeping existing logic)
     debugPrint("🔧 [GENERATOR] [2] Generating ${config.numClues} clues...");
@@ -565,7 +565,7 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
       clues[clueVar] = clueValue;
       if (config.noDups) usedClueValues.add(clueValue);
     }
-    debugPrint("🔧 [GENERATOR]   -> Clues: $clues");
+    if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> Clues: $clues");
 
     // STEP 3: Solve CSP
     debugPrint("🔧 [GENERATOR] [3] Solving CSP (timeout: ${config.timeoutSeconds}s)...");
@@ -613,49 +613,49 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
       solveStopwatch.stop();
 
       if (potentialSolution != 'FAILURE') {
-        debugPrint("🔧 [GENERATOR]   -> SOLVED in ${solveStopwatch.elapsedMilliseconds}ms");
+        if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> SOLVED in ${solveStopwatch.elapsedMilliseconds}ms");
         solution = potentialSolution;
         successfulPuzzle = puzzle;
         finalClues = clues;
         
-        debugPrint("🔧 [GENERATOR] [4] Rendering ASCII preview...");
+        if (kDebugMode) debugPrint("🔧 [GENERATOR] [4] Rendering ASCII preview...");
         final emptyRenderer = AsciiRenderer(puzzle, config, solution: clues);
         debugPrint(emptyRenderer.render());
         break;
       } else {
-        debugPrint("🔧 [GENERATOR]   -> UNSOLVABLE (contradiction in clues)");
+        if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> UNSOLVABLE (contradiction in clues)");
       }
     } catch (e) {
       solveStopwatch.stop();
-      debugPrint("🔧 [GENERATOR]   -> TIMEOUT after ${solveStopwatch.elapsedMilliseconds}ms");
+      if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> TIMEOUT after ${solveStopwatch.elapsedMilliseconds}ms");
     }
   }
 
   totalStopwatch.stop();
-  debugPrint('🔧 [GENERATOR] ========================================');
+  if (kDebugMode) debugPrint('🔧 [GENERATOR] ========================================');
   
   if (solution != null && solution != 'FAILURE' && successfulPuzzle != null) {
     debugPrint("🔧 [GENERATOR] SUCCESS - Converting to game format...");
     
     try {
       final typedSolution = solution.cast<String, int>();
-      debugPrint("🔧 [GENERATOR] Solution cast successful");
+      if (kDebugMode) debugPrint("🔧 [GENERATOR] Solution cast successful");
       
       debugPrint("🔧 [GENERATOR] Calling _convertToGameFormat...");
       final result = _convertToGameFormat(successfulPuzzle, finalClues, typedSolution);
       
-      debugPrint("🔧 [GENERATOR] _convertToGameFormat returned successfully");
+      if (kDebugMode) debugPrint("🔧 [GENERATOR] _convertToGameFormat returned successfully");
       debugPrint("🔧 [GENERATOR] Result structure validated - ready to return");
       
       return result;
     } catch (e, stackTrace) {
-      debugPrint("❌ [GENERATOR] ERROR in conversion: $e");
+      if (kDebugMode) debugPrint("❌ [GENERATOR] ERROR in conversion: $e");
       debugPrint("❌ [GENERATOR] StackTrace: $stackTrace");
       throw Exception("Puzzle generation succeeded but conversion failed: $e");
     }
   } else {
     final msg = "Failed after ${totalStopwatch.elapsed.inSeconds}s";
-    debugPrint("❌ [GENERATOR] FAILURE: $msg");
+    if (kDebugMode) debugPrint("❌ [GENERATOR] FAILURE: $msg");
     throw Exception(msg);
   }
 }
@@ -740,7 +740,7 @@ List<int> _generateNumberPool(Set<int> correctNumbers) {
     equalsCells.add(eqPos);  // Add the Point directly, not wrapped in {}
   }
   
-  debugPrint("🎯 [LAYOUT] Created visual layout: ${numberCells.length} number cells, ${operatorCells.length} operator cells, ${equalsCells.length} equals cells");
+  if (kDebugMode) debugPrint("🎯 [LAYOUT] Created visual layout: ${numberCells.length} number cells, ${operatorCells.length} operator cells, ${equalsCells.length} equals cells");
   
   return (numberCells, operatorCells, equalsCells);  // Return the proper tuple
 }
@@ -770,7 +770,7 @@ class CrosswordPuzzle {
 
   static Future<CrosswordPuzzle> generate(Map<String, dynamic> args) async {
     final attempt = args['attemptNumber'] as int? ?? 0;
-    debugPrint("🏭 [FACTORY-$attempt] ========================================");
+    if (kDebugMode) debugPrint("🏭 [FACTORY-$attempt] ========================================");
     debugPrint("🏭 [FACTORY-$attempt] CrosswordPuzzle.generate() called in isolate");
     
     final grade = args['grade'] as int;
@@ -780,7 +780,7 @@ class CrosswordPuzzle {
     final customMin = args['customMin'] as int?;
     final customMax = args['customMax'] as int?;
     
-    debugPrint("🏭 [FACTORY-$attempt] Grade: $grade, Level: $level");
+    if (kDebugMode) debugPrint("🏭 [FACTORY-$attempt] Grade: $grade, Level: $level");
     debugPrint("🏭 [FACTORY-$attempt] Custom: $useCustomSettings");
     
     // Use the new scaling configuration system with custom settings support
@@ -793,20 +793,22 @@ class CrosswordPuzzle {
       customMax: customMax,
     );
     
-    debugPrint("🏭 [FACTORY-$attempt] Config created: ${CrosswordConfig.debugConfig(
+    if (kDebugMode) {
+      debugPrint("🏭 [FACTORY-$attempt] Config created: ${CrosswordConfig.debugConfig(
       grade, 
       level,
       useCustomSettings: useCustomSettings,
       customOps: customOps,
       customMin: customMin,
       customMax: customMax,
-    )}");
+      )}");
+    }
     
-    debugPrint("🏭 [FACTORY-$attempt] Calling generateCrosswordPuzzle()...");
+    if (kDebugMode) debugPrint("🏭 [FACTORY-$attempt] Calling generateCrosswordPuzzle()...");
     
     final result = await generateCrosswordPuzzle(config);
     
-    debugPrint("🏭 [FACTORY-$attempt] generateCrosswordPuzzle() returned");
+    if (kDebugMode) debugPrint("🏭 [FACTORY-$attempt] generateCrosswordPuzzle() returned");
     debugPrint("🏭 [FACTORY-$attempt] Result has ${result.equations.length} equations");
     debugPrint("🏭 [FACTORY-$attempt] About to return from isolate...");
     
@@ -814,7 +816,7 @@ class CrosswordPuzzle {
   }
 
   bool validateSolution(Map<String, int> userSolution) {
-    debugPrint("✅ [CROSSWORD VALIDATION] Starting solution validation");
+    if (kDebugMode) debugPrint("✅ [CROSSWORD VALIDATION] Starting solution validation");
     
     // Create complete solution
     final completeGrid = Map<String, int>.from(clues);
@@ -847,12 +849,12 @@ class CrosswordPuzzle {
       }
       
       if (!isValid) {
-        debugPrint("✅ [CROSSWORD VALIDATION] ❌ Equation failed: $equation -> $operand1 ${equation.operator} $operand2 = $result");
+        if (kDebugMode) debugPrint("✅ [CROSSWORD VALIDATION] ❌ Equation failed: $equation -> $operand1 ${equation.operator} $operand2 = $result");
         return false;
       }
     }
     
-    debugPrint("✅ [CROSSWORD VALIDATION] ✅ Solution is valid!");
+    if (kDebugMode) debugPrint("✅ [CROSSWORD VALIDATION] ✅ Solution is valid!");
     return true;
   }
 

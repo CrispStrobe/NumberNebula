@@ -10,6 +10,7 @@ import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../../../core/services/sri_service.dart'; 
+import 'package:flutter/foundation.dart';
 
 // A few top-level constants for easier tweaking
 const int kNumStars = 150;
@@ -190,7 +191,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
       choosingPath = true;
     });
     
-    debugPrint("[TAP DEBUG] Generated ${newPaths.length} paths, choosingPath: $choosingPath");
+    if (kDebugMode) debugPrint("[TAP DEBUG] Generated ${newPaths.length} paths, choosingPath: $choosingPath");
   }
 
   SpacePathType _selectRandomPathType() {
@@ -207,12 +208,12 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
 
   // NEW: Enhanced tap detection with screen-wide gesture detection
   void _handleScreenTap(Offset tapPosition) {
-    debugPrint("[TAP DEBUG] Screen tapped at: $tapPosition");
+    if (kDebugMode) debugPrint("[TAP DEBUG] Screen tapped at: $tapPosition");
     debugPrint("[TAP DEBUG] choosingPath: $choosingPath, followingPath: $followingPath");
     debugPrint("[TAP DEBUG] availablePaths.length: ${availablePaths.length}");
 
     if (!choosingPath || followingPath || availablePaths.isEmpty) {
-      debugPrint("[TAP DEBUG] -> Tap IGNORED due to game state");
+      if (kDebugMode) debugPrint("[TAP DEBUG] -> Tap IGNORED due to game state");
       return;
     }
 
@@ -232,7 +233,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
         if (d < pathMinDistance) pathMinDistance = d;
       }
 
-      debugPrint("[TAP DEBUG] Path ${path.answer}: closest point distance: ${pathMinDistance.toStringAsFixed(1)}");
+      if (kDebugMode) debugPrint("[TAP DEBUG] Path ${path.answer}: closest point distance: ${pathMinDistance.toStringAsFixed(1)}");
 
       if (pathMinDistance < hitRadius && pathMinDistance < closestDistance) {
         closestDistance = pathMinDistance;
@@ -241,7 +242,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     }
 
     if (tappedPath != null) {
-      debugPrint("[TAP DEBUG] -> Tap ACCEPTED on path with answer: ${tappedPath.answer}");
+      if (kDebugMode) debugPrint("[TAP DEBUG] -> Tap ACCEPTED on path with answer: ${tappedPath.answer}");
       _selectPath(tappedPath);
     } else {
       debugPrint("[TAP DEBUG] -> Tap MISSED (closest: ${closestDistance.toStringAsFixed(1)})");
@@ -249,13 +250,13 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   }
 
   void _selectPath(SpacePath path) {
-    debugPrint("State check: choosingPath is '$choosingPath', followingPath is '$followingPath'.");
+    if (kDebugMode) debugPrint("State check: choosingPath is '$choosingPath', followingPath is '$followingPath'.");
 
     if (!choosingPath || followingPath) {
       debugPrint("-> Path selection IGNORED due to game state.");
       return;
     }
-    debugPrint("-> Path selection ACCEPTED. Processing...");
+    if (kDebugMode) debugPrint("-> Path selection ACCEPTED. Processing...");
 
     HapticFeedback.lightImpact();
 
@@ -341,7 +342,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     try {
       context.read<GameProvider>().addScore(scoreGained);
     } catch (e) {
-      debugPrint('GameProvider not available: $e');
+      if (kDebugMode) debugPrint('GameProvider not available: $e');
     }
     
     _addSuccessEffect();

@@ -259,8 +259,10 @@ class VaultCrackerLogic {
     final difficulty = args['difficulty'] as DifficultyConfig;
     final rng = math.Random();
 
-    debugPrint(
+    if (kDebugMode) {
+      debugPrint(
         '[VAULT_CRACKER] Generating algebraic constraint puzzle for grade=$grade, level=$level');
+    }
 
     // Difficulty scaling
     int codeLength;
@@ -311,9 +313,11 @@ class VaultCrackerLogic {
         final solutions = _countSolutions(clueSubset, codeLength, digitRange);
 
         if (solutions == 1) {
-          debugPrint(
+          if (kDebugMode) {
+            debugPrint(
               '[VAULT_CRACKER] Generated code: $secretCode, clues=${clueSubset.length}, '
               'codeLength=$codeLength, digitRange=1-$digitRange');
+          }
 
           return VaultCrackerPuzzle(
             secretCode: secretCode,
@@ -326,7 +330,7 @@ class VaultCrackerLogic {
     }
 
     // Fallback: generate a simple puzzle with direct digit clues
-    debugPrint('[VAULT_CRACKER] Warning: falling back to direct-clue puzzle');
+    if (kDebugMode) debugPrint('[VAULT_CRACKER] Warning: falling back to direct-clue puzzle');
     final secretCode = List.generate(codeLength, (_) => rng.nextInt(digitRange) + 1);
     final clues = <VaultClue>[];
 

@@ -46,7 +46,7 @@ class CrewManifestLogic {
     final difficulty = args['difficulty'] as DifficultyConfig;
     final rng = math.Random();
 
-    debugPrint('[CREW_MANIFEST] Generating puzzle for grade=$grade, level=$level');
+    if (kDebugMode) debugPrint('[CREW_MANIFEST] Generating puzzle for grade=$grade, level=$level');
 
     // Difficulty scaling
     int size;
@@ -74,7 +74,7 @@ class CrewManifestLogic {
       solution[crewNames[i]] = shuffledItems[i];
     }
 
-    debugPrint('[CREW_MANIFEST] Solution: $solution');
+    if (kDebugMode) debugPrint('[CREW_MANIFEST] Solution: $solution');
 
     // Generate clues from the solution
     final clues = _generateClues(crewNames, itemNames, solution, size, rng, difficulty.grade);
@@ -166,7 +166,7 @@ class CrewManifestLogic {
 
     clues.shuffle(rng);
 
-    debugPrint('[CREW_MANIFEST] Generated ${clues.length} clues');
+    if (kDebugMode) debugPrint('[CREW_MANIFEST] Generated ${clues.length} clues');
     return clues;
   }
 }

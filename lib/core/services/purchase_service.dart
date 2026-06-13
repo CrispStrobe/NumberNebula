@@ -32,9 +32,7 @@ class PurchaseService with ChangeNotifier {
     final Stream<List<PurchaseDetails>> purchaseUpdated =
         _inAppPurchase.purchaseStream;
     _subscription = purchaseUpdated.listen(
-      (purchaseDetailsList) {
-        _listenToPurchaseUpdates(purchaseDetailsList);
-      },
+      _listenToPurchaseUpdates,
       onDone: () {
         _subscription.cancel();
       },

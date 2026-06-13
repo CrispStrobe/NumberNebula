@@ -61,7 +61,7 @@ class GravityWellLogic {
     final difficulty = args['difficulty'] as DifficultyConfig;
     final rng = math.Random();
 
-    debugPrint('[GRAVITY_WELL] Generating grade=$grade level=$level');
+    if (kDebugMode) debugPrint('[GRAVITY_WELL] Generating grade=$grade level=$level');
 
     // Difficulty parameters
     int objectCount, scaleCount, maxWeight;
@@ -99,7 +99,7 @@ class GravityWellLogic {
 
     // Fallback: A=3, B=5, C=8. Scale 1: A+B = C. Scale 2: C = A+B.
     // Unknown: C. Known: A=3, B=5.
-    debugPrint('[GRAVITY_WELL] Using fallback puzzle');
+    if (kDebugMode) debugPrint('[GRAVITY_WELL] Using fallback puzzle');
     return const GravityWellPuzzle(
       scales: [
         BalanceScale(leftSide: [

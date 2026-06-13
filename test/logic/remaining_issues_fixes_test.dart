@@ -122,7 +122,7 @@ void main() {
         // Revealed hints should be a subset of all hints
         expect(
           puzzle.revealedHints.every(
-              (c) => puzzle.numberHints.containsKey(c)),
+              puzzle.numberHints.containsKey),
           isTrue,
         );
       }

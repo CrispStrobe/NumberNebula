@@ -1,4 +1,5 @@
 // lib/features/games/screens/game_menu_screen.dart
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -539,6 +540,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   }
 
   void _showDebugPanel() {
+    if (!kDebugMode) return;
     showDialog(
       context: context,
       builder: (context) => const DebugPanel(),

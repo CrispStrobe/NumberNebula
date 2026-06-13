@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -11,6 +12,7 @@ import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../services/nebula_matrix_logic.dart';
+import 'package:flutter/foundation.dart';
 
 class NebulaMatrixGame extends StatefulWidget {
   final int grade;
@@ -22,15 +24,9 @@ class NebulaMatrixGame extends StatefulWidget {
 }
 
 class _NebulaMatrixGameState extends State<NebulaMatrixGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<NebulaMatrixGame> {
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   NebulaMatrixPuzzle? puzzle;
   Map<String, int> userSolution = {};
@@ -44,20 +40,8 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
   @override
   void initState() {
     super.initState();
+    initGameAnimations();
 
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
-    );
-
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
 
     _dropController = AnimationController(
       duration: const Duration(milliseconds: 500),
@@ -65,13 +49,6 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
     );
     _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
 
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -84,10 +61,8 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
     _dropController.dispose();
-    _pulseController.dispose();
+    disposeGameAnimations();
     super.dispose();
   }
 
@@ -113,7 +88,7 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
     setState(() {
       _isGenerating = true;
       userSolution.clear();
-      _successController.reset();
+      successController.reset();
     });
 
     try {
@@ -134,7 +109,7 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
 
           _isGenerating = false;
         });
-        debugPrint('[NebulaMatrix] Max moves allowed: $_maxMoves for ${p.emptyCells.length} empty cells');
+        if (kDebugMode) debugPrint('[NebulaMatrix] Max moves allowed: $_maxMoves for ${p.emptyCells.length} empty cells');
       }
     } catch (e) {
       debugPrint('[NebulaMatrix] Error generating puzzle: $e');
@@ -149,7 +124,7 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
 
       // Decrement moves on placement
       _movesRemaining--;
-      debugPrint('[NebulaMatrix] Moves remaining: $_movesRemaining/$_maxMoves');
+      if (kDebugMode) debugPrint('[NebulaMatrix] Moves remaining: $_movesRemaining/$_maxMoves');
     });
 
     // Check if out of moves BEFORE checking solution
@@ -190,7 +165,7 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
       score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
     if (mounted) {
       showDialog(
         context: context,
@@ -218,7 +193,7 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
   }
 
   void _handleFailure() {
-    debugPrint('[NebulaMatrix] FAILURE - recording loss');
+    if (kDebugMode) debugPrint('[NebulaMatrix] FAILURE - recording loss');
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'nebula_matrix',
       difficulty: widget.level,
@@ -226,7 +201,7 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
   }
 
   void _handleOutOfMoves() {
-    debugPrint('[NebulaMatrix] Out of moves! Game over.');
+    if (kDebugMode) debugPrint('[NebulaMatrix] Out of moves! Game over.');
     _handleFailure();
 
     if (mounted) {
@@ -389,20 +364,20 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
   Widget _buildGridArea() {
     return Center(
       child: AnimatedBuilder(
-        animation: _glowAnimation,
+        animation: glowAnimation,
         builder: (context, child) {
           return Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.cosmicPink.withValues(alpha: 0.1 * _glowAnimation.value),
+                  SpaceTheme.cosmicPink.withValues(alpha: 0.1 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.cosmicPink.withValues(alpha: _glowAnimation.value),
+                color: SpaceTheme.cosmicPink.withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -531,7 +506,7 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
       builder: (context, candidateData, rejectedData) {
         final isHovering = candidateData.isNotEmpty;
         return AnimatedBuilder(
-          animation: _pulseAnimation,
+          animation: pulseAnimation,
           builder: (context, child) {
             return Container(
               width: cellSize,
@@ -544,7 +519,7 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
                 border: cellBorder,
               ),
               child: Transform.scale(
-                scale: _pulseAnimation.value,
+                scale: pulseAnimation.value,
                 child: Center(
                   child: Icon(
                     Icons.add,
@@ -615,10 +590,10 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
   Widget _buildWinDialog(int score) {
     final s = S.of(context)!;
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

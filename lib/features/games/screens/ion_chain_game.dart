@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -22,13 +23,7 @@ class IonChainGame extends StatefulWidget {
 }
 
 class _IonChainGameState extends State<IonChainGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<IonChainGame> {
 
   IonChainPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
@@ -55,27 +50,11 @@ class _IonChainGameState extends State<IonChainGame>
   @override
   void initState() {
     super.initState();
+    initGameAnimations();
 
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
+    successAnimation =
+        CurvedAnimation(parent: successController, curve: Curves.elasticOut);
 
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation =
-        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
-
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -88,15 +67,13 @@ class _IonChainGameState extends State<IonChainGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
-    _pulseController.dispose();
+    disposeGameAnimations();
     super.dispose();
   }
 
   void _generatePuzzle() async {
     if (currentDifficulty == null) return;
-    setState(() { _isGenerating = true; _playerChain = []; _successController.reset(); });
+    setState(() { _isGenerating = true; _playerChain = []; successController.reset(); });
 
     final grade = currentDifficulty!.grade;
     final level = currentDifficulty!.level;
@@ -180,7 +157,7 @@ class _IonChainGameState extends State<IonChainGame>
       gameType: 'ion_chain', difficulty: widget.level, score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
     if (mounted) {
       showDialog(context: context, barrierDismissible: false,
         builder: (_) => _buildWinDialog(totalScore));
@@ -285,7 +262,7 @@ class _IonChainGameState extends State<IonChainGame>
       final slotSize = (2 * math.pi * ringRadius / slotCount * 0.65).clamp(36.0, 56.0);
 
       return AnimatedBuilder(
-        animation: _glowAnimation,
+        animation: glowAnimation,
         builder: (context, _) {
           return Column(children: [
             Text('ION RING', style: SpaceTheme.bodyStyle.copyWith(
@@ -298,7 +275,7 @@ class _IonChainGameState extends State<IonChainGame>
                 painter: _RingPainter(
                   slotCount: slotCount,
                   ringRadius: ringRadius,
-                  glowValue: _glowAnimation.value,
+                  glowValue: glowAnimation.value,
                 ),
                 child: Stack(
                   children: List.generate(slotCount, (i) {
@@ -329,7 +306,7 @@ class _IonChainGameState extends State<IonChainGame>
         builder: (context, candidates, _) {
           final hover = candidates.isNotEmpty;
           return AnimatedBuilder(
-            animation: _pulseAnimation,
+            animation: pulseAnimation,
             builder: (context, _) => Container(
               width: size, height: size,
               margin: const EdgeInsets.symmetric(horizontal: 2),
@@ -342,7 +319,7 @@ class _IonChainGameState extends State<IonChainGame>
                   width: hover ? 2.5 : 1.5),
               ),
               child: Transform.scale(
-                scale: _pulseAnimation.value,
+                scale: pulseAnimation.value,
                 child: Icon(Icons.add, color: SpaceTheme.nebulaPurple, size: size * 0.35),
               ),
             ),
@@ -443,9 +420,9 @@ class _IonChainGameState extends State<IonChainGame>
   Widget _buildWinDialog(int score) {
     final s = S.of(context)!;
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, _) => Transform.scale(
-        scale: _successAnimation.value,
+        scale: successAnimation.value,
         child: Dialog(
           backgroundColor: Colors.transparent,
           child: Container(

@@ -10,6 +10,7 @@ import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
+import 'package:flutter/foundation.dart';
 
 
 class AsteroidFieldNavigatorGame extends StatefulWidget {
@@ -36,7 +37,6 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
   
   late Animation<double> _pulseAnimation;
   late Animation<double> _scanAnimation;
-  late Animation<double> _explosionAnimation; // ignore: unused_field
   late Animation<double> _revealAnimation;
   late Animation<double> _successAnimation;
 
@@ -63,7 +63,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
   @override
   void initState() {
     super.initState();
-    debugPrint("💣 [AsteroidField] Initializing game - Grade: ${widget.grade}, Level: ${widget.level}");
+    if (kDebugMode) debugPrint("💣 [AsteroidField] Initializing game - Grade: ${widget.grade}, Level: ${widget.level}");
     
     _setupAnimationControllers();
     _initializeGameParameters();
@@ -90,9 +90,6 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    _explosionAnimation = CurvedAnimation(
-        parent: _explosionController, curve: Curves.easeOut);
-
     _revealController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -227,7 +224,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
     }
 
     if (isFirstClick && grid[row][col].isMine) {
-      debugPrint("💣 [AsteroidField] First click on mine - regenerating field");
+      if (kDebugMode) debugPrint("💣 [AsteroidField] First click on mine - regenerating field");
       _regenerateFieldWithoutMineAt(row, col);
     }
     isFirstClick = false;
@@ -357,7 +354,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
         final shouldRetry = await showDialog<bool>(
           context: context,
           barrierDismissible: false,
-          builder: (dialogContext) => _buildFailureDialog(dialogContext),
+          builder: _buildFailureDialog,
         );
         
         if (!mounted) return;

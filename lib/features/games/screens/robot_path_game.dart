@@ -144,7 +144,7 @@ class _RobotPathGameState extends State<RobotPathGame>
       maxCommands = (currentLevel.optimalMoves * 1.75).ceil().clamp(20, 40);
 
       // Save a copy of the original grid
-      pristineGrid = currentLevel.grid.map((row) => List<CellType>.from(row)).toList();
+      pristineGrid = currentLevel.grid.map(List<CellType>.from).toList();
 
       currentRobotRow = currentLevel.startRow;
       currentRobotCol = currentLevel.startCol;
@@ -190,7 +190,7 @@ class _RobotPathGameState extends State<RobotPathGame>
 
     setState(() {
       // Restore the grid to its original state before running
-      currentLevel.grid = pristineGrid.map((row) => List<CellType>.from(row)).toList();
+      currentLevel.grid = pristineGrid.map(List<CellType>.from).toList();
 
       isExecuting = true;
       showingError = false;
@@ -658,7 +658,7 @@ class _RobotPathGameState extends State<RobotPathGame>
 
   void _resetRobot() {
     setState(() {
-      currentLevel.grid = pristineGrid.map((row) => List<CellType>.from(row)).toList();
+      currentLevel.grid = pristineGrid.map(List<CellType>.from).toList();
 
       currentRobotRow = currentLevel.startRow;
       currentRobotCol = currentLevel.startCol;

@@ -19,19 +19,19 @@ class AudioService {
     if (_soundEnabled) {
       // TODO: Implement sound playing using audioplayers package
       // AudioPlayer().play(AssetSource('sounds/$soundFile'));
-      debugPrint('Playing sound: $soundFile');
+      if (kDebugMode) debugPrint('Playing sound: $soundFile');
     }
   }
   
   void playBackgroundMusic() {
     if (_musicEnabled) {
       // TODO: Implement background music
-      debugPrint('Playing background music');
+      if (kDebugMode) debugPrint('Playing background music');
     }
   }
   
   void stopBackgroundMusic() {
     // TODO: Implement stop background music
-    debugPrint('Stopping background music');
+    if (kDebugMode) debugPrint('Stopping background music');
   }
 }

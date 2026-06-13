@@ -241,7 +241,7 @@ class StarForgeGenerator {
         return solution;
       }
     } catch (e) {
-      debugPrint('[StarForge] CSP solve error: $e');
+      if (kDebugMode) debugPrint('[StarForge] CSP solve error: $e');
     }
 
     return null;

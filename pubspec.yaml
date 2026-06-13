@@ -58,9 +58,9 @@ dependencies:
   in_app_purchase: ^3.1.13 
   url_launcher: ^6.3.2
 
-  in_app_purchase_storekit: any
-  collection: any
-  path_provider: any
+  in_app_purchase_storekit: ^0.4.5
+  collection: ^1.19.1
+  path_provider: ^2.1.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

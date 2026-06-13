@@ -16,6 +16,7 @@ import '../models/math_problem.dart';
 import '../widgets/arithmancer_duel_dialogs.dart';
 import '../widgets/arithmancer_duel_effects.dart';
 import '../../../core/services/sri_service.dart';
+import 'package:flutter/foundation.dart';
 
 enum GameMode {
   vsPrograms,  // Human vs AI programs (enemies)
@@ -56,7 +57,6 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   late AnimationController _bonusController;
   
   late Animation<double> _pulseAnimation;
-  late Animation<double> _shakeAnimation; // ignore: unused_field
   late Animation<double> _cardGlowAnimation;
   late Animation<double> _energyTransferAnimation;
   late Animation<double> _damageAnimation;
@@ -74,7 +74,6 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   List<MathCard> _discardCards = [];
   
   // Opponent State (for PvP)
-  List<MathCard> _opponentHand = []; // ignore: unused_field
   final List<MathCard> _opponentBattlefield = [];
   bool _isOpponentTurn = false;
   
@@ -104,7 +103,6 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   Timer? _statusTimer;
 
   // turn skip
-  bool _canSkipTurn = false; // ignore: unused_field
   int _accumulatedEnergy = 0;
   bool _showInstructions = false;
 
@@ -140,10 +138,6 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       vsync: this,
     );
     
-    _shakeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _shakeController, curve: Curves.elasticOut)
-    );
-
     _cardGlowController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -286,7 +280,6 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       _currentEnemy = _game.currentEnemy;
       _battlefieldCards.clear();
       _showingResult = false;
-      _canSkipTurn = true; // Enable skip turn after sync
 
       // Apply accumulated energy
       if (_accumulatedEnergy > 0) {
@@ -324,14 +317,12 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     if (_pvpGame == null) return;
     
     final playerState = _pvpGame!.player1State;
-    final opponentState = _pvpGame!.player2State;
     
     setState(() {
       _handCards = List.from(playerState.gameInstance.hand);
       _deckCards = List.from(playerState.gameInstance.drawPile);
       _discardCards = List.from(playerState.gameInstance.discardPile);
-      _canSkipTurn = true; // Enable skip turn
-      
+
       // Apply accumulated energy
       if (_accumulatedEnergy > 0) {
         playerState.energy += _accumulatedEnergy;
@@ -343,12 +334,6 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       _deckCards.removeWhere((card) => card.name.contains("Fibonacci"));
       playerState.gameInstance.hand.removeWhere((card) => card.name.contains("Fibonacci"));
       playerState.gameInstance.drawPile.removeWhere((card) => card.name.contains("Fibonacci"));
-      
-      // Opponent hand is hidden - show card backs
-      _opponentHand = List.generate(
-        opponentState.gameInstance.hand.length, 
-        (index) => MathCard(name: "Hidden", type: "Hidden")
-      );
       
       _battlefieldCards.clear();
       _opponentBattlefield.clear();
@@ -485,25 +470,25 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     
     // Debug print the mathematical properties for troubleshooting
     // Enhanced debug logging for troubleshooting
-    debugPrint("🔢 === DAMAGE CALCULATION DEBUG ===");
+    if (kDebugMode) debugPrint("🔢 === DAMAGE CALCULATION DEBUG ===");
     if (nonNullResult.isChained) {
       debugPrint("🔢 CHAINED EXPRESSION: ${nonNullResult.expression}");
       debugPrint("🔢 Left: ${nonNullResult.leftResult!.expression} = ${nonNullResult.leftResult!.value}");
-      debugPrint("🔢 Right: ${nonNullResult.rightResult!.expression} = ${nonNullResult.rightResult!.value}");
+      if (kDebugMode) debugPrint("🔢 Right: ${nonNullResult.rightResult!.expression} = ${nonNullResult.rightResult!.value}");
       debugPrint("🔢 Combined display value: ${nonNullResult.value}");
     } else {
       debugPrint("🔢 Expression: ${nonNullResult.expression} = ${nonNullResult.value}");
-      debugPrint("🔢 Raw damage: ${nonNullResult.damage}");
+      if (kDebugMode) debugPrint("🔢 Raw damage: ${nonNullResult.damage}");
     }
 
     if (_currentEnemy != null) {
-      debugPrint("🔢 Enemy: ${_currentEnemy!.name}");
+      if (kDebugMode) debugPrint("🔢 Enemy: ${_currentEnemy!.name}");
       debugPrint("🔢 Enemy health: ${_currentEnemy!.health}/${_currentEnemy!.maxHealth}");
       debugPrint("🔢 Enemy shields: ${_currentEnemy!.mathematicalShields}");
       
       // FIXED: Check shields for each side of chained results
       if (nonNullResult.isChained) {
-        debugPrint("🔢 Checking LEFT side (${nonNullResult.leftResult!.value}):");
+        if (kDebugMode) debugPrint("🔢 Checking LEFT side (${nonNullResult.leftResult!.value}):");
         _debugShieldCheck(nonNullResult.leftResult!, _currentEnemy!);
         debugPrint("🔢 Checking RIGHT side (${nonNullResult.rightResult!.value}):");
         _debugShieldCheck(nonNullResult.rightResult!, _currentEnemy!);
@@ -514,7 +499,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
     // TRACK ARITHMETIC: Extract and record all math problems from the expression
     final mathProblems = _extractMathProblemsFromExpression(result);
-    debugPrint('[ARITHMANCER] Expression: ${result.expression}');
+    if (kDebugMode) debugPrint('[ARITHMANCER] Expression: ${result.expression}');
     debugPrint('[ARITHMANCER] Extracted ${mathProblems.length} math problems:');
     for (final p in mathProblems) {
       debugPrint('  - ${p.expression} = ${p.answer}');
@@ -529,27 +514,27 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     // Record each arithmetic operation with SRI
     for (final problem in mathProblems) {
       sriService.recordResponse(problem, wasSuccessful);
-      debugPrint('[ARITHMANCER] Tracked arithmetic: ${problem.expression} = ${problem.answer}');
+      if (kDebugMode) debugPrint('[ARITHMANCER] Tracked arithmetic: ${problem.expression} = ${problem.answer}');
     }
 
     if (_currentEnemy != null) {
-    debugPrint("🔢 Enemy: ${_currentEnemy!.name}");
+    if (kDebugMode) debugPrint("🔢 Enemy: ${_currentEnemy!.name}");
     debugPrint("🔢 Enemy health: ${_currentEnemy!.health}/${_currentEnemy!.maxHealth}");
     debugPrint("🔢 Enemy shields: ${_currentEnemy!.mathematicalShields}");
     
     // Check each shield type
     _currentEnemy!.mathematicalShields.forEach((shieldType, threshold) {
-        debugPrint("🔢 Shield check - $shieldType: threshold=$threshold");
+        if (kDebugMode) debugPrint("🔢 Shield check - $shieldType: threshold=$threshold");
         switch (shieldType) {
         case 'prime_shield':
             debugPrint("🔢   - Value ${nonNullResult.value} is prime: ${nonNullResult.isPrime}");
-            debugPrint("🔢   - Threshold check: ${nonNullResult.value} >= $threshold = ${nonNullResult.value >= threshold}");
+            if (kDebugMode) debugPrint("🔢   - Threshold check: ${nonNullResult.value} >= $threshold = ${nonNullResult.value >= threshold}");
             break;
         case 'square_immune':
             debugPrint("🔢   - Value ${nonNullResult.value} is perfect square: ${nonNullResult.isPerfectSquare}");
             break;
         case 'fibonacci_only':
-            debugPrint("🔢   - Value ${nonNullResult.value} is fibonacci: ${nonNullResult.isFibonacci}");
+            if (kDebugMode) debugPrint("🔢   - Value ${nonNullResult.value} is fibonacci: ${nonNullResult.isFibonacci}");
             break;
         case 'power_of_two_only':
             debugPrint("🔢   - Value ${nonNullResult.value} is power of two: ${nonNullResult.isPowerOfTwo}");
@@ -634,17 +619,17 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   void _debugShieldCheck(MathResult result, MathematicalEnemy enemy) {
     enemy.mathematicalShields.forEach((shieldType, threshold) {
-      debugPrint("🔢 Shield check - $shieldType: threshold=$threshold");
+      if (kDebugMode) debugPrint("🔢 Shield check - $shieldType: threshold=$threshold");
       switch (shieldType) {
         case 'prime_shield':
           debugPrint("🔢   - Value ${result.value} is prime: ${result.isPrime}");
-          debugPrint("🔢   - Threshold check: ${result.value} >= $threshold = ${result.value >= threshold}");
+          if (kDebugMode) debugPrint("🔢   - Threshold check: ${result.value} >= $threshold = ${result.value >= threshold}");
           break;
         case 'square_immune':
           debugPrint("🔢   - Value ${result.value} is perfect square: ${result.isPerfectSquare}");
           break;
         case 'fibonacci_only':
-          debugPrint("🔢   - Value ${result.value} is fibonacci: ${result.isFibonacci}");
+          if (kDebugMode) debugPrint("🔢   - Value ${result.value} is fibonacci: ${result.isFibonacci}");
           break;
         case 'power_of_two_only':
           debugPrint("🔢   - Value ${result.value} is power of two: ${result.isPowerOfTwo}");

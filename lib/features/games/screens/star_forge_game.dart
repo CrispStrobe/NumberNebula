@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -11,6 +12,7 @@ import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../services/star_forge_logic.dart';
+import 'package:flutter/foundation.dart';
 
 class StarForgeGame extends StatefulWidget {
   final int grade;
@@ -22,11 +24,7 @@ class StarForgeGame extends StatefulWidget {
 }
 
 class _StarForgeGameState extends State<StarForgeGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<StarForgeGame> {
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
 
@@ -42,23 +40,8 @@ class _StarForgeGameState extends State<StarForgeGame>
   @override
   void initState() {
     super.initState();
+    initGameAnimations(usePulse: false);
 
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
-    );
-
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation = CurvedAnimation(
-      parent: _successController,
-      curve: Curves.elasticOut,
-    );
 
     _dropController = AnimationController(
       duration: const Duration(milliseconds: 500),
@@ -80,9 +63,8 @@ class _StarForgeGameState extends State<StarForgeGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
     _dropController.dispose();
+    disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
@@ -117,7 +99,7 @@ class _StarForgeGameState extends State<StarForgeGame>
     setState(() {
       _isGenerating = true;
       userSolution.clear();
-      _successController.reset();
+      successController.reset();
     });
 
     try {
@@ -138,7 +120,7 @@ class _StarForgeGameState extends State<StarForgeGame>
 
           _isGenerating = false;
         });
-        debugPrint('[StarForge] Max moves allowed: $_maxMoves for ${p.emptyNodes.length} empty nodes');
+        if (kDebugMode) debugPrint('[StarForge] Max moves allowed: $_maxMoves for ${p.emptyNodes.length} empty nodes');
       }
     } catch (e) {
       debugPrint('[StarForge] Error generating puzzle: $e');
@@ -155,7 +137,7 @@ class _StarForgeGameState extends State<StarForgeGame>
 
       // Decrement moves on placement
       _movesRemaining--;
-      debugPrint('[StarForge] Moves remaining: $_movesRemaining/$_maxMoves');
+      if (kDebugMode) debugPrint('[StarForge] Moves remaining: $_movesRemaining/$_maxMoves');
     });
 
     // Check if out of moves BEFORE checking solution
@@ -195,7 +177,7 @@ class _StarForgeGameState extends State<StarForgeGame>
       score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
     if (mounted) {
       showDialog(
         context: context,
@@ -223,7 +205,7 @@ class _StarForgeGameState extends State<StarForgeGame>
   }
 
   void _handleFailure() {
-    debugPrint('[StarForge] FAILURE - recording loss');
+    if (kDebugMode) debugPrint('[StarForge] FAILURE - recording loss');
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'star_forge',
       difficulty: widget.level,
@@ -231,7 +213,7 @@ class _StarForgeGameState extends State<StarForgeGame>
   }
 
   void _handleOutOfMoves() {
-    debugPrint('[StarForge] Out of moves! Game over.');
+    if (kDebugMode) debugPrint('[StarForge] Out of moves! Game over.');
     _handleFailure();
 
     if (mounted) {
@@ -394,20 +376,20 @@ class _StarForgeGameState extends State<StarForgeGame>
   Widget _buildStarArea() {
     return Center(
       child: AnimatedBuilder(
-        animation: _glowAnimation,
+        animation: glowAnimation,
         builder: (context, child) {
           return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.starYellow.withValues(alpha: 0.1 * _glowAnimation.value),
+                  SpaceTheme.starYellow.withValues(alpha: 0.1 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value),
+                color: SpaceTheme.starYellow.withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -420,7 +402,7 @@ class _StarForgeGameState extends State<StarForgeGame>
                   child: CustomPaint(
                     painter: _StarLinePainter(
                       puzzle: puzzle!,
-                      glowValue: _glowAnimation.value,
+                      glowValue: glowAnimation.value,
                     ),
                     child: Stack(
                       children: _buildNodeWidgets(size),
@@ -621,10 +603,10 @@ class _StarForgeGameState extends State<StarForgeGame>
   Widget _buildWinDialog(int score) {
     final s = S.of(context)!;
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

@@ -53,7 +53,7 @@ class SriService with ChangeNotifier {
   DateTime? _sessionStartTime;
 
   void _log(String message) {
-    debugPrint('[SRI_SERVICE] 🧠 $message');
+    if (kDebugMode) debugPrint('[SRI_SERVICE] 🧠 $message');
   }
 
   void resetSession() {
@@ -334,7 +334,7 @@ class SriService with ChangeNotifier {
 
   /// Returns the number of problems considered "mastered".
   int get masteredProblemCount {
-    return _sriDatabase.keys.where((id) => isProblemMastered(id)).length;
+    return _sriDatabase.keys.where(isProblemMastered).length;
   }
 
   /// Returns the number of problems currently being learned (not yet mastered).

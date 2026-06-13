@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import '../mixins/game_animations_mixin.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,14 +23,8 @@ class CircuitRepairGame extends StatefulWidget {
 }
 
 class _CircuitRepairGameState extends State<CircuitRepairGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, GameAnimationsMixin<CircuitRepairGame> {
   // -- Animation controllers --
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
   late AnimationController _swapController;
 
   CircuitRepairPuzzle? _puzzle;
@@ -51,27 +46,11 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
   @override
   void initState() {
     super.initState();
+    initGameAnimations();
 
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
+    successAnimation =
+        CurvedAnimation(parent: successController, curve: Curves.elasticOut);
 
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation =
-        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
-
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
     _swapController = AnimationController(
       duration: const Duration(milliseconds: 400),
@@ -89,10 +68,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
-    _pulseController.dispose();
     _swapController.dispose();
+    disposeGameAnimations();
     super.dispose();
   }
 
@@ -103,7 +80,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
       _selectedSecond = null;
       _attemptsUsed = 0;
       _solved = false;
-      _successController.reset();
+      successController.reset();
     });
 
     final generator =
@@ -188,7 +165,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
       score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -371,7 +348,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     final previewValid = isPreview && CircuitRepairPuzzle.isValidTime(_currentDigits);
 
     return AnimatedBuilder(
-      animation: _glowAnimation,
+      animation: glowAnimation,
       builder: (context, _) {
         return Center(
           child: Container(
@@ -384,14 +361,14 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: _solved
-                    ? SpaceTheme.alienGreen.withValues(alpha: _glowAnimation.value)
+                    ? SpaceTheme.alienGreen.withValues(alpha: glowAnimation.value)
                     : isPreview
                         ? (previewValid
                             ? SpaceTheme.alienGreen
                             : SpaceTheme.rocketRed)
-                            .withValues(alpha: _glowAnimation.value)
+                            .withValues(alpha: glowAnimation.value)
                         : SpaceTheme.starYellow
-                            .withValues(alpha: _glowAnimation.value * 0.6),
+                            .withValues(alpha: glowAnimation.value * 0.6),
                 width: 2,
               ),
               boxShadow: [
@@ -403,7 +380,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                                   ? SpaceTheme.alienGreen
                                   : SpaceTheme.rocketRed)
                               : SpaceTheme.starYellow)
-                      .withValues(alpha: 0.25 * _glowAnimation.value),
+                      .withValues(alpha: 0.25 * glowAnimation.value),
                   blurRadius: 20,
                 ),
               ],
@@ -448,7 +425,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                       child: CustomPaint(
                         painter: _ColonPainter(
                           color: SpaceTheme.starYellow
-                              .withValues(alpha: 0.6 + 0.4 * _glowAnimation.value),
+                              .withValues(alpha: 0.6 + 0.4 * glowAnimation.value),
                         ),
                       ),
                     ),
@@ -463,7 +440,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                         child: CustomPaint(
                           painter: _ColonPainter(
                             color: SpaceTheme.starYellow
-                                .withValues(alpha: 0.6 + 0.4 * _glowAnimation.value),
+                                .withValues(alpha: 0.6 + 0.4 * glowAnimation.value),
                           ),
                         ),
                       ),
@@ -544,7 +521,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
               segments: SevenSegment.getSegments(digit),
               activeColor: activeColor,
               inactiveColor: const Color(0xFF1A1A2E),
-              glowValue: _glowAnimation.value,
+              glowValue: glowAnimation.value,
             ),
           ),
         ),
@@ -589,11 +566,11 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
           const SizedBox(height: 10),
           // Swap description
           AnimatedBuilder(
-            animation: _pulseAnimation,
+            animation: pulseAnimation,
             builder: (context, _) {
               if (_selectedFirst != null && _selectedSecond == null) {
                 return Transform.scale(
-                  scale: _pulseAnimation.value,
+                  scale: pulseAnimation.value,
                   child: Text(
                     S.of(context)!.circuitPositionSelected(_selectedFirst! + 1),
                     style: SpaceTheme.bodyStyle.copyWith(
@@ -667,10 +644,10 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
           Expanded(
             flex: 2,
             child: AnimatedBuilder(
-              animation: _pulseAnimation,
+              animation: pulseAnimation,
               builder: (context, _) {
                 return Transform.scale(
-                  scale: hasSwap ? _pulseAnimation.value : 1.0,
+                  scale: hasSwap ? pulseAnimation.value : 1.0,
                   child: ElevatedButton.icon(
                     onPressed: hasSwap ? _submitAnswer : null,
                     icon: const Icon(Icons.check_circle_outline),
@@ -692,10 +669,10 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
 
   Widget _buildWinDialog(int score) {
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

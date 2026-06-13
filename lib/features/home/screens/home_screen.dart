@@ -1,4 +1,5 @@
 // ignore_for_file: unused_element, unused_field
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:space_math_academy/core/services/debug_provider.dart';
@@ -25,6 +26,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 
   void _showDebugPanel(BuildContext context) {
+    if (!kDebugMode) return;
     showDialog(
         context: context,
         builder: (context) => const DebugPanel(),

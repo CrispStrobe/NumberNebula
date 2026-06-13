@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:space_math_academy/core/theme/space_theme.dart';
 import 'package:space_math_academy/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart';
 
 class ImprintDialog extends StatelessWidget {
   const ImprintDialog({super.key});
@@ -10,7 +11,7 @@ class ImprintDialog extends StatelessWidget {
     final Uri url = Uri.parse(urlString);
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       // Could not launch
-      debugPrint("Could not launch $urlString");
+      if (kDebugMode) debugPrint("Could not launch $urlString");
     }
   }
 

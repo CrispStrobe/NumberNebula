@@ -22,18 +22,18 @@ class MagicTrianglePuzzle {
   }) : totalCircles = (circlesPerSide * 3) - 3;
 
   int getAnswerIndex(int globalIndex) {
-    debugPrint("🔍 [Puzzle] getAnswerIndex($globalIndex)");
+    if (kDebugMode) debugPrint("🔍 [Puzzle] getAnswerIndex($globalIndex)");
     int answerIndex = 0;
     for (int i=0; i < totalCircles; i++) {
         if (hiddenIndices.contains(i)) {
             if (i == globalIndex) {
-              debugPrint("🔍 [Puzzle] Found globalIndex $globalIndex at answerIndex $answerIndex");
+              if (kDebugMode) debugPrint("🔍 [Puzzle] Found globalIndex $globalIndex at answerIndex $answerIndex");
               return answerIndex;
             }
             answerIndex++;
         }
     }
-    debugPrint("❌ [Puzzle] globalIndex $globalIndex not found in hiddenIndices");
+    if (kDebugMode) debugPrint("❌ [Puzzle] globalIndex $globalIndex not found in hiddenIndices");
     return -1;
   }
 
@@ -41,7 +41,7 @@ class MagicTrianglePuzzle {
     final grade = args['grade']!;
     final level = args['level']!;
 
-    debugPrint("\n--- Generating Enhanced Triangle Puzzle ---");
+    if (kDebugMode) debugPrint("\n--- Generating Enhanced Triangle Puzzle ---");
     int circlesPerSide = _determineCirclesPerSide(grade, level);
     final totalCircles = (circlesPerSide * 3) - 3;
     debugPrint("[Wormhole] Parameters: Grade=$grade, Level=$level -> circlesPerSide=$circlesPerSide");
@@ -55,7 +55,7 @@ class MagicTrianglePuzzle {
       if (attempts > 0) debugPrint("... Retrying puzzle generation (attempt ${attempts + 1}) ...");
 
       allNumbers = _generateNumberSet(grade, level, totalCircles, attempts);
-      debugPrint("[Wormhole] Enhanced resonator values: $allNumbers");
+      if (kDebugMode) debugPrint("[Wormhole] Enhanced resonator values: $allNumbers");
 
       debugPrint("[Wormhole] Backtracking for a stable alignment...");
       final solver = _MagicTriangleSolver(circlesPerSide, allNumbers);
@@ -65,16 +65,16 @@ class MagicTrianglePuzzle {
     stopwatch.stop();
 
     if (solution == null) {
-      debugPrint("❌ [Wormhole] FATAL: Solver failed after multiple attempts. Defaulting to an easier puzzle.");
+      if (kDebugMode) debugPrint("❌ [Wormhole] FATAL: Solver failed after multiple attempts. Defaulting to an easier puzzle.");
       return generate({'grade': 1, 'level': 1});
     }
 
-    debugPrint("✅ [Wormhole] Stable Alignment FOUND in ${stopwatch.elapsedMilliseconds}ms: $solution");
+    if (kDebugMode) debugPrint("✅ [Wormhole] Stable Alignment FOUND in ${stopwatch.elapsedMilliseconds}ms: $solution");
     final warpFrequency = _calculateSideSums(solution, circlesPerSide)[0];
     debugPrint("✨ [Wormhole] Required Warp Frequency: $warpFrequency");
 
     int visibleCount = _determineVisibleCount(grade, level, totalCircles);
-    debugPrint("[Wormhole] Total circles: $totalCircles, Visible: $visibleCount, Hidden: ${totalCircles - visibleCount}");
+    if (kDebugMode) debugPrint("[Wormhole] Total circles: $totalCircles, Visible: $visibleCount, Hidden: ${totalCircles - visibleCount}");
     final allIndices = List.generate(totalCircles, (i) => i)..shuffle();
     final hiddenIndices = allIndices.sublist(0, totalCircles - visibleCount).toSet();
     debugPrint("[Wormhole] Hidden indices: $hiddenIndices");
@@ -85,7 +85,7 @@ class MagicTrianglePuzzle {
         visibleValues[i] = solution[i];
       }
     }
-    debugPrint("[Wormhole] Visible values: $visibleValues");
+    if (kDebugMode) debugPrint("[Wormhole] Visible values: $visibleValues");
 
     final hiddenNumbers = allNumbers.where((n) => !visibleValues.values.contains(n)).toList();
     debugPrint("[Wormhole] Hidden numbers: $hiddenNumbers");
@@ -93,7 +93,7 @@ class MagicTrianglePuzzle {
     final decoyCount = _calculateDecoyCount(grade, level, hiddenNumbers.length);
     final decoyNumbers = _generateEnhancedDecoys(grade, level, decoyCount, allNumbers, hiddenNumbers);
     final numberPool = (hiddenNumbers + decoyNumbers)..shuffle();
-    debugPrint("[Wormhole] Added $decoyCount enhanced decoy resonators: $decoyNumbers");
+    if (kDebugMode) debugPrint("[Wormhole] Added $decoyCount enhanced decoy resonators: $decoyNumbers");
     debugPrint("[Wormhole] Final number pool for user: $numberPool");
 
     final puzzle = MagicTrianglePuzzle(
@@ -105,14 +105,14 @@ class MagicTrianglePuzzle {
       numberPool: numberPool,
     );
 
-    debugPrint("[Wormhole] ✅ Enhanced puzzle generation complete - returning puzzle");
+    if (kDebugMode) debugPrint("[Wormhole] ✅ Enhanced puzzle generation complete - returning puzzle");
     return puzzle;
   }
 
   static int _determineCirclesPerSide(int grade, int level) {
     final totalDifficulty = grade + (level / 5.0);
 
-    debugPrint("[Difficulty] Grade=$grade, Level=$level, TotalDifficulty=$totalDifficulty");
+    if (kDebugMode) debugPrint("[Difficulty] Grade=$grade, Level=$level, TotalDifficulty=$totalDifficulty");
 
     if (totalDifficulty <= 2.0) return 3;
     if (totalDifficulty <= 3.5) return 4;
@@ -135,7 +135,7 @@ class MagicTrianglePuzzle {
 
     final calculatedVisible = (totalCircles * visibilityRatio).round();
 
-    debugPrint("[Enhanced Difficulty] Grade $grade, Level $level, Total Circles $totalCircles");
+    if (kDebugMode) debugPrint("[Enhanced Difficulty] Grade $grade, Level $level, Total Circles $totalCircles");
     debugPrint("[Enhanced Difficulty] Visibility Ratio: ${visibilityRatio.toStringAsFixed(2)} -> Calculated: $calculatedVisible nodes");
     debugPrint("[Enhanced Difficulty] Clamping between Min: $minVisible and Max: $maxVisible");
 
@@ -206,7 +206,7 @@ class MagicTrianglePuzzle {
 
   static List<int> _generateEnhancedDecoys(int grade, int level, int count,
                                          List<int> correctNumbers, List<int> hiddenNumbers) {
-    debugPrint("[Enhanced Decoys] Generating $count decoy numbers");
+    if (kDebugMode) debugPrint("[Enhanced Decoys] Generating $count decoy numbers");
     final decoys = <int>{};
     final allCorrect = Set<int>.from(correctNumbers);
     final random = math.Random();
@@ -268,12 +268,12 @@ class MagicTrianglePuzzle {
     }
 
     final result = decoys.toList();
-    debugPrint("[Enhanced Decoys] Generated: $result");
+    if (kDebugMode) debugPrint("[Enhanced Decoys] Generated: $result");
     return result;
   }
 
   SolutionResult checkSolution(List<int> userAnswers) {
-    debugPrint("✅ [Puzzle] checkSolution: $userAnswers");
+    if (kDebugMode) debugPrint("✅ [Puzzle] checkSolution: $userAnswers");
     final completeArrangement = List<int>.filled(totalCircles, 0);
     int hiddenIdx = 0;
     for (int i = 0; i < totalCircles; i++) {
@@ -283,18 +283,18 @@ class MagicTrianglePuzzle {
         completeArrangement[i] = visibleValues[i]!;
       }
     }
-    debugPrint("✅ [Puzzle] Complete arrangement: $completeArrangement");
+    if (kDebugMode) debugPrint("✅ [Puzzle] Complete arrangement: $completeArrangement");
 
     final usedHidden = Set.from(userAnswers);
     final correctHidden = allNumbers.where((n) => !visibleValues.values.contains(n));
-    debugPrint("✅ [Puzzle] Used hidden: $usedHidden, Correct hidden: $correctHidden");
+    if (kDebugMode) debugPrint("✅ [Puzzle] Used hidden: $usedHidden, Correct hidden: $correctHidden");
     if(usedHidden.length != correctHidden.length || !usedHidden.containsAll(correctHidden)) {
         debugPrint("❌ [Puzzle] Wrong numbers used");
         return SolutionResult(isValid: false, isPerfect: false);
     }
 
     final sideSums = _calculateSideSums(completeArrangement, circlesPerSide);
-    debugPrint("✅ [Puzzle] Side sums: $sideSums, Target: $warpFrequency");
+    if (kDebugMode) debugPrint("✅ [Puzzle] Side sums: $sideSums, Target: $warpFrequency");
     final isPerfect = sideSums.every((sum) => sum == warpFrequency);
     debugPrint("✅ [Puzzle] Solution result: isPerfect=$isPerfect");
     return SolutionResult(isValid: true, isPerfect: isPerfect);
@@ -320,7 +320,7 @@ class MagicTrianglePuzzle {
   }
 
   List<Offset> getCirclePositions(Offset center, double radius) {
-    debugPrint("🔺 [Puzzle] getCirclePositions - center: $center, radius: $radius");
+    if (kDebugMode) debugPrint("🔺 [Puzzle] getCirclePositions - center: $center, radius: $radius");
     final points = <Offset>[];
     final n = circlesPerSide;
 
@@ -341,7 +341,7 @@ class MagicTrianglePuzzle {
       points.add(Offset.lerp(cornerPoints[2], cornerPoints[0], i / (n - 1))!);
     }
 
-    debugPrint("🔺 [Puzzle] Generated ${points.length} circle positions");
+    if (kDebugMode) debugPrint("🔺 [Puzzle] Generated ${points.length} circle positions");
     return points;
   }
 }
@@ -363,7 +363,7 @@ class _MagicTriangleSolver {
     _maxIterations = _calculateMaxIterations();
     numbersToUse.shuffle();
 
-    debugPrint("[Enhanced Solver] Initialized with $totalCircles circles, numbers: $numbersToUse");
+    if (kDebugMode) debugPrint("[Enhanced Solver] Initialized with $totalCircles circles, numbers: $numbersToUse");
     debugPrint("[Enhanced Solver] Max iterations: $_maxIterations");
   }
 
@@ -374,11 +374,11 @@ class _MagicTriangleSolver {
   }
 
   List<int>? findSolution() {
-    debugPrint("[Enhanced Solver] Starting enhanced backtracking algorithm");
+    if (kDebugMode) debugPrint("[Enhanced Solver] Starting enhanced backtracking algorithm");
     _iterations = 0;
 
     if (_solve(0, -1)) {
-        debugPrint("[Enhanced Solver] Solution found after $_iterations iterations.");
+        if (kDebugMode) debugPrint("[Enhanced Solver] Solution found after $_iterations iterations.");
         return _arrangement;
     } else {
         debugPrint("[Enhanced Solver] FAILED to find a solution after $_iterations iterations (limit: $_maxIterations).");
@@ -389,16 +389,16 @@ class _MagicTriangleSolver {
   bool _solve(int k, int targetSum) {
     _iterations++;
     if (_iterations > _maxIterations) {
-      debugPrint("[Enhanced Solver] Max iterations reached, giving up");
+      if (kDebugMode) debugPrint("[Enhanced Solver] Max iterations reached, giving up");
       return false;
     }
 
     if (_iterations % 50000 == 0) {
-      debugPrint("[Enhanced Solver] Progress: $_iterations iterations, position $k/$totalCircles");
+      if (kDebugMode) debugPrint("[Enhanced Solver] Progress: $_iterations iterations, position $k/$totalCircles");
     }
 
     if (k == totalCircles) {
-      debugPrint("[Enhanced Solver] All positions filled, solution found!");
+      if (kDebugMode) debugPrint("[Enhanced Solver] All positions filled, solution found!");
       return true;
     }
 

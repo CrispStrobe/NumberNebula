@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'package:flutter_cube/flutter_cube.dart' as cube;
+import '../mixins/game_animations_mixin.dart';
 
 import '../models/game_outcome.dart';
 import '../../../core/theme/space_theme.dart';
@@ -242,9 +243,7 @@ class BlockCounterGame extends StatefulWidget {
   State<BlockCounterGame> createState() => _BlockCounterGameState();
 }
 
-class _BlockCounterGameState extends State<BlockCounterGame> with TickerProviderStateMixin {
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
+class _BlockCounterGameState extends State<BlockCounterGame> with TickerProviderStateMixin, GameAnimationsMixin<BlockCounterGame> {
   late AnimationController _rotationController;
   late Animation<double> _rotationAnimation;
 
@@ -262,14 +261,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
   @override
   void initState() {
     super.initState();
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation = CurvedAnimation(
-      parent: _successController,
-      curve: Curves.elasticOut,
-    );
+    initGameAnimations(useGlow: false, usePulse: false);
     
     _rotationController = AnimationController(
       duration: const Duration(seconds: _VisualConfig.rotationDurationSeconds),
@@ -293,14 +285,14 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
 
   @override
   void dispose() {
-    _successController.dispose();
     _rotationController.dispose();
+    disposeGameAnimations(useGlow: false, usePulse: false);
     super.dispose();
   }
 
   void _generatePuzzle() async {
     if (currentDifficulty == null) {
-      debugPrint("⚠️ [BLOCK_COUNTER] Difficulty not yet initialized, waiting...");
+      if (kDebugMode) debugPrint("⚠️ [BLOCK_COUNTER] Difficulty not yet initialized, waiting...");
       return;
     }
     
@@ -310,7 +302,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
       _scene = null;
       userAnswer = null;
       _selectedAnswerIndex = -1;
-      _successController.reset();
+      successController.reset();
     });
 
     try {
@@ -329,7 +321,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
         });
       }
     } catch (e, stackTrace) {
-      debugPrint("❌ Error generating puzzle: $e\n$stackTrace");
+      if (kDebugMode) debugPrint("❌ Error generating puzzle: $e\n$stackTrace");
       if (mounted) setState(() => _isGenerating = false);
     }
   }
@@ -419,7 +411,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
       score: totalScore,
     ));
     
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
     
     showDialog(
       context: context,
@@ -714,10 +706,10 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
 
   Widget _buildSuccessDialog(int totalScore) {
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: AlertDialog(
             backgroundColor: const Color(0xFF1A1A3E).withValues(alpha: 0.95),
             shape: RoundedRectangleBorder(
@@ -761,7 +753,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
                   style: const TextStyle(color: Colors.cyanAccent)
                 ),
                 onPressed: () {
-                  debugPrint("🧊 Next puzzle button pressed");
+                  if (kDebugMode) debugPrint("🧊 Next puzzle button pressed");
                   Navigator.pop(context); // Close dialog
                   debugPrint("🧊 Dialog closed, generating new puzzle");
                   _generatePuzzle(); // Generate new puzzle directly
@@ -773,7 +765,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
                   style: const TextStyle(color: Colors.white)
                 ),
                 onPressed: () {
-                  debugPrint("🧊 Back to menu button pressed");
+                  if (kDebugMode) debugPrint("🧊 Back to menu button pressed");
                   Navigator.pop(context); // Close dialog
                   Navigator.pop(context); // Return to menu
                   debugPrint("🧊 Returned to main menu");

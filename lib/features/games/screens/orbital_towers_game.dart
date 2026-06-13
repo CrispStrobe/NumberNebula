@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -11,6 +12,7 @@ import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../services/orbital_towers_logic.dart';
+import 'package:flutter/foundation.dart';
 
 class OrbitalTowersGame extends StatefulWidget {
   final int grade;
@@ -22,15 +24,9 @@ class OrbitalTowersGame extends StatefulWidget {
 }
 
 class _OrbitalTowersGameState extends State<OrbitalTowersGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<OrbitalTowersGame> {
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   OrbitalTowersPuzzle? puzzle;
   Map<String, int> userSolution = {};
@@ -47,20 +43,8 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   @override
   void initState() {
     super.initState();
+    initGameAnimations();
 
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
-    );
-
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
 
     _dropController = AnimationController(
       duration: const Duration(milliseconds: 500),
@@ -68,13 +52,6 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     );
     _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
 
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -87,10 +64,8 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
     _dropController.dispose();
-    _pulseController.dispose();
+    disposeGameAnimations();
     super.dispose();
   }
 
@@ -122,7 +97,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
       _isGenerating = true;
       userSolution.clear();
       _validatedLines.clear();
-      _successController.reset();
+      successController.reset();
     });
 
     try {
@@ -144,7 +119,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
 
           _isGenerating = false;
         });
-        debugPrint('[OrbitalTowers] Max moves allowed: $_maxMoves for ${p.emptyCells.length} empty cells');
+        if (kDebugMode) debugPrint('[OrbitalTowers] Max moves allowed: $_maxMoves for ${p.emptyCells.length} empty cells');
       }
     } catch (e) {
       debugPrint('[OrbitalTowers] Error generating puzzle: $e');
@@ -159,7 +134,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
 
       // Decrement moves on placement
       _movesRemaining--;
-      debugPrint('[OrbitalTowers] Moves remaining: $_movesRemaining/$_maxMoves');
+      if (kDebugMode) debugPrint('[OrbitalTowers] Moves remaining: $_movesRemaining/$_maxMoves');
     });
     _checkLineCompletion(cellId);
 
@@ -237,7 +212,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
       score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
     if (mounted) {
       showDialog(
         context: context,
@@ -265,7 +240,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   }
 
   void _handleFailure() {
-    debugPrint('[OrbitalTowers] FAILURE - recording loss');
+    if (kDebugMode) debugPrint('[OrbitalTowers] FAILURE - recording loss');
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'orbital_towers',
       difficulty: widget.level,
@@ -273,7 +248,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   }
 
   void _handleOutOfMoves() {
-    debugPrint('[OrbitalTowers] Out of moves! Game over.');
+    if (kDebugMode) debugPrint('[OrbitalTowers] Out of moves! Game over.');
     _handleFailure();
 
     if (mounted) {
@@ -487,20 +462,20 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
 
     return Center(
       child: AnimatedBuilder(
-        animation: _glowAnimation,
+        animation: glowAnimation,
         builder: (context, child) {
           return Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.rocketRed.withValues(alpha: 0.1 * _glowAnimation.value),
+                  SpaceTheme.rocketRed.withValues(alpha: 0.1 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.rocketRed.withValues(alpha: _glowAnimation.value),
+                color: SpaceTheme.rocketRed.withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -668,10 +643,10 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                 : null,
           ),
           child: AnimatedBuilder(
-            animation: _pulseAnimation,
+            animation: pulseAnimation,
             builder: (context, child) {
               return Transform.scale(
-                scale: _pulseAnimation.value,
+                scale: pulseAnimation.value,
                 child: Center(
                   child: Icon(Icons.add, color: SpaceTheme.nebulaPurple, size: cellSize * 0.3),
                 ),
@@ -788,10 +763,10 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   Widget _buildWinDialog(int score) {
     final s = S.of(context)!;
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

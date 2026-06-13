@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -36,13 +37,9 @@ class NumberWallsGame extends StatefulWidget {
 }
 
 class _NumberWallsGameState extends State<NumberWallsGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, GameAnimationsMixin<NumberWallsGame> {
   final GlobalKey _dragTargetKey = GlobalKey();
 
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
   late AnimationController _warpController;
@@ -68,18 +65,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   @override
   void initState() {
     super.initState();
-    debugPrint("🧱 NumberWallsGame.initState() - Grade ${widget.grade}, Level ${widget.level}");
+    initGameAnimations(usePulse: false);
+    if (kDebugMode) debugPrint("🧱 NumberWallsGame.initState() - Grade ${widget.grade}, Level ${widget.level}");
     
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000), vsync: this
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
-    
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600), vsync: this,
-    );
-    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
     
     _dropController = AnimationController(
       duration: const Duration(milliseconds: 500), vsync: this
@@ -123,22 +111,21 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
     _dropController.dispose();
     _warpController.dispose();
     _operationController.dispose();
+    disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
   void _generatePuzzle() async {
-    debugPrint("🧱 _generatePuzzle() - Starting puzzle generation");
+    if (kDebugMode) debugPrint("🧱 _generatePuzzle() - Starting puzzle generation");
     
     setState(() {
       _isGenerating = true;
       _shouldShowOperationHint = true;
       _warpController.reset();
-      _successController.reset();
+      successController.reset();
       _fadeController.reset();
     });
 
@@ -168,12 +155,12 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
           _isGenerating = false;
         });
-        debugPrint("🧱 Puzzle generated: ${currentPuzzle!.operation.name} wall, height ${currentPuzzle!.wallHeight}");
+        if (kDebugMode) debugPrint("🧱 Puzzle generated: ${currentPuzzle!.operation.name} wall, height ${currentPuzzle!.wallHeight}");
         debugPrint("🧱 Max moves allowed: $_maxMoves for ${currentPuzzle!.hiddenCells.length} hidden cells");
         _startFadeTimer(); // Restart the timer for new puzzle
       }
     } catch (e, stackTrace) {
-      debugPrint("❌ Error in _generatePuzzle: $e");
+      if (kDebugMode) debugPrint("❌ Error in _generatePuzzle: $e");
       debugPrint("❌ StackTrace: $stackTrace");
     }
   }
@@ -192,7 +179,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
       // Decrement moves on placement
       _movesRemaining--;
-      debugPrint("🧱 Moves remaining: $_movesRemaining/$_maxMoves");
+      if (kDebugMode) debugPrint("🧱 Moves remaining: $_movesRemaining/$_maxMoves");
     });
 
     // Check if out of moves BEFORE checking solution
@@ -255,7 +242,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   List<MathProblem> _getSolvedProblems() {
-    debugPrint("🧱 Gathering all solved problems for the completed wall...");
+    if (kDebugMode) debugPrint("🧱 Gathering all solved problems for the completed wall...");
     // REMOVED: Direct access to sriService.
     final puzzle = currentPuzzle!;
     final List<MathProblem> problemsToLog = [];
@@ -302,7 +289,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
             if (problem != null) {
               // CHANGED: Instead of calling sriService, add to our list.
               problemsToLog.add(problem);
-              debugPrint("🧱 Found problem to log -> ${problem.expression}");
+              if (kDebugMode) debugPrint("🧱 Found problem to log -> ${problem.expression}");
             }
           }
         }
@@ -322,7 +309,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         
         // REMOVED: All scoring logic and provider calls. They are now in _checkIfComplete.
         
-        _successController.forward(from: 0.0);
+        successController.forward(from: 0.0);
         
         if (mounted) {
           showDialog(
@@ -365,7 +352,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _handleFailure() {
-    debugPrint("🧱 FAILURE - recording loss");
+    if (kDebugMode) debugPrint("🧱 FAILURE - recording loss");
     final attemptedProblems = _getSolvedProblems();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'number_walls',
@@ -375,7 +362,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _handleOutOfMoves() {
-    debugPrint("🧱 Out of moves! Game over.");
+    if (kDebugMode) debugPrint("🧱 Out of moves! Game over.");
     _handleFailure();
 
     if (mounted) {
@@ -814,11 +801,11 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                   children: [
                     Positioned.fill(
                       child: AnimatedBuilder(
-                        animation: Listenable.merge([_glowController, _warpController]),
+                        animation: Listenable.merge([glowController, _warpController]),
                         builder: (context, child) {
                           return CustomPaint(
                             painter: NumberWallBackgroundPainter(
-                              glowIntensity: _glowAnimation.value,
+                              glowIntensity: glowAnimation.value,
                               warpActivation: _warpController.value,
                               operation: currentPuzzle?.operation ?? WallOperation.addition,
                             ),
@@ -1161,10 +1148,10 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   Widget _buildSuccessDialog(int bonusScore) {
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

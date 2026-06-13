@@ -54,6 +54,7 @@ import 'features/games/services/gridlock_puzzle_tracker.dart';
 
 // --- UTILS & GENERATED ---
 import 'generated/l10n.dart';
+import 'package:flutter/foundation.dart';
 
 // --- GLOBAL INSTANCES & NAVIGATOR KEY ---
 // Order matters: GameProvider references sriService / cognitiveProfileService
@@ -158,7 +159,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
       await gridlockPuzzleTracker.loadPlayedPuzzles(); 
       setState(() => _isInitialized = true);
     } catch (e, s) {
-      debugPrint('Initialization Error: $e\n$s');
+      if (kDebugMode) debugPrint('Initialization Error: $e\n$s');
       setState(() {
         _initializationError = e.toString();
         _isInitialized = true;
@@ -197,7 +198,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
         await prefs.setString('language', _locale!.languageCode);
       }
     } catch (e) {
-      debugPrint('Error saving language state: $e');
+      if (kDebugMode) debugPrint('Error saving language state: $e');
     }
   }
   
@@ -540,7 +541,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         await progressService.loadProgress(gameProvider);
       }
     } catch (e) {
-      debugPrint('Error loading progress: $e');
+      if (kDebugMode) debugPrint('Error loading progress: $e');
     }
     
     _textController.forward();

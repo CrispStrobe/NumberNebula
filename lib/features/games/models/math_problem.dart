@@ -58,7 +58,7 @@ class MathProblem {
 
       if (filteredReviewable.isNotEmpty) {
         final problemId = filteredReviewable.first;
-        debugPrint('[SRI] Found CUSTOM-FILTERED problem to review: $problemId');
+        if (kDebugMode) debugPrint('[SRI] Found CUSTOM-FILTERED problem to review: $problemId');
         // (The logic to parse and return the problem remains the same)
         final parts = problemId.split('_');
         final type = parts[0];
@@ -77,7 +77,7 @@ class MathProblem {
       final problemsToReview = sriService.getProblemsForReview(limit: 1);
       if (problemsToReview.isNotEmpty) {
         final problemId = problemsToReview.first;
-        debugPrint('[SRI] Found problem to review: $problemId');
+        if (kDebugMode) debugPrint('[SRI] Found problem to review: $problemId');
         final parts = problemId.split('_');
         final type = parts[0];
         final operandA = int.parse(parts[1]);
@@ -99,12 +99,12 @@ class MathProblem {
       newProblem = _generateFromConfig(difficultyConfig);
       attempts++;
       if (attempts > 20) {
-        debugPrint('[SRI] Could not find a non-mastered problem after 20 attempts. Serving a random one.');
+        if (kDebugMode) debugPrint('[SRI] Could not find a non-mastered problem after 20 attempts. Serving a random one.');
         break;
       }
     } while (sriService.isProblemMastered(newProblem.id));
 
-    debugPrint('[SRI] Generated new non-mastered problem: ${newProblem.expression}');
+    if (kDebugMode) debugPrint('[SRI] Generated new non-mastered problem: ${newProblem.expression}');
     return newProblem;
   }
 

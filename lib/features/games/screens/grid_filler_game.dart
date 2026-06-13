@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
+import '../mixins/game_animations_mixin.dart';
 
 import '../models/game_outcome.dart';
 import '../../../core/theme/space_theme.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
+import 'package:flutter/foundation.dart';
 
 // --- Game Piece Model ---
 class GridPiece {
@@ -51,7 +53,7 @@ class GridFillerGame extends StatefulWidget {
 }
 
 class _GridFillerGameState extends State<GridFillerGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, GameAnimationsMixin<GridFillerGame> {
 
   late int _pieceTypes; // N: pieces 1×1 through N×N
   late int gridSize;    // Derived: (N*(N+1)/2)
@@ -69,45 +71,21 @@ class _GridFillerGameState extends State<GridFillerGame>
   
   final GlobalKey _gridKey = GlobalKey();
   
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
   late AnimationController _placeController;
   late AnimationController _winController;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation; // ignore: unused_field
-  
   double _currentCellSize = 10.0;
   
   @override
   void initState() {
     super.initState();
+    initGameAnimations(usePulse: false, useSuccess: false);
     
-    debugPrint('🎮 GridFillerGame.initState() - Grade ${widget.grade}, Level ${widget.level}');
+    if (kDebugMode) debugPrint('🎮 GridFillerGame.initState() - Grade ${widget.grade}, Level ${widget.level}');
     
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut)
-    );
-    
-    _placeController = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
     
     _winController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
-    );
-    
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut)
     );
     
     _initializeGame();
@@ -115,16 +93,15 @@ class _GridFillerGameState extends State<GridFillerGame>
   
   @override
   void dispose() {
-    debugPrint('🎮 GridFillerGame.dispose()');
-    _glowController.dispose();
+    if (kDebugMode) debugPrint('🎮 GridFillerGame.dispose()');
     _placeController.dispose();
     _winController.dispose();
-    _pulseController.dispose();
+    disposeGameAnimations(usePulse: false, useSuccess: false);
     super.dispose();
   }
   
   void _initializeGame() {
-    debugPrint('🎮 Initializing game...');
+    if (kDebugMode) debugPrint('🎮 Initializing game...');
 
     // Scale piece types (N) by grade + level
     // N=4 → 10×10, N=5 → 15×15, N=6 → 21×21, N=7 → 28×28, N=8 → 36×36, N=9 → 45×45
@@ -143,7 +120,7 @@ class _GridFillerGameState extends State<GridFillerGame>
       _pieceTypes = 9;  // 45×45
     }
     gridSize = _pieceTypes * (_pieceTypes + 1) ~/ 2;
-    debugPrint('🎮 Difficulty: complexity=$complexity, pieceTypes=$_pieceTypes, gridSize=$gridSize');
+    if (kDebugMode) debugPrint('🎮 Difficulty: complexity=$complexity, pieceTypes=$_pieceTypes, gridSize=$gridSize');
 
     final colors = [
       SpaceTheme.starYellow,
@@ -173,7 +150,7 @@ class _GridFillerGameState extends State<GridFillerGame>
     dragPreviewPosition = null;
     _hasWon = false;
     
-    debugPrint('✅ Game initialized with ${availablePieces.length} piece types');
+    if (kDebugMode) debugPrint('✅ Game initialized with ${availablePieces.length} piece types');
     setState(() {});
   }
   
@@ -181,7 +158,7 @@ class _GridFillerGameState extends State<GridFillerGame>
     final x = position.dx.toInt();
     final y = position.dy.toInt();
     
-    debugPrint('🔍 Checking if ${pieceSize}x$pieceSize can be placed at ($x, $y)');
+    if (kDebugMode) debugPrint('🔍 Checking if ${pieceSize}x$pieceSize can be placed at ($x, $y)');
     
     if (x < 0 || y < 0 || x + pieceSize > gridSize || y + pieceSize > gridSize) {
       debugPrint('❌ Out of bounds! Grid size: $gridSize, Piece would end at (${x + pieceSize}, ${y + pieceSize})');
@@ -201,19 +178,19 @@ class _GridFillerGameState extends State<GridFillerGame>
           
           if (checkX >= px && checkX < px + piece.size &&
               checkY >= py && checkY < py + piece.size) {
-            debugPrint('❌ Collision with ${piece.size}x${piece.size} piece at ($px, $py)');
+            if (kDebugMode) debugPrint('❌ Collision with ${piece.size}x${piece.size} piece at ($px, $py)');
             return false;
           }
         }
       }
     }
     
-    debugPrint('✅ Position is valid!');
+    if (kDebugMode) debugPrint('✅ Position is valid!');
     return true;
   }
   
   void _placePieceFromPanel(GridPiece piece, Offset position) {
-    debugPrint('📍 Placing new ${piece.size}x${piece.size} piece at $position');
+    if (kDebugMode) debugPrint('📍 Placing new ${piece.size}x${piece.size} piece at $position');
     
     if (!_canPlacePiece(piece.size, position)) {
       debugPrint('❌ Cannot place piece - invalid position');
@@ -230,7 +207,7 @@ class _GridFillerGameState extends State<GridFillerGame>
     final pieceIndex = availablePieces.indexWhere((p) => p.size == piece.size);
     availablePieces[pieceIndex].remainingCount--;
     
-    debugPrint('✅ Piece placed! Remaining ${piece.size}x${piece.size}: ${availablePieces[pieceIndex].remainingCount}');
+    if (kDebugMode) debugPrint('✅ Piece placed! Remaining ${piece.size}x${piece.size}: ${availablePieces[pieceIndex].remainingCount}');
     
     selectedPiece = null;
     _placeController.forward(from: 0.0);
@@ -240,7 +217,7 @@ class _GridFillerGameState extends State<GridFillerGame>
   }
   
   void _movePlacedPiece(PlacedPiece piece, Offset newPosition) {
-    debugPrint('🔄 Moving ${piece.size}x${piece.size} from ${piece.position} to $newPosition');
+    if (kDebugMode) debugPrint('🔄 Moving ${piece.size}x${piece.size} from ${piece.position} to $newPosition');
     
     if (!_canPlacePiece(piece.size, newPosition, exclude: piece)) {
       debugPrint('❌ Cannot move piece - invalid position');
@@ -248,20 +225,20 @@ class _GridFillerGameState extends State<GridFillerGame>
     }
     
     piece.position = newPosition;
-    debugPrint('✅ Piece moved successfully!');
+    if (kDebugMode) debugPrint('✅ Piece moved successfully!');
     
     setState(() {});
   }
   
   void _removePlacedPiece(PlacedPiece piece) {
-    debugPrint('🗑️ Removing ${piece.size}x${piece.size} piece from ${piece.position}');
+    if (kDebugMode) debugPrint('🗑️ Removing ${piece.size}x${piece.size} piece from ${piece.position}');
     
     placedPieces.remove(piece);
     
     final pieceIndex = availablePieces.indexWhere((p) => p.size == piece.size);
     availablePieces[pieceIndex].remainingCount++;
     
-    debugPrint('✅ Piece removed! Remaining ${piece.size}x${piece.size}: ${availablePieces[pieceIndex].remainingCount}');
+    if (kDebugMode) debugPrint('✅ Piece removed! Remaining ${piece.size}x${piece.size}: ${availablePieces[pieceIndex].remainingCount}');
     
     setState(() {});
   }
@@ -269,7 +246,7 @@ class _GridFillerGameState extends State<GridFillerGame>
   void _checkWin() {
     final allPlaced = availablePieces.every((p) => p.remainingCount == 0);
     
-    debugPrint('🏆 Checking win condition: All placed? $allPlaced');
+    if (kDebugMode) debugPrint('🏆 Checking win condition: All placed? $allPlaced');
     
     if (allPlaced && !_hasWon) {
       _hasWon = true;
@@ -280,7 +257,7 @@ class _GridFillerGameState extends State<GridFillerGame>
       final complexityBonus = _pieceTypes * 30;
       final totalScore = baseScore + complexityBonus;
       
-      debugPrint('🎉 WINNER! Score: $totalScore');
+      if (kDebugMode) debugPrint('🎉 WINNER! Score: $totalScore');
       
       context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'grid_filler_game',
@@ -298,7 +275,7 @@ class _GridFillerGameState extends State<GridFillerGame>
   Offset _getGridPosition(Offset globalPosition, double cellSize) {
     final RenderBox? box = _gridKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) {
-      debugPrint('⚠️ Grid RenderBox not found');
+      if (kDebugMode) debugPrint('⚠️ Grid RenderBox not found');
       return Offset.zero;
     }
     
@@ -306,7 +283,7 @@ class _GridFillerGameState extends State<GridFillerGame>
     final gridX = (localPos.dx / cellSize).floor().clamp(0, gridSize - 1);
     final gridY = (localPos.dy / cellSize).floor().clamp(0, gridSize - 1);
     
-    debugPrint('📐 Global: $globalPosition -> Local: $localPos -> Grid: ($gridX, $gridY)');
+    if (kDebugMode) debugPrint('📐 Global: $globalPosition -> Local: $localPos -> Grid: ($gridX, $gridY)');
     
     return Offset(gridX.toDouble(), gridY.toDouble());
   }
@@ -542,23 +519,23 @@ class _GridFillerGameState extends State<GridFillerGame>
                                 child: DragTarget<Object>(
                                   key: _gridKey,
                                   onWillAcceptWithDetails: (details) {
-                                    debugPrint('🎯 Grid DragTarget: data=${details.data.runtimeType}');
+                                    if (kDebugMode) debugPrint('🎯 Grid DragTarget: data=${details.data.runtimeType}');
                                     return details.data is GridPiece || details.data is PlacedPiece;
                                   },
                                   onAcceptWithDetails: (details) {
-                                    debugPrint('✅ Grid DragTarget: Accepting drop at ${details.offset}');
+                                    if (kDebugMode) debugPrint('✅ Grid DragTarget: Accepting drop at ${details.offset}');
                                     
                                     final gridPos = _getGridPosition(details.offset, cellSize);
                                     
                                     if (details.data is GridPiece) {
                                       final piece = details.data as GridPiece;
-                                      debugPrint('📦 Dropped GridPiece ${piece.size}x${piece.size} at $gridPos');
+                                      if (kDebugMode) debugPrint('📦 Dropped GridPiece ${piece.size}x${piece.size} at $gridPos');
                                       if (piece.remainingCount > 0) {
                                         _placePieceFromPanel(piece, gridPos);
                                       }
                                     } else if (details.data is PlacedPiece) {
                                       final piece = details.data as PlacedPiece;
-                                      debugPrint('🔄 Dropped PlacedPiece ${piece.size}x${piece.size} at $gridPos');
+                                      if (kDebugMode) debugPrint('🔄 Dropped PlacedPiece ${piece.size}x${piece.size} at $gridPos');
                                       _movePlacedPiece(piece, gridPos);
                                       draggedPlacedPiece = null;
                                       dragPreviewPosition = null;
@@ -575,7 +552,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                                     });
                                   },
                                   onLeave: (data) {
-                                    debugPrint('👋 Drag left grid area');
+                                    if (kDebugMode) debugPrint('👋 Drag left grid area');
                                     setState(() {
                                       hoverGridPosition = null;
                                       dragPreviewPosition = null;
@@ -593,11 +570,11 @@ class _GridFillerGameState extends State<GridFillerGame>
                                       },
                                       child: GestureDetector(
                                         onTapUp: (details) {
-                                          debugPrint('👆 Tap detected on grid');
+                                          if (kDebugMode) debugPrint('👆 Tap detected on grid');
                                           
                                           if (selectedPiece != null) {
                                             final gridPos = _getGridPosition(details.globalPosition, cellSize);
-                                            debugPrint('🎯 Click-to-place mode: placing at $gridPos');
+                                            if (kDebugMode) debugPrint('🎯 Click-to-place mode: placing at $gridPos');
                                             _placePieceFromPanel(selectedPiece!, gridPos);
                                           }
                                         },
@@ -709,7 +686,7 @@ class _GridFillerGameState extends State<GridFillerGame>
         ),
       ),
       onDragStarted: () {
-        debugPrint('🎨 Started dragging ${piece.size}x${piece.size} from panel');
+        if (kDebugMode) debugPrint('🎨 Started dragging ${piece.size}x${piece.size} from panel');
       },
       onDragEnd: (details) {
         debugPrint('🎨 Ended dragging ${piece.size}x${piece.size} - wasAccepted: ${details.wasAccepted}');
@@ -728,7 +705,7 @@ class _GridFillerGameState extends State<GridFillerGame>
         enabled: canUse,
         child: GestureDetector(
           onTap: canUse ? () {
-            debugPrint('🖱️ Clicked piece ${piece.size}x${piece.size} in panel');
+            if (kDebugMode) debugPrint('🖱️ Clicked piece ${piece.size}x${piece.size} in panel');
             setState(() {
               selectedPiece = isSelected ? null : piece;
               debugPrint(selectedPiece != null
@@ -744,7 +721,7 @@ class _GridFillerGameState extends State<GridFillerGame>
   
   Widget _buildPieceCardContent(GridPiece piece, bool isSelected, bool canUse) {
     return AnimatedBuilder(
-      animation: _glowAnimation,
+      animation: glowAnimation,
       builder: (context, child) {
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -756,7 +733,7 @@ class _GridFillerGameState extends State<GridFillerGame>
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected
-                  ? piece.color.withValues(alpha: _glowAnimation.value)
+                  ? piece.color.withValues(alpha: glowAnimation.value)
                   : piece.color.withValues(alpha: 0.3),
               width: isSelected ? 3 : 1,
             ),
@@ -838,13 +815,13 @@ class _GridFillerGameState extends State<GridFillerGame>
         ),
       ),
       onDragStarted: () {
-        debugPrint('🔄 Started dragging placed ${piece.size}x${piece.size} from ${piece.position}');
+        if (kDebugMode) debugPrint('🔄 Started dragging placed ${piece.size}x${piece.size} from ${piece.position}');
         setState(() {
           draggedPlacedPiece = piece;
         });
       },
       onDragEnd: (details) {
-        debugPrint('🔄 Drag ended for ${piece.size}x${piece.size} - wasAccepted: ${details.wasAccepted}');
+        if (kDebugMode) debugPrint('🔄 Drag ended for ${piece.size}x${piece.size} - wasAccepted: ${details.wasAccepted}');
         setState(() {
           draggedPlacedPiece = null;
           dragPreviewPosition = null;
@@ -857,7 +834,7 @@ class _GridFillerGameState extends State<GridFillerGame>
         button: true,
         child: GestureDetector(
         onTap: () {
-          debugPrint('👆 Single tap to remove ${piece.size}x${piece.size}');
+          if (kDebugMode) debugPrint('👆 Single tap to remove ${piece.size}x${piece.size}');
           _removePlacedPiece(piece);
         },
         child: Container(

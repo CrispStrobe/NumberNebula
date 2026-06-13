@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -11,6 +12,7 @@ import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../services/hive_station_logic.dart';
+import 'package:flutter/foundation.dart';
 
 class HiveStationGame extends StatefulWidget {
   final int grade;
@@ -22,11 +24,7 @@ class HiveStationGame extends StatefulWidget {
 }
 
 class _HiveStationGameState extends State<HiveStationGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<HiveStationGame> {
 
   HiveStationPuzzle? puzzle;
   Set<HexCoord> userMarked = {};
@@ -36,20 +34,8 @@ class _HiveStationGameState extends State<HiveStationGame>
   @override
   void initState() {
     super.initState();
+    initGameAnimations(usePulse: false);
 
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
-    );
-
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -62,8 +48,7 @@ class _HiveStationGameState extends State<HiveStationGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
+    disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
@@ -97,7 +82,7 @@ class _HiveStationGameState extends State<HiveStationGame>
     setState(() {
       _isGenerating = true;
       userMarked.clear();
-      _successController.reset();
+      successController.reset();
     });
 
     try {
@@ -115,7 +100,7 @@ class _HiveStationGameState extends State<HiveStationGame>
         });
       }
     } catch (e) {
-      debugPrint('[HiveStation] Error generating puzzle: $e');
+      if (kDebugMode) debugPrint('[HiveStation] Error generating puzzle: $e');
     }
   }
 
@@ -154,7 +139,7 @@ class _HiveStationGameState extends State<HiveStationGame>
       score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
     if (mounted) {
       showDialog(
         context: context,
@@ -237,20 +222,20 @@ class _HiveStationGameState extends State<HiveStationGame>
   Widget _buildHexGrid() {
     return Center(
       child: AnimatedBuilder(
-        animation: _glowAnimation,
+        animation: glowAnimation,
         builder: (context, child) {
           return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.starYellow.withValues(alpha: 0.08 * _glowAnimation.value),
+                  SpaceTheme.starYellow.withValues(alpha: 0.08 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value * 0.5),
+                color: SpaceTheme.starYellow.withValues(alpha: glowAnimation.value * 0.5),
                 width: 2,
               ),
             ),
@@ -379,10 +364,10 @@ class _HiveStationGameState extends State<HiveStationGame>
   Widget _buildWinDialog(int score) {
     final s = S.of(context)!;
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -21,11 +22,7 @@ class WarpFoldGame extends StatefulWidget {
 }
 
 class _WarpFoldGameState extends State<WarpFoldGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<WarpFoldGame> {
   late AnimationController _foldController;
   late Animation<double> _foldAnimation;
 
@@ -39,19 +36,9 @@ class _WarpFoldGameState extends State<WarpFoldGame>
   @override
   void initState() {
     super.initState();
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
-
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation =
-        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+    initGameAnimations(usePulse: false);
+    successAnimation =
+        CurvedAnimation(parent: successController, curve: Curves.elasticOut);
 
     _foldController = AnimationController(
       duration: const Duration(milliseconds: 1500),
@@ -73,9 +60,8 @@ class _WarpFoldGameState extends State<WarpFoldGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
     _foldController.dispose();
+    disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
@@ -85,7 +71,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
       _selectedOption = null;
       _answered = false;
       _showingFoldAnimation = false;
-      _successController.reset();
+      successController.reset();
       _foldController.reset();
     });
 
@@ -140,7 +126,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
       score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -409,13 +395,13 @@ class _WarpFoldGameState extends State<WarpFoldGame>
     } else if (isSelected) {
       borderColor = SpaceTheme.starYellow;
     } else {
-      borderColor = SpaceTheme.nebulaPurple.withValues(alpha: _glowAnimation.value);
+      borderColor = SpaceTheme.nebulaPurple.withValues(alpha: glowAnimation.value);
     }
 
     return GestureDetector(
       onTap: () => _selectOption(index),
       child: AnimatedBuilder(
-        animation: _glowAnimation,
+        animation: glowAnimation,
         builder: (context, _) {
           return Container(
             decoration: BoxDecoration(
@@ -486,10 +472,10 @@ class _WarpFoldGameState extends State<WarpFoldGame>
 
   Widget _buildWinDialog(int score) {
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

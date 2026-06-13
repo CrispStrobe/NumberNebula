@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
+import '../mixins/game_animations_mixin.dart';
 
 import '../constants/app_constants.dart';
 import '../../../core/theme/space_theme.dart';
@@ -11,6 +12,7 @@ import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
+import 'package:flutter/foundation.dart';
 
 class CryptexLockBreakerGame extends StatefulWidget {
   final int grade;
@@ -27,16 +29,14 @@ class CryptexLockBreakerGame extends StatefulWidget {
 }
 
 class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, GameAnimationsMixin<CryptexLockBreakerGame> {
   late AnimationController _rotationController;
-  late AnimationController _glowController;
   late AnimationController _unlockController;
   late AnimationController _particleController;
   late AnimationController _dialController;
   late AnimationController _equationController;
   
   late Animation<double> _rotationAnimation;
-  late Animation<double> _glowAnimation;
   late Animation<double> _unlockAnimation;
   late Animation<double> _dialAnimation;
   late Animation<double> _equationAnimation;
@@ -60,7 +60,8 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   @override
   void initState() {
     super.initState();
-    debugPrint("🔐 [CryptexLockBreaker] Initializing game - Grade: ${widget.grade}, Level: ${widget.level}");
+    initGameAnimations(usePulse: false, useSuccess: false);
+    if (kDebugMode) debugPrint("🔐 [CryptexLockBreaker] Initializing game - Grade: ${widget.grade}, Level: ${widget.level}");
     
     _setupAnimationControllers();
     _generatePuzzle();
@@ -74,17 +75,6 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     _rotationAnimation = Tween<double>(begin: 0.0, end: 2 * math.pi)
         .animate(CurvedAnimation(parent: _rotationController, curve: Curves.linear));
 
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.4, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
-
-    _unlockController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
     _unlockAnimation = CurvedAnimation(
         parent: _unlockController, curve: Curves.easeOut);
 
@@ -111,7 +101,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   }
 
   void _generatePuzzle() {
-    debugPrint("🔐 [CryptexLockBreaker] Generating new puzzle");
+    if (kDebugMode) debugPrint("🔐 [CryptexLockBreaker] Generating new puzzle");
     
     setState(() {
       currentPuzzle = CryptexPuzzle.generate(widget.grade, widget.level);
@@ -121,11 +111,11 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       selectedDial = -1;
     });
     
-    debugPrint("🔐 [CryptexLockBreaker] Puzzle generated:");
+    if (kDebugMode) debugPrint("🔐 [CryptexLockBreaker] Puzzle generated:");
     debugPrint("🔐 [CryptexLockBreaker] Solution: ${currentPuzzle.solution}");
     debugPrint("🔐 [CryptexLockBreaker] Initial: ${currentPuzzle.initialValues}");
     for (final eq in currentPuzzle.equations) {
-      debugPrint("🔐 [CryptexLockBreaker] Equation: ${eq.toString()}");
+      if (kDebugMode) debugPrint("🔐 [CryptexLockBreaker] Equation: ${eq.toString()}");
     }
   }
 
@@ -168,7 +158,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     final allSatisfied = currentPuzzle.equations.every((eq) => eq.isSatisfied(dialValues));
     
     if (allSatisfied && !isUnlocked) {
-      debugPrint("🎉 [CryptexLockBreaker] All equations satisfied! Unlocking...");
+      if (kDebugMode) debugPrint("🎉 [CryptexLockBreaker] All equations satisfied! Unlocking...");
       _handleSuccess();
     } else {
       // Add feedback particles for partially correct solutions
@@ -356,12 +346,12 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                   // ... (The existing Positioned.fill and particles code remains the same)
                   Positioned.fill(
                     child: AnimatedBuilder(
-                      animation: Listenable.merge([_rotationController, _glowController, _unlockController]),
+                      animation: Listenable.merge([_rotationController, glowController, _unlockController]),
                       builder: (context, child) {
                         return CustomPaint(
                           painter: CryptexBackgroundPainter(
                             rotationAngle: _rotationAnimation.value,
-                            glowIntensity: _glowAnimation.value,
+                            glowIntensity: glowAnimation.value,
                             unlockProgress: _unlockAnimation.value,
                             isUnlocked: isUnlocked,
                           ),
@@ -498,9 +488,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
           // Dials
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(currentPuzzle.dialCount, (index) {
-              return _buildDial(index);
-            }),
+            children: List.generate(currentPuzzle.dialCount, _buildDial),
           ),
         ],
       ),
@@ -776,11 +764,11 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   @override
   void dispose() {
     _rotationController.dispose();
-    _glowController.dispose();
     _unlockController.dispose();
     _particleController.dispose();
     _dialController.dispose();
     _equationController.dispose();
+    disposeGameAnimations(usePulse: false, useSuccess: false);
     super.dispose();
   }
 }

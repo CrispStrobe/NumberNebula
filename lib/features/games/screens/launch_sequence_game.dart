@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -21,11 +22,7 @@ class LaunchSequenceGame extends StatefulWidget {
 }
 
 class _LaunchSequenceGameState extends State<LaunchSequenceGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<LaunchSequenceGame> {
   late AnimationController _launchController;
   late Animation<double> _launchAnimation;
 
@@ -51,18 +48,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
   @override
   void initState() {
     super.initState();
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
-
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+    initGameAnimations(usePulse: false);
 
     _launchController = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -81,9 +67,8 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
     _launchController.dispose();
+    disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
@@ -95,7 +80,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
       _won = false;
       swapCount = 0;
       _selectedIndex = null;
-      _successController.reset();
+      successController.reset();
       _launchController.reset();
     });
 
@@ -127,8 +112,6 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
 
   void _onReorder(int oldIndex, int newIndex) {
     if (_won) return;
-    // ReorderableListView adjusts newIndex when moving down
-    if (newIndex > oldIndex) newIndex--;
     if (oldIndex == newIndex) return;
 
     HapticFeedback.selectionClick();
@@ -202,7 +185,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
       score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
 
     // Show dialog after launch animation
     Future.delayed(const Duration(milliseconds: 1300), () {
@@ -278,7 +261,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
       child: AnimatedBuilder(
-        animation: _glowAnimation,
+        animation: glowAnimation,
         builder: (context, _) {
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -287,8 +270,8 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
               borderRadius: BorderRadius.circular(30),
               border: Border.all(
                 color: isOptimal
-                    ? SpaceTheme.alienGreen.withValues(alpha: _glowAnimation.value)
-                    : SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value),
+                    ? SpaceTheme.alienGreen.withValues(alpha: glowAnimation.value)
+                    : SpaceTheme.starYellow.withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -352,7 +335,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
 
     return Center(
       child: AnimatedBuilder(
-        animation: _glowAnimation,
+        animation: glowAnimation,
         builder: (context, child) {
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
@@ -361,7 +344,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
               color: const Color(0xFF253A5E), // brighter to contrast with SpaceBackground
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.starYellow.withValues(alpha: 0.4 + _glowAnimation.value * 0.3),
+                color: SpaceTheme.starYellow.withValues(alpha: 0.4 + glowAnimation.value * 0.3),
                 width: 2,
               ),
               boxShadow: [
@@ -394,7 +377,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
                   );
                 },
                 itemCount: sequence.length,
-                onReorder: _onReorder,
+                onReorderItem: _onReorder,
                 itemBuilder: (context, index) {
                   return _buildShipCard(
                     key: ValueKey(sequence[index]),
@@ -518,10 +501,10 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
   Widget _buildWinDialog(int bonusScore) {
     final s = S.of(context)!;
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

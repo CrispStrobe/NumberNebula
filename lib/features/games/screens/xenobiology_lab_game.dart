@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -22,13 +23,7 @@ class XenobiologyLabGame extends StatefulWidget {
 }
 
 class _XenobiologyLabGameState extends State<XenobiologyLabGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<XenobiologyLabGame> {
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -66,27 +61,11 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
   @override
   void initState() {
     super.initState();
+    initGameAnimations();
 
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
+    successAnimation =
+        CurvedAnimation(parent: successController, curve: Curves.elasticOut);
 
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation =
-        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
-
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -99,9 +78,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
-    _pulseController.dispose();
+    disposeGameAnimations();
     super.dispose();
   }
 
@@ -115,7 +92,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
       _sliderA = 0;
       _sliderB = 0;
       _sliderC = 0;
-      _successController.reset();
+      successController.reset();
     });
 
     final grade = currentDifficulty!.grade;
@@ -184,7 +161,6 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
   bool get _eyesMatch => _computedEyes == _totalEyes;
   bool get _legsMatch => _computedLegs == _totalLegs;
-  bool get _allMatch => _eyesMatch && _legsMatch;
 
   void _checkSolution() {
     if (_gameOver) return;
@@ -217,7 +193,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
       mathProblems: _mathProblems,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
 
     if (mounted) {
       showDialog(
@@ -389,7 +365,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
   Widget _buildAlienCard(String name, int eyes, int legs, Color color) {
     return AnimatedBuilder(
-      animation: _glowAnimation,
+      animation: glowAnimation,
       builder: (context, child) {
         return Container(
           padding: const EdgeInsets.all(14),
@@ -397,7 +373,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
             color: color.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: color.withValues(alpha: 0.3 + _glowAnimation.value * 0.3),
+              color: color.withValues(alpha: 0.3 + glowAnimation.value * 0.3),
               width: 2,
             ),
           ),
@@ -452,7 +428,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
   Widget _buildCensusDisplay() {
     return AnimatedBuilder(
-      animation: _glowAnimation,
+      animation: glowAnimation,
       builder: (context, child) {
         return Container(
           padding: const EdgeInsets.all(16),
@@ -460,7 +436,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
             color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3 + _glowAnimation.value * 0.3),
+              color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3 + glowAnimation.value * 0.3),
               width: 2,
             ),
           ),
@@ -510,8 +486,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
   /// about which slider to adjust instead of guessing blindly.
   Widget _buildTargetComparison(
       IconData icon, String label, int target, int current, bool matches) {
-    final matchColor = const Color(0xFF06FFA5);
-    final mismatchColor = const Color(0xFFFF6B6B);
+    const matchColor = Color(0xFF06FFA5);
+    const mismatchColor = Color(0xFFFF6B6B);
     final statusColor = matches ? matchColor : mismatchColor;
 
     return Container(
@@ -562,7 +538,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
                   )),
               if (matches) ...[
                 const SizedBox(width: 4),
-                Icon(Icons.check_circle, color: matchColor, size: 16),
+                const Icon(Icons.check_circle, color: matchColor, size: 16),
               ],
             ],
           ),
@@ -659,10 +635,10 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
   Widget _buildWinDialog(int totalScore) {
     final s = S.of(context)!;
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

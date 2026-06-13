@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import 'package:flutter/foundation.dart';
 
 // Loading Screen with Space Animation
 class SpaceLoadingScreen extends StatefulWidget {
@@ -638,7 +639,7 @@ class PerformanceTracker {
   static void logPerformance() {
     _durations.forEach((operation, durations) {
       final avg = getAverageDuration(operation);
-      debugPrint('$operation: avg ${avg?.inMilliseconds}ms (${durations.length} samples)');
+      if (kDebugMode) debugPrint('$operation: avg ${avg?.inMilliseconds}ms (${durations.length} samples)');
     });
   }
 }

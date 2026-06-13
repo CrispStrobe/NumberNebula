@@ -11,6 +11,7 @@ import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../services/gridlock_puzzle_tracker.dart';
 import '../data/gridlock_puzzles_data.dart';
+import 'package:flutter/foundation.dart';
 
 class SpaceStationGridlockGame extends StatefulWidget {
   final int grade;
@@ -79,7 +80,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
   void _log(String message, [Map<String, dynamic>? data]) {
     const prefix = '[SpaceGridlock]';
     if (data != null && data.isNotEmpty) {
-      debugPrint('$prefix $message: ${data.entries.map((e) => '${e.key}=${e.value}').join(', ')}');
+      if (kDebugMode) debugPrint('$prefix $message: ${data.entries.map((e) => '${e.key}=${e.value}').join(', ')}');
     } else {
       debugPrint('$prefix $message');
     }
@@ -91,7 +92,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     _log('🗺️  ORIGINAL BOARD:');
     for (int row = 0; row < gridSize; row++) {
       final rowStr = originalBoard.substring(row * gridSize, (row + 1) * gridSize);
-      debugPrint('    $rowStr');
+      if (kDebugMode) debugPrint('    $rowStr');
     }
     debugPrint('');
     debugPrint('    Legend: A=player, x=wall, .=empty, o=empty');
@@ -229,7 +230,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       
     } catch (e, stack) {
       _log('❌ ERROR loading puzzle: $e');
-      debugPrint('Stack trace: $stack');
+      if (kDebugMode) debugPrint('Stack trace: $stack');
       
       setState(() => _loadingStatus = S.of(context)!.gridlockError);
       await Future.delayed(const Duration(milliseconds: 500));
@@ -306,7 +307,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       
     } catch (e, stack) {
       _log('❌ ERROR building puzzle: $e');
-      debugPrint('Stack trace: $stack');
+      if (kDebugMode) debugPrint('Stack trace: $stack');
       rethrow;
     }
   }
@@ -352,7 +353,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       
     } catch (e, stack) {
       _log('❌ ERROR generating fallback: $e');
-      debugPrint('Stack trace: $stack');
+      if (kDebugMode) debugPrint('Stack trace: $stack');
       rethrow;
     }
   }
@@ -706,9 +707,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                 IconButton(
                   onPressed: () {
                     _log('🔄 Reset button pressed');
-                    setState(() {
-                      _loadPuzzleAsync();
-                    });
+                    setState(_loadPuzzleAsync);
                   },
                   icon: const Icon(Icons.refresh, color: SpaceTheme.nebulaPurple),
                   tooltip: S.of(context)!.gridlockResetPuzzle,
@@ -771,7 +770,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
               ),
               if (gameActive) ...[
                 IconButton(
-                  onPressed: () => setState(() => _loadPuzzleAsync()),
+                  onPressed: () => setState(_loadPuzzleAsync),
                   icon: const Icon(Icons.refresh, size: 20),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -819,7 +818,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
               const Spacer(),
               if (gameActive) ...[
                 IconButton(
-                  onPressed: () => setState(() => _loadPuzzleAsync()),
+                  onPressed: () => setState(_loadPuzzleAsync),
                   icon: const Icon(Icons.refresh, color: SpaceTheme.nebulaPurple),
                 ),
               ],

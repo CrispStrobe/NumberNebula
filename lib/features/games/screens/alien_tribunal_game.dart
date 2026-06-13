@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -22,11 +23,7 @@ class AlienTribunalGame extends StatefulWidget {
 }
 
 class _AlienTribunalGameState extends State<AlienTribunalGame>
-    with TickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
+    with TickerProviderStateMixin, GameAnimationsMixin<AlienTribunalGame> {
 
   AlienTribunalPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
@@ -39,20 +36,10 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
   @override
   void initState() {
     super.initState();
+    initGameAnimations(usePulse: false);
 
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
-
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation =
-        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+    successAnimation =
+        CurvedAnimation(parent: successController, curve: Curves.elasticOut);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -65,10 +52,9 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
 
   @override
   void dispose() {
-    _glowController.stop();
-    _successController.stop();
-    _glowController.dispose();
-    _successController.dispose();
+    glowController.stop();
+    successController.stop();
+    disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
@@ -78,7 +64,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     setState(() {
       _isGenerating = true;
       _gameOver = false;
-      _successController.reset();
+      successController.reset();
     });
 
     final generated = await compute(AlienTribunalLogic.generate, {
@@ -148,7 +134,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
       score: totalScore,
     ));
 
-    _successController.forward(from: 0.0);
+    successController.forward(from: 0.0);
 
     if (mounted) {
       showDialog(
@@ -291,7 +277,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: AnimatedBuilder(
-        animation: _glowAnimation,
+        animation: glowAnimation,
         builder: (context, child) {
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -303,7 +289,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: borderColor.withValues(
-                    alpha: assignment == null ? _glowAnimation.value : 0.9,
+                    alpha: assignment == null ? glowAnimation.value : 0.9,
                   ),
                   width: 2,
                 ),
@@ -386,10 +372,10 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
   Widget _buildWinDialog(int totalScore) {
     final s = S.of(context)!;
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

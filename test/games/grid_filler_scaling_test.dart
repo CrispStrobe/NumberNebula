@@ -52,33 +52,33 @@ void main() {
 
   group('Grid Filler difficulty scaling', () {
     test('grade 1, level 1 → complexity 1.2, N=4, grid=10', () {
-      final complexity = 1 + (1 / 5.0);
+      const complexity = 1 + (1 / 5.0);
       expect(pieceTypesFromComplexity(complexity), 4);
       expect(gridSizeFromPieceTypes(4), 10);
     });
 
     test('grade 2, level 5 → complexity 3.0, N=5, grid=15', () {
-      final complexity = 2 + (5 / 5.0);
+      const complexity = 2 + (5 / 5.0);
       expect(pieceTypesFromComplexity(complexity), 5);
     });
 
     test('grade 3, level 5 → complexity 4.0, N=6, grid=21', () {
-      final complexity = 3 + (5 / 5.0);
+      const complexity = 3 + (5 / 5.0);
       expect(pieceTypesFromComplexity(complexity), 6);
     });
 
     test('grade 3, level 10 → complexity 5.0, N=7, grid=28', () {
-      final complexity = 3 + (10 / 5.0);
+      const complexity = 3 + (10 / 5.0);
       expect(pieceTypesFromComplexity(complexity), 7);
     });
 
     test('grade 4, level 10 → complexity 6.0, N=8, grid=36', () {
-      final complexity = 4 + (10 / 5.0);
+      const complexity = 4 + (10 / 5.0);
       expect(pieceTypesFromComplexity(complexity), 8);
     });
 
     test('grade 4, level 20 → complexity 8.0, N=9, grid=45', () {
-      final complexity = 4 + (20 / 5.0);
+      const complexity = 4 + (20 / 5.0);
       expect(pieceTypesFromComplexity(complexity), 9);
       expect(gridSizeFromPieceTypes(9), 45);
     });

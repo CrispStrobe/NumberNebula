@@ -9,7 +9,7 @@ import 'package:space_math_academy/features/games/constants/difficulty_manager.d
 import 'package:space_math_academy/features/games/services/gravity_well_logic.dart';
 
 void main() {
-  DifficultyConfig _difficultyFor(int grade) {
+  DifficultyConfig difficultyFor(int grade) {
     return DifficultyConfig(
       grade: grade,
       level: 5,
@@ -31,7 +31,7 @@ void main() {
       final puzzle = GravityWellLogic.generate({
         'grade': 1,
         'level': 1,
-        'difficulty': _difficultyFor(1),
+        'difficulty': difficultyFor(1),
       });
 
       expect(puzzle.objectCount, greaterThanOrEqualTo(3));
@@ -44,7 +44,7 @@ void main() {
       final puzzle = GravityWellLogic.generate({
         'grade': 4,
         'level': 10,
-        'difficulty': _difficultyFor(4),
+        'difficulty': difficultyFor(4),
       });
 
       expect(puzzle.objectCount, greaterThanOrEqualTo(4));
@@ -56,7 +56,7 @@ void main() {
         final puzzle = GravityWellLogic.generate({
           'grade': grade,
           'level': 5,
-          'difficulty': _difficultyFor(grade),
+          'difficulty': difficultyFor(grade),
         });
 
         for (int i = 0; i < puzzle.scales.length; i++) {
@@ -71,7 +71,7 @@ void main() {
       final puzzle = GravityWellLogic.generate({
         'grade': 2,
         'level': 5,
-        'difficulty': _difficultyFor(2),
+        'difficulty': difficultyFor(2),
       });
 
       expect(puzzle.checkSolution(puzzle.unknownWeights), isTrue);
@@ -81,7 +81,7 @@ void main() {
       final puzzle = GravityWellLogic.generate({
         'grade': 2,
         'level': 5,
-        'difficulty': _difficultyFor(2),
+        'difficulty': difficultyFor(2),
       });
 
       final wrongAnswers = {
@@ -136,7 +136,7 @@ void main() {
         final puzzle = GravityWellLogic.generate({
           'grade': 2,
           'level': 5,
-          'difficulty': _difficultyFor(2),
+          'difficulty': difficultyFor(2),
         });
 
         final equations = extractEquations(puzzle);
@@ -150,7 +150,7 @@ void main() {
         final puzzle = GravityWellLogic.generate({
           'grade': 2,
           'level': 5,
-          'difficulty': _difficultyFor(2),
+          'difficulty': difficultyFor(2),
         });
 
         final equations = extractEquations(puzzle);

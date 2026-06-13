@@ -9,7 +9,7 @@ class ProgressService {
 
   // Verbose logging for saving/loading progress
   void _log(String message) {
-    debugPrint('[PROGRESS_SERVICE] 💾 $message');
+    if (kDebugMode) debugPrint('[PROGRESS_SERVICE] 💾 $message');
   }
 
   Future<void> saveProgress(GameProvider gameProvider) async {

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../mixins/game_animations_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -21,14 +22,10 @@ class CubeScannerGame extends StatefulWidget {
 }
 
 class _CubeScannerGameState extends State<CubeScannerGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, GameAnimationsMixin<CubeScannerGame> {
   // ---------------------------------------------------------------------------
   // Animation controllers (per VISUAL_TEMPLATE.md)
   // ---------------------------------------------------------------------------
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  late AnimationController _successController;
-  late Animation<double> _successAnimation;
   late AnimationController _feedbackController;
   late Animation<double> _feedbackAnimation;
 
@@ -45,26 +42,9 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   @override
   void initState() {
     super.initState();
+    initGameAnimations(usePulse: false);
 
     // Glow (continuous, for borders/accents)
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
-    );
-
-    // Pulse (continuous, for choice buttons)
-    // Success dialog (one-shot)
-    _successController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _successAnimation = CurvedAnimation(
-      parent: _successController,
-      curve: Curves.elasticOut,
-    );
 
     // Feedback flash (one-shot, for correct/wrong flash)
     _feedbackController = AnimationController(
@@ -87,9 +67,8 @@ class _CubeScannerGameState extends State<CubeScannerGame>
 
   @override
   void dispose() {
-    _glowController.dispose();
-    _successController.dispose();
     _feedbackController.dispose();
+    disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
@@ -102,7 +81,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
       _selectedAnswer = null;
       _showResult = false;
       _resultCorrect = false;
-      _successController.reset();
+      successController.reset();
       _feedbackController.reset();
     });
 
@@ -160,7 +139,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
     // Delay to let the green flash show, then show dialog
     Future.delayed(const Duration(milliseconds: 700), () {
       if (!mounted) return;
-      _successController.forward(from: 0.0);
+      successController.forward(from: 0.0);
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -288,7 +267,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
     ).clamp(200.0, 400.0);
 
     return AnimatedBuilder(
-      animation: _glowAnimation,
+      animation: glowAnimation,
       builder: (context, _) {
         return SizedBox(
           width: cubeSize,
@@ -297,7 +276,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
             painter: _IsometricDiePainter(
               die: _puzzle!.dice[0],
               visible: _puzzle!.visibleFaces[0],
-              glowValue: _glowAnimation.value,
+              glowValue: glowAnimation.value,
               label: null,
             ),
           ),
@@ -314,7 +293,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
     ).clamp(120.0, 250.0);
 
     return AnimatedBuilder(
-      animation: _glowAnimation,
+      animation: glowAnimation,
       builder: (context, _) {
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -327,7 +306,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
                 painter: _IsometricDiePainter(
                   die: _puzzle!.dice[0],
                   visible: _puzzle!.visibleFaces[0],
-                  glowValue: _glowAnimation.value,
+                  glowValue: glowAnimation.value,
                   label: '1',
                 ),
               ),
@@ -337,7 +316,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
               width: 3,
               height: 8,
               decoration: BoxDecoration(
-                color: SpaceTheme.starYellow.withValues(alpha: _glowAnimation.value),
+                color: SpaceTheme.starYellow.withValues(alpha: glowAnimation.value),
                 boxShadow: [
                   BoxShadow(
                     color: SpaceTheme.starYellow.withValues(alpha: 0.4),
@@ -354,7 +333,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
                 painter: _IsometricDiePainter(
                   die: _puzzle!.dice[1],
                   visible: _puzzle!.visibleFaces[1],
-                  glowValue: _glowAnimation.value,
+                  glowValue: glowAnimation.value,
                   label: '2',
                 ),
               ),
@@ -373,7 +352,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
     ).clamp(100.0, 200.0);
 
     return AnimatedBuilder(
-      animation: _glowAnimation,
+      animation: glowAnimation,
       builder: (context, _) {
         final children = <Widget>[];
         for (int i = 0; i < diceCount; i++) {
@@ -386,7 +365,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
                 height: 3,
                 decoration: BoxDecoration(
                   color: SpaceTheme.starYellow
-                      .withValues(alpha: _glowAnimation.value),
+                      .withValues(alpha: glowAnimation.value),
                   boxShadow: [
                     BoxShadow(
                       color: SpaceTheme.starYellow.withValues(alpha: 0.4),
@@ -404,7 +383,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
                   height: 3,
                   decoration: BoxDecoration(
                     color: SpaceTheme.starYellow
-                        .withValues(alpha: _glowAnimation.value),
+                        .withValues(alpha: glowAnimation.value),
                   ),
                 ),
               ),
@@ -418,7 +397,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
                 painter: _IsometricDiePainter(
                   die: _puzzle!.dice[i],
                   visible: _puzzle!.visibleFaces[i],
-                  glowValue: _glowAnimation.value,
+                  glowValue: glowAnimation.value,
                   label: '${i + 1}',
                 ),
               ),
@@ -612,10 +591,10 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   // ---------------------------------------------------------------------------
   Widget _buildWinDialog(int score) {
     return AnimatedBuilder(
-      animation: _successAnimation,
+      animation: successAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: _successAnimation.value,
+          scale: successAnimation.value,
           child: Dialog(
             backgroundColor: Colors.transparent,
             child: Container(

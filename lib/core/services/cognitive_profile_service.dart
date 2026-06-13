@@ -49,7 +49,7 @@ class CognitiveProfileService extends ChangeNotifier {
   }
 
   void _log(String message) {
-    debugPrint('[COGNITIVE_PROFILE] 🧠 $message');
+    if (kDebugMode) debugPrint('[COGNITIVE_PROFILE] 🧠 $message');
   }
 
   void recordAttempt(SkillCategory skill, int difficulty, bool success) {
