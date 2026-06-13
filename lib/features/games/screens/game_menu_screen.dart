@@ -868,6 +868,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
       description: gameData.description,
       icon: gameData.icon,
       gradient: gameData.gradient,
+      gameKey: gameData.gameKey,
       // The onTap now correctly builds the game widget with the saved
       // level. We use effectiveGrade so the player's chosen difficulty
       // mode (easy/normal/challenge) shifts the game's grade band.
@@ -917,7 +918,8 @@ class GameInfo {
   final IconData icon;
   final Gradient gradient;
   final VoidCallback onTap;
-  GameInfo({required this.title, required this.description, required this.icon, required this.gradient, required this.onTap});
+  final String gameKey;
+  GameInfo({required this.title, required this.description, required this.icon, required this.gradient, required this.onTap, required this.gameKey});
 }
 
 class GameCard extends StatefulWidget {
@@ -956,6 +958,19 @@ class _GameCardState extends State<GameCard> with SingleTickerProviderStateMixin
     }
   }
 
+  Widget _buildStarRating(BuildContext context) {
+    final stars = context.watch<GameProvider>().bestStars[widget.game.gameKey] ?? 0;
+    if (stars == 0) return const SizedBox.shrink();
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(3, (i) => Icon(
+        i < stars ? Icons.star_rounded : Icons.star_border_rounded,
+        color: i < stars ? SpaceTheme.starYellow : Colors.white24,
+        size: 18,
+      )),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -989,6 +1004,7 @@ class _GameCardState extends State<GameCard> with SingleTickerProviderStateMixin
                       ),
                       Text(widget.game.title, style: SpaceTheme.headlineStyle.copyWith(fontSize: 15), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
                       Text(widget.game.description, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12), textAlign: TextAlign.center, maxLines: 3, overflow: TextOverflow.ellipsis),
+                      _buildStarRating(context),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                         decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),

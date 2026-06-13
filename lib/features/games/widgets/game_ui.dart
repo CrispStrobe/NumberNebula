@@ -198,3 +198,31 @@ class GameUI extends StatelessWidget {
     return '${minutes.toString().padLeft(1, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 }
+
+/// Displays 1-3 star rating from the most recent game outcome.
+/// Drop this into any win dialog to show earned stars.
+/// Reads [GameProvider.lastStars] automatically.
+class StarRatingDisplay extends StatelessWidget {
+  const StarRatingDisplay({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final stars = context.read<GameProvider>().lastStars;
+    if (stars <= 0) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(3, (i) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Icon(
+            i < stars ? Icons.star_rounded : Icons.star_border_rounded,
+            color: i < stars ? SpaceTheme.starYellow : Colors.white24,
+            size: 32,
+          ),
+        )),
+      ),
+    );
+  }
+}
