@@ -517,7 +517,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
                     onPressed: _confirmSelection,
                     icon: const Icon(Icons.rocket_launch, size: 20),
                     label: Text(
-                      'Mine ${_selectedAsteroids.length}!',
+                      S.of(context)!.asteroidDuelMine(_selectedAsteroids.length),
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -533,7 +533,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
             const SizedBox(height: 8),
           ],
           Text(
-            'Tap asteroids to select (1-${math.min(_maxPerTurn, _remaining)})',
+            S.of(context)!.asteroidDuelTapToSelect(math.min(_maxPerTurn, _remaining)),
             style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white54),
           ),
           const SizedBox(height: 8),
@@ -681,8 +681,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
                 border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.3)),
               ),
               child: Text(
-                'Hint: Try to leave ${_maxPerTurn + 1}+1 = ${_maxPerTurn + 2} asteroids for the AI. '
-                'The key pattern is multiples of ${_maxPerTurn + 1}, plus 1.',
+                S.of(context)!.asteroidDuelHint(_maxPerTurn + 1, _maxPerTurn + 2),
                 style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: SpaceTheme.starYellow),
                 textAlign: TextAlign.center,
               ),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -71,7 +72,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     super.dispose();
   }
 
-  void _generatePuzzle() {
+  void _generatePuzzle() async {
     if (currentDifficulty == null) return;
 
     setState(() {
@@ -80,7 +81,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
       _successController.reset();
     });
 
-    final generated = AlienTribunalLogic.generate({
+    final generated = await compute(AlienTribunalLogic.generate, {
       'grade': widget.grade,
       'level': widget.level,
       'difficulty': currentDifficulty!,
@@ -279,11 +280,11 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
       statusIcon = Icons.help_outline;
     } else if (assignment) {
       borderColor = SpaceTheme.alienGreen;
-      statusText = 'Truth';
+      statusText = S.of(context)!.alienTribunalTruth;
       statusIcon = Icons.check_circle;
     } else {
       borderColor = SpaceTheme.rocketRed;
-      statusText = 'Liar';
+      statusText = S.of(context)!.alienTribunalLiar;
       statusIcon = Icons.cancel;
     }
 

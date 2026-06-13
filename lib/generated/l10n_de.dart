@@ -2996,4 +2996,287 @@ class SDe extends S {
   @override
   String get chronoRepairLoseDesc =>
       'Die angezeigte Zeit ist falsch. Beachte die spezifische Fehlfunktion jeder Uhr, Commander.';
+
+  @override
+  String get gridlockPlayerShip => 'Spielerschiff';
+
+  @override
+  String get gridlockBlockingShip => 'Blockierendes Schiff';
+
+  @override
+  String get gridlockShip => 'Schiff';
+
+  @override
+  String get gridlockDragHorizontally => 'Horizontal ziehen zum Bewegen';
+
+  @override
+  String get gridlockDragVertically => 'Vertikal ziehen zum Bewegen';
+
+  @override
+  String get gridlockMoves => 'Züge';
+
+  @override
+  String get gridlockTarget => 'Ziel';
+
+  @override
+  String get gridlockShips => 'Schiffe';
+
+  @override
+  String get gridlockResetPuzzle => 'Puzzle zurücksetzen';
+
+  @override
+  String get gridlockDragToExit => 'Ziehe das grüne Schiff zum Ausgang';
+
+  @override
+  String get gridlockInitializing => 'Wird geladen...';
+
+  @override
+  String get gridlockCalculatingDifficulty => 'Schwierigkeit wird berechnet...';
+
+  @override
+  String get gridlockSearchingDatabase => 'Puzzle-Datenbank wird durchsucht...';
+
+  @override
+  String get gridlockSelectingPuzzle => 'Puzzle wird ausgewählt...';
+
+  @override
+  String get gridlockLoadingConfig => 'Puzzle-Konfiguration wird geladen...';
+
+  @override
+  String get gridlockGeneratingPuzzle => 'Eigenes Puzzle wird erzeugt...';
+
+  @override
+  String get gridlockReady => 'Bereit!';
+
+  @override
+  String get gridlockError => 'Fehler! Verwende Ersatzpuzzle...';
+
+  @override
+  String gridlockComplexity(String value) {
+    return 'Komplexität: $value';
+  }
+
+  @override
+  String get puzzleGenerationFailed => 'Puzzle-Erzeugung fehlgeschlagen';
+
+  @override
+  String get puzzleGenerationFailedDesc => 'Puzzle konnte nicht erzeugt werden. Bitte versuche es erneut.';
+
+  @override
+  String get puzzleGenerationFailedDescAlt => 'Puzzle konnte nicht erzeugt werden. Möchtest du es erneut versuchen oder zum Hauptmenü zurückkehren?';
+
+  @override
+  String get retry => 'Erneut versuchen';
+
+  @override
+  String get tryAgainButton => 'Nochmal';
+
+  @override
+  String get creatureForgeAlreadyDiscovered => 'Diese Kreatur wurde bereits entdeckt!';
+
+  @override
+  String creatureForgeInvalidCombo(String constraint) {
+    return 'Ungültige Kombination! $constraint';
+  }
+
+  @override
+  String creatureForgeNotQuiteAnswer(int answer) {
+    return 'Nicht ganz! Du hast $answer gesagt, versuch es nochmal.';
+  }
+
+  @override
+  String get creatureForgeTotalPossible => 'Insgesamt möglich: ';
+
+  @override
+  String get creatureForgeSubmit => 'ABSENDEN';
+
+  @override
+  String creatureForgeFoundSpecies(int count, int total) {
+    return 'Du hast $count Spezies gefunden!\nRichtige Anzahl: $total';
+  }
+
+  @override
+  String get creatureForgeConstraintWingedSpiked => 'Geflügelte Körper passen nicht zu Stachelschwänzen';
+
+  @override
+  String get creatureForgeConstraintAdvanced => 'Geflügelte Körper brauchen Kristallköpfe\nAquatische Körper lehnen Flammenschwänze ab';
+
+  @override
+  String get bubbleNextTarget => 'Nächstes Ziel: ';
+
+  @override
+  String get bubbleAllTargetsPopped => 'Alle Ziele getroffen';
+
+  @override
+  String bubbleTimeBonusPoints(int points) {
+    return 'Zeitbonus: $points Punkte!';
+  }
+
+  @override
+  String get xenoCensusReport => 'Zählung';
+
+  @override
+  String get xenoEyes => 'Augen';
+
+  @override
+  String get xenoLegs => 'Beine';
+
+  @override
+  String get xenoCreatures => 'Kreaturen';
+
+  @override
+  String get xenoTarget => 'Soll: ';
+
+  @override
+  String get xenoYours => 'Dein Wert: ';
+
+  @override
+  String sectorMinColors(int count) {
+    return 'Min. Farben: $count';
+  }
+
+  @override
+  String sectorPainted(int done, int total) {
+    return 'Bemalt: $done/$total';
+  }
+
+  @override
+  String get sectorColors => 'Farben';
+
+  @override
+  String get sectorOptimalColoring => 'Optimale Färbung!';
+
+  @override
+  String warpFoldStep(int step, String direction) {
+    return 'Faltung $step: $direction';
+  }
+
+  @override
+  String warpCutHoles(int count) {
+    return '$count Loch${count > 1 ? "/Löcher" : ""} schneiden...';
+  }
+
+  @override
+  String get warpWhichPattern => 'Welches Muster erscheint beim Auffalten?';
+
+  @override
+  String warpFoldsAndCuts(String folds, int cuts) {
+    return 'Faltungen: $folds  |  Schnitte: $cuts';
+  }
+
+  @override
+  String get warpDirLeft => '\u2190 Links';
+
+  @override
+  String get warpDirRight => '\u2192 Rechts';
+
+  @override
+  String get warpDirUp => '\u2191 Oben';
+
+  @override
+  String get warpDirDown => '\u2193 Unten';
+
+  @override
+  String circuitInvalidTime(int remaining) {
+    return 'Keine gültige Uhrzeit! Noch $remaining Versuche.';
+  }
+
+  @override
+  String get circuitSwapInstruction => 'Zwei Ziffern dieser Uhr sind vertauscht! Tippe auf zwei Ziffernpositionen, um sie zurückzutauschen.';
+
+  @override
+  String circuitAttempts(int remaining, int total) {
+    return 'Versuche: $remaining / $total';
+  }
+
+  @override
+  String circuitPositionSelected(int pos) {
+    return 'Position $pos ausgewählt \u2013 tippe auf eine andere Ziffer';
+  }
+
+  @override
+  String circuitSwapPositions(int pos1, int pos2) {
+    return 'Tausch: Position $pos1 <-> Position $pos2';
+  }
+
+  @override
+  String circuitResultValid(String time) {
+    return 'Ergebnis: $time (gültig!)';
+  }
+
+  @override
+  String circuitResultInvalid(String time) {
+    return 'Ergebnis: $time (ungültig)';
+  }
+
+  @override
+  String get circuitTapToStart => 'Tippe auf eine Ziffer, um zu beginnen';
+
+  @override
+  String circuitClockNowReads(String time) {
+    return 'Die Uhr zeigt jetzt $time';
+  }
+
+  @override
+  String circuitCorrectTimeWas(String time) {
+    return 'Die korrekte Uhrzeit war $time';
+  }
+
+  @override
+  String chronoClockRunsFast(int hours) {
+    return 'Diese Uhr geht $hours Stunden vor';
+  }
+
+  @override
+  String get chronoClockMirrored => 'Diese Uhr ist horizontal gespiegelt';
+
+  @override
+  String chronoClockRunsFastCombined(int hours, int minutes) {
+    return 'Diese Uhr geht $hours h $minutes min vor';
+  }
+
+  @override
+  String get chronoWhatIsCorrectTime => 'Wie spät ist es wirklich?';
+
+  @override
+  String asteroidDuelMine(int count) {
+    return '$count abbauen!';
+  }
+
+  @override
+  String asteroidDuelTapToSelect(int max) {
+    return 'Tippe auf Asteroiden (1-$max)';
+  }
+
+  @override
+  String asteroidDuelHint(int safe, int safeP1) {
+    return 'Tipp: Versuche $safe+1 = $safeP1 Asteroiden für die KI zu lassen. Das Schlüsselmuster sind Vielfache von $safe, plus 1.';
+  }
+
+  @override
+  String get crewManifestClues => 'Hinweise:';
+
+  @override
+  String get crewManifestMatch => 'Treffer';
+
+  @override
+  String get crewManifestEliminate => 'Ausschließen';
+
+  @override
+  String get alienTribunalTruth => 'Wahrheit';
+
+  @override
+  String get alienTribunalLiar => 'Lügner';
+
+  @override
+  String get puzzleAllPiecesPlaced => 'Alle Teile platziert!';
+
+  @override
+  String get signalNoAttemptsYet => 'Noch keine Versuche';
+
+  @override
+  String get perspectiveDragHint => 'Ziehen \u00b115\u00b0';
+
+  @override
+  String get allTargetsPopped => 'Alle Ziele getroffen';
 }

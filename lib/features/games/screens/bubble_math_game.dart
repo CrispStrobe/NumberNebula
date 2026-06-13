@@ -278,8 +278,8 @@ class _BubbleMathGameState extends State<BubbleMathGame>
               Semantics(
                 liveRegion: true,
                 label: currentTargetIndex < targetOrder.length
-                    ? 'Next target: ${targetOrder[currentTargetIndex]}'
-                    : 'All targets popped',
+                    ? '${S.of(context)!.bubbleNextTarget}${targetOrder[currentTargetIndex]}'
+                    : S.of(context)!.bubbleAllTargetsPopped,
                 container: true,
                 child: ExcludeSemantics(
                   child: Container(
@@ -289,7 +289,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Next target: ', style: SpaceTheme.bodyStyle),
+                        Text(S.of(context)!.bubbleNextTarget, style: SpaceTheme.bodyStyle),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
@@ -348,7 +348,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
             ),
             const SizedBox(height: 16),
             Text(
-              'Time Bonus: ${timeLeft * 5} points!',
+              S.of(context)!.bubbleTimeBonusPoints(timeLeft * 5),
               style: SpaceTheme.bodyStyle,
               textAlign: TextAlign.center,
             ),

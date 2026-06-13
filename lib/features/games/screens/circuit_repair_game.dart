@@ -230,7 +230,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Not a valid time! ${_puzzle!.maxAttempts - _attemptsUsed} attempts left.',
+                S.of(context)!.circuitInvalidTime(_puzzle!.maxAttempts - _attemptsUsed),
                 style: const TextStyle(color: Colors.white),
               ),
             ),
@@ -289,7 +289,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
-                  'Two digits on this clock swapped places! Tap two digit positions to swap them back.',
+                  S.of(context)!.circuitSwapInstruction,
                   style: SpaceTheme.bodyStyle.copyWith(fontSize: 13),
                   textAlign: TextAlign.center,
                 ),
@@ -578,7 +578,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
               const Icon(Icons.favorite, color: SpaceTheme.rocketRed, size: 18),
               const SizedBox(width: 6),
               Text(
-                'Attempts: $remaining / ${_puzzle!.maxAttempts}',
+                S.of(context)!.circuitAttempts(remaining, _puzzle!.maxAttempts),
                 style: SpaceTheme.bodyStyle.copyWith(
                   fontSize: 14,
                   color: remaining <= 1 ? SpaceTheme.rocketRed : SpaceTheme.moonSilver,
@@ -595,7 +595,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                 return Transform.scale(
                   scale: _pulseAnimation.value,
                   child: Text(
-                    'Position ${_selectedFirst! + 1} selected -- tap another digit',
+                    S.of(context)!.circuitPositionSelected(_selectedFirst! + 1),
                     style: SpaceTheme.bodyStyle.copyWith(
                       color: SpaceTheme.starYellow,
                       fontSize: 14,
@@ -610,7 +610,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                 return Column(
                   children: [
                     Text(
-                      'Swap: position ${_selectedFirst! + 1} <-> position ${_selectedSecond! + 1}',
+                      S.of(context)!.circuitSwapPositions(_selectedFirst! + 1, _selectedSecond! + 1),
                       style: SpaceTheme.bodyStyle.copyWith(
                         color: SpaceTheme.cosmicPink,
                         fontSize: 14,
@@ -618,7 +618,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Result: $timeStr ${valid ? "(valid!)" : "(invalid)"}',
+                      valid ? S.of(context)!.circuitResultValid(timeStr) : S.of(context)!.circuitResultInvalid(timeStr),
                       style: SpaceTheme.bodyStyle.copyWith(
                         color: valid ? SpaceTheme.alienGreen : SpaceTheme.rocketRed,
                         fontSize: 14,
@@ -629,7 +629,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                 );
               }
               return Text(
-                'Tap a digit on the clock to start',
+                S.of(context)!.circuitTapToStart,
                 style: SpaceTheme.bodyStyle.copyWith(
                   color: SpaceTheme.moonSilver,
                   fontSize: 14,
@@ -658,7 +658,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
             child: ElevatedButton.icon(
               onPressed: _resetSelection,
               icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Reset'),
+              label: Text(S.of(context)!.reset),
               style: SpaceTheme.secondaryButtonStyle,
             ),
           ),
@@ -712,7 +712,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                       textAlign: TextAlign.center),
                   const SizedBox(height: 8),
                   Text(
-                    'The clock now reads ${_puzzle!.correctTimeString}',
+                    S.of(context)!.circuitClockNowReads(_puzzle!.correctTimeString),
                     style: SpaceTheme.bodyStyle.copyWith(
                       color: SpaceTheme.alienGreen,
                       fontSize: 18,
@@ -771,7 +771,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                 textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
-              'The correct time was ${_puzzle!.correctTimeString}',
+              S.of(context)!.circuitCorrectTimeWas(_puzzle!.correctTimeString),
               style: SpaceTheme.bodyStyle.copyWith(
                 color: SpaceTheme.starYellow,
                 fontSize: 16,

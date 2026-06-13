@@ -196,22 +196,22 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
           context: context,
           barrierDismissible: false,
           builder: (context) => AlertDialog(
-            title: const Text('Puzzle Generation Failed'),
-            content: const Text('Unable to generate puzzle. Please try again.'),
+            title: Text(S.of(context)!.puzzleGenerationFailed),
+            content: Text(S.of(context)!.puzzleGenerationFailedDesc),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                   _generatePuzzle();
                 },
-                child: const Text('Retry'),
+                child: Text(S.of(context)!.retry),
               ),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
                 },
-                child: const Text('Back to Menu'),
+                child: Text(S.of(context)!.backToMenu),
               ),
             ],
           ),

@@ -264,8 +264,8 @@ class _WarpFoldGameState extends State<WarpFoldGame>
               // Step label
               Text(
                 currentStep < foldCount
-                    ? 'Fold ${currentStep + 1}: ${_foldDirLabel(_puzzle!.folds[currentStep].direction)}'
-                    : 'Cut $cutCount hole${cutCount > 1 ? "s" : ""}...',
+                    ? S.of(context)!.warpFoldStep(currentStep + 1, _foldDirLabel(_puzzle!.folds[currentStep].direction))
+                    : S.of(context)!.warpCutHoles(cutCount),
                 style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
               ),
               const SizedBox(height: 16),
@@ -286,7 +286,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
               ),
               const SizedBox(height: 16),
               Text(
-                'Which pattern appears when unfolded?',
+                S.of(context)!.warpWhichPattern,
                 style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow),
               ),
             ],
@@ -297,15 +297,16 @@ class _WarpFoldGameState extends State<WarpFoldGame>
   }
 
   String _foldDirLabel(FoldDirection dir) {
+    final s = S.of(context)!;
     switch (dir) {
       case FoldDirection.left:
-        return '\u2190 Left';
+        return s.warpDirLeft;
       case FoldDirection.right:
-        return '\u2192 Right';
+        return s.warpDirRight;
       case FoldDirection.top:
-        return '\u2191 Up';
+        return s.warpDirUp;
       case FoldDirection.bottom:
-        return '\u2193 Down';
+        return s.warpDirDown;
     }
   }
 
@@ -357,7 +358,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
           const Icon(Icons.content_cut, color: SpaceTheme.cosmicPink, size: 18),
           const SizedBox(width: 8),
           Text(
-            'Folds: ${foldNames.join(" ")}  |  Cuts: ${_puzzle!.cuts.length}',
+            S.of(context)!.warpFoldsAndCuts(foldNames.join(" "), _puzzle!.cuts.length),
             style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 13),
           ),
         ],

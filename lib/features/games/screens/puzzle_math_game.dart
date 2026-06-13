@@ -568,7 +568,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
             child: availablePieces.isEmpty 
               ? Center(
                   child: Text(
-                    'All pieces placed!',
+                    S.of(context)!.puzzleAllPiecesPlaced,
                     style: SpaceTheme.bodyStyle.copyWith(
                       fontSize: isSmallScreen ? 8 : 10,
                       color: SpaceTheme.alienGreen,

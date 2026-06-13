@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -102,7 +103,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
     super.dispose();
   }
 
-  void _generatePuzzle() {
+  void _generatePuzzle() async {
     setState(() {
       _isGenerating = true;
       _won = false;
@@ -111,14 +112,19 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       _successController.reset();
     });
 
-    final generator = SectorPainterGenerator(seed: DateTime.now().millisecondsSinceEpoch);
-    final puzzle = generator.generate(grade: widget.grade, level: widget.level);
-
-    setState(() {
-      _puzzle = puzzle;
-      _selectedColor = 0;
-      _isGenerating = false;
+    final puzzle = await compute(generateSectorPainterPuzzle, {
+      'grade': widget.grade,
+      'level': widget.level,
+      'seed': DateTime.now().millisecondsSinceEpoch,
     });
+
+    if (mounted) {
+      setState(() {
+        _puzzle = puzzle;
+        _selectedColor = 0;
+        _isGenerating = false;
+      });
+    }
   }
 
   void _paintRegion(int region) {
@@ -306,7 +312,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
             const Icon(Icons.stars, color: SpaceTheme.starYellow, size: 16),
             const SizedBox(width: 6),
             Text(
-              'Min colors: ${_puzzle!.chromaticNumber}',
+              S.of(context)!.sectorMinColors(_puzzle!.chromaticNumber),
               style: SpaceTheme.bodyStyle.copyWith(
                 fontSize: 12,
                 color: SpaceTheme.starYellow,
@@ -314,7 +320,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
             ),
             const SizedBox(width: 12),
             Text(
-              'Painted: ${_coloring.length}/${_puzzle!.regions.length}',
+              S.of(context)!.sectorPainted(_coloring.length, _puzzle!.regions.length),
               style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
             ),
           ],
@@ -373,7 +379,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Colors', style: SpaceTheme.titleStyle.copyWith(fontSize: 14)),
+          Text(S.of(context)!.sectorColors, style: SpaceTheme.titleStyle.copyWith(fontSize: 14)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -632,7 +638,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
                           border: Border.all(color: SpaceTheme.starYellow),
                         ),
                         child: Text(
-                          'Optimal coloring!',
+                          S.of(context)!.sectorOptimalColoring,
                           style: SpaceTheme.bodyStyle.copyWith(
                             color: SpaceTheme.starYellow,
                             fontWeight: FontWeight.bold,

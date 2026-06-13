@@ -5229,6 +5229,480 @@ abstract class S {
   /// In en, this message translates to:
   /// **'The displayed time is incorrect. Consider the specific malfunction of each clock, Commander.'**
   String get chronoRepairLoseDesc;
+
+  /// No description provided for @gridlockPlayerShip.
+  ///
+  /// In en, this message translates to:
+  /// **'Player ship'**
+  String get gridlockPlayerShip;
+
+  /// No description provided for @gridlockBlockingShip.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocking ship'**
+  String get gridlockBlockingShip;
+
+  /// No description provided for @gridlockShip.
+  ///
+  /// In en, this message translates to:
+  /// **'Ship'**
+  String get gridlockShip;
+
+  /// No description provided for @gridlockDragHorizontally.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag horizontally to move'**
+  String get gridlockDragHorizontally;
+
+  /// No description provided for @gridlockDragVertically.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag vertically to move'**
+  String get gridlockDragVertically;
+
+  /// No description provided for @gridlockMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves'**
+  String get gridlockMoves;
+
+  /// No description provided for @gridlockTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get gridlockTarget;
+
+  /// No description provided for @gridlockShips.
+  ///
+  /// In en, this message translates to:
+  /// **'Ships'**
+  String get gridlockShips;
+
+  /// No description provided for @gridlockResetPuzzle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Puzzle'**
+  String get gridlockResetPuzzle;
+
+  /// No description provided for @gridlockDragToExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the green ship to the exit'**
+  String get gridlockDragToExit;
+
+  /// No description provided for @gridlockInitializing.
+  ///
+  /// In en, this message translates to:
+  /// **'Initializing...'**
+  String get gridlockInitializing;
+
+  /// No description provided for @gridlockCalculatingDifficulty.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculating difficulty...'**
+  String get gridlockCalculatingDifficulty;
+
+  /// No description provided for @gridlockSearchingDatabase.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching puzzle database...'**
+  String get gridlockSearchingDatabase;
+
+  /// No description provided for @gridlockSelectingPuzzle.
+  ///
+  /// In en, this message translates to:
+  /// **'Selecting puzzle...'**
+  String get gridlockSelectingPuzzle;
+
+  /// No description provided for @gridlockLoadingConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading puzzle configuration...'**
+  String get gridlockLoadingConfig;
+
+  /// No description provided for @gridlockGeneratingPuzzle.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating custom puzzle...'**
+  String get gridlockGeneratingPuzzle;
+
+  /// No description provided for @gridlockReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready!'**
+  String get gridlockReady;
+
+  /// No description provided for @gridlockError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error! Using fallback...'**
+  String get gridlockError;
+
+  /// No description provided for @gridlockComplexity.
+  ///
+  /// In en, this message translates to:
+  /// **'Complexity: {value}'**
+  String gridlockComplexity(String value);
+
+  /// No description provided for @puzzleGenerationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Puzzle Generation Failed'**
+  String get puzzleGenerationFailed;
+
+  /// No description provided for @puzzleGenerationFailedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to generate puzzle. Please try again.'**
+  String get puzzleGenerationFailedDesc;
+
+  /// No description provided for @puzzleGenerationFailedDescAlt.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to generate a puzzle. Would you like to try again or return to the main menu?'**
+  String get puzzleGenerationFailedDescAlt;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @tryAgainButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get tryAgainButton;
+
+  /// No description provided for @creatureForgeAlreadyDiscovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Already discovered this creature!'**
+  String get creatureForgeAlreadyDiscovered;
+
+  /// No description provided for @creatureForgeInvalidCombo.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid combination! {constraint}'**
+  String creatureForgeInvalidCombo(String constraint);
+
+  /// No description provided for @creatureForgeNotQuiteAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Not quite! You said {answer}, try again.'**
+  String creatureForgeNotQuiteAnswer(int answer);
+
+  /// No description provided for @creatureForgeTotalPossible.
+  ///
+  /// In en, this message translates to:
+  /// **'Total possible: '**
+  String get creatureForgeTotalPossible;
+
+  /// No description provided for @creatureForgeSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'SUBMIT'**
+  String get creatureForgeSubmit;
+
+  /// No description provided for @creatureForgeFoundSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'You found {count} species!\nCorrect total: {total}'**
+  String creatureForgeFoundSpecies(int count, int total);
+
+  /// No description provided for @creatureForgeConstraintWingedSpiked.
+  ///
+  /// In en, this message translates to:
+  /// **'Winged bodies cannot pair with spiked tails'**
+  String get creatureForgeConstraintWingedSpiked;
+
+  /// No description provided for @creatureForgeConstraintAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Winged bodies need crystal heads\nAquatic bodies reject flame tails'**
+  String get creatureForgeConstraintAdvanced;
+
+  /// No description provided for @bubbleNextTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Next target: '**
+  String get bubbleNextTarget;
+
+  /// No description provided for @bubbleAllTargetsPopped.
+  ///
+  /// In en, this message translates to:
+  /// **'All targets popped'**
+  String get bubbleAllTargetsPopped;
+
+  /// No description provided for @bubbleTimeBonusPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Bonus: {points} points!'**
+  String bubbleTimeBonusPoints(int points);
+
+  /// No description provided for @xenoCensusReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Census Report'**
+  String get xenoCensusReport;
+
+  /// No description provided for @xenoEyes.
+  ///
+  /// In en, this message translates to:
+  /// **'Eyes'**
+  String get xenoEyes;
+
+  /// No description provided for @xenoLegs.
+  ///
+  /// In en, this message translates to:
+  /// **'Legs'**
+  String get xenoLegs;
+
+  /// No description provided for @xenoCreatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Creatures'**
+  String get xenoCreatures;
+
+  /// No description provided for @xenoTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target: '**
+  String get xenoTarget;
+
+  /// No description provided for @xenoYours.
+  ///
+  /// In en, this message translates to:
+  /// **'Yours: '**
+  String get xenoYours;
+
+  /// No description provided for @sectorMinColors.
+  ///
+  /// In en, this message translates to:
+  /// **'Min colors: {count}'**
+  String sectorMinColors(int count);
+
+  /// No description provided for @sectorPainted.
+  ///
+  /// In en, this message translates to:
+  /// **'Painted: {done}/{total}'**
+  String sectorPainted(int done, int total);
+
+  /// No description provided for @sectorColors.
+  ///
+  /// In en, this message translates to:
+  /// **'Colors'**
+  String get sectorColors;
+
+  /// No description provided for @sectorOptimalColoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimal coloring!'**
+  String get sectorOptimalColoring;
+
+  /// No description provided for @warpFoldStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Fold {step}: {direction}'**
+  String warpFoldStep(int step, String direction);
+
+  /// No description provided for @warpCutHoles.
+  ///
+  /// In en, this message translates to:
+  /// **'Cut {count} hole(s)...'**
+  String warpCutHoles(int count);
+
+  /// No description provided for @warpWhichPattern.
+  ///
+  /// In en, this message translates to:
+  /// **'Which pattern appears when unfolded?'**
+  String get warpWhichPattern;
+
+  /// No description provided for @warpFoldsAndCuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Folds: {folds}  |  Cuts: {cuts}'**
+  String warpFoldsAndCuts(String folds, int cuts);
+
+  /// No description provided for @warpDirLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'\u2190 Left'**
+  String get warpDirLeft;
+
+  /// No description provided for @warpDirRight.
+  ///
+  /// In en, this message translates to:
+  /// **'\u2192 Right'**
+  String get warpDirRight;
+
+  /// No description provided for @warpDirUp.
+  ///
+  /// In en, this message translates to:
+  /// **'\u2191 Up'**
+  String get warpDirUp;
+
+  /// No description provided for @warpDirDown.
+  ///
+  /// In en, this message translates to:
+  /// **'\u2193 Down'**
+  String get warpDirDown;
+
+  /// No description provided for @circuitInvalidTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a valid time! {remaining} attempts left.'**
+  String circuitInvalidTime(int remaining);
+
+  /// No description provided for @circuitSwapInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Two digits on this clock swapped places! Tap two digit positions to swap them back.'**
+  String get circuitSwapInstruction;
+
+  /// No description provided for @circuitAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Attempts: {remaining} / {total}'**
+  String circuitAttempts(int remaining, int total);
+
+  /// No description provided for @circuitPositionSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Position {pos} selected -- tap another digit'**
+  String circuitPositionSelected(int pos);
+
+  /// No description provided for @circuitSwapPositions.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap: position {pos1} <-> position {pos2}'**
+  String circuitSwapPositions(int pos1, int pos2);
+
+  /// No description provided for @circuitResultValid.
+  ///
+  /// In en, this message translates to:
+  /// **'Result: {time} (valid!)'**
+  String circuitResultValid(String time);
+
+  /// No description provided for @circuitResultInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Result: {time} (invalid)'**
+  String circuitResultInvalid(String time);
+
+  /// No description provided for @circuitTapToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a digit on the clock to start'**
+  String get circuitTapToStart;
+
+  /// No description provided for @circuitClockNowReads.
+  ///
+  /// In en, this message translates to:
+  /// **'The clock now reads {time}'**
+  String circuitClockNowReads(String time);
+
+  /// No description provided for @circuitCorrectTimeWas.
+  ///
+  /// In en, this message translates to:
+  /// **'The correct time was {time}'**
+  String circuitCorrectTimeWas(String time);
+
+  /// No description provided for @chronoClockRunsFast.
+  ///
+  /// In en, this message translates to:
+  /// **'This clock runs {hours} hours fast'**
+  String chronoClockRunsFast(int hours);
+
+  /// No description provided for @chronoClockMirrored.
+  ///
+  /// In en, this message translates to:
+  /// **'This clock is horizontally mirrored'**
+  String get chronoClockMirrored;
+
+  /// No description provided for @chronoClockRunsFastCombined.
+  ///
+  /// In en, this message translates to:
+  /// **'This clock runs {hours} h {minutes} min fast'**
+  String chronoClockRunsFastCombined(int hours, int minutes);
+
+  /// No description provided for @chronoWhatIsCorrectTime.
+  ///
+  /// In en, this message translates to:
+  /// **'What is the correct time?'**
+  String get chronoWhatIsCorrectTime;
+
+  /// No description provided for @asteroidDuelMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine {count}!'**
+  String asteroidDuelMine(int count);
+
+  /// No description provided for @asteroidDuelTapToSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap asteroids to select (1-{max})'**
+  String asteroidDuelTapToSelect(int max);
+
+  /// No description provided for @asteroidDuelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hint: Try to leave {safe}+1 = {safeP1} asteroids for the AI. The key pattern is multiples of {safe}, plus 1.'**
+  String asteroidDuelHint(int safe, int safeP1);
+
+  /// No description provided for @crewManifestClues.
+  ///
+  /// In en, this message translates to:
+  /// **'Clues:'**
+  String get crewManifestClues;
+
+  /// No description provided for @crewManifestMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Match'**
+  String get crewManifestMatch;
+
+  /// No description provided for @crewManifestEliminate.
+  ///
+  /// In en, this message translates to:
+  /// **'Eliminate'**
+  String get crewManifestEliminate;
+
+  /// No description provided for @alienTribunalTruth.
+  ///
+  /// In en, this message translates to:
+  /// **'Truth'**
+  String get alienTribunalTruth;
+
+  /// No description provided for @alienTribunalLiar.
+  ///
+  /// In en, this message translates to:
+  /// **'Liar'**
+  String get alienTribunalLiar;
+
+  /// No description provided for @puzzleAllPiecesPlaced.
+  ///
+  /// In en, this message translates to:
+  /// **'All pieces placed!'**
+  String get puzzleAllPiecesPlaced;
+
+  /// No description provided for @signalNoAttemptsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No attempts yet'**
+  String get signalNoAttemptsYet;
+
+  /// No description provided for @perspectiveDragHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag ±15°'**
+  String get perspectiveDragHint;
+
+  /// No description provided for @allTargetsPopped.
+  ///
+  /// In en, this message translates to:
+  /// **'All targets popped'**
+  String get allTargetsPopped;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

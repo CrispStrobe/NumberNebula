@@ -118,14 +118,14 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       _tailCount = 3;
       _hasConstraints = true;
       _forbiddenCombos = _random.nextInt(3) + 2;
-      _constraintText = 'Winged bodies cannot pair with spiked tails';
+      _constraintText = S.of(context)!.creatureForgeConstraintWingedSpiked;
     } else {
       _headCount = 4;
       _bodyCount = 4;
       _tailCount = 4;
       _hasConstraints = true;
       _forbiddenCombos = _random.nextInt(5) + 3;
-      _constraintText = 'Winged bodies need crystal heads\nAquatic bodies reject flame tails';
+      _constraintText = S.of(context)!.creatureForgeConstraintAdvanced;
     }
 
     _correctAnswer = _headCount * _bodyCount * _tailCount - _forbiddenCombos;
@@ -153,10 +153,10 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
     if (_discoveredCombos.contains(key)) {
       HapticFeedback.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Already discovered this creature!'),
+        SnackBar(
+          content: Text(S.of(context)!.creatureForgeAlreadyDiscovered),
           backgroundColor: SpaceTheme.rocketRed,
-          duration: Duration(seconds: 1),
+          duration: const Duration(seconds: 1),
         ),
       );
       return;
@@ -166,7 +166,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       HapticFeedback.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Invalid combination! $_constraintText'),
+          content: Text(S.of(context)!.creatureForgeInvalidCombo(_constraintText)),
           backgroundColor: SpaceTheme.rocketRed,
           duration: const Duration(seconds: 2),
         ),
@@ -191,7 +191,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       HapticFeedback.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Not quite! You said $answer, try again.'),
+          content: Text(S.of(context)!.creatureForgeNotQuiteAnswer(answer)),
           backgroundColor: SpaceTheme.rocketRed,
           duration: const Duration(seconds: 2),
         ),
@@ -558,7 +558,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Total possible: ', style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
+              Text(S.of(context)!.creatureForgeTotalPossible, style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
               SizedBox(
                 width: 60,
                 child: TextField(
@@ -586,7 +586,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
               ElevatedButton(
                 onPressed: _submitAnswer,
                 style: SpaceTheme.primaryButtonStyle,
-                child: const Text('SUBMIT'),
+                child: Text(S.of(context)!.creatureForgeSubmit),
               ),
             ],
           ),
@@ -615,7 +615,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
                       style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 12),
                   Text(
-                    'You found ${_discoveredCombos.length} species!\nCorrect total: $_correctAnswer',
+                    s.creatureForgeFoundSpecies(_discoveredCombos.length, _correctAnswer),
                     style: SpaceTheme.bodyStyle,
                     textAlign: TextAlign.center,
                   ),

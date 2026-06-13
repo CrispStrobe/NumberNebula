@@ -1579,6 +1579,223 @@
     }
   },
   "chronoRepairLoseTitle": "Immer noch asynchron!",
-  "chronoRepairLoseDesc": "Die angezeigte Zeit ist falsch. Beachte die spezifische Fehlfunktion jeder Uhr, Commander."
+  "chronoRepairLoseDesc": "Die angezeigte Zeit ist falsch. Beachte die spezifische Fehlfunktion jeder Uhr, Commander.",
+
+  "gridlockPlayerShip": "Spielerschiff",
+  "gridlockBlockingShip": "Blockierendes Schiff",
+  "gridlockShip": "Schiff",
+  "gridlockDragHorizontally": "Horizontal ziehen zum Bewegen",
+  "gridlockDragVertically": "Vertikal ziehen zum Bewegen",
+  "gridlockMoves": "Züge",
+  "gridlockTarget": "Ziel",
+  "gridlockShips": "Schiffe",
+  "gridlockResetPuzzle": "Puzzle zurücksetzen",
+  "gridlockDragToExit": "Ziehe das grüne Schiff zum Ausgang",
+  "gridlockInitializing": "Wird geladen...",
+  "gridlockCalculatingDifficulty": "Schwierigkeit wird berechnet...",
+  "gridlockSearchingDatabase": "Puzzle-Datenbank wird durchsucht...",
+  "gridlockSelectingPuzzle": "Puzzle wird ausgewählt...",
+  "gridlockLoadingConfig": "Puzzle-Konfiguration wird geladen...",
+  "gridlockGeneratingPuzzle": "Eigenes Puzzle wird erzeugt...",
+  "gridlockReady": "Bereit!",
+  "gridlockError": "Fehler! Verwende Ersatzpuzzle...",
+  "gridlockComplexity": "Komplexität: {value}",
+  "@gridlockComplexity": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "puzzleGenerationFailed": "Puzzle-Erzeugung fehlgeschlagen",
+  "puzzleGenerationFailedDesc": "Puzzle konnte nicht erzeugt werden. Bitte versuche es erneut.",
+  "puzzleGenerationFailedDescAlt": "Puzzle konnte nicht erzeugt werden. Möchtest du es erneut versuchen oder zum Hauptmenü zurückkehren?",
+  "retry": "Erneut versuchen",
+  "tryAgainButton": "Nochmal",
+
+  "creatureForgeAlreadyDiscovered": "Diese Kreatur wurde bereits entdeckt!",
+  "creatureForgeInvalidCombo": "Ungültige Kombination! {constraint}",
+  "@creatureForgeInvalidCombo": {
+    "placeholders": {
+      "constraint": {"type": "String"}
+    }
+  },
+  "creatureForgeNotQuiteAnswer": "Nicht ganz! Du hast {answer} gesagt, versuch es nochmal.",
+  "@creatureForgeNotQuiteAnswer": {
+    "placeholders": {
+      "answer": {"type": "int"}
+    }
+  },
+  "creatureForgeTotalPossible": "Insgesamt möglich: ",
+  "creatureForgeSubmit": "ABSENDEN",
+  "creatureForgeFoundSpecies": "Du hast {count} Spezies gefunden!\nRichtige Anzahl: {total}",
+  "@creatureForgeFoundSpecies": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "creatureForgeConstraintWingedSpiked": "Geflügelte Körper passen nicht zu Stachelschwänzen",
+  "creatureForgeConstraintAdvanced": "Geflügelte Körper brauchen Kristallköpfe\nAquatische Körper lehnen Flammenschwänze ab",
+
+  "bubbleNextTarget": "Nächstes Ziel: ",
+  "bubbleAllTargetsPopped": "Alle Ziele getroffen",
+  "bubbleTimeBonusPoints": "Zeitbonus: {points} Punkte!",
+  "@bubbleTimeBonusPoints": {
+    "placeholders": {
+      "points": {"type": "int"}
+    }
+  },
+
+  "xenoCensusReport": "Zählung",
+  "xenoEyes": "Augen",
+  "xenoLegs": "Beine",
+  "xenoCreatures": "Kreaturen",
+  "xenoTarget": "Soll: ",
+  "xenoYours": "Dein Wert: ",
+
+  "sectorMinColors": "Min. Farben: {count}",
+  "@sectorMinColors": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "sectorPainted": "Bemalt: {done}/{total}",
+  "@sectorPainted": {
+    "placeholders": {
+      "done": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "sectorColors": "Farben",
+  "sectorOptimalColoring": "Optimale Färbung!",
+
+  "warpFoldStep": "Faltung {step}: {direction}",
+  "@warpFoldStep": {
+    "placeholders": {
+      "step": {"type": "int"},
+      "direction": {"type": "String"}
+    }
+  },
+  "warpCutHoles": "{count} Loch/Löcher schneiden...",
+  "@warpCutHoles": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "warpWhichPattern": "Welches Muster erscheint beim Auffalten?",
+  "warpFoldsAndCuts": "Faltungen: {folds}  |  Schnitte: {cuts}",
+  "@warpFoldsAndCuts": {
+    "placeholders": {
+      "folds": {"type": "String"},
+      "cuts": {"type": "int"}
+    }
+  },
+  "warpDirLeft": "\u2190 Links",
+  "warpDirRight": "\u2192 Rechts",
+  "warpDirUp": "\u2191 Oben",
+  "warpDirDown": "\u2193 Unten",
+
+  "circuitInvalidTime": "Keine gültige Uhrzeit! Noch {remaining} Versuche.",
+  "@circuitInvalidTime": {
+    "placeholders": {
+      "remaining": {"type": "int"}
+    }
+  },
+  "circuitSwapInstruction": "Zwei Ziffern dieser Uhr sind vertauscht! Tippe auf zwei Ziffernpositionen, um sie zurückzutauschen.",
+  "circuitAttempts": "Versuche: {remaining} / {total}",
+  "@circuitAttempts": {
+    "placeholders": {
+      "remaining": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "circuitPositionSelected": "Position {pos} ausgewählt – tippe auf eine andere Ziffer",
+  "@circuitPositionSelected": {
+    "placeholders": {
+      "pos": {"type": "int"}
+    }
+  },
+  "circuitSwapPositions": "Tausch: Position {pos1} <-> Position {pos2}",
+  "@circuitSwapPositions": {
+    "placeholders": {
+      "pos1": {"type": "int"},
+      "pos2": {"type": "int"}
+    }
+  },
+  "circuitResultValid": "Ergebnis: {time} (gültig!)",
+  "@circuitResultValid": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "circuitResultInvalid": "Ergebnis: {time} (ungültig)",
+  "@circuitResultInvalid": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "circuitTapToStart": "Tippe auf eine Ziffer, um zu beginnen",
+  "circuitClockNowReads": "Die Uhr zeigt jetzt {time}",
+  "@circuitClockNowReads": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "circuitCorrectTimeWas": "Die korrekte Uhrzeit war {time}",
+  "@circuitCorrectTimeWas": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+
+  "chronoClockRunsFast": "Diese Uhr geht {hours} Stunden vor",
+  "@chronoClockRunsFast": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "chronoClockMirrored": "Diese Uhr ist horizontal gespiegelt",
+  "chronoClockRunsFastCombined": "Diese Uhr geht {hours} h {minutes} min vor",
+  "@chronoClockRunsFastCombined": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
+  "chronoWhatIsCorrectTime": "Wie spät ist es wirklich?",
+
+  "asteroidDuelMine": "{count} abbauen!",
+  "@asteroidDuelMine": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "asteroidDuelTapToSelect": "Tippe auf Asteroiden (1-{max})",
+  "@asteroidDuelTapToSelect": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
+  "asteroidDuelHint": "Tipp: Versuche {safe}+1 = {safeP1} Asteroiden für die KI zu lassen. Das Schlüsselmuster sind Vielfache von {safe}, plus 1.",
+  "@asteroidDuelHint": {
+    "placeholders": {
+      "safe": {"type": "int"},
+      "safeP1": {"type": "int"}
+    }
+  },
+
+  "crewManifestClues": "Hinweise:",
+  "crewManifestMatch": "Treffer",
+  "crewManifestEliminate": "Ausschließen",
+
+  "alienTribunalTruth": "Wahrheit",
+  "alienTribunalLiar": "Lügner",
+
+  "puzzleAllPiecesPlaced": "Alle Teile platziert!",
+
+  "signalNoAttemptsYet": "Noch keine Versuche",
+
+  "perspectiveDragHint": "Ziehen ±15°",
+
+  "allTargetsPopped": "Alle Ziele getroffen"
 
 }

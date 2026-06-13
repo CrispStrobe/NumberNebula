@@ -125,14 +125,14 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       _offsetMinutes = 0;
       _displayedHour = ((_correctHour + _offsetHours - 1) % 12) + 1;
       _displayedMinute = _correctMinute;
-      _malfunctionHint = 'This clock runs $_offsetHours hours fast';
+      _malfunctionHint = S.of(context)!.chronoClockRunsFast(_offsetHours);
     } else if (grade == 2) {
       // Mirror: hour hand and minute hand positions swap visually
       _malfunction = ClockMalfunction.mirror;
       _displayedHour = ((12 - _correctHour) % 12);
       if (_displayedHour == 0) _displayedHour = 12;
       _displayedMinute = (60 - _correctMinute) % 60;
-      _malfunctionHint = 'This clock is horizontally mirrored';
+      _malfunctionHint = S.of(context)!.chronoClockMirrored;
     } else {
       // Combined: offset + mirror or offset with minutes
       _malfunction = ClockMalfunction.combined;
@@ -143,7 +143,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       _displayedHour = ((totalMinutes ~/ 60) % 12);
       if (_displayedHour == 0) _displayedHour = 12;
       _displayedMinute = totalMinutes % 60;
-      _malfunctionHint = 'This clock runs $_offsetHours h $_offsetMinutes min fast';
+      _malfunctionHint = S.of(context)!.chronoClockRunsFastCombined(_offsetHours, _offsetMinutes);
     }
 
     // Create MathProblem for SRI tracking
@@ -471,7 +471,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   Widget _buildRollerInput() {
     return Column(
       children: [
-        Text('What is the correct time?',
+        Text(S.of(context)!.chronoWhatIsCorrectTime,
             style: SpaceTheme.titleStyle.copyWith(fontSize: 16)),
         const SizedBox(height: 12),
         Container(

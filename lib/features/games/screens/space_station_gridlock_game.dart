@@ -54,7 +54,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
 
   double _cellSize = 50.0;
   bool _isLoading = false;
-  String _loadingStatus = 'Initializing...';
+  String _loadingStatus = '';
   
   String? _currentPuzzleId;
   double _currentComplexity = 1.0;
@@ -71,7 +71,9 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     });
     
     _setupAnimationControllers();
-    _loadPuzzleAsync();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _loadPuzzleAsync();
+    });
   }
 
   void _log(String message, [Map<String, dynamic>? data]) {
@@ -139,7 +141,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     
     setState(() {
       _isLoading = true;
-      _loadingStatus = 'Calculating difficulty...';
+      _loadingStatus = S.of(context)!.gridlockCalculatingDifficulty;
     });
 
     try {
@@ -169,7 +171,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
         'level': widget.level,
       });
       
-      setState(() => _loadingStatus = 'Searching puzzle database...');
+      setState(() => _loadingStatus = S.of(context)!.gridlockSearchingDatabase);
       await Future.delayed(const Duration(milliseconds: 100));
       if (!mounted) return;
 
@@ -192,7 +194,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       });
 
       if (availablePuzzles.isNotEmpty) {
-        setState(() => _loadingStatus = 'Selecting puzzle...');
+        setState(() => _loadingStatus = S.of(context)!.gridlockSelectingPuzzle);
         await Future.delayed(const Duration(milliseconds: 100));
         
         final random = math.Random();
@@ -208,7 +210,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
         _currentPuzzleId = selectedPuzzle.id;
         tracker.markPuzzleAsPlayed(selectedPuzzle.id);
         
-        setState(() => _loadingStatus = 'Loading puzzle configuration...');
+        setState(() => _loadingStatus = S.of(context)!.gridlockLoadingConfig);
         await Future.delayed(const Duration(milliseconds: 100));
         
         _loadPuzzleFromData(selectedPuzzle);
@@ -216,20 +218,20 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
         _log('✅ Puzzle loaded successfully');
       } else {
         _log('⚠️  No unused puzzles available, generating fallback');
-        setState(() => _loadingStatus = 'Generating custom puzzle...');
+        setState(() => _loadingStatus = S.of(context)!.gridlockGeneratingPuzzle);
         await Future.delayed(const Duration(milliseconds: 100));
         
         await _generateFallbackPuzzle(_currentComplexity);
       }
       
-      setState(() => _loadingStatus = 'Ready!');
+      setState(() => _loadingStatus = S.of(context)!.gridlockReady);
       await Future.delayed(const Duration(milliseconds: 200));
       
     } catch (e, stack) {
       _log('❌ ERROR loading puzzle: $e');
       debugPrint('Stack trace: $stack');
       
-      setState(() => _loadingStatus = 'Error! Using fallback...');
+      setState(() => _loadingStatus = S.of(context)!.gridlockError);
       await Future.delayed(const Duration(milliseconds: 500));
       
       await _generateFallbackPuzzle(_currentComplexity);
@@ -681,7 +683,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
               ),
               Expanded(
                 child: Text(
-                  'Level ${widget.level}',
+                  '${S.of(context)!.level} ${widget.level}',
                   style: SpaceTheme.headlineStyle.copyWith(fontSize: 18),
                   textAlign: TextAlign.center,
                 ),
@@ -697,9 +699,9 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildCompactStat('Moves', '$moveCount', SpaceTheme.alienGreen),
-              _buildCompactStat('Target', '$minMoves', SpaceTheme.starYellow),
-              _buildCompactStat('Ships', '${ships.length}', SpaceTheme.cosmicPink),
+              _buildCompactStat(S.of(context)!.gridlockMoves, '$moveCount', SpaceTheme.alienGreen),
+              _buildCompactStat(S.of(context)!.gridlockTarget, '$minMoves', SpaceTheme.starYellow),
+              _buildCompactStat(S.of(context)!.gridlockShips, '${ships.length}', SpaceTheme.cosmicPink),
               if (gameActive) ...[
                 IconButton(
                   onPressed: () {
@@ -709,7 +711,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                     });
                   },
                   icon: const Icon(Icons.refresh, color: SpaceTheme.nebulaPurple),
-                  tooltip: 'Reset Puzzle',
+                  tooltip: S.of(context)!.gridlockResetPuzzle,
                 ),
               ],
             ],
@@ -720,7 +722,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Drag the green ship to the exit',
+            S.of(context)!.gridlockDragToExit,
             style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white70),
             textAlign: TextAlign.center,
           ),
@@ -759,7 +761,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Lvl ${widget.level}',
+                      '${S.of(context)!.level} ${widget.level}',
                       style: SpaceTheme.headlineStyle.copyWith(fontSize: isTinyScreen ? 14 : 16),
                     ),
                     const SizedBox(width: 12),
@@ -806,14 +808,14 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
               ),
               const SizedBox(height: 8),
               Text(
-                'Level ${widget.level}',
+                '${S.of(context)!.level} ${widget.level}',
                 style: SpaceTheme.headlineStyle.copyWith(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
               const Spacer(),
-              _buildVerticalStat('Moves', '$moveCount', SpaceTheme.alienGreen),
+              _buildVerticalStat(S.of(context)!.gridlockMoves, '$moveCount', SpaceTheme.alienGreen),
               const SizedBox(height: 8),
-              _buildVerticalStat('Target', '$minMoves', SpaceTheme.starYellow),
+              _buildVerticalStat(S.of(context)!.gridlockTarget, '$minMoves', SpaceTheme.starYellow),
               const Spacer(),
               if (gameActive) ...[
                 IconButton(
@@ -1052,9 +1054,9 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       top: ship.row * cellSize + padding,
       child: Semantics(
         label: ship.isPlayer
-            ? 'Player ship'
-            : (ship.isBlocking ? 'Blocking ship' : 'Ship'),
-        hint: ship.isHorizontal ? 'Drag horizontally to move' : 'Drag vertically to move',
+            ? S.of(context)!.gridlockPlayerShip
+            : (ship.isBlocking ? S.of(context)!.gridlockBlockingShip : S.of(context)!.gridlockShip),
+        hint: ship.isHorizontal ? S.of(context)!.gridlockDragHorizontally : S.of(context)!.gridlockDragVertically,
         button: true,
         child: GestureDetector(
         onPanStart: (details) => _onPanStart(details, index),
@@ -1137,12 +1139,12 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
             ),
             const SizedBox(height: 12),
             Text(
-              'Grade ${widget.grade} • Level ${widget.level}',
+              '${S.of(context)!.grade} ${widget.grade} • ${S.of(context)!.level} ${widget.level}',
               style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
             ),
             const SizedBox(height: 8),
             Text(
-              'Complexity: ${_currentComplexity.toStringAsFixed(1)}',
+              S.of(context)!.gridlockComplexity(_currentComplexity.toStringAsFixed(1)),
               style: SpaceTheme.bodyStyle.copyWith(
                 fontSize: 12,
                 color: SpaceTheme.starYellow,
@@ -1154,9 +1156,9 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                 _log('❌ Load cancelled by user');
                 Navigator.of(context).pop();
               },
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: SpaceTheme.cosmicPink),
+              child: Text(
+                S.of(context)!.cancel,
+                style: const TextStyle(color: SpaceTheme.cosmicPink),
               ),
             ),
           ],

@@ -1659,6 +1659,223 @@
     }
   },
   "chronoRepairLoseTitle": "Still Out of Sync!",
-  "chronoRepairLoseDesc": "The displayed time is incorrect. Consider the specific malfunction of each clock, Commander."
+  "chronoRepairLoseDesc": "The displayed time is incorrect. Consider the specific malfunction of each clock, Commander.",
+
+  "gridlockPlayerShip": "Player ship",
+  "gridlockBlockingShip": "Blocking ship",
+  "gridlockShip": "Ship",
+  "gridlockDragHorizontally": "Drag horizontally to move",
+  "gridlockDragVertically": "Drag vertically to move",
+  "gridlockMoves": "Moves",
+  "gridlockTarget": "Target",
+  "gridlockShips": "Ships",
+  "gridlockResetPuzzle": "Reset Puzzle",
+  "gridlockDragToExit": "Drag the green ship to the exit",
+  "gridlockInitializing": "Initializing...",
+  "gridlockCalculatingDifficulty": "Calculating difficulty...",
+  "gridlockSearchingDatabase": "Searching puzzle database...",
+  "gridlockSelectingPuzzle": "Selecting puzzle...",
+  "gridlockLoadingConfig": "Loading puzzle configuration...",
+  "gridlockGeneratingPuzzle": "Generating custom puzzle...",
+  "gridlockReady": "Ready!",
+  "gridlockError": "Error! Using fallback...",
+  "gridlockComplexity": "Complexity: {value}",
+  "@gridlockComplexity": {
+    "placeholders": {
+      "value": {"type": "String"}
+    }
+  },
+  "puzzleGenerationFailed": "Puzzle Generation Failed",
+  "puzzleGenerationFailedDesc": "Unable to generate puzzle. Please try again.",
+  "puzzleGenerationFailedDescAlt": "Unable to generate a puzzle. Would you like to try again or return to the main menu?",
+  "retry": "Retry",
+  "tryAgainButton": "Try Again",
+
+  "creatureForgeAlreadyDiscovered": "Already discovered this creature!",
+  "creatureForgeInvalidCombo": "Invalid combination! {constraint}",
+  "@creatureForgeInvalidCombo": {
+    "placeholders": {
+      "constraint": {"type": "String"}
+    }
+  },
+  "creatureForgeNotQuiteAnswer": "Not quite! You said {answer}, try again.",
+  "@creatureForgeNotQuiteAnswer": {
+    "placeholders": {
+      "answer": {"type": "int"}
+    }
+  },
+  "creatureForgeTotalPossible": "Total possible: ",
+  "creatureForgeSubmit": "SUBMIT",
+  "creatureForgeFoundSpecies": "You found {count} species!\nCorrect total: {total}",
+  "@creatureForgeFoundSpecies": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "creatureForgeConstraintWingedSpiked": "Winged bodies cannot pair with spiked tails",
+  "creatureForgeConstraintAdvanced": "Winged bodies need crystal heads\nAquatic bodies reject flame tails",
+
+  "bubbleNextTarget": "Next target: ",
+  "bubbleAllTargetsPopped": "All targets popped",
+  "bubbleTimeBonusPoints": "Time Bonus: {points} points!",
+  "@bubbleTimeBonusPoints": {
+    "placeholders": {
+      "points": {"type": "int"}
+    }
+  },
+
+  "xenoCensusReport": "Census Report",
+  "xenoEyes": "Eyes",
+  "xenoLegs": "Legs",
+  "xenoCreatures": "Creatures",
+  "xenoTarget": "Target: ",
+  "xenoYours": "Yours: ",
+
+  "sectorMinColors": "Min colors: {count}",
+  "@sectorMinColors": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "sectorPainted": "Painted: {done}/{total}",
+  "@sectorPainted": {
+    "placeholders": {
+      "done": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "sectorColors": "Colors",
+  "sectorOptimalColoring": "Optimal coloring!",
+
+  "warpFoldStep": "Fold {step}: {direction}",
+  "@warpFoldStep": {
+    "placeholders": {
+      "step": {"type": "int"},
+      "direction": {"type": "String"}
+    }
+  },
+  "warpCutHoles": "Cut {count} hole(s)...",
+  "@warpCutHoles": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "warpWhichPattern": "Which pattern appears when unfolded?",
+  "warpFoldsAndCuts": "Folds: {folds}  |  Cuts: {cuts}",
+  "@warpFoldsAndCuts": {
+    "placeholders": {
+      "folds": {"type": "String"},
+      "cuts": {"type": "int"}
+    }
+  },
+  "warpDirLeft": "\u2190 Left",
+  "warpDirRight": "\u2192 Right",
+  "warpDirUp": "\u2191 Up",
+  "warpDirDown": "\u2193 Down",
+
+  "circuitInvalidTime": "Not a valid time! {remaining} attempts left.",
+  "@circuitInvalidTime": {
+    "placeholders": {
+      "remaining": {"type": "int"}
+    }
+  },
+  "circuitSwapInstruction": "Two digits on this clock swapped places! Tap two digit positions to swap them back.",
+  "circuitAttempts": "Attempts: {remaining} / {total}",
+  "@circuitAttempts": {
+    "placeholders": {
+      "remaining": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "circuitPositionSelected": "Position {pos} selected -- tap another digit",
+  "@circuitPositionSelected": {
+    "placeholders": {
+      "pos": {"type": "int"}
+    }
+  },
+  "circuitSwapPositions": "Swap: position {pos1} <-> position {pos2}",
+  "@circuitSwapPositions": {
+    "placeholders": {
+      "pos1": {"type": "int"},
+      "pos2": {"type": "int"}
+    }
+  },
+  "circuitResultValid": "Result: {time} (valid!)",
+  "@circuitResultValid": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "circuitResultInvalid": "Result: {time} (invalid)",
+  "@circuitResultInvalid": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "circuitTapToStart": "Tap a digit on the clock to start",
+  "circuitClockNowReads": "The clock now reads {time}",
+  "@circuitClockNowReads": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "circuitCorrectTimeWas": "The correct time was {time}",
+  "@circuitCorrectTimeWas": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+
+  "chronoClockRunsFast": "This clock runs {hours} hours fast",
+  "@chronoClockRunsFast": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "chronoClockMirrored": "This clock is horizontally mirrored",
+  "chronoClockRunsFastCombined": "This clock runs {hours} h {minutes} min fast",
+  "@chronoClockRunsFastCombined": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
+  "chronoWhatIsCorrectTime": "What is the correct time?",
+
+  "asteroidDuelMine": "Mine {count}!",
+  "@asteroidDuelMine": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "asteroidDuelTapToSelect": "Tap asteroids to select (1-{max})",
+  "@asteroidDuelTapToSelect": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
+  "asteroidDuelHint": "Hint: Try to leave {safe}+1 = {safeP1} asteroids for the AI. The key pattern is multiples of {safe}, plus 1.",
+  "@asteroidDuelHint": {
+    "placeholders": {
+      "safe": {"type": "int"},
+      "safeP1": {"type": "int"}
+    }
+  },
+
+  "crewManifestClues": "Clues:",
+  "crewManifestMatch": "Match",
+  "crewManifestEliminate": "Eliminate",
+
+  "alienTribunalTruth": "Truth",
+  "alienTribunalLiar": "Liar",
+
+  "puzzleAllPiecesPlaced": "All pieces placed!",
+
+  "signalNoAttemptsYet": "No attempts yet",
+
+  "perspectiveDragHint": "Drag ±15°",
+
+  "allTargetsPopped": "All targets popped"
 
 }

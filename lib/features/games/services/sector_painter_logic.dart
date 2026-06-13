@@ -374,6 +374,15 @@ class SectorPainterGenerator {
   }
 }
 
+/// Top-level function for use with [compute] to offload generation to an isolate.
+SectorPainterPuzzle generateSectorPainterPuzzle(Map<String, dynamic> args) {
+  final grade = args['grade'] as int;
+  final level = args['level'] as int;
+  final seed = args['seed'] as int;
+  final generator = SectorPainterGenerator(seed: seed);
+  return generator.generate(grade: grade, level: level);
+}
+
 class _Edge {
   final int a;
   final int b;

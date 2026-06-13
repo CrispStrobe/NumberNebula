@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -91,7 +92,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
   CellMark _getMark(int row, int col) =>
       _gridState[_cellKey(row, col)] ?? CellMark.empty;
 
-  void _generatePuzzle() {
+  void _generatePuzzle() async {
     if (currentDifficulty == null) return;
 
     setState(() {
@@ -103,7 +104,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
       _successController.reset();
     });
 
-    final generated = CrewManifestLogic.generate({
+    final generated = await compute(CrewManifestLogic.generate, {
       'grade': widget.grade,
       'level': widget.level,
       'difficulty': currentDifficulty!,
@@ -582,7 +583,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
                 children: [
                   const Icon(Icons.lightbulb, color: SpaceTheme.starYellow, size: 18),
                   const SizedBox(width: 8),
-                  Text('Clues:', style: SpaceTheme.titleStyle.copyWith(fontSize: 14)),
+                  Text(S.of(context)!.crewManifestClues, style: SpaceTheme.titleStyle.copyWith(fontSize: 14)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -615,11 +616,11 @@ class _CrewManifestGameState extends State<CrewManifestGame>
           children: [
             const Icon(Icons.check_circle, color: SpaceTheme.alienGreen, size: 18),
             const SizedBox(width: 4),
-            Text('Match', style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
+            Text(S.of(context)!.crewManifestMatch, style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
             const SizedBox(width: 16),
             const Icon(Icons.close, color: SpaceTheme.rocketRed, size: 18),
             const SizedBox(width: 4),
-            Text('Eliminate', style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
+            Text(S.of(context)!.crewManifestEliminate, style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
           ],
         ),
         const SizedBox(height: 12),

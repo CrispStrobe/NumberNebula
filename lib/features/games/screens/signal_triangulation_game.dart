@@ -776,7 +776,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     if (previousGuesses.isEmpty) {
       return Center(
         child: Text(
-          'No attempts yet',
+          S.of(context)!.signalNoAttemptsYet,
           style: SpaceTheme.bodyStyle.copyWith(color: Colors.white60),
         ),
       );

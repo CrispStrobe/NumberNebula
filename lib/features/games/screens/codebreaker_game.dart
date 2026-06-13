@@ -168,22 +168,22 @@ class _CodebreakerGameState extends State<CodebreakerGame>
           context: context,
           barrierDismissible: false,
           builder: (context) => AlertDialog(
-            title: const Text('Puzzle Generation Failed'),
-            content: const Text('Unable to generate a puzzle. Would you like to try again or return to the main menu?'),
+            title: Text(S.of(context)!.puzzleGenerationFailed),
+            content: Text(S.of(context)!.puzzleGenerationFailedDescAlt),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop(); // Close dialog
                   _generatePuzzle(); // Retry
                 },
-                child: const Text('Try Again'),
+                child: Text(S.of(context)!.tryAgainButton),
               ),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop(); // Close dialog
                   Navigator.of(context).pop(); // Return to menu
                 },
-                child: const Text('Back to Menu'),
+                child: Text(S.of(context)!.backToMenu),
               ),
             ],
           ),

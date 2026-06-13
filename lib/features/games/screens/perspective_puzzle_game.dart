@@ -838,7 +838,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
                     const Icon(Icons.touch_app, color: Colors.white54, size: 16),
                     const SizedBox(width: 4),
                     Text(
-                      'Ziehen ±15°',
+                      S.of(context)!.perspectiveDragHint,
                       style: SpaceTheme.bodyStyle.copyWith(
                         color: Colors.white54,
                         fontSize: 12,

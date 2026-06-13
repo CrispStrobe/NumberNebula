@@ -466,7 +466,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
           ),
           child: Column(
             children: [
-              Text('Census Report',
+              Text(S.of(context)!.xenoCensusReport,
                   style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 18)),
               const SizedBox(height: 12),
               Row(
@@ -474,14 +474,14 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
                 children: [
                   _buildTargetComparison(
                     Icons.visibility,
-                    'Eyes',
+                    S.of(context)!.xenoEyes,
                     _totalEyes,
                     _computedEyes,
                     _eyesMatch,
                   ),
                   _buildTargetComparison(
                     Icons.directions_walk,
-                    'Legs',
+                    S.of(context)!.xenoLegs,
                     _totalLegs,
                     _computedLegs,
                     _legsMatch,
@@ -492,7 +492,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
                 const SizedBox(height: 8),
                 _buildTargetComparison(
                   Icons.pest_control,
-                  'Creatures',
+                  S.of(context)!.xenoCreatures,
                   _totalCreatures,
                   _computedCreatures,
                   _creaturesMatch,
@@ -537,7 +537,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Target: ',
+              Text(S.of(context)!.xenoTarget,
                   style: SpaceTheme.bodyStyle
                       .copyWith(fontSize: 12, color: Colors.white54)),
               Text('$target',
@@ -552,7 +552,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Yours: ',
+              Text(S.of(context)!.xenoYours,
                   style: SpaceTheme.bodyStyle
                       .copyWith(fontSize: 12, color: Colors.white54)),
               Text('$current',
