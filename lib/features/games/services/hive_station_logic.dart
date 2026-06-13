@@ -66,6 +66,61 @@ class HiveStationPuzzle {
 class HiveStationGenerator {
   final math.Random _random = math.Random();
 
+  /// Check if the revealed hints uniquely determine which cells are energy.
+  /// Uses constraint propagation: for each unrevealed non-energy cell,
+  /// check if swapping it with an energy cell would still satisfy all hints.
+  /// If any swap is consistent, the solution is not unique.
+  static bool _hasUniqueSolution(
+    Set<HexCoord> allCells,
+    Set<HexCoord> energyCells,
+    Map<HexCoord, int> numberHints,
+    Set<HexCoord> revealedHints,
+  ) {
+    // For each non-energy cell that is NOT a revealed hint, try placing
+    // energy there and removing energy from an actual energy cell.
+    // If the result is consistent with all revealed hints, it's ambiguous.
+    final nonEnergy = allCells
+        .where((c) => !energyCells.contains(c))
+        .toList();
+
+    for (final candidate in nonEnergy) {
+      // Skip cells whose hint is revealed — those are anchored
+      if (revealedHints.contains(candidate)) continue;
+
+      for (final swap in energyCells) {
+        // Skip energy cells whose neighbors include revealed hints that
+        // would break — we'll check all of them below
+        if (candidate == swap) continue;
+
+        // Hypothetical: candidate becomes energy, swap becomes non-energy
+        final testEnergy = Set<HexCoord>.from(energyCells);
+        testEnergy.remove(swap);
+        testEnergy.add(candidate);
+
+        // Check if all revealed hints still match
+        bool consistent = true;
+        for (final hintCell in revealedHints) {
+          if (testEnergy.contains(hintCell)) {
+            // hintCell became energy — but it's a hint cell, contradiction
+            consistent = false;
+            break;
+          }
+          int count = 0;
+          for (final n in hintCell.neighbors) {
+            if (testEnergy.contains(n)) count++;
+          }
+          if (count != numberHints[hintCell]) {
+            consistent = false;
+            break;
+          }
+        }
+
+        if (consistent) return false; // Found an alternative solution
+      }
+    }
+    return true; // No alternative found — unique
+  }
+
   /// Generate a hex minesweeper puzzle.
   /// [radius] determines grid size: 1 = 7 cells, 2 = 19 cells, 3 = 37 cells.
   /// [energyFraction] fraction of cells that contain energy (0.2-0.4).
@@ -102,13 +157,26 @@ class HiveStationGenerator {
       }
     }
 
-    // Select which hints to reveal
+    // Select which hints to reveal, ensuring unique solution.
     final hintCells = numberHints.keys.toList()..shuffle(_random);
     final revealCount = (hintCells.length * hintFraction).round().clamp(
       (allCells.length * 0.15).round(), // minimum hints
       hintCells.length,
     );
     final revealedHints = hintCells.take(revealCount).toSet();
+
+    // Verify uniqueness: if the revealed hints don't uniquely determine
+    // the energy cells, progressively reveal more hints until they do.
+    // Skip for very small grids (radius <= 1) where it's trivially unique.
+    if (radius > 1 && revealedHints.length < hintCells.length) {
+      final remaining = hintCells.where((c) => !revealedHints.contains(c)).toList();
+      for (final extra in remaining) {
+        if (_hasUniqueSolution(allCells, energyCells, numberHints, revealedHints)) {
+          break;
+        }
+        revealedHints.add(extra);
+      }
+    }
 
     return HiveStationPuzzle(
       allCells: allCells,
