@@ -169,6 +169,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   double gameSpeed = BASE_GAME_SPEED;
   Timer? _speedIncreaseTimer;
   int comboCounter = 0;
+  int _levelScore = 0;
   double _temporarySpeedBoost = 0.0;
 
   // --- Enhanced Features ---
@@ -242,6 +243,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       lives = INITIAL_LIVES;
       gatesCleared = 0;
       comboCounter = 0;
+      _levelScore = 0;
       _temporarySpeedBoost = 0.0;
       hasShield = false;
       timeSlowActive = false;
@@ -650,7 +652,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       
       final scoreMultiplier = comboCounter > 0 ? comboCounter : 1;
       final scoreToAdd = (10 * widget.grade) * scoreMultiplier;
-      context.read<GameProvider>().addScore(scoreToAdd);
+      _levelScore += scoreToAdd;
       
       effects.add(FloatingScore(position: gate.position, text: '+$scoreToAdd'));
       _addGateEntryWarpEffect();
@@ -721,7 +723,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     if (bonusMultiplier < 0.1) return;
 
     final int bonusPoints = (40 * bonusMultiplier).toInt() + 10;
-    context.read<GameProvider>().addScore(bonusPoints);
+    _levelScore += bonusPoints;
     
     setState(() {
       _temporarySpeedBoost = 700.0 * bonusMultiplier;
@@ -809,11 +811,10 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     _gameController.stop();
     
     // DON'T pass mathProblems - already recorded during gameplay
-    // Score already added incrementally; mathProblems already recorded.
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'hyperdrive_gates',
       difficulty: widget.level,
-      score: 0,
+      score: _levelScore,
     ));
     
     showDialog(

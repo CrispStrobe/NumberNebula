@@ -635,6 +635,13 @@ class SEn extends S {
       'Alignment failed. The energy signature is incorrect. Try again!';
 
   @override
+  String get magicTrianglesOutOfMoves => 'Out of Moves!';
+
+  @override
+  String get magicTrianglesOutOfMovesDesc =>
+      'Too many placements! Position each resonator carefully to align the wormhole efficiently.';
+
+  @override
   String get calculatingCoordinates => 'Calculating wormhole coordinates...';
 
   @override
@@ -789,6 +796,13 @@ class SEn extends S {
   @override
   String get numberWallsFail =>
       'Structural integrity compromised! The mathematical foundation is unstable. Try again!';
+
+  @override
+  String get numberWallsOutOfMoves => 'Out of Moves!';
+
+  @override
+  String get numberWallsOutOfMovesDesc =>
+      'Too many placements! Place each building block carefully to stabilize the pyramid.';
 
   @override
   String get numberWallsWinTitle => 'Pyramid Stabilized!';
@@ -1450,6 +1464,13 @@ class SEn extends S {
   @override
   String get kenkenError =>
       'Oops! The solution doesn\'t satisfy all constraints. Check the cage math and Latin square rules!';
+
+  @override
+  String get kenkenOutOfMoves => 'Out of Moves!';
+
+  @override
+  String get kenkenOutOfMovesDesc =>
+      'Too many placements! Think carefully about each number to solve the KenKen grid efficiently.';
 
   @override
   String get kenkenSelectNumbers => 'Drag numbers to fill the grid:';

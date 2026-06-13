@@ -40,9 +40,9 @@ Systematic analysis of all 49 minigames: win/lose conditions, scoring, difficult
 
 **Galactic Market** — SRI reports only 1 division problem per session. Could extract additional arithmetic from the known/unknown coin relationships.
 
-**Arithmancer Duel** — file too large for full analysis. Needs manual review.
+**Arithmancer Duel** — ~~file too large~~ Fully audited: RPG math combat with 5 enemy types, real-time SRI tracking, proper win/loss/scoring. Categorized as patternRecognition but does both arithmetic SRI + cognitive profile tracking (intentional hybrid).
 
-**Hyperdrive Gates** — reports `score: 0` intentionally (accumulated during play). Consider passing final accumulated score in outcome instead for consistency.
+**Hyperdrive Gates** — ~~reports `score: 0`~~ Fixed: score now accumulated locally in `_levelScore` and passed in outcome. Removed direct `addScore()` calls.
 
 ---
 
@@ -131,17 +131,18 @@ Legend:
 - **Outcome:** Modern
 
 ### 3. Arithmancer Duel
-- **Skill:** patternRecognition
-- **Concept:** Pattern-based arithmetic duel
-- **Win:** Complete duel challenges
-- **Lose:** Fail challenges
-- **Score:** Base + level bonus
-- **Difficulty:** DifficultyManager
-- **Timer:** Unknown (file too large for full extraction)
-- **Lives:** Variable
-- **Rounds:** Multiple
-- **SRI:** Hybrid (arithmetic + pattern)
-- **Outcome:** Modern
+- **Skill:** patternRecognition (hybrid — also does real-time SRI arithmetic tracking)
+- **Concept:** RPG-style math combat — build arithmetic expressions to damage enemies with mathematical shields
+- **Win:** Defeat enemy (health→0). Program mode: 5 sequential enemies. PvP: opponent health→0 or higher HP after 25 turns.
+- **Lose:** Player health drops to 0
+- **Score:** Program: `200*G + (playerHealth/maxHealth)*100`. PvP: `300*G`.
+- **Difficulty:** Fixed per enemy (5 enemies with different math shields: primes, parity, squares, Fibonacci, powers-of-2). Not grade/level parametric.
+- **Timer:** None (PvP has 25-turn soft cap with escalating damage after turn 15)
+- **Lives:** Single health pool (100 HP) per battle
+- **Rounds:** Program: 5 battles. PvP: 1 battle. Ladder: 12 battles.
+- **SRI:** Yes — real-time per-expression tracking via `sriService.recordResponse()`. Parses binary operations from player expressions.
+- **Outcome:** Modern (passes real score, not 0)
+- **Note:** Categorized as `patternRecognition` in `gameSkillMap`, so `reportOutcome` routes to CognitiveProfileService. But SRI tracking happens separately via direct calls during gameplay — both systems receive data.
 
 ### 4. Arithmetic Square
 - **Skill:** arithmetic
@@ -421,13 +422,13 @@ Legend:
 - **Concept:** Choose correct math answer gate while flying
 - **Win:** Clear `15 + level` gates
 - **Lose:** Lose all 5 lives
-- **Score:** Per gate: `10*G * comboCounter` (incremental during gameplay) — **reports score: 0 in outcome**
+- **Score:** Per gate: `10*G * comboCounter` (accumulated in `_levelScore`, passed in outcome)
 - **Difficulty:** Speed: `160 + G*15 + L*5` + accelerates; gates increase with level
 - **Timer:** None (continuous speed increase)
 - **Lives:** 5 (shields can absorb 1; max 7 with power-ups)
 - **Rounds:** 15+ gates per session
 - **SRI:** Yes (per-gate real-time recording — NOT in outcome)
-- **Outcome:** Modern — **score: 0 in outcome (already accumulated)**
+- **Outcome:** Modern (score passed via `_levelScore`)
 
 ### 26. Ion Chain
 - **Skill:** logicDeduction
@@ -767,7 +768,7 @@ Legend:
 | **Arithmetic Square** | Reports `score: 0` in GameOutcome.win despite calculating score | Score not tracked in progression |
 | **Perspective Puzzle** | Reports `score: 0` in GameOutcome.win despite calculating finalScore | Score not tracked in progression |
 | **Star Loader** | Reports `score: 0` in GameOutcome.win despite calculating totalScore | Score not tracked in progression |
-| **Hyperdrive Gates** | Reports `score: 0` in GameOutcome (intentional — accumulated during play) | Debatable design choice |
+| **Hyperdrive Gates** | ~~Reports `score: 0`~~ Fixed — now passes `_levelScore` | Resolved |
 | **Bubble Math** | No `reportOutcome()` call at all | Game completions not tracked in progression! |
 | **Puzzle Math** | Uses legacy `GameOutcome()` constructor instead of `.win()/.loss()` | Works but inconsistent |
 
@@ -957,7 +958,7 @@ Consider adding optional/soft timers to more games:
 ```
 Alien Tribunal:        100*G + L*25 + persons*40
 Arithmancer Crosswords: 250*G + eqs*15 + cells*5 + opBonus
-Arithmancer Duel:      (needs verification)
+Arithmancer Duel:      Program: 200*G + healthRatio*100; PvP: 300*G
 Arithmetic Square:     200*G + gridSize²*10 + opBonus  [REPORTS 0]
 Asteroid Duel:         100*G + L*25
 Asteroid Field Nav:    300*G + max(0,(180-sec)*2) + effBonus
@@ -979,7 +980,7 @@ Gravity Well:          100*G + L*25 + scales*30 + unknowns*40
 Grid Filler:           300*G  [FIXED]
 Hive Station:          100*G + L*25
 Hull Plating:          100*G + L*25 + pieces*30
-Hyperdrive Gates:      10*G*combo per gate  [REPORTS 0 in outcome]
+Hyperdrive Gates:      10*G*combo per gate (accumulated in _levelScore)
 Ion Chain:             100*G + L*25
 KenKen:                300*G + gridSize²*15 + cages*20 + opBonus
 Launch Sequence:       100*G + L*25 + (optimal/actual)*100

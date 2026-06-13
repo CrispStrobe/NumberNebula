@@ -48,6 +48,9 @@ class _KenkenGameState extends State<KenkenGame>
   String _lastDroppedPosition = '';
   DifficultyConfig? currentDifficulty;
 
+  int _movesRemaining = 0;
+  int _maxMoves = 0;
+
   @override
   void initState() {
     super.initState();
@@ -143,9 +146,16 @@ class _KenkenGameState extends State<KenkenGame>
         setState(() {
           puzzle = generatedPuzzle;
           numberPool = List.from(generatedPuzzle.numberPool);
+
+          // Calculate max moves: 2x empty cells (generous safety net)
+          final emptyCount = generatedPuzzle.emptyCells.length;
+          _maxMoves = emptyCount * 2;
+          _movesRemaining = _maxMoves;
+
           _isGenerating = false;
         });
         debugPrint("🎯 [KENKEN] UI state updated with new puzzle");
+        debugPrint("🎯 [KENKEN] Max moves allowed: $_maxMoves for ${generatedPuzzle.emptyCells.length} empty cells");
         debugPrint("🎯 [KENKEN] Number pool: ${numberPool.join(', ')}");
         debugPrint("🎯 [KENKEN] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
       }
@@ -163,10 +173,21 @@ class _KenkenGameState extends State<KenkenGame>
       // DON'T remove number from pool - numbers are reusable in Kenken
       _lastDroppedPosition = cellId;
       _dropController.forward(from: 0.0);
+
+      // Decrement moves on placement
+      _movesRemaining--;
+      debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
     });
 
     debugPrint("🎮 [PLACE] User solution after: $userSolution");
     debugPrint("🎮 [PLACE] Number pool remains: $numberPool");
+
+    // Check if out of moves BEFORE checking solution
+    if (_movesRemaining <= 0 && userSolution.length < puzzle!.emptyCells.length) {
+      _handleOutOfMoves();
+      return;
+    }
+
     _checkSolution();
   }
 
@@ -369,6 +390,122 @@ class _KenkenGameState extends State<KenkenGame>
     );
   }
 
+  void _handleFailure() {
+    debugPrint("❌ [KENKEN] FAILURE - recording loss");
+    final mathProblems = _extractMathProblems(userSolution);
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      gameType: 'kenken',
+      difficulty: widget.level,
+      mathProblems: mathProblems,
+    ));
+  }
+
+  void _handleOutOfMoves() {
+    debugPrint("❌ [KENKEN] Out of moves! Game over.");
+    _handleFailure();
+
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => _buildOutOfMovesDialog(),
+      );
+    }
+  }
+
+  Widget _buildOutOfMovesDialog() {
+    final s = S.of(context)!;
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: SpaceTheme.cardDecoration.copyWith(
+          border: Border.all(color: SpaceTheme.rocketRed, width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
+            const SizedBox(height: 16),
+            Text(
+              s.kenkenOutOfMoves,
+              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              s.kenkenOutOfMovesDesc,
+              style: SpaceTheme.bodyStyle,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _generatePuzzle();
+                  },
+                  style: SpaceTheme.secondaryButtonStyle,
+                  child: Text(s.tryAgain),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  style: SpaceTheme.primaryButtonStyle,
+                  child: Text(s.backToMenu),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMovesIndicator({required bool isCompact}) {
+    final fontSize = isCompact ? 12.0 : 14.0;
+    final iconSize = isCompact ? 16.0 : 20.0;
+
+    Color indicatorColor;
+    if (_movesRemaining <= 3) {
+      indicatorColor = SpaceTheme.rocketRed;
+    } else if (_movesRemaining <= 5) {
+      indicatorColor = SpaceTheme.planetOrange;
+    } else {
+      indicatorColor = SpaceTheme.alienGreen;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 8 : 10,
+        vertical: isCompact ? 4 : 6,
+      ),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: indicatorColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.touch_app, color: indicatorColor, size: iconSize),
+          SizedBox(width: isCompact ? 4 : 6),
+          Text(
+            '$_movesRemaining',
+            style: SpaceTheme.titleStyle.copyWith(
+              fontSize: fontSize,
+              color: indicatorColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (puzzle == null || _isGenerating) {
@@ -424,10 +561,22 @@ class _KenkenGameState extends State<KenkenGame>
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text(
-              S.of(context)!.kenkenInstructions,
-              style: SpaceTheme.bodyStyle,
-              textAlign: TextAlign.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    S.of(context)!.kenkenInstructions,
+                    style: SpaceTheme.bodyStyle,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                _buildMovesIndicator(isCompact: false),
+              ],
             ),
           ),
         ],
@@ -467,6 +616,8 @@ class _KenkenGameState extends State<KenkenGame>
           _buildLevelIndicator(isCompact: true),
           const SizedBox(width: 8),
           _buildScoreIndicator(isCompact: true),
+          const SizedBox(width: 8),
+          _buildMovesIndicator(isCompact: true),
         ],
       ),
     );

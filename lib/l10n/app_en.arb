@@ -261,6 +261,8 @@
     },
     "magicTrianglesResonators": "Available Subspace Resonators",
     "magicTrianglesFail": "Alignment failed. The energy signature is incorrect. Try again!",
+    "magicTrianglesOutOfMoves": "Out of Moves!",
+    "magicTrianglesOutOfMovesDesc": "Too many placements! Position each resonator carefully to align the wormhole efficiently.",
     "calculatingCoordinates": "Calculating wormhole coordinates...",
     "magicTrianglesWinTitle": "Wormhole Stabilized!",
     "magicTrianglesWinDesc": "Perfect alignment! The warp corridor is open.\nBonus: +{bonusScore} points!",
@@ -345,6 +347,8 @@
     "numberWallsCalculating": "Calculating pyramid coordinates...",
     "numberWallsBricks": "Available Building Blocks",
     "numberWallsFail": "Structural integrity compromised! The mathematical foundation is unstable. Try again!",
+    "numberWallsOutOfMoves": "Out of Moves!",
+    "numberWallsOutOfMovesDesc": "Too many placements! Place each building block carefully to stabilize the pyramid.",
     "numberWallsWinTitle": "Pyramid Stabilized!",
     "numberWallsWinDesc": "Perfect mathematical alignment! The quantum structure is stable.\nBonus: +{bonusScore} points!",
     "@numberWallsWinDesc": {
@@ -886,6 +890,15 @@
   "kenkenError": "Oops! The solution doesn't satisfy all constraints. Check the cage math and Latin square rules!",
   "@kenkenError": {
     "description": "Error message when KenKen solution is incorrect"
+  },
+
+  "kenkenOutOfMoves": "Out of Moves!",
+  "@kenkenOutOfMoves": {
+    "description": "Title for KenKen out-of-moves dialog"
+  },
+  "kenkenOutOfMovesDesc": "Too many placements! Think carefully about each number to solve the KenKen grid efficiently.",
+  "@kenkenOutOfMovesDesc": {
+    "description": "Description for KenKen out-of-moves dialog"
   },
   
   "kenkenSelectNumbers": "Drag numbers to fill the grid:",

@@ -50,6 +50,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   int _lastPlacedNodeIndex = -1;
   bool _isDraggingOver = false;
 
+  int _movesRemaining = 0;
+  int _maxMoves = 0;
+
   @override
   void initState() {
     super.initState();
@@ -156,8 +159,15 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
           currentPuzzle = puzzle;
           userAnswers = List.generate(currentPuzzle!.hiddenIndices.length, (_) => null, growable: true);
           numberPool = List.from(currentPuzzle!.numberPool);
+
+          // Calculate max moves: 2x hidden positions (generous safety net)
+          final hiddenCount = currentPuzzle!.hiddenIndices.length;
+          _maxMoves = hiddenCount * 2;
+          _movesRemaining = _maxMoves;
+
           _isGenerating = false;
         });
+        debugPrint("🚀 [UI] Max moves allowed: $_maxMoves for ${currentPuzzle!.hiddenIndices.length} hidden positions");
         debugPrint("🚀 [UI] State updated successfully");
         debugPrint("🚀 [UI] userAnswers length: ${userAnswers.length}");
         debugPrint("🚀 [UI] numberPool length: ${numberPool.length}");
@@ -186,8 +196,19 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       numberPool.remove(number);
       _lastPlacedNodeIndex = globalNodeIndex;
       _dropController.forward(from: 0.0);
+
+      // Decrement moves on placement
+      _movesRemaining--;
+      debugPrint("🎯 [UI] Moves remaining: $_movesRemaining/$_maxMoves");
     });
     debugPrint("🎯 [UI] Number placed successfully, checking completion");
+
+    // Check if out of moves BEFORE checking solution
+    if (_movesRemaining <= 0 && userAnswers.any((a) => a == null)) {
+      _handleOutOfMoves();
+      return;
+    }
+
     _checkIfComplete();
   }
 
@@ -268,6 +289,117 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         ),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _handleFailure() {
+    debugPrint("❌ [UI] FAILURE - recording loss");
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      gameType: 'magic_triangles',
+      difficulty: widget.level,
+    ));
+  }
+
+  void _handleOutOfMoves() {
+    debugPrint("❌ [UI] Out of moves! Game over.");
+    _handleFailure();
+
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => _buildOutOfMovesDialog(),
+      );
+    }
+  }
+
+  Widget _buildOutOfMovesDialog() {
+    final s = S.of(context)!;
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: SpaceTheme.cardDecoration.copyWith(
+          border: Border.all(color: SpaceTheme.rocketRed, width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
+            const SizedBox(height: 16),
+            Text(
+              s.magicTrianglesOutOfMoves,
+              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              s.magicTrianglesOutOfMovesDesc,
+              style: SpaceTheme.bodyStyle,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _generatePuzzle();
+                  },
+                  style: SpaceTheme.secondaryButtonStyle,
+                  child: Text(s.tryAgain),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  style: SpaceTheme.primaryButtonStyle,
+                  child: Text(s.backToMenu),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMovesIndicator(bool isSmallScreen) {
+    Color indicatorColor;
+    if (_movesRemaining <= 3) {
+      indicatorColor = SpaceTheme.rocketRed;
+    } else if (_movesRemaining <= 5) {
+      indicatorColor = SpaceTheme.planetOrange;
+    } else {
+      indicatorColor = SpaceTheme.alienGreen;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmallScreen ? 8 : 10,
+        vertical: isSmallScreen ? 4 : 6,
+      ),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: indicatorColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.touch_app, color: indicatorColor, size: isSmallScreen ? 16 : 20),
+          SizedBox(width: isSmallScreen ? 4 : 6),
+          Text(
+            '$_movesRemaining',
+            style: SpaceTheme.titleStyle.copyWith(
+              fontSize: isSmallScreen ? 12 : 14,
+              color: indicatorColor,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -432,6 +564,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                   );
                 },
               ),
+
+              SizedBox(width: isSmallScreen ? 8 : 20),
+              _buildMovesIndicator(isSmallScreen),
             ],
           ),
         ],

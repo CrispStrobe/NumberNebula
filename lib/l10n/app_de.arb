@@ -210,6 +210,8 @@
     "magicTrianglesWarpFrequency": "Warp-Frequenz: {warpFrequency}",
     "magicTrianglesResonators": "Verfügbare Subraum-Resonatoren",
     "magicTrianglesFail": "Ausrichtung fehlgeschlagen. Die Energiesignatur ist falsch. Versuche es erneut!",
+    "magicTrianglesOutOfMoves": "Alle Züge verbraucht!",
+    "magicTrianglesOutOfMovesDesc": "Setze jeden Resonator gezielt ein, um das Wurmloch effizient auszurichten!",
     "calculatingCoordinates": "Berechne Wurmloch-Koordinaten...",
     "magicTrianglesWinTitle": "Wurmloch stabilisiert!",
     "magicTrianglesWinDesc": "Perfekte Ausrichtung! Der Warp-Korridor ist offen.\nBonus: +{bonusScore} Punkte!",
@@ -279,6 +281,8 @@
     "numberWallsCalculating": "Berechne Pyramiden-Koordinaten...",
     "numberWallsBricks": "Verfügbare Bausteine",
     "numberWallsFail": "Strukturelle Integrität gefährdet! Das mathematische Fundament ist instabil. Versuche es erneut!",
+    "numberWallsOutOfMoves": "Alle Züge verbraucht!",
+    "numberWallsOutOfMovesDesc": "Setze jeden Baustein gezielt ein, um die Pyramide zu stabilisieren!",
     "numberWallsWinTitle": "Pyramide stabilisiert!",
     "numberWallsWinDesc": "Perfekte mathematische Ausrichtung! Die Quantenstruktur ist stabil.\nBonus: +{bonusScore} Punkte!",
     "@numberWallsWinDesc": {
@@ -815,6 +819,15 @@
   "kenkenError": "Hoppla! Die Lösung erfüllt nicht alle Bedingungen. Überprüfe die Käfig-Mathematik und die Lateinisches-Quadrat-Regeln!",
   "@kenkenError": {
     "description": "Fehlermeldung wenn die KenKen-Lösung falsch ist"
+  },
+
+  "kenkenOutOfMoves": "Alle Züge verbraucht!",
+  "@kenkenOutOfMoves": {
+    "description": "Titel für KenKen-Dialog bei aufgebrauchten Zügen"
+  },
+  "kenkenOutOfMovesDesc": "Überlege dir jeden Zug genau, um das KenKen-Gitter effizient zu lösen!",
+  "@kenkenOutOfMovesDesc": {
+    "description": "Beschreibung für KenKen-Dialog bei aufgebrauchten Zügen"
   },
   
   "kenkenSelectNumbers": "Ziehe Zahlen um das Gitter zu füllen:",

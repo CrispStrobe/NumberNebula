@@ -1243,6 +1243,18 @@ abstract class S {
   /// **'Alignment failed. The energy signature is incorrect. Try again!'**
   String get magicTrianglesFail;
 
+  /// No description provided for @magicTrianglesOutOfMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of Moves!'**
+  String get magicTrianglesOutOfMoves;
+
+  /// No description provided for @magicTrianglesOutOfMovesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many placements! Position each resonator carefully to align the wormhole efficiently.'**
+  String get magicTrianglesOutOfMovesDesc;
+
   /// No description provided for @calculatingCoordinates.
   ///
   /// In en, this message translates to:
@@ -1518,6 +1530,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Structural integrity compromised! The mathematical foundation is unstable. Try again!'**
   String get numberWallsFail;
+
+  /// No description provided for @numberWallsOutOfMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of Moves!'**
+  String get numberWallsOutOfMoves;
+
+  /// No description provided for @numberWallsOutOfMovesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many placements! Place each building block carefully to stabilize the pyramid.'**
+  String get numberWallsOutOfMovesDesc;
 
   /// No description provided for @numberWallsWinTitle.
   ///
@@ -2653,6 +2677,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Oops! The solution doesn\'t satisfy all constraints. Check the cage math and Latin square rules!'**
   String get kenkenError;
+
+  /// No description provided for @kenkenOutOfMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of Moves!'**
+  String get kenkenOutOfMoves;
+
+  /// No description provided for @kenkenOutOfMovesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many placements! Think carefully about each number to solve the KenKen grid efficiently.'**
+  String get kenkenOutOfMovesDesc;
 
   /// Instructions for the number selection pad in KenKen
   ///

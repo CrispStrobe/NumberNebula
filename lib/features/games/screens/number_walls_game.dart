@@ -60,6 +60,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   int _lastPlacedCellIndex = -1;
   bool _isDraggingOver = false;
 
+  int _movesRemaining = 0;
+  int _maxMoves = 0;
+
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   Timer? _fadeTimer;
@@ -161,9 +164,16 @@ class _NumberWallsGameState extends State<NumberWallsGame>
           currentPuzzle = puzzle;
           userAnswers = List.generate(currentPuzzle!.hiddenCells.length, (_) => null);
           numberPool = List.from(currentPuzzle!.numberPool);
+
+          // Calculate max moves: 2x hidden cells (generous safety net)
+          final hiddenCount = currentPuzzle!.hiddenCells.length;
+          _maxMoves = hiddenCount * 2;
+          _movesRemaining = _maxMoves;
+
           _isGenerating = false;
         });
         debugPrint("🧱 Puzzle generated: ${currentPuzzle!.operation.name} wall, height ${currentPuzzle!.wallHeight}");
+        debugPrint("🧱 Max moves allowed: $_maxMoves for ${currentPuzzle!.hiddenCells.length} hidden cells");
         _startFadeTimer(); // Restart the timer for new puzzle
       }
     } catch (e, stackTrace) {
@@ -183,8 +193,18 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       numberPool.remove(number);
       _lastPlacedCellIndex = hiddenCellIndex;
       _dropController.forward(from: 0.0);
+
+      // Decrement moves on placement
+      _movesRemaining--;
+      debugPrint("🧱 Moves remaining: $_movesRemaining/$_maxMoves");
     });
-    
+
+    // Check if out of moves BEFORE checking solution
+    if (_movesRemaining <= 0 && userAnswers.any((a) => a == null)) {
+      _handleOutOfMoves();
+      return;
+    }
+
     _checkIfComplete();
   }
 
@@ -354,6 +374,116 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         ),
         backgroundColor: SpaceTheme.rocketRed,
         duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _handleFailure() {
+    debugPrint("🧱 FAILURE - recording loss");
+    final attemptedProblems = _getSolvedProblems();
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      gameType: 'number_walls',
+      difficulty: widget.level,
+      mathProblems: attemptedProblems,
+    ));
+  }
+
+  void _handleOutOfMoves() {
+    debugPrint("🧱 Out of moves! Game over.");
+    _handleFailure();
+
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => _buildOutOfMovesDialog(),
+      );
+    }
+  }
+
+  Widget _buildOutOfMovesDialog() {
+    final s = S.of(context)!;
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: SpaceTheme.cardDecoration.copyWith(
+          border: Border.all(color: SpaceTheme.rocketRed, width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
+            const SizedBox(height: 16),
+            Text(
+              s.numberWallsOutOfMoves,
+              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              s.numberWallsOutOfMovesDesc,
+              style: SpaceTheme.bodyStyle,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _generatePuzzle();
+                  },
+                  style: SpaceTheme.secondaryButtonStyle,
+                  child: Text(s.tryAgain),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  style: SpaceTheme.primaryButtonStyle,
+                  child: Text(s.backToMenu),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMovesIndicator() {
+    Color indicatorColor;
+    if (_movesRemaining <= 3) {
+      indicatorColor = SpaceTheme.rocketRed;
+    } else if (_movesRemaining <= 5) {
+      indicatorColor = SpaceTheme.planetOrange;
+    } else {
+      indicatorColor = SpaceTheme.alienGreen;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: indicatorColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.touch_app, color: indicatorColor, size: 16),
+          const SizedBox(width: 4),
+          Text(
+            '$_movesRemaining',
+            style: SpaceTheme.titleStyle.copyWith(
+              fontSize: 12,
+              color: indicatorColor,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -570,6 +700,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                   },
                 ),
               ),
+              const SizedBox(height: 4),
+              _buildMovesIndicator(),
             ],
           ),
         ],

@@ -641,6 +641,13 @@ class SDe extends S {
       'Ausrichtung fehlgeschlagen. Die Energiesignatur ist falsch. Versuche es erneut!';
 
   @override
+  String get magicTrianglesOutOfMoves => 'Alle Züge verbraucht!';
+
+  @override
+  String get magicTrianglesOutOfMovesDesc =>
+      'Setze jeden Resonator gezielt ein, um das Wurmloch effizient auszurichten!';
+
+  @override
   String get calculatingCoordinates => 'Berechne Wurmloch-Koordinaten...';
 
   @override
@@ -795,6 +802,13 @@ class SDe extends S {
   @override
   String get numberWallsFail =>
       'Strukturelle Integrität gefährdet! Das mathematische Fundament ist instabil. Versuche es erneut!';
+
+  @override
+  String get numberWallsOutOfMoves => 'Alle Züge verbraucht!';
+
+  @override
+  String get numberWallsOutOfMovesDesc =>
+      'Setze jeden Baustein gezielt ein, um die Pyramide zu stabilisieren!';
 
   @override
   String get numberWallsWinTitle => 'Pyramide stabilisiert!';
@@ -1460,6 +1474,13 @@ class SDe extends S {
   @override
   String get kenkenError =>
       'Hoppla! Die Lösung erfüllt nicht alle Bedingungen. Überprüfe die Käfig-Mathematik und die Lateinisches-Quadrat-Regeln!';
+
+  @override
+  String get kenkenOutOfMoves => 'Alle Züge verbraucht!';
+
+  @override
+  String get kenkenOutOfMovesDesc =>
+      'Überlege dir jeden Zug genau, um das KenKen-Gitter effizient zu lösen!';
 
   @override
   String get kenkenSelectNumbers => 'Ziehe Zahlen um das Gitter zu füllen:';
