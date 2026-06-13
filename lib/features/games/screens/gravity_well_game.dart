@@ -730,8 +730,8 @@ class _BalanceScalePainter extends CustomPainter {
 
       // Determine box size based on label length
       final labelText = _getItemLabel(item, isUnknown, isWeightBlock);
-      final boxW = math.max(26.0, labelText.length * 7.0 + 8);
-      const boxH = 26.0;
+      final boxW = math.max(32.0, labelText.length * 9.0 + 10);
+      const boxH = 30.0;
       final boxRect = Rect.fromCenter(center: Offset(x, y), width: boxW, height: boxH);
 
       // Box fill & edge color based on type
@@ -787,7 +787,7 @@ class _BalanceScalePainter extends CustomPainter {
           text: labelText,
           style: TextStyle(
             color: isUnknown ? SpaceTheme.starYellow : Colors.white,
-            fontSize: labelText.length > 5 ? 8 : 10,
+            fontSize: labelText.length > 5 ? 11 : 13,
             fontWeight: FontWeight.bold,
           ),
         ),

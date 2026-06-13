@@ -358,7 +358,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF1A2744), // distinct from SpaceBackground
+              color: const Color(0xFF253A5E), // brighter to contrast with SpaceBackground
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: SpaceTheme.starYellow.withValues(alpha: 0.4 + _glowAnimation.value * 0.3),

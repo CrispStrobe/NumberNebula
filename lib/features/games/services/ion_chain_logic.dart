@@ -105,7 +105,7 @@ class IonChainPuzzle {
     final rng = math.Random(seed);
     final types = IonType.values.take(ionTypeCount).toList();
 
-    for (int attempt = 0; attempt < 100; attempt++) {
+    for (int attempt = 0; attempt < 500; attempt++) {
       // Generate rules
       final rules = <IonRule>[];
       final usedRuleKeys = <String>{};
@@ -156,34 +156,55 @@ class IonChainPuzzle {
       }
     }
 
-    // Fallback: simple chain with no-same-adjacent rule
+    // Fallback: use "no same adjacent" + one pair exclusion rule.
+    // Build solution via backtracking (not a trivial repeating pattern).
+    final typeA = types[rng.nextInt(types.length)];
+    IonType typeB;
+    do { typeB = types[rng.nextInt(types.length)]; } while (typeB == typeA);
+
     final fallbackRules = [
       IonRule(
-        description: 'No two same-colored ions adjacent',
-        descriptionDe: 'Keine zwei gleichfarbigen Ionen nebeneinander',
+        description: 'No two same-shaped ions adjacent',
+        descriptionDe: 'Keine zwei gleichförmigen Ionen nebeneinander',
         check: (left, right) {
           if (left == null || right == null) return true;
           return left != right;
         },
       ),
+      IonRule(
+        description: '${_ionNameEn(typeA)} must not neighbor ${_ionNameEn(typeB)}',
+        descriptionDe: '${_ionNameDe(typeA)} darf nicht neben ${_ionNameDe(typeB)} stehen',
+        check: (left, right) {
+          if (left == null || right == null) return true;
+          return !((left == typeA && right == typeB) || (left == typeB && right == typeA));
+        },
+      ),
     ];
 
-    final solution = <IonType>[];
-    for (int i = 0; i < chainLength; i++) {
-      solution.add(types[i % types.length]);
+    // Solve via backtracking (avoids trivial repeating pattern)
+    final fallbackSolution = <IonType>[];
+    if (!_solve(fallbackSolution, chainLength, types, fallbackRules, rng)) {
+      // Absolute last resort: simple alternation (should be extremely rare)
+      fallbackSolution.clear();
+      for (int i = 0; i < chainLength; i++) {
+        fallbackSolution.add(types[i % types.length]);
+      }
     }
 
-    final chain = List<IonType?>.from(solution);
+    final chain = List<IonType?>.from(fallbackSolution);
+    final positions = List.generate(chainLength, (i) => i)..shuffle(rng);
+    final blanks = positions.take(blanksToRemove.clamp(1, chainLength - 1)).toList();
     final available = <IonType>[];
-    for (int i = 0; i < blanksToRemove && i < chainLength; i++) {
-      available.add(chain[i]!);
-      chain[i] = null;
+    for (final pos in blanks) {
+      available.add(chain[pos]!);
+      chain[pos] = null;
     }
+    available.shuffle(rng);
 
     return IonChainPuzzle(
       chainLength: chainLength,
       chain: chain,
-      solution: solution,
+      solution: fallbackSolution,
       availableIons: available,
       rules: fallbackRules,
       ionTypes: types,

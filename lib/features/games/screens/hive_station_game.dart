@@ -87,9 +87,10 @@ class _HiveStationGameState extends State<HiveStationGame>
     // deduction from surrounding hint values. This is the Minesweeper depth.
     if (currentDifficulty == null) return 1.0;
     final grade = currentDifficulty!.grade;
-    if (grade <= 2) return 1.0; // trivial: all hints visible
-    if (grade == 3) return 0.80; // some hidden
-    return 0.65; // more hidden, harder deduction
+    if (grade <= 1) return 0.90; // easy: most hints visible but not all
+    if (grade <= 2) return 0.80; // some hidden, requires basic deduction
+    if (grade == 3) return 0.70; // moderate deduction needed
+    return 0.60; // harder deduction, more hidden cells
   }
 
   void _generatePuzzle() async {

@@ -446,6 +446,10 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     );
   }
 
+  int get _computedCreatures => _sliderA + _sliderB + (_hasThirdType ? _sliderC : 0);
+  int get _totalCreatures => _countA + _countB + (_hasThirdType ? _countC : 0);
+  bool get _creaturesMatch => _computedCreatures == _totalCreatures;
+
   Widget _buildCensusDisplay() {
     return AnimatedBuilder(
       animation: _glowAnimation,
@@ -468,24 +472,30 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildTargetOnly(
+                  _buildTargetComparison(
                     Icons.visibility,
-                    'Total Eyes',
+                    'Eyes',
                     _totalEyes,
+                    _computedEyes,
+                    _eyesMatch,
                   ),
-                  _buildTargetOnly(
+                  _buildTargetComparison(
                     Icons.directions_walk,
-                    'Total Legs',
+                    'Legs',
                     _totalLegs,
+                    _computedLegs,
+                    _legsMatch,
                   ),
                 ],
               ),
               if (_hasThirdType) ...[
                 const SizedBox(height: 8),
-                _buildTargetOnly(
+                _buildTargetComparison(
                   Icons.pest_control,
-                  'Total Creatures',
-                  _countA + _countB + _countC,
+                  'Creatures',
+                  _totalCreatures,
+                  _computedCreatures,
+                  _creaturesMatch,
                 ),
               ],
             ],
@@ -495,30 +505,66 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     );
   }
 
-  /// Shows only the target value (no live computed comparison).
-  /// Player must calculate mentally whether their slider values produce these totals.
-  Widget _buildTargetOnly(IconData icon, String label, int target) {
+  /// Shows target value alongside the player's live-computed total.
+  /// Green when matching, orange/red when not — lets the player reason
+  /// about which slider to adjust instead of guessing blindly.
+  Widget _buildTargetComparison(
+      IconData icon, String label, int target, int current, bool matches) {
+    final matchColor = const Color(0xFF06FFA5);
+    final mismatchColor = const Color(0xFFFF6B6B);
+    final statusColor = matches ? matchColor : mismatchColor;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
+          color: matches
+              ? matchColor.withValues(alpha: 0.6)
+              : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
         ),
       ),
       child: Column(
         children: [
-          Icon(icon, color: SpaceTheme.starYellow, size: 24),
+          Icon(icon, color: SpaceTheme.starYellow, size: 22),
           const SizedBox(height: 4),
-          Text(label, style: SpaceTheme.bodyStyle.copyWith(fontSize: 13, color: Colors.white70)),
-          const SizedBox(height: 4),
-          Text(
-            '$target',
-            style: SpaceTheme.headlineStyle.copyWith(
-              fontSize: 28,
-              color: SpaceTheme.starYellow,
-            ),
+          Text(label,
+              style: SpaceTheme.bodyStyle
+                  .copyWith(fontSize: 13, color: Colors.white70)),
+          const SizedBox(height: 6),
+          // Target row
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Target: ',
+                  style: SpaceTheme.bodyStyle
+                      .copyWith(fontSize: 12, color: Colors.white54)),
+              Text('$target',
+                  style: SpaceTheme.headlineStyle.copyWith(
+                    fontSize: 22,
+                    color: SpaceTheme.starYellow,
+                  )),
+            ],
+          ),
+          const SizedBox(height: 2),
+          // Current (computed) row
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Yours: ',
+                  style: SpaceTheme.bodyStyle
+                      .copyWith(fontSize: 12, color: Colors.white54)),
+              Text('$current',
+                  style: SpaceTheme.headlineStyle.copyWith(
+                    fontSize: 22,
+                    color: statusColor,
+                  )),
+              if (matches) ...[
+                const SizedBox(width: 4),
+                Icon(Icons.check_circle, color: matchColor, size: 16),
+              ],
+            ],
           ),
         ],
       ),

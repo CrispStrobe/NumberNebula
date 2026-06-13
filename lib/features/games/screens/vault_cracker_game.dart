@@ -35,6 +35,10 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   List<int?> _answer = [];
   bool _gameOver = false;
 
+  // Wordle-style guess history
+  List<List<int>> _guessHistory = [];
+  static const int _maxGuesses = 6;
+
   @override
   void initState() {
     super.initState();
@@ -77,6 +81,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
     setState(() {
       _isGenerating = true;
       _gameOver = false;
+      _guessHistory = [];
       _successController.reset();
     });
 
@@ -115,10 +120,20 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
 
     final guess = _answer.map((d) => d!).toList();
 
+    setState(() {
+      _guessHistory.add(List<int>.from(guess));
+    });
+
     if (puzzle!.isCorrect(guess)) {
       _handleWin();
-    } else {
+    } else if (_guessHistory.length >= _maxGuesses) {
       _handleLoss();
+    } else {
+      // Reset input for next attempt
+      HapticFeedback.mediumImpact();
+      setState(() {
+        _answer = List.filled(puzzle!.codeLength, null);
+      });
     }
   }
 
@@ -127,7 +142,9 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
     _gameOver = true;
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
-    int totalScore = baseScore + levelBonus;
+    // Bonus for fewer guesses
+    int guessBonus = (_maxGuesses - _guessHistory.length) * 15;
+    int totalScore = baseScore + levelBonus + guessBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'vault_cracker',
@@ -141,7 +158,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => _buildWinDialog(1, totalScore),
+        builder: (ctx) => _buildWinDialog(_guessHistory.length, totalScore),
       );
     }
   }
@@ -219,12 +236,17 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          // Clue attempts list
+          // Clue attempts list and guess history
           Expanded(
-            child: ListView.builder(
-              itemCount: puzzle!.clues.length,
-              itemBuilder: (context, index) =>
-                  _buildClueRow(puzzle!.clues[index], index, isGerman),
+            child: ListView(
+              children: [
+                ...List.generate(
+                  puzzle!.clues.length,
+                  (index) => _buildClueRow(puzzle!.clues[index], index, isGerman),
+                ),
+                const SizedBox(height: 8),
+                _buildGuessHistory(),
+              ],
             ),
           ),
           const SizedBox(height: 8),
@@ -402,6 +424,100 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
           ),
         );
       }),
+    );
+  }
+
+  /// Returns a list of colors for each digit in the guess:
+  /// green = correct position, yellow = wrong position, gray = not in code.
+  List<Color> _computeGuessColors(List<int> guess) {
+    final secret = puzzle!.secretCode;
+    final len = secret.length;
+    final colors = List<Color>.filled(len, Colors.grey.shade700);
+
+    // Track which secret positions have been matched
+    final secretMatched = List<bool>.filled(len, false);
+    final guessMatched = List<bool>.filled(len, false);
+
+    // First pass: exact matches (green)
+    for (int i = 0; i < len; i++) {
+      if (guess[i] == secret[i]) {
+        colors[i] = SpaceTheme.alienGreen;
+        secretMatched[i] = true;
+        guessMatched[i] = true;
+      }
+    }
+
+    // Second pass: wrong position matches (yellow)
+    for (int i = 0; i < len; i++) {
+      if (guessMatched[i]) continue;
+      for (int j = 0; j < len; j++) {
+        if (secretMatched[j]) continue;
+        if (guess[i] == secret[j]) {
+          colors[i] = SpaceTheme.starYellow;
+          secretMatched[j] = true;
+          break;
+        }
+      }
+    }
+
+    return colors;
+  }
+
+  Widget _buildGuessHistory() {
+    if (_guessHistory.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6, top: 2),
+          child: Text(
+            '${_guessHistory.length} / $_maxGuesses',
+            style: SpaceTheme.bodyStyle.copyWith(
+              fontSize: 12,
+              color: Colors.white54,
+            ),
+          ),
+        ),
+        ...List.generate(_guessHistory.length, (index) {
+          final guess = _guessHistory[index];
+          final colors = _computeGuessColors(guess);
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(guess.length, (d) {
+                return Container(
+                  width: 44,
+                  height: 44,
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  decoration: BoxDecoration(
+                    color: colors[d],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: colors[d] == Colors.grey.shade700
+                          ? Colors.grey.shade600
+                          : colors[d].withValues(alpha: 0.8),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      guess[d].toString(),
+                      style: SpaceTheme.headlineStyle.copyWith(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          );
+        }),
+        const SizedBox(height: 8),
+      ],
     );
   }
 
