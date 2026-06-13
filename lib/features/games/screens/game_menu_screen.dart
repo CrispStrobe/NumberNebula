@@ -102,9 +102,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   late final List<_GameInfoData> _gamesData;
   bool _isGamesDataInitialized = false;
 
-  // for new games, we must manually update game count
-  static const int _gameCount = 48;
-
   @override
   void initState() {
     super.initState();
@@ -115,27 +112,30 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
           ..repeat(reverse: true);
     _floatAnimation = Tween<double>(begin: -10.0, end: 10.0)
         .animate(CurvedAnimation(parent: _floatController, curve: Curves.easeInOut));
-    _cardAnimations = List.generate(_gameCount, (index) {
-      return Tween<Offset>(begin: const Offset(0, 1.5), end: Offset.zero)
-          .animate(CurvedAnimation(
-        parent: _slideController,
-        curve: Interval(
-          (index * 0.1).clamp(0.0, 1.0),
-          (0.5 + (index * 0.1)).clamp(0.0, 1.0),
-          curve: Curves.elasticOut,
-        ),
-      ));
-    });
-    _slideController.forward();
+    // _cardAnimations created in didChangeDependencies after _gamesData is built
+    _cardAnimations = [];
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Initialize the games list here to ensure S.of(context) is available
     if (!_isGamesDataInitialized) {
       _gamesData = _getGamesList(context);
       _isGamesDataInitialized = true;
+
+      // Derive card animations from actual game count — no manual constant needed
+      _cardAnimations = List.generate(_gamesData.length, (index) {
+        return Tween<Offset>(begin: const Offset(0, 1.5), end: Offset.zero)
+            .animate(CurvedAnimation(
+          parent: _slideController,
+          curve: Interval(
+            (index * 0.1).clamp(0.0, 1.0),
+            (0.5 + (index * 0.1)).clamp(0.0, 1.0),
+            curve: Curves.elasticOut,
+          ),
+        ));
+      });
+      _slideController.forward();
     }
   }
 
@@ -826,7 +826,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
           crossAxisSpacing: 20,
           mainAxisSpacing: 20,
           childAspectRatio: 1.1),
-      itemCount: _gameCount,
+      itemCount: _gamesData.length,
       itemBuilder: (context, index) => _buildGameCard(index),
     );
   }
@@ -838,7 +838,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
           crossAxisSpacing: 20,
           mainAxisSpacing: 20,
           childAspectRatio: 0.85),
-      itemCount: _gameCount,
+      itemCount: _gamesData.length,
       itemBuilder: (context, index) => _buildGameCard(index),
     );
   }
