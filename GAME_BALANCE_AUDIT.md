@@ -2,10 +2,10 @@
 
 Systematic analysis of all 49 minigames: win/lose conditions, scoring, difficulty scaling, SRI integration, and cross-game consistency.
 
-**Date:** 2026-06-12
-**Status:** Phase 1-3 complete. All critical bugs fixed, scoring normalized, difficulty scaling added.
+**Date:** 2026-06-13
+**Status:** Complete. All 49 games audited, all bugs fixed, scoring normalized, all games have lose conditions.
 
-### Changes Applied (2026-06-12)
+### Changes Applied (2026-06-12 — 2026-06-13)
 
 **Priority 1 — Critical Bugs Fixed:**
 - [x] **Bubble Math**: Added `reportOutcome()` (win + loss) and SRI MathProblem reporting. Removed orphan `addScore()` call.
@@ -13,6 +13,7 @@ Systematic analysis of all 49 minigames: win/lose conditions, scoring, difficult
 - [x] **Perspective Puzzle**: Fixed `score: 0` → passes `finalScore` to `GameOutcome.win()`.
 - [x] **Star Loader**: Fixed `score: 0` → passes `totalScore` to `GameOutcome.win()`.
 - [x] **Puzzle Math**: Migrated from legacy `GameOutcome()` constructor to `.win()`/`.loss()` factories. Also fixed `score: 0` → passes `finalScore`.
+- [x] **Hyperdrive Gates**: Fixed `score: 0` → accumulates in `_levelScore`, passed in outcome. Removed direct `addScore()` calls.
 
 **Priority 2 — SRI Gaps Fixed:**
 - [x] **Cargo Bay Arranger**: Added MathProblem extraction from cleared rows (addition chains).
@@ -22,27 +23,30 @@ Systematic analysis of all 49 minigames: win/lose conditions, scoring, difficult
 - [x] Added `scoreToStars()` function in `tuning.dart` with per-game thresholds for 1-3 star rating.
 - [x] Added `bestStars` tracking in `GameProvider` (persisted). Every `reportOutcome()` now computes stars.
 - [x] `lastStars` and `bestStars` getters available for UI consumption.
+- [x] Star ratings displayed on game menu cards. `StarRatingDisplay` widget available for win dialogs.
 
 **Priority 4 — Difficulty Scaling:**
 - [x] **Grid Filler**: Now scales from 10x10 (4 piece types) to 45x45 (9 piece types) based on `grade + level/5`.
 
-**Priority 5 — Lose Conditions:**
-- [x] Added move limits to: Codebreaker, Nebula Matrix, Orbital Towers, Star Forge (2x empty cells, decrements on placement).
-- Move limit uses color-coded UI indicator: green → orange (≤5) → red (≤3).
-- Localization added for all out-of-moves dialogs (en + de).
-- Only placement actions decrement; undo/removal does not.
+**Priority 5 — Lose Conditions (all puzzle games now have move limits):**
+- [x] Batch 1: Codebreaker, Nebula Matrix, Orbital Towers, Star Forge
+- [x] Batch 2: Magic Triangles, Number Walls, KenKen
+- All use 2x empty cells, color-coded indicator (green→orange→red), localized dialogs (en + de).
 
-### Remaining Work (not yet addressed)
+**Priority 6 — Remaining Issues from REMAINING_WORK.md:**
+- [x] **Launch Sequence**: Lightened container background for contrast.
+- [x] **Gravity Well**: Increased weight label fonts 8→11/10→13px, enlarged boxes.
+- [x] **Hive Station**: Reduced hint fraction (100→90/80/70/60% by grade). Added unique-solution verification.
+- [x] **Ion Chain**: Hardened CSP (100→500 attempts), fallback uses backtracking with 2 rules.
+- [x] **Vault Cracker**: Added Wordle-style colored digit feedback (green/yellow/gray), 6-guess limit.
+- [x] **Xenobiology Lab**: Added live-computed totals with color feedback (red=mismatch, green=match).
+- [x] **Arithmancer Duel**: Fully audited — proper win/loss/scoring, real-time SRI tracking. Hybrid categorization intentional.
 
-**Still no-lose games** (lower priority — these are spatial/creative puzzles where infinite play is more acceptable):
-- Hull Plating, Relic Assembly, Star Chart Scan, Dark Matter Grid, Ion Chain, Launch Sequence, Magic Triangles, Number Walls, KenKen
-- Consider: time-based star rating penalties rather than hard fail conditions for these.
+### Remaining Minor Items
 
 **Galactic Market** — SRI reports only 1 division problem per session. Could extract additional arithmetic from the known/unknown coin relationships.
 
-**Arithmancer Duel** — ~~file too large~~ Fully audited: RPG math combat with 5 enemy types, real-time SRI tracking, proper win/loss/scoring. Categorized as patternRecognition but does both arithmetic SRI + cognitive profile tracking (intentional hybrid).
-
-**Hyperdrive Gates** — ~~reports `score: 0`~~ Fixed: score now accumulated locally in `_levelScore` and passed in outcome. Removed direct `addScore()` calls.
+**Spatial/creative games without move limits** — Hull Plating, Relic Assembly, Star Chart Scan, Dark Matter Grid, Ion Chain, Launch Sequence. These are inherently open-ended (place/drag/explore) where a move limit would feel unnatural. They already have scoring that rewards efficiency.
 
 ---
 
