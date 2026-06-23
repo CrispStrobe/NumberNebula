@@ -354,6 +354,7 @@ class SpaceDialog extends StatelessWidget {
               )
             else
               ElevatedButton(
+                autofocus: true,
                 onPressed: () => Navigator.of(context).pop(),
                 style: SpaceTheme.primaryButtonStyle,
                 child: const Text('OK'),
