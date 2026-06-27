@@ -1,6 +1,29 @@
 # Remaining Work -- Game Quality Fixes
 
-Status as of 2026-06-13. All major issues resolved.
+Status as of 2026-06-27. All major issues resolved.
+
+## 2026-06-27 SESSION FIXES (20 items)
+
+1. **Game Menu** — compact SRI bar + difficulty picker into single toolbar row
+2. **Komm-Relais** — i18n for all hardcoded strings, difficulty curve (always 1-2 letters hidden)
+3. **Rumpf-Panzerung** — drag placement uses piece center instead of top-left
+4. **Tresor-Knacker** — draggable number palette for digit input
+5. **Crew-Manifest** — i18n + uniqueness solver for puzzles, structured clues
+6. **Alien-Tribunal** — i18n + grade 3 difficulty fix (4→5 people)
+7. **Gravitationsfeld** — i18n + keyboard input + multi-scale puzzles
+8. **Ionen-Ring** — capped ring size + fixed duplicate rules
+9. **Start-Sequenz** — fixed missing key on ship cards (ReorderableListView)
+10. **Orbital-Türme** — clue number alignment with grid cells
+11. **Nebel-Matrix** — conditional zone instructions (only when zones exist)
+12. **Galaktischer Markt** — level-based difficulty scaling
+13. **Kreaturen-Schmiede** — fixed forbidden combo count bug + part variant labels
+14. **Sternen-Schmiede** — color-coded star lines + visible magic constant
+15. **Sektor-Maler** — edge crossing check prevents overlapping lines
+16. **Würfel-Scanner** — roll-sequence puzzles for spatial reasoning
+17. **Warp-Faltung** — replay animation button
+18. **Relikte-Puzzle** — tap-to-rotate pieces on solution grid (long-press to remove)
+19. **Bienen-Station** — investigated, confirmed solid (hex Minesweeper)
+20. **CLAUDE.md** — created gitignored project env instructions
 
 ---
 
@@ -43,8 +66,8 @@ Status as of 2026-06-13. All major issues resolved.
 
 ## MINOR REMAINING ITEMS (cosmetic only, all games fully playable)
 
-1. **Warp Fold** — 2D fold animation works but 3D perspective would look nicer. Cosmetic.
-2. **Galactic Market** — SRI reports 1 division problem per session. Could extract more arithmetic.
+1. **Warp Fold** — 2D fold animation works but 3D perspective would look nicer. Replay button added. Cosmetic.
+2. **i18n gaps** — some games still have hardcoded English strings in logic services (constraint text, section headers). Scan in progress.
 
 ---
 
