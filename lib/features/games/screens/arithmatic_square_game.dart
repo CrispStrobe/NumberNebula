@@ -233,6 +233,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
                     _generatePuzzle();
@@ -1024,7 +1025,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
           Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: iconSize),
           SizedBox(width: isCompact ? 4 : 8),
           Text(
-            'Level ${widget.level}',
+            S.of(context)!.levelN(widget.level),
             style: SpaceTheme.titleStyle.copyWith(fontSize: fontSize),
           ),
         ],
@@ -1087,6 +1088,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(S.of(context)!.playAgain),

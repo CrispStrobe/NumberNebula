@@ -6327,6 +6327,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Pattern Recognition'**
   String get cognitivePattern;
+
+  /// No description provided for @clearButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearButton;
+
+  /// No description provided for @levelN.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level}'**
+  String levelN(int level);
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

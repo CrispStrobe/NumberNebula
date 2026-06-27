@@ -1952,6 +1952,10 @@
   "cognitiveSpatial2D": "Räumlich (2D)",
   "cognitiveSpatial3D": "Räumlich (3D)",
   "cognitiveLogic": "Logik & Deduktion",
-  "cognitivePattern": "Mustererkennung"
+  "cognitivePattern": "Mustererkennung",
+
+  "clearButton": "Löschen",
+  "levelN": "Level {level}",
+  "@levelN": { "placeholders": { "level": { "type": "int" } } }
 
 }

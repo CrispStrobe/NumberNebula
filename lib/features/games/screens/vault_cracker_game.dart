@@ -248,7 +248,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
                 ElevatedButton.icon(
                   onPressed: _clearAnswer,
                   icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Clear'),
+                  label: Text(S.of(context)!.clearButton),
                   style: SpaceTheme.secondaryButtonStyle,
                 ),
                 const SizedBox(width: 16),
@@ -537,6 +537,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () {
                           Navigator.of(context).pop();
                           _generatePuzzle();
@@ -593,6 +594,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
                     _generatePuzzle();

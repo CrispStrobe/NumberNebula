@@ -3633,4 +3633,12 @@ class SEn extends S {
 
   @override
   String get cognitivePattern => 'Pattern Recognition';
+
+  @override
+  String get clearButton => 'Clear';
+
+  @override
+  String levelN(int level) {
+    return 'Level $level';
+  }
 }

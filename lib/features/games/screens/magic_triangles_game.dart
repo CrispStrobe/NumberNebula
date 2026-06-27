@@ -74,20 +74,19 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     OnboardingOverlay.maybeShow(
       context,
       gameKey: 'magic_triangles',
-      title: 'Magic Triangles',
-      steps: const [
+      title: S.of(context)!.magicTrianglesOnboardTitle,
+      steps: [
         OnboardingStep(
           icon: Icons.touch_app,
-          body: 'Drag numbers from the pool onto the empty triangle nodes.',
+          body: S.of(context)!.magicTrianglesOnboardDrag,
         ),
         OnboardingStep(
           icon: Icons.balance,
-          body:
-              'Every side of the triangle must add up to the same number.',
+          body: S.of(context)!.magicTrianglesOnboardSum,
         ),
         OnboardingStep(
           icon: Icons.refresh,
-          body: 'Tap a placed number to send it back to the pool.',
+          body: S.of(context)!.magicTrianglesOnboardTap,
         ),
       ],
     );
@@ -327,6 +326,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
                     _generatePuzzle();
@@ -1097,6 +1097,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () {
                           Navigator.of(context).pop();
                           _generatePuzzle();

@@ -573,7 +573,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
                 icon: const Icon(Icons.delete_sweep, color: SpaceTheme.rocketRed),
                 iconSize: 28,
                 onPressed: _placedPieces.isNotEmpty ? _clearBoard : null,
-                tooltip: 'Clear',
+                tooltip: S.of(context)!.clearButton,
               ),
               const SizedBox(width: 12),
               Text(

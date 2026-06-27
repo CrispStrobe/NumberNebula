@@ -2032,6 +2032,10 @@
   "cognitiveSpatial2D": "Spatial (2D)",
   "cognitiveSpatial3D": "Spatial (3D)",
   "cognitiveLogic": "Logic & Deduction",
-  "cognitivePattern": "Pattern Recognition"
+  "cognitivePattern": "Pattern Recognition",
+
+  "clearButton": "Clear",
+  "levelN": "Level {level}",
+  "@levelN": { "placeholders": { "level": { "type": "int" } } }
 
 }

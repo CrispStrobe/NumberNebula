@@ -3647,4 +3647,12 @@ class SDe extends S {
 
   @override
   String get cognitivePattern => 'Mustererkennung';
+
+  @override
+  String get clearButton => 'Löschen';
+
+  @override
+  String levelN(int level) {
+    return 'Level $level';
+  }
 }
