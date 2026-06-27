@@ -37,7 +37,7 @@ class PurchaseDialog extends StatelessWidget {
   
   List<Widget> _buildDialogActions(BuildContext context, PurchaseService service, S s) {
     if (!service.isAvailable || service.errorMessage != null) {
-      return [TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(s.cancel))];
+      return [TextButton(autofocus: true, onPressed: () => Navigator.of(context).pop(), child: Text(s.cancel))];
     }
     if (service.product == null || service.purchasePending) {
       return [const CircularProgressIndicator()];
@@ -49,6 +49,7 @@ class PurchaseDialog extends StatelessWidget {
         child: Text(s.restorePurchases, style: const TextStyle(color: SpaceTheme.moonSilver)),
       ),
       ElevatedButton(
+        autofocus: true,
         onPressed: service.buyProduct,
         style: SpaceTheme.primaryButtonStyle.copyWith(
           backgroundColor: WidgetStateProperty.all(SpaceTheme.alienGreen),

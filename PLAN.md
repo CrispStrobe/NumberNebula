@@ -182,7 +182,7 @@ local toolchain. Cache is enabled so warm runs are fast. The
 `--fatal-infos` flag locks in the "zero issues at any level" bar we
 just cleared.
 
-### [ ] 17. Cap Gradle daemon heap
+### [x] 17. Cap Gradle daemon heap
 `org.gradle.jvmargs=-Xmx2G -XX:MaxMetaspaceSize=512m` in
 `android/gradle.properties` of each project. Currently the daemon
 balloons to ~5GB after a few builds.
@@ -330,7 +330,7 @@ no extractable logic. Workers do **not** modify `lib/`. Highest-value targets:
 - Generator/solver invariant tests: codebreaker, arithmancer crosswords,
   magic-triangle, robot-path, **starloader**, gridlock, arithmancer-duel.
 
-### [ ] T2. Add `DateTime Function() getNow` injection to time-dependent services
+### [x] T2. Add `DateTime Function() getNow` injection to time-dependent services
 `SriService` and `StreakService` call `DateTime.now()` inline, so day-boundary
 / interval behavior can't be tested deterministically. ~5-line constructor
 seam each (default `DateTime.now`) unlocks precise tests. Deferred until after

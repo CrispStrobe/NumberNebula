@@ -718,6 +718,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         ),
         actions: [
           TextButton(
+            autofocus: true,
             onPressed: _resetGame,
             child: Text(S.of(context)!.playAgain, style: const TextStyle(color: Colors.cyanAccent)),
           ),
@@ -1131,6 +1132,7 @@ class SpaceDialog extends StatelessWidget {
             Text(content, style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
             const SizedBox(height: 24),
             ElevatedButton(
+              autofocus: true,
               onPressed: onNext,
               style: SpaceTheme.primaryButtonStyle,
               child: Text(S.of(context)!.nextLevel),

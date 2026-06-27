@@ -145,6 +145,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
                       style: TextStyle(color: Colors.white60)),
                 ),
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     if (isLast) {
                       widget.onDismiss();

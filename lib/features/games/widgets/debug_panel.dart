@@ -73,13 +73,14 @@ class _DebugPanelState extends State<DebugPanel> {
 
               const SizedBox(height: 24),
               ElevatedButton.icon(
+                autofocus: true,
                 icon: const Icon(Icons.check),
                 onPressed: () {
                   final gameProvider = context.read<GameProvider>();
-                  
+
                   // Set the global grade and level (still useful)
                   gameProvider.setDifficulty(_grade, _level);
-                  
+
                   // --- UPDATED LOGIC ---
                   // Force-set progress only for the selected games
                   gameProvider.debugSetGameLevels(_level, _selectedGameKeys.toList());

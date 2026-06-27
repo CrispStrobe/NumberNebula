@@ -39,6 +39,7 @@ class ArithmancerVictoryDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
+          autofocus: true,
           onPressed: () {
             Navigator.of(context).pop();
             onNextChallenge();
@@ -99,6 +100,7 @@ class ArithmancerLadderStepDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
+          autofocus: true,
           onPressed: () {
             Navigator.of(context).pop();
             onContinue();
@@ -147,6 +149,7 @@ class ArithmancerLadderCompleteDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
+          autofocus: true,
           onPressed: () {
             Navigator.of(context).pop();
             onReturnToBridge();
@@ -195,6 +198,7 @@ class ArithmancerDefeatDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
+          autofocus: true,
           onPressed: () {
             Navigator.of(context).pop();
             onTryAgain();

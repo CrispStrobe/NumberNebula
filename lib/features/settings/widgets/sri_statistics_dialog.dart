@@ -55,6 +55,7 @@ class SriStatisticsDialog extends StatelessWidget {
 
                 const SizedBox(height: 32),
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () => Navigator.of(context).pop(),
                   style: SpaceTheme.primaryButtonStyle.copyWith(
                     backgroundColor: WidgetStateProperty.all(SpaceTheme.deepSpace),

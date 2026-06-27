@@ -633,6 +633,7 @@ class AchievementDialog extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
+              autofocus: true,
               onPressed: () => Navigator.of(context).pop(),
               style: SpaceTheme.primaryButtonStyle,
               child: Text(S.of(context)!.continueExploring), // REMOVED const

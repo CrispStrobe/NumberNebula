@@ -778,6 +778,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
                       children: [
                         Flexible(
                           child: ElevatedButton(
+                            autofocus: true,
                             onPressed: () => Navigator.of(dialogContext).pop(true),
                             style: SpaceTheme.secondaryButtonStyle,
                             child: Text(S.of(context)!.nextField, textAlign: TextAlign.center),
@@ -834,6 +835,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
                 children: [
                   Flexible(
                     child: ElevatedButton(
+                      autofocus: true,
                       onPressed: () => Navigator.of(dialogContext).pop(true),
                       style: SpaceTheme.secondaryButtonStyle,
                       child: Text(S.of(context)!.tryAgain, textAlign: TextAlign.center),

@@ -1151,6 +1151,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
             ),
             const SizedBox(height: 32),
             TextButton(
+              autofocus: true,
               onPressed: () {
                 _log('❌ Load cancelled by user');
                 Navigator.of(context).pop();
@@ -1245,6 +1246,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                         child: SizedBox(
                           height: isTinyScreen ? 36 : 44,
                           child: ElevatedButton(
+                            autofocus: true,
                             onPressed: () {
                               _log('➡️  Next puzzle requested');
                               Navigator.of(context).pop();

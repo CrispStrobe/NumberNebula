@@ -1460,6 +1460,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             ),
           ),
           ElevatedButton(
+            autofocus: true,
             onPressed: () {
               if (kDebugMode) debugPrint("[SETTINGS] 🔄 User chose to restart now");
               Navigator.of(context).pop();
@@ -1544,6 +1545,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
         actions: [
           TextButton(
+            autofocus: true,
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
               S.of(context)!.cancel,
@@ -1554,7 +1556,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
     );
   }
-  
+
   String _getDifficultyDescription(int grade) {
     switch (grade) {
       case 1:
@@ -1624,6 +1626,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             ),
           ),
           ElevatedButton(
+            autofocus: true,
             onPressed: () {
               if (kDebugMode) debugPrint("[SETTINGS] 🗑️ Resetting all game progress");
               context.read<GameProvider>().resetGame();

@@ -45,6 +45,7 @@ class PrivacyPolicyDialog extends StatelessWidget {
                     ),
                   ),
                   IconButton(
+                    autofocus: true,
                     onPressed: () => Navigator.of(context).pop(),
                     icon:
                         const Icon(Icons.close, color: Colors.white70),
