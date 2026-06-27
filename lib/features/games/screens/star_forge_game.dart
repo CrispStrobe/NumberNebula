@@ -255,6 +255,7 @@ class _StarForgeGameState extends State<StarForgeGame>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
                     _generatePuzzle();
@@ -358,7 +359,24 @@ class _StarForgeGameState extends State<StarForgeGame>
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
+                    // Show target sum prominently
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: SpaceTheme.starYellow.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.5)),
+                      ),
+                      child: Text(
+                        '∑ ${puzzle!.magicConstant}',
+                        style: SpaceTheme.headlineStyle.copyWith(
+                          fontSize: 18,
+                          color: SpaceTheme.starYellow,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     _buildMovesIndicator(),
                   ],
                 ),
@@ -625,6 +643,7 @@ class _StarForgeGameState extends State<StarForgeGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(s.playAgain),
@@ -659,12 +678,26 @@ class _StarLinePainter extends CustomPainter {
     final innerR = size.width * 0.2;
     final points = puzzle.points;
 
-    final paint = Paint()
-      ..color = SpaceTheme.starYellow.withValues(alpha: 0.4 * glowValue)
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
+    // Color-code each line so players can see which nodes belong together
+    const lineColors = [
+      Color(0xFFFF6B6B), // red
+      Color(0xFF4ECDC4), // teal
+      Color(0xFFFFD93D), // yellow
+      Color(0xFF6BCB77), // green
+      Color(0xFFBB86FC), // purple
+      Color(0xFFFF9F43), // orange
+      Color(0xFF45B7D1), // cyan
+    ];
 
-    for (final line in puzzle.lines) {
+    for (int li = 0; li < puzzle.lines.length; li++) {
+      final line = puzzle.lines[li];
+      final lineColor = lineColors[li % lineColors.length];
+      final paint = Paint()
+        ..color = lineColor.withValues(alpha: 0.5 + 0.2 * glowValue)
+        ..strokeWidth = 3
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+
       for (int i = 0; i < line.length - 1; i++) {
         final p1 = _getPos(line[i], points, center, outerR, innerR);
         final p2 = _getPos(line[i + 1], points, center, outerR, innerR);

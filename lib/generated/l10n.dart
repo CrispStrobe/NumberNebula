@@ -4999,8 +4999,14 @@ abstract class S {
   /// No description provided for @nebulaMatrixInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Place numbers so each row and column contains every value exactly once. Colored zones must also contain each value once.'**
+  /// **'Place numbers so each row and column contains every value exactly once.'**
   String get nebulaMatrixInstructions;
+
+  /// No description provided for @nebulaMatrixInstructionsZones.
+  ///
+  /// In en, this message translates to:
+  /// **'Place numbers so each row and column contains every value exactly once. Colored zones must also contain each value once.'**
+  String get nebulaMatrixInstructionsZones;
 
   /// No description provided for @nebulaMatrixWinTitle.
   ///

@@ -2852,6 +2852,10 @@ class SEn extends S {
 
   @override
   String get nebulaMatrixInstructions =>
+      'Place numbers so each row and column contains every value exactly once.';
+
+  @override
+  String get nebulaMatrixInstructionsZones =>
       'Place numbers so each row and column contains every value exactly once. Colored zones must also contain each value once.';
 
   @override

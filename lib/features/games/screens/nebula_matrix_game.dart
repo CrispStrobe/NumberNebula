@@ -243,6 +243,7 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
                     _generatePuzzle();
@@ -339,7 +340,9 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
                   children: [
                     Expanded(
                       child: Text(
-                        s.nebulaMatrixInstructions,
+                        puzzle!.zones.isNotEmpty
+                            ? s.nebulaMatrixInstructionsZones
+                            : s.nebulaMatrixInstructions,
                         style: SpaceTheme.bodyStyle,
                         textAlign: TextAlign.center,
                         maxLines: 2,
@@ -612,6 +615,7 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(s.playAgain),

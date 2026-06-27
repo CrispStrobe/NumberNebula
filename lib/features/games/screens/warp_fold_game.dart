@@ -301,8 +301,25 @@ class _WarpFoldGameState extends State<WarpFoldGame>
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         children: [
-          // Fold info bar
-          _buildFoldInfo(),
+          // Fold info bar with replay button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(child: _buildFoldInfo()),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: _answered ? null : () {
+                  setState(() => _showingFoldAnimation = true);
+                  _foldController.forward(from: 0.0);
+                },
+                icon: const Icon(Icons.replay, color: SpaceTheme.starYellow),
+                tooltip: 'Replay',
+                style: IconButton.styleFrom(
+                  backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
           // Options grid - fills remaining space
           Expanded(
@@ -499,6 +516,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () {
                           Navigator.of(context).pop();
                           _generatePuzzle();

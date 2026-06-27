@@ -44,7 +44,6 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
   final Set<String> _discoveredCombos = {};
   final TextEditingController _answerController = TextEditingController();
 
-  final _random = math.Random();
 
   // Colors per part category
   static const _headColors = [Color(0xFF06FFA5), Color(0xFFFFD700), Color(0xFFFF69B4), Color(0xFF00C9DB)];
@@ -103,20 +102,40 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       _bodyCount = 3;
       _tailCount = 3;
       _hasConstraints = true;
-      _forbiddenCombos = _random.nextInt(3) + 2;
       _constraintText = S.of(context)!.creatureForgeConstraintWingedSpiked;
     } else {
       _headCount = 4;
       _bodyCount = 4;
       _tailCount = 4;
       _hasConstraints = true;
-      _forbiddenCombos = _random.nextInt(5) + 3;
       _constraintText = S.of(context)!.creatureForgeConstraintAdvanced;
     }
 
+    // Count actual forbidden combos from _isForbidden to match the rules
+    _forbiddenCombos = 0;
+    for (int h = 0; h < _headCount; h++) {
+      for (int b = 0; b < _bodyCount; b++) {
+        for (int t = 0; t < _tailCount; t++) {
+          if (_isForbidden(h, b, t)) _forbiddenCombos++;
+        }
+      }
+    }
     _correctAnswer = _headCount * _bodyCount * _tailCount - _forbiddenCombos;
 
     setState(() => _isGenerating = false);
+  }
+
+  static const _headNames = ['Crystal', 'Flame', 'Frost', 'Shadow'];
+  static const _bodyNames = ['Armored', 'Winged', 'Aquatic', 'Elastic'];
+  static const _tailNames = ['Stinger', 'Feathered', 'Spiked', 'Luminous'];
+
+  String _partVariantName(int partType, int variant) {
+    switch (partType) {
+      case 0: return _headNames[variant % _headNames.length];
+      case 1: return _bodyNames[variant % _bodyNames.length];
+      case 2: return _tailNames[variant % _tailNames.length];
+      default: return '';
+    }
   }
 
   String _comboKey(int h, int b, int t) => '$h-$b-$t';
@@ -362,15 +381,31 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
                           ? [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 8)]
                           : null,
                     ),
-                    child: SizedBox(
-                      height: 50,
-                      child: CustomPaint(
-                        painter: _CreaturePartPainter(
-                          partType: partType,
-                          variant: i,
-                          color: color,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          height: 38,
+                          child: CustomPaint(
+                            painter: _CreaturePartPainter(
+                              partType: partType,
+                              variant: i,
+                              color: color,
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 2),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _partVariantName(partType, i),
+                            style: TextStyle(
+                              fontSize: 8,
+                              color: isSelected ? color : Colors.white38,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -613,6 +648,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () {
                           Navigator.of(context).pop();
                           _generatePuzzle();

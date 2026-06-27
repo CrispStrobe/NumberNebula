@@ -90,21 +90,29 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
 
     final grade = currentDifficulty!.grade;
 
-    // Pick how many unknown coins (all same denomination)
-    _unknownCount = grade <= 1 ? 3 : (grade <= 2 ? 3 : (_random.nextInt(2) + 3));
+    final level = widget.level;
 
-    // Pick a valid denomination for the unknowns
-    final availDenoms = grade <= 1
-        ? [1, 2, 5]
+    // Pick how many unknown coins — scales with level within each grade
+    _unknownCount = grade <= 1
+        ? (level <= 5 ? 2 : 3)
         : grade <= 2
-            ? [1, 2, 5, 10]
+            ? (level <= 5 ? 3 : 4)
+            : (level <= 5 ? 3 : (level <= 10 ? 4 : 5));
+
+    // Pick a valid denomination for the unknowns — wider pool at higher levels
+    final availDenoms = grade <= 1
+        ? (level <= 5 ? [1, 2, 5] : [1, 2, 5, 10])
+        : grade <= 2
+            ? (level <= 5 ? [1, 2, 5, 10] : [1, 2, 5, 10, 20])
             : _allDenoms;
     _correctDenomination = availDenoms[_random.nextInt(availDenoms.length)];
 
     final unknownTotal = _correctDenomination * _unknownCount;
 
-    // Generate 1-3 known coins
-    final knownCount = grade <= 1 ? 1 : (1 + _random.nextInt(2));
+    // Generate known coins — more at higher levels for harder arithmetic
+    final knownCount = grade <= 1
+        ? (level <= 5 ? 1 : 2)
+        : (level <= 5 ? 2 : 3);
     _knownCoins = [];
     for (int i = 0; i < knownCount; i++) {
       _knownCoins.add(availDenoms[_random.nextInt(availDenoms.length)]);
@@ -486,6 +494,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () {
                           Navigator.of(context).pop();
                           _generatePuzzle();

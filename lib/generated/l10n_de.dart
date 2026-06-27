@@ -2866,7 +2866,11 @@ class SDe extends S {
 
   @override
   String get nebulaMatrixInstructions =>
-      'Platziere Zahlen, sodass jede Zeile und Spalte jeden Wert genau einmal enthalt. Farbige Zonen mussen ebenfalls jeden Wert einmal enthalten.';
+      'Platziere Zahlen, sodass jede Zeile und Spalte jeden Wert genau einmal enthält.';
+
+  @override
+  String get nebulaMatrixInstructionsZones =>
+      'Platziere Zahlen, sodass jede Zeile und Spalte jeden Wert genau einmal enthält. Farbige Zonen müssen ebenfalls jeden Wert einmal enthalten.';
 
   @override
   String get nebulaMatrixWinTitle => 'Nebel stabilisiert!';

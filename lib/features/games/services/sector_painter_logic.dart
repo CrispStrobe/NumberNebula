@@ -142,13 +142,15 @@ class SectorPainterGenerator {
     }
     distances.sort((a, b) => a.dist.compareTo(b.dist));
 
-    // Add edges by shortest distance, respecting max degree
+    // Add edges by shortest distance, respecting max degree and avoiding crossings
     final degree = List.filled(regionCount, 0);
     for (final edge in distances) {
       if (degree[edge.a] < maxNeighbors && degree[edge.b] < maxNeighbors) {
-        _addEdge(adjacency, edge.a, edge.b);
-        degree[edge.a]++;
-        degree[edge.b]++;
+        if (!_wouldCross(edge.a, edge.b, adjacency, positions)) {
+          _addEdge(adjacency, edge.a, edge.b);
+          degree[edge.a]++;
+          degree[edge.b]++;
+        }
       }
     }
 
@@ -220,7 +222,7 @@ class SectorPainterGenerator {
         final dx = positions[a].x - positions[b].x;
         final dy = positions[a].y - positions[b].y;
         final d = math.sqrt(dx * dx + dy * dy);
-        if (d < 0.45) {
+        if (d < 0.45 && !_wouldCross(a, b, adjacency, positions)) {
           _addEdge(adjacency, a, b);
           added++;
         }
@@ -347,6 +349,39 @@ class SectorPainterGenerator {
   void _addEdge(Map<int, Set<int>> adj, int a, int b) {
     adj[a]!.add(b);
     adj[b]!.add(a);
+  }
+
+  /// Check if adding edge (a,b) would cross any existing edge.
+  bool _wouldCross(int a, int b, Map<int, Set<int>> adj,
+      List<math.Point<double>> positions) {
+    final p1 = positions[a];
+    final p2 = positions[b];
+    for (final u in adj.keys) {
+      for (final v in adj[u]!) {
+        if (u >= v) continue; // each edge once
+        if (u == a || u == b || v == a || v == b) continue; // shared endpoint
+        if (_segmentsIntersect(p1, p2, positions[u], positions[v])) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Test if two line segments (p1-p2) and (p3-p4) properly intersect.
+  static bool _segmentsIntersect(math.Point<double> p1, math.Point<double> p2,
+      math.Point<double> p3, math.Point<double> p4) {
+    double cross(math.Point<double> o, math.Point<double> a, math.Point<double> b) =>
+        (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    final d1 = cross(p3, p4, p1);
+    final d2 = cross(p3, p4, p2);
+    final d3 = cross(p1, p2, p3);
+    final d4 = cross(p1, p2, p4);
+    if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
+        ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) {
+      return true;
+    }
+    return false;
   }
 
   int _greedyChromaticNumber(

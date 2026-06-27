@@ -1588,7 +1588,8 @@
 
   "nebulaMatrixTitle": "Nebula Matrix",
   "nebulaMatrixDesc": "Stabilize the energy field! Fill every row, column, and zone of the nebula grid so no frequency repeats. One wrong resonance and the nebula collapses!",
-  "nebulaMatrixInstructions": "Place numbers so each row and column contains every value exactly once. Colored zones must also contain each value once.",
+  "nebulaMatrixInstructions": "Place numbers so each row and column contains every value exactly once.",
+  "nebulaMatrixInstructionsZones": "Place numbers so each row and column contains every value exactly once. Colored zones must also contain each value once.",
   "nebulaMatrixWinTitle": "Nebula Stabilized!",
   "nebulaMatrixWinDesc": "The energy field is perfectly balanced! You earned {bonusScore} resonance points for your precision.",
   "@nebulaMatrixWinDesc": {

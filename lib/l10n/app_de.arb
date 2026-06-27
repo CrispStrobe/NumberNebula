@@ -1508,7 +1508,8 @@
 
   "nebulaMatrixTitle": "Nebel-Matrix",
   "nebulaMatrixDesc": "Stabilisiere das Energiefeld! Fulle jede Zeile, Spalte und Zone des Nebelgitters, sodass sich keine Frequenz wiederholt. Eine falsche Resonanz und der Nebel kollabiert!",
-  "nebulaMatrixInstructions": "Platziere Zahlen, sodass jede Zeile und Spalte jeden Wert genau einmal enthalt. Farbige Zonen mussen ebenfalls jeden Wert einmal enthalten.",
+  "nebulaMatrixInstructions": "Platziere Zahlen, sodass jede Zeile und Spalte jeden Wert genau einmal enthält.",
+  "nebulaMatrixInstructionsZones": "Platziere Zahlen, sodass jede Zeile und Spalte jeden Wert genau einmal enthält. Farbige Zonen müssen ebenfalls jeden Wert einmal enthalten.",
   "nebulaMatrixWinTitle": "Nebel stabilisiert!",
   "nebulaMatrixWinDesc": "Das Energiefeld ist perfekt ausbalanciert! Du hast {bonusScore} Resonanzpunkte fur deine Prazision verdient.",
   "@nebulaMatrixWinDesc": {
