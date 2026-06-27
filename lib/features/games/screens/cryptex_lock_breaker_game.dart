@@ -298,6 +298,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
               style: const TextStyle(color: SpaceTheme.starYellow)),
         ),
         TextButton(
+          autofocus: true,
           onPressed: () {
             Navigator.of(context).pop();
             _generatePuzzle();
@@ -377,7 +378,10 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                       
                       // Equations display
                       _buildEquationsDisplay(),
-                      
+
+                      // Draggable digit palette
+                      _buildNumberPalette(),
+
                       const Spacer(flex: 1), // Use a Spacer for flexible padding
                       
                       // Controls hint
@@ -500,12 +504,24 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     final dialValue = dialValues[dialIndex];
     final dialLabel = String.fromCharCode(65 + dialIndex);
 
-    return Semantics(
+    return DragTarget<int>(
+      onWillAcceptWithDetails: (_) => gameActive && !isUnlocked,
+      onAcceptWithDetails: (details) {
+        HapticFeedback.selectionClick();
+        setState(() {
+          dialValues[dialIndex] = details.data;
+          selectedDial = dialIndex;
+        });
+        _checkSolution();
+      },
+      builder: (context, candidateData, rejectedData) {
+        final isDropTarget = candidateData.isNotEmpty;
+        return Semantics(
       label: 'Dial $dialLabel, value $dialValue',
-      hint: 'Drag up or down to change value',
+      hint: 'Drag up or down to change value, or drop a number',
       value: dialValue.toString(),
       button: true,
-      selected: isSelected,
+      selected: isSelected || isDropTarget,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onPanStart: (details) => _onPanStart(details, dialIndex),
@@ -582,6 +598,67 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
             );
           },
         ),
+      ),
+    );
+      },
+    );
+  }
+
+  Widget _buildNumberPalette() {
+    if (!gameActive || isUnlocked) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 6,
+        runSpacing: 4,
+        children: List.generate(10, (digit) {
+          return Draggable<int>(
+            data: digit,
+            feedback: Material(
+              color: Colors.transparent,
+              child: Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: SpaceTheme.starYellow.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: SpaceTheme.starYellow.withValues(alpha: 0.6),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: Text(
+                  '$digit',
+                  style: SpaceTheme.headlineStyle.copyWith(
+                    fontSize: 18,
+                    color: SpaceTheme.deepSpace,
+                  ),
+                ),
+              ),
+            ),
+            child: Container(
+              width: 32,
+              height: 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: SpaceTheme.alienGreen.withValues(alpha: 0.5)),
+              ),
+              child: Text(
+                '$digit',
+                style: SpaceTheme.titleStyle.copyWith(
+                  fontSize: 15,
+                  color: SpaceTheme.alienGreen,
+                ),
+              ),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -720,6 +797,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                         // Wrap buttons in Flexible to handle long text
                         Flexible(
                           child: ElevatedButton(
+                            autofocus: true,
                             onPressed: () {
                               Navigator.of(context).pop();
                               _resetGame();

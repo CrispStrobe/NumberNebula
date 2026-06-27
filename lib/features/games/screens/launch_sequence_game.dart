@@ -495,7 +495,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
       );
     }
 
-    return card;
+    return KeyedSubtree(key: key, child: card);
   }
 
   Widget _buildWinDialog(int bonusScore) {
@@ -523,6 +523,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(s.playAgain),

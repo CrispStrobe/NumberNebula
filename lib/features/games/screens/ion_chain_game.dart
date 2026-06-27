@@ -257,7 +257,7 @@ class _IonChainGameState extends State<IonChainGame>
     return LayoutBuilder(builder: (context, constraints) {
       final slotCount = _playerChain.length;
       // Circular layout: compute radius and bead size from available space
-      final availSize = math.min(constraints.maxWidth - 24, constraints.maxHeight - 48);
+      final availSize = math.min(constraints.maxWidth - 24, 320.0);
       final ringRadius = availSize * 0.35;
       final slotSize = (2 * math.pi * ringRadius / slotCount * 0.65).clamp(36.0, 56.0);
 
@@ -436,7 +436,7 @@ class _IonChainGameState extends State<IonChainGame>
               Text(s.ionChainWinDesc(score), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
               const SizedBox(height: 24),
               Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                ElevatedButton(onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                ElevatedButton(autofocus: true, onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
                   style: SpaceTheme.secondaryButtonStyle, child: Text(s.playAgain)),
                 ElevatedButton(onPressed: () { Navigator.of(context).pop(); Navigator.of(context).pop(); },
                   style: SpaceTheme.primaryButtonStyle, child: Text(s.backToMenu)),

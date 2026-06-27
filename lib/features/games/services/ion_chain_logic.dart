@@ -116,7 +116,12 @@ class IonChainPuzzle {
         final factoryIdx = rng.nextInt(_ruleFactories.length);
         final a = types[rng.nextInt(types.length)];
         final b = types[rng.nextInt(types.length)];
-        final key = '$factoryIdx:${a.index}:${b.index}';
+        // For bidirectional rules (factory 1), normalize key so (a,b) == (b,a)
+        final ka = a.index;
+        final kb = b.index;
+        final key = factoryIdx == 1
+            ? '1:${math.min(ka, kb)}:${math.max(ka, kb)}'
+            : '$factoryIdx:$ka:$kb';
 
         if (usedRuleKeys.contains(key)) continue;
         if (factoryIdx == 0 && a == b) continue; // self-adjacency rule doesn't need b

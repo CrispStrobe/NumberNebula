@@ -2363,6 +2363,36 @@ class SEn extends S {
       'The message remains garbled. Try different shift values, Commander.';
 
   @override
+  String get commRelayEncryptedSignal => 'ENCRYPTED SIGNAL';
+
+  @override
+  String get commRelayDecoded => 'DECODED';
+
+  @override
+  String get commRelayHintLetters => 'HINT LETTERS';
+
+  @override
+  String commRelayShift(String shift) {
+    return 'SHIFT: $shift';
+  }
+
+  @override
+  String commRelayDecodeBtn(int attemptsLeft) {
+    return 'DECODE  ($attemptsLeft left)';
+  }
+
+  @override
+  String get commRelayTypeHint => 'TYPE DECODED MESSAGE...';
+
+  @override
+  String get commRelayDecode => 'DECODE';
+
+  @override
+  String commRelayAnswer(String answer) {
+    return 'Answer: $answer';
+  }
+
+  @override
   String get hullPlatingTitle => 'Hull Plating';
 
   @override
@@ -2441,6 +2471,34 @@ class SEn extends S {
       'The manifest contains contradictions. Re-read the clues carefully, Commander.';
 
   @override
+  String get crewManifestSubmit => 'Submit Manifest';
+
+  @override
+  String crewManifestHas1(String crew, String item) {
+    return '$crew has the $item.';
+  }
+
+  @override
+  String crewManifestHas2(String crew, String item) {
+    return 'The $item belongs to $crew.';
+  }
+
+  @override
+  String crewManifestHas3(String crew, String item) {
+    return '$crew was assigned the $item.';
+  }
+
+  @override
+  String crewManifestNot1(String crew, String item) {
+    return '$crew does not have the $item.';
+  }
+
+  @override
+  String crewManifestNot2(String crew, String item) {
+    return 'The $item does not belong to $crew.';
+  }
+
+  @override
   String get alienTribunalTitle => 'Alien Tribunal';
 
   @override
@@ -2467,6 +2525,39 @@ class SEn extends S {
       'Your assignments are contradictory. If someone is a truth-teller, their statements must be true, Commander.';
 
   @override
+  String get alienTribunalSubmit => 'Submit Verdict';
+
+  @override
+  String alienTribunalClaimTruth1(String name) {
+    return '\"$name tells the truth.\"';
+  }
+
+  @override
+  String alienTribunalClaimTruth2(String name) {
+    return '\"$name is trustworthy.\"';
+  }
+
+  @override
+  String alienTribunalClaimTruth3(String name) {
+    return '\"$name is a truth-teller.\"';
+  }
+
+  @override
+  String alienTribunalClaimLiar1(String name) {
+    return '\"$name is a liar.\"';
+  }
+
+  @override
+  String alienTribunalClaimLiar2(String name) {
+    return '\"$name cannot be trusted.\"';
+  }
+
+  @override
+  String alienTribunalClaimLiar3(String name) {
+    return '\"$name always lies.\"';
+  }
+
+  @override
   String get gravityWellTitle => 'Gravity Well';
 
   @override
@@ -2491,6 +2582,25 @@ class SEn extends S {
   @override
   String get gravityWellLoseDesc =>
       'The imbalanced gravity well warped the local spacetime. Recalculate the masses, Commander.';
+
+  @override
+  String gravityWellKnown(String values) {
+    return 'Known: $values';
+  }
+
+  @override
+  String gravityWellScaleN(int n) {
+    return 'Scale $n';
+  }
+
+  @override
+  String get gravityWellEnterWeights => 'Enter unknown weights:';
+
+  @override
+  String get gravityWellCheckBalance => 'Check Balance';
+
+  @override
+  String get gravityWellKg => 'kg';
 
   @override
   String get sectorPainterTitle => 'Sector Painter';

@@ -183,6 +183,22 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     }
   }
 
+  String _renderClue(ManifestClue clue) {
+    final s = S.of(context)!;
+    if (clue.type == ClueType.positive) {
+      switch (clue.style) {
+        case 0: return s.crewManifestHas1(clue.crewName, clue.itemName);
+        case 1: return s.crewManifestHas2(clue.crewName, clue.itemName);
+        default: return s.crewManifestHas3(clue.crewName, clue.itemName);
+      }
+    } else {
+      switch (clue.style) {
+        case 0: return s.crewManifestNot1(clue.crewName, clue.itemName);
+        default: return s.crewManifestNot2(clue.crewName, clue.itemName);
+      }
+    }
+  }
+
   void _checkSolution() {
     if (puzzle == null || _gameOver) return;
 
@@ -564,7 +580,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
                 ],
               ),
               const SizedBox(height: 8),
-              ...puzzle!.clues.map((clue) => Padding(
+              ...puzzle!.structuredClues.map((clue) => Padding(
                     padding: const EdgeInsets.only(bottom: 6),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -576,7 +592,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            clue,
+                            _renderClue(clue),
                             style: SpaceTheme.bodyStyle.copyWith(fontSize: 15),
                           ),
                         ),
@@ -609,7 +625,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
             child: ElevatedButton.icon(
               onPressed: _checkSolution,
               icon: const Icon(Icons.assignment_turned_in, size: 22),
-              label: const Text('Submit Manifest', style: TextStyle(fontSize: 16)),
+              label: Text(S.of(context)!.crewManifestSubmit, style: const TextStyle(fontSize: 16)),
               style: SpaceTheme.primaryButtonStyle,
             ),
           ),
@@ -644,6 +660,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () {
                           Navigator.of(context).pop();
                           _generatePuzzle();

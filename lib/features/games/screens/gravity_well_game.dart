@@ -84,6 +84,53 @@ class _GravityWellGameState extends State<GravityWellGame>
     }
   }
 
+  void _showNumberInput(String label, int currentValue) {
+    final controller = TextEditingController(text: '$currentValue');
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: SpaceTheme.deepSpace,
+        title: Text('$label = ?', style: SpaceTheme.titleStyle),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
+          decoration: InputDecoration(
+            suffix: Text(S.of(context)!.gravityWellKg,
+                style: const TextStyle(color: Colors.white54)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          onSubmitted: (v) {
+            final parsed = int.tryParse(v);
+            if (parsed != null) {
+              setState(() {
+                _userAnswers[label] = parsed.clamp(1, 30);
+              });
+            }
+            Navigator.of(ctx).pop();
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              final parsed = int.tryParse(controller.text);
+              if (parsed != null) {
+                setState(() {
+                  _userAnswers[label] = parsed.clamp(1, 30);
+                });
+              }
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _checkSolution() {
     if (puzzle == null || _gameOver) return;
 
@@ -321,7 +368,7 @@ class _GravityWellGameState extends State<GravityWellGame>
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              'Known: ${puzzle!.knownWeights.entries.map((e) => "${e.key} = ${e.value} kg").join(", ")}',
+              S.of(context)!.gravityWellKnown(puzzle!.knownWeights.entries.map((e) => '${e.key} = ${e.value} ${S.of(context)!.gravityWellKg}').join(', ')),
               style: SpaceTheme.bodyStyle.copyWith(fontSize: 13, color: SpaceTheme.alienGreen),
             ),
           ),
@@ -367,7 +414,7 @@ class _GravityWellGameState extends State<GravityWellGame>
               Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: Text(
-                  'Scale ${index + 1}',
+                  S.of(context)!.gravityWellScaleN(index + 1),
                   style: SpaceTheme.bodyStyle.copyWith(
                     fontSize: 12,
                     color: SpaceTheme.starYellow,
@@ -403,7 +450,7 @@ class _GravityWellGameState extends State<GravityWellGame>
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Enter unknown weights:',
+            S.of(context)!.gravityWellEnterWeights,
             style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
           ),
           const SizedBox(height: 8),
@@ -418,7 +465,7 @@ class _GravityWellGameState extends State<GravityWellGame>
                   child: ElevatedButton.icon(
                     onPressed: _checkSolution,
                     icon: const Icon(Icons.balance),
-                    label: const Text('Check Balance'),
+                    label: Text(S.of(context)!.gravityWellCheckBalance),
                     style: SpaceTheme.primaryButtonStyle,
                   ),
                 );
@@ -471,18 +518,21 @@ class _GravityWellGameState extends State<GravityWellGame>
               });
             },
           ),
-          // Value display
-          Container(
-            width: 56, height: 42,
-            decoration: BoxDecoration(
-              color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: SpaceTheme.starYellow, width: 2),
-            ),
-            child: Center(
-              child: Text(
-                '$value',
-                style: SpaceTheme.headlineStyle.copyWith(fontSize: 22),
+          // Value display — tappable for keyboard input
+          GestureDetector(
+            onTap: _gameOver ? null : () => _showNumberInput(label, value),
+            child: Container(
+              width: 56, height: 42,
+              decoration: BoxDecoration(
+                color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: SpaceTheme.starYellow, width: 2),
+              ),
+              child: Center(
+                child: Text(
+                  '$value',
+                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 22),
+                ),
               ),
             ),
           ),
@@ -498,7 +548,7 @@ class _GravityWellGameState extends State<GravityWellGame>
             },
           ),
           const SizedBox(width: 4),
-          const Text('kg', style: TextStyle(color: Colors.white54, fontSize: 14)),
+          Text(S.of(context)!.gravityWellKg, style: const TextStyle(color: Colors.white54, fontSize: 14)),
         ],
       ),
     );
@@ -531,6 +581,7 @@ class _GravityWellGameState extends State<GravityWellGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () {
                           Navigator.of(context).pop();
                           _generatePuzzle();

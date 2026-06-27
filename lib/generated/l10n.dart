@@ -4228,6 +4228,54 @@ abstract class S {
   /// **'The message remains garbled. Try different shift values, Commander.'**
   String get commRelayLoseDesc;
 
+  /// No description provided for @commRelayEncryptedSignal.
+  ///
+  /// In en, this message translates to:
+  /// **'ENCRYPTED SIGNAL'**
+  String get commRelayEncryptedSignal;
+
+  /// No description provided for @commRelayDecoded.
+  ///
+  /// In en, this message translates to:
+  /// **'DECODED'**
+  String get commRelayDecoded;
+
+  /// No description provided for @commRelayHintLetters.
+  ///
+  /// In en, this message translates to:
+  /// **'HINT LETTERS'**
+  String get commRelayHintLetters;
+
+  /// No description provided for @commRelayShift.
+  ///
+  /// In en, this message translates to:
+  /// **'SHIFT: {shift}'**
+  String commRelayShift(String shift);
+
+  /// No description provided for @commRelayDecodeBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'DECODE  ({attemptsLeft} left)'**
+  String commRelayDecodeBtn(int attemptsLeft);
+
+  /// No description provided for @commRelayTypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'TYPE DECODED MESSAGE...'**
+  String get commRelayTypeHint;
+
+  /// No description provided for @commRelayDecode.
+  ///
+  /// In en, this message translates to:
+  /// **'DECODE'**
+  String get commRelayDecode;
+
+  /// No description provided for @commRelayAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer: {answer}'**
+  String commRelayAnswer(String answer);
+
   /// No description provided for @hullPlatingTitle.
   ///
   /// In en, this message translates to:
@@ -4354,6 +4402,42 @@ abstract class S {
   /// **'The manifest contains contradictions. Re-read the clues carefully, Commander.'**
   String get crewManifestLoseDesc;
 
+  /// No description provided for @crewManifestSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Manifest'**
+  String get crewManifestSubmit;
+
+  /// No description provided for @crewManifestHas1.
+  ///
+  /// In en, this message translates to:
+  /// **'{crew} has the {item}.'**
+  String crewManifestHas1(String crew, String item);
+
+  /// No description provided for @crewManifestHas2.
+  ///
+  /// In en, this message translates to:
+  /// **'The {item} belongs to {crew}.'**
+  String crewManifestHas2(String crew, String item);
+
+  /// No description provided for @crewManifestHas3.
+  ///
+  /// In en, this message translates to:
+  /// **'{crew} was assigned the {item}.'**
+  String crewManifestHas3(String crew, String item);
+
+  /// No description provided for @crewManifestNot1.
+  ///
+  /// In en, this message translates to:
+  /// **'{crew} does not have the {item}.'**
+  String crewManifestNot1(String crew, String item);
+
+  /// No description provided for @crewManifestNot2.
+  ///
+  /// In en, this message translates to:
+  /// **'The {item} does not belong to {crew}.'**
+  String crewManifestNot2(String crew, String item);
+
   /// No description provided for @alienTribunalTitle.
   ///
   /// In en, this message translates to:
@@ -4396,6 +4480,48 @@ abstract class S {
   /// **'Your assignments are contradictory. If someone is a truth-teller, their statements must be true, Commander.'**
   String get alienTribunalLoseDesc;
 
+  /// No description provided for @alienTribunalSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Verdict'**
+  String get alienTribunalSubmit;
+
+  /// No description provided for @alienTribunalClaimTruth1.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name} tells the truth.\"'**
+  String alienTribunalClaimTruth1(String name);
+
+  /// No description provided for @alienTribunalClaimTruth2.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name} is trustworthy.\"'**
+  String alienTribunalClaimTruth2(String name);
+
+  /// No description provided for @alienTribunalClaimTruth3.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name} is a truth-teller.\"'**
+  String alienTribunalClaimTruth3(String name);
+
+  /// No description provided for @alienTribunalClaimLiar1.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name} is a liar.\"'**
+  String alienTribunalClaimLiar1(String name);
+
+  /// No description provided for @alienTribunalClaimLiar2.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name} cannot be trusted.\"'**
+  String alienTribunalClaimLiar2(String name);
+
+  /// No description provided for @alienTribunalClaimLiar3.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name} always lies.\"'**
+  String alienTribunalClaimLiar3(String name);
+
   /// No description provided for @gravityWellTitle.
   ///
   /// In en, this message translates to:
@@ -4437,6 +4563,36 @@ abstract class S {
   /// In en, this message translates to:
   /// **'The imbalanced gravity well warped the local spacetime. Recalculate the masses, Commander.'**
   String get gravityWellLoseDesc;
+
+  /// No description provided for @gravityWellKnown.
+  ///
+  /// In en, this message translates to:
+  /// **'Known: {values}'**
+  String gravityWellKnown(String values);
+
+  /// No description provided for @gravityWellScaleN.
+  ///
+  /// In en, this message translates to:
+  /// **'Scale {n}'**
+  String gravityWellScaleN(int n);
+
+  /// No description provided for @gravityWellEnterWeights.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter unknown weights:'**
+  String get gravityWellEnterWeights;
+
+  /// No description provided for @gravityWellCheckBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Check Balance'**
+  String get gravityWellCheckBalance;
+
+  /// No description provided for @gravityWellKg.
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get gravityWellKg;
 
   /// No description provided for @sectorPainterTitle.
   ///

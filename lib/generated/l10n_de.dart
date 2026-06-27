@@ -2377,6 +2377,36 @@ class SDe extends S {
       'Die Nachricht bleibt verzerrt. Probiere verschiedene Verschiebungswerte, Commander.';
 
   @override
+  String get commRelayEncryptedSignal => 'VERSCHLÜSSELTES SIGNAL';
+
+  @override
+  String get commRelayDecoded => 'ENTSCHLÜSSELT';
+
+  @override
+  String get commRelayHintLetters => 'HINWEIS-BUCHSTABEN';
+
+  @override
+  String commRelayShift(String shift) {
+    return 'VERSCHIEBUNG: $shift';
+  }
+
+  @override
+  String commRelayDecodeBtn(int attemptsLeft) {
+    return 'ENTSCHLÜSSELN  ($attemptsLeft übrig)';
+  }
+
+  @override
+  String get commRelayTypeHint => 'ENTSCHLÜSSELTE NACHRICHT EINGEBEN...';
+
+  @override
+  String get commRelayDecode => 'ENTSCHLÜSSELN';
+
+  @override
+  String commRelayAnswer(String answer) {
+    return 'Antwort: $answer';
+  }
+
+  @override
   String get hullPlatingTitle => 'Rumpf-Panzerung';
 
   @override
@@ -2455,6 +2485,34 @@ class SDe extends S {
       'Das Manifest enthalt Widerspruche. Lies die Hinweise sorgfaltig noch einmal, Commander.';
 
   @override
+  String get crewManifestSubmit => 'Manifest abgeben';
+
+  @override
+  String crewManifestHas1(String crew, String item) {
+    return '$crew hat den/die/das $item.';
+  }
+
+  @override
+  String crewManifestHas2(String crew, String item) {
+    return 'Der/Die/Das $item gehört $crew.';
+  }
+
+  @override
+  String crewManifestHas3(String crew, String item) {
+    return '$crew wurde der/die/das $item zugewiesen.';
+  }
+
+  @override
+  String crewManifestNot1(String crew, String item) {
+    return '$crew hat den/die/das $item nicht.';
+  }
+
+  @override
+  String crewManifestNot2(String crew, String item) {
+    return 'Der/Die/Das $item gehört nicht $crew.';
+  }
+
+  @override
   String get alienTribunalTitle => 'Alien-Tribunal';
 
   @override
@@ -2481,6 +2539,39 @@ class SDe extends S {
       'Deine Zuweisungen sind widerspruchlich. Wenn jemand ein Wahrheitssprecher ist, mussen seine Aussagen wahr sein, Commander.';
 
   @override
+  String get alienTribunalSubmit => 'Urteil abgeben';
+
+  @override
+  String alienTribunalClaimTruth1(String name) {
+    return '\"$name sagt die Wahrheit.\"';
+  }
+
+  @override
+  String alienTribunalClaimTruth2(String name) {
+    return '\"$name ist vertrauenswürdig.\"';
+  }
+
+  @override
+  String alienTribunalClaimTruth3(String name) {
+    return '\"$name ist ein Wahrheitssprecher.\"';
+  }
+
+  @override
+  String alienTribunalClaimLiar1(String name) {
+    return '\"$name ist ein Lügner.\"';
+  }
+
+  @override
+  String alienTribunalClaimLiar2(String name) {
+    return '\"$name kann man nicht vertrauen.\"';
+  }
+
+  @override
+  String alienTribunalClaimLiar3(String name) {
+    return '\"$name lügt immer.\"';
+  }
+
+  @override
   String get gravityWellTitle => 'Gravitationsfeld';
 
   @override
@@ -2505,6 +2596,25 @@ class SDe extends S {
   @override
   String get gravityWellLoseDesc =>
       'Das unausgeglichene Gravitationsfeld hat die lokale Raumzeit verzerrt. Berechne die Massen neu, Commander.';
+
+  @override
+  String gravityWellKnown(String values) {
+    return 'Bekannt: $values';
+  }
+
+  @override
+  String gravityWellScaleN(int n) {
+    return 'Waage $n';
+  }
+
+  @override
+  String get gravityWellEnterWeights => 'Unbekannte Gewichte eingeben:';
+
+  @override
+  String get gravityWellCheckBalance => 'Gleichgewicht prüfen';
+
+  @override
+  String get gravityWellKg => 'kg';
 
   @override
   String get sectorPainterTitle => 'Sektor-Maler';

@@ -585,8 +585,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
           child: Column(
             children: [
               _buildHeader(),
-              _buildReviewStrip(),
-              _buildDifficultyPicker(),
+              _buildCompactToolbar(),
               Expanded(
                 child: Padding(
                   padding:
@@ -602,102 +601,118 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
     );
   }
   
-  Widget _buildReviewStrip() {
-    return Consumer<SriService>(
-      builder: (context, sri, _) {
-        final total = sri.totalTrackedProblems;
-        if (total == 0) return const SizedBox.shrink();
+  Widget _buildCompactToolbar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 2, 24, 2),
+      child: Row(
+        children: [
+          // Difficulty picker — compact segmented control
+          Expanded(child: _buildInlineDifficultyPicker()),
+          const SizedBox(width: 8),
+          // SRI review badge — compact icon with due count
+          _buildSriBadge(),
+        ],
+      ),
+    );
+  }
 
-        final due = sri.getAvailableReviewCount();
-        final learning = sri.learningProblemCount;
-        final mastered = sri.masteredProblemCount;
-
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(24, 4, 24, 4),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const KarteikastenScreen()),
+  Widget _buildInlineDifficultyPicker() {
+    return Consumer<GameProvider>(
+      builder: (context, gp, _) {
+        final mode = gp.difficultyMode;
+        return Container(
+          height: 32,
+          decoration: BoxDecoration(
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white24),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _CompactDifficultyTab(
+                label: 'Easy',
+                icon: Icons.spa,
+                selected: mode == DifficultyMode.easy,
+                onTap: () => gp.setDifficultyMode(DifficultyMode.easy),
+                isFirst: true,
               ),
-              child: Semantics(
-                button: true,
-                label: due > 0
-                    ? '$due items due for review, tap to open review'
-                    : 'Review progress, tap to open',
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: (due > 0 ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple)
-                          .withValues(alpha: 0.5),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.menu_book,
-                        color: due > 0 ? SpaceTheme.starYellow : Colors.white70,
-                        size: 22,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            _ReviewChip(label: 'due', value: due, highlight: due > 0),
-                            _ReviewChip(label: 'learning', value: learning),
-                            _ReviewChip(label: 'mastered', value: mastered),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.chevron_right, color: Colors.white54),
-                    ],
-                  ),
-                ),
+              _CompactDifficultyTab(
+                label: 'Normal',
+                icon: Icons.school,
+                selected: mode == DifficultyMode.normal,
+                onTap: () => gp.setDifficultyMode(DifficultyMode.normal),
               ),
-            ),
+              _CompactDifficultyTab(
+                label: 'Challenge',
+                icon: Icons.local_fire_department,
+                selected: mode == DifficultyMode.challenge,
+                onTap: () => gp.setDifficultyMode(DifficultyMode.challenge),
+                isLast: true,
+              ),
+            ],
           ),
         );
       },
     );
   }
 
-  Widget _buildDifficultyPicker() {
-    return Consumer<GameProvider>(
-      builder: (context, gp, _) {
-        final mode = gp.difficultyMode;
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _DifficultyButton(
-                label: 'Easy',
-                icon: Icons.spa,
-                selected: mode == DifficultyMode.easy,
-                onTap: () => gp.setDifficultyMode(DifficultyMode.easy),
+  Widget _buildSriBadge() {
+    return Consumer<SriService>(
+      builder: (context, sri, _) {
+        final total = sri.totalTrackedProblems;
+        if (total == 0) return const SizedBox.shrink();
+
+        final due = sri.getAvailableReviewCount();
+
+        return Material(
+          color: Colors.transparent,
+          child: Semantics(
+            button: true,
+            label: due > 0
+                ? '$due items due for review, tap to open review'
+                : 'Review progress, tap to open',
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const KarteikastenScreen()),
               ),
-              const SizedBox(width: 8),
-              _DifficultyButton(
-                label: 'Normal',
-                icon: Icons.school,
-                selected: mode == DifficultyMode.normal,
-                onTap: () => gp.setDifficultyMode(DifficultyMode.normal),
+              child: Container(
+                height: 32,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: (due > 0 ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple)
+                        .withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.menu_book,
+                      color: due > 0 ? SpaceTheme.starYellow : Colors.white70,
+                      size: 16,
+                    ),
+                    if (due > 0) ...[
+                      const SizedBox(width: 4),
+                      Text(
+                        '$due',
+                        style: const TextStyle(
+                          color: SpaceTheme.starYellow,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(width: 2),
+                    const Icon(Icons.chevron_right, color: Colors.white54, size: 16),
+                  ],
+                ),
               ),
-              const SizedBox(width: 8),
-              _DifficultyButton(
-                label: 'Challenge',
-                icon: Icons.local_fire_department,
-                selected: mode == DifficultyMode.challenge,
-                onTap: () => gp.setDifficultyMode(DifficultyMode.challenge),
-              ),
-            ],
+            ),
           ),
         );
       },
@@ -1030,91 +1045,56 @@ class _GameCardState extends State<GameCard> with SingleTickerProviderStateMixin
     );
   }
 }
-class _DifficultyButton extends StatelessWidget {
+class _CompactDifficultyTab extends StatelessWidget {
   final String label;
   final IconData icon;
   final bool selected;
   final VoidCallback onTap;
-  const _DifficultyButton({
+  final bool isFirst;
+  final bool isLast;
+  const _CompactDifficultyTab({
     required this.label,
     required this.icon,
     required this.selected,
     required this.onTap,
+    this.isFirst = false,
+    this.isLast = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+    return Expanded(
+      child: GestureDetector(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          alignment: Alignment.center,
           decoration: BoxDecoration(
             color: selected
                 ? SpaceTheme.starYellow.withValues(alpha: 0.25)
-                : SpaceTheme.deepSpace.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected ? SpaceTheme.starYellow : Colors.white24,
-              width: selected ? 2 : 1,
+                : Colors.transparent,
+            borderRadius: BorderRadius.horizontal(
+              left: isFirst ? const Radius.circular(16) : Radius.zero,
+              right: isLast ? const Radius.circular(16) : Radius.zero,
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon,
-                  size: 16,
-                  color: selected ? SpaceTheme.starYellow : Colors.white60),
-              const SizedBox(width: 6),
+                  size: 13,
+                  color: selected ? SpaceTheme.starYellow : Colors.white54),
+              const SizedBox(width: 3),
               Text(
                 label,
                 style: TextStyle(
-                  color: selected ? Colors.white : Colors.white60,
-                  fontWeight:
-                      selected ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 13,
+                  color: selected ? Colors.white : Colors.white54,
+                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 11,
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ReviewChip extends StatelessWidget {
-  final String label;
-  final int value;
-  final bool highlight;
-  const _ReviewChip({
-    required this.label,
-    required this.value,
-    this.highlight = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = highlight ? SpaceTheme.starYellow : Colors.white;
-    return RichText(
-      text: TextSpan(
-        style: const TextStyle(fontSize: 13),
-        children: [
-          TextSpan(
-            text: '$value ',
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
-          ),
-          TextSpan(
-            text: label,
-            style: TextStyle(color: color.withValues(alpha: 0.7)),
-          ),
-        ],
       ),
     );
   }

@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -96,31 +95,41 @@ class _CommRelayGameState extends State<CommRelayGame>
   }
 
   /// Show every Nth letter of decoded text, rest as dots.
-  /// Grade 1: every letter. Grade 2: every 2nd. Grade 3: every 3rd. Grade 4: only 1st.
+  /// Always keeps at least 1-2 letters hidden so the slider alone never
+  /// fully solves the puzzle — the player must still think.
   String _partialDecode() {
     final decoded = CommRelayPuzzle.decryptCaesar(puzzle!.cipherText, _currentShift);
     final grade = currentDifficulty?.grade ?? 1;
     final level = currentDifficulty?.level ?? 1;
 
-    // How many letters to reveal: scales down with grade + level
+    // revealEvery: lower = more letters shown. Scales with grade + level.
     int revealEvery;
     if (grade <= 1) {
-      revealEvery = math.max(1, 2 - (level <= 3 ? 0 : 0)); // every 2nd, or every letter at very start
-      if (level <= 2) revealEvery = 1; // show all at very beginning
+      // Level 1: every 3rd letter (not trivially solvable).
+      // Higher levels: every 2nd letter (more generous).
+      revealEvery = level <= 2 ? 3 : 2;
     } else if (grade <= 2) {
-      revealEvery = 3; // every 3rd letter
+      revealEvery = 2; // every 2nd letter — generous for sentences
     } else if (grade <= 3) {
-      revealEvery = 4 + (level > 5 ? 1 : 0); // every 4th-5th
+      revealEvery = 3; // every 3rd
     } else {
-      revealEvery = decoded.length; // only first letter
+      revealEvery = 4 + (level > 5 ? 1 : 0); // every 4th-5th
     }
 
+    // Count non-space characters to enforce minimum hidden count.
+    final letterCount = decoded.split('').where((c) => c != ' ').length;
+    // Ensure at least 2 letters stay hidden (or 1 if very short word).
+    final minHidden = letterCount <= 3 ? 1 : 2;
+
     final buf = StringBuffer();
+    int revealed = 0;
+    final maxRevealed = letterCount - minHidden;
     for (int i = 0; i < decoded.length; i++) {
       if (decoded[i] == ' ') {
         buf.write(' ');
-      } else if (i == 0 || i % revealEvery == 0) {
+      } else if ((i == 0 || i % revealEvery == 0) && revealed < maxRevealed) {
         buf.write(decoded[i]);
+        revealed++;
       } else {
         buf.write('\u2022'); // bullet dot
       }
@@ -324,7 +333,7 @@ class _CommRelayGameState extends State<CommRelayGame>
           child: Column(
             children: [
               Text(
-                'ENCRYPTED SIGNAL',
+                S.of(context)!.commRelayEncryptedSignal,
                 style: SpaceTheme.bodyStyle.copyWith(
                   color: SpaceTheme.starYellow,
                   fontSize: 12,
@@ -347,7 +356,7 @@ class _CommRelayGameState extends State<CommRelayGame>
                 const Divider(color: Colors.white24),
                 const SizedBox(height: 8),
                 Text(
-                  'DECODED',
+                  S.of(context)!.commRelayDecoded,
                   style: SpaceTheme.bodyStyle.copyWith(
                     color: SpaceTheme.alienGreen,
                     fontSize: 12,
@@ -383,7 +392,7 @@ class _CommRelayGameState extends State<CommRelayGame>
       child: Column(
         children: [
           Text(
-            'HINT LETTERS',
+            S.of(context)!.commRelayHintLetters,
             style: SpaceTheme.bodyStyle.copyWith(
               fontSize: 11,
               color: SpaceTheme.starYellow,
@@ -440,7 +449,7 @@ class _CommRelayGameState extends State<CommRelayGame>
       child: Column(
         children: [
           Text(
-            'SHIFT: ${_currentShift > 0 ? '+' : ''}$_currentShift',
+            S.of(context)!.commRelayShift('${_currentShift > 0 ? '+' : ''}$_currentShift'),
             style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
           ),
           const SizedBox(height: 8),
@@ -462,7 +471,7 @@ class _CommRelayGameState extends State<CommRelayGame>
           ElevatedButton(
             onPressed: _checkCaesarAnswer,
             style: SpaceTheme.primaryButtonStyle,
-            child: Text('DECODE  (${_maxAttempts - _attempts} left)'),
+            child: Text(S.of(context)!.commRelayDecodeBtn(_maxAttempts - _attempts)),
           ),
         ],
       ),
@@ -487,7 +496,7 @@ class _CommRelayGameState extends State<CommRelayGame>
             ),
             textCapitalization: TextCapitalization.characters,
             decoration: InputDecoration(
-              hintText: 'TYPE DECODED MESSAGE...',
+              hintText: S.of(context)!.commRelayTypeHint,
               hintStyle: SpaceTheme.bodyStyle.copyWith(
                 color: Colors.white30,
                 fontSize: 14,
@@ -514,7 +523,7 @@ class _CommRelayGameState extends State<CommRelayGame>
           ElevatedButton(
             onPressed: _checkTextAnswer,
             style: SpaceTheme.primaryButtonStyle,
-            child: const Text('DECODE'),
+            child: Text(S.of(context)!.commRelayDecode),
           ),
         ],
       ),
@@ -569,6 +578,7 @@ class _CommRelayGameState extends State<CommRelayGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () {
                           Navigator.of(context).pop();
                           _generatePuzzle();
@@ -617,7 +627,7 @@ class _CommRelayGameState extends State<CommRelayGame>
                 textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
-              'Answer: ${puzzle!.plainText}',
+              S.of(context)!.commRelayAnswer(puzzle!.plainText),
               style: SpaceTheme.bodyStyle.copyWith(
                 color: SpaceTheme.starYellow,
                 fontSize: 14,
@@ -629,6 +639,7 @@ class _CommRelayGameState extends State<CommRelayGame>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
                     _generatePuzzle();

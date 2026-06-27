@@ -122,11 +122,20 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     });
   }
 
+  /// Compute the center offset for a piece so the drop cell aligns with the
+  /// piece center rather than the top-left corner.
+  (int, int) _pieceCenterOffset(PlatingPiece piece) {
+    final maxR = piece.cells.map((c) => c.$1).reduce(math.max);
+    final maxC = piece.cells.map((c) => c.$2).reduce(math.max);
+    return (maxR ~/ 2, maxC ~/ 2);
+  }
+
   List<(int, int)>? _computePlacement(PlatingPiece piece, int row, int col) {
-    // Always anchor at (0,0) = top-left of piece bounding box.
-    // The drop cell is where the top-left goes, piece extends right/down.
-    final dr = row;
-    final dc = col;
+    // Anchor at the center of the piece bounding box so the drop cell
+    // maps to where the user's finger actually is.
+    final (centerR, centerC) = _pieceCenterOffset(piece);
+    final dr = row - centerR;
+    final dc = col - centerC;
 
     final absoluteCells =
         piece.cells.map((c) => (c.$1 + dr, c.$2 + dc)).toList();
@@ -252,9 +261,10 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     }
     final piece = _getRotatedPiece(_hoveringPieceIndex!);
 
-    // Compute absolute cells regardless of validity -- anchor at (0,0)
-    final dr = _hoverRow!;
-    final dc = _hoverCol!;
+    // Compute absolute cells with center-anchoring (same as _computePlacement)
+    final (centerR, centerC) = _pieceCenterOffset(piece);
+    final dr = _hoverRow! - centerR;
+    final dc = _hoverCol! - centerC;
     final absoluteCells = piece.cells.map((c) => (c.$1 + dr, c.$2 + dc)).toList();
 
     // Check validity
@@ -766,6 +776,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () {
                           Navigator.of(context).pop();
                           _generatePuzzle();

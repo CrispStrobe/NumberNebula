@@ -1337,6 +1337,29 @@
   },
   "commRelayLoseTitle": "Static!",
   "commRelayLoseDesc": "The message remains garbled. Try different shift values, Commander.",
+  "commRelayEncryptedSignal": "ENCRYPTED SIGNAL",
+  "commRelayDecoded": "DECODED",
+  "commRelayHintLetters": "HINT LETTERS",
+  "commRelayShift": "SHIFT: {shift}",
+  "@commRelayShift": {
+    "placeholders": {
+      "shift": { "type": "String" }
+    }
+  },
+  "commRelayDecodeBtn": "DECODE  ({attemptsLeft} left)",
+  "@commRelayDecodeBtn": {
+    "placeholders": {
+      "attemptsLeft": { "type": "int" }
+    }
+  },
+  "commRelayTypeHint": "TYPE DECODED MESSAGE...",
+  "commRelayDecode": "DECODE",
+  "commRelayAnswer": "Answer: {answer}",
+  "@commRelayAnswer": {
+    "placeholders": {
+      "answer": { "type": "String" }
+    }
+  },
 
   "hullPlatingTitle": "Hull Plating",
   "hullPlatingDesc": "The ship's hull took a hit! Cover the damaged section with armor plates of different shapes. Every gap must be sealed — rotate and place each plate precisely!",
@@ -1377,6 +1400,17 @@
   },
   "crewManifestLoseTitle": "Database Error!",
   "crewManifestLoseDesc": "The manifest contains contradictions. Re-read the clues carefully, Commander.",
+  "crewManifestSubmit": "Submit Manifest",
+  "crewManifestHas1": "{crew} has the {item}.",
+  "@crewManifestHas1": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "crewManifestHas2": "The {item} belongs to {crew}.",
+  "@crewManifestHas2": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "crewManifestHas3": "{crew} was assigned the {item}.",
+  "@crewManifestHas3": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "crewManifestNot1": "{crew} does not have the {item}.",
+  "@crewManifestNot1": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "crewManifestNot2": "The {item} does not belong to {crew}.",
+  "@crewManifestNot2": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
 
   "alienTribunalTitle": "Alien Tribunal",
   "alienTribunalDesc": "Galactic delegates are testifying, but some always lie! Truth-tellers always speak truth, liars always lie. Study their statements and identify who is trustworthy!",
@@ -1390,6 +1424,19 @@
   },
   "alienTribunalLoseTitle": "Mistrial!",
   "alienTribunalLoseDesc": "Your assignments are contradictory. If someone is a truth-teller, their statements must be true, Commander.",
+  "alienTribunalSubmit": "Submit Verdict",
+  "alienTribunalClaimTruth1": "\"{name} tells the truth.\"",
+  "@alienTribunalClaimTruth1": { "placeholders": { "name": { "type": "String" } } },
+  "alienTribunalClaimTruth2": "\"{name} is trustworthy.\"",
+  "@alienTribunalClaimTruth2": { "placeholders": { "name": { "type": "String" } } },
+  "alienTribunalClaimTruth3": "\"{name} is a truth-teller.\"",
+  "@alienTribunalClaimTruth3": { "placeholders": { "name": { "type": "String" } } },
+  "alienTribunalClaimLiar1": "\"{name} is a liar.\"",
+  "@alienTribunalClaimLiar1": { "placeholders": { "name": { "type": "String" } } },
+  "alienTribunalClaimLiar2": "\"{name} cannot be trusted.\"",
+  "@alienTribunalClaimLiar2": { "placeholders": { "name": { "type": "String" } } },
+  "alienTribunalClaimLiar3": "\"{name} always lies.\"",
+  "@alienTribunalClaimLiar3": { "placeholders": { "name": { "type": "String" } } },
 
   "gravityWellTitle": "Gravity Well",
   "gravityWellDesc": "Calibrate the gravity well! Place celestial masses on cosmic scales until perfect equilibrium is achieved. The warp drive won't engage without balanced gravity.",
@@ -1403,6 +1450,17 @@
   },
   "gravityWellLoseTitle": "Gravitational Anomaly!",
   "gravityWellLoseDesc": "The imbalanced gravity well warped the local spacetime. Recalculate the masses, Commander.",
+  "gravityWellKnown": "Known: {values}",
+  "@gravityWellKnown": {
+    "placeholders": { "values": { "type": "String" } }
+  },
+  "gravityWellScaleN": "Scale {n}",
+  "@gravityWellScaleN": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "gravityWellEnterWeights": "Enter unknown weights:",
+  "gravityWellCheckBalance": "Check Balance",
+  "gravityWellKg": "kg",
 
   "sectorPainterTitle": "Sector Painter",
   "sectorPainterDesc": "Assign communication frequencies to star map sectors! Bordering sectors must use different frequencies to avoid signal interference.",

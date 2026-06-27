@@ -290,6 +290,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
                     _generatePuzzle();
@@ -490,40 +491,40 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Top edge clues
+                    // Top edge clues — width matches grid columns
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SizedBox(width: clueSize),
+                        SizedBox(width: clueSize), // spacer for left clue column
                         ...List.generate(size, (c) {
-                          return _buildEdgeClue(puzzle!.edgeClues['top_$c'], clueSize);
+                          return _buildEdgeClue(puzzle!.edgeClues['top_$c'], cellSize, clueSize);
                         }),
-                        SizedBox(width: clueSize),
+                        SizedBox(width: clueSize), // spacer for right clue column
                       ],
                     ),
-                    // Grid rows with left/right clues
+                    // Grid rows with left/right clues — height matches grid rows
                     ...List.generate(size, (r) {
                       return Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildEdgeClue(puzzle!.edgeClues['left_$r'], clueSize),
+                          _buildEdgeClue(puzzle!.edgeClues['left_$r'], clueSize, cellSize),
                           ...List.generate(size, (c) {
                             final cellId = 'r${r}c$c';
                             return _buildCell(cellId, r, c, cellSize);
                           }),
-                          _buildEdgeClue(puzzle!.edgeClues['right_$r'], clueSize),
+                          _buildEdgeClue(puzzle!.edgeClues['right_$r'], clueSize, cellSize),
                         ],
                       );
                     }),
-                    // Bottom edge clues
+                    // Bottom edge clues — width matches grid columns
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SizedBox(width: clueSize),
+                        SizedBox(width: clueSize), // spacer for left clue column
                         ...List.generate(size, (c) {
-                          return _buildEdgeClue(puzzle!.edgeClues['bottom_$c'], clueSize);
+                          return _buildEdgeClue(puzzle!.edgeClues['bottom_$c'], cellSize, clueSize);
                         }),
-                        SizedBox(width: clueSize),
+                        SizedBox(width: clueSize), // spacer for right clue column
                       ],
                     ),
                   ],
@@ -536,10 +537,11 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     );
   }
 
-  Widget _buildEdgeClue(int? clue, double size) {
+  Widget _buildEdgeClue(int? clue, double width, double height) {
+    final minDim = math.min(width, height);
     return SizedBox(
-      width: size,
-      height: size,
+      width: width,
+      height: height,
       child: clue != null
           ? Center(
               child: Container(
@@ -552,7 +554,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                   child: Text(
                     clue.toString(),
                     style: SpaceTheme.headlineStyle.copyWith(
-                      fontSize: size * 0.5,
+                      fontSize: minDim * 0.5,
                       color: SpaceTheme.starYellow,
                     ),
                   ),
@@ -785,6 +787,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(s.playAgain),

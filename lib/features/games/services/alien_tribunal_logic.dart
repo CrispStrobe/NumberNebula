@@ -8,11 +8,14 @@ import '../constants/difficulty_manager.dart';
 class TribunalPerson {
   final String name;
   final bool isTruthTeller;
+  /// Legacy display text — prefer building from structured fields + i18n.
   final String statement;
   /// The index of person this statement refers to (or -1 for self)
   final int targetIndex;
   /// What the statement claims about the target
   final bool claimsTruthTeller;
+  /// Style variant (0-2) for i18n template selection
+  final int statementStyle;
 
   const TribunalPerson({
     required this.name,
@@ -20,6 +23,7 @@ class TribunalPerson {
     required this.statement,
     required this.targetIndex,
     required this.claimsTruthTeller,
+    this.statementStyle = 0,
   });
 }
 
@@ -72,7 +76,7 @@ class AlienTribunalLogic {
     } else if (difficulty.grade <= 2) {
       personCount = level <= 5 ? 3 : 4;
     } else if (difficulty.grade <= 3) {
-      personCount = level <= 3 ? 4 : 4;
+      personCount = level <= 3 ? 4 : 5;
     } else {
       personCount = level <= 5 ? 4 : 5;
     }
@@ -156,16 +160,16 @@ class AlienTribunalLogic {
       }
 
       final targetName = names[targetIdx];
+      final style = rng.nextInt(3);
+      // Build fallback English statement (used when i18n not available)
       String statement;
       if (claimsTruthTeller) {
-        final style = rng.nextInt(3);
         switch (style) {
           case 0: statement = '"$targetName tells the truth."'; break;
           case 1: statement = '"$targetName is trustworthy."'; break;
           default: statement = '"$targetName is a truth-teller."';
         }
       } else {
-        final style = rng.nextInt(3);
         switch (style) {
           case 0: statement = '"$targetName is a liar."'; break;
           case 1: statement = '"$targetName cannot be trusted."'; break;
@@ -179,6 +183,7 @@ class AlienTribunalLogic {
         statement: statement,
         targetIndex: targetIdx,
         claimsTruthTeller: claimsTruthTeller,
+        statementStyle: style,
       ));
     }
 

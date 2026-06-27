@@ -96,6 +96,25 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     });
   }
 
+  /// Build a localized statement string from the structured person data.
+  String _localizedStatement(TribunalPerson person) {
+    final s = S.of(context)!;
+    final targetName = puzzle!.people[person.targetIndex].name;
+    if (person.claimsTruthTeller) {
+      switch (person.statementStyle) {
+        case 0: return s.alienTribunalClaimTruth1(targetName);
+        case 1: return s.alienTribunalClaimTruth2(targetName);
+        default: return s.alienTribunalClaimTruth3(targetName);
+      }
+    } else {
+      switch (person.statementStyle) {
+        case 0: return s.alienTribunalClaimLiar1(targetName);
+        case 1: return s.alienTribunalClaimLiar2(targetName);
+        default: return s.alienTribunalClaimLiar3(targetName);
+      }
+    }
+  }
+
   void _checkSolution() {
     if (puzzle == null || _gameOver) return;
 
@@ -242,7 +261,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                 child: ElevatedButton.icon(
                   onPressed: _checkSolution,
                   icon: const Icon(Icons.gavel, size: 24),
-                  label: const Text('Submit Verdict', style: TextStyle(fontSize: 18)),
+                  label: Text(S.of(context)!.alienTribunalSubmit, style: const TextStyle(fontSize: 18)),
                   style: SpaceTheme.primaryButtonStyle,
                 ),
               ),
@@ -334,7 +353,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          person.statement,
+                          _localizedStatement(person),
                           style: SpaceTheme.bodyStyle.copyWith(
                             fontSize: 16,
                             fontStyle: FontStyle.italic,
@@ -396,6 +415,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () {
                           Navigator.of(context).pop();
                           _generatePuzzle();

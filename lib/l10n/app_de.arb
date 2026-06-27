@@ -1257,6 +1257,29 @@
   },
   "commRelayLoseTitle": "Rauschen!",
   "commRelayLoseDesc": "Die Nachricht bleibt verzerrt. Probiere verschiedene Verschiebungswerte, Commander.",
+  "commRelayEncryptedSignal": "VERSCHLÜSSELTES SIGNAL",
+  "commRelayDecoded": "ENTSCHLÜSSELT",
+  "commRelayHintLetters": "HINWEIS-BUCHSTABEN",
+  "commRelayShift": "VERSCHIEBUNG: {shift}",
+  "@commRelayShift": {
+    "placeholders": {
+      "shift": { "type": "String" }
+    }
+  },
+  "commRelayDecodeBtn": "ENTSCHLÜSSELN  ({attemptsLeft} übrig)",
+  "@commRelayDecodeBtn": {
+    "placeholders": {
+      "attemptsLeft": { "type": "int" }
+    }
+  },
+  "commRelayTypeHint": "ENTSCHLÜSSELTE NACHRICHT EINGEBEN...",
+  "commRelayDecode": "ENTSCHLÜSSELN",
+  "commRelayAnswer": "Antwort: {answer}",
+  "@commRelayAnswer": {
+    "placeholders": {
+      "answer": { "type": "String" }
+    }
+  },
 
   "hullPlatingTitle": "Rumpf-Panzerung",
   "hullPlatingDesc": "Der Schiffsrumpf wurde getroffen! Decke den beschadigten Bereich mit verschieden geformten Panzerplatten ab. Jede Lucke muss versiegelt werden — drehe und platziere jede Platte genau!",
@@ -1297,6 +1320,17 @@
   },
   "crewManifestLoseTitle": "Datenbankfehler!",
   "crewManifestLoseDesc": "Das Manifest enthalt Widerspruche. Lies die Hinweise sorgfaltig noch einmal, Commander.",
+  "crewManifestSubmit": "Manifest abgeben",
+  "crewManifestHas1": "{crew} hat den/die/das {item}.",
+  "@crewManifestHas1": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "crewManifestHas2": "Der/Die/Das {item} gehört {crew}.",
+  "@crewManifestHas2": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "crewManifestHas3": "{crew} wurde der/die/das {item} zugewiesen.",
+  "@crewManifestHas3": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "crewManifestNot1": "{crew} hat den/die/das {item} nicht.",
+  "@crewManifestNot1": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "crewManifestNot2": "Der/Die/Das {item} gehört nicht {crew}.",
+  "@crewManifestNot2": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
 
   "alienTribunalTitle": "Alien-Tribunal",
   "alienTribunalDesc": "Galaktische Delegierte sagen aus, aber manche lugen immer! Wahrheitssprecher sagen immer die Wahrheit, Lugner lugen immer. Studiere ihre Aussagen und finde heraus, wer vertrauenswurdig ist!",
@@ -1310,6 +1344,19 @@
   },
   "alienTribunalLoseTitle": "Fehlurteil!",
   "alienTribunalLoseDesc": "Deine Zuweisungen sind widerspruchlich. Wenn jemand ein Wahrheitssprecher ist, mussen seine Aussagen wahr sein, Commander.",
+  "alienTribunalSubmit": "Urteil abgeben",
+  "alienTribunalClaimTruth1": "\"{name} sagt die Wahrheit.\"",
+  "@alienTribunalClaimTruth1": { "placeholders": { "name": { "type": "String" } } },
+  "alienTribunalClaimTruth2": "\"{name} ist vertrauenswürdig.\"",
+  "@alienTribunalClaimTruth2": { "placeholders": { "name": { "type": "String" } } },
+  "alienTribunalClaimTruth3": "\"{name} ist ein Wahrheitssprecher.\"",
+  "@alienTribunalClaimTruth3": { "placeholders": { "name": { "type": "String" } } },
+  "alienTribunalClaimLiar1": "\"{name} ist ein Lügner.\"",
+  "@alienTribunalClaimLiar1": { "placeholders": { "name": { "type": "String" } } },
+  "alienTribunalClaimLiar2": "\"{name} kann man nicht vertrauen.\"",
+  "@alienTribunalClaimLiar2": { "placeholders": { "name": { "type": "String" } } },
+  "alienTribunalClaimLiar3": "\"{name} lügt immer.\"",
+  "@alienTribunalClaimLiar3": { "placeholders": { "name": { "type": "String" } } },
 
   "gravityWellTitle": "Gravitationsfeld",
   "gravityWellDesc": "Kalibriere das Gravitationsfeld! Platziere Himmelsmassen auf kosmischen Waagen, bis ein perfektes Gleichgewicht erreicht ist. Der Warpantrieb funktioniert nur bei ausgeglichener Gravitation.",
@@ -1323,6 +1370,17 @@
   },
   "gravityWellLoseTitle": "Gravitationsanomalie!",
   "gravityWellLoseDesc": "Das unausgeglichene Gravitationsfeld hat die lokale Raumzeit verzerrt. Berechne die Massen neu, Commander.",
+  "gravityWellKnown": "Bekannt: {values}",
+  "@gravityWellKnown": {
+    "placeholders": { "values": { "type": "String" } }
+  },
+  "gravityWellScaleN": "Waage {n}",
+  "@gravityWellScaleN": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "gravityWellEnterWeights": "Unbekannte Gewichte eingeben:",
+  "gravityWellCheckBalance": "Gleichgewicht prüfen",
+  "gravityWellKg": "kg",
 
   "sectorPainterTitle": "Sektor-Maler",
   "sectorPainterDesc": "Weise Kommunikationsfrequenzen den Sternkarten-Sektoren zu! Angrenzende Sektoren mussen verschiedene Frequenzen nutzen, um Signalstorungen zu vermeiden.",

@@ -4,20 +4,38 @@ import 'package:flutter/foundation.dart';
 
 import '../constants/difficulty_manager.dart';
 
+/// Types of clues for i18n rendering
+enum ClueType { positive, negative }
+
+/// A structured clue that can be rendered with i18n
+class ManifestClue {
+  final ClueType type;
+  final String crewName;
+  final String itemName;
+  final int style; // 0-2 for template variation
+
+  const ManifestClue({
+    required this.type,
+    required this.crewName,
+    required this.itemName,
+    this.style = 0,
+  });
+}
+
 /// A logic grid puzzle: match N people to N items using clues
 class CrewManifestPuzzle {
   final int size; // number of crew members = number of items
   final List<String> crewNames;
   final List<String> itemNames;
   final Map<String, String> solution; // crewName -> itemName
-  final List<String> clues; // text clues
+  final List<ManifestClue> structuredClues;
 
   const CrewManifestPuzzle({
     required this.size,
     required this.crewNames,
     required this.itemNames,
     required this.solution,
-    required this.clues,
+    required this.structuredClues,
   });
 
   /// Check if user's assignment matches solution
@@ -60,6 +78,44 @@ class CrewManifestLogic {
       size = level <= 5 ? 4 : 5;
     }
 
+    // How many direct positive clues: fewer = harder
+    int directClueCount;
+    if (difficulty.grade <= 1) {
+      directClueCount = size - 1; // all but one
+    } else if (difficulty.grade <= 2) {
+      directClueCount = size - 1;
+    } else {
+      // Higher grades: reduce direct clues, compensate with
+      // more negative clues to keep uniqueness
+      directClueCount = (size * 0.5).ceil().clamp(1, size - 1);
+    }
+
+    // Retry loop: generate clues and verify unique solution
+    for (int attempt = 0; attempt < 40; attempt++) {
+      final result = _tryGenerate(size, directClueCount, rng, difficulty.grade);
+      if (result != null) {
+        if (kDebugMode) debugPrint('[CREW_MANIFEST] Success on attempt $attempt');
+        return result;
+      }
+    }
+
+    // Fallback: guaranteed 3x3 puzzle
+    if (kDebugMode) debugPrint('[CREW_MANIFEST] Using fallback puzzle');
+    return const CrewManifestPuzzle(
+      size: 3,
+      crewNames: ['Zara', 'Kip', 'Nova'],
+      itemNames: const ['Helm', 'Map', 'Laser'],
+      solution: const {'Zara': 'Helm', 'Kip': 'Map', 'Nova': 'Laser'},
+      structuredClues: const [
+        ManifestClue(type: ClueType.positive, crewName: 'Zara', itemName: 'Helm', style: 0),
+        ManifestClue(type: ClueType.positive, crewName: 'Kip', itemName: 'Map', style: 1),
+      ],
+    );
+  }
+
+  static CrewManifestPuzzle? _tryGenerate(
+    int size, int directClueCount, math.Random rng, int grade,
+  ) {
     // Pick random crew and items
     final availableCrew = List<String>.from(_allCrewNames)..shuffle(rng);
     final availableItems = List<String>.from(_allItemNames)..shuffle(rng);
@@ -74,99 +130,104 @@ class CrewManifestLogic {
       solution[crewNames[i]] = shuffledItems[i];
     }
 
-    if (kDebugMode) debugPrint('[CREW_MANIFEST] Solution: $solution');
+    // Generate clues
+    final clues = <ManifestClue>[];
+    final crewIndices = List.generate(size, (i) => i)..shuffle(rng);
+    final usedDirect = <int>{};
 
-    // Generate clues from the solution
-    final clues = _generateClues(crewNames, itemNames, solution, size, rng, difficulty.grade);
+    // Direct positive clues
+    for (int i = 0; i < directClueCount && i < size; i++) {
+      final idx = crewIndices[i];
+      final crewName = crewNames[idx];
+      final item = solution[crewName]!;
+      usedDirect.add(idx);
+      clues.add(ManifestClue(
+        type: ClueType.positive,
+        crewName: crewName,
+        itemName: item,
+        style: rng.nextInt(3),
+      ));
+    }
+
+    // Negative clues for remaining crew members — give ENOUGH to disambiguate
+    for (int i = 0; i < size; i++) {
+      if (usedDirect.contains(i)) continue;
+      final crewName = crewNames[i];
+      final correctItem = solution[crewName]!;
+
+      // Give multiple negative clues: eliminate all but 1 wrong item
+      // so the crew member can be deduced from the remaining positive clues
+      final wrongItems = itemNames.where((it) => it != correctItem).toList()..shuffle(rng);
+      // For grade >= 3 eliminate fewer (harder); for lower grades eliminate more
+      final eliminateCount = grade >= 3
+          ? math.max(1, wrongItems.length - 2)
+          : wrongItems.length - 1;
+      for (int j = 0; j < eliminateCount && j < wrongItems.length; j++) {
+        clues.add(ManifestClue(
+          type: ClueType.negative,
+          crewName: crewName,
+          itemName: wrongItems[j],
+          style: rng.nextInt(2),
+        ));
+      }
+    }
+
+    clues.shuffle(rng);
+
+    // Verify unique solution using constraint propagation
+    final solutionCount = _countSolutions(crewNames, itemNames, clues, size);
+    if (solutionCount != 1) return null;
 
     return CrewManifestPuzzle(
       size: size,
       crewNames: crewNames,
       itemNames: itemNames,
       solution: solution,
-      clues: clues,
+      structuredClues: clues,
     );
   }
 
-  static List<String> _generateClues(
-    List<String> crew,
-    List<String> items,
-    Map<String, String> solution,
-    int size,
-    math.Random rng,
-    int grade,
+  /// Count how many valid assignments satisfy all clues (stops at 2).
+  static int _countSolutions(
+    List<String> crew, List<String> items,
+    List<ManifestClue> clues, int size,
   ) {
-    final clues = <String>[];
-    final usedDirect = <int>{};
-
-    // We need enough clues to make the puzzle solvable.
-    // Strategy: give direct positive clues for some, negative clues for others.
-
-    // Build reverse map: item -> crew
-    final reverseMap = <String, String>{};
-    for (final e in solution.entries) {
-      reverseMap[e.value] = e.key;
+    // Build constraint sets: for each crew member, which items are possible?
+    final possible = <String, Set<String>>{};
+    for (final c in crew) {
+      possible[c] = Set<String>.from(items);
     }
 
-    // Give one direct clue for each crew except the last (which can be deduced)
-    final crewIndices = List.generate(size, (i) => i)..shuffle(rng);
-
-    // Direct positive clues (N-1 of them make it solvable)
-    int directClueCount = (size - 1).clamp(2, size - 1);
-    // For higher grades, give fewer direct clues and more negative ones
-    if (grade >= 3 && size >= 4) {
-      directClueCount = (size * 0.5).ceil().clamp(1, size - 1);
-    }
-
-    for (int i = 0; i < directClueCount && i < size; i++) {
-      final idx = crewIndices[i];
-      final crewName = crew[idx];
-      final item = solution[crewName]!;
-      usedDirect.add(idx);
-
-      // Vary clue style
-      final style = rng.nextInt(3);
-      switch (style) {
-        case 0:
-          clues.add('$crewName has the $item.');
-          break;
-        case 1:
-          clues.add('The $item belongs to $crewName.');
-          break;
-        case 2:
-          clues.add('$crewName was assigned the $item.');
-          break;
+    // Apply clues
+    for (final clue in clues) {
+      if (clue.type == ClueType.positive) {
+        // crew has item => only this item is possible
+        possible[clue.crewName] = {clue.itemName};
+      } else {
+        // crew does NOT have item
+        possible[clue.crewName]?.remove(clue.itemName);
       }
     }
 
-    // Add negative clues for remaining crew members
-    for (int i = 0; i < size; i++) {
-      if (usedDirect.contains(i)) continue;
-      final crewName = crew[i];
-      final correctItem = solution[crewName]!;
-
-      // Pick a wrong item to say they DON'T have
-      final wrongItems = items.where((it) => it != correctItem).toList()..shuffle(rng);
-      if (wrongItems.isNotEmpty) {
-        clues.add('$crewName does not have the ${wrongItems.first}.');
+    // Backtracking solver — count solutions, stop at 2
+    int count = 0;
+    void solve(int idx, Set<String> usedItems) {
+      if (count >= 2) return; // early exit
+      if (idx == size) {
+        count++;
+        return;
+      }
+      final c = crew[idx];
+      for (final item in possible[c]!) {
+        if (usedItems.contains(item)) continue;
+        usedItems.add(item);
+        solve(idx + 1, usedItems);
+        usedItems.remove(item);
+        if (count >= 2) return;
       }
     }
 
-    // Add extra negative clues for flavor
-    final extraClues = rng.nextInt(2) + 1;
-    for (int e = 0; e < extraClues; e++) {
-      final crewIdx = rng.nextInt(size);
-      final crewName = crew[crewIdx];
-      final correctItem = solution[crewName]!;
-      final wrongItems = items.where((it) => it != correctItem).toList()..shuffle(rng);
-      if (wrongItems.isNotEmpty) {
-        clues.add('$crewName does not have the ${wrongItems.first}.');
-      }
-    }
-
-    clues.shuffle(rng);
-
-    if (kDebugMode) debugPrint('[CREW_MANIFEST] Generated ${clues.length} clues');
-    return clues;
+    solve(0, <String>{});
+    return count;
   }
 }

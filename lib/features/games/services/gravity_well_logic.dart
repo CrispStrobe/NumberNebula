@@ -157,81 +157,149 @@ class GravityWellLogic {
       }
     }
 
-    // Build scales that form a solvable system.
-    // Strategy: create a chain of equations where each scale introduces
-    // or constrains exactly one unknown using known objects and previously
-    // solved unknowns.
+    // Build scales that require multi-step reasoning.
+    // Strategy: for 1 unknown, one scale with that unknown and known items
+    // is fine (but mix with known items on both sides). For 2+ unknowns,
+    // create scales that pair unknowns together so the player must combine
+    // information across scales to solve.
     final scales = <BalanceScale>[];
-    final solvedUnknowns = <String>{};
     final unknownList = unknownLabels.toList()..shuffle(rng);
+    final knownList = knownLabels.toList()..shuffle(rng);
 
-    for (int i = 0; i < unknownList.length && scales.length < scaleCount; i++) {
-      final target = unknownList[i];
-      final targetWeight = weights[target]!;
-
-      // Build a scale where 'target' is on one side and known/solved
-      // objects are on the other, possibly with numeric weight blocks.
-      final availableKnown = <String>[
-        ...knownLabels,
-        ...solvedUnknowns,
-      ]..shuffle(rng);
+    if (unknownCount == 1) {
+      // Single unknown: put it on one side with a known object,
+      // and known objects (+ weight block) on the other.
+      final target = unknownList[0];
+      final targetW = weights[target]!;
 
       // Pick 1-2 known objects for the other side
-      final otherSideLabels = <String>[];
-      int otherSideWeight = 0;
-      final howMany = math.min(1 + rng.nextInt(2), availableKnown.length);
-      for (int j = 0; j < howMany; j++) {
-        otherSideLabels.add(availableKnown[j]);
-        otherSideWeight += weights[availableKnown[j]]!;
-      }
+      final otherCount = math.min(1 + rng.nextInt(2), knownList.length);
+      final otherLabels = knownList.take(otherCount).toList();
+      final otherWeight = otherLabels.fold(0, (s, l) => s + weights[l]!);
 
-      if (otherSideLabels.isEmpty) continue;
+      // Optionally add a known object next to the unknown
+      final sameCount = knownList.length > otherCount ? 1 : 0;
+      final sameLabels = sameCount > 0 ? [knownList[otherCount]] : <String>[];
+      final sameWeight = sameLabels.fold(0, (s, l) => s + weights[l]!);
 
-      // The difference must be bridged by a numeric weight block
-      final diff = targetWeight - otherSideWeight;
+      final leftW = targetW + sameWeight;
+      final rightW = otherWeight;
+      final diff = leftW - rightW;
 
-      final leftSide = <ScaleItem>[
-        ScaleItem(label: target, weight: targetWeight, isKnown: false),
+      final left = <ScaleItem>[
+        ScaleItem(label: target, weight: targetW, isKnown: false),
+        ...sameLabels.map((l) => ScaleItem(label: l, weight: weights[l]!, isKnown: true)),
       ];
-      final rightSide = <ScaleItem>[
-        ...otherSideLabels.map((l) => ScaleItem(
-          label: l,
-          weight: weights[l]!,
-          isKnown: knownLabels.contains(l),
-        )),
+      final right = <ScaleItem>[
+        ...otherLabels.map((l) => ScaleItem(label: l, weight: weights[l]!, isKnown: true)),
       ];
 
       if (diff > 0) {
-        // Right side is lighter, add weight block to right
-        rightSide.add(ScaleItem(
-          label: '$diff kg',
-          weight: diff,
-          isKnown: true,
-        ));
+        right.add(ScaleItem(label: '$diff kg', weight: diff, isKnown: true));
       } else if (diff < 0) {
-        // Left side is lighter, add weight block to left
-        leftSide.add(ScaleItem(
-          label: '${-diff} kg',
-          weight: -diff,
-          isKnown: true,
-        ));
+        left.add(ScaleItem(label: '${-diff} kg', weight: -diff, isKnown: true));
       }
-      // diff == 0: perfectly balanced without extra weights
 
-      scales.add(BalanceScale(leftSide: leftSide, rightSide: rightSide));
-      solvedUnknowns.add(target);
+      scales.add(BalanceScale(leftSide: left, rightSide: right));
+    } else {
+      // Multiple unknowns: pair unknowns on shared scales so no single
+      // scale fully solves any unknown. The player must reason across scales.
+      //
+      // Scale 1: Unknown_A + Known_X = Unknown_B + weightBlock
+      //   => gives relationship: A - B = constant
+      // Scale 2: Unknown_A + Known_Y = weightBlock
+      //   => directly solvable for A, then B from scale 1
+      // For 3 unknowns, add a third scale with B + C.
+
+      // First scale: pair first two unknowns on opposite sides
+      final uA = unknownList[0];
+      final uB = unknownList[1];
+      final wA = weights[uA]!;
+      final wB = weights[uB]!;
+
+      // Add a known object to one side for variety
+      final knownForScale1 = knownList.isNotEmpty ? knownList[0] : null;
+      final kW1 = knownForScale1 != null ? weights[knownForScale1]! : 0;
+
+      final leftW1 = wA + kW1;
+      final rightW1 = wB;
+      final diff1 = leftW1 - rightW1;
+
+      final left1 = <ScaleItem>[
+        ScaleItem(label: uA, weight: wA, isKnown: false),
+        if (knownForScale1 != null)
+          ScaleItem(label: knownForScale1, weight: kW1, isKnown: true),
+      ];
+      final right1 = <ScaleItem>[
+        ScaleItem(label: uB, weight: wB, isKnown: false),
+      ];
+      if (diff1 > 0) {
+        right1.add(ScaleItem(label: '$diff1 kg', weight: diff1, isKnown: true));
+      } else if (diff1 < 0) {
+        left1.add(ScaleItem(label: '${-diff1} kg', weight: -diff1, isKnown: true));
+      }
+      scales.add(BalanceScale(leftSide: left1, rightSide: right1));
+
+      // Second scale: one unknown + known objects = weight block
+      // This makes that unknown individually solvable, then the first scale
+      // lets the player compute the other unknown.
+      final knownForScale2 = knownList.length > 1 ? knownList[1] : knownForScale1;
+      final kW2 = knownForScale2 != null ? weights[knownForScale2]! : 0;
+
+      final leftW2 = wA;
+      final rightW2 = kW2;
+      final diff2 = leftW2 - rightW2;
+
+      final left2 = <ScaleItem>[
+        ScaleItem(label: uA, weight: wA, isKnown: false),
+      ];
+      final right2 = <ScaleItem>[
+        if (knownForScale2 != null)
+          ScaleItem(label: knownForScale2, weight: kW2, isKnown: true),
+      ];
+      if (diff2 > 0) {
+        right2.add(ScaleItem(label: '$diff2 kg', weight: diff2, isKnown: true));
+      } else if (diff2 < 0) {
+        left2.add(ScaleItem(label: '${-diff2} kg', weight: -diff2, isKnown: true));
+      }
+      scales.add(BalanceScale(leftSide: left2, rightSide: right2));
+
+      // Third unknown (if any): pair with B on a scale
+      if (unknownList.length >= 3) {
+        final uC = unknownList[2];
+        final wC = weights[uC]!;
+        final diff3 = wB - wC;
+
+        final left3 = <ScaleItem>[
+          ScaleItem(label: uB, weight: wB, isKnown: false),
+        ];
+        final right3 = <ScaleItem>[
+          ScaleItem(label: uC, weight: wC, isKnown: false),
+        ];
+        if (diff3 > 0) {
+          right3.add(ScaleItem(label: '$diff3 kg', weight: diff3, isKnown: true));
+        } else if (diff3 < 0) {
+          left3.add(ScaleItem(label: '${-diff3} kg', weight: -diff3, isKnown: true));
+        }
+        scales.add(BalanceScale(leftSide: left3, rightSide: right3));
+      }
     }
 
-    // Add extra "redundant" scales for flavor and to make it feel richer.
-    // These mix known and already-solved objects in interesting combos.
+    // Fill remaining scale slots with mixed scales that include unknowns
+    // alongside known objects — these provide cross-checks, not freebies.
     while (scales.length < scaleCount) {
       final allLabels = List<String>.from(labels)..shuffle(rng);
-      // Split into two groups
       final split = 1 + rng.nextInt(math.max(1, allLabels.length - 1));
       final left = allLabels.take(split).toList();
       final right = allLabels.skip(split).toList();
 
       if (left.isEmpty || right.isEmpty) continue;
+
+      // Ensure this extra scale has at least one unknown on each side
+      // (or is genuinely interesting) — skip if it's all-known.
+      final leftHasUnknown = left.any((l) => unknownLabels.contains(l));
+      final rightHasUnknown = right.any((l) => unknownLabels.contains(l));
+      if (!leftHasUnknown && !rightHasUnknown) continue;
 
       final leftWeight = left.fold(0, (s, l) => s + weights[l]!);
       final rightWeight = right.fold(0, (s, l) => s + weights[l]!);
