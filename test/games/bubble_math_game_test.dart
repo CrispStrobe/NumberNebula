@@ -17,6 +17,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:space_math_academy/features/games/screens/bubble_math_game.dart';
+import 'package:space_math_academy/generated/l10n.dart';
 
 Bubble _makeBubble({
   int id = 0,
@@ -40,7 +41,10 @@ Bubble _makeBubble({
 
 Widget _wrap(Widget child) {
   // BubbleWidget uses Positioned, so it must live inside a Stack.
+  // Include localization delegates so S.of(context) works.
   return MaterialApp(
+    localizationsDelegates: S.localizationsDelegates,
+    supportedLocales: S.supportedLocales,
     home: Scaffold(
       body: Stack(children: [child]),
     ),
