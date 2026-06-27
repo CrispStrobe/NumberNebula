@@ -297,8 +297,8 @@ class GravityWellLogic {
 
       // Ensure this extra scale has at least one unknown on each side
       // (or is genuinely interesting) — skip if it's all-known.
-      final leftHasUnknown = left.any((l) => unknownLabels.contains(l));
-      final rightHasUnknown = right.any((l) => unknownLabels.contains(l));
+      final leftHasUnknown = left.any(unknownLabels.contains);
+      final rightHasUnknown = right.any(unknownLabels.contains);
       if (!leftHasUnknown && !rightHasUnknown) continue;
 
       final leftWeight = left.fold(0, (s, l) => s + weights[l]!);

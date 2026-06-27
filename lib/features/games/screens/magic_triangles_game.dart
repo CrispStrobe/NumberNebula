@@ -71,25 +71,28 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     if (kDebugMode) debugPrint("🚀 [UI] Animation controllers initialized, calling _generatePuzzle()");
     _generatePuzzle();
 
-    OnboardingOverlay.maybeShow(
-      context,
-      gameKey: 'magic_triangles',
-      title: S.of(context)!.magicTrianglesOnboardTitle,
-      steps: [
-        OnboardingStep(
-          icon: Icons.touch_app,
-          body: S.of(context)!.magicTrianglesOnboardDrag,
-        ),
-        OnboardingStep(
-          icon: Icons.balance,
-          body: S.of(context)!.magicTrianglesOnboardSum,
-        ),
-        OnboardingStep(
-          icon: Icons.refresh,
-          body: S.of(context)!.magicTrianglesOnboardTap,
-        ),
-      ],
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      OnboardingOverlay.maybeShow(
+        context,
+        gameKey: 'magic_triangles',
+        title: S.of(context)!.magicTrianglesOnboardTitle,
+        steps: [
+          OnboardingStep(
+            icon: Icons.touch_app,
+            body: S.of(context)!.magicTrianglesOnboardDrag,
+          ),
+          OnboardingStep(
+            icon: Icons.balance,
+            body: S.of(context)!.magicTrianglesOnboardSum,
+          ),
+          OnboardingStep(
+            icon: Icons.refresh,
+            body: S.of(context)!.magicTrianglesOnboardTap,
+          ),
+        ],
+      );
+    });
   }
 
   @override

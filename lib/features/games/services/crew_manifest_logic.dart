@@ -104,9 +104,9 @@ class CrewManifestLogic {
     return const CrewManifestPuzzle(
       size: 3,
       crewNames: ['Zara', 'Kip', 'Nova'],
-      itemNames: const ['Helm', 'Map', 'Laser'],
-      solution: const {'Zara': 'Helm', 'Kip': 'Map', 'Nova': 'Laser'},
-      structuredClues: const [
+      itemNames: ['Helm', 'Map', 'Laser'],
+      solution: {'Zara': 'Helm', 'Kip': 'Map', 'Nova': 'Laser'},
+      structuredClues: [
         ManifestClue(type: ClueType.positive, crewName: 'Zara', itemName: 'Helm', style: 0),
         ManifestClue(type: ClueType.positive, crewName: 'Kip', itemName: 'Map', style: 1),
       ],
