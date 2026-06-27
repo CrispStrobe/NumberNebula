@@ -894,7 +894,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     if (isEmpty && hasUserValue) {
       return Semantics(
         button: true,
-        label: 'Placed value, tap to remove',
+        label: S.of(context)!.a11yPlacedValueTapRemove,
         child: GestureDetector(
           onTap: () => _removeNumber(cellId),
           child: cell,
@@ -961,7 +961,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
                 feedback: _buildDraggableFeedback(number),
                 childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
                 child: Semantics(
-                  label: 'Number $number, drag to a cell',
+                  label: S.of(context)!.a11yNumberDragCell(number),
                   button: true,
                   child: _buildNumberTile(number, isCompact: isCompact),
                 ),

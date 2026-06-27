@@ -6339,6 +6339,168 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Level {level}'**
   String levelN(int level);
+
+  /// No description provided for @a11yPlacedValueTapRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Placed value, tap to remove'**
+  String get a11yPlacedValueTapRemove;
+
+  /// No description provided for @a11yNumberDragSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Number {number}, drag to a slot'**
+  String a11yNumberDragSlot(int number);
+
+  /// No description provided for @a11yNumberDragCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Number {number}, drag to a cell'**
+  String a11yNumberDragCell(int number);
+
+  /// No description provided for @a11yMovesRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Moves remaining: {moves}'**
+  String a11yMovesRemaining(int moves);
+
+  /// No description provided for @a11yBattlefieldCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Battlefield card {name}'**
+  String a11yBattlefieldCard(String name);
+
+  /// No description provided for @a11yHealthStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Health {current} of {max}'**
+  String a11yHealthStatus(int current, int max);
+
+  /// No description provided for @a11yHandCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Hand card {name}'**
+  String a11yHandCard(String name);
+
+  /// No description provided for @a11yAsteroid.
+  ///
+  /// In en, this message translates to:
+  /// **'Asteroid {problem}'**
+  String a11yAsteroid(String problem);
+
+  /// No description provided for @a11yAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer {answer}'**
+  String a11yAnswer(String answer);
+
+  /// No description provided for @a11yBubble.
+  ///
+  /// In en, this message translates to:
+  /// **'Bubble {problem}'**
+  String a11yBubble(String problem);
+
+  /// No description provided for @a11yCargoGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Cargo bay grid'**
+  String get a11yCargoGrid;
+
+  /// No description provided for @a11yPlacedValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Placed value {value}'**
+  String a11yPlacedValue(String value);
+
+  /// No description provided for @a11yEmptySlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty slot for {symbol}'**
+  String a11yEmptySlot(String symbol);
+
+  /// No description provided for @a11yDial.
+  ///
+  /// In en, this message translates to:
+  /// **'Dial {label}, value {value}'**
+  String a11yDial(String label, int value);
+
+  /// No description provided for @a11yDialHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag up or down to change value, or drop a number'**
+  String get a11yDialHint;
+
+  /// No description provided for @a11yPiece.
+  ///
+  /// In en, this message translates to:
+  /// **'Piece {size}x{size2}, {remaining} of {total} left'**
+  String a11yPiece(int size, int size2, int remaining, int total);
+
+  /// No description provided for @a11yPlacedPiece.
+  ///
+  /// In en, this message translates to:
+  /// **'Placed {size}x{size2} piece'**
+  String a11yPlacedPiece(int size, int size2);
+
+  /// No description provided for @a11yGameArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Game area'**
+  String get a11yGameArea;
+
+  /// No description provided for @a11yAnswerChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer choice {index}'**
+  String a11yAnswerChoice(int index);
+
+  /// No description provided for @a11yLivesRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Lives remaining: {lives} of {max}'**
+  String a11yLivesRemaining(int lives, int max);
+
+  /// No description provided for @a11yProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress {current} of {total}'**
+  String a11yProgress(int current, int total);
+
+  /// No description provided for @a11yAtom.
+  ///
+  /// In en, this message translates to:
+  /// **'Atom {type}'**
+  String a11yAtom(String type);
+
+  /// No description provided for @a11yRemoveCommand.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove command'**
+  String get a11yRemoveCommand;
+
+  /// No description provided for @a11yCommand.
+  ///
+  /// In en, this message translates to:
+  /// **'Command {name}'**
+  String a11yCommand(String name);
+
+  /// No description provided for @a11yGlyph.
+  ///
+  /// In en, this message translates to:
+  /// **'Glyph {name}'**
+  String a11yGlyph(String name);
+
+  /// No description provided for @a11yResonator.
+  ///
+  /// In en, this message translates to:
+  /// **'Resonator {number}, drag to a triangle node'**
+  String a11yResonator(int number);
+
+  /// No description provided for @a11yBrick.
+  ///
+  /// In en, this message translates to:
+  /// **'Number brick {number}, drag to a slot'**
+  String a11yBrick(int number);
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

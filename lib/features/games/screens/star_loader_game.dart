@@ -934,7 +934,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   Widget _buildGameGrid() {
     return Center(
       child: Semantics(
-        label: 'Star loader puzzle grid',
+        label: S.of(context)!.a11yGameArea,
         hint: 'Swipe in a direction to move the player',
         child: GestureDetector(
         onVerticalDragEnd: _handleSwipe,
@@ -1166,15 +1166,16 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                     children: [
                       Flexible(
                         child: ElevatedButton.icon(
+                          autofocus: true,
                           onPressed: () {
                             // SAVE RATING
                             if (ENABLE_LEVEL_RATING && _currentRating > 0) {
                               StarLoaderLevelManager().rateLevel(
-                                _currentLevelData.id, 
+                                _currentLevelData.id,
                                 _currentRating
                               );
                             }
-                            
+
                             Navigator.of(context).pop();
                             _loadLevel(); // Load next
                           },

@@ -858,7 +858,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
         focusNode: _focusNode,
         onKeyEvent: _handleKeyboard,
         child: Semantics(
-          label: 'Hyperdrive game area',
+          label: S.of(context)!.a11yGameArea,
           hint: 'Tap or drag to steer your ship through gates',
           child: GestureDetector(
           behavior: HitTestBehavior.translucent,
@@ -1102,7 +1102,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
         textAlign: TextAlign.center,
       ),
       actions: <Widget>[
-        TextButton(onPressed: _resetGame, child: Text(l10n.flyAgain, style: const TextStyle(color: Colors.white, fontSize: 16))),
+        TextButton(autofocus: true, onPressed: _resetGame, child: Text(l10n.flyAgain, style: const TextStyle(color: Colors.white, fontSize: 16))),
         TextButton(
           child: Text(l10n.backToMenu, style: const TextStyle(color: Colors.white, fontSize: 16)),
           onPressed: () {

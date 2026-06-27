@@ -866,7 +866,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                   feedback: _buildDraggableFeedback(number),
                   childWhenDragging: Opacity(opacity: 0.3, child: _buildCompactBrick(number)),
                   child: Semantics(
-                    label: 'Number brick $number, drag to a panel cell',
+                    label: S.of(context)!.a11yBrick(number),
                     button: true,
                     child: _buildCompactBrick(number),
                   ),
@@ -951,6 +951,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                         ElevatedButton(
+                            autofocus: true,
                             onPressed: () {
                             Navigator.of(context).pop();
                             _generatePuzzle();

@@ -1137,7 +1137,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
                               final gridHeight = cellSize * gridRows;
                               
                               return Semantics(
-                                label: 'Cargo bay grid',
+                                label: S.of(context)!.a11yCargoGrid,
                                 hint: 'Tap a cell or drag a piece to place cargo',
                                 child: GestureDetector(
                                 behavior: HitTestBehavior.translucent,
@@ -1676,7 +1676,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
             Text(S.of(context)!.cargoBayWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center), const SizedBox(height: 16),
             Text(S.of(context)!.cargoBayWinDesc(rowsCleared, totalScore, bonusTotal), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center), const SizedBox(height: 24),
             Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                Flexible(child: ElevatedButton(onPressed: () {Navigator.of(context).pop(); _resetGame();}, style: SpaceTheme.secondaryButtonStyle, child: Text(S.of(context)!.nextShipment, textAlign: TextAlign.center))),
+                Flexible(child: ElevatedButton(autofocus: true, onPressed: () {Navigator.of(context).pop(); _resetGame();}, style: SpaceTheme.secondaryButtonStyle, child: Text(S.of(context)!.nextShipment, textAlign: TextAlign.center))),
                 const SizedBox(width: 12),
                 Flexible(child: ElevatedButton(onPressed: () {Navigator.of(context).pop(); Navigator.of(context).pop();}, style: SpaceTheme.primaryButtonStyle, child: Text(S.of(context)!.toTheBridge, textAlign: TextAlign.center))),
             ]),
@@ -1694,7 +1694,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
             Text(S.of(context)!.cargoBayLoseTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center), const SizedBox(height: 16),
             Text(S.of(context)!.cargoBayLoseDesc, style: SpaceTheme.bodyStyle, textAlign: TextAlign.center), const SizedBox(height: 24),
             Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                Flexible(child: ElevatedButton(onPressed: () {Navigator.of(context).pop(); _resetGame();}, style: SpaceTheme.secondaryButtonStyle, child: Text(S.of(context)!.tryAgain, textAlign: TextAlign.center))),
+                Flexible(child: ElevatedButton(autofocus: true, onPressed: () {Navigator.of(context).pop(); _resetGame();}, style: SpaceTheme.secondaryButtonStyle, child: Text(S.of(context)!.tryAgain, textAlign: TextAlign.center))),
                 const SizedBox(width: 12),
                 Flexible(child: ElevatedButton(onPressed: () {Navigator.of(context).pop(); Navigator.of(context).pop();}, style: SpaceTheme.primaryButtonStyle, child: Text(S.of(context)!.toTheBridge, textAlign: TextAlign.center))),
             ]),

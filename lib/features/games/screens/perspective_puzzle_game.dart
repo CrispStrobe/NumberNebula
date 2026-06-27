@@ -668,6 +668,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
         content: const Text("You've run out of attempts. Let's try a different structure.", style: SpaceTheme.bodyStyle),
         actions: [
           TextButton(
+            autofocus: true,
             child: Text(S.of(context)!.tryAgain),
             onPressed: () {
               Navigator.pop(ctx);
@@ -896,7 +897,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
                   final isCorrect = isSelected && _answerState == AnswerState.correct;
                   final isWrong = isSelected && _answerState == AnswerState.incorrect;
                   return Semantics(
-                    label: 'Answer choice ${index + 1}',
+                    label: S.of(context)!.a11yAnswerChoice(index + 1),
                     button: true,
                     selected: isSelected,
                     child: GestureDetector(
@@ -985,6 +986,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
         content: Text(S.of(context)!.perspectivePuzzleWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center,),
         actions: [
           TextButton(
+            autofocus: true,
             child: Text(S.of(context)!.blockCounterNextPuzzle),
             onPressed: () {
               Navigator.pop(context);

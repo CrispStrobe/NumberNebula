@@ -3655,4 +3655,131 @@ class SDe extends S {
   String levelN(int level) {
     return 'Level $level';
   }
+
+  @override
+  String get a11yPlacedValueTapRemove =>
+      'Platzierter Wert, tippen zum Entfernen';
+
+  @override
+  String a11yNumberDragSlot(int number) {
+    return 'Zahl $number, zum Feld ziehen';
+  }
+
+  @override
+  String a11yNumberDragCell(int number) {
+    return 'Zahl $number, in Zelle ziehen';
+  }
+
+  @override
+  String a11yMovesRemaining(int moves) {
+    return 'Verbleibende Züge: $moves';
+  }
+
+  @override
+  String a11yBattlefieldCard(String name) {
+    return 'Schlachtfeldkarte $name';
+  }
+
+  @override
+  String a11yHealthStatus(int current, int max) {
+    return 'Gesundheit $current von $max';
+  }
+
+  @override
+  String a11yHandCard(String name) {
+    return 'Handkarte $name';
+  }
+
+  @override
+  String a11yAsteroid(String problem) {
+    return 'Asteroid $problem';
+  }
+
+  @override
+  String a11yAnswer(String answer) {
+    return 'Antwort $answer';
+  }
+
+  @override
+  String a11yBubble(String problem) {
+    return 'Blase $problem';
+  }
+
+  @override
+  String get a11yCargoGrid => 'Frachtbucht-Gitter';
+
+  @override
+  String a11yPlacedValue(String value) {
+    return 'Platzierter Wert $value';
+  }
+
+  @override
+  String a11yEmptySlot(String symbol) {
+    return 'Leeres Feld für $symbol';
+  }
+
+  @override
+  String a11yDial(String label, int value) {
+    return 'Drehrad $label, Wert $value';
+  }
+
+  @override
+  String get a11yDialHint =>
+      'Nach oben oder unten ziehen zum Ändern, oder Zahl ablegen';
+
+  @override
+  String a11yPiece(int size, int size2, int remaining, int total) {
+    return 'Teil ${size}x$size2, $remaining von $total übrig';
+  }
+
+  @override
+  String a11yPlacedPiece(int size, int size2) {
+    return 'Platziertes ${size}x$size2 Teil';
+  }
+
+  @override
+  String get a11yGameArea => 'Spielbereich';
+
+  @override
+  String a11yAnswerChoice(int index) {
+    return 'Antwortmöglichkeit $index';
+  }
+
+  @override
+  String a11yLivesRemaining(int lives, int max) {
+    return 'Verbleibende Leben: $lives von $max';
+  }
+
+  @override
+  String a11yProgress(int current, int total) {
+    return 'Fortschritt $current von $total';
+  }
+
+  @override
+  String a11yAtom(String type) {
+    return 'Atom $type';
+  }
+
+  @override
+  String get a11yRemoveCommand => 'Befehl entfernen';
+
+  @override
+  String a11yCommand(String name) {
+    return 'Befehl $name';
+  }
+
+  @override
+  String a11yGlyph(String name) {
+    return 'Glyphe $name';
+  }
+
+  @override
+  String a11yResonator(int number) {
+    return 'Resonator $number, zum Dreiecksknoten ziehen';
+  }
+
+  @override
+  String a11yBrick(int number) {
+    return 'Zahlenstein $number, zum Feld ziehen';
+  }
 }

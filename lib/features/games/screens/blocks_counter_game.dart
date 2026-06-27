@@ -637,7 +637,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
 
               return Semantics(
                 button: true,
-                label: 'Answer ${answer.toString()}',
+                label: S.of(context)!.a11yAnswer(answer.toString()),
                 selected: isSelected,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
@@ -748,8 +748,9 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
             ),
             actions: [
               TextButton(
+                autofocus: true,
                 child: Text(
-                  S.of(context)!.blockCounterNextPuzzle, 
+                  S.of(context)!.blockCounterNextPuzzle,
                   style: const TextStyle(color: Colors.cyanAccent)
                 ),
                 onPressed: () {

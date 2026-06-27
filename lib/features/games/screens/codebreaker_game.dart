@@ -155,6 +155,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
             content: Text(S.of(context)!.puzzleGenerationFailedDescAlt),
             actions: [
               TextButton(
+                autofocus: true,
                 onPressed: () {
                   Navigator.of(context).pop(); // Close dialog
                   _generatePuzzle(); // Retry
@@ -477,6 +478,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
                     _generatePuzzle();
@@ -947,7 +949,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         // User has placed a number here
         cellContent = Semantics(
           button: true,
-          label: 'Placed value ${userSolution[positionId]}',
+          label: S.of(context)!.a11yPlacedValue(userSolution[positionId].toString()),
           hint: 'Tap to remove',
           child: GestureDetector(
           onTap: () => _removeNumber(positionId),
@@ -1068,7 +1070,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
       // Wrap in DragTarget if it should accept drops
       if (shouldAcceptDrops) {
         return Semantics(
-          label: 'Empty slot for $symbol',
+          label: S.of(context)!.a11yEmptySlot(symbol),
           hint: 'Drag a number here',
           child: SizedBox(
           width: cellSize + (isCompact ? 16 : 24),
@@ -1208,7 +1210,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                     feedback: _buildDraggableFeedback(number),
                     childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
                     child: Semantics(
-                      label: 'Number $number, drag to a slot',
+                      label: S.of(context)!.a11yNumberDragSlot(number),
                       button: true,
                       child: _buildNumberTile(number, isCompact: isCompact),
                     ),
@@ -1281,6 +1283,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(S.of(context)!.playAgain),

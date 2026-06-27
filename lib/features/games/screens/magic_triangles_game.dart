@@ -1001,7 +1001,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                   child: _buildResonator(number, isSmallScreen)
                 ),
                 child: Semantics(
-                  label: 'Resonator $number, drag to a triangle node',
+                  label: S.of(context)!.a11yResonator(number),
                   button: true,
                   child: _buildResonator(number, isSmallScreen),
                 ),

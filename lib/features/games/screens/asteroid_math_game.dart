@@ -609,6 +609,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
                     _resetGame();
@@ -708,7 +709,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
                                 left: asteroid.position.dx - asteroid.size / 2,
                                 top: asteroid.position.dy - asteroid.size / 2,
                                 child: Semantics(
-                                  label: 'Asteroid ${asteroid.mathProblem}',
+                                  label: S.of(context)!.a11yAsteroid(asteroid.mathProblem),
                                   button: true,
                                   child: GestureDetector(
                                     onTap: () => _onAsteroidTapped(asteroid),

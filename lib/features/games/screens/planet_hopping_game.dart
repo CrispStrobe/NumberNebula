@@ -434,7 +434,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                     style: SpaceTheme.titleStyle),
               )),
           Semantics(
-            label: 'Lives remaining: $lives of 3',
+            label: S.of(context)!.a11yLivesRemaining(lives, 3),
             container: true,
             child: ExcludeSemantics(
               child: Row(
@@ -446,7 +446,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
           ),
           const SizedBox(width: 16),
           Semantics(
-            label: 'Progress $nextTargetIndex of ${targetSequence.length}',
+            label: S.of(context)!.a11yProgress(nextTargetIndex, targetSequence.length),
             liveRegion: true,
             container: true,
             child: ExcludeSemantics(
@@ -505,7 +505,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   Widget _buildControlOverlay() {
     return Positioned.fill(
       child: Semantics(
-        label: 'Planet hopper control area',
+        label: S.of(context)!.a11yGameArea,
         hint: 'Tap a planet to launch toward it',
         child: GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -728,6 +728,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
               const SizedBox(height: 24),
               Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
                 ElevatedButton(
+                    autofocus: true,
                     onPressed: () {
                       Navigator.of(context).pop();
                       _resetGame();
@@ -763,6 +764,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
               const SizedBox(height: 24),
               Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
                 ElevatedButton(
+                    autofocus: true,
                     onPressed: () {
                       Navigator.of(context).pop();
                       _resetGame();

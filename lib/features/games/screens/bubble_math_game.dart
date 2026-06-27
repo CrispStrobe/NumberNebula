@@ -365,6 +365,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
                   child: Text(S.of(context)!.playAgain),
                 ),
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).pop();
@@ -411,6 +412,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
                     _resetGame();
@@ -481,7 +483,7 @@ class BubbleWidget extends StatelessWidget {
       left: bubble.position.dx - bubble.size / 2,
       top: bubble.position.dy - bubble.size / 2,
       child: Semantics(
-        label: 'Bubble ${bubble.mathProblem}',
+        label: S.of(context)!.a11yBubble(bubble.mathProblem),
         button: true,
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,

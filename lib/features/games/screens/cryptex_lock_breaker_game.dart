@@ -517,8 +517,8 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       builder: (context, candidateData, rejectedData) {
         final isDropTarget = candidateData.isNotEmpty;
         return Semantics(
-      label: 'Dial $dialLabel, value $dialValue',
-      hint: 'Drag up or down to change value, or drop a number',
+      label: S.of(context)!.a11yDial(dialLabel, dialValue),
+      hint: S.of(context)!.a11yDialHint,
       value: dialValue.toString(),
       button: true,
       selected: isSelected || isDropTarget,

@@ -404,6 +404,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
                     _generatePuzzle();
@@ -1094,7 +1095,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                   feedback: _buildDraggableFeedback(number),
                   childWhenDragging: Opacity(opacity: 0.3, child: _buildCompactBrick(number)),
                   child: Semantics(
-                    label: 'Number brick $number, drag to a wall slot',
+                    label: S.of(context)!.a11yBrick(number),
                     button: true,
                     child: _buildCompactBrick(number),
                   ),
@@ -1170,6 +1171,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () {
                           Navigator.of(context).pop();
                           _generatePuzzle();

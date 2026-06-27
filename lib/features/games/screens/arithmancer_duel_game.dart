@@ -1824,7 +1824,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                                       runSpacing: 8,
                                       children: _battlefieldCards.asMap().entries.map((entry) {
                                         return Semantics(
-                                          label: 'Battlefield card ${entry.value.name}',
+                                          label: S.of(context)!.a11yBattlefieldCard(entry.value.name),
                                           hint: 'Tap to return to hand',
                                           button: true,
                                           child: GestureDetector(
@@ -2130,7 +2130,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     final percentage = max > 0 ? (current / max).clamp(0.0, 1.0) : 0.0;
 
     return Semantics(
-      label: 'Health $current of $max',
+      label: S.of(context)!.a11yHealthStatus(current, max),
       liveRegion: true,
       container: true,
       child: ExcludeSemantics(
@@ -2548,7 +2548,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         child: _buildCard(card),
       ),
       child: Semantics(
-        label: 'Hand card ${card.name}',
+        label: S.of(context)!.a11yHandCard(card.name),
         hint: 'Drag to the battlefield',
         button: true,
         child: _buildCard(card, handIndex: handIndex),

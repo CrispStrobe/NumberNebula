@@ -837,6 +837,7 @@ class _RobotPathGameState extends State<RobotPathGame>
                     Navigator.of(context).pop();
                     _generateLevel();
                   },
+                  autofocus: true,
                 ),
                 _buildDialogButton(
                   S.of(context)!.toTheBridge,
@@ -881,8 +882,9 @@ class _RobotPathGameState extends State<RobotPathGame>
   }
 
   Widget _buildDialogButton(
-      String text, IconData icon, Color color, VoidCallback onPressed) {
+      String text, IconData icon, Color color, VoidCallback onPressed, {bool autofocus = false}) {
     return ElevatedButton.icon(
+      autofocus: autofocus,
       onPressed: onPressed,
       icon: Icon(icon, size: 20),
       label: Text(text),
@@ -1771,7 +1773,7 @@ class _RobotPathGameState extends State<RobotPathGame>
           top: -20,
           right: -20,
           child: Semantics(
-            label: 'Remove command',
+            label: S.of(context)!.a11yRemoveCommand,
             button: true,
             child: SizedBox(
               width: 48,
@@ -2009,7 +2011,7 @@ class _RobotPathGameState extends State<RobotPathGame>
         child: tileUI,
       ),
       child: Semantics(
-        label: 'Command ${command.name}',
+        label: S.of(context)!.a11yCommand(command.name),
         button: true,
         child: GestureDetector(
           onTap: isExecuting ? null : () => _addCommand(command),

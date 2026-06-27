@@ -701,7 +701,7 @@ class _GridFillerGameState extends State<GridFillerGame>
         child: _buildPieceCardContent(piece, isSelected, canUse),
       ),
       child: Semantics(
-        label: 'Piece ${piece.size}x${piece.size}, ${piece.remainingCount} of ${piece.count} left',
+        label: S.of(context)!.a11yPiece(piece.size, piece.size, piece.remainingCount, piece.count),
         button: true,
         selected: isSelected,
         enabled: canUse,
@@ -831,7 +831,7 @@ class _GridFillerGameState extends State<GridFillerGame>
       },
       childWhenDragging: Container(),
       child: Semantics(
-        label: 'Placed ${piece.size}x${piece.size} piece',
+        label: S.of(context)!.a11yPlacedPiece(piece.size, piece.size),
         hint: 'Tap to remove or long-press to drag',
         button: true,
         child: GestureDetector(

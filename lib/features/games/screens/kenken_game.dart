@@ -420,6 +420,7 @@ class _KenkenGameState extends State<KenkenGame>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
                     _generatePuzzle();
@@ -863,7 +864,7 @@ class _KenkenGameState extends State<KenkenGame>
     if (isEmpty && hasUserValue) {
       return Semantics(
         button: true,
-        label: 'Placed value, tap to remove',
+        label: S.of(context)!.a11yPlacedValueTapRemove,
         child: GestureDetector(
           onTap: () => _removeNumber(cellId),
           child: cellWidget,
@@ -941,7 +942,7 @@ class _KenkenGameState extends State<KenkenGame>
                                     child: _buildNumberTile(rowNumbers[i], tileSize: cellSize)
                                   ),
                                   child: Semantics(
-                                    label: 'Number ${rowNumbers[i]}, drag to a cell',
+                                    label: S.of(context)!.a11yNumberDragCell(rowNumbers[i]),
                                     button: true,
                                     child: _buildNumberTile(rowNumbers[i], tileSize: cellSize),
                                   ),
@@ -1103,6 +1104,7 @@ class _KenkenGameState extends State<KenkenGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(S.of(context)!.playAgain),

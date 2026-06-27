@@ -200,6 +200,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
             content: Text(S.of(context)!.puzzleGenerationFailedDesc),
             actions: [
               TextButton(
+                autofocus: true,
                 onPressed: () {
                   Navigator.of(context).pop();
                   _generatePuzzle();
@@ -507,6 +508,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
+                  autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
                     _generatePuzzle();
@@ -545,7 +547,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     }
     
     return Semantics(
-      label: 'Moves remaining: $_movesRemaining',
+      label: S.of(context)!.a11yMovesRemaining(_movesRemaining),
       liveRegion: true,
       container: true,
       child: ExcludeSemantics(
@@ -964,7 +966,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     if (isEmpty && hasUserValue) {
       return Semantics(
         button: true,
-        label: 'Placed value, tap to remove',
+        label: S.of(context)!.a11yPlacedValueTapRemove,
         child: GestureDetector(
           onTap: () => _removeNumber(cellId),
           child: cell,
@@ -1062,7 +1064,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
                   feedback: _buildDraggableFeedback(number),
                   childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
                   child: Semantics(
-                    label: 'Number $number, drag to a slot',
+                    label: S.of(context)!.a11yNumberDragSlot(number),
                     button: true,
                     child: _buildNumberTile(number, isCompact: isCompact),
                   ),
@@ -1211,6 +1213,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(S.of(context)!.playAgain),

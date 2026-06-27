@@ -730,7 +730,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
               runSpacing: 8,
               children: availableGlyphs.map((glyph) {
                 return Semantics(
-                  label: 'Glyph ${glyph.name}',
+                  label: S.of(context)!.a11yGlyph(glyph.name),
                   button: true,
                   child: SizedBox(
                     width: 48,
@@ -919,6 +919,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                       children: [
                         Expanded(
                           child: ElevatedButton(
+                            autofocus: true,
                             onPressed: () {
                               Navigator.of(context).pop();
                               _resetGame();
@@ -993,6 +994,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                 children: [
                   Expanded(
                     child: ElevatedButton(
+                      autofocus: true,
                       onPressed: () {
                         Navigator.of(context).pop();
                         _resetGame();

@@ -497,7 +497,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
           children: [
             // MAIN GAME AREA WITH SCREEN-WIDE TAP DETECTION
             Semantics(
-              label: 'Path finder area',
+              label: S.of(context)!.a11yGameArea,
               hint: 'Tap a glowing path bubble to choose your route',
               child: GestureDetector(
               onTapDown: (details) {
@@ -721,7 +721,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
         style: const TextStyle(color: Colors.white70),
       ),
       actions: [
-        TextButton(onPressed: _resetGame, child: Text(S.of(context)!.playAgain, style: const TextStyle(color: Colors.cyanAccent))),
+        TextButton(autofocus: true, onPressed: _resetGame, child: Text(S.of(context)!.playAgain, style: const TextStyle(color: Colors.cyanAccent))),
         TextButton(child: Text(S.of(context)!.backToMenu, style: const TextStyle(color: Colors.white)), onPressed: () {
             Navigator.pop(context);
             Navigator.pop(context);

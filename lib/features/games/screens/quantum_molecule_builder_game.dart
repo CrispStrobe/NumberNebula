@@ -2210,7 +2210,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
             left: localX * cellSize,
             top: localY * cellSize,
             child: Semantics(
-              label: 'Atom ${atom.type}',
+              label: S.of(context)!.a11yAtom(atom.type.name),
               hint: 'Tap to select, drag to slide',
               button: true,
               selected: isSelected,
@@ -2274,9 +2274,10 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                     children: [
                         Flexible(
                         child: ElevatedButton(
+                            autofocus: true,
                             onPressed: () {
                             Navigator.of(context).pop();
-                            _resetGame(nextLevel: _currentLevel + 1); 
+                            _resetGame(nextLevel: _currentLevel + 1);
                             },
                             style: SpaceTheme.secondaryButtonStyle,
                             child: Text(S.of(context)!.moleculeBuilderNextMolecule, style: const TextStyle(fontSize: 13)),
@@ -2334,6 +2335,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                 children: [
                 Flexible(
                     child: ElevatedButton(
+                    autofocus: true,
                     onPressed: () {
                         Navigator.of(context).pop();
                         _resetGame();
