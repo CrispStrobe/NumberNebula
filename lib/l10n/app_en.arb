@@ -1935,6 +1935,103 @@
 
   "perspectiveDragHint": "Drag ±15°",
 
-  "allTargetsPopped": "All targets popped"
+  "allTargetsPopped": "All targets popped",
+
+  "creatureForgeForbidden": "FORBIDDEN",
+  "creatureForgeAlreadyFound": "ALREADY FOUND",
+  "creatureForgeNewSpecies": "NEW SPECIES!",
+  "creatureForgeAdd": "ADD",
+
+  "ionChainRules": "RULES",
+  "ionChainRing": "ION RING",
+  "ionChainAvailableBeads": "AVAILABLE BEADS",
+  "ionChainRuleViolation": "Rule violation! This bead can't go here.",
+
+  "hullPlatingNoFit": "Piece doesn't fit here! Try rotating or a different position.",
+  "hullPlatingAllPlaced": "All pieces placed!",
+  "hullPlatingClear": "Clear",
+
+  "gridFillerPlayAgain": "Play Again",
+  "gridFillerExit": "Exit",
+  "gridFillerResetGrid": "Reset Grid",
+
+  "chronoRepairSubmit": "Submit",
+  "xenobiologySubmitCensus": "Submit Census",
+
+  "galacticMarketOneCoin": "One coin is face-down.",
+  "galacticMarketNCoins": "The {count} face-down coins all have the same value.",
+  "@galacticMarketNCoins": { "placeholders": { "count": { "type": "int" } } },
+
+  "launchSequenceTarget": "Target: ",
+
+  "difficultyEasy": "Easy",
+  "difficultyNormal": "Normal",
+  "difficultyChallenge": "Challenge",
+
+  "warpFoldReplay": "Replay",
+
+  "ok": "OK",
+
+  "magicTrianglesOnboardTitle": "Magic Triangles",
+  "magicTrianglesOnboardDrag": "Drag numbers from the pool onto the empty triangle nodes.",
+  "magicTrianglesOnboardSum": "Every side of the triangle must add up to the same number.",
+  "magicTrianglesOnboardTap": "Tap a placed number to send it back to the pool.",
+
+  "parentDashboardTitle": "Parent Dashboard",
+  "parentDashboardPinTitle": "Parent PIN",
+  "parentDashboardPinDesc": "Enter the 4-digit code to view this screen.\nDefault code is {pin} until you change it.",
+  "@parentDashboardPinDesc": { "placeholders": { "pin": { "type": "String" } } },
+  "parentDashboardUnlock": "Unlock",
+  "parentDashboardMathMastery": "Mathematical Mastery",
+  "parentDashboardProblemsTracked": "Problems tracked",
+  "parentDashboardMastered": "Mastered",
+  "parentDashboardDueForReview": "Due for review",
+  "parentDashboardCognitiveStrengths": "Cognitive Strengths",
+  "parentDashboardNoData": "no data yet",
+  "parentDashboardDataBasis": "Data basis",
+  "parentDashboardStrongest": "Strongest category",
+  "parentDashboardWeakest": "Weakest category",
+  "parentDashboardTotalAttempts": "Total attempts",
+  "parentDashboardGameProgress": "Game Progress",
+  "parentDashboardGamesPlayed": "Games played",
+  "parentDashboardNone": "none yet",
+  "parentDashboardChangePin": "Change Parent PIN",
+  "parentDashboardChangePinTitle": "Change PIN",
+  "parentDashboardNewPin": "New PIN",
+  "parentDashboardConfirm": "Confirm",
+  "parentDashboardCancel": "Cancel",
+  "parentDashboardSave": "Save",
+  "parentDashboardPinUpdated": "PIN updated",
+  "parentDashboardPin4Digits": "4 digits required",
+  "parentDashboardPinMismatch": "Does not match",
+  "parentDashboardLevelN": "Level {level}",
+  "@parentDashboardLevelN": { "placeholders": { "level": { "type": "int" } } },
+
+  "sriReviewTitle": "Review",
+  "sriMasteredLabel": "Mastered",
+  "sriLearningLabel": "Learning",
+  "sriMasteryLabel": "Mastery",
+  "sriToughestProblems": "Toughest problems",
+
+  "flashcardBoxTitle": "Flashcard Box",
+  "flashcardBoxNew": "New",
+  "flashcardBoxFirstReview": "First Review",
+  "flashcardBoxPractice": "Practice",
+  "flashcardBoxConfident": "Confident",
+  "flashcardBoxMastered": "Mastered",
+  "flashcardBoxMovedToBox": "Moved to Box {boxNum}",
+  "@flashcardBoxMovedToBox": { "placeholders": { "boxNum": { "type": "int" } } },
+  "flashcardBoxMove": "Move",
+
+  "cognitiveProfileTitle": "Cognitive Profile",
+  "cognitiveProfileEmpty": "Play a few games to start building your profile.",
+  "cognitiveProfileAttempts": "{total} attempts across {areas} skill areas",
+  "@cognitiveProfileAttempts": { "placeholders": { "total": { "type": "int" }, "areas": { "type": "int" } } },
+  "cognitiveProfileNoData": "No data yet — play to see this fill in.",
+  "cognitiveArithmetic": "Arithmetic",
+  "cognitiveSpatial2D": "Spatial (2D)",
+  "cognitiveSpatial3D": "Spatial (3D)",
+  "cognitiveLogic": "Logic & Deduction",
+  "cognitivePattern": "Pattern Recognition"
 
 }

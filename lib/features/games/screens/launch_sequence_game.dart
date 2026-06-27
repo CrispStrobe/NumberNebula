@@ -310,7 +310,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('Target: ', style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+          Text(S.of(context)!.launchSequenceTarget, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
           ...puzzle!.target.map((v) => Container(
             margin: const EdgeInsets.symmetric(horizontal: 2),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

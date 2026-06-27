@@ -122,8 +122,8 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     _changeTotal = knownTotal + unknownTotal;
 
     _constraintText = _unknownCount == 1
-        ? 'One coin is face-down.'
-        : 'The $_unknownCount face-down coins all have the same value.';
+        ? S.of(context)!.galacticMarketOneCoin
+        : S.of(context)!.galacticMarketNCoins(_unknownCount);
 
     // Generate denomination options (include correct + distractors)
     final options = <int>{_correctDenomination};

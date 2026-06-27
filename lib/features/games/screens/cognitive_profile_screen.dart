@@ -11,17 +11,21 @@ import 'package:provider/provider.dart';
 import '../../../core/models/skill_category.dart';
 import '../../../core/services/cognitive_profile_service.dart';
 import '../../../core/theme/space_theme.dart';
+import '../../../generated/l10n.dart';
 
 class CognitiveProfileScreen extends StatelessWidget {
   const CognitiveProfileScreen({super.key});
 
-  static const Map<SkillCategory, String> _labels = {
-    SkillCategory.arithmetic: 'Arithmetic',
-    SkillCategory.spatial2d: 'Spatial (2D)',
-    SkillCategory.spatial3d: 'Spatial (3D)',
-    SkillCategory.logicDeduction: 'Logic & Deduction',
-    SkillCategory.patternRecognition: 'Pattern Recognition',
-  };
+  static Map<SkillCategory, String> _labels(BuildContext context) {
+    final s = S.of(context)!;
+    return {
+      SkillCategory.arithmetic: s.cognitiveArithmetic,
+      SkillCategory.spatial2d: s.cognitiveSpatial2D,
+      SkillCategory.spatial3d: s.cognitiveSpatial3D,
+      SkillCategory.logicDeduction: s.cognitiveLogic,
+      SkillCategory.patternRecognition: s.cognitivePattern,
+    };
+  }
 
   static const Map<SkillCategory, IconData> _icons = {
     SkillCategory.arithmetic: Icons.calculate,
@@ -40,18 +44,18 @@ class CognitiveProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: SpaceTheme.deepSpace,
       appBar: AppBar(
-        title: const Text('Cognitive Profile'),
+        title: Text(S.of(context)!.cognitiveProfileTitle),
         backgroundColor: SpaceTheme.deepSpace,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           if (totalAttempts == 0)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 48),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 48),
               child: Center(
                 child: Text(
-                  'Play a few games to start building your profile.',
+                  S.of(context)!.cognitiveProfileEmpty,
                   textAlign: TextAlign.center,
                   style: SpaceTheme.bodyStyle,
                 ),
@@ -59,14 +63,14 @@ class CognitiveProfileScreen extends StatelessWidget {
             )
           else ...[
             Text(
-              '$totalAttempts attempts across ${snapshot.length} skill area${snapshot.length == 1 ? '' : 's'}',
+              S.of(context)!.cognitiveProfileAttempts(totalAttempts, snapshot.length),
               style: SpaceTheme.bodyStyle
                   .copyWith(fontSize: 13, color: Colors.white70),
             ),
             const SizedBox(height: 16),
             for (final category in SkillCategory.values)
               _SkillCategoryCard(
-                label: _labels[category] ?? category.name,
+                label: _labels(context)[category] ?? category.name,
                 icon: _icons[category] ?? Icons.help_outline,
                 stats: snapshot[category],
               ),
@@ -127,7 +131,7 @@ class _SkillCategoryCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             if (!hasData)
-              Text('No data yet — play to see this fill in.',
+              Text(S.of(context)!.cognitiveProfileNoData,
                   style: SpaceTheme.bodyStyle
                       .copyWith(fontSize: 12, color: Colors.white54))
             else ...[

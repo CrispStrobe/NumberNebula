@@ -492,7 +492,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
               ElevatedButton.icon(
                 onPressed: _checkAnswer,
                 icon: const Icon(Icons.check, size: 24),
-                label: const Text('Submit', style: TextStyle(fontSize: 16)),
+                label: Text(S.of(context)!.chronoRepairSubmit, style: const TextStyle(fontSize: 16)),
                 style: SpaceTheme.primaryButtonStyle,
               ),
             ],
@@ -531,6 +531,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () {
                           Navigator.of(context).pop();
                           _generatePuzzle();

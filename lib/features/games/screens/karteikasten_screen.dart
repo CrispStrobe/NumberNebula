@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/services/sri_service.dart';
 import '../../../core/theme/space_theme.dart';
+import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 
 class KarteikastenScreen extends StatefulWidget {
@@ -24,13 +25,18 @@ class KarteikastenScreen extends StatefulWidget {
 class _KarteikastenScreenState extends State<KarteikastenScreen> {
   int _selectedBox = 1;
 
-  static const List<({String label, Color color})> _boxes = [
-    (label: 'New', color: Color(0xFFE57373)),
-    (label: 'First Review', color: Color(0xFFFFB74D)),
-    (label: 'Practice', color: Color(0xFFFFD54F)),
-    (label: 'Confident', color: Color(0xFF81C784)),
-    (label: 'Mastered', color: Color(0xFF64B5F6)),
+  static const List<Color> _boxColors = [
+    Color(0xFFE57373),
+    Color(0xFFFFB74D),
+    Color(0xFFFFD54F),
+    Color(0xFF81C784),
+    Color(0xFF64B5F6),
   ];
+
+  List<String> _boxLabels(BuildContext context) {
+    final s = S.of(context)!;
+    return [s.flashcardBoxNew, s.flashcardBoxFirstReview, s.flashcardBoxPractice, s.flashcardBoxConfident, s.flashcardBoxMastered];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +48,7 @@ class _KarteikastenScreenState extends State<KarteikastenScreen> {
     return Scaffold(
       backgroundColor: SpaceTheme.deepSpace,
       appBar: AppBar(
-        title: const Text('Flashcard Box'),
+        title: Text(S.of(context)!.flashcardBoxTitle),
         backgroundColor: SpaceTheme.deepSpace,
         foregroundColor: Colors.white,
       ),
@@ -72,7 +78,8 @@ class _KarteikastenScreenState extends State<KarteikastenScreen> {
         itemCount: 5,
         itemBuilder: (context, i) {
           final boxNum = i + 1;
-          final spec = _boxes[i];
+          final boxColor = _boxColors[i];
+          final boxLabel = _boxLabels(context)[i];
           final count = counts[boxNum] ?? 0;
           final selected = boxNum == _selectedBox;
           return Padding(
@@ -89,8 +96,8 @@ class _KarteikastenScreenState extends State<KarteikastenScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     duration: const Duration(seconds: 2),
-                    content: Text('Moved to Box $boxNum – ${spec.label}'),
-                    backgroundColor: spec.color.withValues(alpha: 0.85),
+                    content: Text(S.of(context)!.flashcardBoxMovedToBox(boxNum)),
+                    backgroundColor: boxColor.withValues(alpha: 0.85),
                   ),
                 );
               },
@@ -106,8 +113,8 @@ class _KarteikastenScreenState extends State<KarteikastenScreen> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          spec.color.withValues(alpha: hover ? 1.0 : 0.85),
-                          spec.color.withValues(alpha: hover ? 0.85 : 0.55),
+                          boxColor.withValues(alpha: hover ? 1.0 : 0.85),
+                          boxColor.withValues(alpha: hover ? 0.85 : 0.55),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -117,7 +124,7 @@ class _KarteikastenScreenState extends State<KarteikastenScreen> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: spec.color.withValues(alpha: 0.4),
+                          color: boxColor.withValues(alpha: 0.4),
                           blurRadius: hover ? 18 : 6,
                           offset: const Offset(2, 4),
                         ),
@@ -145,7 +152,7 @@ class _KarteikastenScreenState extends State<KarteikastenScreen> {
                           ),
                         ),
                         Text(
-                          spec.label,
+                          boxLabel,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
@@ -270,7 +277,7 @@ class _DraggableItemCard extends StatelessWidget {
         ),
         trailing: PopupMenuButton<int>(
           icon: const Icon(Icons.more_vert, color: Color(0xFF5D4037)),
-          tooltip: 'Move',
+          tooltip: S.of(context)!.flashcardBoxMove,
           onSelected: onMove,
           itemBuilder: (context) => [
             for (var b = 1; b <= 5; b++)

@@ -631,20 +631,20 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
             mainAxisSize: MainAxisSize.min,
             children: [
               _CompactDifficultyTab(
-                label: 'Easy',
+                label: S.of(context)!.difficultyEasy,
                 icon: Icons.spa,
                 selected: mode == DifficultyMode.easy,
                 onTap: () => gp.setDifficultyMode(DifficultyMode.easy),
                 isFirst: true,
               ),
               _CompactDifficultyTab(
-                label: 'Normal',
+                label: S.of(context)!.difficultyNormal,
                 icon: Icons.school,
                 selected: mode == DifficultyMode.normal,
                 onTap: () => gp.setDifficultyMode(DifficultyMode.normal),
               ),
               _CompactDifficultyTab(
-                label: 'Challenge',
+                label: S.of(context)!.difficultyChallenge,
                 icon: Icons.local_fire_department,
                 selected: mode == DifficultyMode.challenge,
                 onTap: () => gp.setDifficultyMode(DifficultyMode.challenge),

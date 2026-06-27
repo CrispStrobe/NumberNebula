@@ -5865,6 +5865,468 @@ abstract class S {
   /// In en, this message translates to:
   /// **'All targets popped'**
   String get allTargetsPopped;
+
+  /// No description provided for @creatureForgeForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'FORBIDDEN'**
+  String get creatureForgeForbidden;
+
+  /// No description provided for @creatureForgeAlreadyFound.
+  ///
+  /// In en, this message translates to:
+  /// **'ALREADY FOUND'**
+  String get creatureForgeAlreadyFound;
+
+  /// No description provided for @creatureForgeNewSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW SPECIES!'**
+  String get creatureForgeNewSpecies;
+
+  /// No description provided for @creatureForgeAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'ADD'**
+  String get creatureForgeAdd;
+
+  /// No description provided for @ionChainRules.
+  ///
+  /// In en, this message translates to:
+  /// **'RULES'**
+  String get ionChainRules;
+
+  /// No description provided for @ionChainRing.
+  ///
+  /// In en, this message translates to:
+  /// **'ION RING'**
+  String get ionChainRing;
+
+  /// No description provided for @ionChainAvailableBeads.
+  ///
+  /// In en, this message translates to:
+  /// **'AVAILABLE BEADS'**
+  String get ionChainAvailableBeads;
+
+  /// No description provided for @ionChainRuleViolation.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule violation! This bead can\'t go here.'**
+  String get ionChainRuleViolation;
+
+  /// No description provided for @hullPlatingNoFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Piece doesn\'t fit here! Try rotating or a different position.'**
+  String get hullPlatingNoFit;
+
+  /// No description provided for @hullPlatingAllPlaced.
+  ///
+  /// In en, this message translates to:
+  /// **'All pieces placed!'**
+  String get hullPlatingAllPlaced;
+
+  /// No description provided for @hullPlatingClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get hullPlatingClear;
+
+  /// No description provided for @gridFillerPlayAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Play Again'**
+  String get gridFillerPlayAgain;
+
+  /// No description provided for @gridFillerExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get gridFillerExit;
+
+  /// No description provided for @gridFillerResetGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Grid'**
+  String get gridFillerResetGrid;
+
+  /// No description provided for @chronoRepairSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get chronoRepairSubmit;
+
+  /// No description provided for @xenobiologySubmitCensus.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Census'**
+  String get xenobiologySubmitCensus;
+
+  /// No description provided for @galacticMarketOneCoin.
+  ///
+  /// In en, this message translates to:
+  /// **'One coin is face-down.'**
+  String get galacticMarketOneCoin;
+
+  /// No description provided for @galacticMarketNCoins.
+  ///
+  /// In en, this message translates to:
+  /// **'The {count} face-down coins all have the same value.'**
+  String galacticMarketNCoins(int count);
+
+  /// No description provided for @launchSequenceTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target: '**
+  String get launchSequenceTarget;
+
+  /// No description provided for @difficultyEasy.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get difficultyEasy;
+
+  /// No description provided for @difficultyNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get difficultyNormal;
+
+  /// No description provided for @difficultyChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge'**
+  String get difficultyChallenge;
+
+  /// No description provided for @warpFoldReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get warpFoldReplay;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @magicTrianglesOnboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Magic Triangles'**
+  String get magicTrianglesOnboardTitle;
+
+  /// No description provided for @magicTrianglesOnboardDrag.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag numbers from the pool onto the empty triangle nodes.'**
+  String get magicTrianglesOnboardDrag;
+
+  /// No description provided for @magicTrianglesOnboardSum.
+  ///
+  /// In en, this message translates to:
+  /// **'Every side of the triangle must add up to the same number.'**
+  String get magicTrianglesOnboardSum;
+
+  /// No description provided for @magicTrianglesOnboardTap.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a placed number to send it back to the pool.'**
+  String get magicTrianglesOnboardTap;
+
+  /// No description provided for @parentDashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent Dashboard'**
+  String get parentDashboardTitle;
+
+  /// No description provided for @parentDashboardPinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent PIN'**
+  String get parentDashboardPinTitle;
+
+  /// No description provided for @parentDashboardPinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 4-digit code to view this screen.\nDefault code is {pin} until you change it.'**
+  String parentDashboardPinDesc(String pin);
+
+  /// No description provided for @parentDashboardUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get parentDashboardUnlock;
+
+  /// No description provided for @parentDashboardMathMastery.
+  ///
+  /// In en, this message translates to:
+  /// **'Mathematical Mastery'**
+  String get parentDashboardMathMastery;
+
+  /// No description provided for @parentDashboardProblemsTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Problems tracked'**
+  String get parentDashboardProblemsTracked;
+
+  /// No description provided for @parentDashboardMastered.
+  ///
+  /// In en, this message translates to:
+  /// **'Mastered'**
+  String get parentDashboardMastered;
+
+  /// No description provided for @parentDashboardDueForReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Due for review'**
+  String get parentDashboardDueForReview;
+
+  /// No description provided for @parentDashboardCognitiveStrengths.
+  ///
+  /// In en, this message translates to:
+  /// **'Cognitive Strengths'**
+  String get parentDashboardCognitiveStrengths;
+
+  /// No description provided for @parentDashboardNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'no data yet'**
+  String get parentDashboardNoData;
+
+  /// No description provided for @parentDashboardDataBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'Data basis'**
+  String get parentDashboardDataBasis;
+
+  /// No description provided for @parentDashboardStrongest.
+  ///
+  /// In en, this message translates to:
+  /// **'Strongest category'**
+  String get parentDashboardStrongest;
+
+  /// No description provided for @parentDashboardWeakest.
+  ///
+  /// In en, this message translates to:
+  /// **'Weakest category'**
+  String get parentDashboardWeakest;
+
+  /// No description provided for @parentDashboardTotalAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Total attempts'**
+  String get parentDashboardTotalAttempts;
+
+  /// No description provided for @parentDashboardGameProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Game Progress'**
+  String get parentDashboardGameProgress;
+
+  /// No description provided for @parentDashboardGamesPlayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Games played'**
+  String get parentDashboardGamesPlayed;
+
+  /// No description provided for @parentDashboardNone.
+  ///
+  /// In en, this message translates to:
+  /// **'none yet'**
+  String get parentDashboardNone;
+
+  /// No description provided for @parentDashboardChangePin.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Parent PIN'**
+  String get parentDashboardChangePin;
+
+  /// No description provided for @parentDashboardChangePinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN'**
+  String get parentDashboardChangePinTitle;
+
+  /// No description provided for @parentDashboardNewPin.
+  ///
+  /// In en, this message translates to:
+  /// **'New PIN'**
+  String get parentDashboardNewPin;
+
+  /// No description provided for @parentDashboardConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get parentDashboardConfirm;
+
+  /// No description provided for @parentDashboardCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get parentDashboardCancel;
+
+  /// No description provided for @parentDashboardSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get parentDashboardSave;
+
+  /// No description provided for @parentDashboardPinUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN updated'**
+  String get parentDashboardPinUpdated;
+
+  /// No description provided for @parentDashboardPin4Digits.
+  ///
+  /// In en, this message translates to:
+  /// **'4 digits required'**
+  String get parentDashboardPin4Digits;
+
+  /// No description provided for @parentDashboardPinMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Does not match'**
+  String get parentDashboardPinMismatch;
+
+  /// No description provided for @parentDashboardLevelN.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level}'**
+  String parentDashboardLevelN(int level);
+
+  /// No description provided for @sriReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get sriReviewTitle;
+
+  /// No description provided for @sriMasteredLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Mastered'**
+  String get sriMasteredLabel;
+
+  /// No description provided for @sriLearningLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning'**
+  String get sriLearningLabel;
+
+  /// No description provided for @sriMasteryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Mastery'**
+  String get sriMasteryLabel;
+
+  /// No description provided for @sriToughestProblems.
+  ///
+  /// In en, this message translates to:
+  /// **'Toughest problems'**
+  String get sriToughestProblems;
+
+  /// No description provided for @flashcardBoxTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flashcard Box'**
+  String get flashcardBoxTitle;
+
+  /// No description provided for @flashcardBoxNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get flashcardBoxNew;
+
+  /// No description provided for @flashcardBoxFirstReview.
+  ///
+  /// In en, this message translates to:
+  /// **'First Review'**
+  String get flashcardBoxFirstReview;
+
+  /// No description provided for @flashcardBoxPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice'**
+  String get flashcardBoxPractice;
+
+  /// No description provided for @flashcardBoxConfident.
+  ///
+  /// In en, this message translates to:
+  /// **'Confident'**
+  String get flashcardBoxConfident;
+
+  /// No description provided for @flashcardBoxMastered.
+  ///
+  /// In en, this message translates to:
+  /// **'Mastered'**
+  String get flashcardBoxMastered;
+
+  /// No description provided for @flashcardBoxMovedToBox.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to Box {boxNum}'**
+  String flashcardBoxMovedToBox(int boxNum);
+
+  /// No description provided for @flashcardBoxMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get flashcardBoxMove;
+
+  /// No description provided for @cognitiveProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cognitive Profile'**
+  String get cognitiveProfileTitle;
+
+  /// No description provided for @cognitiveProfileEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Play a few games to start building your profile.'**
+  String get cognitiveProfileEmpty;
+
+  /// No description provided for @cognitiveProfileAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'{total} attempts across {areas} skill areas'**
+  String cognitiveProfileAttempts(int total, int areas);
+
+  /// No description provided for @cognitiveProfileNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet — play to see this fill in.'**
+  String get cognitiveProfileNoData;
+
+  /// No description provided for @cognitiveArithmetic.
+  ///
+  /// In en, this message translates to:
+  /// **'Arithmetic'**
+  String get cognitiveArithmetic;
+
+  /// No description provided for @cognitiveSpatial2D.
+  ///
+  /// In en, this message translates to:
+  /// **'Spatial (2D)'**
+  String get cognitiveSpatial2D;
+
+  /// No description provided for @cognitiveSpatial3D.
+  ///
+  /// In en, this message translates to:
+  /// **'Spatial (3D)'**
+  String get cognitiveSpatial3D;
+
+  /// No description provided for @cognitiveLogic.
+  ///
+  /// In en, this message translates to:
+  /// **'Logic & Deduction'**
+  String get cognitiveLogic;
+
+  /// No description provided for @cognitivePattern.
+  ///
+  /// In en, this message translates to:
+  /// **'Pattern Recognition'**
+  String get cognitivePattern;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

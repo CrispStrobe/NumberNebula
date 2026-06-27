@@ -3385,4 +3385,252 @@ class SEn extends S {
 
   @override
   String get allTargetsPopped => 'All targets popped';
+
+  @override
+  String get creatureForgeForbidden => 'FORBIDDEN';
+
+  @override
+  String get creatureForgeAlreadyFound => 'ALREADY FOUND';
+
+  @override
+  String get creatureForgeNewSpecies => 'NEW SPECIES!';
+
+  @override
+  String get creatureForgeAdd => 'ADD';
+
+  @override
+  String get ionChainRules => 'RULES';
+
+  @override
+  String get ionChainRing => 'ION RING';
+
+  @override
+  String get ionChainAvailableBeads => 'AVAILABLE BEADS';
+
+  @override
+  String get ionChainRuleViolation =>
+      'Rule violation! This bead can\'t go here.';
+
+  @override
+  String get hullPlatingNoFit =>
+      'Piece doesn\'t fit here! Try rotating or a different position.';
+
+  @override
+  String get hullPlatingAllPlaced => 'All pieces placed!';
+
+  @override
+  String get hullPlatingClear => 'Clear';
+
+  @override
+  String get gridFillerPlayAgain => 'Play Again';
+
+  @override
+  String get gridFillerExit => 'Exit';
+
+  @override
+  String get gridFillerResetGrid => 'Reset Grid';
+
+  @override
+  String get chronoRepairSubmit => 'Submit';
+
+  @override
+  String get xenobiologySubmitCensus => 'Submit Census';
+
+  @override
+  String get galacticMarketOneCoin => 'One coin is face-down.';
+
+  @override
+  String galacticMarketNCoins(int count) {
+    return 'The $count face-down coins all have the same value.';
+  }
+
+  @override
+  String get launchSequenceTarget => 'Target: ';
+
+  @override
+  String get difficultyEasy => 'Easy';
+
+  @override
+  String get difficultyNormal => 'Normal';
+
+  @override
+  String get difficultyChallenge => 'Challenge';
+
+  @override
+  String get warpFoldReplay => 'Replay';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get magicTrianglesOnboardTitle => 'Magic Triangles';
+
+  @override
+  String get magicTrianglesOnboardDrag =>
+      'Drag numbers from the pool onto the empty triangle nodes.';
+
+  @override
+  String get magicTrianglesOnboardSum =>
+      'Every side of the triangle must add up to the same number.';
+
+  @override
+  String get magicTrianglesOnboardTap =>
+      'Tap a placed number to send it back to the pool.';
+
+  @override
+  String get parentDashboardTitle => 'Parent Dashboard';
+
+  @override
+  String get parentDashboardPinTitle => 'Parent PIN';
+
+  @override
+  String parentDashboardPinDesc(String pin) {
+    return 'Enter the 4-digit code to view this screen.\nDefault code is $pin until you change it.';
+  }
+
+  @override
+  String get parentDashboardUnlock => 'Unlock';
+
+  @override
+  String get parentDashboardMathMastery => 'Mathematical Mastery';
+
+  @override
+  String get parentDashboardProblemsTracked => 'Problems tracked';
+
+  @override
+  String get parentDashboardMastered => 'Mastered';
+
+  @override
+  String get parentDashboardDueForReview => 'Due for review';
+
+  @override
+  String get parentDashboardCognitiveStrengths => 'Cognitive Strengths';
+
+  @override
+  String get parentDashboardNoData => 'no data yet';
+
+  @override
+  String get parentDashboardDataBasis => 'Data basis';
+
+  @override
+  String get parentDashboardStrongest => 'Strongest category';
+
+  @override
+  String get parentDashboardWeakest => 'Weakest category';
+
+  @override
+  String get parentDashboardTotalAttempts => 'Total attempts';
+
+  @override
+  String get parentDashboardGameProgress => 'Game Progress';
+
+  @override
+  String get parentDashboardGamesPlayed => 'Games played';
+
+  @override
+  String get parentDashboardNone => 'none yet';
+
+  @override
+  String get parentDashboardChangePin => 'Change Parent PIN';
+
+  @override
+  String get parentDashboardChangePinTitle => 'Change PIN';
+
+  @override
+  String get parentDashboardNewPin => 'New PIN';
+
+  @override
+  String get parentDashboardConfirm => 'Confirm';
+
+  @override
+  String get parentDashboardCancel => 'Cancel';
+
+  @override
+  String get parentDashboardSave => 'Save';
+
+  @override
+  String get parentDashboardPinUpdated => 'PIN updated';
+
+  @override
+  String get parentDashboardPin4Digits => '4 digits required';
+
+  @override
+  String get parentDashboardPinMismatch => 'Does not match';
+
+  @override
+  String parentDashboardLevelN(int level) {
+    return 'Level $level';
+  }
+
+  @override
+  String get sriReviewTitle => 'Review';
+
+  @override
+  String get sriMasteredLabel => 'Mastered';
+
+  @override
+  String get sriLearningLabel => 'Learning';
+
+  @override
+  String get sriMasteryLabel => 'Mastery';
+
+  @override
+  String get sriToughestProblems => 'Toughest problems';
+
+  @override
+  String get flashcardBoxTitle => 'Flashcard Box';
+
+  @override
+  String get flashcardBoxNew => 'New';
+
+  @override
+  String get flashcardBoxFirstReview => 'First Review';
+
+  @override
+  String get flashcardBoxPractice => 'Practice';
+
+  @override
+  String get flashcardBoxConfident => 'Confident';
+
+  @override
+  String get flashcardBoxMastered => 'Mastered';
+
+  @override
+  String flashcardBoxMovedToBox(int boxNum) {
+    return 'Moved to Box $boxNum';
+  }
+
+  @override
+  String get flashcardBoxMove => 'Move';
+
+  @override
+  String get cognitiveProfileTitle => 'Cognitive Profile';
+
+  @override
+  String get cognitiveProfileEmpty =>
+      'Play a few games to start building your profile.';
+
+  @override
+  String cognitiveProfileAttempts(int total, int areas) {
+    return '$total attempts across $areas skill areas';
+  }
+
+  @override
+  String get cognitiveProfileNoData =>
+      'No data yet — play to see this fill in.';
+
+  @override
+  String get cognitiveArithmetic => 'Arithmetic';
+
+  @override
+  String get cognitiveSpatial2D => 'Spatial (2D)';
+
+  @override
+  String get cognitiveSpatial3D => 'Spatial (3D)';
+
+  @override
+  String get cognitiveLogic => 'Logic & Deduction';
+
+  @override
+  String get cognitivePattern => 'Pattern Recognition';
 }

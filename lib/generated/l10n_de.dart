@@ -3399,4 +3399,252 @@ class SDe extends S {
 
   @override
   String get allTargetsPopped => 'Alle Ziele getroffen';
+
+  @override
+  String get creatureForgeForbidden => 'VERBOTEN';
+
+  @override
+  String get creatureForgeAlreadyFound => 'BEREITS GEFUNDEN';
+
+  @override
+  String get creatureForgeNewSpecies => 'NEUE SPEZIES!';
+
+  @override
+  String get creatureForgeAdd => 'HINZUFÜGEN';
+
+  @override
+  String get ionChainRules => 'REGELN';
+
+  @override
+  String get ionChainRing => 'IONEN-RING';
+
+  @override
+  String get ionChainAvailableBeads => 'VERFÜGBARE PERLEN';
+
+  @override
+  String get ionChainRuleViolation =>
+      'Regelverletzung! Diese Perle passt hier nicht.';
+
+  @override
+  String get hullPlatingNoFit =>
+      'Passt nicht! Versuche es mit Drehen oder einer anderen Position.';
+
+  @override
+  String get hullPlatingAllPlaced => 'Alle Teile platziert!';
+
+  @override
+  String get hullPlatingClear => 'Löschen';
+
+  @override
+  String get gridFillerPlayAgain => 'Nochmal spielen';
+
+  @override
+  String get gridFillerExit => 'Beenden';
+
+  @override
+  String get gridFillerResetGrid => 'Gitter zurücksetzen';
+
+  @override
+  String get chronoRepairSubmit => 'Absenden';
+
+  @override
+  String get xenobiologySubmitCensus => 'Zählung abgeben';
+
+  @override
+  String get galacticMarketOneCoin => 'Eine Münze liegt verdeckt.';
+
+  @override
+  String galacticMarketNCoins(int count) {
+    return 'Die $count verdeckten Münzen haben alle den gleichen Wert.';
+  }
+
+  @override
+  String get launchSequenceTarget => 'Ziel: ';
+
+  @override
+  String get difficultyEasy => 'Leicht';
+
+  @override
+  String get difficultyNormal => 'Normal';
+
+  @override
+  String get difficultyChallenge => 'Herausforderung';
+
+  @override
+  String get warpFoldReplay => 'Wiederholen';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get magicTrianglesOnboardTitle => 'Magische Dreiecke';
+
+  @override
+  String get magicTrianglesOnboardDrag =>
+      'Ziehe Zahlen aus dem Pool auf die leeren Dreiecks-Knoten.';
+
+  @override
+  String get magicTrianglesOnboardSum =>
+      'Jede Seite des Dreiecks muss die gleiche Summe ergeben.';
+
+  @override
+  String get magicTrianglesOnboardTap =>
+      'Tippe auf eine platzierte Zahl, um sie zurückzulegen.';
+
+  @override
+  String get parentDashboardTitle => 'Eltern-Dashboard';
+
+  @override
+  String get parentDashboardPinTitle => 'Eltern-PIN';
+
+  @override
+  String parentDashboardPinDesc(String pin) {
+    return 'Gib den 4-stelligen Code ein.\nStandard-Code ist $pin, bis du ihn änderst.';
+  }
+
+  @override
+  String get parentDashboardUnlock => 'Entsperren';
+
+  @override
+  String get parentDashboardMathMastery => 'Mathematische Beherrschung';
+
+  @override
+  String get parentDashboardProblemsTracked => 'Aufgaben verfolgt';
+
+  @override
+  String get parentDashboardMastered => 'Davon gemeistert';
+
+  @override
+  String get parentDashboardDueForReview => 'Fällig zur Wiederholung';
+
+  @override
+  String get parentDashboardCognitiveStrengths => 'Kognitive Stärken';
+
+  @override
+  String get parentDashboardNoData => 'noch keine Daten';
+
+  @override
+  String get parentDashboardDataBasis => 'Datenbasis';
+
+  @override
+  String get parentDashboardStrongest => 'Stärkste Kategorie';
+
+  @override
+  String get parentDashboardWeakest => 'Schwächste Kategorie';
+
+  @override
+  String get parentDashboardTotalAttempts => 'Gesamtversuche';
+
+  @override
+  String get parentDashboardGameProgress => 'Spielfortschritt';
+
+  @override
+  String get parentDashboardGamesPlayed => 'Spiele gespielt';
+
+  @override
+  String get parentDashboardNone => 'noch keine';
+
+  @override
+  String get parentDashboardChangePin => 'Eltern-PIN ändern';
+
+  @override
+  String get parentDashboardChangePinTitle => 'PIN ändern';
+
+  @override
+  String get parentDashboardNewPin => 'Neue PIN';
+
+  @override
+  String get parentDashboardConfirm => 'Bestätigen';
+
+  @override
+  String get parentDashboardCancel => 'Abbrechen';
+
+  @override
+  String get parentDashboardSave => 'Speichern';
+
+  @override
+  String get parentDashboardPinUpdated => 'PIN aktualisiert';
+
+  @override
+  String get parentDashboardPin4Digits => '4 Ziffern erforderlich';
+
+  @override
+  String get parentDashboardPinMismatch => 'Stimmt nicht überein';
+
+  @override
+  String parentDashboardLevelN(int level) {
+    return 'Level $level';
+  }
+
+  @override
+  String get sriReviewTitle => 'Wiederholung';
+
+  @override
+  String get sriMasteredLabel => 'Gemeistert';
+
+  @override
+  String get sriLearningLabel => 'Lernend';
+
+  @override
+  String get sriMasteryLabel => 'Beherrschung';
+
+  @override
+  String get sriToughestProblems => 'Schwierigste Aufgaben';
+
+  @override
+  String get flashcardBoxTitle => 'Karteikasten';
+
+  @override
+  String get flashcardBoxNew => 'Neu';
+
+  @override
+  String get flashcardBoxFirstReview => 'Erste Wiederholung';
+
+  @override
+  String get flashcardBoxPractice => 'Übung';
+
+  @override
+  String get flashcardBoxConfident => 'Sicher';
+
+  @override
+  String get flashcardBoxMastered => 'Gemeistert';
+
+  @override
+  String flashcardBoxMovedToBox(int boxNum) {
+    return 'In Fach $boxNum verschoben';
+  }
+
+  @override
+  String get flashcardBoxMove => 'Verschieben';
+
+  @override
+  String get cognitiveProfileTitle => 'Kognitives Profil';
+
+  @override
+  String get cognitiveProfileEmpty =>
+      'Spiele ein paar Spiele, um dein Profil aufzubauen.';
+
+  @override
+  String cognitiveProfileAttempts(int total, int areas) {
+    return '$total Versuche in $areas Fähigkeitsbereichen';
+  }
+
+  @override
+  String get cognitiveProfileNoData =>
+      'Noch keine Daten — spiele, um das hier zu füllen.';
+
+  @override
+  String get cognitiveArithmetic => 'Arithmetik';
+
+  @override
+  String get cognitiveSpatial2D => 'Räumlich (2D)';
+
+  @override
+  String get cognitiveSpatial3D => 'Räumlich (3D)';
+
+  @override
+  String get cognitiveLogic => 'Logik & Deduktion';
+
+  @override
+  String get cognitivePattern => 'Mustererkennung';
 }

@@ -9,6 +9,7 @@ import '../../../core/theme/space_theme.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import 'package:flutter/foundation.dart';
+import '../../../generated/l10n.dart';
 
 // --- Game Piece Model ---
 class GridPiece {
@@ -321,18 +322,19 @@ class _GridFillerGameState extends State<GridFillerGame>
         ),
         actions: [
           TextButton(
+            autofocus: true,
             onPressed: () {
               Navigator.pop(context);
               _initializeGame();
             },
-            child: const Text('Play Again', style: TextStyle(color: SpaceTheme.alienGreen)),
+            child: Text(S.of(context)!.gridFillerPlayAgain, style: const TextStyle(color: SpaceTheme.alienGreen)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               Navigator.pop(context);
             },
-            child: const Text('Exit', style: TextStyle(color: Colors.white70)),
+            child: Text(S.of(context)!.gridFillerExit, style: const TextStyle(color: Colors.white70)),
           ),
         ],
       ),
@@ -493,7 +495,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: const Text('Reset Grid'),
+                                child: Text(S.of(context)!.gridFillerResetGrid),
                               ),
                             ),
                           ],

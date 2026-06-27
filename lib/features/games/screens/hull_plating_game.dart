@@ -162,10 +162,10 @@ class _HullPlatingGameState extends State<HullPlatingGame>
       HapticFeedback.heavyImpact();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Piece doesn\'t fit here! Try rotating or a different position.'),
+          SnackBar(
+            content: Text(S.of(context)!.hullPlatingNoFit),
             backgroundColor: SpaceTheme.rocketRed,
-            duration: Duration(seconds: 1),
+            duration: const Duration(seconds: 1),
           ),
         );
       }
@@ -617,7 +617,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
 
     if (groups.isEmpty) {
       return Center(
-        child: Text('All pieces placed!',
+        child: Text(S.of(context)!.hullPlatingAllPlaced,
             style: SpaceTheme.bodyStyle.copyWith(color: Colors.white54)),
       );
     }

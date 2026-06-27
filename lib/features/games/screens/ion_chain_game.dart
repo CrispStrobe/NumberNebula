@@ -125,9 +125,9 @@ class _IonChainGameState extends State<IonChainGame>
 
     if (!valid) {
       HapticFeedback.heavyImpact();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Rule violation! This bead can\'t go here.'),
-        backgroundColor: SpaceTheme.rocketRed, duration: Duration(seconds: 1),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(S.of(context)!.ionChainRuleViolation),
+        backgroundColor: SpaceTheme.rocketRed, duration: const Duration(seconds: 1),
       ));
       return;
     }
@@ -236,7 +236,7 @@ class _IonChainGameState extends State<IonChainGame>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('RULES', style: SpaceTheme.bodyStyle.copyWith(
+          Text(S.of(context)!.ionChainRules, style: SpaceTheme.bodyStyle.copyWith(
             fontSize: 14, color: SpaceTheme.rocketRed, letterSpacing: 1.5)),
           const SizedBox(height: 6),
           ...puzzle!.rules.map((rule) => Padding(
@@ -265,7 +265,7 @@ class _IonChainGameState extends State<IonChainGame>
         animation: glowAnimation,
         builder: (context, _) {
           return Column(children: [
-            Text('ION RING', style: SpaceTheme.bodyStyle.copyWith(
+            Text(S.of(context)!.ionChainRing, style: SpaceTheme.bodyStyle.copyWith(
               fontSize: 14, color: SpaceTheme.starYellow, letterSpacing: 2)),
             const SizedBox(height: 6),
             SizedBox(
@@ -373,7 +373,7 @@ class _IonChainGameState extends State<IonChainGame>
         border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
       ),
       child: Column(children: [
-        Text('AVAILABLE BEADS', style: SpaceTheme.bodyStyle.copyWith(
+        Text(S.of(context)!.ionChainAvailableBeads, style: SpaceTheme.bodyStyle.copyWith(
           fontSize: 14, color: SpaceTheme.starYellow, letterSpacing: 1.5)),
         const SizedBox(height: 8),
         Wrap(

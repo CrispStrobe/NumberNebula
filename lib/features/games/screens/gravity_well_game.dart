@@ -124,7 +124,7 @@ class _GravityWellGameState extends State<GravityWellGame>
               }
               Navigator.of(ctx).pop();
             },
-            child: const Text('OK'),
+            child: Text(S.of(context)!.ok),
           ),
         ],
       ),

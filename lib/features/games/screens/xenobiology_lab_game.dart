@@ -571,7 +571,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
             child: ElevatedButton.icon(
               onPressed: _checkSolution,
               icon: const Icon(Icons.check, size: 28),
-              label: const Text('Submit Census', style: TextStyle(fontSize: 16)),
+              label: Text(S.of(context)!.xenobiologySubmitCensus, style: const TextStyle(fontSize: 16)),
               style: SpaceTheme.primaryButtonStyle,
             ),
           ),
@@ -659,6 +659,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () {
                           Navigator.of(context).pop();
                           _generatePuzzle();

@@ -313,7 +313,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
                   _foldController.forward(from: 0.0);
                 },
                 icon: const Icon(Icons.replay, color: SpaceTheme.starYellow),
-                tooltip: 'Replay',
+                tooltip: S.of(context)!.warpFoldReplay,
                 style: IconButton.styleFrom(
                   backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
                 ),

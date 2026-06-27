@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/services/sri_service.dart';
 import '../../../core/theme/space_theme.dart';
+import '../../../generated/l10n.dart';
 
 class SriReviewScreen extends StatelessWidget {
   const SriReviewScreen({super.key});
@@ -28,7 +29,7 @@ class SriReviewScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: SpaceTheme.deepSpace,
       appBar: AppBar(
-        title: const Text('Review'),
+        title: Text(S.of(context)!.sriReviewTitle),
         backgroundColor: SpaceTheme.deepSpace,
       ),
       body: ListView(
@@ -38,14 +39,14 @@ class SriReviewScreen extends StatelessWidget {
           const SizedBox(height: 24),
           _StatRow(
             children: [
-              _StatTile(label: 'Mastered', value: '$mastered'),
-              _StatTile(label: 'Learning', value: '$learning'),
-              _StatTile(label: 'Mastery', value: '$masteryPct%'),
+              _StatTile(label: S.of(context)!.sriMasteredLabel, value: '$mastered'),
+              _StatTile(label: S.of(context)!.sriLearningLabel, value: '$learning'),
+              _StatTile(label: S.of(context)!.sriMasteryLabel, value: '$masteryPct%'),
             ],
           ),
           const SizedBox(height: 24),
           if (hardest.isNotEmpty) ...[
-            Text('Toughest problems',
+            Text(S.of(context)!.sriToughestProblems,
                 style: SpaceTheme.titleStyle.copyWith(fontSize: 18)),
             const SizedBox(height: 8),
             Card(

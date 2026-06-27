@@ -1855,6 +1855,103 @@
 
   "perspectiveDragHint": "Ziehen ±15°",
 
-  "allTargetsPopped": "Alle Ziele getroffen"
+  "allTargetsPopped": "Alle Ziele getroffen",
+
+  "creatureForgeForbidden": "VERBOTEN",
+  "creatureForgeAlreadyFound": "BEREITS GEFUNDEN",
+  "creatureForgeNewSpecies": "NEUE SPEZIES!",
+  "creatureForgeAdd": "HINZUFÜGEN",
+
+  "ionChainRules": "REGELN",
+  "ionChainRing": "IONEN-RING",
+  "ionChainAvailableBeads": "VERFÜGBARE PERLEN",
+  "ionChainRuleViolation": "Regelverletzung! Diese Perle passt hier nicht.",
+
+  "hullPlatingNoFit": "Passt nicht! Versuche es mit Drehen oder einer anderen Position.",
+  "hullPlatingAllPlaced": "Alle Teile platziert!",
+  "hullPlatingClear": "Löschen",
+
+  "gridFillerPlayAgain": "Nochmal spielen",
+  "gridFillerExit": "Beenden",
+  "gridFillerResetGrid": "Gitter zurücksetzen",
+
+  "chronoRepairSubmit": "Absenden",
+  "xenobiologySubmitCensus": "Zählung abgeben",
+
+  "galacticMarketOneCoin": "Eine Münze liegt verdeckt.",
+  "galacticMarketNCoins": "Die {count} verdeckten Münzen haben alle den gleichen Wert.",
+  "@galacticMarketNCoins": { "placeholders": { "count": { "type": "int" } } },
+
+  "launchSequenceTarget": "Ziel: ",
+
+  "difficultyEasy": "Leicht",
+  "difficultyNormal": "Normal",
+  "difficultyChallenge": "Herausforderung",
+
+  "warpFoldReplay": "Wiederholen",
+
+  "ok": "OK",
+
+  "magicTrianglesOnboardTitle": "Magische Dreiecke",
+  "magicTrianglesOnboardDrag": "Ziehe Zahlen aus dem Pool auf die leeren Dreiecks-Knoten.",
+  "magicTrianglesOnboardSum": "Jede Seite des Dreiecks muss die gleiche Summe ergeben.",
+  "magicTrianglesOnboardTap": "Tippe auf eine platzierte Zahl, um sie zurückzulegen.",
+
+  "parentDashboardTitle": "Eltern-Dashboard",
+  "parentDashboardPinTitle": "Eltern-PIN",
+  "parentDashboardPinDesc": "Gib den 4-stelligen Code ein.\nStandard-Code ist {pin}, bis du ihn änderst.",
+  "@parentDashboardPinDesc": { "placeholders": { "pin": { "type": "String" } } },
+  "parentDashboardUnlock": "Entsperren",
+  "parentDashboardMathMastery": "Mathematische Beherrschung",
+  "parentDashboardProblemsTracked": "Aufgaben verfolgt",
+  "parentDashboardMastered": "Davon gemeistert",
+  "parentDashboardDueForReview": "Fällig zur Wiederholung",
+  "parentDashboardCognitiveStrengths": "Kognitive Stärken",
+  "parentDashboardNoData": "noch keine Daten",
+  "parentDashboardDataBasis": "Datenbasis",
+  "parentDashboardStrongest": "Stärkste Kategorie",
+  "parentDashboardWeakest": "Schwächste Kategorie",
+  "parentDashboardTotalAttempts": "Gesamtversuche",
+  "parentDashboardGameProgress": "Spielfortschritt",
+  "parentDashboardGamesPlayed": "Spiele gespielt",
+  "parentDashboardNone": "noch keine",
+  "parentDashboardChangePin": "Eltern-PIN ändern",
+  "parentDashboardChangePinTitle": "PIN ändern",
+  "parentDashboardNewPin": "Neue PIN",
+  "parentDashboardConfirm": "Bestätigen",
+  "parentDashboardCancel": "Abbrechen",
+  "parentDashboardSave": "Speichern",
+  "parentDashboardPinUpdated": "PIN aktualisiert",
+  "parentDashboardPin4Digits": "4 Ziffern erforderlich",
+  "parentDashboardPinMismatch": "Stimmt nicht überein",
+  "parentDashboardLevelN": "Level {level}",
+  "@parentDashboardLevelN": { "placeholders": { "level": { "type": "int" } } },
+
+  "sriReviewTitle": "Wiederholung",
+  "sriMasteredLabel": "Gemeistert",
+  "sriLearningLabel": "Lernend",
+  "sriMasteryLabel": "Beherrschung",
+  "sriToughestProblems": "Schwierigste Aufgaben",
+
+  "flashcardBoxTitle": "Karteikasten",
+  "flashcardBoxNew": "Neu",
+  "flashcardBoxFirstReview": "Erste Wiederholung",
+  "flashcardBoxPractice": "Übung",
+  "flashcardBoxConfident": "Sicher",
+  "flashcardBoxMastered": "Gemeistert",
+  "flashcardBoxMovedToBox": "In Fach {boxNum} verschoben",
+  "@flashcardBoxMovedToBox": { "placeholders": { "boxNum": { "type": "int" } } },
+  "flashcardBoxMove": "Verschieben",
+
+  "cognitiveProfileTitle": "Kognitives Profil",
+  "cognitiveProfileEmpty": "Spiele ein paar Spiele, um dein Profil aufzubauen.",
+  "cognitiveProfileAttempts": "{total} Versuche in {areas} Fähigkeitsbereichen",
+  "@cognitiveProfileAttempts": { "placeholders": { "total": { "type": "int" }, "areas": { "type": "int" } } },
+  "cognitiveProfileNoData": "Noch keine Daten — spiele, um das hier zu füllen.",
+  "cognitiveArithmetic": "Arithmetik",
+  "cognitiveSpatial2D": "Räumlich (2D)",
+  "cognitiveSpatial3D": "Räumlich (3D)",
+  "cognitiveLogic": "Logik & Deduktion",
+  "cognitivePattern": "Mustererkennung"
 
 }

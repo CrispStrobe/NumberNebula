@@ -472,16 +472,16 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
               Column(
                 children: [
                   if (forbidden)
-                    const Text('FORBIDDEN', style: TextStyle(color: SpaceTheme.rocketRed, fontSize: 12, fontWeight: FontWeight.bold))
+                    Text(S.of(context)!.creatureForgeForbidden, style: const TextStyle(color: SpaceTheme.rocketRed, fontSize: 12, fontWeight: FontWeight.bold))
                   else if (alreadyFound)
-                    const Text('ALREADY FOUND', style: TextStyle(color: Colors.white54, fontSize: 12))
+                    Text(S.of(context)!.creatureForgeAlreadyFound, style: const TextStyle(color: Colors.white54, fontSize: 12))
                   else
-                    const Text('NEW SPECIES!', style: TextStyle(color: SpaceTheme.alienGreen, fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text(S.of(context)!.creatureForgeNewSpecies, style: const TextStyle(color: SpaceTheme.alienGreen, fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   ElevatedButton.icon(
                     onPressed: (alreadyFound || forbidden || _gameOver) ? null : _addCreature,
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('ADD'),
+                    label: Text(S.of(context)!.creatureForgeAdd),
                     style: SpaceTheme.primaryButtonStyle.copyWith(
                       padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
                     ),
