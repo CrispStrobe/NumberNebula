@@ -2086,6 +2086,15 @@
   "a11yResonator": "Resonator {number}, drag to a triangle node",
   "@a11yResonator": { "placeholders": { "number": { "type": "int" } } },
   "a11yBrick": "Number brick {number}, drag to a slot",
-  "@a11yBrick": { "placeholders": { "number": { "type": "int" } } }
+  "@a11yBrick": { "placeholders": { "number": { "type": "int" } } },
+
+  "diagnosticsTitle": "Diagnostics",
+  "crashLogCopied": "Crash log copied to clipboard",
+  "languageChangeFailed": "Failed to change language: {error}",
+  "@languageChangeFailed": { "placeholders": { "error": { "type": "String" } } },
+  "debugModeEnabled": "Debug Mode Enabled!",
+
+  "skip": "Skip",
+  "goBack": "Go Back"
 
 }

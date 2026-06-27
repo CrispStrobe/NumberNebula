@@ -6501,6 +6501,42 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Number brick {number}, drag to a slot'**
   String a11yBrick(int number);
+
+  /// No description provided for @diagnosticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics'**
+  String get diagnosticsTitle;
+
+  /// No description provided for @crashLogCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Crash log copied to clipboard'**
+  String get crashLogCopied;
+
+  /// No description provided for @languageChangeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to change language: {error}'**
+  String languageChangeFailed(String error);
+
+  /// No description provided for @debugModeEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug Mode Enabled!'**
+  String get debugModeEnabled;
+
+  /// No description provided for @skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skip;
+
+  /// No description provided for @goBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Go Back'**
+  String get goBack;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

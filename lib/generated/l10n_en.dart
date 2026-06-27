@@ -3767,4 +3767,24 @@ class SEn extends S {
   String a11yBrick(int number) {
     return 'Number brick $number, drag to a slot';
   }
+
+  @override
+  String get diagnosticsTitle => 'Diagnostics';
+
+  @override
+  String get crashLogCopied => 'Crash log copied to clipboard';
+
+  @override
+  String languageChangeFailed(String error) {
+    return 'Failed to change language: $error';
+  }
+
+  @override
+  String get debugModeEnabled => 'Debug Mode Enabled!';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get goBack => 'Go Back';
 }

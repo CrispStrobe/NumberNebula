@@ -1388,7 +1388,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to change language: $e'),
+            content: Text(S.of(context)!.languageChangeFailed(e.toString())),
             backgroundColor: SpaceTheme.rocketRed,
           ),
         );

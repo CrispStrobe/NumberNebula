@@ -3782,4 +3782,24 @@ class SDe extends S {
   String a11yBrick(int number) {
     return 'Zahlenstein $number, zum Feld ziehen';
   }
+
+  @override
+  String get diagnosticsTitle => 'Diagnose';
+
+  @override
+  String get crashLogCopied => 'Absturzbericht in Zwischenablage kopiert';
+
+  @override
+  String languageChangeFailed(String error) {
+    return 'Sprachwechsel fehlgeschlagen: $error';
+  }
+
+  @override
+  String get debugModeEnabled => 'Debug-Modus aktiviert!';
+
+  @override
+  String get skip => 'Überspringen';
+
+  @override
+  String get goBack => 'Zurück';
 }

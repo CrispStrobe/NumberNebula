@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 
 import '../../../core/services/crash_logger.dart';
 import '../../../core/theme/space_theme.dart';
+import '../../../generated/l10n.dart';
 
 class DiagnosticsScreen extends StatefulWidget {
   const DiagnosticsScreen({super.key});
@@ -45,7 +46,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Crash log copied to clipboard')),
+      SnackBar(content: Text(S.of(context)!.crashLogCopied)),
     );
   }
 
@@ -59,7 +60,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     return Scaffold(
       backgroundColor: SpaceTheme.deepSpace,
       appBar: AppBar(
-        title: const Text('Diagnostics'),
+        title: Text(S.of(context)!.diagnosticsTitle),
         backgroundColor: SpaceTheme.deepSpace,
       ),
       body: FutureBuilder<List<CrashEntry>>(

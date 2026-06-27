@@ -2006,6 +2006,15 @@
   "a11yResonator": "Resonator {number}, zum Dreiecksknoten ziehen",
   "@a11yResonator": { "placeholders": { "number": { "type": "int" } } },
   "a11yBrick": "Zahlenstein {number}, zum Feld ziehen",
-  "@a11yBrick": { "placeholders": { "number": { "type": "int" } } }
+  "@a11yBrick": { "placeholders": { "number": { "type": "int" } } },
+
+  "diagnosticsTitle": "Diagnose",
+  "crashLogCopied": "Absturzbericht in Zwischenablage kopiert",
+  "languageChangeFailed": "Sprachwechsel fehlgeschlagen: {error}",
+  "@languageChangeFailed": { "placeholders": { "error": { "type": "String" } } },
+  "debugModeEnabled": "Debug-Modus aktiviert!",
+
+  "skip": "Überspringen",
+  "goBack": "Zurück"
 
 }

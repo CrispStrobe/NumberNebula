@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/theme/space_theme.dart';
+import '../../generated/l10n.dart';
 
 class OnboardingStep {
   final IconData icon;
@@ -141,8 +142,8 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
               children: [
                 TextButton(
                   onPressed: widget.onDismiss,
-                  child: const Text('Skip',
-                      style: TextStyle(color: Colors.white60)),
+                  child: Text(S.of(context)!.skip,
+                      style: const TextStyle(color: Colors.white60)),
                 ),
                 ElevatedButton(
                   autofocus: true,
