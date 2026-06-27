@@ -346,8 +346,23 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
       final tile = puzzle!.playerTiles[tileIdx];
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => _removeTileFromGrid(pos),
-        child: _buildTileWidget(tile, rotations[tileIdx], cellSize, false, gridPos: pos),
+        onTap: () {
+          // Tap to rotate on the grid
+          _rotateTile(tileIdx);
+          _checkSolution();
+        },
+        onLongPress: () => _removeTileFromGrid(pos),
+        child: Stack(
+          children: [
+            _buildTileWidget(tile, rotations[tileIdx], cellSize, false, gridPos: pos),
+            // Rotate indicator
+            Positioned(
+              top: 2, right: 2,
+              child: Icon(Icons.rotate_right, size: 14,
+                color: SpaceTheme.starYellow.withValues(alpha: 0.7)),
+            ),
+          ],
+        ),
       );
     }
 
@@ -611,6 +626,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        autofocus: true,
                         onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(s.playAgain),
