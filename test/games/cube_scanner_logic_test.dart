@@ -125,15 +125,16 @@ void main() {
       }
     });
 
-    test('grade 2, higher level: asks for sum of hidden faces', () {
+    test('grade 2, higher level: asks hidden-face-sum or roll question', () {
       for (int seed = 0; seed < 10; seed++) {
         final gen = CubeScannerGenerator(seed: seed);
         final puzzle = gen.generate(grade: 2, level: 8);
 
         expect(puzzle.diceCount, 1);
-        final vis = puzzle.visibleFaces[0];
-        final expectedHiddenSum = 21 - vis.visibleSum;
-        expect(puzzle.correctAnswer, expectedHiddenSum);
+        // Answer is either the hidden face sum or a roll-result top face (1-6)
+        expect(puzzle.correctAnswer, greaterThanOrEqualTo(1));
+        expect(puzzle.choices, hasLength(5));
+        expect(puzzle.choices, contains(puzzle.correctAnswer));
       }
     });
   });

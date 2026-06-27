@@ -95,32 +95,10 @@ void main() {
           'difficulty': _config(grade: 1, level: 1),
         });
 
-        for (final clue in puzzle.clues) {
-          // Parse positive clues: "X has the Y." or "The Y belongs to X."
-          if (clue.contains('has the') && !clue.contains('not')) {
-            final crewName =
-                clue.substring(0, clue.indexOf(' has the'));
-            final item = clue
-                .substring(clue.indexOf('has the ') + 8)
-                .replaceAll('.', '');
-            expect(puzzle.solution[crewName], item,
-                reason: 'positive clue "$clue" must match solution');
-          } else if (clue.contains('belongs to') && !clue.contains('not')) {
-            final item = clue
-                .substring(clue.indexOf('The ') + 4, clue.indexOf(' belongs'))
-                .trim();
-            final crewName =
-                clue.substring(clue.indexOf('belongs to ') + 11).replaceAll('.', '');
-            expect(puzzle.solution[crewName], item,
-                reason: 'positive clue "$clue" must match solution');
-          } else if (clue.contains('was assigned') && !clue.contains('not')) {
-            final crewName =
-                clue.substring(0, clue.indexOf(' was assigned'));
-            final item = clue
-                .substring(clue.indexOf('assigned the ') + 13)
-                .replaceAll('.', '');
-            expect(puzzle.solution[crewName], item,
-                reason: 'positive clue "$clue" must match solution');
+        for (final clue in puzzle.structuredClues) {
+          if (clue.type == ClueType.positive) {
+            expect(puzzle.solution[clue.crewName], clue.itemName,
+                reason: 'positive clue for ${clue.crewName} must match solution');
           }
         }
       }
@@ -134,15 +112,10 @@ void main() {
           'difficulty': _config(grade: 1, level: 1),
         });
 
-        for (final clue in puzzle.clues) {
-          if (clue.contains('does not have')) {
-            final crewName =
-                clue.substring(0, clue.indexOf(' does not'));
-            final item = clue
-                .substring(clue.indexOf('have the ') + 9)
-                .replaceAll('.', '');
-            expect(puzzle.solution[crewName], isNot(equals(item)),
-                reason: 'negative clue "$clue" must be consistent');
+        for (final clue in puzzle.structuredClues) {
+          if (clue.type == ClueType.negative) {
+            expect(puzzle.solution[clue.crewName], isNot(equals(clue.itemName)),
+                reason: 'negative clue for ${clue.crewName} must be consistent');
           }
         }
       }
@@ -156,7 +129,7 @@ void main() {
           'difficulty': _config(grade: 1, level: 1),
         });
 
-        expect(puzzle.clues, isNotEmpty);
+        expect(puzzle.structuredClues, isNotEmpty);
       }
     });
   });
