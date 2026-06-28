@@ -3888,4 +3888,10 @@ class SDe extends S {
 
   @override
   String get voidCrossingPyrowyrm => 'Pyrowurm';
+
+  @override
+  String get voidCrossingOnShuttle => 'Im Shuttle:';
+
+  @override
+  String get voidCrossingTapToUnload => 'Tippe zum Ausladen aus dem Shuttle';
 }

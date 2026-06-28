@@ -2043,6 +2043,8 @@
   "voidCrossingLumifae": "Lumifae",
   "voidCrossingVoidCrab": "Leerenkrabbe",
   "voidCrossingNebulaSeed": "Nebelsaat",
-  "voidCrossingPyrowyrm": "Pyrowurm"
+  "voidCrossingPyrowyrm": "Pyrowurm",
+  "voidCrossingOnShuttle": "Im Shuttle:",
+  "voidCrossingTapToUnload": "Tippe zum Ausladen aus dem Shuttle"
 
 }

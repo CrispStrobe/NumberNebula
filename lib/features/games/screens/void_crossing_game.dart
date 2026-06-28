@@ -38,8 +38,6 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     with TickerProviderStateMixin, GameAnimationsMixin<VoidCrossingGame> {
   late AnimationController _shuttleController;
   late Animation<double> _shuttleAnimation;
-  late AnimationController _conflictFlashController;
-  late Animation<double> _conflictFlashAnimation;
   late AnimationController _starFieldController;
 
   late int _currentLevel;
@@ -63,17 +61,6 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     _shuttleAnimation = CurvedAnimation(
       parent: _shuttleController,
       curve: Curves.easeInOutCubic,
-    );
-
-    _conflictFlashController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _conflictFlashAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _conflictFlashController,
-        curve: Curves.easeOut,
-      ),
     );
 
     _starFieldController = AnimationController(
@@ -111,7 +98,6 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
   @override
   void dispose() {
     _shuttleController.dispose();
-    _conflictFlashController.dispose();
     _starFieldController.dispose();
     disposeGameAnimations();
     super.dispose();
@@ -126,6 +112,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
       _activeConflict = null;
       _showConflictWarning = false;
       _gameOver = false;
+      _liveConflictIds = {};
     });
     if (kDebugMode) {
       final optimal = VoidCrossingLogic.solve(puzzle);
@@ -135,6 +122,9 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
   }
 
   // ─── Game actions ──────────────────────────────────────────────────────
+
+  /// IDs of creatures that would conflict if the shuttle departed now.
+  Set<String> _liveConflictIds = {};
 
   void _tapEntity(String entityId) {
     if (_isAnimating || _gameOver) return;
@@ -155,7 +145,26 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
       }
       _showConflictWarning = false;
       _activeConflict = null;
+      _updateLiveConflicts();
     });
+  }
+
+  /// Recompute which creatures on the current bank would conflict if the
+  /// shuttle departed right now. Called after every load/unload.
+  void _updateLiveConflicts() {
+    final state = _gameState!;
+    final puzzle = _puzzle!;
+    if (state.onShuttle.isEmpty) {
+      _liveConflictIds = {};
+      return;
+    }
+    final remaining = Set<String>.from(state.currentBank);
+    final conflict = VoidCrossingLogic.findConflict(remaining, puzzle.conflicts);
+    if (conflict != null) {
+      _liveConflictIds = {conflict.entityA, conflict.entityB};
+    } else {
+      _liveConflictIds = {};
+    }
   }
 
   void _launchShuttle() {
@@ -173,7 +182,6 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
         _activeConflict = conflict;
         _showConflictWarning = true;
       });
-      _conflictFlashController.forward(from: 0.0);
       HapticFeedback.heavyImpact();
       return;
     }
@@ -192,6 +200,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
         state.movesTaken++;
         _isAnimating = false;
         _showConflictWarning = false;
+        _liveConflictIds = {};
         _activeConflict = null;
       });
 
@@ -253,6 +262,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
       _activeConflict = null;
       _showConflictWarning = false;
       _gameOver = false;
+      _liveConflictIds = {};
     });
   }
 
@@ -468,13 +478,18 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
 
   Widget _buildStation({required bool isLeft}) {
     final state = _gameState!;
-    final entities = isLeft ? state.leftStation : state.rightStation;
+    final stationEntities = isLeft ? state.leftStation : state.rightStation;
     final isActive = state.shuttleOnLeft == isLeft && !_isAnimating;
     final s = S.of(context)!;
+    final hasLiveConflict = isActive && _liveConflictIds.isNotEmpty;
 
     final stationLabel = isLeft
         ? s.voidCrossingStationAlpha
         : s.voidCrossingStationOmega;
+
+    // On the active station, also show shuttle passengers as ghosts
+    final ghostIds =
+        isActive ? state.onShuttle.toList() : <String>[];
 
     return AnimatedBuilder(
       animation: glowAnimation,
@@ -486,21 +501,33 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
             color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isActive
-                  ? SpaceTheme.alienGreen
+              color: hasLiveConflict
+                  ? SpaceTheme.rocketRed
                       .withValues(alpha: glowAnimation.value)
-                  : SpaceTheme.moonSilver.withValues(alpha: 0.3),
+                  : isActive
+                      ? SpaceTheme.alienGreen
+                          .withValues(alpha: glowAnimation.value)
+                      : SpaceTheme.moonSilver.withValues(alpha: 0.3),
               width: isActive ? 2 : 1,
             ),
-            boxShadow: isActive
+            boxShadow: hasLiveConflict
                 ? [
                     BoxShadow(
-                      color: SpaceTheme.alienGreen.withValues(alpha: 0.2),
+                      color: SpaceTheme.rocketRed.withValues(alpha: 0.2),
                       blurRadius: 12,
                       spreadRadius: 2,
                     ),
                   ]
-                : null,
+                : isActive
+                    ? [
+                        BoxShadow(
+                          color:
+                              SpaceTheme.alienGreen.withValues(alpha: 0.2),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                        ),
+                      ]
+                    : null,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -511,9 +538,11 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
                 children: [
                   Icon(
                     isLeft ? Icons.satellite_alt : Icons.cell_tower,
-                    color: isActive
-                        ? SpaceTheme.alienGreen
-                        : SpaceTheme.moonSilver,
+                    color: hasLiveConflict
+                        ? SpaceTheme.rocketRed
+                        : isActive
+                            ? SpaceTheme.alienGreen
+                            : SpaceTheme.moonSilver,
                     size: 18,
                   ),
                   const SizedBox(width: 6),
@@ -521,27 +550,61 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
                     stationLabel,
                     style: SpaceTheme.titleStyle.copyWith(
                       fontSize: 13,
-                      color: isActive
-                          ? SpaceTheme.alienGreen
-                          : SpaceTheme.moonSilver,
+                      color: hasLiveConflict
+                          ? SpaceTheme.rocketRed
+                          : isActive
+                              ? SpaceTheme.alienGreen
+                              : SpaceTheme.moonSilver,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 6),
-              // Entity chips
+              // Entity chips — solid for staying, ghost for boarding
               Expanded(
                 child: Center(
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     alignment: WrapAlignment.center,
-                    children: entities.map((id) {
-                      return _buildEntityChip(id, isActive);
-                    }).toList(),
+                    children: [
+                      // Solid: creatures remaining on station
+                      ...stationEntities.map((id) {
+                        final isConflicting = isActive &&
+                            _liveConflictIds.contains(id);
+                        return _buildEntityChip(
+                          id,
+                          tappable: isActive,
+                          isGhost: false,
+                          isConflicting: isConflicting,
+                        );
+                      }),
+                      // Ghost: creatures loaded on shuttle (shown faded)
+                      ...ghostIds.map((id) {
+                        return _buildEntityChip(
+                          id,
+                          tappable: isActive,
+                          isGhost: true,
+                          isConflicting: false,
+                        );
+                      }),
+                    ],
                   ),
                 ),
               ),
+              // Live conflict warning text
+              if (hasLiveConflict)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    s.voidCrossingConflictWarning,
+                    style: SpaceTheme.bodyStyle.copyWith(
+                      fontSize: 10,
+                      color: SpaceTheme.rocketRed,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
             ],
           ),
         );
@@ -549,75 +612,93 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     );
   }
 
-  Widget _buildEntityChip(String entityId, bool tappable) {
-    final color = _entityColors[entityId] ?? SpaceTheme.moonSilver;
+  Widget _buildEntityChip(
+    String entityId, {
+    required bool tappable,
+    required bool isGhost,
+    required bool isConflicting,
+  }) {
+    final baseColor = _entityColors[entityId] ?? SpaceTheme.moonSilver;
     final icon = _entityIcons[entityId] ?? Icons.help_outline;
     final name = _entityName(entityId);
+    final s = S.of(context)!;
 
-    final isConflicting = _showConflictWarning &&
-        _activeConflict != null &&
-        (entityId == _activeConflict!.entityA ||
-            entityId == _activeConflict!.entityB);
+    // Ghost = on shuttle, shown faded in station as "boarding"
+    final displayColor = isGhost
+        ? baseColor.withValues(alpha: 0.3)
+        : isConflicting
+            ? SpaceTheme.rocketRed
+            : baseColor;
 
     return Semantics(
-      label: name,
+      label: isGhost ? '${s.voidCrossingOnShuttle} $name' : name,
       hint: tappable
-          ? S.of(context)!.voidCrossingTapToLoad
+          ? isGhost
+              ? s.voidCrossingTapToUnload
+              : s.voidCrossingTapToLoad
           : null,
       child: GestureDetector(
         onTap: tappable ? () => _tapEntity(entityId) : null,
-        child: AnimatedBuilder(
-          animation: _conflictFlashAnimation,
-          builder: (context, child) {
-            final flashColor = isConflicting
-                ? Color.lerp(
-                    color, SpaceTheme.rocketRed, _conflictFlashAnimation.value)
-                : color;
-
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    flashColor!.withValues(alpha: 0.3),
-                    flashColor.withValues(alpha: 0.1),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                displayColor.withValues(alpha: isGhost ? 0.08 : 0.3),
+                displayColor.withValues(alpha: isGhost ? 0.03 : 0.1),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isConflicting
+                  ? SpaceTheme.rocketRed
+                  : isGhost
+                      ? displayColor.withValues(alpha: 0.3)
+                      : displayColor.withValues(alpha: tappable ? 0.8 : 0.4),
+              width: isConflicting ? 2.5 : 1.5,
+              strokeAlign: isGhost ? BorderSide.strokeAlignInside : BorderSide.strokeAlignCenter,
+            ),
+            boxShadow: [
+              if (isConflicting)
+                BoxShadow(
+                  color: SpaceTheme.rocketRed.withValues(alpha: 0.4),
+                  blurRadius: 10,
+                  spreadRadius: 1,
                 ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isConflicting
-                      ? SpaceTheme.rocketRed
-                      : flashColor.withValues(alpha: tappable ? 0.8 : 0.4),
-                  width: isConflicting ? 2.5 : 1.5,
+              if (tappable && !isGhost && !isConflicting)
+                BoxShadow(
+                  color: displayColor.withValues(alpha: 0.3),
+                  blurRadius: 8,
                 ),
-                boxShadow: [
-                  if (tappable)
-                    BoxShadow(
-                      color: flashColor.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                    ),
-                ],
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Shuttle icon badge for ghost chips
+              if (isGhost)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: Icon(Icons.flight,
+                      color: SpaceTheme.starYellow.withValues(alpha: 0.5),
+                      size: 12),
+                ),
+              Icon(icon, color: displayColor, size: 28),
+              const SizedBox(height: 2),
+              Text(
+                name,
+                style: SpaceTheme.bodyStyle.copyWith(
+                  fontSize: 10,
+                  color: displayColor,
+                  fontWeight: FontWeight.w600,
+                  fontStyle: isGhost ? FontStyle.italic : FontStyle.normal,
+                ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, color: flashColor, size: 28),
-                  const SizedBox(height: 2),
-                  Text(
-                    name,
-                    style: SpaceTheme.bodyStyle.copyWith(
-                      fontSize: 10,
-                      color: flashColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
+            ],
+          ),
         ),
       ),
     );

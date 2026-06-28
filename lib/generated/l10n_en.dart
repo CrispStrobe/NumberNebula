@@ -3873,4 +3873,10 @@ class SEn extends S {
 
   @override
   String get voidCrossingPyrowyrm => 'Pyrowyrm';
+
+  @override
+  String get voidCrossingOnShuttle => 'On shuttle:';
+
+  @override
+  String get voidCrossingTapToUnload => 'Tap to unload from shuttle';
 }

@@ -2123,6 +2123,8 @@
   "voidCrossingLumifae": "Lumifae",
   "voidCrossingVoidCrab": "Void Crab",
   "voidCrossingNebulaSeed": "Nebula Seed",
-  "voidCrossingPyrowyrm": "Pyrowyrm"
+  "voidCrossingPyrowyrm": "Pyrowyrm",
+  "voidCrossingOnShuttle": "On shuttle:",
+  "voidCrossingTapToUnload": "Tap to unload from shuttle"
 
 }

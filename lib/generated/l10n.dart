@@ -6693,6 +6693,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Pyrowyrm'**
   String get voidCrossingPyrowyrm;
+
+  /// No description provided for @voidCrossingOnShuttle.
+  ///
+  /// In en, this message translates to:
+  /// **'On shuttle:'**
+  String get voidCrossingOnShuttle;
+
+  /// No description provided for @voidCrossingTapToUnload.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to unload from shuttle'**
+  String get voidCrossingTapToUnload;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
