@@ -802,12 +802,12 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     final s = S.of(context)!;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+        color: SpaceTheme.deepSpace.withValues(alpha: 0.9),
         border: Border(
           top: BorderSide(
-              color: SpaceTheme.moonSilver.withValues(alpha: 0.2)),
+              color: SpaceTheme.moonSilver.withValues(alpha: 0.3)),
         ),
       ),
       child: Column(
@@ -815,31 +815,33 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
         children: [
           Text(
             s.voidCrossingRules,
-            style: SpaceTheme.bodyStyle.copyWith(
-              fontSize: 11,
+            style: SpaceTheme.titleStyle.copyWith(
+              fontSize: 15,
               color: SpaceTheme.starYellow,
-              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Wrap(
-            spacing: 12,
-            runSpacing: 4,
+            spacing: 16,
+            runSpacing: 8,
             alignment: WrapAlignment.center,
             children: puzzle.conflicts.map((rule) {
               final isActive = _activeConflict == rule;
+              final colorA = _entityColors[rule.entityA] ?? SpaceTheme.moonSilver;
+              final colorB = _entityColors[rule.entityB] ?? SpaceTheme.moonSilver;
               return Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: isActive
-                      ? SpaceTheme.rocketRed.withValues(alpha: 0.3)
-                      : SpaceTheme.deepSpace.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(8),
+                      ? SpaceTheme.rocketRed.withValues(alpha: 0.25)
+                      : SpaceTheme.deepSpace.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isActive
                         ? SpaceTheme.rocketRed
-                        : SpaceTheme.moonSilver.withValues(alpha: 0.3),
+                        : SpaceTheme.moonSilver.withValues(alpha: 0.4),
+                    width: isActive ? 2 : 1,
                   ),
                 ),
                 child: Row(
@@ -847,19 +849,36 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
                   children: [
                     Icon(
                       _entityIcons[rule.entityA] ?? Icons.help_outline,
-                      color: _entityColors[rule.entityA] ??
-                          SpaceTheme.moonSilver,
-                      size: 14,
+                      color: colorA,
+                      size: 22,
                     ),
-                    const SizedBox(width: 3),
-                    const Icon(Icons.dangerous,
-                        color: SpaceTheme.rocketRed, size: 12),
-                    const SizedBox(width: 3),
+                    const SizedBox(width: 4),
+                    Text(
+                      _entityName(rule.entityA),
+                      style: SpaceTheme.bodyStyle.copyWith(
+                        fontSize: 13,
+                        color: colorA,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Icon(Icons.dangerous,
+                          color: SpaceTheme.rocketRed, size: 20),
+                    ),
                     Icon(
                       _entityIcons[rule.entityB] ?? Icons.help_outline,
-                      color: _entityColors[rule.entityB] ??
-                          SpaceTheme.moonSilver,
-                      size: 14,
+                      color: colorB,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _entityName(rule.entityB),
+                      style: SpaceTheme.bodyStyle.copyWith(
+                        fontSize: 13,
+                        color: colorB,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
