@@ -42,6 +42,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
   late Animation<double> _conflictFlashAnimation;
   late AnimationController _starFieldController;
 
+  late int _currentLevel;
   VoidCrossingPuzzle? _puzzle;
   VoidCrossingGameState? _gameState;
   bool _isAnimating = false;
@@ -52,6 +53,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
   @override
   void initState() {
     super.initState();
+    _currentLevel = widget.level;
     initGameAnimations(usePulse: true, useSuccess: true);
 
     _shuttleController = AnimationController(
@@ -116,7 +118,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
   }
 
   void _generatePuzzle() {
-    final puzzle = VoidCrossingLogic.generatePuzzle(widget.grade, widget.level);
+    final puzzle = VoidCrossingLogic.generatePuzzle(widget.grade, _currentLevel);
     setState(() {
       _puzzle = puzzle;
       _gameState = VoidCrossingLogic.createInitialState(puzzle);
@@ -206,14 +208,14 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     _gameOver = true;
     HapticFeedback.lightImpact();
     final baseScore = 100 * widget.grade;
-    final levelBonus = widget.level * 25;
+    final levelBonus = _currentLevel * 25;
     final efficiencyBonus =
         ((_puzzle!.maxMoves - _gameState!.movesTaken) * 30).clamp(0, 300);
     final score = baseScore + levelBonus + efficiencyBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
           gameType: 'void_crossing',
-          difficulty: widget.level,
+          difficulty: _currentLevel,
           score: score,
         ));
     successController.forward(from: 0.0);
@@ -232,7 +234,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     HapticFeedback.heavyImpact();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
           gameType: 'void_crossing',
-          difficulty: widget.level,
+          difficulty: _currentLevel,
         ));
 
     if (mounted) {
@@ -322,7 +324,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
             children: [
               GameUI(
                 title: S.of(context)!.voidCrossingTitle,
-                level: widget.level,
+                level: _currentLevel,
                 onBack: () => Navigator.pop(context),
               ),
               _buildMoveCounter(),
@@ -984,6 +986,9 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
                   autofocus: true,
                   onPressed: () {
                     Navigator.of(context).pop();
+                    setState(() {
+                      _currentLevel = (_currentLevel + 1).clamp(1, 20);
+                    });
                     _generatePuzzle();
                   },
                   style: SpaceTheme.secondaryButtonStyle,

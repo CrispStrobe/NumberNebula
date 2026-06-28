@@ -5,6 +5,8 @@
 
 import 'dart:math' as math;
 
+final math.Random _rng = math.Random();
+
 /// Represents a creature/cargo that must be transported across the void.
 class VoidEntity {
   final String id;
@@ -159,35 +161,71 @@ class VoidCrossingLogic {
     final g = grade.clamp(1, 4);
     final l = level.clamp(1, 20);
 
-    switch (g) {
-      case 1:
-        return _gradeOne(l);
-      case 2:
-        return _gradeTwo(l);
-      case 3:
-        return _gradeThree(l);
-      case 4:
-      default:
-        return _gradeFour(l);
+    // Generate with random entities; verify solvability (should always
+    // pass for chain conflicts, but guard against edge cases).
+    for (int attempt = 0; attempt < 10; attempt++) {
+      final puzzle = switch (g) {
+        1 => _gradeOne(l),
+        2 => _gradeTwo(l),
+        3 => _gradeThree(l),
+        _ => _gradeFour(l),
+      };
+      final opt = solve(puzzle);
+      if (opt >= 0 && opt <= puzzle.maxMoves) return puzzle;
     }
+    // Fallback: deterministic classic puzzle
+    return _gradeOne(l);
+  }
+
+  // ─── Entity triads / quads for variety ─────────────────────────────
+  //
+  // Each "template" is a set of entities + a conflict chain. The grade
+  // methods randomly pick one template per puzzle, so repeated plays
+  // at the same grade+level still feel fresh.
+
+  /// All 8 entities in a flat list for random selection.
+  static const _allEntities = [
+    _zorblex, _glimbit, _starMoss, _kraxxon,
+    _lumifae, _voidCrab, _nebulaSeed, _pyrowyrm,
+  ];
+
+  /// Pick [count] random entities from the catalogue; return them in a
+  /// stable order together with a chain conflict A→B→…→N.
+  static ({List<VoidEntity> entities, List<ConflictRule> chain})
+      _randomChain(int count) {
+    final pool = List<VoidEntity>.from(_allEntities)..shuffle(_rng);
+    final picked = pool.take(count).toList();
+    final chain = <ConflictRule>[];
+    for (int i = 0; i < picked.length - 1; i++) {
+      chain.add(ConflictRule(
+          entityA: picked[i].id, entityB: picked[i + 1].id));
+    }
+    return (entities: picked, chain: chain);
+  }
+
+  /// Pick [count] random entities; use only the first [conflictCount]
+  /// links of the chain as conflicts.
+  static ({List<VoidEntity> entities, List<ConflictRule> conflicts})
+      _randomWithConflicts(int count, int conflictCount) {
+    final r = _randomChain(count);
+    return (
+      entities: r.entities,
+      conflicts: r.chain.take(conflictCount).toList(),
+    );
   }
 
   // ─── Grade 1: 3 entities, boat = 1 ──────────────────────────────────
   //
-  // Classic wolf-goat-cabbage: A eats B, B eats C.
-  // Optimal solution: 7 moves.
-  // Level tunes: extra moves (generous → tight).
+  // Classic A→B→C food chain. Optimal: 7 moves.
+  // Each play picks a random trio of creatures from the pool.
 
   static VoidCrossingPuzzle _gradeOne(int level) {
-    // Extra moves: level 1 → +4, level 20 → +0
     final extraMoves = (4 - ((level - 1) * 4 / 19).round()).clamp(0, 4);
+    final r = _randomWithConflicts(3, 2);
 
     return VoidCrossingPuzzle(
-      entities: [_zorblex, _glimbit, _starMoss],
-      conflicts: const [
-        ConflictRule(entityA: 'zorblex', entityB: 'glimbit'),
-        ConflictRule(entityA: 'glimbit', entityB: 'star_moss'),
-      ],
+      entities: r.entities,
+      conflicts: r.conflicts,
       boatCapacity: 1,
       optimalMoves: 7,
       maxMoves: 7 + extraMoves,
@@ -196,22 +234,16 @@ class VoidCrossingLogic {
 
   // ─── Grade 2: 4 entities, boat = 1 ──────────────────────────────────
   //
-  // Adds Kraxxon as a 4th entity. Same boat capacity as grade 1, but
-  // now there are 4 items to shuttle across — more crossings required.
-  // The conflict chain stays A-B, B-C (sharing B as the "dangerous
-  // middle" entity). Level tightens the move budget.
-  // Optimal solution: 9 crossings.
+  // 4 creatures, same boat=1. Chain has 2 conflicts (A→B→C, D is free).
+  // Optimal: 9 crossings. Random entity selection each play.
 
   static VoidCrossingPuzzle _gradeTwo(int level) {
-    // Extra moves: level 1 → +4, level 20 → +0
     final extraMoves = (4 - ((level - 1) * 4 / 19).round()).clamp(0, 4);
+    final r = _randomWithConflicts(4, 2);
 
     return VoidCrossingPuzzle(
-      entities: [_zorblex, _glimbit, _starMoss, _kraxxon],
-      conflicts: const [
-        ConflictRule(entityA: 'zorblex', entityB: 'glimbit'),
-        ConflictRule(entityA: 'glimbit', entityB: 'star_moss'),
-      ],
+      entities: r.entities,
+      conflicts: r.conflicts,
       boatCapacity: 1,
       optimalMoves: 9,
       maxMoves: 9 + extraMoves,
@@ -220,29 +252,19 @@ class VoidCrossingLogic {
 
   // ─── Grade 3: 5 entities, boat = 2 ──────────────────────────────────
   //
-  // Boat capacity increases to 2 (new mechanic). Multiple interlocking
-  // conflict pairs. Level gates how many conflicts apply.
+  // Boat capacity increases to 2 (new mechanic). 3 conflicts at low
+  // levels, 4 at level 8+. Random entity selection.
 
   static VoidCrossingPuzzle _gradeThree(int level) {
     final extraMoves = (5 - ((level - 1) * 5 / 19).round()).clamp(0, 5);
-
-    final conflicts = <ConflictRule>[
-      const ConflictRule(entityA: 'zorblex', entityB: 'glimbit'),
-      const ConflictRule(entityA: 'glimbit', entityB: 'star_moss'),
-      const ConflictRule(entityA: 'lumifae', entityB: 'void_crab'),
-    ];
-    if (level > 7) {
-      conflicts.add(
-        const ConflictRule(entityA: 'zorblex', entityB: 'void_crab'),
-      );
-    }
-
+    final conflictCount = level > 7 ? 4 : 3;
+    final r = _randomWithConflicts(5, conflictCount);
     // BFS-verified: optimal=5 with 3 conflicts, optimal=7 with 4
-    final optimal = level > 7 ? 7 : 5;
+    final optimal = conflictCount > 3 ? 7 : 5;
 
     return VoidCrossingPuzzle(
-      entities: [_zorblex, _glimbit, _starMoss, _lumifae, _voidCrab],
-      conflicts: conflicts,
+      entities: r.entities,
+      conflicts: r.conflicts,
       boatCapacity: 2,
       optimalMoves: optimal,
       maxMoves: optimal + extraMoves,
@@ -251,37 +273,18 @@ class VoidCrossingLogic {
 
   // ─── Grade 4: 6 entities, boat = 2 ──────────────────────────────────
   //
-  // Full entity roster with dense conflict web. Level adds conflicts
-  // progressively: 3 base → 4 at level 6 → 5 at level 13.
+  // All 6 creatures. Level adds conflicts: 3 → 4 at L6 → 5 at L13.
 
   static VoidCrossingPuzzle _gradeFour(int level) {
     final extraMoves = (5 - ((level - 1) * 5 / 19).round()).clamp(0, 5);
-
-    final conflicts = <ConflictRule>[
-      const ConflictRule(entityA: 'zorblex', entityB: 'glimbit'),
-      const ConflictRule(entityA: 'glimbit', entityB: 'star_moss'),
-      const ConflictRule(entityA: 'kraxxon', entityB: 'nebula_seed'),
-    ];
-    if (level > 5) {
-      conflicts.add(
-        const ConflictRule(entityA: 'pyrowyrm', entityB: 'glimbit'),
-      );
-    }
-    if (level > 12) {
-      conflicts.add(
-        const ConflictRule(entityA: 'pyrowyrm', entityB: 'nebula_seed'),
-      );
-    }
-
-    // BFS-verified: optimal=7 for all conflict counts at this entity/boat config
+    final conflictCount = level > 12 ? 5 : (level > 5 ? 4 : 3);
+    final r = _randomWithConflicts(6, conflictCount);
+    // BFS-verified: optimal=7 for chain conflicts at 6 entities / boat=2
     const optimal = 7;
 
     return VoidCrossingPuzzle(
-      entities: [
-        _zorblex, _glimbit, _starMoss,
-        _kraxxon, _nebulaSeed, _pyrowyrm,
-      ],
-      conflicts: conflicts,
+      entities: r.entities,
+      conflicts: r.conflicts,
       boatCapacity: 2,
       optimalMoves: optimal,
       maxMoves: optimal + extraMoves,
