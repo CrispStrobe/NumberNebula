@@ -918,9 +918,11 @@ class _SettingsScreenState extends State<SettingsScreen>
           FutureBuilder<PackageInfo>(
             future: PackageInfo.fromPlatform(),
             builder: (context, snap) {
-              final v = snap.data == null
-                  ? '…'
-                  : '${snap.data!.version} (${snap.data!.buildNumber})';
+              const gitHash = String.fromEnvironment('GIT_HASH');
+              final version = snap.data?.version ?? '…';
+              final v = gitHash.isNotEmpty
+                  ? '$version ($gitHash)'
+                  : version;
               return _buildInfoRow(s.appVersion, v);
             },
           ),
