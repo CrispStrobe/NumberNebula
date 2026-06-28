@@ -56,7 +56,6 @@ import 'hive_station_game.dart';
 import 'relic_assembly_game.dart';
 import 'xenobiology_lab_game.dart';
 import 'galactic_market_game.dart';
-import 'creature_forge_game.dart';
 import 'asteroid_duel_game.dart';
 import 'chrono_repair_game.dart';
 import 'void_crossing_game.dart';
@@ -512,14 +511,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         icon: Icons.storefront,
         gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFF06FFA5)]),
         gameBuilder: (grade, level) => GalacticMarketGame(grade: grade, level: level),
-      ),
-      _GameInfoData(
-        gameKey: 'creature_forge',
-        title: s.creatureForgeTitle,
-        description: s.creatureForgeDesc,
-        icon: Icons.pets,
-        gradient: const LinearGradient(colors: [Color(0xFF06FFA5), Color(0xFFFF69B4)]),
-        gameBuilder: (grade, level) => CreatureForgeGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'asteroid_duel',

@@ -92,27 +92,44 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
 
     final level = widget.level;
 
-    // Pick how many unknown coins — scales with level within each grade
-    _unknownCount = grade <= 1
-        ? (level <= 5 ? 2 : 3)
-        : grade <= 2
-            ? (level <= 5 ? 3 : 4)
-            : (level <= 5 ? 3 : (level <= 10 ? 4 : 5));
+    // Unknown coin count — grade sets base, level adds progression
+    //   Grade 1: 2 → 4 over 20 levels
+    //   Grade 2: 3 → 6 over 20 levels
+    //   Grade 3: 4 → 7 over 20 levels
+    //   Grade 4: 4 → 8 over 20 levels
+    final baseUnknown = [0, 2, 3, 4, 4][grade.clamp(0, 4)];
+    final maxUnknown = [0, 4, 6, 7, 8][grade.clamp(0, 4)];
+    _unknownCount = baseUnknown +
+        ((level - 1) * (maxUnknown - baseUnknown) / 19).round();
 
-    // Pick a valid denomination for the unknowns — wider pool at higher levels
-    final availDenoms = grade <= 1
-        ? (level <= 5 ? [1, 2, 5] : [1, 2, 5, 10])
-        : grade <= 2
-            ? (level <= 5 ? [1, 2, 5, 10] : [1, 2, 5, 10, 20])
-            : _allDenoms;
+    // Denomination pool — grade gates which values appear, level expands
+    final List<int> availDenoms;
+    if (grade <= 1) {
+      // Start with [1,2,5], add 10 at L6, add 20 at L14
+      availDenoms = [1, 2, 5];
+      if (level >= 6) availDenoms.add(10);
+      if (level >= 14) availDenoms.add(20);
+    } else if (grade <= 2) {
+      // Start with [1,2,5,10], add 20 at L4, add 50 at L12
+      availDenoms = [1, 2, 5, 10];
+      if (level >= 4) availDenoms.add(20);
+      if (level >= 12) availDenoms.add(50);
+    } else {
+      // Full pool from the start; higher denoms make arithmetic harder
+      availDenoms = List.of(_allDenoms);
+    }
     _correctDenomination = availDenoms[_random.nextInt(availDenoms.length)];
 
     final unknownTotal = _correctDenomination * _unknownCount;
 
-    // Generate known coins — more at higher levels for harder arithmetic
-    final knownCount = grade <= 1
-        ? (level <= 5 ? 1 : 2)
-        : (level <= 5 ? 2 : 3);
+    // Known (distractor) coins — more at higher levels for harder sums
+    //   Grade 1: 1 → 3 over 20 levels
+    //   Grade 2: 2 → 4 over 20 levels
+    //   Grade 3+: 2 → 5 over 20 levels
+    final baseKnown = grade <= 1 ? 1 : 2;
+    final maxKnown = grade <= 1 ? 3 : (grade <= 2 ? 4 : 5);
+    final knownCount = baseKnown +
+        ((level - 1) * (maxKnown - baseKnown) / 19).round();
     _knownCoins = [];
     for (int i = 0; i < knownCount; i++) {
       _knownCoins.add(availDenoms[_random.nextInt(availDenoms.length)]);
