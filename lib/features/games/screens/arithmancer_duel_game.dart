@@ -1045,52 +1045,68 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                 // info overlay
                 if (_showInstructions)
                   Positioned.fill(
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.8),
-                      child: Center(
-                        child: Container(
-                          margin: const EdgeInsets.all(20),
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple.withValues(alpha: 0.3)],
-                            ),
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: SpaceTheme.alienGreen, width: 2),
-                          ),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: GestureDetector(
+                      onTap: () => setState(() => _showInstructions = false),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.85),
+                        child: Center(
+                          child: GestureDetector(
+                            onTap: () {}, // prevent close on card tap
+                            child: Container(
+                              margin: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(16),
+                              constraints: const BoxConstraints(maxWidth: 600),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple.withValues(alpha: 0.3)],
+                                ),
+                                borderRadius: BorderRadius.circular(15),
+                                border: Border.all(color: SpaceTheme.alienGreen, width: 2),
+                              ),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      S.of(context)!.arithmancerGameplayGuide,
-                                      style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.alienGreen),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            S.of(context)!.arithmancerGameplayGuide,
+                                            style: SpaceTheme.headlineStyle.copyWith(
+                                              color: SpaceTheme.alienGreen, fontSize: 18),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.close, color: Colors.white),
+                                          onPressed: () => setState(() => _showInstructions = false),
+                                        ),
+                                      ],
                                     ),
-                                    IconButton(
-                                      icon: const Icon(Icons.close, color: Colors.white),
-                                      onPressed: () => setState(() => _showInstructions = false),
-                                    ),
+                                    // Enemy-specific math concept explanation
+                                    if (_currentEnemy != null) ...[
+                                      const Divider(color: SpaceTheme.starYellow),
+                                      _buildEnemyMathHelp(),
+                                      const Divider(color: Colors.white24),
+                                    ],
+                                    const SizedBox(height: 8),
+                                    Text(S.of(context)!.arithmancerGuideBasics, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                                    const SizedBox(height: 8),
+                                    Text(S.of(context)!.arithmancerGuideCards, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                                    const SizedBox(height: 8),
+                                    Text(S.of(context)!.arithmancerGuideCombat, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                                    const SizedBox(height: 8),
+                                    Text(S.of(context)!.arithmancerGuideProperties, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                                    const SizedBox(height: 8),
+                                    Text(S.of(context)!.arithmancerGuideShields, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                                    const SizedBox(height: 8),
+                                    Text(S.of(context)!.arithmancerGuideDiscard, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                                    const SizedBox(height: 8),
+                                    Text(S.of(context)!.arithmancerGuideSkip, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
                                   ],
                                 ),
-                                const SizedBox(height: 16),
-                                Text(S.of(context)!.arithmancerGuideBasics, style: SpaceTheme.bodyStyle),
-                                const SizedBox(height: 12),
-                                Text(S.of(context)!.arithmancerGuideCards, style: SpaceTheme.bodyStyle),
-                                const SizedBox(height: 12),
-                                Text(S.of(context)!.arithmancerGuideCombat, style: SpaceTheme.bodyStyle),
-                                const SizedBox(height: 12),
-                                Text(S.of(context)!.arithmancerGuideProperties, style: SpaceTheme.bodyStyle),
-                                const SizedBox(height: 12),
-                                Text(S.of(context)!.arithmancerGuideShields, style: SpaceTheme.bodyStyle),
-                                const SizedBox(height: 12),
-                                Text(S.of(context)!.arithmancerGuideDiscard, style: SpaceTheme.bodyStyle),
-                                const SizedBox(height: 12),
-                                Text(S.of(context)!.arithmancerGuideSkip, style: SpaceTheme.bodyStyle),
-                              ],
+                              ),
                             ),
                           ),
                         ),
@@ -1136,6 +1152,8 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       switch (dominantShield) {
         case 'prime_shield':
           return S.of(context)!.arithmancerInstructionsPrimeShield;
+        case 'even_absorb':
+          return S.of(context)!.arithmancerInstructionsParityDaemon;
         case 'square_immune':
           return S.of(context)!.arithmancerInstructionsSquareImmune;
         case 'fibonacci_only':
@@ -1148,6 +1166,88 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     }
     
     return S.of(context)!.arithmancerInstructionsGeneral;
+  }
+
+  Widget _buildEnemyMathHelp() {
+    final s = S.of(context)!;
+    String? dominantShield;
+    if (_currentEnemy != null && _currentEnemy!.mathematicalShields.isNotEmpty) {
+      dominantShield = _currentEnemy!.mathematicalShields.keys.first;
+    }
+
+    String title;
+    String explanation;
+    String examples;
+    String strategy;
+
+    switch (dominantShield) {
+      case 'prime_shield':
+        title = s.arithmancerHelpPrimeTitle;
+        explanation = s.arithmancerHelpPrimeExplain;
+        examples = s.arithmancerHelpPrimeExamples;
+        strategy = s.arithmancerHelpPrimeStrategy;
+      case 'even_absorb':
+        title = s.arithmancerHelpParityTitle;
+        explanation = s.arithmancerHelpParityExplain;
+        examples = s.arithmancerHelpParityExamples;
+        strategy = s.arithmancerHelpParityStrategy;
+      case 'square_immune':
+        title = s.arithmancerHelpSquareTitle;
+        explanation = s.arithmancerHelpSquareExplain;
+        examples = s.arithmancerHelpSquareExamples;
+        strategy = s.arithmancerHelpSquareStrategy;
+      case 'fibonacci_only':
+        title = s.arithmancerHelpFibTitle;
+        explanation = s.arithmancerHelpFibExplain;
+        examples = s.arithmancerHelpFibExamples;
+        strategy = s.arithmancerHelpFibStrategy;
+      case 'power_of_two_only':
+        title = s.arithmancerHelpPow2Title;
+        explanation = s.arithmancerHelpPow2Explain;
+        examples = s.arithmancerHelpPow2Examples;
+        strategy = s.arithmancerHelpPow2Strategy;
+      default:
+        return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.school, color: SpaceTheme.starYellow, size: 18),
+            const SizedBox(width: 8),
+            Text(title, style: SpaceTheme.titleStyle.copyWith(
+              color: SpaceTheme.starYellow, fontSize: 15)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(explanation, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.4)),
+          ),
+          child: Text(examples, style: SpaceTheme.bodyStyle.copyWith(
+            fontSize: 13, color: SpaceTheme.starYellow, fontFamily: 'monospace')),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.lightbulb, color: SpaceTheme.alienGreen, size: 14),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(strategy, style: SpaceTheme.bodyStyle.copyWith(
+                fontSize: 12, color: SpaceTheme.alienGreen)),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   void _skipTurn() {
@@ -1308,8 +1408,12 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                 ),
                 Text(
                   _getEnemyInstructions(),
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 10, color: Colors.white70),
-                  maxLines: 1,
+                  style: SpaceTheme.bodyStyle.copyWith(
+                    fontSize: 11,
+                    color: SpaceTheme.starYellow,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],

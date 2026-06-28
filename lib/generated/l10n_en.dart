@@ -1333,6 +1333,85 @@ class SEn extends S {
       'Only powers of two penetrate this defense';
 
   @override
+  String get arithmancerInstructionsParityDaemon =>
+      'Use ODD numbers! Even numbers are absorbed by this daemon';
+
+  @override
+  String get arithmancerHelpPrimeTitle => 'What are Prime Numbers?';
+
+  @override
+  String get arithmancerHelpPrimeExplain =>
+      'A prime number can only be divided by 1 and itself. It has no other divisors.';
+
+  @override
+  String get arithmancerHelpPrimeExamples =>
+      '2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47 ...';
+
+  @override
+  String get arithmancerHelpPrimeStrategy =>
+      'Tip: Create expressions that equal a prime >= 11 for 3x damage!';
+
+  @override
+  String get arithmancerHelpParityTitle => 'Odd vs Even Numbers';
+
+  @override
+  String get arithmancerHelpParityExplain =>
+      'Even numbers (divisible by 2) are ABSORBED — they heal the enemy! Odd numbers deal bonus damage.';
+
+  @override
+  String get arithmancerHelpParityExamples =>
+      'Odd: 1, 3, 5, 7, 9, 11, 13 ...  Even: 2, 4, 6, 8, 10, 12 ...';
+
+  @override
+  String get arithmancerHelpParityStrategy =>
+      'Tip: Odd + Odd = Even (bad!). Odd x Odd = Odd (good!). Watch your operators!';
+
+  @override
+  String get arithmancerHelpSquareTitle => 'What are Perfect Squares?';
+
+  @override
+  String get arithmancerHelpSquareExplain =>
+      'A perfect square is a number that equals some integer multiplied by itself.';
+
+  @override
+  String get arithmancerHelpSquareExamples =>
+      '1x1=1, 2x2=4, 3x3=9, 4x4=16, 5x5=25, 6x6=36, 7x7=49, 8x8=64 ...';
+
+  @override
+  String get arithmancerHelpSquareStrategy =>
+      'Tip: Create a perfect square for 2.5x damage! Non-squares deal almost nothing.';
+
+  @override
+  String get arithmancerHelpFibTitle => 'What are Fibonacci Numbers?';
+
+  @override
+  String get arithmancerHelpFibExplain =>
+      'Each Fibonacci number is the sum of the two before it. Start with 1, 1, then add: 1+1=2, 1+2=3, 2+3=5, ...';
+
+  @override
+  String get arithmancerHelpFibExamples =>
+      '1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144 ...';
+
+  @override
+  String get arithmancerHelpFibStrategy =>
+      'Tip: Only Fibonacci results deal damage! Memorize the sequence or use addition cards to build them.';
+
+  @override
+  String get arithmancerHelpPow2Title => 'What are Powers of Two?';
+
+  @override
+  String get arithmancerHelpPow2Explain =>
+      'Start with 1 and keep doubling: 1, 2, 4, 8, 16, 32, ... Each is 2 multiplied by itself a certain number of times.';
+
+  @override
+  String get arithmancerHelpPow2Examples =>
+      '2^0=1, 2^1=2, 2^2=4, 2^3=8, 2^4=16, 2^5=32, 2^6=64, 2^7=128 ...';
+
+  @override
+  String get arithmancerHelpPow2Strategy =>
+      'Tip: Use multiplication: 2x2=4, 2x4=8, 4x4=16. Only powers of 2 deal full damage!';
+
+  @override
   String get arithmancerLadderProgressTitle => 'Ladder Progress';
 
   @override

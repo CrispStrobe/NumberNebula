@@ -2468,6 +2468,132 @@ abstract class S {
   /// **'Only powers of two penetrate this defense'**
   String get arithmancerInstructionsPowerOfTwoOnly;
 
+  /// No description provided for @arithmancerInstructionsParityDaemon.
+  ///
+  /// In en, this message translates to:
+  /// **'Use ODD numbers! Even numbers are absorbed by this daemon'**
+  String get arithmancerInstructionsParityDaemon;
+
+  /// No description provided for @arithmancerHelpPrimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What are Prime Numbers?'**
+  String get arithmancerHelpPrimeTitle;
+
+  /// No description provided for @arithmancerHelpPrimeExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'A prime number can only be divided by 1 and itself. It has no other divisors.'**
+  String get arithmancerHelpPrimeExplain;
+
+  /// No description provided for @arithmancerHelpPrimeExamples.
+  ///
+  /// In en, this message translates to:
+  /// **'2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47 ...'**
+  String get arithmancerHelpPrimeExamples;
+
+  /// No description provided for @arithmancerHelpPrimeStrategy.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: Create expressions that equal a prime >= 11 for 3x damage!'**
+  String get arithmancerHelpPrimeStrategy;
+
+  /// No description provided for @arithmancerHelpParityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Odd vs Even Numbers'**
+  String get arithmancerHelpParityTitle;
+
+  /// No description provided for @arithmancerHelpParityExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Even numbers (divisible by 2) are ABSORBED — they heal the enemy! Odd numbers deal bonus damage.'**
+  String get arithmancerHelpParityExplain;
+
+  /// No description provided for @arithmancerHelpParityExamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Odd: 1, 3, 5, 7, 9, 11, 13 ...  Even: 2, 4, 6, 8, 10, 12 ...'**
+  String get arithmancerHelpParityExamples;
+
+  /// No description provided for @arithmancerHelpParityStrategy.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: Odd + Odd = Even (bad!). Odd x Odd = Odd (good!). Watch your operators!'**
+  String get arithmancerHelpParityStrategy;
+
+  /// No description provided for @arithmancerHelpSquareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What are Perfect Squares?'**
+  String get arithmancerHelpSquareTitle;
+
+  /// No description provided for @arithmancerHelpSquareExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'A perfect square is a number that equals some integer multiplied by itself.'**
+  String get arithmancerHelpSquareExplain;
+
+  /// No description provided for @arithmancerHelpSquareExamples.
+  ///
+  /// In en, this message translates to:
+  /// **'1x1=1, 2x2=4, 3x3=9, 4x4=16, 5x5=25, 6x6=36, 7x7=49, 8x8=64 ...'**
+  String get arithmancerHelpSquareExamples;
+
+  /// No description provided for @arithmancerHelpSquareStrategy.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: Create a perfect square for 2.5x damage! Non-squares deal almost nothing.'**
+  String get arithmancerHelpSquareStrategy;
+
+  /// No description provided for @arithmancerHelpFibTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What are Fibonacci Numbers?'**
+  String get arithmancerHelpFibTitle;
+
+  /// No description provided for @arithmancerHelpFibExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Each Fibonacci number is the sum of the two before it. Start with 1, 1, then add: 1+1=2, 1+2=3, 2+3=5, ...'**
+  String get arithmancerHelpFibExplain;
+
+  /// No description provided for @arithmancerHelpFibExamples.
+  ///
+  /// In en, this message translates to:
+  /// **'1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144 ...'**
+  String get arithmancerHelpFibExamples;
+
+  /// No description provided for @arithmancerHelpFibStrategy.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: Only Fibonacci results deal damage! Memorize the sequence or use addition cards to build them.'**
+  String get arithmancerHelpFibStrategy;
+
+  /// No description provided for @arithmancerHelpPow2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'What are Powers of Two?'**
+  String get arithmancerHelpPow2Title;
+
+  /// No description provided for @arithmancerHelpPow2Explain.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with 1 and keep doubling: 1, 2, 4, 8, 16, 32, ... Each is 2 multiplied by itself a certain number of times.'**
+  String get arithmancerHelpPow2Explain;
+
+  /// No description provided for @arithmancerHelpPow2Examples.
+  ///
+  /// In en, this message translates to:
+  /// **'2^0=1, 2^1=2, 2^2=4, 2^3=8, 2^4=16, 2^5=32, 2^6=64, 2^7=128 ...'**
+  String get arithmancerHelpPow2Examples;
+
+  /// No description provided for @arithmancerHelpPow2Strategy.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: Use multiplication: 2x2=4, 2x4=8, 4x4=16. Only powers of 2 deal full damage!'**
+  String get arithmancerHelpPow2Strategy;
+
   /// No description provided for @arithmancerLadderProgressTitle.
   ///
   /// In en, this message translates to:

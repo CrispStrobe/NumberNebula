@@ -1343,6 +1343,85 @@ class SDe extends S {
       'Nur Zweierpotenzen durchdringen diese Verteidigung';
 
   @override
+  String get arithmancerInstructionsParityDaemon =>
+      'Nutze UNGERADE Zahlen! Gerade Zahlen werden von diesem Damon absorbiert';
+
+  @override
+  String get arithmancerHelpPrimeTitle => 'Was sind Primzahlen?';
+
+  @override
+  String get arithmancerHelpPrimeExplain =>
+      'Eine Primzahl ist nur durch 1 und sich selbst teilbar. Sie hat keine anderen Teiler.';
+
+  @override
+  String get arithmancerHelpPrimeExamples =>
+      '2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47 ...';
+
+  @override
+  String get arithmancerHelpPrimeStrategy =>
+      'Tipp: Erstelle Ausdrucke, die eine Primzahl >= 11 ergeben, fur 3x Schaden!';
+
+  @override
+  String get arithmancerHelpParityTitle => 'Ungerade vs Gerade Zahlen';
+
+  @override
+  String get arithmancerHelpParityExplain =>
+      'Gerade Zahlen (durch 2 teilbar) werden ABSORBIERT — sie heilen den Gegner! Ungerade Zahlen machen Bonusschaden.';
+
+  @override
+  String get arithmancerHelpParityExamples =>
+      'Ungerade: 1, 3, 5, 7, 9, 11, 13 ...  Gerade: 2, 4, 6, 8, 10, 12 ...';
+
+  @override
+  String get arithmancerHelpParityStrategy =>
+      'Tipp: Ungerade + Ungerade = Gerade (schlecht!). Ungerade x Ungerade = Ungerade (gut!). Achte auf die Rechenzeichen!';
+
+  @override
+  String get arithmancerHelpSquareTitle => 'Was sind Quadratzahlen?';
+
+  @override
+  String get arithmancerHelpSquareExplain =>
+      'Eine Quadratzahl entsteht, wenn man eine Zahl mit sich selbst multipliziert.';
+
+  @override
+  String get arithmancerHelpSquareExamples =>
+      '1x1=1, 2x2=4, 3x3=9, 4x4=16, 5x5=25, 6x6=36, 7x7=49, 8x8=64 ...';
+
+  @override
+  String get arithmancerHelpSquareStrategy =>
+      'Tipp: Erstelle eine Quadratzahl fur 2,5x Schaden! Nicht-Quadratzahlen richten fast nichts an.';
+
+  @override
+  String get arithmancerHelpFibTitle => 'Was sind Fibonacci-Zahlen?';
+
+  @override
+  String get arithmancerHelpFibExplain =>
+      'Jede Fibonacci-Zahl ist die Summe der beiden vorherigen. Starte mit 1, 1, dann addiere: 1+1=2, 1+2=3, 2+3=5, ...';
+
+  @override
+  String get arithmancerHelpFibExamples =>
+      '1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144 ...';
+
+  @override
+  String get arithmancerHelpFibStrategy =>
+      'Tipp: Nur Fibonacci-Ergebnisse machen Schaden! Merke dir die Reihe oder nutze Additions-Karten.';
+
+  @override
+  String get arithmancerHelpPow2Title => 'Was sind Zweierpotenzen?';
+
+  @override
+  String get arithmancerHelpPow2Explain =>
+      'Starte mit 1 und verdopple immer: 1, 2, 4, 8, 16, 32, ... Jede ist 2 multipliziert mit sich selbst eine bestimmte Anzahl.';
+
+  @override
+  String get arithmancerHelpPow2Examples =>
+      '2^0=1, 2^1=2, 2^2=4, 2^3=8, 2^4=16, 2^5=32, 2^6=64, 2^7=128 ...';
+
+  @override
+  String get arithmancerHelpPow2Strategy =>
+      'Tipp: Nutze Multiplikation: 2x2=4, 2x4=8, 4x4=16. Nur Zweierpotenzen machen vollen Schaden!';
+
+  @override
   String get arithmancerLadderProgressTitle => 'Leiter-Fortschritt';
 
   @override
