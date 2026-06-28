@@ -75,6 +75,10 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     _rotationAnimation = Tween<double>(begin: 0.0, end: 2 * math.pi)
         .animate(CurvedAnimation(parent: _rotationController, curve: Curves.linear));
 
+    _unlockController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
     _unlockAnimation = CurvedAnimation(
         parent: _unlockController, curve: Curves.easeOut);
 
