@@ -401,7 +401,15 @@ class _HomeScreenState extends State<HomeScreen>
                     child: const CompactGradeSelector(),
                   ),
                 ),
-                SizedBox(height: isSmallScreen ? 8 : 32),
+                SizedBox(height: isSmallScreen ? 6 : 32),
+                SlideTransition(
+                  position: _slideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: _buildMissionsButton(isSmallScreen),
+                  ),
+                ),
+                SizedBox(height: isSmallScreen ? 6 : 12),
                 SlideTransition(
                   position: _slideAnimation,
                   child: FadeTransition(

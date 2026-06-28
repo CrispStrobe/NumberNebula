@@ -3886,6 +3886,13 @@ class SEn extends S {
   String get voidCrossingTapToUnload => 'Tap to unload from shuttle';
 
   @override
+  String get gridFillerTitle => 'Grid Filler';
+
+  @override
+  String get gridFillerDesc =>
+      'Fill a grid with square pieces — no gaps allowed!';
+
+  @override
   String get missionHubTitle => 'Space Missions';
 
   @override

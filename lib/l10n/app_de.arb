@@ -2049,6 +2049,9 @@
   "voidCrossingOnShuttle": "Im Shuttle:",
   "voidCrossingTapToUnload": "Tippe zum Ausladen aus dem Shuttle",
 
+  "gridFillerTitle": "Rasterfuller",
+  "gridFillerDesc": "Fulle ein Raster mit quadratischen Teilen — keine Lucken erlaubt!",
+
   "missionHubTitle": "Weltraum-Missionen",
   "missionHubStart": "Bereit fur eine Mission?",
   "missionHubStartDesc": "Lose eine Reihe von Aufgaben, um ein geheimes Weltraum-Codewort zu entschlusseln!",

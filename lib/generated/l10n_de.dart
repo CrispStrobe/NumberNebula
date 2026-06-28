@@ -3901,6 +3901,13 @@ class SDe extends S {
   String get voidCrossingTapToUnload => 'Tippe zum Ausladen aus dem Shuttle';
 
   @override
+  String get gridFillerTitle => 'Rasterfuller';
+
+  @override
+  String get gridFillerDesc =>
+      'Fulle ein Raster mit quadratischen Teilen — keine Lucken erlaubt!';
+
+  @override
   String get missionHubTitle => 'Weltraum-Missionen';
 
   @override

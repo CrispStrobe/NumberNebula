@@ -6712,6 +6712,18 @@ abstract class S {
   /// **'Tap to unload from shuttle'**
   String get voidCrossingTapToUnload;
 
+  /// No description provided for @gridFillerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid Filler'**
+  String get gridFillerTitle;
+
+  /// No description provided for @gridFillerDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill a grid with square pieces — no gaps allowed!'**
+  String get gridFillerDesc;
+
   /// No description provided for @missionHubTitle.
   ///
   /// In en, this message translates to:

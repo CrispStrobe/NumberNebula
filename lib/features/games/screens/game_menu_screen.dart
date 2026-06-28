@@ -338,8 +338,8 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
       ),
       _GameInfoData(
         gameKey: 'grid_filler_game',
-        title: "Grid Filler 2025",
-        description: "Fill a 45x45 grid with square pieces",
+        title: s.gridFillerTitle,
+        description: s.gridFillerDesc,
         icon: Icons.smart_toy_outlined,
         gradient: const LinearGradient(colors: [Color(0xFF44bcd4), Color(0xFF44838f)]),
         gameBuilder: (grade, level) => GridFillerGame(grade: grade, level: level),
@@ -585,7 +585,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
           child: Column(
             children: [
               _buildHeader(),
-              _buildCompactToolbar(),
               Expanded(
                 child: Padding(
                   padding:
@@ -601,21 +600,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
     );
   }
   
-  Widget _buildCompactToolbar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 2, 24, 2),
-      child: Row(
-        children: [
-          // Difficulty picker — compact segmented control
-          Expanded(child: _buildInlineDifficultyPicker()),
-          const SizedBox(width: 8),
-          // SRI review badge — compact icon with due count
-          _buildSriBadge(),
-        ],
-      ),
-    );
-  }
-
   Widget _buildInlineDifficultyPicker() {
     return Consumer<GameProvider>(
       builder: (context, gp, _) {
@@ -722,7 +706,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
   Widget _buildHeader() {
     final debugProvider = context.watch<DebugProvider>();
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -732,104 +716,115 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
       ),
       child: Row(
         children: [
+          // Back button
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 28),
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 22),
             style: IconButton.styleFrom(
               backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
             ),
           ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(S.of(context)!.gameMenu, style: SpaceTheme.headlineStyle.copyWith(fontSize: 32)),
-                Consumer<GameProvider>(
-                  builder: (context, gameProvider, child) {
-                    // This header now correctly shows the GLOBAL grade and level (which is 1)
-                    // but the cards will load their individual saved levels.
-                    return Text(
-                      S.of(context)!.gradeN(gameProvider.grade), // Simplified header
-                      style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 16),
-                    );
-                  },
+          const SizedBox(width: 10),
+          // Title + grade
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(S.of(context)!.gameMenu,
+                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 22)),
+              Consumer<GameProvider>(
+                builder: (context, gp, _) => Text(
+                  S.of(context)!.gradeN(gp.grade),
+                  style: SpaceTheme.bodyStyle.copyWith(
+                      color: SpaceTheme.starYellow, fontSize: 12),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          Consumer<GameProvider>( // This is the Score consumer
-            builder: (context, gameProvider, child) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                decoration: BoxDecoration(
-                  color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.star, color: SpaceTheme.starYellow, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      gameProvider.score.toString(),
-                      style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 18),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+          const SizedBox(width: 12),
+          // Difficulty picker (inline)
+          Expanded(child: _buildInlineDifficultyPicker()),
           const SizedBox(width: 8),
-          Flexible(
-            child: Row( // <-- FIX: Added 'child:' here
-              mainAxisAlignment: MainAxisAlignment.end, // Align buttons to the right
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  onPressed: _navigateToAchievements,
-                  icon: const Icon(Icons.emoji_events),
-                  color: SpaceTheme.starYellow,
-                  tooltip: S.of(context)!.achievements,
-                  style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8)),
-                ),
-                const SizedBox(width: 4),
-                // --- IMPRINT BUTTON ADDED ---
-                IconButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => const ImprintDialog(),
-                    );
-                  },
-                  icon: const Icon(Icons.gavel), // Legal / Gavel icon
-                  color: SpaceTheme.moonSilver,
-                  tooltip: S.of(context)!.imprint,
-                  style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8)),
-                ),
-                const SizedBox(width: 4),
-                IconButton(
-                  onPressed: _navigateToSettings,
-                  icon: const Icon(Icons.settings),
-                  color: SpaceTheme.moonSilver,
-                  tooltip: S.of(context)!.settings,
-                  style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8)),
-                ),
-                if (debugProvider.isDebugMenuEnabled) ...[
+          // SRI review badge
+          _buildSriBadge(),
+          const SizedBox(width: 6),
+          // Score chip
+          Consumer<GameProvider>(
+            builder: (context, gp, _) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.star, color: SpaceTheme.starYellow, size: 16),
                   const SizedBox(width: 4),
-                  IconButton(
-                    onPressed: _showDebugPanel,
-                    icon: const Icon(Icons.bug_report),
-                    color: debugProvider.isPaidUnlockedForced
-                        ? SpaceTheme.alienGreen
-                        : SpaceTheme.moonSilver,
-                    tooltip: S.of(context)!.debugPanelTitle,
-                    style: IconButton.styleFrom(backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8)),
-                  ),
-                ]
-              ],
+                  Text(gp.score.toString(),
+                      style: SpaceTheme.titleStyle
+                          .copyWith(color: SpaceTheme.starYellow, fontSize: 14)),
+                ],
+              ),
             ),
+          ),
+          const SizedBox(width: 6),
+          // Action buttons
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                onPressed: _navigateToAchievements,
+                icon: const Icon(Icons.emoji_events, size: 20),
+                color: SpaceTheme.starYellow,
+                tooltip: S.of(context)!.achievements,
+                style: IconButton.styleFrom(
+                  backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                  padding: const EdgeInsets.all(6),
+                ),
+              ),
+              const SizedBox(width: 2),
+              IconButton(
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (_) => const ImprintDialog(),
+                ),
+                icon: const Icon(Icons.gavel, size: 20),
+                color: SpaceTheme.moonSilver,
+                tooltip: S.of(context)!.imprint,
+                style: IconButton.styleFrom(
+                  backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                  padding: const EdgeInsets.all(6),
+                ),
+              ),
+              const SizedBox(width: 2),
+              IconButton(
+                onPressed: _navigateToSettings,
+                icon: const Icon(Icons.settings, size: 20),
+                color: SpaceTheme.moonSilver,
+                tooltip: S.of(context)!.settings,
+                style: IconButton.styleFrom(
+                  backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                  padding: const EdgeInsets.all(6),
+                ),
+              ),
+              if (debugProvider.isDebugMenuEnabled) ...[
+                const SizedBox(width: 2),
+                IconButton(
+                  onPressed: _showDebugPanel,
+                  icon: const Icon(Icons.bug_report, size: 20),
+                  color: debugProvider.isPaidUnlockedForced
+                      ? SpaceTheme.alienGreen
+                      : SpaceTheme.moonSilver,
+                  tooltip: S.of(context)!.debugPanelTitle,
+                  style: IconButton.styleFrom(
+                    backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+                    padding: const EdgeInsets.all(6),
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),
