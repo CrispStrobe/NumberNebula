@@ -1634,6 +1634,8 @@
   },
   "hiveStationLoseTitle": "Power Mismatch!",
   "hiveStationLoseDesc": "Some cells report the wrong neighbor count. Check your energy placement, Commander.",
+  "hiveStationWrongAttempt": "Not quite right! {remaining} attempts left.",
+  "@hiveStationWrongAttempt": { "placeholders": { "remaining": { "type": "int" } } },
 
   "relicAssemblyTitle": "Relic Assembly",
   "relicAssemblyDesc": "Ancient alien tablet fragments have been excavated! Arrange the pieces so the glyphs on touching edges match perfectly. The artifact holds the key to the next star system!",

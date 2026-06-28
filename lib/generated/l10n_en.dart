@@ -2941,6 +2941,11 @@ class SEn extends S {
       'Some cells report the wrong neighbor count. Check your energy placement, Commander.';
 
   @override
+  String hiveStationWrongAttempt(int remaining) {
+    return 'Not quite right! $remaining attempts left.';
+  }
+
+  @override
   String get relicAssemblyTitle => 'Relic Assembly';
 
   @override

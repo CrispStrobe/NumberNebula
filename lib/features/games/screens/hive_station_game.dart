@@ -30,6 +30,8 @@ class _HiveStationGameState extends State<HiveStationGame>
   Set<HexCoord> userMarked = {};
   bool _isGenerating = true;
   DifficultyConfig? currentDifficulty;
+  int _attemptsLeft = 3;
+  bool _gameOver = false;
 
   @override
   void initState() {
@@ -52,30 +54,54 @@ class _HiveStationGameState extends State<HiveStationGame>
     super.dispose();
   }
 
+  // ─── Difficulty scaling ─────────────────────────────────────────────
+  //
+  // Grade gates the puzzle *type* (grid size, mechanics):
+  //   Grade 1: radius 2 (19 cells), generous hints, 3 attempts
+  //   Grade 2: radius 2→3, fewer hints, 3 attempts
+  //   Grade 3: radius 3 (37 cells), sparse hints, 2 attempts
+  //   Grade 4: radius 3→4, very sparse hints, 2 attempts
+  //
+  // Level tunes parameters within each grade:
+  //   - Hint fraction decreases (more deduction needed)
+  //   - Energy fraction increases slightly (more mines to find)
+  //   - Attempts stay fixed per grade (mechanical gate)
+
   int _getRadius() {
     final grade = currentDifficulty?.grade ?? widget.grade;
-    if (grade <= 1) return 1; // 7 cells
-    if (grade <= 2) return 2; // 19 cells
-    return 3; // 37 cells
+    final level = widget.level;
+    if (grade <= 1) return 2; // 19 cells — enough for a real puzzle
+    if (grade <= 2) return level >= 10 ? 3 : 2;
+    if (grade <= 3) return 3; // 37 cells
+    return level >= 8 ? 4 : 3; // grade 4: up to 61 cells
   }
 
   double _getEnergyFraction() {
-    return 0.3; // 30% of cells have energy
+    final grade = currentDifficulty?.grade ?? widget.grade;
+    final level = widget.level;
+    // Grade 1: 25%→30%, Grade 2: 28%→33%, Grade 3: 30%→35%, Grade 4: 30%→38%
+    final base = [0, 0.25, 0.28, 0.30, 0.30][grade.clamp(0, 4)];
+    final max = [0, 0.30, 0.33, 0.35, 0.38][grade.clamp(0, 4)];
+    return base + (level - 1) * (max - base) / 19;
   }
 
   double _getHintFraction() {
-    // Grade 1-2: show ALL non-energy hints (100%). Player just taps blanks.
-    // This matches the Kanguru mechanic (C7/2024_34 shows ALL numbers).
-    //
-    // Grade 3+: hide SOME number cells (shown as "?" in the UI).
-    // Now blank cells could be energy OR hidden-number, requiring real
-    // deduction from surrounding hint values. This is the Minesweeper depth.
-    if (currentDifficulty == null) return 1.0;
+    if (currentDifficulty == null) return 0.75;
     final grade = currentDifficulty!.grade;
-    if (grade <= 1) return 0.90; // easy: most hints visible but not all
-    if (grade <= 2) return 0.80; // some hidden, requires basic deduction
-    if (grade == 3) return 0.70; // moderate deduction needed
-    return 0.60; // harder deduction, more hidden cells
+    final level = widget.level;
+    // Grade determines range, level slides within it:
+    //   Grade 1: 0.75 → 0.60  (most hints visible, some deduction)
+    //   Grade 2: 0.65 → 0.50  (moderate deduction)
+    //   Grade 3: 0.55 → 0.40  (significant deduction)
+    //   Grade 4: 0.50 → 0.30  (expert: many hidden cells)
+    final start = [1.0, 0.75, 0.65, 0.55, 0.50][grade.clamp(0, 4)];
+    final end = [1.0, 0.60, 0.50, 0.40, 0.30][grade.clamp(0, 4)];
+    return start - (level - 1) * (start - end) / 19;
+  }
+
+  int _getMaxAttempts() {
+    final grade = currentDifficulty?.grade ?? widget.grade;
+    return grade <= 2 ? 3 : 2;
   }
 
   void _generatePuzzle() async {
@@ -83,6 +109,8 @@ class _HiveStationGameState extends State<HiveStationGame>
       _isGenerating = true;
       userMarked.clear();
       successController.reset();
+      _attemptsLeft = _getMaxAttempts();
+      _gameOver = false;
     });
 
     try {
@@ -105,6 +133,7 @@ class _HiveStationGameState extends State<HiveStationGame>
   }
 
   void _toggleCell(HexCoord coord) {
+    if (_gameOver) return;
     // Don't toggle cells that show a hint
     if (puzzle!.revealedHints.contains(coord)) return;
 
@@ -120,18 +149,63 @@ class _HiveStationGameState extends State<HiveStationGame>
   }
 
   void _checkSolution() {
+    if (_gameOver) return;
     if (puzzle!.validateSolution(userMarked)) {
       _handleWin();
     } else {
-      _handleLoss();
+      setState(() {
+        _attemptsLeft--;
+        if (_attemptsLeft <= 0) {
+          _gameOver = true;
+          _handleFinalLoss();
+        } else {
+          _handleWrongAttempt();
+        }
+      });
+    }
+  }
+
+  void _handleWrongAttempt() {
+    HapticFeedback.heavyImpact();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(S.of(context)!.hiveStationWrongAttempt(_attemptsLeft)),
+            ),
+          ],
+        ),
+        backgroundColor: SpaceTheme.rocketRed,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _handleFinalLoss() {
+    HapticFeedback.heavyImpact();
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      gameType: 'hive_station',
+      difficulty: widget.level,
+    ));
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _buildLossDialog(),
+      );
     }
   }
 
   void _handleWin() {
     HapticFeedback.lightImpact();
+    _gameOver = true;
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
-    int totalScore = baseScore + levelBonus;
+    int attemptBonus = _attemptsLeft * 30;
+    int totalScore = baseScore + levelBonus + attemptBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'hive_station',
@@ -147,27 +221,6 @@ class _HiveStationGameState extends State<HiveStationGame>
         builder: (_) => _buildWinDialog(totalScore),
       );
     }
-  }
-
-  void _handleLoss() {
-    HapticFeedback.heavyImpact();
-    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      gameType: 'hive_station',
-      difficulty: widget.level,
-    ));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(S.of(context)!.hiveStationLoseDesc)),
-          ],
-        ),
-        backgroundColor: SpaceTheme.rocketRed,
-        duration: const Duration(seconds: 2),
-      ),
-    );
   }
 
   @override
@@ -340,23 +393,114 @@ class _HiveStationGameState extends State<HiveStationGame>
 
   Widget _buildCheckButton() {
     final s = S.of(context)!;
+
+    // Attempts indicator color
+    final attColor = _attemptsLeft <= 1
+        ? SpaceTheme.rocketRed
+        : _attemptsLeft <= 2
+            ? SpaceTheme.planetOrange
+            : SpaceTheme.alienGreen;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Marked / total
           Text(
             '${userMarked.length} / ${puzzle!.energyCells.length}',
             style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow),
           ),
           const SizedBox(width: 16),
+          // Check button
           ElevatedButton.icon(
-            onPressed: userMarked.length == puzzle!.energyCells.length ? _checkSolution : null,
+            onPressed: !_gameOver &&
+                    userMarked.length == puzzle!.energyCells.length
+                ? _checkSolution
+                : null,
             icon: const Icon(Icons.check),
             label: Text(s.correct.replaceAll('!', '')),
             style: SpaceTheme.primaryButtonStyle,
           ),
+          const SizedBox(width: 16),
+          // Attempts remaining
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: attColor, width: 1.5),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.favorite, color: attColor, size: 16),
+                const SizedBox(width: 4),
+                Text(
+                  '$_attemptsLeft',
+                  style: SpaceTheme.titleStyle.copyWith(
+                    fontSize: 14,
+                    color: attColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLossDialog() {
+    final s = S.of(context)!;
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: SpaceTheme.cardDecoration.copyWith(
+          border: Border.all(color: SpaceTheme.rocketRed, width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.hexagon_outlined, size: 64, color: SpaceTheme.rocketRed),
+            const SizedBox(height: 16),
+            Text(
+              s.hiveStationLoseTitle,
+              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              s.hiveStationLoseDesc,
+              style: SpaceTheme.bodyStyle,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  autofocus: true,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _generatePuzzle();
+                  },
+                  style: SpaceTheme.secondaryButtonStyle,
+                  child: Text(s.tryAgain),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  style: SpaceTheme.primaryButtonStyle,
+                  child: Text(s.backToMenu),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

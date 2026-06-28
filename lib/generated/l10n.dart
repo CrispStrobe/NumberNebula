@@ -5140,6 +5140,12 @@ abstract class S {
   /// **'Some cells report the wrong neighbor count. Check your energy placement, Commander.'**
   String get hiveStationLoseDesc;
 
+  /// No description provided for @hiveStationWrongAttempt.
+  ///
+  /// In en, this message translates to:
+  /// **'Not quite right! {remaining} attempts left.'**
+  String hiveStationWrongAttempt(int remaining);
+
   /// No description provided for @relicAssemblyTitle.
   ///
   /// In en, this message translates to:

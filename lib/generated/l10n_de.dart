@@ -2955,6 +2955,11 @@ class SDe extends S {
       'Einige Zellen melden die falsche Nachbarzahl. Uberprufe deine Energieplatzierung, Commander.';
 
   @override
+  String hiveStationWrongAttempt(int remaining) {
+    return 'Nicht ganz richtig! Noch $remaining Versuche.';
+  }
+
+  @override
   String get relicAssemblyTitle => 'Relikte-Puzzle';
 
   @override

@@ -1554,6 +1554,8 @@
   },
   "hiveStationLoseTitle": "Energiefehler!",
   "hiveStationLoseDesc": "Einige Zellen melden die falsche Nachbarzahl. Uberprufe deine Energieplatzierung, Commander.",
+  "hiveStationWrongAttempt": "Nicht ganz richtig! Noch {remaining} Versuche.",
+  "@hiveStationWrongAttempt": { "placeholders": { "remaining": { "type": "int" } } },
 
   "relicAssemblyTitle": "Relikte-Puzzle",
   "relicAssemblyDesc": "Uralte Alien-Tafelfragmente wurden ausgegraben! Ordne die Stucke an, sodass die Glyphen an beruhrenden Kanten perfekt ubereinstimmen. Das Artefakt birgt den Schlussel zum nachsten Sternensystem!",
