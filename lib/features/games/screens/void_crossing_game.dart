@@ -438,7 +438,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
           Expanded(child: _buildStation(isLeft: true)),
           SizedBox(
             width: constraints.maxWidth * 0.3,
-            child: _buildVoidZone(),
+            child: _buildVoidZone(isHorizontal: true),
           ),
           Expanded(child: _buildStation(isLeft: false)),
         ],
@@ -454,7 +454,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
           Expanded(flex: 3, child: _buildStation(isLeft: true)),
           SizedBox(
             height: constraints.maxHeight * 0.3,
-            child: _buildVoidZone(),
+            child: _buildVoidZone(isHorizontal: false),
           ),
           Expanded(flex: 3, child: _buildStation(isLeft: false)),
         ],
@@ -623,7 +623,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
 
   // ─── Void zone (shuttle + launch) ──────────────────────────────────────
 
-  Widget _buildVoidZone() {
+  Widget _buildVoidZone({required bool isHorizontal}) {
     final state = _gameState!;
     final puzzle = _puzzle!;
     final s = S.of(context)!;
@@ -647,6 +647,9 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Direction arrow
+                _buildDirectionArrow(isHorizontal),
+                const SizedBox(height: 4),
                 // Shuttle
                 _buildShuttle(),
                 const SizedBox(height: 8),
@@ -655,9 +658,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
                   ElevatedButton.icon(
                     onPressed: _isAnimating ? null : _launchShuttle,
                     icon: const Icon(Icons.rocket_launch, size: 18),
-                    label: Text(state.onShuttle.isEmpty
-                        ? s.voidCrossingLaunch // empty return trip
-                        : s.voidCrossingLaunch),
+                    label: Text(s.voidCrossingLaunch),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: SpaceTheme.alienGreen,
                       foregroundColor: Colors.white,
@@ -704,6 +705,55 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
                 ),
               ],
             ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDirectionArrow(bool isHorizontal) {
+    final state = _gameState!;
+    // Shuttle on left → heading right (Alpha → Omega)
+    // Shuttle on right → heading left (Omega → Alpha)
+    final IconData arrowIcon;
+    if (isHorizontal) {
+      arrowIcon = state.shuttleOnLeft
+          ? Icons.arrow_forward_rounded
+          : Icons.arrow_back_rounded;
+    } else {
+      // Tall layout: left=top, right=bottom
+      arrowIcon = state.shuttleOnLeft
+          ? Icons.arrow_downward_rounded
+          : Icons.arrow_upward_rounded;
+    }
+
+    final label = state.shuttleOnLeft
+        ? S.of(context)!.voidCrossingStationOmega
+        : S.of(context)!.voidCrossingStationAlpha;
+
+    return AnimatedBuilder(
+      animation: pulseAnimation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _isAnimating ? 0.3 : 1.0,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                arrowIcon,
+                color: SpaceTheme.starYellow,
+                size: 28 * pulseAnimation.value,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: SpaceTheme.bodyStyle.copyWith(
+                  fontSize: 12,
+                  color: SpaceTheme.starYellow,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         );
       },
