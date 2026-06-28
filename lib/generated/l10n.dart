@@ -6711,6 +6711,108 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Tap to unload from shuttle'**
   String get voidCrossingTapToUnload;
+
+  /// No description provided for @missionHubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Space Missions'**
+  String get missionHubTitle;
+
+  /// No description provided for @missionHubStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for a Mission?'**
+  String get missionHubStart;
+
+  /// No description provided for @missionHubStartDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete a series of challenges to decode a secret space codeword!'**
+  String get missionHubStartDesc;
+
+  /// No description provided for @missionHubResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission in Progress'**
+  String get missionHubResume;
+
+  /// No description provided for @missionHubResumeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed} of {total} tasks completed.'**
+  String missionHubResumeDesc(int completed, int total);
+
+  /// No description provided for @missionHubContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue Mission'**
+  String get missionHubContinue;
+
+  /// No description provided for @missionHubNewMission.
+  ///
+  /// In en, this message translates to:
+  /// **'New Mission'**
+  String get missionHubNewMission;
+
+  /// No description provided for @missionHubAbandon.
+  ///
+  /// In en, this message translates to:
+  /// **'Abandon'**
+  String get missionHubAbandon;
+
+  /// No description provided for @missionHubAbandonConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Abandon this mission? All progress will be lost.'**
+  String get missionHubAbandonConfirm;
+
+  /// No description provided for @missionStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission Tasks'**
+  String get missionStreakTitle;
+
+  /// No description provided for @missionSolveCodeword.
+  ///
+  /// In en, this message translates to:
+  /// **'Decode the Codeword!'**
+  String get missionSolveCodeword;
+
+  /// No description provided for @missionCodewordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Codeword Puzzle'**
+  String get missionCodewordTitle;
+
+  /// No description provided for @missionCodewordInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrange the letters to form the secret space word!'**
+  String get missionCodewordInstructions;
+
+  /// No description provided for @missionAvailableLetters.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Letters'**
+  String get missionAvailableLetters;
+
+  /// No description provided for @missionAllPlaced.
+  ///
+  /// In en, this message translates to:
+  /// **'All letters placed!'**
+  String get missionAllPlaced;
+
+  /// No description provided for @missionComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission Complete!'**
+  String get missionComplete;
+
+  /// No description provided for @missionCompleteDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'You decoded the codeword: {word}'**
+  String missionCompleteDesc(String word);
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

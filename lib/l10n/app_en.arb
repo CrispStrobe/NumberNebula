@@ -2127,6 +2127,26 @@
   "voidCrossingNebulaSeed": "Nebula Seed",
   "voidCrossingPyrowyrm": "Pyrowyrm",
   "voidCrossingOnShuttle": "On shuttle:",
-  "voidCrossingTapToUnload": "Tap to unload from shuttle"
+  "voidCrossingTapToUnload": "Tap to unload from shuttle",
+
+  "missionHubTitle": "Space Missions",
+  "missionHubStart": "Ready for a Mission?",
+  "missionHubStartDesc": "Complete a series of challenges to decode a secret space codeword!",
+  "missionHubResume": "Mission in Progress",
+  "missionHubResumeDesc": "{completed} of {total} tasks completed.",
+  "@missionHubResumeDesc": { "placeholders": { "completed": { "type": "int" }, "total": { "type": "int" } } },
+  "missionHubContinue": "Continue Mission",
+  "missionHubNewMission": "New Mission",
+  "missionHubAbandon": "Abandon",
+  "missionHubAbandonConfirm": "Abandon this mission? All progress will be lost.",
+  "missionStreakTitle": "Mission Tasks",
+  "missionSolveCodeword": "Decode the Codeword!",
+  "missionCodewordTitle": "Codeword Puzzle",
+  "missionCodewordInstructions": "Arrange the letters to form the secret space word!",
+  "missionAvailableLetters": "Available Letters",
+  "missionAllPlaced": "All letters placed!",
+  "missionComplete": "Mission Complete!",
+  "missionCompleteDesc": "You decoded the codeword: {word}",
+  "@missionCompleteDesc": { "placeholders": { "word": { "type": "String" } } }
 
 }

@@ -21,6 +21,7 @@ import 'core/theme/space_theme.dart';
 
 // --- PROVIDERS & MODELS ---
 import 'features/games/providers/game_provider.dart';
+import 'features/missions/providers/mission_provider.dart';
 
 // --- SCREENS ---
 import 'features/home/screens/home_screen.dart';
@@ -97,7 +98,10 @@ void main() async {
   await streakService.load();
   // Mark today as played as soon as the app opens.
   await streakService.markPlayed();
-  
+
+  final missionProvider = MissionProvider();
+  await missionProvider.loadSaved();
+
   runApp(
     MultiProvider(
       providers: [
@@ -108,6 +112,7 @@ void main() async {
         ChangeNotifierProvider.value(value: purchaseService),
         ChangeNotifierProvider.value(value: debugProvider),
         ChangeNotifierProvider.value(value: streakService),
+        ChangeNotifierProvider.value(value: missionProvider),
         Provider.value(value: progressService),
         Provider.value(value: audioService),
       ],

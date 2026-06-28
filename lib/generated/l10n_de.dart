@@ -3899,4 +3899,62 @@ class SDe extends S {
 
   @override
   String get voidCrossingTapToUnload => 'Tippe zum Ausladen aus dem Shuttle';
+
+  @override
+  String get missionHubTitle => 'Weltraum-Missionen';
+
+  @override
+  String get missionHubStart => 'Bereit fur eine Mission?';
+
+  @override
+  String get missionHubStartDesc =>
+      'Lose eine Reihe von Aufgaben, um ein geheimes Weltraum-Codewort zu entschlusseln!';
+
+  @override
+  String get missionHubResume => 'Mission lauft';
+
+  @override
+  String missionHubResumeDesc(int completed, int total) {
+    return '$completed von $total Aufgaben erledigt.';
+  }
+
+  @override
+  String get missionHubContinue => 'Mission fortsetzen';
+
+  @override
+  String get missionHubNewMission => 'Neue Mission';
+
+  @override
+  String get missionHubAbandon => 'Abbrechen';
+
+  @override
+  String get missionHubAbandonConfirm =>
+      'Diese Mission abbrechen? Der gesamte Fortschritt geht verloren.';
+
+  @override
+  String get missionStreakTitle => 'Missions-Aufgaben';
+
+  @override
+  String get missionSolveCodeword => 'Codewort entschlusseln!';
+
+  @override
+  String get missionCodewordTitle => 'Codewort-Ratsel';
+
+  @override
+  String get missionCodewordInstructions =>
+      'Ordne die Buchstaben an, um das geheime Weltraum-Wort zu bilden!';
+
+  @override
+  String get missionAvailableLetters => 'Verfugbare Buchstaben';
+
+  @override
+  String get missionAllPlaced => 'Alle Buchstaben platziert!';
+
+  @override
+  String get missionComplete => 'Mission abgeschlossen!';
+
+  @override
+  String missionCompleteDesc(String word) {
+    return 'Du hast das Codewort entschlusselt: $word';
+  }
 }

@@ -3884,4 +3884,62 @@ class SEn extends S {
 
   @override
   String get voidCrossingTapToUnload => 'Tap to unload from shuttle';
+
+  @override
+  String get missionHubTitle => 'Space Missions';
+
+  @override
+  String get missionHubStart => 'Ready for a Mission?';
+
+  @override
+  String get missionHubStartDesc =>
+      'Complete a series of challenges to decode a secret space codeword!';
+
+  @override
+  String get missionHubResume => 'Mission in Progress';
+
+  @override
+  String missionHubResumeDesc(int completed, int total) {
+    return '$completed of $total tasks completed.';
+  }
+
+  @override
+  String get missionHubContinue => 'Continue Mission';
+
+  @override
+  String get missionHubNewMission => 'New Mission';
+
+  @override
+  String get missionHubAbandon => 'Abandon';
+
+  @override
+  String get missionHubAbandonConfirm =>
+      'Abandon this mission? All progress will be lost.';
+
+  @override
+  String get missionStreakTitle => 'Mission Tasks';
+
+  @override
+  String get missionSolveCodeword => 'Decode the Codeword!';
+
+  @override
+  String get missionCodewordTitle => 'Codeword Puzzle';
+
+  @override
+  String get missionCodewordInstructions =>
+      'Arrange the letters to form the secret space word!';
+
+  @override
+  String get missionAvailableLetters => 'Available Letters';
+
+  @override
+  String get missionAllPlaced => 'All letters placed!';
+
+  @override
+  String get missionComplete => 'Mission Complete!';
+
+  @override
+  String missionCompleteDesc(String word) {
+    return 'You decoded the codeword: $word';
+  }
 }

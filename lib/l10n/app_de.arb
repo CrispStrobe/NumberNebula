@@ -2047,6 +2047,26 @@
   "voidCrossingNebulaSeed": "Nebelsaat",
   "voidCrossingPyrowyrm": "Pyrowurm",
   "voidCrossingOnShuttle": "Im Shuttle:",
-  "voidCrossingTapToUnload": "Tippe zum Ausladen aus dem Shuttle"
+  "voidCrossingTapToUnload": "Tippe zum Ausladen aus dem Shuttle",
+
+  "missionHubTitle": "Weltraum-Missionen",
+  "missionHubStart": "Bereit fur eine Mission?",
+  "missionHubStartDesc": "Lose eine Reihe von Aufgaben, um ein geheimes Weltraum-Codewort zu entschlusseln!",
+  "missionHubResume": "Mission lauft",
+  "missionHubResumeDesc": "{completed} von {total} Aufgaben erledigt.",
+  "@missionHubResumeDesc": { "placeholders": { "completed": { "type": "int" }, "total": { "type": "int" } } },
+  "missionHubContinue": "Mission fortsetzen",
+  "missionHubNewMission": "Neue Mission",
+  "missionHubAbandon": "Abbrechen",
+  "missionHubAbandonConfirm": "Diese Mission abbrechen? Der gesamte Fortschritt geht verloren.",
+  "missionStreakTitle": "Missions-Aufgaben",
+  "missionSolveCodeword": "Codewort entschlusseln!",
+  "missionCodewordTitle": "Codewort-Ratsel",
+  "missionCodewordInstructions": "Ordne die Buchstaben an, um das geheime Weltraum-Wort zu bilden!",
+  "missionAvailableLetters": "Verfugbare Buchstaben",
+  "missionAllPlaced": "Alle Buchstaben platziert!",
+  "missionComplete": "Mission abgeschlossen!",
+  "missionCompleteDesc": "Du hast das Codewort entschlusselt: {word}",
+  "@missionCompleteDesc": { "placeholders": { "word": { "type": "String" } } }
 
 }

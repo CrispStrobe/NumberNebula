@@ -15,6 +15,7 @@ import '../../../generated/l10n.dart';
 import '../../games/providers/game_provider.dart';
 import '../../games/widgets/space_background.dart';
 import '../../games/screens/game_menu_screen.dart';
+import '../../missions/screens/mission_hub_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../games/widgets/debug_panel.dart';
 import '../../../shared/widgets/imprint_dialog.dart';
@@ -498,12 +499,86 @@ class _HomeScreenState extends State<HomeScreen>
             position: _slideAnimation,
             child: FadeTransition(
             opacity: _fadeAnimation,
+            child: _buildMissionsButton(false),
+            ),
+        ),
+        const SizedBox(height: 12),
+        SlideTransition(
+            position: _slideAnimation,
+            child: FadeTransition(
+            opacity: _fadeAnimation,
             child: _buildStartButton(false),
             ),
         ),
         ],
     );
     }
+
+  Widget _buildMissionsButton(bool isSmallScreen) {
+    return Container(
+      constraints: BoxConstraints(
+        maxWidth: isSmallScreen ? 180 : 300,
+        minHeight: isSmallScreen ? 40 : 50,
+      ),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [SpaceTheme.nebulaPurple, SpaceTheme.cosmicPink],
+        ),
+        borderRadius: BorderRadius.circular(isSmallScreen ? 14 : 25),
+        boxShadow: [
+          BoxShadow(
+            color: SpaceTheme.cosmicPink.withValues(alpha: 0.3),
+            blurRadius: isSmallScreen ? 8 : 16,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(isSmallScreen ? 14 : 25),
+          onTap: () {
+            Navigator.of(context).push(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const MissionHubScreen(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+              ),
+            );
+          },
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 12.0 : 24.0,
+              vertical: isSmallScreen ? 6.0 : 10.0,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.military_tech,
+                  color: Colors.white,
+                  size: isSmallScreen ? 14 : 20,
+                ),
+                SizedBox(width: isSmallScreen ? 6 : 10),
+                Flexible(
+                  child: Text(
+                    S.of(context)!.missionHubTitle,
+                    textAlign: TextAlign.center,
+                    style: SpaceTheme.buttonStyle.copyWith(
+                        fontSize: isSmallScreen ? 11 : 14),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildStartButton(bool isSmallScreen) {
     return Container(
