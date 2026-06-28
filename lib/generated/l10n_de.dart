@@ -3802,4 +3802,90 @@ class SDe extends S {
 
   @override
   String get goBack => 'Zurück';
+
+  @override
+  String get voidCrossingTitle => 'Void-Überquerung';
+
+  @override
+  String get voidCrossingDesc =>
+      'Transportiere Kreaturen über die Leere — aber pass auf, wen du allein lässt!';
+
+  @override
+  String get voidCrossingOnboardTitle => 'Void-Überquerung';
+
+  @override
+  String get voidCrossingOnboardTap =>
+      'Tippe auf Kreaturen, um sie in den Shuttle zu laden oder wieder auszuladen.';
+
+  @override
+  String get voidCrossingOnboardLaunch =>
+      'Drücke Start, um den Shuttle loszuschicken. Plane deine Züge klug!';
+
+  @override
+  String get voidCrossingOnboardConflict =>
+      'Manche Kreaturen streiten, wenn sie allein sind. Prüfe die Regeln unten!';
+
+  @override
+  String get voidCrossingStationAlpha => 'Station Alpha';
+
+  @override
+  String get voidCrossingStationOmega => 'Station Omega';
+
+  @override
+  String get voidCrossingLaunch => 'Start';
+
+  @override
+  String get voidCrossingReset => 'Zurücksetzen';
+
+  @override
+  String get voidCrossingRules => 'Konfliktregeln';
+
+  @override
+  String get voidCrossingConflictWarning =>
+      'Diese Kreaturen würden kämpfen! Ändere deine Ladung.';
+
+  @override
+  String get voidCrossingTapToLoad => 'Tippe zum Laden in den Shuttle';
+
+  @override
+  String get voidCrossingWin => 'Alle sicher!';
+
+  @override
+  String voidCrossingWinDesc(int moves) {
+    return 'Alle Kreaturen in $moves Überfahrten transportiert!';
+  }
+
+  @override
+  String get voidCrossingNextPuzzle => 'Nächstes Rätsel';
+
+  @override
+  String get voidCrossingLose => 'Treibstoff leer!';
+
+  @override
+  String get voidCrossingLoseDesc =>
+      'Dir sind die Shuttle-Überfahrten ausgegangen. Versuche eine andere Strategie!';
+
+  @override
+  String get voidCrossingZorblex => 'Zorblex';
+
+  @override
+  String get voidCrossingGlimbit => 'Glimbit';
+
+  @override
+  String get voidCrossingStarMoss => 'Sternmoos';
+
+  @override
+  String get voidCrossingKraxxon => 'Kraxxon';
+
+  @override
+  String get voidCrossingLumifae => 'Lumifae';
+
+  @override
+  String get voidCrossingVoidCrab => 'Leerenkrabbe';
+
+  @override
+  String get voidCrossingNebulaSeed => 'Nebelsaat';
+
+  @override
+  String get voidCrossingPyrowyrm => 'Pyrowurm';
 }

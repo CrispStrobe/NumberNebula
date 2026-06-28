@@ -2015,6 +2015,34 @@
   "debugModeEnabled": "Debug-Modus aktiviert!",
 
   "skip": "Überspringen",
-  "goBack": "Zurück"
+  "goBack": "Zurück",
+
+  "voidCrossingTitle": "Void-Überquerung",
+  "voidCrossingDesc": "Transportiere Kreaturen über die Leere — aber pass auf, wen du allein lässt!",
+  "voidCrossingOnboardTitle": "Void-Überquerung",
+  "voidCrossingOnboardTap": "Tippe auf Kreaturen, um sie in den Shuttle zu laden oder wieder auszuladen.",
+  "voidCrossingOnboardLaunch": "Drücke Start, um den Shuttle loszuschicken. Plane deine Züge klug!",
+  "voidCrossingOnboardConflict": "Manche Kreaturen streiten, wenn sie allein sind. Prüfe die Regeln unten!",
+  "voidCrossingStationAlpha": "Station Alpha",
+  "voidCrossingStationOmega": "Station Omega",
+  "voidCrossingLaunch": "Start",
+  "voidCrossingReset": "Zurücksetzen",
+  "voidCrossingRules": "Konfliktregeln",
+  "voidCrossingConflictWarning": "Diese Kreaturen würden kämpfen! Ändere deine Ladung.",
+  "voidCrossingTapToLoad": "Tippe zum Laden in den Shuttle",
+  "voidCrossingWin": "Alle sicher!",
+  "voidCrossingWinDesc": "Alle Kreaturen in {moves} Überfahrten transportiert!",
+  "@voidCrossingWinDesc": { "placeholders": { "moves": { "type": "int" } } },
+  "voidCrossingNextPuzzle": "Nächstes Rätsel",
+  "voidCrossingLose": "Treibstoff leer!",
+  "voidCrossingLoseDesc": "Dir sind die Shuttle-Überfahrten ausgegangen. Versuche eine andere Strategie!",
+  "voidCrossingZorblex": "Zorblex",
+  "voidCrossingGlimbit": "Glimbit",
+  "voidCrossingStarMoss": "Sternmoos",
+  "voidCrossingKraxxon": "Kraxxon",
+  "voidCrossingLumifae": "Lumifae",
+  "voidCrossingVoidCrab": "Leerenkrabbe",
+  "voidCrossingNebulaSeed": "Nebelsaat",
+  "voidCrossingPyrowyrm": "Pyrowurm"
 
 }

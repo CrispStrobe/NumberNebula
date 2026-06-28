@@ -80,4 +80,7 @@ const Map<String, SkillCategory> gameSkillMap = {
   'creature_forge': SkillCategory.patternRecognition,
   'asteroid_duel': SkillCategory.logicDeduction,
   'chrono_repair': SkillCategory.arithmetic,
+
+  // Transport/Crossing puzzle
+  'void_crossing': SkillCategory.logicDeduction,
 };

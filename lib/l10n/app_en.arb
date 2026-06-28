@@ -2095,6 +2095,34 @@
   "debugModeEnabled": "Debug Mode Enabled!",
 
   "skip": "Skip",
-  "goBack": "Go Back"
+  "goBack": "Go Back",
+
+  "voidCrossingTitle": "Void Crossing",
+  "voidCrossingDesc": "Transport creatures across the void — but watch who you leave alone!",
+  "voidCrossingOnboardTitle": "Void Crossing",
+  "voidCrossingOnboardTap": "Tap creatures to load them onto the shuttle, tap again to unload.",
+  "voidCrossingOnboardLaunch": "Press Launch to send the shuttle across. Plan your moves wisely!",
+  "voidCrossingOnboardConflict": "Some creatures fight when left alone. Check the rules at the bottom!",
+  "voidCrossingStationAlpha": "Station Alpha",
+  "voidCrossingStationOmega": "Station Omega",
+  "voidCrossingLaunch": "Launch",
+  "voidCrossingReset": "Reset",
+  "voidCrossingRules": "Conflict Rules",
+  "voidCrossingConflictWarning": "These creatures would fight! Change your cargo.",
+  "voidCrossingTapToLoad": "Tap to load onto shuttle",
+  "voidCrossingWin": "All Safe!",
+  "voidCrossingWinDesc": "All creatures transported in {moves} crossings!",
+  "@voidCrossingWinDesc": { "placeholders": { "moves": { "type": "int" } } },
+  "voidCrossingNextPuzzle": "Next Puzzle",
+  "voidCrossingLose": "Out of Fuel!",
+  "voidCrossingLoseDesc": "You ran out of shuttle crossings. Try a different strategy!",
+  "voidCrossingZorblex": "Zorblex",
+  "voidCrossingGlimbit": "Glimbit",
+  "voidCrossingStarMoss": "Star Moss",
+  "voidCrossingKraxxon": "Kraxxon",
+  "voidCrossingLumifae": "Lumifae",
+  "voidCrossingVoidCrab": "Void Crab",
+  "voidCrossingNebulaSeed": "Nebula Seed",
+  "voidCrossingPyrowyrm": "Pyrowyrm"
 
 }

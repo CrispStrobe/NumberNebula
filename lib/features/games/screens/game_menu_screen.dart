@@ -59,6 +59,7 @@ import 'galactic_market_game.dart';
 import 'creature_forge_game.dart';
 import 'asteroid_duel_game.dart';
 import 'chrono_repair_game.dart';
+import 'void_crossing_game.dart';
 
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
@@ -535,6 +536,14 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         icon: Icons.watch_later,
         gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFF6B48FF)]),
         gameBuilder: (grade, level) => ChronoRepairGame(grade: grade, level: level),
+      ),
+      _GameInfoData(
+        gameKey: 'void_crossing',
+        title: s.voidCrossingTitle,
+        description: s.voidCrossingDesc,
+        icon: Icons.flight,
+        gradient: const LinearGradient(colors: [Color(0xFF0B1426), Color(0xFF06FFA5)]),
+        gameBuilder: (grade, level) => VoidCrossingGame(grade: grade, level: level),
       ),
     ];
   }

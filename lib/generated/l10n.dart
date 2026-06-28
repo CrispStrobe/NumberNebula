@@ -6537,6 +6537,162 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Go Back'**
   String get goBack;
+
+  /// No description provided for @voidCrossingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Void Crossing'**
+  String get voidCrossingTitle;
+
+  /// No description provided for @voidCrossingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Transport creatures across the void — but watch who you leave alone!'**
+  String get voidCrossingDesc;
+
+  /// No description provided for @voidCrossingOnboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Void Crossing'**
+  String get voidCrossingOnboardTitle;
+
+  /// No description provided for @voidCrossingOnboardTap.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap creatures to load them onto the shuttle, tap again to unload.'**
+  String get voidCrossingOnboardTap;
+
+  /// No description provided for @voidCrossingOnboardLaunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Press Launch to send the shuttle across. Plan your moves wisely!'**
+  String get voidCrossingOnboardLaunch;
+
+  /// No description provided for @voidCrossingOnboardConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Some creatures fight when left alone. Check the rules at the bottom!'**
+  String get voidCrossingOnboardConflict;
+
+  /// No description provided for @voidCrossingStationAlpha.
+  ///
+  /// In en, this message translates to:
+  /// **'Station Alpha'**
+  String get voidCrossingStationAlpha;
+
+  /// No description provided for @voidCrossingStationOmega.
+  ///
+  /// In en, this message translates to:
+  /// **'Station Omega'**
+  String get voidCrossingStationOmega;
+
+  /// No description provided for @voidCrossingLaunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch'**
+  String get voidCrossingLaunch;
+
+  /// No description provided for @voidCrossingReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get voidCrossingReset;
+
+  /// No description provided for @voidCrossingRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Conflict Rules'**
+  String get voidCrossingRules;
+
+  /// No description provided for @voidCrossingConflictWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'These creatures would fight! Change your cargo.'**
+  String get voidCrossingConflictWarning;
+
+  /// No description provided for @voidCrossingTapToLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to load onto shuttle'**
+  String get voidCrossingTapToLoad;
+
+  /// No description provided for @voidCrossingWin.
+  ///
+  /// In en, this message translates to:
+  /// **'All Safe!'**
+  String get voidCrossingWin;
+
+  /// No description provided for @voidCrossingWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'All creatures transported in {moves} crossings!'**
+  String voidCrossingWinDesc(int moves);
+
+  /// No description provided for @voidCrossingNextPuzzle.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Puzzle'**
+  String get voidCrossingNextPuzzle;
+
+  /// No description provided for @voidCrossingLose.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of Fuel!'**
+  String get voidCrossingLose;
+
+  /// No description provided for @voidCrossingLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'You ran out of shuttle crossings. Try a different strategy!'**
+  String get voidCrossingLoseDesc;
+
+  /// No description provided for @voidCrossingZorblex.
+  ///
+  /// In en, this message translates to:
+  /// **'Zorblex'**
+  String get voidCrossingZorblex;
+
+  /// No description provided for @voidCrossingGlimbit.
+  ///
+  /// In en, this message translates to:
+  /// **'Glimbit'**
+  String get voidCrossingGlimbit;
+
+  /// No description provided for @voidCrossingStarMoss.
+  ///
+  /// In en, this message translates to:
+  /// **'Star Moss'**
+  String get voidCrossingStarMoss;
+
+  /// No description provided for @voidCrossingKraxxon.
+  ///
+  /// In en, this message translates to:
+  /// **'Kraxxon'**
+  String get voidCrossingKraxxon;
+
+  /// No description provided for @voidCrossingLumifae.
+  ///
+  /// In en, this message translates to:
+  /// **'Lumifae'**
+  String get voidCrossingLumifae;
+
+  /// No description provided for @voidCrossingVoidCrab.
+  ///
+  /// In en, this message translates to:
+  /// **'Void Crab'**
+  String get voidCrossingVoidCrab;
+
+  /// No description provided for @voidCrossingNebulaSeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Nebula Seed'**
+  String get voidCrossingNebulaSeed;
+
+  /// No description provided for @voidCrossingPyrowyrm.
+  ///
+  /// In en, this message translates to:
+  /// **'Pyrowyrm'**
+  String get voidCrossingPyrowyrm;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
