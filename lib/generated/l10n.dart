@@ -1039,6 +1039,42 @@ abstract class S {
   /// **'Seek the planet with greatest gravitational pull.'**
   String get planetHoppingInstructions;
 
+  /// No description provided for @planetHoppingOrderAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Solve the expressions and visit planets from SMALLEST to LARGEST result!'**
+  String get planetHoppingOrderAsc;
+
+  /// No description provided for @planetHoppingOrderDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Solve the expressions and visit planets from LARGEST to SMALLEST result!'**
+  String get planetHoppingOrderDesc;
+
+  /// No description provided for @planetHoppingOrderEvensOdds.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit planets with EVEN results first, then ODD results — both in ascending order!'**
+  String get planetHoppingOrderEvensOdds;
+
+  /// No description provided for @planetHoppingOrderAscShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Small→Big'**
+  String get planetHoppingOrderAscShort;
+
+  /// No description provided for @planetHoppingOrderDescShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Big→Small'**
+  String get planetHoppingOrderDescShort;
+
+  /// No description provided for @planetHoppingOrderEvensOddsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Even→Odd'**
+  String get planetHoppingOrderEvensOddsShort;
+
   /// No description provided for @planetHoppingWinTitle.
   ///
   /// In en, this message translates to:

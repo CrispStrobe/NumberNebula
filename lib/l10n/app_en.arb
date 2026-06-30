@@ -191,6 +191,12 @@
         }
     },
     "planetHoppingInstructions": "Seek the planet with greatest gravitational pull.",
+    "planetHoppingOrderAsc": "Solve the expressions and visit planets from SMALLEST to LARGEST result!",
+    "planetHoppingOrderDesc": "Solve the expressions and visit planets from LARGEST to SMALLEST result!",
+    "planetHoppingOrderEvensOdds": "Visit planets with EVEN results first, then ODD results — both in ascending order!",
+    "planetHoppingOrderAscShort": "Small\u2192Big",
+    "planetHoppingOrderDescShort": "Big\u2192Small",
+    "planetHoppingOrderEvensOddsShort": "Even\u2192Odd",
     "planetHoppingWinTitle": "Solar System Mastered!",
     "planetHoppingWinDesc": "You successfully navigated all planets in the correct sequence!\nLives Bonus: {bonus} points",
     "planetHoppingWinDescBonus": "You successfully navigated all planets in the correct sequence!\nLives Bonus: {bonus} points",

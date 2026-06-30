@@ -510,6 +510,27 @@ class SEn extends S {
       'Seek the planet with greatest gravitational pull.';
 
   @override
+  String get planetHoppingOrderAsc =>
+      'Solve the expressions and visit planets from SMALLEST to LARGEST result!';
+
+  @override
+  String get planetHoppingOrderDesc =>
+      'Solve the expressions and visit planets from LARGEST to SMALLEST result!';
+
+  @override
+  String get planetHoppingOrderEvensOdds =>
+      'Visit planets with EVEN results first, then ODD results — both in ascending order!';
+
+  @override
+  String get planetHoppingOrderAscShort => 'Small→Big';
+
+  @override
+  String get planetHoppingOrderDescShort => 'Big→Small';
+
+  @override
+  String get planetHoppingOrderEvensOddsShort => 'Even→Odd';
+
+  @override
   String get planetHoppingWinTitle => 'Solar System Mastered!';
 
   @override

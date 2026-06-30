@@ -514,6 +514,27 @@ class SDe extends S {
       'Suche den Planeten mit der größten Gravitation.';
 
   @override
+  String get planetHoppingOrderAsc =>
+      'Lose die Aufgaben und besuche die Planeten vom KLEINSTEN zum GROSSTEN Ergebnis!';
+
+  @override
+  String get planetHoppingOrderDesc =>
+      'Lose die Aufgaben und besuche die Planeten vom GROSSTEN zum KLEINSTEN Ergebnis!';
+
+  @override
+  String get planetHoppingOrderEvensOdds =>
+      'Besuche erst Planeten mit GERADEN Ergebnissen, dann UNGERADE — beide aufsteigend!';
+
+  @override
+  String get planetHoppingOrderAscShort => 'Klein→Groß';
+
+  @override
+  String get planetHoppingOrderDescShort => 'Groß→Klein';
+
+  @override
+  String get planetHoppingOrderEvensOddsShort => 'Gerade→Ungerade';
+
+  @override
   String get planetHoppingWinTitle => 'Sonnensystem gemeistert!';
 
   @override

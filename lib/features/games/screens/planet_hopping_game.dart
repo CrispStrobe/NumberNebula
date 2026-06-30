@@ -86,7 +86,8 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       }
     });
 
-    Timer(const Duration(seconds: 5), () {
+    // Keep instructions visible for 15s so player can read the ordering rule
+    Timer(const Duration(seconds: 15), () {
       if (mounted) setState(() => _showInstructions = false);
     });
   }
@@ -224,9 +225,12 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
   // ### END: MODIFIED PLANET GENERATION LOGIC ###
 
+  /// 0 = ascending, 1 = descending, 2 = evens-first-then-odds
+  int get _orderMode => widget.level % 3;
+
   void _generateTargetSequence() {
     targetSequence = planets.map((p) => p.answer).toList();
-    switch (widget.level % 3) {
+    switch (_orderMode) {
       case 0: targetSequence.sort(); break; // Ascending
       case 1: targetSequence.sort((a, b) => b.compareTo(a)); break; // Descending
       case 2:
@@ -236,7 +240,17 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
         break;
     }
     nextTargetIndex = 0;
-    if (kDebugMode) debugPrint("[Gameplay] 🎯 New target sequence: $targetSequence");
+    if (kDebugMode) debugPrint("[Gameplay] 🎯 New target sequence (mode $_orderMode): $targetSequence");
+  }
+
+  String _getOrderInstructions() {
+    final s = S.of(context)!;
+    switch (_orderMode) {
+      case 0: return s.planetHoppingOrderAsc;
+      case 1: return s.planetHoppingOrderDesc;
+      case 2: return s.planetHoppingOrderEvensOdds;
+      default: return s.planetHoppingOrderAsc;
+    }
   }
 
   void _landOnPlanet(Planet planet) {
@@ -445,6 +459,43 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
             ),
           ),
           const SizedBox(width: 16),
+          // Order mode badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: SpaceTheme.starYellow.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                  color: SpaceTheme.starYellow.withValues(alpha: 0.5)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _orderMode == 0
+                      ? Icons.arrow_upward
+                      : _orderMode == 1
+                          ? Icons.arrow_downward
+                          : Icons.swap_vert,
+                  color: SpaceTheme.starYellow,
+                  size: 14,
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  _orderMode == 0
+                      ? S.of(context)!.planetHoppingOrderAscShort
+                      : _orderMode == 1
+                          ? S.of(context)!.planetHoppingOrderDescShort
+                          : S.of(context)!.planetHoppingOrderEvensOddsShort,
+                  style: SpaceTheme.bodyStyle.copyWith(
+                      color: SpaceTheme.starYellow,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
           Semantics(
             label: S.of(context)!.a11yProgress(nextTargetIndex, targetSequence.length),
             liveRegion: true,
@@ -601,9 +652,10 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                   color: Colors.black.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: SpaceTheme.alienGreen, width: 1)),
-              child: Text(S.of(context)!.planetHoppingInstructions,
+              child: Text(_getOrderInstructions(),
                   style: SpaceTheme.bodyStyle
-                      .copyWith(fontSize: 11, color: SpaceTheme.alienGreen),
+                      .copyWith(fontSize: 13, color: SpaceTheme.alienGreen,
+                          fontWeight: FontWeight.w600),
                   textAlign: TextAlign.center),
             ),
           ),
