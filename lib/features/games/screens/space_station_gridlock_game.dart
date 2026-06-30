@@ -56,6 +56,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
   double _cellSize = 50.0;
   bool _isLoading = false;
   String _loadingStatus = '';
+  int _debugRating = 0; // 0 = not rated, 1-5 stars
   
   String? _currentPuzzleId;
   double _currentComplexity = 1.0;
@@ -1232,11 +1233,14 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                             ),
                             textAlign: TextAlign.center,
                           ),
+                          // Debug evaluation (only in debug mode)
+                          if (kDebugMode && _currentPuzzleId != null)
+                            _buildEvaluationRow(),
                         ],
                       ),
                     ),
                   ),
-                  
+
                   // Always visible button section
                   SizedBox(height: isTinyScreen ? 12 : isSmallScreen ? 16 : 24),
                   Row(
@@ -1303,12 +1307,78 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     );
   }
 
+  Widget _buildEvaluationRow() {
+    return StatefulBuilder(
+      builder: (context, setLocalState) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Rate this puzzle',
+                  style: SpaceTheme.bodyStyle.copyWith(
+                    fontSize: 11,
+                    color: SpaceTheme.starYellow,
+                  )),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (i) {
+                  final starValue = i + 1;
+                  return GestureDetector(
+                    onTap: () {
+                      setLocalState(() => _debugRating = starValue);
+                      // Save the evaluation
+                      final tracker =
+                          context.read<GridlockPuzzleTracker>();
+                      tracker.addEvaluation(PuzzleEvaluation(
+                        puzzleId: _currentPuzzleId!,
+                        movesUsed: moveCount,
+                        minMoves: minMoves,
+                        rating: starValue,
+                        playedAt: DateTime.now(),
+                      ));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Icon(
+                        starValue <= _debugRating
+                            ? Icons.star_rounded
+                            : Icons.star_border_rounded,
+                        color: starValue <= _debugRating
+                            ? SpaceTheme.starYellow
+                            : Colors.white24,
+                        size: 28,
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              if (_debugRating > 0)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    '$_currentPuzzleId: $_debugRating/5 saved',
+                    style: SpaceTheme.bodyStyle.copyWith(
+                      fontSize: 9,
+                      color: SpaceTheme.alienGreen,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _resetGame() {
     _log('🔄 Resetting game state');
     setState(() {
       particles.clear();
       highlightedCells.clear();
       draggingShipIndex = null;
+      _debugRating = 0;
     });
     
     _successController.reset();

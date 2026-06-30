@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../../core/models/skill_category.dart'; // <-- IMPORTED
+import '../../../core/models/skill_category.dart';
 import '../../../core/services/debug_provider.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../features/games/providers/game_provider.dart';
 import '../../../generated/l10n.dart';
+import '../services/gridlock_puzzle_tracker.dart';
 
 class DebugPanel extends StatefulWidget {
   const DebugPanel({super.key});
@@ -89,6 +91,34 @@ class _DebugPanelState extends State<DebugPanel> {
                 },
                 style: SpaceTheme.primaryButtonStyle,
                 label: Text(s.debugApplyAndClose),
+              ),
+              const SizedBox(height: 12),
+              // Export puzzle evaluations
+              Consumer<GridlockPuzzleTracker>(
+                builder: (context, tracker, _) {
+                  if (tracker.evaluationCount == 0) {
+                    return const SizedBox.shrink();
+                  }
+                  return ElevatedButton.icon(
+                    icon: const Icon(Icons.file_download, size: 18),
+                    onPressed: () {
+                      final json = tracker.exportEvaluationsJson();
+                      Clipboard.setData(ClipboardData(text: json));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              '${tracker.evaluationCount} evaluations copied to clipboard'),
+                          backgroundColor: SpaceTheme.alienGreen,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: SpaceTheme.nebulaPurple,
+                    ),
+                    label: Text(
+                        'Export ${tracker.evaluationCount} puzzle evaluations'),
+                  );
+                },
               ),
             ],
           ),

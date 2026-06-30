@@ -126,6 +126,41 @@ class PuzzleDatasetService {
   /// Clear the cache (e.g., after a remote update).
   void clearCache() => _cache.clear();
 
+  /// Merge evaluation ratings into a dataset. Used to update puzzle quality
+  /// scores from player evaluations collected via GridlockPuzzleTracker.
+  /// Returns the updated dataset as a JSON string for committing to the repo.
+  static String mergeEvaluations(
+    String datasetJson,
+    List<Map<String, dynamic>> evaluations,
+  ) {
+    final dataset = jsonDecode(datasetJson) as Map<String, dynamic>;
+    final puzzles = (dataset['puzzles'] as List)
+        .map((p) => Map<String, dynamic>.from(p as Map))
+        .toList();
+
+    // Build average ratings from evaluations
+    final ratingsByPuzzle = <String, List<int>>{};
+    for (final eval in evaluations) {
+      final id = eval['puzzleId'] as String;
+      final rating = eval['rating'] as int;
+      ratingsByPuzzle.putIfAbsent(id, () => []).add(rating);
+    }
+
+    // Update puzzle ratings
+    for (final puzzle in puzzles) {
+      final data = puzzle['data'] as Map<String, dynamic>?;
+      final id = data?['id'] as String?;
+      if (id != null && ratingsByPuzzle.containsKey(id)) {
+        final ratings = ratingsByPuzzle[id]!;
+        puzzle['rating'] =
+            (ratings.reduce((a, b) => a + b) / ratings.length).round();
+      }
+    }
+
+    dataset['puzzles'] = puzzles;
+    return const JsonEncoder.withIndent('  ').convert(dataset);
+  }
+
   // ─── Private loaders ────────────────────────────────────────────────
 
   Future<List<PuzzleEntry>?> _loadRemote(String gameType) async {
