@@ -1004,8 +1004,29 @@ class AdvancedCodebreakerPuzzle {
       if (symbol != null) symbolsWithVisiblePositions.add(symbol);
     }
     final hiddenSymbols = allSymbols.toSet().difference(symbolsWithVisiblePositions);
-    
-    final correctNumbersList = hiddenSymbols.map((s) => generator.solution[s]!).toList();
+
+    // Collect ALL hidden positions (even for symbols that have some visible
+    // positions elsewhere). The player needs the value in the pool for every
+    // position they must fill.
+    final allSymbolPositions = <String>{};
+    for (int i = 0; i < puzzleEquations.length; i++) {
+      final eq = puzzleEquations[i];
+      if (eq.term1 is String) allSymbolPositions.add('eq${i}_term1');
+      if (eq.term2 is String) allSymbolPositions.add('eq${i}_term2');
+      if (eq.result is String) allSymbolPositions.add('eq${i}_result');
+    }
+    final hiddenPositionIds = allSymbolPositions.difference(visiblePositions);
+
+    // Build the correct numbers list from hidden positions (not symbols).
+    // Use a Set for the pool so each distinct value appears once, but ensure
+    // every needed value is present.
+    final correctNumbersList = <int>[];
+    for (final pos in hiddenPositionIds) {
+      final symbol = _getSymbolFromPosition(puzzleEquations, pos);
+      if (symbol != null) {
+        correctNumbersList.add(generator.solution[symbol]!);
+      }
+    }
     final correctNumbersSet = correctNumbersList.toSet();
     final decoys = <int>{};
     final numberRange = generator.params['valueRange'] as List<int>;
