@@ -307,11 +307,14 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       for (final planet in planets) {
         final distanceVector = planet.position - hopper.position;
         final distance = distanceVector.distance;
-        
-        // Larger gravity field and stronger effect
+
+        // When targeting a specific planet, suppress gravity from others
+        final isTarget = _targetPlanet != null && planet.id == _targetPlanet!.id;
+        final gravityScale = _targetPlanet != null && !isTarget ? 0.1 : 1.0;
+
         if (distance < (planet.radius + 200) && distance > 1) {
           final direction = distanceVector.normalize();
-          final pullMagnitude = (gravityStrength * planet.mass * 15) / (distance * 0.05); // Much stronger
+          final pullMagnitude = (gravityStrength * planet.mass * 15) / (distance * 0.05) * gravityScale;
           gravityForce += direction * pullMagnitude;
           
           // NEW: Create visual gravity waves occasionally
@@ -565,10 +568,12 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
           }
           
           if (clickedPlanet != null) {
-            // Player clicked on a planet - fly directly to it
+            // Player clicked on a planet - fly directly to it at high speed
             _targetPlanet = clickedPlanet;
-            hopper.takeOff(clickedPlanet.position);
-            if (kDebugMode) debugPrint("[Gameplay] 🎯 Flying to planet ${clickedPlanet.id} (${clickedPlanet.answer})");
+            final dist = (clickedPlanet.position - hopper.position).distance;
+            final speed = (dist * 2.5).clamp(600.0, 2000.0);
+            hopper.takeOffFast(clickedPlanet.position, speed);
+            if (kDebugMode) debugPrint("[Gameplay] 🎯 Fast-flying to planet ${clickedPlanet.id} (speed=$speed)");
           } else {
             // Player clicked on empty space - normal takeoff
             _targetPlanet = null;
@@ -850,6 +855,13 @@ class SpaceHopper {
     final direction = (tapPosition - position).normalize();
     velocity = direction * 450;
     if (kDebugMode) debugPrint("[Physics] 🚀 New velocity: $velocity");
+  }
+
+  void takeOffFast(Offset targetPosition, double speed) {
+    isLanded = false;
+    landedOnPlanetId = null;
+    final direction = (targetPosition - position).normalize();
+    velocity = direction * speed;
   }
 }
 

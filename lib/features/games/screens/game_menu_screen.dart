@@ -194,7 +194,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
       ),
       _GameInfoData(
         gameKey: 'planet_hopping',
-        title: s.planetHopping,
+        title: s.planetHoppingTitle,
         description: s.planetHoppingDesc,
         icon: Icons.public,
         gradient: const LinearGradient(colors: [Color(0xFF667eea), Color(0xFF764ba2)]),
