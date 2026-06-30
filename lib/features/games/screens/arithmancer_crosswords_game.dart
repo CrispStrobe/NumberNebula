@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'dart:math' as math;
 
+import '../../../core/services/puzzle_evaluation_service.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
@@ -1208,6 +1209,13 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
                   Text(S.of(context)!.arithmancerCrosswordsWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(S.of(context)!.arithmancerCrosswordsWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  if (kDebugMode)
+                    DebugPuzzleRating(
+                      gameType: 'arithmancer_crosswords',
+                      puzzleId: 'cw_g${widget.grade}_l${widget.level}_${DateTime.now().millisecondsSinceEpoch}',
+                      grade: widget.grade,
+                      level: widget.level,
+                    ),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,

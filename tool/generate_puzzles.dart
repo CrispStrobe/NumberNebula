@@ -1,83 +1,122 @@
 // tool/generate_puzzles.dart
 //
-// CLI script to pre-generate puzzle datasets for CSP-heavy games.
-// Run on VPS: dart run tool/generate_puzzles.dart
+// Unified puzzle generation CLI for all CSP-heavy games.
+// Run on VPS to pre-generate puzzles, then merge into datasets.
 //
-// Output: assets/puzzles/{gameType}.json
-// These can be committed to the repo or hosted remotely.
+// Usage:
+//   dart run tool/generate_puzzles.dart starloader [--count=50] [--grade=2]
+//   dart run tool/generate_puzzles.dart crosswords [--count=5] [--grade=1]
+//   dart run tool/generate_puzzles.dart all
+//
+// Output: assets/puzzles/<game_type>.json (or merged into master DB)
 
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:space_math_academy/features/games/services/arithmancer_crosswords_logic.dart';
+import 'package:space_math_academy/features/games/services/starloader_level_generator.dart';
+import 'package:space_math_academy/features/games/services/starloader_solver.dart';
 
-/// Generate crossword puzzles for all grade/level combinations.
-Future<void> generateCrosswordPuzzles() async {
-  print('=== Generating Arithmancer Crossword Puzzles ===');
-  final puzzles = <Map<String, dynamic>>[];
-  int generated = 0;
-  int failed = 0;
-
-  for (int grade = 1; grade <= 4; grade++) {
-    // Generate for a spread of levels within each grade
-    for (int level in [1, 3, 5, 8, 10, 13, 15, 18, 20]) {
-      // Generate 3 puzzles per grade/level for variety
-      for (int variant = 0; variant < 3; variant++) {
-        try {
-          final config = CrosswordConfig.getConfig(grade, level);
-          print('  Grade $grade, Level $level, Variant $variant '
-              '(ops=${config.ops}, edges=${config.targetEdges}, '
-              'range=${config.minN}-${config.maxN})...');
-
-          final puzzle = await generateCrosswordPuzzle(config);
-
-          // Serialize the puzzle data
-          final entry = {
-            'grade': grade,
-            'level': level,
-            'ops': config.ops,
-            'rating': 3, // default rating, can be updated via evaluations
-            'data': {
-              'grid': puzzle.grid
-                  .map((row) => row.map((c) => c.toJson()).toList())
-                  .toList(),
-              'equations': puzzle.equations
-                  .map((eq) => {
-                        'terms': eq.terms,
-                        'operators': eq.operators,
-                        'result': eq.result,
-                      })
-                  .toList(),
-              'solution': puzzle.solution,
-              'clues': puzzle.clues,
-              'gridWidth': puzzle.gridWidth,
-              'gridHeight': puzzle.gridHeight,
-            },
-          };
-
-          puzzles.add(entry);
-          generated++;
-          print('    -> OK ($generated generated)');
-        } catch (e) {
-          failed++;
-          print('    -> FAILED: $e');
-        }
-      }
-    }
+void main(List<String> args) async {
+  if (args.isEmpty) {
+    print('Usage:');
+    print('  dart run tool/generate_puzzles.dart starloader [--count=50] [--grade=2]');
+    print('  dart run tool/generate_puzzles.dart crosswords [--count=5] [--grade=1]');
+    print('  dart run tool/generate_puzzles.dart all');
+    exit(0);
   }
 
-  final output = jsonEncode({'puzzles': puzzles});
-  final file = File('assets/puzzles/arithmancer_crosswords.json');
-  await file.writeAsString(output);
+  final command = args[0];
+  final flags = _parseFlags(args.skip(1).toList());
 
-  print('\n=== Done ===');
-  print('Generated: $generated, Failed: $failed');
-  print('Output: ${file.path} (${(output.length / 1024).toStringAsFixed(1)} KB)');
+  switch (command) {
+    case 'starloader':
+      await _generateStarLoader(
+        count: flags['count'] ?? 20,
+        grade: flags['grade'],
+      );
+    case 'all':
+      for (int g = 1; g <= 4; g++) {
+        await _generateStarLoader(count: 20, grade: g);
+      }
+    default:
+      print('Unknown command: $command');
+      exit(1);
+  }
 }
 
-void main() async {
-  await generateCrosswordPuzzles();
-  // Future: add other game generators here
-  // await generateCodebreakerPuzzles();
-  // await generateStarForgePuzzles();
+Map<String, int?> _parseFlags(List<String> args) {
+  final result = <String, int?>{};
+  for (final arg in args) {
+    if (arg.startsWith('--count=')) {
+      result['count'] = int.parse(arg.split('=')[1]);
+    } else if (arg.startsWith('--grade=')) {
+      result['grade'] = int.parse(arg.split('=')[1]);
+    }
+  }
+  return result;
+}
+
+/// Generate Star Loader (Frachtlader / Sokoban) puzzles.
+/// Writes new levels to a temp JSON file, then merge with:
+///   dart run tool/puzzle_merge.dart --merge-starloader <output>
+Future<void> _generateStarLoader({required int count, int? grade}) async {
+  final grades = grade != null ? [grade] : [1, 2, 3, 4];
+  final allLevels = <Map<String, dynamic>>[];
+  final generator = LevelGenerator(verbose: false);
+
+  for (final g in grades) {
+    print('=== Star Loader Grade $g ===');
+
+    int dimX, dimY, numBoxes, minPushes;
+    if (g == 1) { dimX = 7; dimY = 7; numBoxes = 2; minPushes = 6; }
+    else if (g == 2) { dimX = 8; dimY = 8; numBoxes = 3; minPushes = 9; }
+    else if (g == 3) { dimX = 10; dimY = 10; numBoxes = 3; minPushes = 13; }
+    else { dimX = 12; dimY = 11; numBoxes = 4; minPushes = 17; }
+
+    int generated = 0;
+    int attempts = 0;
+    final maxAttempts = count * 50;
+
+    while (generated < count && attempts < maxAttempts) {
+      attempts++;
+      try {
+        final result = generator.generateLevel(
+          dimX: dimX,
+          dimY: dimY,
+          numBoxes: numBoxes,
+          maxTries: 5,
+          minOptimalPushes: minPushes,
+        );
+
+        allLevels.add({
+          'id': 'gen_g${g}_${DateTime.now().millisecondsSinceEpoch}_$generated',
+          'difficulty': 'grade_$g',
+          'dimX': dimX,
+          'dimY': dimY,
+          'roomStructure': result.roomStructure,
+          'roomState': result.roomState,
+          'optimalMoves': result.optimalMoves,
+          'avgRating': 0.0,
+          'ratingCount': 0,
+        });
+        generated++;
+        stdout.write('\r  Generated $generated/$count (attempts: $attempts)');
+      } catch (_) {
+        // Generation failed, retry
+      }
+    }
+    print('\n  Done: $generated levels in $attempts attempts');
+  }
+
+  // Write output
+  final outputPath = '/tmp/starloader_generated_${DateTime.now().millisecondsSinceEpoch}.json';
+  final output = const JsonEncoder.withIndent('  ').convert({
+    'levels': allLevels,
+  });
+  File(outputPath).writeAsStringSync(output);
+
+  print('\nTotal: ${allLevels.length} levels');
+  print('Output: $outputPath');
+  print('\nTo merge into master DB:');
+  print('  dart run tool/puzzle_merge.dart --merge-starloader $outputPath');
 }

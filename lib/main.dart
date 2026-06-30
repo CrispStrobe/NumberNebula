@@ -22,6 +22,7 @@ import 'core/theme/space_theme.dart';
 // --- PROVIDERS & MODELS ---
 import 'features/games/providers/game_provider.dart';
 import 'features/missions/providers/mission_provider.dart';
+import 'core/services/puzzle_evaluation_service.dart';
 
 // --- SCREENS ---
 import 'features/home/screens/home_screen.dart';
@@ -101,6 +102,7 @@ void main() async {
 
   final missionProvider = MissionProvider();
   await missionProvider.loadSaved();
+  await PuzzleEvaluationService.instance.load();
 
   runApp(
     MultiProvider(

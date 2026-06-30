@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'package:dart_csp/dart_csp.dart';
 import '../mixins/game_animations_mixin.dart';
 
+import '../../../core/services/puzzle_evaluation_service.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
@@ -1083,6 +1084,13 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
                   Text(S.of(context)!.arithmeticSquareWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(S.of(context)!.arithmeticSquareWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  if (kDebugMode)
+                    DebugPuzzleRating(
+                      gameType: 'arithmatic_square',
+                      puzzleId: 'sq_g${widget.grade}_l${widget.level}_${DateTime.now().millisecondsSinceEpoch}',
+                      grade: widget.grade,
+                      level: widget.level,
+                    ),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,

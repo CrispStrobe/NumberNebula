@@ -6,6 +6,7 @@ import '../../../core/services/debug_provider.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../features/games/providers/game_provider.dart';
 import '../../../generated/l10n.dart';
+import '../../../core/services/puzzle_evaluation_service.dart';
 import '../services/gridlock_puzzle_tracker.dart';
 
 class DebugPanel extends StatefulWidget {
@@ -93,21 +94,29 @@ class _DebugPanelState extends State<DebugPanel> {
                 label: Text(s.debugApplyAndClose),
               ),
               const SizedBox(height: 12),
-              // Export puzzle evaluations
-              Consumer<GridlockPuzzleTracker>(
-                builder: (context, tracker, _) {
-                  if (tracker.evaluationCount == 0) {
-                    return const SizedBox.shrink();
-                  }
+              // Export puzzle evaluations (all games)
+              Builder(
+                builder: (context) {
+                  final evalService = PuzzleEvaluationService.instance;
+                  final gridlockTracker = context.read<GridlockPuzzleTracker>();
+                  final totalCount = evalService.count + gridlockTracker.evaluationCount;
+                  if (totalCount == 0) return const SizedBox.shrink();
                   return ElevatedButton.icon(
                     icon: const Icon(Icons.file_download, size: 18),
                     onPressed: () {
-                      final json = tracker.exportEvaluationsJson();
+                      // Merge both evaluation sources
+                      final allEvals = <String>[];
+                      if (evalService.count > 0) {
+                        allEvals.add('"general": ${evalService.exportJson()}');
+                      }
+                      if (gridlockTracker.evaluationCount > 0) {
+                        allEvals.add('"gridlock": ${gridlockTracker.exportEvaluationsJson()}');
+                      }
+                      final json = '{${allEvals.join(', ')}}';
                       Clipboard.setData(ClipboardData(text: json));
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(
-                              '${tracker.evaluationCount} evaluations copied to clipboard'),
+                          content: Text('$totalCount evaluations copied'),
                           backgroundColor: SpaceTheme.alienGreen,
                         ),
                       );
@@ -115,8 +124,7 @@ class _DebugPanelState extends State<DebugPanel> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: SpaceTheme.nebulaPurple,
                     ),
-                    label: Text(
-                        'Export ${tracker.evaluationCount} puzzle evaluations'),
+                    label: Text('Export $totalCount puzzle evaluations'),
                   );
                 },
               ),
