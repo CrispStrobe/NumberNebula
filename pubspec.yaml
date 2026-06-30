@@ -66,6 +66,7 @@ flutter:
     - assets/images/
     - assets/fonts/
     - assets/data/starloader_levels.json
+    - assets/puzzles/
     
   fonts:
     - family: SpaceGrotesk

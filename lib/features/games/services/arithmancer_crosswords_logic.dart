@@ -471,10 +471,10 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
   dynamic solution;
   PuzzleParser? successfulPuzzle;
   Map<String, int> finalClues = {};
-  const maxAttempts = 50; // Reduced from 100
-  
+  const maxAttempts = 30;
+
   final totalStopwatch = Stopwatch()..start();
-  const maxTotalSeconds = 6; // Hard limit
+  const maxTotalSeconds = 10; // Allow more total time since individual solves are faster
 
   for (int attempt = 1; attempt <= maxAttempts; attempt++) {
     if (totalStopwatch.elapsed.inSeconds >= maxTotalSeconds) {
@@ -567,7 +567,7 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
     }
     if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> Clues: $clues");
 
-    // STEP 3: Solve CSP
+    // STEP 3: Solve CSP using built-in constraints for better propagation
     debugPrint("🔧 [GENERATOR] [3] Solving CSP (timeout: ${config.timeoutSeconds}s)...");
     final p = Problem();
     final fullDomain = List<int>.generate(config.maxN - config.minN + 1, (i) => i + config.minN);
@@ -581,25 +581,37 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
         p.addVariable(varName, fullDomain);
       }
     }
+
+    // Use built-in constraints where possible for proper domain propagation.
+    // Lambda constraints are opaque to the solver; built-in ones enable
+    // arc-consistency filtering that prunes the search tree dramatically.
     for (final eq in puzzle.equations) {
-      p.addConstraint(eq.variableNames, (assignment) {
-        final a = assignment[eq.variableNames[0]];
-        final b = assignment[eq.variableNames[1]];
-        final c = assignment[eq.variableNames[2]];
-        if (a == null || b == null || c == null) return false;
-        switch (eq.operator) {
-          case '+':
-            return a + b == c;
-          case '−':
-            return a - b == c;
-          case '×':
-            return a * b == c;
-          case '÷':
-            return b != 0 && a % b == 0 && a ~/ b == c;
-          default:
-            return false;
-        }
-      });
+      final vars = eq.variableNames;
+      switch (eq.operator) {
+        case '+':
+          // a + b = c  →  1·a + 1·b + (-1)·c = 0
+          p.addExactSum(vars, 0, multipliers: [1, 1, -1]);
+          break;
+        case '−':
+          // a - b = c  →  1·a + (-1)·b + (-1)·c = 0
+          p.addExactSum(vars, 0, multipliers: [1, -1, -1]);
+          break;
+        case '×':
+          // a × b = c  — no linear built-in; use lambda but keep it tight
+          p.addConstraint(vars, (a) {
+            final x = a[vars[0]], y = a[vars[1]], z = a[vars[2]];
+            return x != null && y != null && z != null && x * y == z;
+          });
+          break;
+        case '÷':
+          // a ÷ b = c  — lambda with divisibility check
+          p.addConstraint(vars, (a) {
+            final x = a[vars[0]], y = a[vars[1]], z = a[vars[2]];
+            return x != null && y != null && z != null &&
+                   y != 0 && x % y == 0 && x ~/ y == z;
+          });
+          break;
+      }
     }
     if (config.noDups) {
       p.addAllDifferent(allVarNames);
@@ -607,8 +619,14 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
 
     final solveStopwatch = Stopwatch()..start();
     try {
+      // Use restarts + dom/wdeg heuristic for much faster solving on
+      // hard instances. Falls back gracefully on easy ones.
       final potentialSolution = await p
-          .getSolution()
+          .getSolutionWithRestarts(
+            useDomWdeg: true,
+            scale: 50,
+            maxRestarts: 200,
+          )
           .timeout(Duration(seconds: config.timeoutSeconds));
       solveStopwatch.stop();
 
