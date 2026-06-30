@@ -154,7 +154,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
     return [
       _GameInfoData(
         gameKey: 'magic_triangles',
-        title: s.magicTriangles,
+        title: s.magicTrianglesGameTitle,
         description: s.magicTrianglesDesc,
         icon: Icons.change_history,
         gradient: const LinearGradient(colors: [SpaceTheme.nebulaPurple, SpaceTheme.cosmicPink]),
@@ -202,7 +202,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
       ),
       _GameInfoData(
         gameKey: 'number_walls',
-        title: s.numberWalls,
+        title: s.numberWallsGameTitle,
         description: s.numberWallsDesc,
         icon: Icons.view_module,
         gradient: const LinearGradient(colors: [Color(0xFFf97794), Color(0xFF623aa2)]),
