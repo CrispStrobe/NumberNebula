@@ -919,11 +919,13 @@ class _SettingsScreenState extends State<SettingsScreen>
             future: PackageInfo.fromPlatform(),
             builder: (context, snap) {
               const gitHash = String.fromEnvironment('GIT_HASH');
-              final version = snap.data?.version ?? '…';
-              final v = gitHash.isNotEmpty
-                  ? '$version ($gitHash)'
-                  : version;
-              return _buildInfoRow(s.appVersion, v);
+              final version = snap.data?.version ?? '1.2.0';
+              final debugMode = context.read<DebugProvider>().isDebugMenuEnabled;
+              final parts = <String>[version];
+              if (gitHash.isNotEmpty) parts.add(gitHash);
+              if (kDebugMode) parts.add('debug-build');
+              if (debugMode) parts.add('dev-mode');
+              return _buildInfoRow(s.appVersion, parts.join(' | '));
             },
           ),
           _buildInfoRow(s.developer, s.developerName), // Using ARB string

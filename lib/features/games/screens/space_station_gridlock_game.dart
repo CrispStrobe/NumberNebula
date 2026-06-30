@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
+import '../../../core/services/debug_provider.dart';
 import '../models/game_outcome.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -1234,7 +1235,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                             textAlign: TextAlign.center,
                           ),
                           // Debug evaluation (only in debug mode)
-                          if (kDebugMode && _currentPuzzleId != null)
+                          if (context.read<DebugProvider>().isDebugMenuEnabled && _currentPuzzleId != null)
                             _buildEvaluationRow(),
                         ],
                       ),

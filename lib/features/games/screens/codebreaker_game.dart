@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
 
+import '../../../core/services/debug_provider.dart';
 import '../../../core/services/puzzle_evaluation_service.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -1279,7 +1280,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
                   Text(S.of(context)!.codebreakerWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(S.of(context)!.codebreakerWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
-                  if (kDebugMode)
+                  if (context.read<DebugProvider>().isDebugMenuEnabled)
                     DebugPuzzleRating(
                       gameType: 'codebreaker',
                       puzzleId: 'cb_g${widget.grade}_l${widget.level}_${DateTime.now().millisecondsSinceEpoch}',

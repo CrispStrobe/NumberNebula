@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
 
+import '../../../core/services/debug_provider.dart';
 import '../../../core/services/puzzle_evaluation_service.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -411,7 +412,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                   const SizedBox(height: 16),
                   Text(s.alienTribunalWinDesc(totalScore),
                       style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
-                  if (kDebugMode)
+                  if (context.read<DebugProvider>().isDebugMenuEnabled)
                     DebugPuzzleRating(
                       gameType: 'alien_tribunal',
                       puzzleId: 'at_g${widget.grade}_l${widget.level}_${DateTime.now().millisecondsSinceEpoch}',
