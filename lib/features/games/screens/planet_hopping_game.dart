@@ -225,8 +225,19 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
   // ### END: MODIFIED PLANET GENERATION LOGIC ###
 
-  /// 0 = ascending, 1 = descending, 2 = evens-first-then-odds
-  int get _orderMode => widget.level % 3;
+  /// Order mode gates by grade (primary), not level:
+  ///   Grade 1: always ascending (simplest)
+  ///   Grade 2: ascending for levels 1-10, descending for 11-20
+  ///   Grade 3: ascending or descending (alternating by level)
+  ///   Grade 4: all three modes rotating (asc, desc, evens-then-odds)
+  int get _orderMode {
+    final g = widget.grade.clamp(1, 4);
+    final l = widget.level;
+    if (g <= 1) return 0; // always ascending
+    if (g <= 2) return l <= 10 ? 0 : 1; // asc, then desc
+    if (g <= 3) return l % 2 == 1 ? 0 : 1; // alternate asc/desc
+    return (l - 1) % 3; // 0=asc, 1=desc, 2=evens-odds
+  }
 
   void _generateTargetSequence() {
     targetSequence = planets.map((p) => p.answer).toList();
