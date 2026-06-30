@@ -512,15 +512,13 @@ class AdvancedPuzzleGenerator {
       });
     }
     
-    // Add uniqueness constraints for symbols only
-    for (int i = 0; i < symbols.length; i++) {
-      for (int j = i + 1; j < symbols.length; j++) {
-        p.addConstraint([symbols[i], symbols[j]], (a, b) => a != b);
-      }
+    // All symbols must have different values
+    if (symbols.length > 1) {
+      p.addAllDifferent(symbols);
     }
     
     try {
-      final result = await p.getSolution();
+      final result = await p.getSolutionWithRestarts(useDomWdeg: true, scale: 50, maxRestarts: 100);
       if (result is Map<String, dynamic>) {
         return result.cast<String, int>();
       }
@@ -628,50 +626,41 @@ class AdvancedPuzzleGenerator {
       p.addVariable(symbol, domain);
     }
     
-    // Add equation constraints (3 variables - use Map signature)
+    // Add equation constraints — use built-in exactSum for +/- (better
+    // propagation), lambdas for * and / (no linear built-in).
     for (final eq in equations) {
-      p.addConstraint([eq.term1 as String, eq.term2 as String, eq.result as String], (assignment) {
-        final a = assignment[eq.term1];
-        final b = assignment[eq.term2];
-        final c = assignment[eq.result];
-        if (a == null || b == null || c == null) return false;
-        
-        int calculatedResult;
-        switch (eq.op) {
-          case '+':
-            calculatedResult = a + b;
-            break;
-          case '-':
-            calculatedResult = a - b;
-            break;
-          case '*':
-            calculatedResult = a * b;
-            break;
-          case '/':
-            if (b == 0 || a % b != 0) return false;
-            calculatedResult = a ~/ b;
-            break;
-          default:
-            return false;
-        }
-        
-        // Ensure the calculated result is within domain AND matches the result variable
-        return calculatedResult >= valueRange[0] && 
-              calculatedResult <= valueRange[1] && 
-              calculatedResult == c;
-      });
-    }
-    
-    // FIX: Add pairwise constraints using direct function signature for 2 variables
-    for (int i = 0; i < symbols.length; i++) {
-      for (int j = i + 1; j < symbols.length; j++) {
-        p.addConstraint([symbols[i], symbols[j]], (a, b) => a != b);
+      final vars = [eq.term1 as String, eq.term2 as String, eq.result as String];
+      switch (eq.op) {
+        case '+':
+          p.addExactSum(vars, 0, multipliers: [1, 1, -1]);
+          break;
+        case '-':
+          p.addExactSum(vars, 0, multipliers: [1, -1, -1]);
+          break;
+        case '*':
+          p.addConstraint(vars, (a) {
+            final x = a[vars[0]], y = a[vars[1]], z = a[vars[2]];
+            return x != null && y != null && z != null && x * y == z;
+          });
+          break;
+        case '/':
+          p.addConstraint(vars, (a) {
+            final x = a[vars[0]], y = a[vars[1]], z = a[vars[2]];
+            return x != null && y != null && z != null &&
+                   y != 0 && x % y == 0 && x ~/ y == z;
+          });
+          break;
       }
+    }
+
+    // All symbols must have different values
+    if (symbols.length > 1) {
+      p.addAllDifferent(symbols);
     }
     
     // Solve with CSP
     try {
-      final result = await p.getSolution();
+      final result = await p.getSolutionWithRestarts(useDomWdeg: true, scale: 50, maxRestarts: 100);
       if (result is Map<String, dynamic>) {
         return result.cast<String, int>();
       }

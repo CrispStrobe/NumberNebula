@@ -1603,7 +1603,11 @@ class ArithmeticSquareGenerator {
     if (kDebugMode) debugPrint("🔧 [CSP] Solving with ${gridSize * gridSize} variables...");
     
     try {
-      final solution = await p.getSolution().timeout(const Duration(seconds: 30));
+      final solution = await p.getSolutionWithRestarts(
+        useDomWdeg: true,
+        scale: 50,
+        maxRestarts: 200,
+      ).timeout(const Duration(seconds: 15));
       
       if (solution == 'FAILURE') {
         if (kDebugMode) debugPrint("🔧 [CSP] ❌ No solution found");

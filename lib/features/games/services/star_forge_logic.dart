@@ -213,23 +213,19 @@ class StarForgeGenerator {
     possibleMagics.shuffle(_random);
     final targetMagic = possibleMagics.first;
 
-    // Add line sum constraints
+    // Add line sum constraints using built-in exactSum for proper propagation
     for (final line in lines) {
       final lineVars = line.map((i) => varNames[i]).toList();
-      problem.addConstraint(lineVars, (assignment) {
-        int sum = 0;
-        for (final v in lineVars) {
-          final val = assignment[v];
-          if (val == null) return true; // partial assignment
-          sum += val as int;
-        }
-        return sum == targetMagic;
-      });
+      problem.addExactSum(lineVars, targetMagic);
     }
 
     try {
-      final result = await problem.getSolution().timeout(
-        const Duration(seconds: 3),
+      final result = await problem.getSolutionWithRestarts(
+        useDomWdeg: true,
+        scale: 50,
+        maxRestarts: 100,
+      ).timeout(
+        const Duration(seconds: 5),
         onTimeout: () => 'TIMEOUT',
       );
 
