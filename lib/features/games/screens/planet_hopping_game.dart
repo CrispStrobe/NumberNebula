@@ -225,43 +225,28 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
   // ### END: MODIFIED PLANET GENERATION LOGIC ###
 
-  /// Order mode gates by grade (primary), not level:
-  ///   Grade 1: always ascending (simplest)
-  ///   Grade 2: ascending for levels 1-10, descending for 11-20
-  ///   Grade 3: ascending or descending (alternating by level)
-  ///   Grade 4: all three modes rotating (asc, desc, evens-then-odds)
+  /// Order mode: 0 = ascending, 1 = descending.
+  /// Grade 1: always ascending.
+  /// Grade 2+: ascending for odd levels, descending for even levels.
   int get _orderMode {
-    final g = widget.grade.clamp(1, 4);
-    final l = widget.level;
-    if (g <= 1) return 0; // always ascending
-    if (g <= 2) return l <= 10 ? 0 : 1; // asc, then desc
-    if (g <= 3) return l % 2 == 1 ? 0 : 1; // alternate asc/desc
-    return (l - 1) % 3; // 0=asc, 1=desc, 2=evens-odds
+    if (widget.grade <= 1) return 0;
+    return widget.level % 2 == 1 ? 0 : 1;
   }
 
   void _generateTargetSequence() {
     targetSequence = planets.map((p) => p.answer).toList();
-    switch (_orderMode) {
-      case 0: targetSequence.sort(); break; // Ascending
-      case 1: targetSequence.sort((a, b) => b.compareTo(a)); break; // Descending
-      case 2:
-        final evens = targetSequence.where((n) => n % 2 == 0).toList()..sort();
-        final odds = targetSequence.where((n) => n % 2 == 1).toList()..sort();
-        targetSequence = [...evens, ...odds];
-        break;
+    if (_orderMode == 1) {
+      targetSequence.sort((a, b) => b.compareTo(a)); // Descending
+    } else {
+      targetSequence.sort(); // Ascending
     }
     nextTargetIndex = 0;
-    if (kDebugMode) debugPrint("[Gameplay] 🎯 New target sequence (mode $_orderMode): $targetSequence");
+    if (kDebugMode) debugPrint("[Gameplay] 🎯 Target sequence (${_orderMode == 0 ? 'asc' : 'desc'}): $targetSequence");
   }
 
   String _getOrderInstructions() {
     final s = S.of(context)!;
-    switch (_orderMode) {
-      case 0: return s.planetHoppingOrderAsc;
-      case 1: return s.planetHoppingOrderDesc;
-      case 2: return s.planetHoppingOrderEvensOdds;
-      default: return s.planetHoppingOrderAsc;
-    }
+    return _orderMode == 0 ? s.planetHoppingOrderAsc : s.planetHoppingOrderDesc;
   }
 
   void _landOnPlanet(Planet planet) {
@@ -483,11 +468,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  _orderMode == 0
-                      ? Icons.arrow_upward
-                      : _orderMode == 1
-                          ? Icons.arrow_downward
-                          : Icons.swap_vert,
+                  _orderMode == 0 ? Icons.arrow_upward : Icons.arrow_downward,
                   color: SpaceTheme.starYellow,
                   size: 14,
                 ),
@@ -495,9 +476,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
                 Text(
                   _orderMode == 0
                       ? S.of(context)!.planetHoppingOrderAscShort
-                      : _orderMode == 1
-                          ? S.of(context)!.planetHoppingOrderDescShort
-                          : S.of(context)!.planetHoppingOrderEvensOddsShort,
+                      : S.of(context)!.planetHoppingOrderDescShort,
                   style: SpaceTheme.bodyStyle.copyWith(
                       color: SpaceTheme.starYellow,
                       fontSize: 10,
