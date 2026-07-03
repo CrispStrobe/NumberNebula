@@ -36,6 +36,11 @@ class _SettingsScreenState extends State<SettingsScreen>
   String currentLocale = 'en'; // Safe default - NO CONTEXT ACCESS
   bool _isLoading = false;
   bool _hasLoadedLocale = false; // Track if we've loaded the locale yet
+
+  // Star Loader generator settings (debug-only card). Defaults mirror
+  // StarLoaderLevelManager: new Sokoban generator primary, pool preferred.
+  bool _useSokobanGen = true;
+  bool _preferPregenerated = true;
   
   @override
   void initState() {
@@ -142,6 +147,11 @@ class _SettingsScreenState extends State<SettingsScreen>
 
       final multSymbol = prefs.getString('multiplication_symbol') ?? '×';
       final divSymbol = prefs.getString('division_symbol') ?? '÷';
+
+      // Star Loader generator toggles (debug-only card).
+      final useSokobanGen = prefs.getBool('starloader_use_sokoban_gen') ?? true;
+      final preferPregenerated =
+          prefs.getBool('starloader_prefer_pregenerated') ?? true;
       
       if (kDebugMode) debugPrint("[SETTINGS] 🔊 Sound enabled: $soundEnabled");
       debugPrint("[SETTINGS] 🎵 Music enabled: $musicEnabled");
@@ -164,7 +174,12 @@ class _SettingsScreenState extends State<SettingsScreen>
         gameProvider.setCustomRange(min: customMin, max: customMax);
         gameProvider.setMultiplicationSymbol(multSymbol);
         gameProvider.setDivisionSymbol(divSymbol);
-        
+
+        setState(() {
+          _useSokobanGen = useSokobanGen;
+          _preferPregenerated = preferPregenerated;
+        });
+
         if (kDebugMode) debugPrint("[SETTINGS] ✅ Applied settings to GameProvider");
       }
       
@@ -201,6 +216,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                       const SizedBox(height: 20),
                       _buildProgressSettings(),
                       const SizedBox(height: 20),
+                      _buildStarLoaderDevSettings(),
                       _buildAboutSection(),
                     ],
                   ),
@@ -905,6 +921,57 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
   
+  /// Debug-only card: choose the Star Loader level generator and whether to
+  /// prefer the pre-generated pool. Only visible once dev mode is unlocked
+  /// (7 taps on the home title). Not localized — developer tooling.
+  ///
+  /// Keys mirror StarLoaderLevelManager.prefUseSokobanGen /
+  /// prefPreferPregenerated; the manager re-reads them before every level.
+  Widget _buildStarLoaderDevSettings() {
+    return Consumer<DebugProvider>(
+      builder: (context, debugProvider, child) {
+        if (!debugProvider.isDebugMenuEnabled) {
+          return const SizedBox.shrink();
+        }
+        return Column(
+          children: [
+            _buildSettingsCard(
+              title: 'Star Loader (Dev)',
+              icon: Icons.developer_mode,
+              children: [
+                _buildSwitchTile(
+                  title: 'New Sokoban generator',
+                  subtitle: _useSokobanGen
+                      ? 'Primary: difficulty-scaled reverse-play generator'
+                      : 'Using the legacy reverse-play generator',
+                  value: _useSokobanGen,
+                  onChanged: (value) {
+                    setState(() => _useSokobanGen = value);
+                    _saveSetting('starloader_use_sokoban_gen', value);
+                  },
+                  icon: Icons.auto_fix_high,
+                ),
+                _buildSwitchTile(
+                  title: 'Prefer pre-generated levels',
+                  subtitle: _preferPregenerated
+                      ? 'Use the curated pool first, generate as fallback'
+                      : 'Skip the pool — always generate a fresh level',
+                  value: _preferPregenerated,
+                  onChanged: (value) {
+                    setState(() => _preferPregenerated = value);
+                    _saveSetting('starloader_prefer_pregenerated', value);
+                  },
+                  icon: Icons.inventory_2,
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildAboutSection() {
     // Get the S instance
     final s = S.of(context)!;

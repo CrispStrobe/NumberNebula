@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/starloader_level_model.dart';
 import 'starloader_level_generator.dart';
+import 'sokoban_generator.dart' as sokoban;
 import '../screens/star_loader_game.dart';
 
 class StarLoaderLevelManager {
@@ -16,11 +17,21 @@ class StarLoaderLevelManager {
   factory StarLoaderLevelManager() => _instance;
   StarLoaderLevelManager._internal();
 
+  // --- Generator-selection settings (persisted; read from SharedPreferences so
+  // they take effect on the next level without an app restart). Defaults make
+  // the new difficulty-parametrized Sokoban generator the PRIMARY generator and
+  // prefer the curated pre-generated pool. Both are toggled from the debug-only
+  // Star Loader dev card in Settings.
+  static const String prefUseSokobanGen = 'starloader_use_sokoban_gen';
+  static const String prefPreferPregenerated = 'starloader_prefer_pregenerated';
+  bool _useSokobanGenerator = true;
+  bool _preferPregenerated = true;
+
   LevelDatabase _database = LevelDatabase.empty();
-  
+
   // Verbose generator so you see the logs in CLI
   final LevelGenerator _realTimeGenerator = LevelGenerator(verbose: true);
-  
+
   final Set<String> _playedLevelIds = {};
   bool _initialized = false;
   File? _localFile;
@@ -93,23 +104,41 @@ class StarLoaderLevelManager {
     }
   }
 
+  /// Re-read the generator-selection toggles from SharedPreferences. Cheap
+  /// (the plugin caches the instance) and called before every selection so the
+  /// debug settings apply to the very next level.
+  Future<void> _refreshGeneratorSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _useSokobanGenerator = prefs.getBool(prefUseSokobanGen) ?? true;
+      _preferPregenerated = prefs.getBool(prefPreferPregenerated) ?? true;
+    } catch (e) {
+      print('⚠️ [Manager] Failed to read generator settings: $e');
+    }
+  }
+
   /// 2. GET LEVEL: DB First -> Fallback to Generate -> Save -> Return
   Future<LevelData> getLevelForGrade(int grade, int difficultyLevel) async {
     if (!_initialized) await initialize();
+    await _refreshGeneratorSettings();
 
     final difficultyKey = 'grade_$grade';
     LevelEntry? selectedEntry;
 
-    // --- STRATEGY A: LOOK IN LOCAL JSON ---
+    // --- STRATEGY A: LOOK IN THE PRE-GENERATED POOL ---
+    // Skipped entirely when the user turned off "prefer pre-generated levels"
+    // (debug setting) — then we always generate a fresh level directly.
     // Filter candidates:
     // 1. Must match grade
     // 2. Must NOT have been played yet
     // 3. Must NOT have been rated (Rating = user is done with it)
-    final candidates = _database.levels.where((l) => 
-      l.difficulty == difficultyKey && 
-      !_playedLevelIds.contains(l.id) && 
-      l.ratingCount == 0 
-    ).toList();
+    final candidates = !_preferPregenerated
+        ? <LevelEntry>[]
+        : _database.levels.where((l) =>
+            l.difficulty == difficultyKey &&
+            !_playedLevelIds.contains(l.id) &&
+            l.ratingCount == 0
+          ).toList();
 
     if (candidates.isNotEmpty) {
       // Sort by Rating (High to Low)
@@ -133,8 +162,11 @@ class StarLoaderLevelManager {
 
     // --- STRATEGY B: GENERATE NEW ---
     if (selectedEntry == null) {
-      print('🔧 [Manager] Pool empty. Generating new level (Grade $grade)...');
-      
+      final why = _preferPregenerated ? 'Pool empty' : 'Pool skipped (setting)';
+      final gen = _useSokobanGenerator ? 'sokoban' : 'legacy';
+      print('🔧 [Manager] $why. Generating new level '
+          '(Grade $grade, $gen generator)...');
+
       selectedEntry = _generateRealTimeEntry(grade, difficultyLevel);
       
       // SAVE TO DB IMMEDIATELY
@@ -226,6 +258,56 @@ class StarLoaderLevelManager {
   }
 
   LevelEntry _generateRealTimeEntry(int grade, int level) {
+    if (_useSokobanGenerator) {
+      return _generateSokobanEntry(grade, level);
+    }
+    return _generateLegacyEntry(grade, level);
+  }
+
+  /// Map a Star Loader grade (1..4) + in-grade progression to a Sokoban
+  /// generator difficulty (1..10). Tuned so BOX COUNTS match the legacy
+  /// per-grade sizing (2,3,3,4) and push counts sit in the same envelope —
+  /// the new generator's win is richer levels (more forced ordering / detours)
+  /// at a comparable length, not a harder game.
+  ///   g1→d2 (2 boxes) · g2→d3 (3) · g3→d4 (3) · g4→d5 (4)
+  int _gradeToSokobanDifficulty(int grade, int level) {
+    const base = {1: 2, 2: 3, 3: 4, 4: 5};
+    final b = base[grade] ?? 5;
+    // Nudge difficulty up as the player progresses within a grade.
+    final bump = (level ~/ 4).clamp(0, 2);
+    return (b + bump).clamp(1, 10);
+  }
+
+  /// PRIMARY generator: the difficulty-parametrized reverse-play + A* Sokoban
+  /// generator (lib/features/games/services/sokoban_generator.dart). Falls back
+  /// to the legacy generator on the rare occasion generation can't hit a level
+  /// within its time budget (so a level is always returned).
+  LevelEntry _generateSokobanEntry(int grade, int level) {
+    final difficulty = _gradeToSokobanDifficulty(grade, level);
+    try {
+      // Bounded time so a hard grade can't hang the UI; best-effort otherwise.
+      final entry = sokoban.generateStarLoaderEntry(
+        difficulty: difficulty,
+        timeBudget: 6.0,
+      );
+      return LevelEntry(
+        id: 'sok_${DateTime.now().millisecondsSinceEpoch}',
+        difficulty: 'grade_$grade',
+        dimX: entry.dimX,
+        dimY: entry.dimY,
+        roomStructure: entry.roomStructure,
+        roomState: entry.roomState,
+        optimalMoves: entry.optimalMoves,
+      );
+    } catch (e) {
+      print('⚠️ [Manager] Sokoban generation failed ($e); '
+          'falling back to legacy generator.');
+      return _generateLegacyEntry(grade, level);
+    }
+  }
+
+  /// LEGACY generator (kept for A/B comparison via the debug toggle).
+  LevelEntry _generateLegacyEntry(int grade, int level) {
     int dimX, dimY, numBoxes, minPushes;
     if (grade == 1) { dimX = 7; dimY = 7; numBoxes = 2; minPushes = 6; }
     else if (grade == 2) { dimX = 8; dimY = 8; numBoxes = 3; minPushes = 9; }
