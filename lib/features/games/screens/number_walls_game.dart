@@ -1585,10 +1585,14 @@ class _NumberWallGenerator {
         }
       }
     }
-    while (decoys.length < decoyCount) {
-      decoys.add(1 + math.Random().nextInt(20));
+    if (decoys.length < decoyCount) {
+      final available = [
+        for (var v = 1; v <= 20; v++)
+          if (!decoys.contains(v) && !hiddenNumbers.contains(v)) v
+      ]..shuffle();
+      decoys.addAll(available.take(decoyCount - decoys.length));
     }
-    
+
     return decoys.toList();
   }
 

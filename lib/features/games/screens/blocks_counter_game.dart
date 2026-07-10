@@ -193,7 +193,8 @@ class BlockCountingPuzzle {
     final correctAnswer = blocks.length;
     final choices = {correctAnswer};
     final variance = math.max(2, (difficulty + 2));
-    while (choices.length < 4) {
+    var guard = 0;
+    while (choices.length < 4 && guard++ < 500) {
       int offset = random.nextInt(variance) + 1;
       choices.add(math.max(1, correctAnswer + (random.nextBool() ? 1 : -1) * offset));
     }
@@ -493,8 +494,12 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
                     // For portrait (tall layout), use 45% of the available height.
                     // For landscape (wide layout), use a larger portion (e.g., 75%).
                     // We also clamp the value to ensure it's never too small or large.
+                    // The wide (landscape) column also stacks a question label
+                    // above this container, so reserve headroom — a 0.75 factor
+                    // with a 300 floor overflowed the short landscape height by
+                    // a few pixels.
                     final double containerHeight = isWide
-                        ? (availableHeight * 0.75).clamp(300.0, 500.0)
+                        ? (availableHeight * 0.68).clamp(240.0, 500.0)
                         : (availableHeight * 0.45).clamp(250.0, 400.0);
 
                     // Pass the calculated height to the layout methods.

@@ -120,7 +120,11 @@ class SpaceTheme {
         brightness: Brightness.light,
       ),
       fontFamily: 'SpaceGrotesk',
-      
+
+      // Visible keyboard-focus indicator for InkWell/IconButton and other
+      // Material tap targets (a11y: keyboard / switch-access navigation).
+      focusColor: starYellow.withValues(alpha: 0.35),
+
       // App Bar Theme
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,

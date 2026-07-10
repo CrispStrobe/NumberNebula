@@ -521,7 +521,8 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   List<PerspectiveView> _generateDecoys(PerspectiveView correctView, int count) {
     final decoys = <PerspectiveView>{};
     final random = math.Random();
-    while (decoys.length < count) {
+    var guard = 0;
+    while (decoys.length < count && guard++ < 500) {
         var newView = correctView.map(List<Block?>.from).toList();
         int modType = random.nextInt(3);
         if (modType == 0 && newView.isNotEmpty && newView[0].length > 1) {

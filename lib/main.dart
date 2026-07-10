@@ -81,14 +81,44 @@ final DebugProvider debugProvider = DebugProvider();
 final AudioService audioService = AudioService();
 final StreakService streakService = StreakService();
 
+/// Locks landscape on phones and allows every orientation on tablets.
+///
+/// Uses the device's shortest side (which is orientation-independent) to tell
+/// phones from tablets — ~600dp is the conventional breakpoint. If the view
+/// size isn't known yet, it falls back to the phone (landscape-only) policy.
+/// Note that iPads with multitasking enabled ignore a landscape lock anyway, so
+/// this mainly makes the intent explicit and keeps portrait-capable tablets
+/// rotating freely.
+Future<void> _applyOrientationPolicy() async {
+  final views = WidgetsBinding.instance.platformDispatcher.views;
+  var shortestSideDp = 0.0;
+  if (views.isNotEmpty && views.first.devicePixelRatio > 0) {
+    final v = views.first;
+    shortestSideDp = v.physicalSize.shortestSide / v.devicePixelRatio;
+  }
+  final isTablet = shortestSideDp >= 600;
+  await SystemChrome.setPreferredOrientations(
+    isTablet
+        ? const [
+            DeviceOrientation.portraitUp,
+            DeviceOrientation.portraitDown,
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ]
+        : const [
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ],
+  );
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-  ]);
+  // Orientation policy: the games are laid out landscape-first, which fits an
+  // iPhone but wastes an iPad's screen — and iPads have room to work in portrait
+  // too. So lock landscape on phones only; let tablets rotate freely.
+  await _applyOrientationPolicy();
 
   // Install crash logger before anything else so we catch init failures.
   await CrashLogger.instance.init();
@@ -139,6 +169,10 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Re-apply the orientation policy once the view metrics are populated: at
+    // main() time (before the first frame) the physical size can still be zero,
+    // which would misdetect an iPad as a phone and lock it to landscape.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _applyOrientationPolicy());
     _initializeApp();
   }
   
@@ -268,7 +302,17 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
             },
           );
         };
-        return child ?? const SizedBox.shrink();
+        // Global keyboard shortcut: Escape goes back / closes the current
+        // screen or dialog (a11y — lets keyboard/switch users navigate back
+        // without reaching for the on-screen back button).
+        return CallbackShortcuts(
+          bindings: <ShortcutActivator, VoidCallback>{
+            const SingleActivator(LogicalKeyboardKey.escape): () {
+              navigatorKey.currentState?.maybePop();
+            },
+          },
+          child: child ?? const SizedBox.shrink(),
+        );
       },
     );
   }

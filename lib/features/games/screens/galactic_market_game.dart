@@ -148,8 +148,10 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
       options.add(d);
       if (options.length >= 5) break;
     }
-    while (options.length < 5) {
-      options.add(_allDenoms[_random.nextInt(_allDenoms.length)]);
+    if (options.length < 5) {
+      final available = _allDenoms.where((d) => !options.contains(d)).toList()
+        ..shuffle(_random);
+      options.addAll(available.take(5 - options.length));
     }
     _denomOptions = options.toList()..sort();
 

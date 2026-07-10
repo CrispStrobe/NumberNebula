@@ -12,6 +12,7 @@ import 'dart:async';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
+import '../../../shared/widgets/focusable_tapper.dart';
 import '../../games/providers/game_provider.dart';
 import '../../games/widgets/space_background.dart';
 import '../../games/screens/game_menu_screen.dart';
@@ -611,6 +612,10 @@ class _HomeScreenState extends State<HomeScreen>
         child: InkWell(
           borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 30),
           onTap: _navigateToGameMenu,
+          // Primary CTA: give keyboard users their initial focus here, with a
+          // visible focus overlay.
+          autofocus: true,
+          focusColor: SpaceTheme.starYellow.withValues(alpha: 0.35),
           child: Padding(
             // Added vertical padding to ensure the button looks good with one or two lines.
             padding: EdgeInsets.symmetric(
@@ -1027,9 +1032,11 @@ class CompactGradeSelector extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [1, 2, 3, 4].map((level) {
                   final isSelected = gameProvider.grade == level;
-                  
-                  return GestureDetector(
-                    onTap: () => gameProvider.setGrade(level),
+
+                  return FocusableTapper(
+                    onPressed: () => gameProvider.setGrade(level),
+                    semanticLabel: S.of(context)!.gradeN(level),
+                    borderRadius: BorderRadius.circular(10),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       width: 40,
