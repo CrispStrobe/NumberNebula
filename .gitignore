@@ -50,3 +50,7 @@ app.*.map.json
 
 # Claude Code project instructions
 CLAUDE.md
+
+# App Store Connect API key & tooling
+.appstoreconnect/
+*.p8
