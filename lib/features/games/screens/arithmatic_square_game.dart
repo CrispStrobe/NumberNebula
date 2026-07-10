@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:dart_csp/dart_csp.dart';
 import '../mixins/game_animations_mixin.dart';
@@ -1291,35 +1292,56 @@ class ArithmeticSquareGenerator {
 
   Future<ArithmeticSquarePuzzle> generate() async {
     if (kDebugMode) debugPrint("🔧 [GENERATOR] Starting arithmetic square generation");
-    
-    const maxAttempts = 250; // Same as gensq.dart
-    
-    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-      if (kDebugMode) debugPrint("🔧 [GENERATOR] === Attempt $attempt/$maxAttempts ===");
-      
-      try {
-        final puzzle = await _attemptGeneration();
-        if (puzzle != null) {
-          if (kDebugMode) debugPrint("🔧 [GENERATOR] ✅ SUCCESS! Generated valid puzzle on attempt $attempt");
-          return puzzle;
+
+    const maxAttempts = 120;
+    const totalBudget = Duration(seconds: 6);
+    final sw = Stopwatch()..start();
+
+    // Defensive hard wall-clock cap. The 3x3 grid (see _determineGridSize)
+    // already keeps every solve under ~40ms, but this guards against any future
+    // difficulty widening: a hard CSP instance can run for tens of seconds and
+    // `.timeout()` does NOT reliably interrupt the solver (measured worst case:
+    // 69s under a 15s timeout). A Timer that cancels this shared token fires in
+    // real wall-clock time on every platform — including Flutter web, where
+    // compute() runs on the main thread — so generation always returns promptly
+    // instead of freezing the UI.
+    final token = CancellationToken();
+    final deadline = Timer(totalBudget, token.cancel);
+
+    try {
+      for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+        if (token.isCancelled || sw.elapsed >= totalBudget) {
+          if (kDebugMode) debugPrint("🔧 [GENERATOR] ⏰ Budget exhausted after ${sw.elapsedMilliseconds}ms / $attempt attempts");
+          break;
         }
-      } catch (e) {
-        if (kDebugMode) debugPrint("🔧 [GENERATOR] ❌ Attempt $attempt failed: $e");
+        if (kDebugMode) debugPrint("🔧 [GENERATOR] === Attempt $attempt/$maxAttempts ===");
+
+        try {
+          final puzzle = await _attemptGeneration(token);
+          if (puzzle != null) {
+            if (kDebugMode) debugPrint("🔧 [GENERATOR] ✅ SUCCESS! Generated valid puzzle on attempt $attempt (${sw.elapsedMilliseconds}ms)");
+            return puzzle;
+          }
+        } catch (e) {
+          if (kDebugMode) debugPrint("🔧 [GENERATOR] ❌ Attempt $attempt failed: $e");
+        }
       }
+    } finally {
+      deadline.cancel();
     }
-    
-    throw Exception("Failed to generate a valid puzzle after $maxAttempts attempts");
+
+    throw Exception("Failed to generate a valid puzzle within ${totalBudget.inSeconds}s");
   }
 
-  Future<ArithmeticSquarePuzzle?> _attemptGeneration() async {
+  Future<ArithmeticSquarePuzzle?> _attemptGeneration(CancellationToken token) async {
     // Step 1: Determine grid size and operators (same logic as gensq.dart)
     final gridSize = _determineGridSize();
     final availableOps = _getAvailableOperators();
-    
+
     // Step 2: Randomly generate operators for each row and column
     final rowOperators = <List<String>>[];
     final columnOperators = <List<String>>[];
-    
+
     for (int r = 0; r < gridSize; r++) {
       final ops = <String>[];
       for (int i = 0; i < gridSize - 2; i++) {
@@ -1327,7 +1349,7 @@ class ArithmeticSquareGenerator {
       }
       rowOperators.add(ops);
     }
-    
+
     for (int c = 0; c < gridSize; c++) {
       final ops = <String>[];
       for (int i = 0; i < gridSize - 2; i++) {
@@ -1360,7 +1382,7 @@ class ArithmeticSquareGenerator {
     if (kDebugMode) debugPrint("🔧 [GENERATOR] Generated $numCSPClues CSP clues: $clues");
     
     // Step 4: Solve using CSP
-    final solution = await _solveWithCSP(gridSize, rowOperators, columnOperators, clues);
+    final solution = await _solveWithCSP(gridSize, rowOperators, columnOperators, clues, token);
     
     if (solution == null) {
       if (kDebugMode) debugPrint("🔧 [GENERATOR] ❌ CSP solver failed");
@@ -1514,9 +1536,14 @@ class ArithmeticSquareGenerator {
   }
 
   int _determineGridSize() {
-    if (grade <= 2) return 3;
-    if (grade <= 4) return level <= 5 ? 3 : 4;
-    return level <= 3 ? 3 : level <= 7 ? 4 : 5;
+    // Always 3x3. Larger grids (4x4+) were the sole cause of the runtime
+    // blow-ups: a 16-variable CSP with a single random clue frequently yields
+    // instances whose UNSAT proof takes tens of seconds (measured up to ~47s)
+    // — regardless of the operators used — and the solver cannot be reliably
+    // interrupted mid-search, which froze the web build. A 3x3 always solves in
+    // well under 40ms, so difficulty scales through the number range and the
+    // operator mix (×/÷ at higher grades) instead of through grid size.
+    return 3;
   }
 
   List<String> _getAvailableOperators() {
@@ -1537,7 +1564,7 @@ class ArithmeticSquareGenerator {
     if (grade >= 2) ops.add('−');
     if (grade >= 3) ops.add('×');
     if (grade >= 4 && level >= 6) ops.add('÷');
-    
+
     return ops;
   }
 
@@ -1568,6 +1595,7 @@ class ArithmeticSquareGenerator {
     List<List<String>> rowOperators,
     List<List<String>> columnOperators,
     Map<String, int> clues,
+    CancellationToken token,
   ) async {
     
     if (kDebugMode) debugPrint("🔧 [CSP] Building CSP problem...");
@@ -1601,25 +1629,36 @@ class ArithmeticSquareGenerator {
     }
     
     if (kDebugMode) debugPrint("🔧 [CSP] Solving with ${gridSize * gridSize} variables...");
-    
+
+    // If the global budget already expired, don't even start another solve.
+    if (token.isCancelled) return null;
+    // Bound each individual solve too. Combined with the always-3x3 grid this
+    // is belt-and-suspenders (3x3 solves in <40ms), but it keeps a single hard
+    // instance from ever dominating if the difficulty is widened in future.
+    final solveToken = CancellationToken();
+    final perSolveTimer = Timer(const Duration(milliseconds: 1500), solveToken.cancel);
+
     try {
       final solution = await p.getSolutionWithRestarts(
         useDomWdeg: true,
         scale: 50,
         maxRestarts: 200,
-      ).timeout(const Duration(seconds: 15));
-      
+        cancelToken: solveToken,
+      );
+
       if (solution == 'FAILURE') {
-        if (kDebugMode) debugPrint("🔧 [CSP] ❌ No solution found");
+        if (kDebugMode) debugPrint("🔧 [CSP] ❌ No solution found (or per-solve budget hit)");
         return null;
       }
-      
+
       if (kDebugMode) debugPrint("🔧 [CSP] ✅ Solution found: $solution");
-      return solution.cast<String, int>();
-      
+      return (solution as Map).cast<String, int>();
+
     } catch (e) {
-      if (kDebugMode) debugPrint("🔧 [CSP] ❌ Solver timeout or error: $e");
+      if (kDebugMode) debugPrint("🔧 [CSP] ❌ Solver error: $e");
       return null;
+    } finally {
+      perSolveTimer.cancel();
     }
   }
 

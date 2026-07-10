@@ -570,8 +570,18 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
     // STEP 3: Solve CSP using built-in constraints for better propagation
     debugPrint("🔧 [GENERATOR] [3] Solving CSP (timeout: ${config.timeoutSeconds}s)...");
     final p = Problem();
-    final fullDomain = List<int>.generate(config.maxN - config.minN + 1, (i) => i + config.minN);
-    if (config.noDups) {
+    final domainSize = config.maxN - config.minN + 1;
+    // "No duplicates" requires every number cell to take a distinct value, which
+    // is impossible once the puzzle has more cells than the domain has values
+    // (pigeonhole) — that made every large grade-4 puzzle unsatisfiable and the
+    // generator gave up every time. Even near the pigeonhole limit the extra
+    // arithmetic constraints make it rarely satisfiable, so we require a
+    // comfortable margin (cells ≤ ~⅔ of the domain) before enforcing
+    // uniqueness; otherwise we allow repeats so a valid puzzle is still produced.
+    final effectiveNoDups =
+        config.noDups && allVarNames.length * 3 <= domainSize * 2;
+    final fullDomain = List<int>.generate(domainSize, (i) => i + config.minN);
+    if (effectiveNoDups) {
       fullDomain.removeWhere((val) => clues.values.contains(val));
     }
     for (final varName in allVarNames) {
@@ -582,52 +592,57 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
       }
     }
 
-    // Use built-in constraints where possible for proper domain propagation.
-    // Lambda constraints are opaque to the solver; built-in ones enable
-    // arc-consistency filtering that prunes the search tree dramatically.
+    // Name-keyed lambda constraints for every equation. We deliberately do
+    // NOT use the built-in addExactSum here: in dart_csp v2.2.0 exactSum
+    // aligns its `multipliers` by the iteration order of the assignment map
+    // rather than by the `variables` list, so a signed formulation like
+    // a + b - c = 0 (multipliers [1, 1, -1]) mis-applies the -1 and reports
+    // every +/− equation as an unsatisfiable contradiction — which made the
+    // solver return FAILURE on every attempt. Lambdas reference each cell by
+    // name, so they are order-independent and correct. getSolutionWithRestarts
+    // (dom/wdeg + restarts) still applies its propagation over these.
     for (final eq in puzzle.equations) {
       final vars = eq.variableNames;
-      switch (eq.operator) {
-        case '+':
-          // a + b = c  →  1·a + 1·b + (-1)·c = 0
-          p.addExactSum(vars, 0, multipliers: [1, 1, -1]);
-          break;
-        case '−':
-          // a - b = c  →  1·a + (-1)·b + (-1)·c = 0
-          p.addExactSum(vars, 0, multipliers: [1, -1, -1]);
-          break;
-        case '×':
-          // a × b = c  — no linear built-in; use lambda but keep it tight
-          p.addConstraint(vars, (a) {
-            final x = a[vars[0]], y = a[vars[1]], z = a[vars[2]];
-            return x != null && y != null && z != null && x * y == z;
-          });
-          break;
-        case '÷':
-          // a ÷ b = c  — lambda with divisibility check
-          p.addConstraint(vars, (a) {
-            final x = a[vars[0]], y = a[vars[1]], z = a[vars[2]];
-            return x != null && y != null && z != null &&
-                   y != 0 && x % y == 0 && x ~/ y == z;
-          });
-          break;
-      }
+      p.addConstraint(vars, (a) {
+        final x = a[vars[0]], y = a[vars[1]], z = a[vars[2]];
+        if (x == null || y == null || z == null) return false;
+        switch (eq.operator) {
+          case '+':
+            return x + y == z;
+          case '−':
+            return x - y == z;
+          case '×':
+            return x * y == z;
+          case '÷':
+            return y != 0 && x % y == 0 && x ~/ y == z;
+          default:
+            return false;
+        }
+      });
     }
-    if (config.noDups) {
+    if (effectiveNoDups) {
       p.addAllDifferent(allVarNames);
     }
 
     final solveStopwatch = Stopwatch()..start();
+    // Bound each solve with a CancellationToken cancelled by a Timer. A plain
+    // `.timeout()` does NOT reliably interrupt the CPU-bound solver (it can run
+    // for far longer than the requested duration), whereas the token is polled
+    // at every solver checkpoint, so a hard instance is abandoned promptly and
+    // the next pattern is tried instead of freezing the app.
+    final perSolveCap =
+        Duration(seconds: math.min(config.timeoutSeconds, 3));
+    final solveToken = CancellationToken();
+    final perSolveTimer = Timer(perSolveCap, solveToken.cancel);
     try {
       // Use restarts + dom/wdeg heuristic for much faster solving on
       // hard instances. Falls back gracefully on easy ones.
-      final potentialSolution = await p
-          .getSolutionWithRestarts(
-            useDomWdeg: true,
-            scale: 50,
-            maxRestarts: 200,
-          )
-          .timeout(Duration(seconds: config.timeoutSeconds));
+      final potentialSolution = await p.getSolutionWithRestarts(
+        useDomWdeg: true,
+        scale: 50,
+        maxRestarts: 200,
+        cancelToken: solveToken,
+      );
       solveStopwatch.stop();
 
       if (potentialSolution != 'FAILURE') {
@@ -646,6 +661,8 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
     } catch (e) {
       solveStopwatch.stop();
       if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> TIMEOUT after ${solveStopwatch.elapsedMilliseconds}ms");
+    } finally {
+      perSolveTimer.cancel();
     }
   }
 
@@ -712,27 +729,29 @@ CrosswordPuzzle _convertToGameFormat(PuzzleParser puzzle, Map<String, int> clues
 }
 
 List<int> _generateNumberPool(Set<int> correctNumbers) {
-  final pool = <int>[];
-  
-  // Add all unique numbers that appear in the solution
-  pool.addAll(correctNumbers);
-  
-  // Add a few decoy numbers (that don't appear in solution)
-  final domain = List<int>.generate(9, (i) => i + 1); // 1-9
-  final decoys = <int>{};
+  final pool = <int>[...correctNumbers];
   final random = math.Random();
-  
-  final decoyCount = math.max(3, 6 - correctNumbers.length);
-  while (decoys.length < decoyCount) {
-    final decoy = domain[random.nextInt(domain.length)];
-    if (!correctNumbers.contains(decoy)) {
-      decoys.add(decoy);
-    }
-  }
-  
-  pool.addAll(decoys);
-  pool.sort();  // CHANGED FROM pool.shuffle(random) to pool.sort()
-  
+
+  // Decoys are plausible wrong answers drawn from the same range as the real
+  // numbers. Crucially, the candidate range is derived from the solution
+  // itself: the old hardcoded 1..9 range could be entirely covered by the
+  // solution's numbers (very common at higher grades, whose solutions use many
+  // distinct values ≥ needed), and the original `while (decoys.length < n)`
+  // loop then spun forever looking for a value it could never find — freezing
+  // puzzle generation. Selecting from a bounded candidate list can't hang.
+  final maxCorrect =
+      correctNumbers.isEmpty ? 9 : correctNumbers.reduce(math.max);
+  final upper = math.max(9, maxCorrect);
+  final candidates = <int>[
+    for (int n = 1; n <= upper; n++)
+      if (!correctNumbers.contains(n)) n
+  ]..shuffle(random);
+
+  final decoyCount =
+      math.min(candidates.length, math.max(3, 6 - correctNumbers.length));
+  pool.addAll(candidates.take(decoyCount));
+  pool.sort();
+
   return pool;
 }
 

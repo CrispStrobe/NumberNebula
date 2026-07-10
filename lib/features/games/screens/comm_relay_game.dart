@@ -243,6 +243,7 @@ class _CommRelayGameState extends State<CommRelayGame>
     if (puzzle == null || _isGenerating) {
       return Scaffold(
         body: SpaceBackground(
+          gameKey: 'comm_relay',
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -259,6 +260,7 @@ class _CommRelayGameState extends State<CommRelayGame>
 
     return Scaffold(
       body: SpaceBackground(
+        gameKey: 'comm_relay',
         child: SafeArea(
           child: Column(
             children: [
@@ -453,6 +455,8 @@ class _CommRelayGameState extends State<CommRelayGame>
             style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
           ),
           const SizedBox(height: 8),
+          _buildCipherWheel(),
+          const SizedBox(height: 8),
           Slider(
             value: _currentShift.toDouble(),
             min: -13,
@@ -473,6 +477,100 @@ class _CommRelayGameState extends State<CommRelayGame>
             style: SpaceTheme.primaryButtonStyle,
             child: Text(S.of(context)!.commRelayDecodeBtn(_maxAttempts - _attempts)),
           ),
+        ],
+      ),
+    );
+  }
+
+  /// A Caesar cipher wheel: a static A–Z code alphabet is always shown, and on
+  /// the lower levels a second "decoded" alphabet is shown directly beneath it
+  /// that shifts together with the slider — each column reveals what that code
+  /// letter decodes to at the current shift, so kids can read the mapping off
+  /// directly. On higher levels the decoder row is hidden so the shift must be
+  /// worked out mentally.
+  Widget _buildCipherWheel() {
+    final grade = currentDifficulty?.grade ?? 1;
+    final level = currentDifficulty?.level ?? 1;
+    // Show the moving decoder aid only on the easier levels.
+    final showDecoder = grade <= 1 || (grade == 2 && level <= 3);
+
+    final codeLetters =
+        List<String>.generate(26, (i) => String.fromCharCode(65 + i));
+
+    Widget cellBox(String ch, {required bool decoded}) {
+      return Container(
+        width: 13,
+        height: 18,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: decoded
+              ? SpaceTheme.starYellow.withValues(alpha: 0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(3),
+        ),
+        child: Text(
+          ch,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: decoded ? SpaceTheme.starYellow : SpaceTheme.moonSilver,
+          ),
+        ),
+      );
+    }
+
+    Widget rowLabel(String text, Color color) => SizedBox(
+          width: 44,
+          child: Text(
+            text,
+            textAlign: TextAlign.right,
+            style: SpaceTheme.bodyStyle.copyWith(
+              fontSize: 8,
+              letterSpacing: 0.5,
+              color: color,
+            ),
+          ),
+        );
+
+    final codeRow = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [for (final c in codeLetters) cellBox(c, decoded: false)],
+    );
+
+    final decoderRow = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final c in codeLetters)
+          cellBox(CommRelayPuzzle.decryptCaesar(c, _currentShift),
+              decoded: true),
+      ],
+    );
+
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              rowLabel(S.of(context)!.commRelayEncryptedSignal,
+                  SpaceTheme.moonSilver),
+              const SizedBox(width: 4),
+              codeRow,
+            ],
+          ),
+          if (showDecoder) ...[
+            const SizedBox(height: 2),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                rowLabel(S.of(context)!.commRelayDecoded, SpaceTheme.starYellow),
+                const SizedBox(width: 4),
+                decoderRow,
+              ],
+            ),
+          ],
         ],
       ),
     );

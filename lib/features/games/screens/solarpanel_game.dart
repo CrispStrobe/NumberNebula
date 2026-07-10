@@ -293,6 +293,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
 
     return Scaffold(
       body: SpaceBackground(
+        gameKey: 'solarpanel',
         child: SafeArea(
           child: Stack(
             children: [
