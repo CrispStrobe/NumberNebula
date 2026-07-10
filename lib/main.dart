@@ -268,7 +268,17 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
             },
           );
         };
-        return child ?? const SizedBox.shrink();
+        // Global keyboard shortcut: Escape goes back / closes the current
+        // screen or dialog (a11y — lets keyboard/switch users navigate back
+        // without reaching for the on-screen back button).
+        return CallbackShortcuts(
+          bindings: <ShortcutActivator, VoidCallback>{
+            const SingleActivator(LogicalKeyboardKey.escape): () {
+              navigatorKey.currentState?.maybePop();
+            },
+          },
+          child: child ?? const SizedBox.shrink(),
+        );
       },
     );
   }

@@ -9,6 +9,7 @@ import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
+import '../../../shared/widgets/focusable_tapper.dart';
 import 'karteikasten_screen.dart';
 
 import 'magic_triangles_game.dart';
@@ -908,6 +909,8 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
                   // The onTap logic is now separated:
                   // If locked, show purchase flow. If unlocked, use the game's built-in onTap.
                   onTap: isLocked ? () => _showPurchaseFlow(context) : game.onTap,
+                  // Give keyboard users a starting focus on the first card.
+                  autofocus: index == 0,
                 ),
                 if (isLocked)
                   Container(
@@ -937,7 +940,8 @@ class GameInfo {
 class GameCard extends StatefulWidget {
   final GameInfo game;
   final VoidCallback onTap;
-  const GameCard({super.key, required this.game, required this.onTap});
+  final bool autofocus;
+  const GameCard({super.key, required this.game, required this.onTap, this.autofocus = false});
 
   @override
   State<GameCard> createState() => _GameCardState();
@@ -993,8 +997,13 @@ class _GameCardState extends State<GameCard> with SingleTickerProviderStateMixin
           child: MouseRegion(
             onEnter: (_) => _onHover(true),
             onExit: (_) => _onHover(false),
-            child: GestureDetector(
-              onTap: widget.onTap,
+            child: FocusableTapper(
+              onPressed: widget.onTap,
+              autofocus: widget.autofocus,
+              semanticLabel: widget.game.title,
+              borderRadius: BorderRadius.circular(25),
+              // Reuse the pointer-hover scale/glow for keyboard focus too.
+              onFocusChange: _onHover,
               child: Container(
                 decoration: BoxDecoration(
                   gradient: widget.game.gradient,
@@ -1059,8 +1068,10 @@ class _CompactDifficultyTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
+      child: FocusableTapper(
+        onPressed: onTap,
+        semanticLabel: label,
+        borderRadius: BorderRadius.circular(10),
         child: Container(
           alignment: Alignment.center,
           decoration: BoxDecoration(
