@@ -9,10 +9,10 @@ class SEn extends S {
   SEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Space Math Academy';
+  String get appTitle => 'Numbernauts';
 
   @override
-  String get welcome => 'Welcome to Space Math Academy!';
+  String get welcome => 'Welcome to Numbernauts!';
 
   @override
   String get startAdventure => 'Start Your Math Adventure';
@@ -247,7 +247,7 @@ class SEn extends S {
 
   @override
   String get aboutApp =>
-      'Space Math Academy helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.';
+      'Numbernauts helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.';
 
   @override
   String get languageRestartPrompt =>
@@ -719,7 +719,7 @@ class SEn extends S {
   String get preparingMission => 'Preparing your math mission...';
 
   @override
-  String get initializing => 'Initializing Space Math Academy...';
+  String get initializing => 'Initializing Numbernauts...';
 
   @override
   String get loadingAssets => 'Loading game assets...';

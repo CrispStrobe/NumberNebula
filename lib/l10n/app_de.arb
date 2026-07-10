@@ -1,5 +1,5 @@
 {
-    "appTitle": "Weltraum Mathe Akademie",
+    "appTitle": "Numbernauts",
     "welcome": "Entdecke das Mathe-Universum!",
     "startAdventure": "Starte dein Mathe-Abenteuer",
     "chooseGrade": "Wähle deine Stufe",
@@ -234,7 +234,7 @@
     "nextTarget": "Nächstes Ziel: ",
     "loadingAdventure": "Lade Weltraum-Abenteuer...",
     "preparingMission": "Bereite deine Mathe-Mission vor...",
-    "initializing": "Initialisiere Space Math Academy...",
+    "initializing": "Initialisiere Numbernauts...",
     "loadingAssets": "Lade Spiel-Assets...",
     "loadingProgress": "Lade gespeicherten Fortschritt...",
     "preparingSpaceStation": "Bereite Raumstation vor...",

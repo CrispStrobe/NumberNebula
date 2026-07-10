@@ -1,12 +1,12 @@
-# Privacy Policy — Space Math Academy
+# Privacy Policy — Numbernauts
 
 _Last updated: 10 July 2026_
 
-Space Math Academy is designed for children and built to be private by default.
+Numbernauts is designed for children and built to be private by default.
 
 ## Data we collect
 
-**None.** Space Math Academy does not collect, transmit, sell, or share any
+**None.** Numbernauts does not collect, transmit, sell, or share any
 personal information. There are no user accounts, no sign-in, and no analytics
 or advertising SDKs. The app does not track you across apps or websites.
 
@@ -20,7 +20,7 @@ delete the app.
 
 ## Network access
 
-Space Math Academy runs fully offline. It does not require an internet
+Numbernauts runs fully offline. It does not require an internet
 connection to play and makes no background network requests to us.
 
 ## Purchases

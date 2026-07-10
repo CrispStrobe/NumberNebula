@@ -276,7 +276,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
     }
 
     return MaterialApp(
-      title: 'Space Math Academy',
+      title: 'Numbernauts',
       navigatorKey: navigatorKey, 
       debugShowCheckedModeBanner: false,
       locale: _locale,
