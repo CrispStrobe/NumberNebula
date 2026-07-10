@@ -895,6 +895,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
     final bool isLocked = isPremiumContent && !isUnlocked;
 
     return SlideTransition(
+      key: ValueKey('gamecard_${gameData.gameKey}'),
       position: _cardAnimations[index],
       child: AnimatedBuilder(
         animation: _floatAnimation,

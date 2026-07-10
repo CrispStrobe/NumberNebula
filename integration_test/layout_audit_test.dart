@@ -99,7 +99,20 @@ void main() {
         }
 
         if (overflow.isNotEmpty) {
-          status = 'OVERFLOW(${overflow.length})';
+          // Extract "overflowed by N pixels on the <side>" for each, so we can
+          // rank real breakage (large N) over cosmetic sub-pixel noise.
+          final detail = overflow
+              .map((m) {
+                final match =
+                    RegExp(r'overflowed by ([\d.]+) pixels on the (\w+)')
+                        .firstMatch(m);
+                return match == null
+                    ? m
+                    : '${match.group(1)}px-${match.group(2)}';
+              })
+              .toSet()
+              .join(',');
+          status = 'OVERFLOW[$detail]';
         }
         debugPrint('AUDIT\t${cfg.key}\t${game.key}\t$status');
       }

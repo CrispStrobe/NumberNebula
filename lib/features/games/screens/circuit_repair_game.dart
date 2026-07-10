@@ -293,7 +293,15 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
       children: [
         Expanded(
           flex: 3,
-          child: Center(child: _buildClockDisplay(constraints)),
+          // Size the clock from THIS slot's width, not the full game-area
+          // width — otherwise the 7-segment display is computed too wide and
+          // overflows into the side panel (badly in iPhone landscape, and by
+          // ~44px in iPad portrait).
+          child: Center(
+            child: LayoutBuilder(
+              builder: (context, slot) => _buildClockDisplay(slot),
+            ),
+          ),
         ),
         const SizedBox(width: 24),
         Expanded(
