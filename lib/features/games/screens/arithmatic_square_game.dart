@@ -1573,6 +1573,11 @@ class ArithmeticSquareGenerator {
   }
 
   List<String> _getAvailableOperators() {
+    // Fallback wins over everything (including custom settings): +/− only is
+    // near-instant and essentially always satisfiable, so a puzzle is still
+    // produced even when custom settings restrict to ×/÷.
+    if (_forceSimpleOps) return const ['+', '−'];
+
     // Convert framework operations to proper symbols (exactly like gensq.dart)
     if (useCustomSettings && customOps.isNotEmpty) {
       return customOps.map((op) {
@@ -1588,7 +1593,6 @@ class ArithmeticSquareGenerator {
 
     final ops = <String>['+'];
     if (grade >= 2) ops.add('−');
-    if (_forceSimpleOps) return ops; // fallback: +/− only, always fast
     if (grade >= 3) ops.add('×');
     if (grade >= 4 && level >= 6) ops.add('÷');
 

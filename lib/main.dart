@@ -169,6 +169,10 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Re-apply the orientation policy once the view metrics are populated: at
+    // main() time (before the first frame) the physical size can still be zero,
+    // which would misdetect an iPad as a phone and lock it to landscape.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _applyOrientationPolicy());
     _initializeApp();
   }
   

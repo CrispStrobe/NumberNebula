@@ -236,14 +236,25 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       }
     }
     
+    final range = difficulty.numberRange;
+    final span = range['max']! - range['min']!;
     var fillGuard = 0;
     while (problems.length < asteroidCount && fillGuard++ < 500) {
-      int plainNumber = 0;
+      // Find a DISTINCT filler answer. `span <= 0` (possible with custom
+      // min>=max settings) would make nextInt throw, so guard it.
+      int? plainNumber;
       for (var attempt = 0; attempt < 200; attempt++) {
-        final range = difficulty.numberRange;
-        plainNumber = random.nextInt(range['max']! - range['min']!) + range['min']!;
-        if (!usedAnswers.contains(plainNumber)) break;
+        final candidate =
+            span > 0 ? random.nextInt(span) + range['min']! : range['min']!;
+        if (!usedAnswers.contains(candidate)) {
+          plainNumber = candidate;
+          break;
+        }
       }
+      // No distinct value left — stop rather than spawn a duplicate-answer
+      // asteroid that can never be a valid target (and would penalise the
+      // player when tapped).
+      if (plainNumber == null) break;
 
       final simpleProblem = MathProblem(
         expression: plainNumber.toString(),
@@ -253,7 +264,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
         operandB: 0,
         difficulty: 1,
       );
-      
+
       problems.add(simpleProblem);
       usedAnswers.add(plainNumber);
     }
