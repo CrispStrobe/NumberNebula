@@ -18,10 +18,12 @@ import 'package:space_math_academy/main.dart' as app;
 // gameKeys flagged with large audit overflow (+ magic_triangles as a known-good
 // control that the audit *also* flagged but which renders fine).
 const _targets = <String>[
-  // Edit this list to spot-check specific games' real rendered layout.
-  'magic_triangles',
-  'circuit_repair',
-  'block_counter',
+  // Remaining large iPhone-landscape overflow flags, in menu order.
+  'signal_triangulation',
+  'arithmancer_duel',
+  'arithmatic_square',
+  'relic_assembly',
+  'void_crossing',
 ];
 
 Future<void> _hold(WidgetTester tester, {int ms = 6500}) async {

@@ -236,12 +236,14 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       }
     }
     
-    while (problems.length < asteroidCount) {
-      int plainNumber;
-      do {
+    var fillGuard = 0;
+    while (problems.length < asteroidCount && fillGuard++ < 500) {
+      int plainNumber = 0;
+      for (var attempt = 0; attempt < 200; attempt++) {
         final range = difficulty.numberRange;
         plainNumber = random.nextInt(range['max']! - range['min']!) + range['min']!;
-      } while (usedAnswers.contains(plainNumber));
+        if (!usedAnswers.contains(plainNumber)) break;
+      }
 
       final simpleProblem = MathProblem(
         expression: plainNumber.toString(),

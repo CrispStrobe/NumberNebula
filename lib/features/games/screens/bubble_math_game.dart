@@ -87,10 +87,11 @@ class _BubbleMathGameState extends State<BubbleMathGame>
       
       double equationChance = 0.1 * difficulty;
       if (random.nextDouble() > equationChance) {
-        int plainNumber;
-        do {
+        int plainNumber = 0;
+        for (var attempt = 0; attempt < 200; attempt++) {
           plainNumber = random.nextInt(difficulty * 5 + 10) + 1;
-        } while (usedAnswers.contains(plainNumber));
+          if (!usedAnswers.contains(plainNumber)) break;
+        }
         problem = MathProblem(
           expression: plainNumber.toString(),
           answer: plainNumber,
@@ -100,9 +101,10 @@ class _BubbleMathGameState extends State<BubbleMathGame>
           difficulty: 1,
         );
       } else {
-        do {
+        problem = MathProblem.random(widget.grade, difficulty: difficulty);
+        for (var attempt = 0; attempt < 200 && usedAnswers.contains(problem.answer); attempt++) {
           problem = MathProblem.random(widget.grade, difficulty: difficulty);
-        } while (usedAnswers.contains(problem.answer));
+        }
       }
 
       usedAnswers.add(problem.answer);

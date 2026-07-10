@@ -1280,6 +1280,11 @@ class ArithmeticSquareGenerator {
   final int customMax;
   final math.Random _random = math.Random();
 
+  /// Fallback flag: when the normal (possibly ×/÷) difficulty can't be
+  /// generated inside the budget, force +/− only — those are near-instant and
+  /// essentially always satisfiable — so the player always gets a puzzle.
+  bool _forceSimpleOps = false;
+
   ArithmeticSquareGenerator({
     required this.grade,
     required this.level,
@@ -1328,6 +1333,27 @@ class ArithmeticSquareGenerator {
       }
     } finally {
       deadline.cancel();
+    }
+
+    // Fallback: nothing satisfiable was found in the budget — which can happen
+    // on the slow web build for ×/÷-heavy grades. Force an addition/subtraction
+    // puzzle (near-instant, essentially always satisfiable) so the player gets
+    // a puzzle instead of a failure dialog.
+    _forceSimpleOps = true;
+    final fbToken = CancellationToken();
+    final fbDeadline = Timer(const Duration(seconds: 3), fbToken.cancel);
+    try {
+      for (int attempt = 1; attempt <= 60 && !fbToken.isCancelled; attempt++) {
+        try {
+          final puzzle = await _attemptGeneration(fbToken);
+          if (puzzle != null) {
+            if (kDebugMode) debugPrint("🔧 [GENERATOR] ✅ Fallback (+/−) puzzle generated");
+            return puzzle;
+          }
+        } catch (_) {}
+      }
+    } finally {
+      fbDeadline.cancel();
     }
 
     throw Exception("Failed to generate a valid puzzle within ${totalBudget.inSeconds}s");
@@ -1562,6 +1588,7 @@ class ArithmeticSquareGenerator {
 
     final ops = <String>['+'];
     if (grade >= 2) ops.add('−');
+    if (_forceSimpleOps) return ops; // fallback: +/− only, always fast
     if (grade >= 3) ops.add('×');
     if (grade >= 4 && level >= 6) ops.add('÷');
 
@@ -1636,7 +1663,11 @@ class ArithmeticSquareGenerator {
     // is belt-and-suspenders (3x3 solves in <40ms), but it keeps a single hard
     // instance from ever dominating if the difficulty is widened in future.
     final solveToken = CancellationToken();
-    final perSolveTimer = Timer(const Duration(milliseconds: 1500), solveToken.cancel);
+    // Short per-solve cap: a 3x3 SAT solve finishes in a few ms, so this only
+    // ever cuts off unsatisfiable ×/÷ configs (expensive to disprove) — cutting
+    // them fast lets many more configs be tried inside the budget, which
+    // matters most on the web build where dart2js runs ~10x slower.
+    final perSolveTimer = Timer(const Duration(milliseconds: 500), solveToken.cancel);
 
     try {
       final solution = await p.getSolutionWithRestarts(
@@ -1728,18 +1759,21 @@ class ArithmeticSquareGenerator {
     if (kDebugMode) debugPrint("🎯 [NUMBER POOL] Removed unique hint numbers: $numbersToRemove");
     
     final domain = _getNumberDomain();
-    
-    // Add some decoy numbers
+
+    // Add some decoy numbers. Draw from the domain values NOT already in the
+    // pool/hints, capped at how many are actually available — the old
+    // `while (decoys.length < decoyCount)` loop spun forever whenever the
+    // solution used enough distinct values that fewer than `decoyCount` decoys
+    // remained (very likely at grade 1, whose domain is only 1..9). That
+    // infinite loop froze generation, worst of all on the web build where it
+    // runs on the main thread.
     final decoyCount = math.max(4, 8 - pool.length);
-    final decoys = <int>{};
-    
-    while (decoys.length < decoyCount) {
-      final decoy = _randChoice(domain);
-      if (!pool.contains(decoy) && !hintNumbers.contains(decoy)) {
-        decoys.add(decoy);
-      }
-    }
-    
+    final available = domain
+        .where((d) => !pool.contains(d) && !hintNumbers.contains(d))
+        .toList()
+      ..shuffle(_random);
+    final decoys = available.take(decoyCount).toList();
+
     pool.addAll(decoys);
     pool.shuffle(_random);
     

@@ -193,7 +193,8 @@ class BlockCountingPuzzle {
     final correctAnswer = blocks.length;
     final choices = {correctAnswer};
     final variance = math.max(2, (difficulty + 2));
-    while (choices.length < 4) {
+    var guard = 0;
+    while (choices.length < 4 && guard++ < 500) {
       int offset = random.nextInt(variance) + 1;
       choices.add(math.max(1, correctAnswer + (random.nextBool() ? 1 : -1) * offset));
     }

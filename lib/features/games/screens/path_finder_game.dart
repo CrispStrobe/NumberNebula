@@ -157,12 +157,14 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     final random = math.Random();
     
     final pathAnswers = {currentProblem!.answer};
-    while (pathAnswers.length < numPaths) {
-      int wrongAnswer;
-      do {
+    var outerGuard = 0;
+    while (pathAnswers.length < numPaths && outerGuard++ < 500) {
+      int wrongAnswer = 0;
+      for (var i = 0; i < 200; i++) {
         wrongAnswer = currentProblem!.answer + (random.nextBool() ? 1 : -1) * (random.nextInt(10) + 1);
-      } while (wrongAnswer <= 0 || pathAnswers.contains(wrongAnswer));
-      pathAnswers.add(wrongAnswer);
+        if (wrongAnswer > 0 && !pathAnswers.contains(wrongAnswer)) break;
+      }
+      if (wrongAnswer > 0) pathAnswers.add(wrongAnswer);
     }
     final shuffledAnswers = pathAnswers.toList()..shuffle();
 

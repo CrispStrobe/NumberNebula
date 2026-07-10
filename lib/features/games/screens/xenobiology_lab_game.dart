@@ -108,7 +108,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
       _eyesB = _random.nextInt(3) + 2;
       _legsB = _random.nextInt(3) + 2;
 
-      while (_eyesA * _legsB == _eyesB * _legsA) {
+      var guard = 0;
+      while (_eyesA * _legsB == _eyesB * _legsA && guard++ < 500) {
         _eyesB = _random.nextInt(3) + 2;
         _legsB = _random.nextInt(3) + 2;
       }
@@ -122,7 +123,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
       _eyesB = _random.nextInt(4) + 2;
       _legsB = _random.nextInt(5) + 2;
 
-      while (_eyesA * _legsB == _eyesB * _legsA) {
+      var guard = 0;
+      while (_eyesA * _legsB == _eyesB * _legsA && guard++ < 500) {
         _eyesB = _random.nextInt(4) + 2;
         _legsB = _random.nextInt(5) + 2;
       }
