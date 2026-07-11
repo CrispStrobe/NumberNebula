@@ -100,13 +100,13 @@ abstract class S {
   /// The application title
   ///
   /// In en, this message translates to:
-  /// **'Number Nebula'**
+  /// **'NumberNebula'**
   String get appTitle;
 
   /// No description provided for @welcome.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to Number Nebula!'**
+  /// **'Welcome to NumberNebula!'**
   String get welcome;
 
   /// No description provided for @startAdventure.
@@ -556,7 +556,7 @@ abstract class S {
   /// No description provided for @aboutApp.
   ///
   /// In en, this message translates to:
-  /// **'Number Nebula helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.'**
+  /// **'NumberNebula helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.'**
   String get aboutApp;
 
   /// No description provided for @languageRestartPrompt.
@@ -1390,7 +1390,7 @@ abstract class S {
   /// No description provided for @initializing.
   ///
   /// In en, this message translates to:
-  /// **'Initializing Number Nebula...'**
+  /// **'Initializing NumberNebula...'**
   String get initializing;
 
   /// No description provided for @loadingAssets.

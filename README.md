@@ -1,5 +1,5 @@
 
-# 🚀 Number Nebula
+# 🚀 NumberNebula
 
 A space-themed math learning app for primary school students onwards. Features engaging mini-games including Magic Triangles, arithmetic puzzles, and visual spatial games.
 

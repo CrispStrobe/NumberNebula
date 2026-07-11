@@ -1,9 +1,9 @@
 {
-    "appTitle": "Number Nebula",
+    "appTitle": "NumberNebula",
     "@appTitle": {
         "description": "The application title"
     },
-    "welcome": "Welcome to Number Nebula!",
+    "welcome": "Welcome to NumberNebula!",
     "startAdventure": "Start Your Math Adventure",
     "chooseGrade": "Set Your Skill Level",
     "fast": "FAST",
@@ -94,7 +94,7 @@
     "developerName": "CrispStrobe",
     "targetAge": "Target Age",
     "targetAgeRange": "8-12 years (Grades 3-6)",
-    "aboutApp": "Number Nebula helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.",
+    "aboutApp": "NumberNebula helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.",
     
     "languageRestartPrompt": "The app language will change when you restart. Would you like to restart now?",
     "later": "Later",
@@ -301,7 +301,7 @@
     "nextTarget": "Next target: ",
     "loadingAdventure": "Loading Space Adventure...",
     "preparingMission": "Preparing your math mission...",
-    "initializing": "Initializing Number Nebula...",
+    "initializing": "Initializing NumberNebula...",
     "loadingAssets": "Loading game assets...",
     "loadingProgress": "Loading saved progress...",
     "preparingSpaceStation": "Preparing space station...",

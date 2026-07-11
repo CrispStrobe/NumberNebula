@@ -9,7 +9,7 @@ class SDe extends S {
   SDe([String locale = 'de']) : super(locale);
 
   @override
-  String get appTitle => 'Number Nebula';
+  String get appTitle => 'NumberNebula';
 
   @override
   String get welcome => 'Entdecke das Mathe-Universum!';
@@ -725,7 +725,7 @@ class SDe extends S {
   String get preparingMission => 'Bereite deine Mathe-Mission vor...';
 
   @override
-  String get initializing => 'Initialisiere Number Nebula...';
+  String get initializing => 'Initialisiere NumberNebula...';
 
   @override
   String get loadingAssets => 'Lade Spiel-Assets...';

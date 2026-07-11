@@ -9,10 +9,10 @@ class SEn extends S {
   SEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Number Nebula';
+  String get appTitle => 'NumberNebula';
 
   @override
-  String get welcome => 'Welcome to Number Nebula!';
+  String get welcome => 'Welcome to NumberNebula!';
 
   @override
   String get startAdventure => 'Start Your Math Adventure';
@@ -247,7 +247,7 @@ class SEn extends S {
 
   @override
   String get aboutApp =>
-      'Number Nebula helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.';
+      'NumberNebula helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.';
 
   @override
   String get languageRestartPrompt =>
@@ -719,7 +719,7 @@ class SEn extends S {
   String get preparingMission => 'Preparing your math mission...';
 
   @override
-  String get initializing => 'Initializing Number Nebula...';
+  String get initializing => 'Initializing NumberNebula...';
 
   @override
   String get loadingAssets => 'Loading game assets...';

@@ -2,7 +2,7 @@
 
 class AppConstants {
   // App Information
-  static const String appName = 'Number Nebula';
+  static const String appName = 'NumberNebula';
   static const String appVersion = '1.0.0';
   
   // Game Configuration
