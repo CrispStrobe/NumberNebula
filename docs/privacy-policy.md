@@ -1,12 +1,12 @@
-# Privacy Policy — Numbernauts
+# Privacy Policy — Number Nebula
 
 _Last updated: 10 July 2026_
 
-Numbernauts is designed for children and built to be private by default.
+Number Nebula is designed for children and built to be private by default.
 
 ## Data we collect
 
-**None.** Numbernauts does not collect, transmit, sell, or share any
+**None.** Number Nebula does not collect, transmit, sell, or share any
 personal information. There are no user accounts, no sign-in, and no analytics
 or advertising SDKs. The app does not track you across apps or websites.
 
@@ -20,7 +20,7 @@ delete the app.
 
 ## Network access
 
-Numbernauts runs fully offline. It does not require an internet
+Number Nebula runs fully offline. It does not require an internet
 connection to play and makes no background network requests to us.
 
 ## Purchases

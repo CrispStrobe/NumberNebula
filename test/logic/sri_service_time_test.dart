@@ -16,7 +16,7 @@ void main() {
       await service.loadSriData();
     });
 
-    MathProblem _makeProblem({
+    MathProblem makeProblem({
       String expression = '2 + 3',
       int answer = 5,
     }) =>
@@ -31,7 +31,7 @@ void main() {
 
     test('recordResponse schedules next review relative to injected clock',
         () {
-      final p = _makeProblem();
+      final p = makeProblem();
       service.recordResponse(p, true);
 
       // After first correct answer, SM-2 schedules review in 1 day.
@@ -42,7 +42,7 @@ void main() {
     });
 
     test('problems become due when clock advances past review date', () {
-      final p = _makeProblem();
+      final p = makeProblem();
       service.recordResponse(p, true);
 
       // Advance 2 days — problem should now be due for review.
@@ -53,7 +53,7 @@ void main() {
     });
 
     test('repeated correct answers grow the repetition count', () {
-      final p = _makeProblem();
+      final p = makeProblem();
       // SM-2: EF starts at 2.5, grows +0.1 per correct answer.
       // Mastery needs EF > 4.0, so 16+ correct answers (2.5 + 16*0.1 = 4.1).
       for (int i = 0; i < 16; i++) {

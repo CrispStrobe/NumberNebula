@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 // tool/puzzle_merge.dart
 //
 // Unified puzzle dataset merge tool.
