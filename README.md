@@ -3,7 +3,7 @@
 
 A space-themed math learning app for primary school students onwards. Features engaging mini-games including Magic Triangles, arithmetic puzzles, and visual spatial games.
 
-**🌐 Live demo (web build):** [spacemathacademy.vercel.app](https://spacemathacademy.vercel.app) — auto-deployed from `main`.
+**🌐 Live demo (web build):** [numbernebula.vercel.app](https://numbernebula.vercel.app) — auto-deployed from `main`.
 
 ## 📱 Screenshots
 
