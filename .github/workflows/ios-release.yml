@@ -127,19 +127,17 @@ jobs:
           PATH="/usr/bin:$PATH" flutter build ios --release --config-only --no-codesign
           PATH="/usr/bin:$PATH" env -u GEM_HOME -u GEM_PATH -u RUBYOPT \
             pod install --project-directory=ios
-          # Scope manual signing to the RUNNER TARGET ONLY, in its pbxproj. Passing
-          # the settings globally on the xcodebuild command line forces a profile
-          # onto every Pod/plugin framework too ("does not support provisioning
-          # profiles"). Bare xcodebuild honors these per-target pbxproj settings
-          # (unlike `flutter build ipa`, which overrides to automatic). Signs with
-          # the imported Distribution cert + installed App Store profile — no
-          # Development cert, no account, no -allowProvisioningUpdates.
-          perl -0pi -e 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;\n\t\t\t\tCODE_SIGN_IDENTITY = "Apple Distribution";\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "${{ env.PROFILE_NAME }}";/g' \
-            ios/Runner.xcodeproj/project.pbxproj
-          echo "Runner manual configs: $(grep -c 'CODE_SIGN_STYLE = Manual' ios/Runner.xcodeproj/project.pbxproj)"
+          # ARCHIVE UNSIGNED. A bare `xcodebuild archive` insists on an iOS
+          # *Development* profile for on-device signing, which CI can't have (only
+          # the Distribution cert's private key is available, not a Development
+          # one). Skip signing at archive time, then let -exportArchive apply the
+          # Distribution signing (imported cert + installed App Store profile) —
+          # the standard "sign at export" CI pattern. No account, no dev cert, no
+          # -allowProvisioningUpdates (which churns certs).
           PATH="/usr/bin:$PATH" xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner \
             -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
             -archivePath build/ios/archive/Runner.xcarchive \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
             clean archive
           PATH="/usr/bin:$PATH" xcodebuild -exportArchive \
             -archivePath build/ios/archive/Runner.xcarchive \
