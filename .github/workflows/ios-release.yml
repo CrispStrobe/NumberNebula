@@ -89,7 +89,7 @@ jobs:
           echo "$P8_B64" | base64 --decode > ".appstoreconnect/AuthKey_${{ secrets.ASC_KEY_ID }}.p8"
           cp ".appstoreconnect/AuthKey_${{ secrets.ASC_KEY_ID }}.p8" "$HOME/.appstoreconnect/private_keys/"
 
-      - name: Write ExportOptions.plist (manual signing)
+      - name: Write ExportOptions.plist
         run: |
           cat > .appstoreconnect/ExportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -98,39 +98,43 @@ jobs:
           <dict>
             <key>method</key><string>app-store-connect</string>
             <key>teamID</key><string>${{ secrets.ASC_TEAM_ID }}</string>
-            <key>signingStyle</key><string>manual</string>
-            <key>signingCertificate</key><string>Apple Distribution</string>
-            <key>provisioningProfiles</key>
-            <dict><key>${{ env.BUNDLE_ID }}</key><string>${{ env.PROFILE_NAME }}</string></dict>
+            <key>signingStyle</key><string>automatic</string>
             <key>destination</key><string>export</string>
             <key>manageAppVersionAndBuildNumber</key><false/>
           </dict>
           </plist>
           EOF
 
-      - name: Force manual signing on the Runner target
+      - name: Build & sign IPA (xcodebuild + API key)
         run: |
           set -euo pipefail
-          # The pbxproj ships CODE_SIGN_STYLE=Automatic + DEVELOPMENT_TEAM, which
-          # makes `flutter build ipa` force *automatic* signing ("using specified
-          # development team…") and demand an iOS Development profile + a signed-in
-          # Xcode account — neither exists on CI. Switch to manual signing (the
-          # imported Distribution cert + installed App Store profile) AND strip
-          # DEVELOPMENT_TEAM so flutter can't re-enable automatic; the team comes
-          # from the profile under manual signing.
-          perl -0pi -e 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;\n\t\t\t\tCODE_SIGN_IDENTITY = "Apple Distribution";\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "${{ env.PROFILE_NAME }}";/g' \
-            ios/Runner.xcodeproj/project.pbxproj
-          perl -0pi -e 's/^\s*DEVELOPMENT_TEAM = [A-Z0-9]+;\n//mg' ios/Runner.xcodeproj/project.pbxproj
-          echo "manual configs: $(grep -c 'CODE_SIGN_STYLE = Manual' ios/Runner.xcodeproj/project.pbxproj) | DEVELOPMENT_TEAM left: $(grep -c 'DEVELOPMENT_TEAM' ios/Runner.xcodeproj/project.pbxproj)"
-
-      - name: Build signed IPA
-        run: |
-          set -euo pipefail
-          # flutter build ipa drives the archive (sets the Flutter.framework paths
-          # a raw `xcodebuild archive` misses in the SPM/CocoaPods hybrid). Manual
-          # signing (set above) makes it archive with the Distribution identity.
-          PATH="/usr/bin:$PATH" flutter build ipa --release \
-            --export-options-plist=.appstoreconnect/ExportOptions.plist
+          KEY="$PWD/.appstoreconnect/AuthKey_${{ secrets.ASC_KEY_ID }}.p8"
+          # Let Flutter generate its ephemeral iOS config (Generated.xcconfig +
+          # the FlutterGeneratedPluginSwiftPackage) and the CocoaPods integration,
+          # WITHOUT building — this sets the Flutter.framework search paths that a
+          # bare xcodebuild otherwise misses in the SPM/CocoaPods hybrid.
+          PATH="/usr/bin:$PATH" flutter build ios --release --config-only --no-codesign
+          PATH="/usr/bin:$PATH" env -u GEM_HOME -u GEM_PATH -u RUBYOPT \
+            pod install --project-directory=ios
+          # Archive with account-less automatic provisioning: -allowProvisioningUpdates
+          # + the API key creates/downloads the profile and signs with the imported
+          # Distribution cert. No Xcode GUI account needed.
+          PATH="/usr/bin:$PATH" xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner \
+            -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
+            -archivePath build/ios/archive/Runner.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$KEY" \
+            -authenticationKeyID "${{ secrets.ASC_KEY_ID }}" \
+            -authenticationKeyIssuerID "${{ secrets.ASC_ISSUER_ID }}" \
+            clean archive
+          PATH="/usr/bin:$PATH" xcodebuild -exportArchive \
+            -archivePath build/ios/archive/Runner.xcarchive \
+            -exportPath build/ios/ipa \
+            -exportOptionsPlist .appstoreconnect/ExportOptions.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$KEY" \
+            -authenticationKeyID "${{ secrets.ASC_KEY_ID }}" \
+            -authenticationKeyIssuerID "${{ secrets.ASC_ISSUER_ID }}"
           IPA=$(ls build/ios/ipa/*.ipa | head -1)
           echo "IPA=$IPA" >> "$GITHUB_ENV"
           echo "built: $IPA"
