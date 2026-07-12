@@ -108,29 +108,30 @@ jobs:
           </plist>
           EOF
 
+      - name: Force manual signing on the Runner target
+        run: |
+          set -euo pipefail
+          # The pbxproj ships CODE_SIGN_STYLE=Automatic, which makes the archive
+          # demand an iOS *Development* profile + a signed-in Xcode account —
+          # neither exists on CI. Switch the Runner target to manual signing with
+          # the imported Distribution cert + the installed App Store profile.
+          perl -0pi -e 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;\n\t\t\t\tCODE_SIGN_IDENTITY = "Apple Distribution";\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "${{ env.PROFILE_NAME }}";/g' \
+            ios/Runner.xcodeproj/project.pbxproj
+          echo "manual-signing configs: $(grep -c 'CODE_SIGN_STYLE = Manual' ios/Runner.xcodeproj/project.pbxproj)"
+
       - name: Build signed IPA
         run: |
           set -euo pipefail
           # flutter build ipa drives the archive (sets the Flutter.framework paths
-          # that a raw `xcodebuild archive` misses in the SPM/CocoaPods hybrid).
+          # a raw `xcodebuild archive` misses in the SPM/CocoaPods hybrid). Manual
+          # signing (set above) makes it archive with the Distribution identity.
           PATH="/usr/bin:$PATH" flutter build ipa --release \
-            --export-options-plist=.appstoreconnect/ExportOptions.plist || true
-          # Fallback: if flutter's export step didn't emit an IPA, export the
-          # archive it produced, using the API key to (re)provision if needed.
-          if ! ls build/ios/ipa/*.ipa >/dev/null 2>&1; then
-            PATH="/usr/bin:$PATH" xcodebuild -exportArchive \
-              -archivePath build/ios/archive/Runner.xcarchive \
-              -exportPath build/ios/ipa \
-              -exportOptionsPlist .appstoreconnect/ExportOptions.plist \
-              -allowProvisioningUpdates \
-              -authenticationKeyPath "$PWD/.appstoreconnect/AuthKey_${{ secrets.ASC_KEY_ID }}.p8" \
-              -authenticationKeyID "${{ secrets.ASC_KEY_ID }}" \
-              -authenticationKeyIssuerID "${{ secrets.ASC_ISSUER_ID }}"
-          fi
+            --export-options-plist=.appstoreconnect/ExportOptions.plist
           IPA=$(ls build/ios/ipa/*.ipa | head -1)
           echo "IPA=$IPA" >> "$GITHUB_ENV"
-          codesign --verify --deep --strict --verbose=2 <(echo) >/dev/null 2>&1 || true
           echo "built: $IPA"
+          unzip -qo "$IPA" -d /tmp/ipa_check
+          codesign --verify --deep --strict --verbose=2 /tmp/ipa_check/Payload/Runner.app 2>&1 | tail -2
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
