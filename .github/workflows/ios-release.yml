@@ -111,13 +111,17 @@ jobs:
       - name: Force manual signing on the Runner target
         run: |
           set -euo pipefail
-          # The pbxproj ships CODE_SIGN_STYLE=Automatic, which makes the archive
-          # demand an iOS *Development* profile + a signed-in Xcode account —
-          # neither exists on CI. Switch the Runner target to manual signing with
-          # the imported Distribution cert + the installed App Store profile.
+          # The pbxproj ships CODE_SIGN_STYLE=Automatic + DEVELOPMENT_TEAM, which
+          # makes `flutter build ipa` force *automatic* signing ("using specified
+          # development team…") and demand an iOS Development profile + a signed-in
+          # Xcode account — neither exists on CI. Switch to manual signing (the
+          # imported Distribution cert + installed App Store profile) AND strip
+          # DEVELOPMENT_TEAM so flutter can't re-enable automatic; the team comes
+          # from the profile under manual signing.
           perl -0pi -e 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;\n\t\t\t\tCODE_SIGN_IDENTITY = "Apple Distribution";\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "${{ env.PROFILE_NAME }}";/g' \
             ios/Runner.xcodeproj/project.pbxproj
-          echo "manual-signing configs: $(grep -c 'CODE_SIGN_STYLE = Manual' ios/Runner.xcodeproj/project.pbxproj)"
+          perl -0pi -e 's/^\s*DEVELOPMENT_TEAM = [A-Z0-9]+;\n//mg' ios/Runner.xcodeproj/project.pbxproj
+          echo "manual configs: $(grep -c 'CODE_SIGN_STYLE = Manual' ios/Runner.xcodeproj/project.pbxproj) | DEVELOPMENT_TEAM left: $(grep -c 'DEVELOPMENT_TEAM' ios/Runner.xcodeproj/project.pbxproj)"
 
       - name: Build signed IPA
         run: |
