@@ -118,18 +118,19 @@ jobs:
           PATH="/usr/bin:$PATH" flutter build ios --release --config-only --no-codesign
           PATH="/usr/bin:$PATH" env -u GEM_HOME -u GEM_PATH -u RUBYOPT \
             pod install --project-directory=ios
-          # Archive with MANUAL signing settings passed on the command line (bare
-          # xcodebuild honors these, unlike `flutter build ipa` which forces
-          # automatic). Signs directly with the imported Distribution cert + the
-          # installed App Store profile — no Development cert/profile, no account,
-          # no -allowProvisioningUpdates (which hits the account cert limit).
+          # Scope manual signing to the RUNNER TARGET ONLY, in its pbxproj. Passing
+          # the settings globally on the xcodebuild command line forces a profile
+          # onto every Pod/plugin framework too ("does not support provisioning
+          # profiles"). Bare xcodebuild honors these per-target pbxproj settings
+          # (unlike `flutter build ipa`, which overrides to automatic). Signs with
+          # the imported Distribution cert + installed App Store profile — no
+          # Development cert, no account, no -allowProvisioningUpdates.
+          perl -0pi -e 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;\n\t\t\t\tCODE_SIGN_IDENTITY = "Apple Distribution";\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "${{ env.PROFILE_NAME }}";/g' \
+            ios/Runner.xcodeproj/project.pbxproj
+          echo "Runner manual configs: $(grep -c 'CODE_SIGN_STYLE = Manual' ios/Runner.xcodeproj/project.pbxproj)"
           PATH="/usr/bin:$PATH" xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner \
             -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
             -archivePath build/ios/archive/Runner.xcarchive \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            PROVISIONING_PROFILE_SPECIFIER="${{ env.PROFILE_NAME }}" \
-            DEVELOPMENT_TEAM="${{ secrets.ASC_TEAM_ID }}" \
             clean archive
           PATH="/usr/bin:$PATH" xcodebuild -exportArchive \
             -archivePath build/ios/archive/Runner.xcarchive \
