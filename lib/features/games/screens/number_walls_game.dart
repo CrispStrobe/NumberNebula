@@ -9,6 +9,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -56,6 +57,10 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   int _movesRemaining = 0;
   int _maxMoves = 0;
+
+  /// Cells the player has to fill — a flawless solve places each exactly
+  /// once, so it doubles as the optimal move count for the performance grade.
+  int _optimalMoves = 0;
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -150,6 +155,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
           // Calculate max moves: 2x hidden cells (generous safety net)
           final hiddenCount = currentPuzzle!.hiddenCells.length;
+          _optimalMoves = hiddenCount;
           _maxMoves = hiddenCount * 2;
           _movesRemaining = _maxMoves;
 
@@ -222,6 +228,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       difficulty: widget.level,
       score: totalScore,
       mathProblems: attemptedProblems,
+      performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
     ));
         
         // 3. Trigger the success UI/animation.
@@ -233,6 +240,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       gameType: 'number_walls',
       difficulty: widget.level,
       mathProblems: attemptedProblems,
+      progress: _optimalMoves == 0
+          ? 0.0
+          : userAnswers.where((a) => a != null).length / _optimalMoves,
     ));
 
         // 3. Trigger the failure UI.
@@ -358,6 +368,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       gameType: 'number_walls',
       difficulty: widget.level,
       mathProblems: attemptedProblems,
+      progress: _optimalMoves == 0
+          ? 0.0
+          : userAnswers.where((a) => a != null).length / _optimalMoves,
     ));
   }
 

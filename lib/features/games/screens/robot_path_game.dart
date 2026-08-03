@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'dart:async';
 
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -708,6 +709,8 @@ class _RobotPathGameState extends State<RobotPathGame>
       gameType: 'robot_path_game',
       difficulty: widget.level,
       score: totalScore,
+      performance:
+          Perf.fromMoves(commandSequence.length, currentLevel.optimalMoves),
     ));
 
     Future.delayed(const Duration(milliseconds: 800), () {

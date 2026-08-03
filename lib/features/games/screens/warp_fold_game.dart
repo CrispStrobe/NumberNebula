@@ -7,6 +7,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -30,6 +31,9 @@ class _WarpFoldGameState extends State<WarpFoldGame>
   int? _selectedOption;
   bool _isGenerating = true;
   bool _answered = false;
+
+  /// Wrong unfoldings picked before the right one.
+  int _wrongAnswers = 0;
   bool _showingFoldAnimation = false;
   DifficultyConfig? currentDifficulty;
 
@@ -68,6 +72,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
   void _generatePuzzle() {
     setState(() {
       _isGenerating = true;
+      _wrongAnswers = 0;
       _selectedOption = null;
       _answered = false;
       _showingFoldAnimation = false;
@@ -124,6 +129,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
       gameType: 'warp_fold',
       difficulty: widget.level,
       score: totalScore,
+      performance: Perf.fromMistakes(_wrongAnswers, per: 0.25),
     ));
 
     successController.forward(from: 0.0);
@@ -136,6 +142,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
 
   void _handleLoss() {
     HapticFeedback.heavyImpact();
+    _wrongAnswers++;
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'warp_fold',
       difficulty: widget.level,

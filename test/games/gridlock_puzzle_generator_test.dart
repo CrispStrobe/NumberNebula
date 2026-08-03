@@ -1,4 +1,4 @@
-// Unit tests for gridlock_puzzle_generator.dart (Space Station Gridlock).
+// Unit tests for tool/gridlock_puzzle_generator.dart (Space Station Gridlock).
 //
 // IMPORTANT TESTABILITY LIMITATION:
 //   The interesting algorithmic pieces of this file — _generateRandomPuzzle,
@@ -17,7 +17,7 @@
 //   the solver relies on, rather than the unreachable private generator/solver.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:space_math_academy/shared/utils/gridlock_puzzle_generator.dart';
+import '../../tool/gridlock_puzzle_generator.dart';
 
 Map<String, dynamic> _ship({
   required int row,

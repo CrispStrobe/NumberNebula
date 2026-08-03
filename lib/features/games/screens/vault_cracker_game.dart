@@ -6,6 +6,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -123,6 +124,21 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
     }
   }
 
+  /// Best digit-match rate across the player's guesses — how close they got.
+  double _bestGuessFraction() {
+    final p = puzzle;
+    if (p == null || _guessHistory.isEmpty || p.codeLength == 0) return 0;
+    int best = 0;
+    for (final guess in _guessHistory) {
+      int hits = 0;
+      for (int i = 0; i < p.codeLength && i < guess.length; i++) {
+        if (guess[i] == p.secretCode[i]) hits++;
+      }
+      if (hits > best) best = hits;
+    }
+    return best / p.codeLength;
+  }
+
   void _handleWin() {
     HapticFeedback.lightImpact();
     _gameOver = true;
@@ -136,6 +152,10 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
       gameType: 'vault_cracker',
       difficulty: widget.level,
       score: totalScore,
+      // Half the allowance is the par a good deducer needs; beyond that the
+      // player was guessing rather than reasoning.
+      performance: Perf.fromMoves(
+          _guessHistory.length, (_maxGuesses / 2).ceil()),
     ));
 
     successController.forward(from: 0.0);
@@ -156,6 +176,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'vault_cracker',
       difficulty: widget.level,
+      progress: _bestGuessFraction(),
     ));
 
     if (mounted) {

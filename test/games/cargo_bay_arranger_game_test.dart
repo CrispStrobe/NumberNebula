@@ -23,6 +23,8 @@
 //   shape cell must have a non-null cube and vice versa), and the spawn x must
 //   keep the piece inside the grid.
 
+import 'dart:math';
+
 import 'package:flutter/material.dart' show Color, Offset;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:space_math_academy/features/games/screens/cargo_bay_arranger_game.dart';
@@ -241,6 +243,104 @@ void main() {
           expect(v, 7);
         }
       }
+    });
+  });
+
+  group('CargoShapeBag — fair shape distribution', () {
+    test('deals every shape exactly once per bag', () {
+      final bag = CargoShapeBag(seed: 7);
+      final n = CargoPiece.shapeCount;
+
+      for (var round = 0; round < 20; round++) {
+        final drawn = <int>[];
+        for (var i = 0; i < n; i++) {
+          drawn.add(bag.next(n));
+        }
+        expect(drawn.toSet().length, n,
+            reason: 'bag $round repeated a shape before refilling: $drawn');
+        expect(drawn.toSet(), List.generate(n, (i) => i).toSet());
+      }
+    });
+
+    test('never starves the player of a shape for longer than two bags', () {
+      // The worst case is a shape drawn first in one bag and last in the next.
+      final bag = CargoShapeBag(seed: 42);
+      final n = CargoPiece.shapeCount;
+      final lastSeen = <int, int>{};
+      var maxGap = 0;
+
+      for (var draw = 0; draw < 700; draw++) {
+        final shape = bag.next(n);
+        if (lastSeen.containsKey(shape)) {
+          final gap = draw - lastSeen[shape]!;
+          if (gap > maxGap) maxGap = gap;
+        }
+        lastSeen[shape] = draw;
+      }
+      expect(maxGap, lessThanOrEqualTo(2 * n - 1));
+    });
+
+    test('a seed reproduces the exact sequence', () {
+      final n = CargoPiece.shapeCount;
+      List<int> run(int seed) {
+        final bag = CargoShapeBag(seed: seed);
+        return List.generate(50, (_) => bag.next(n));
+      }
+
+      expect(run(123), run(123));
+      expect(run(123), isNot(run(124)));
+    });
+
+    test('shuffles — two seeds do not give the same first bag order', () {
+      final n = CargoPiece.shapeCount;
+      final a = List.generate(n, (_) => CargoShapeBag(seed: 1).next(n));
+      expect(a, isNotEmpty);
+      // Different seeds should differ somewhere in the first few bags.
+      final bagA = CargoShapeBag(seed: 1);
+      final bagB = CargoShapeBag(seed: 2);
+      final seqA = List.generate(3 * n, (_) => bagA.next(n));
+      final seqB = List.generate(3 * n, (_) => bagB.next(n));
+      expect(seqA, isNot(seqB));
+    });
+
+    test('handles a degenerate shape count without spinning', () {
+      final bag = CargoShapeBag(seed: 1);
+      expect(bag.next(0), 0);
+      expect(bag.next(1), 0);
+      expect(bag.next(1), 0);
+    });
+  });
+
+  group('CargoPiece.random shape selection', () {
+    test('an explicit shapeIndex picks that shape', () {
+      for (var i = 0; i < CargoPiece.shapeCount; i++) {
+        final piece = CargoPiece.random(1, 9, 8, shapeIndex: i);
+        expect(piece.shape, CargoPiece.shapes[i]);
+      }
+    });
+
+    test('an out-of-range shapeIndex wraps instead of throwing', () {
+      final piece =
+          CargoPiece.random(1, 9, 8, shapeIndex: CargoPiece.shapeCount + 2);
+      expect(piece.shape, CargoPiece.shapes[2]);
+    });
+
+    test('an injected Random makes piece values reproducible', () {
+      List<int> values(int seed) {
+        final p = CargoPiece.random(1, 20, 8,
+            shapeIndex: 0,
+            targetSum: 40,
+            sequenceChance: 0.5,
+            targetSumChance: 0.5,
+            random: Random(seed));
+        return [
+          for (final row in p.cubes)
+            for (final cube in row)
+              if (cube != null) cube.value,
+        ];
+      }
+
+      expect(values(99), values(99));
     });
   });
 }

@@ -7,6 +7,7 @@ import 'dart:ui' as ui;
 
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../../../core/services/sri_service.dart'; 
@@ -451,6 +452,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
       gameType: 'pathfinder',
       difficulty: widget.level,
       score: completionBonus,
+      performance: Perf.fromLives(lives.ceil(), 3),
     ));
 
     showDialog(context: context, barrierDismissible: false, builder: (ctx) => _buildEndDialog(true));

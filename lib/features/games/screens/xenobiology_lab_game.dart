@@ -7,6 +7,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -28,6 +29,9 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
   bool _gameOver = false;
+
+  /// Wrong specimen counts submitted before the right one.
+  int _wrongChecks = 0;
 
   // Puzzle data
   int _eyesA = 0, _legsA = 0;
@@ -88,6 +92,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     setState(() {
       _isGenerating = true;
       _gameOver = false;
+      _wrongChecks = 0;
       _mathProblems.clear();
       _sliderA = 0;
       _sliderB = 0;
@@ -193,6 +198,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
       difficulty: widget.level,
       score: totalScore,
       mathProblems: _mathProblems,
+      performance: Perf.fromMistakes(_wrongChecks),
     ));
 
     successController.forward(from: 0.0);
@@ -208,6 +214,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
   void _handleLoss() {
     HapticFeedback.heavyImpact();
+    _wrongChecks++;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'xenobiology_lab',

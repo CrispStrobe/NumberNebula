@@ -8,6 +8,7 @@ import '../constants/app_constants.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -46,6 +47,11 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   late List<int> dialValues;
   bool gameActive = true;
   bool isUnlocked = false;
+
+  /// Dial settings the player has committed (one per drag gesture or drop),
+  /// graded against the minimum a solver would need — the quality signal for
+  /// this round.
+  int _dialAdjustments = 0;
   int selectedDial = -1;
   
   // Visual Effects
@@ -113,6 +119,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       gameActive = true;
       isUnlocked = false;
       selectedDial = -1;
+      _dialAdjustments = 0;
     });
     
     if (kDebugMode) debugPrint("🔐 [CryptexLockBreaker] Puzzle generated:");
@@ -152,10 +159,24 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   }
 
   void _onPanEnd(DragEndDetails details) {
+    // One gesture = one adjustment, however many values it scrolled past.
+    if (selectedDial >= 0 && dialValues[selectedDial] != dragStartValue) {
+      _dialAdjustments++;
+    }
     setState(() {
       isDragging = false;
       selectedDial = -1;
     });
+  }
+
+  /// Fewest dial settings any solver would need: every dial that doesn't
+  /// already start on its solution value has to be moved at least once.
+  int get _minimumAdjustments {
+    int needed = 0;
+    for (int i = 0; i < currentPuzzle.dialCount; i++) {
+      if (currentPuzzle.initialValues[i] != currentPuzzle.solution[i]) needed++;
+    }
+    return needed;
   }
 
   void _checkSolution() {
@@ -205,6 +226,9 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       difficulty: widget.grade + (widget.level ~/ 5),
       score: totalScore,
       mathProblems: solvedProblems,
+      // Reading the equations and setting each wrong dial once is the perfect
+      // crack; spinning dials until something clicks costs quality.
+      performance: Perf.fromMoves(_dialAdjustments, _minimumAdjustments),
     ));
 
     // --- END: MODIFIED LOGIC ---
@@ -248,6 +272,12 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       gameType: 'cryptex_lock_breaker',
       difficulty: widget.grade + (widget.level ~/ 5),
       mathProblems: attemptedProblems,
+      progress: currentPuzzle.equations.isEmpty
+          ? 0.0
+          : currentPuzzle.equations
+                  .where((eq) => eq.isSatisfied(dialValues))
+                  .length /
+              currentPuzzle.equations.length,
     ));
 
     if (showDialogOnFail && mounted) {
@@ -512,6 +542,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       onWillAcceptWithDetails: (_) => gameActive && !isUnlocked,
       onAcceptWithDetails: (details) {
         HapticFeedback.selectionClick();
+        if (dialValues[dialIndex] != details.data) _dialAdjustments++;
         setState(() {
           dialValues[dialIndex] = details.data;
           selectedDial = dialIndex;

@@ -2182,6 +2182,20 @@
   "missionAllPlaced": "All letters placed!",
   "missionComplete": "Mission Complete!",
   "missionCompleteDesc": "You decoded the codeword: {word}",
-  "@missionCompleteDesc": { "placeholders": { "word": { "type": "String" } } }
-
+  "@missionCompleteDesc": { "placeholders": { "word": { "type": "String" } } },
+  "perfGradeExcellent": "Flawless",
+  "perfGradeGood": "Good",
+  "perfGradeFair": "Almost",
+  "perfGradePoor": "Shaky",
+  "perfLegendTitle": "Rating:",
+  "skillArithmetic": "Calculation",
+  "skillLogic": "Logic",
+  "skillSpatial": "Spatial",
+  "skillPattern": "Patterns",
+  "missionTaskNotPlayed": "Not played yet",
+  "missionTaskStart": "Tap to play this task",
+  "missionTaskAced": "Perfect run — nothing to improve!",
+  "missionTaskImproveHint": "Replay to raise your rating",
+  "missionTaskRetryHint": "Not cleared yet — try again",
+  "missionOverallRating": "Mission rating"
 }

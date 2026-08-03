@@ -7,6 +7,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -28,6 +29,9 @@ class _IonChainGameState extends State<IonChainGame>
   IonChainPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
+
+  /// Rejected bead placements — the quality signal for the performance grade.
+  int _ruleViolations = 0;
 
   List<IonType?> _playerChain = [];
 
@@ -73,7 +77,12 @@ class _IonChainGameState extends State<IonChainGame>
 
   void _generatePuzzle() async {
     if (currentDifficulty == null) return;
-    setState(() { _isGenerating = true; _playerChain = []; successController.reset(); });
+    setState(() {
+      _isGenerating = true;
+      _playerChain = [];
+      _ruleViolations = 0;
+      successController.reset();
+    });
 
     final grade = currentDifficulty!.grade;
     final level = currentDifficulty!.level;
@@ -124,6 +133,7 @@ class _IonChainGameState extends State<IonChainGame>
     }
 
     if (!valid) {
+      _ruleViolations++;
       HapticFeedback.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(S.of(context)!.ionChainRuleViolation),
@@ -155,6 +165,7 @@ class _IonChainGameState extends State<IonChainGame>
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'ion_chain', difficulty: widget.level, score: totalScore,
+      performance: Perf.fromMistakes(_ruleViolations, per: 0.15),
     ));
 
     successController.forward(from: 0.0);

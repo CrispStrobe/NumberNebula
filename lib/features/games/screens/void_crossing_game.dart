@@ -12,6 +12,7 @@ import 'dart:math' as math;
 
 import '../mixins/game_animations_mixin.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -103,8 +104,13 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     super.dispose();
   }
 
+  /// Shortest possible number of crossings for the current puzzle — the bar
+  /// the player's run is graded against.
+  int _optimalMoves = 0;
+
   void _generatePuzzle() {
     final puzzle = VoidCrossingLogic.generatePuzzle(widget.grade, _currentLevel);
+    _optimalMoves = VoidCrossingLogic.solve(puzzle);
     setState(() {
       _puzzle = puzzle;
       _gameState = VoidCrossingLogic.createInitialState(puzzle);
@@ -115,9 +121,9 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
       _liveConflictIds = {};
     });
     if (kDebugMode) {
-      final optimal = VoidCrossingLogic.solve(puzzle);
       debugPrint('🚀 [VoidCrossing] Puzzle: ${puzzle.entities.length} entities, '
-          'boat=${puzzle.boatCapacity}, optimal=$optimal, max=${puzzle.maxMoves}');
+          'boat=${puzzle.boatCapacity}, optimal=$_optimalMoves, '
+          'max=${puzzle.maxMoves}');
     }
   }
 
@@ -226,6 +232,8 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
           gameType: 'void_crossing',
           difficulty: _currentLevel,
           score: score,
+          performance:
+              Perf.fromMoves(_gameState!.movesTaken, _optimalMoves),
         ));
     successController.forward(from: 0.0);
 
@@ -244,6 +252,9 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
           gameType: 'void_crossing',
           difficulty: _currentLevel,
+          progress: _puzzle == null || _puzzle!.entities.isEmpty
+              ? 0.0
+              : _gameState!.farBank.length / _puzzle!.entities.length,
         ));
 
     if (mounted) {

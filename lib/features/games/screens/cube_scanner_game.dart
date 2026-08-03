@@ -7,6 +7,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -36,6 +37,9 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   int? _selectedAnswer;
   bool _isGenerating = true;
   bool _showResult = false;
+
+  /// Wrong faces picked before the right one.
+  int _wrongAnswers = 0;
   bool _resultCorrect = false;
   DifficultyConfig? currentDifficulty;
 
@@ -78,6 +82,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   void _generatePuzzle() {
     setState(() {
       _isGenerating = true;
+      _wrongAnswers = 0;
       _selectedAnswer = null;
       _showResult = false;
       _resultCorrect = false;
@@ -134,6 +139,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
       gameType: 'cube_scanner',
       difficulty: widget.level,
       score: totalScore,
+      performance: Perf.fromMistakes(_wrongAnswers, per: 0.25),
     ));
 
     // Delay to let the green flash show, then show dialog
@@ -150,6 +156,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
 
   void _handleLoss() {
     HapticFeedback.heavyImpact();
+    _wrongAnswers++;
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'cube_scanner',
       difficulty: widget.level,

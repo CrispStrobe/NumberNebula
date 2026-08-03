@@ -7,6 +7,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -28,6 +29,9 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
 
   RelicAssemblyPuzzle? puzzle;
   bool _isGenerating = true;
+
+  /// Tiles placed, including re-placements — a flawless fit places each once.
+  int _placements = 0;
   DifficultyConfig? currentDifficulty;
 
   // Player's grid: position index -> tile index in playerTiles
@@ -96,6 +100,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
   void _generatePuzzle() async {
     setState(() {
       _isGenerating = true;
+      _placements = 0;
       selectedTileIndex = null;
       successController.reset();
     });
@@ -151,6 +156,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
       // Place tile at this position
       placement[gridPos] = selectedTileIndex!;
       selectedTileIndex = null;
+      _placements++;
 
       // If there was a tile here, don't auto-select it
     });
@@ -184,6 +190,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
       gameType: 'relic_assembly',
       difficulty: widget.level,
       score: totalScore,
+      performance: Perf.fromMoves(_placements, placement.length),
     ));
 
     successController.forward(from: 0.0);

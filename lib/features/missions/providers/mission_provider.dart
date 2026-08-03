@@ -29,26 +29,40 @@ class MissionProvider extends ChangeNotifier {
   }
 
   /// Start a new mission for the given grade/level/locale.
+  ///
+  /// [gameProgress] lets each task run at the level the player has reached in
+  /// that particular game.
   Future<void> startMission({
     required int grade,
     required int level,
     required String locale,
+    Map<String, int>? gameProgress,
   }) async {
     final mission = _generator.generate(
       grade: grade,
       level: level,
       locale: locale,
+      gameProgress: gameProgress,
     );
     _state = MissionState(mission: mission);
     await _persistence.save(_state!);
     notifyListeners();
   }
 
-  /// Mark the current task as completed after a game win.
-  Future<void> completeTask(int index) async {
+  /// Record the result of a played round on task [index].
+  ///
+  /// [cleared] marks the task done (letters earned); [performance] is the
+  /// normalized 0..1 quality of the round, which the task tile grades. Best
+  /// performance wins, so replaying a task can only improve the grade.
+  Future<void> recordTaskAttempt(
+    int index, {
+    required bool cleared,
+    required double performance,
+  }) async {
     if (_state == null) return;
     if (index < 0 || index >= _state!.mission.tasks.length) return;
-    _state!.mission.tasks[index].completed = true;
+    _state!.mission.tasks[index]
+        .recordAttempt(cleared: cleared, performance: performance);
     await _persistence.save(_state!);
     notifyListeners();
   }

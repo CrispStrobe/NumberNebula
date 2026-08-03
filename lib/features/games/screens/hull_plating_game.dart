@@ -7,6 +7,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -30,6 +31,9 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   HullPlatingPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
+
+  /// Plates placed, including re-placements — a flawless fit places each once.
+  int _placements = 0;
 
   // Player state
   final List<PlacedPiece> _placedPieces = [];
@@ -88,6 +92,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
 
     setState(() {
       _isGenerating = true;
+      _placements = 0;
       _placedPieces.clear();
       _usedPieceIds.clear();
       _selectedRotation = 0;
@@ -179,6 +184,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
         absoluteCells: placement,
       ));
       _usedPieceIds.add(puzzle!.pieces[pieceIndex].id);
+      _placements++;
       _lastDroppedCell = 'r${row}c$col';
       _dropController.forward(from: 0.0);
       _selectedRotation = 0;
@@ -228,6 +234,9 @@ class _HullPlatingGameState extends State<HullPlatingGame>
       gameType: 'hull_plating',
       difficulty: widget.level,
       score: totalScore,
+      // Fitting every plate on the first try is the perfect run; shuffling
+      // pieces around costs quality.
+      performance: Perf.fromMoves(_placements, puzzle!.pieces.length),
     ));
 
     successController.forward(from: 0.0);

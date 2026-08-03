@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'dart:async';
 
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../core/services/debug_provider.dart';
 import '../../../generated/l10n.dart';
@@ -802,6 +803,30 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     }
   }
 
+  /// Best partial match of the target molecule anywhere on the grid — how
+  /// close the player got, used to report progress on a failed run.
+  int _atomsInPlace() {
+    int best = 0;
+    for (int startRow = 0; startRow <= gridSize - targetPattern.size; startRow++) {
+      for (int startCol = 0; startCol <= gridSize - targetPattern.size; startCol++) {
+        int matches = 0;
+        for (int i = 0; i < targetPattern.size; i++) {
+          for (int j = 0; j < targetPattern.size; j++) {
+            final expectedIndex = targetPattern.grid[i][j];
+            if (expectedIndex == null) continue;
+            final hasAtom = atoms.any((a) =>
+                a.row == startRow + i &&
+                a.col == startCol + j &&
+                a.atomixIndex == expectedIndex);
+            if (hasAtom) matches++;
+          }
+        }
+        if (matches > best) best = matches;
+      }
+    }
+    return best;
+  }
+
   void _undoLastMove() {
     if (_moveHistory.isEmpty || !gameActive) return;
 
@@ -876,6 +901,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       gameType: 'quantum_molecule_builder',
       difficulty: widget.grade + (widget.level ~/ 5),
       score: totalScore,
+      // The move limit is deliberately generous; assembling the molecule
+      // inside half of it is what a clean solution looks like.
+      performance: Perf.fromMoves(movesMade, (moveLimit * 0.5).round()),
     ));
     
     Future.delayed(const Duration(milliseconds: 1200), () {
@@ -900,6 +928,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'quantum_molecule_builder',
       difficulty: widget.grade + (widget.level ~/ 5),
+      progress: atoms.isEmpty ? 0.0 : _atomsInPlace() / atoms.length,
     ));
     
     for (int i = 0; i < 40; i++) {

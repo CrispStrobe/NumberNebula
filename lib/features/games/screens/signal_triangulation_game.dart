@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'dart:async';
 
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -315,6 +316,9 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       gameType: 'signal_triangulation',
       difficulty: widget.grade + (widget.level ~/ 5),
       score: totalScore,
+      // Half the guess allowance is the par for real deduction.
+      performance: Perf.fromMoves(
+          previousGuesses.length, (maxGuesses / 2).ceil()),
     ));
     
     // Add celebration particles

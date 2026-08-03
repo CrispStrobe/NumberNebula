@@ -7,6 +7,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -27,6 +28,9 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
   bool _gameOver = false;
+
+  /// Wrong forge answers before the right one.
+  int _wrongForges = 0;
 
   // Puzzle parameters
   int _headCount = 2;
@@ -81,6 +85,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
 
     setState(() {
       _isGenerating = true;
+      _wrongForges = 0;
       _gameOver = false;
       _discoveredCombos.clear();
       _answerController.clear();
@@ -193,6 +198,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
     if (answer == _correctAnswer) {
       _handleWin();
     } else {
+      _wrongForges++;
       HapticFeedback.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -217,6 +223,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       gameType: 'creature_forge',
       difficulty: widget.level,
       score: totalScore,
+      performance: Perf.fromMistakes(_wrongForges, per: 0.15),
     ));
 
     successController.forward(from: 0.0);

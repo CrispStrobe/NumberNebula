@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import '../mixins/game_animations_mixin.dart';
 
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../../../core/theme/space_theme.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -69,6 +70,9 @@ class _GridFillerGameState extends State<GridFillerGame>
   Offset? dragPreviewPosition;
   
   bool _hasWon = false;
+
+  /// Drops that did not fit — the quality signal for grading.
+  int _rejectedPlacements = 0;
   
   final GlobalKey _gridKey = GlobalKey();
   
@@ -150,6 +154,7 @@ class _GridFillerGameState extends State<GridFillerGame>
     draggedPlacedPiece = null;
     dragPreviewPosition = null;
     _hasWon = false;
+    _rejectedPlacements = 0;
     
     if (kDebugMode) debugPrint('✅ Game initialized with ${availablePieces.length} piece types');
     setState(() {});
@@ -194,7 +199,8 @@ class _GridFillerGameState extends State<GridFillerGame>
     if (kDebugMode) debugPrint('📍 Placing new ${piece.size}x${piece.size} piece at $position');
     
     if (!_canPlacePiece(piece.size, position)) {
-      debugPrint('❌ Cannot place piece - invalid position');
+      _rejectedPlacements++;
+      if (kDebugMode) debugPrint('❌ Cannot place piece - invalid position');
       return;
     }
     
@@ -221,7 +227,8 @@ class _GridFillerGameState extends State<GridFillerGame>
     if (kDebugMode) debugPrint('🔄 Moving ${piece.size}x${piece.size} from ${piece.position} to $newPosition');
     
     if (!_canPlacePiece(piece.size, newPosition, exclude: piece)) {
-      debugPrint('❌ Cannot move piece - invalid position');
+      _rejectedPlacements++;
+      if (kDebugMode) debugPrint('❌ Cannot move piece - invalid position');
       return;
     }
     
@@ -265,6 +272,8 @@ class _GridFillerGameState extends State<GridFillerGame>
       difficulty: widget.level,
       score: totalScore,
       mathProblems: [],
+      // Every piece dropped where it actually fits = flawless tiling.
+      performance: Perf.fromMistakes(_rejectedPlacements, per: 0.1),
     ));
       
       Future.delayed(const Duration(milliseconds: 500), () {

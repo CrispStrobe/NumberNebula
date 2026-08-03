@@ -33,3 +33,44 @@ jobs:
 
       - name: Run tests
         run: flutter test --reporter expanded
+
+  version-bump:
+    # A PR that changes shipping code must also move the version, otherwise a
+    # release can silently reuse a build number the stores have already seen.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compare pubspec version against the base branch
+        run: |
+          set -euo pipefail
+          base="origin/${{ github.base_ref }}"
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+
+          if ! git diff --quiet "$base" -- lib pubspec.yaml assets; then
+            head_version=$(grep -m1 '^version:' pubspec.yaml | awk '{print $2}')
+            base_version=$(git show "$base:pubspec.yaml" | grep -m1 '^version:' | awk '{print $2}')
+            echo "base: $base_version"
+            echo "head: $head_version"
+
+            if [ "$head_version" = "$base_version" ]; then
+              echo "::error::Shipping code changed but pubspec version is still $head_version."
+              echo "Run: dart run tool/bump_version.dart patch"
+              exit 1
+            fi
+
+            head_build=${head_version##*+}
+            base_build=${base_version##*+}
+            if [ "$head_build" -le "$base_build" ]; then
+              echo "::error::Build number must increase ($base_build -> $head_build)."
+              exit 1
+            fi
+          else
+            echo "No changes under lib/, assets/ or pubspec.yaml — no bump required."
+          fi

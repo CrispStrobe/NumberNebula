@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'dart:async';
 
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -66,6 +67,11 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
   bool hasWon = false;
   bool hasLost = false;
   Timer? dropTimer;
+
+  /// Fair shape distribution: every tetromino is dealt once per bag before
+  /// any repeats, instead of independent draws that can starve the player of
+  /// the piece they need.
+  CargoShapeBag _shapeBag = CargoShapeBag();
   
   // Touch controls
   Offset? _dragStartPosition;
@@ -176,6 +182,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
         numberMin,
         numberMax,
         gridCols,
+        shapeIndex: _shapeBag.next(CargoPiece.shapeCount),
         // Make the math/bonus layer actually reachable: emit consecutive runs
         // and target-sum-friendly values a good fraction of the time. The
         // player still has to place them well to score.
@@ -873,6 +880,9 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       difficulty: widget.grade + (widget.level ~/ 5),
       score: totalScore,
       mathProblems: _clearedRowProblems,
+      // Bonuses are opportunistic, not one per row: spotting roughly one
+      // equation pattern every four cleared rows counts as a perfect run.
+      performance: Perf.fromRatio(bonusesEarned, (rowsCleared / 4).ceil()),
     ));
     
     Future.delayed(const Duration(milliseconds: 1200), () {
@@ -895,6 +905,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
       gameType: 'cargo_bay_arranger',
       difficulty: widget.grade + (widget.level ~/ 5),
       mathProblems: _clearedRowProblems,
+      progress: rowsToWin == 0 ? 0.0 : rowsCleared / rowsToWin,
     ));
     
     Future.delayed(const Duration(milliseconds: 1000), () {
@@ -910,6 +921,7 @@ class _CargoBayArrangerGameState extends State<CargoBayArrangerGame>
     setState(() {
       gameActive = true; hasWon = false; hasLost = false;
       score = 0; rowsCleared = 0; bonusesEarned = 0; combo = 0;
+      _shapeBag = CargoShapeBag();
       _clearedRowProblems.clear();
       particles.clear(); clearingRows.clear();
       heldPiece = null; hasUsedHold = false;
@@ -1723,12 +1735,50 @@ class CargoCube {
   CargoCube({required this.value, required this.color});
 }
 
+/// Tetris-style "7-bag" shape randomizer.
+///
+/// Drawing each shape independently at random gives long droughts — a player
+/// can go a dozen pieces without the straight bar they need. The 7-bag deals a
+/// shuffled permutation of all shapes before reshuffling, so every shape shows
+/// up once per bag: same variety, no unfair runs. Seed it for a reproducible
+/// sequence (daily runs, tests).
+class CargoShapeBag {
+  final math.Random _random;
+  final List<int> _bag = [];
+
+  CargoShapeBag({math.Random? random, int? seed})
+      : _random = random ?? math.Random(seed);
+
+  /// Next shape index, refilling and reshuffling the bag when it runs out.
+  int next(int shapeCount) {
+    if (shapeCount <= 0) return 0;
+    if (_bag.isEmpty) {
+      _bag.addAll(List.generate(shapeCount, (i) => i)..shuffle(_random));
+    }
+    return _bag.removeLast();
+  }
+}
+
 class CargoPiece {
   int x, y;
   List<List<bool>> shape;
   List<List<CargoCube?>> cubes;
 
   CargoPiece({required this.x, required this.y, required this.shape, required this.cubes});
+
+  /// The seven tetromino shapes, in the order their colours are assigned.
+  static const List<List<List<bool>>> shapes = [
+    [[false, false, false, false], [true, true, true, true], [false, false, false, false], [false, false, false, false]],
+    [[true, true], [true, true]],
+    [[false, true, false], [true, true, true], [false, false, false]],
+    [[false, false, true], [true, true, true], [false, false, false]],
+    [[true, false, false], [true, true, true], [false, false, false]],
+    [[false, true, true], [true, true, false], [false, false, false]],
+    [[true, true, false], [false, true, true], [false, false, false]],
+  ];
+
+  /// Number of distinct shapes — the size of one [CargoShapeBag] bag.
+  static int get shapeCount => shapes.length;
 
   static CargoPiece random(
     int minValue,
@@ -1740,33 +1790,29 @@ class CargoPiece {
     int? targetSum,
     double sequenceChance = 0.0,
     double targetSumChance = 0.0,
+    // Shape to build. Pass one from a [CargoShapeBag] for fair distribution;
+    // omitted means "pick uniformly at random", the legacy behaviour.
+    int? shapeIndex,
+    // Injectable source of randomness, so a run can be reproduced.
+    math.Random? random,
   }) {
-    final random = math.Random();
-
-    final shapes = [
-      [[false, false, false, false], [true, true, true, true], [false, false, false, false], [false, false, false, false]],
-      [[true, true], [true, true]],
-      [[false, true, false], [true, true, true], [false, false, false]],
-      [[false, false, true], [true, true, true], [false, false, false]],
-      [[true, false, false], [true, true, true], [false, false, false]],
-      [[false, true, true], [true, true, false], [false, false, false]],
-      [[true, true, false], [false, true, true], [false, false, false]],
-    ];
+    final rng = random ?? math.Random();
 
     final colors = [
       Colors.cyan.shade300, Colors.yellow.shade400, Colors.purple.shade300, Colors.orange.shade400,
       Colors.blue.shade300, Colors.green.shade300, Colors.red.shade300,
     ];
 
-    final shapeIndex = random.nextInt(shapes.length);
-    final shape = shapes[shapeIndex];
-    final color = colors[shapeIndex % colors.length];
+    final pickedIndex =
+        (shapeIndex ?? rng.nextInt(shapes.length)) % shapes.length;
+    final shape = shapes[pickedIndex];
+    final color = colors[pickedIndex % colors.length];
 
     // Values for the filled cells, in row-major order.
     final filledCount =
         shape.fold<int>(0, (n, row) => n + row.where((c) => c).length);
     final values = _pieceValues(
-      random,
+      rng,
       minValue,
       maxValue,
       gridCols,

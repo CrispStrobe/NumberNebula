@@ -124,7 +124,8 @@ Future<List<GeneratedPuzzle>> _generatePuzzlesForComplexity(
   final puzzles = <GeneratedPuzzle>[];
   int attempts = 0;
   int solverCalls = 0;
-  int solverTimeouts = 0;
+  int solverUnsolvable = 0;
+  int solverBudgetExhausted = 0;
   
   // MUCH higher iteration counts for high complexity
   int maxAttempts;
@@ -179,22 +180,34 @@ Future<List<GeneratedPuzzle>> _generatePuzzlesForComplexity(
     if (now.difference(lastReportTime).inSeconds >= 10) {
       final elapsed = now.difference(startTime).inSeconds;
       final rate = attempts > 0 ? (puzzles.length / attempts * 100).toStringAsFixed(1) : '0.0';
-      print('    ⏱️  ${elapsed}s elapsed | Attempt $attempts | Found ${puzzles.length}/$count (success: $rate%) | Solver timeouts: $solverTimeouts');
+      print('    ⏱️  ${elapsed}s elapsed | Attempt $attempts | Found ${puzzles.length}/$count (success: $rate%) | Unsolvable: $solverUnsolvable, budget-exhausted: $solverBudgetExhausted');
       lastReportTime = now;
     }
     
     if (attempts % reportInterval == 0) {
       final rate = attempts > 0 ? (puzzles.length / attempts * 100).toStringAsFixed(1) : '0.0';
-      print('    Attempt $attempts (found ${puzzles.length}/$count, success rate: $rate%, timeouts: $solverTimeouts)');
+      print('    Attempt $attempts (found ${puzzles.length}/$count, success rate: $rate%, unsolvable: $solverUnsolvable, budget-exhausted: $solverBudgetExhausted)');
     }
 
     try {
       final puzzle = _generateRandomPuzzle(complexity);
       solverCalls++;
-      final solutionLength = _solvePuzzle(puzzle, maxSolverMoves);
-      
-      if (solutionLength == null) {
-        solverTimeouts++;
+      var result = _solvePuzzle(puzzle, maxSolverMoves);
+
+      // "Budget exhausted" is not "unsolvable" — a deep puzzle is exactly what
+      // we are hunting for at high complexity, so pay for one deeper search
+      // before discarding it.
+      if (result.budgetExhausted) {
+        result = _solvePuzzle(puzzle, maxSolverMoves,
+            nodeBudget: kDefaultSolverNodeBudget * 4);
+      }
+
+      final solutionLength = result.moves;
+
+      if (result.budgetExhausted) {
+        solverBudgetExhausted++;
+      } else if (solutionLength == null) {
+        solverUnsolvable++;
       } else if (solutionLength >= minMovesTarget && solutionLength <= maxMovesTarget) {
         puzzles.add(GeneratedPuzzle(
           id: 'GRID_${startId + puzzles.length}',
@@ -214,7 +227,12 @@ Future<List<GeneratedPuzzle>> _generatePuzzlesForComplexity(
   }
 
   final elapsed = DateTime.now().difference(startTime);
-  final solverSuccessRate = solverCalls > 0 ? ((solverCalls - solverTimeouts) / solverCalls * 100).toStringAsFixed(1) : '0.0';
+  final solverSuccessRate = solverCalls > 0
+      ? ((solverCalls - solverUnsolvable - solverBudgetExhausted) /
+              solverCalls *
+              100)
+          .toStringAsFixed(1)
+      : '0.0';
   
   print('  ⏱️  Completed in ${elapsed.inSeconds}s | Solver success rate: $solverSuccessRate%');
 
@@ -391,7 +409,40 @@ void _markGrid(List<List<bool>> grid, Map<String, dynamic> ship, bool mark) {
   }
 }
 
-int? _solvePuzzle(PuzzleConfig config, int maxMoves) {
+/// Outcome of a solver run.
+///
+/// The old solver returned `null` for both "no solution" and "I ran out of
+/// search budget", so the generator threw away perfectly good deep puzzles as
+/// if they were broken. Keeping the two apart lets the caller retry the second
+/// case with a bigger budget — the same distinction the StarLoader solver
+/// makes.
+class GridlockSolveResult {
+  /// Length of the shortest solution, or null if none was found.
+  final int? moves;
+
+  /// True when the search stopped at its node budget with states still
+  /// queued: "don't know", as opposed to a fully drained queue, which means
+  /// no solution exists within the requested move limit.
+  final bool budgetExhausted;
+
+  const GridlockSolveResult.solved(int this.moves) : budgetExhausted = false;
+  const GridlockSolveResult.unsolvable()
+      : moves = null,
+        budgetExhausted = false;
+  const GridlockSolveResult.exhausted()
+      : moves = null,
+        budgetExhausted = true;
+
+  bool get isSolved => moves != null;
+}
+
+/// Default BFS node budget. A 6x6 rush-hour board has a bounded state space,
+/// so this is generous enough to settle almost every puzzle outright; the old
+/// 15000 stopped mid-search often enough to discard valid deep puzzles.
+const int kDefaultSolverNodeBudget = 250000;
+
+GridlockSolveResult _solvePuzzle(PuzzleConfig config, int maxMoves,
+    {int nodeBudget = kDefaultSolverNodeBudget}) {
   const gridSize = 6;
   final queue = Queue<SolverState>();
   final visited = <String>{};
@@ -401,9 +452,8 @@ int? _solvePuzzle(PuzzleConfig config, int maxMoves) {
   visited.add(initialState.hashKey);
 
   int nodesExplored = 0;
-  const maxNodes = 15000;
-  
-  while (queue.isNotEmpty && nodesExplored < maxNodes) {
+
+  while (queue.isNotEmpty && nodesExplored < nodeBudget) {
     final current = queue.removeFirst();
     nodesExplored++;
     
@@ -413,7 +463,7 @@ int? _solvePuzzle(PuzzleConfig config, int maxMoves) {
     final playerLength = playerShip['length'] as int;
     
     if (playerCol + playerLength >= gridSize) {
-      return current.moves;
+      return GridlockSolveResult.solved(current.moves);
     }
     
     // Don't explore beyond maxMoves
@@ -438,7 +488,12 @@ int? _solvePuzzle(PuzzleConfig config, int maxMoves) {
     }
   }
   
-  return null; // No solution found
+  // Queue drained => every state reachable within maxMoves was searched and
+  // none wins, so this puzzle is out of range. Otherwise we stopped early and
+  // genuinely don't know.
+  return queue.isEmpty
+      ? const GridlockSolveResult.unsolvable()
+      : const GridlockSolveResult.exhausted();
 }
 
 Map<String, dynamic>? _tryMove(Map<String, dynamic> ship, int direction) {

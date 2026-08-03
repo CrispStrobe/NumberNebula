@@ -9,6 +9,7 @@ import 'package:flutter_cube/flutter_cube.dart' as cube;
 import '../mixins/game_animations_mixin.dart';
 
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -254,6 +255,9 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
   
   bool _isGenerating = true;
   int _selectedAnswerIndex = -1;
+
+  /// Wrong counts submitted before the right one.
+  int _wrongAnswers = 0;
   cube.Object? _sceneObject;
   cube.Scene? _scene; 
   Key _cubeKey = UniqueKey();
@@ -299,6 +303,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
     
     setState(() {
       _isGenerating = true;
+      _wrongAnswers = 0;
       _cubeKey = UniqueKey();
       _scene = null;
       userAnswer = null;
@@ -410,6 +415,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
       gameType: 'block_counter',
       difficulty: widget.level,
       score: totalScore,
+      performance: Perf.fromMistakes(_wrongAnswers, per: 0.25),
     ));
     
     successController.forward(from: 0.0);
@@ -422,6 +428,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
   }
 
   void _handleIncorrect() {
+    _wrongAnswers++;
     // Track the incorrect attempt
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'block_counter',

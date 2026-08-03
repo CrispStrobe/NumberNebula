@@ -9,6 +9,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -47,6 +48,9 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   List<int> numberPool = [];
   
   bool _isGenerating = true;
+
+  /// Wrong panel layouts submitted before the correct one.
+  int _wrongChecks = 0;
   int _lastPlacedCellIndex = -1;
   bool _isDraggingOver = false;
   bool _showPanelExpansion = false;
@@ -119,6 +123,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     
     setState(() {
       _isGenerating = true;
+      _wrongChecks = 0;
       _shouldShowHint = true;
       _showPanelExpansion = false;
       _warpController.reset();
@@ -198,10 +203,12 @@ class _SolarPanelGameState extends State<SolarPanelGame>
       difficulty: widget.level,
       score: totalScore,
       mathProblems: attemptedProblems,
+      performance: Perf.fromMistakes(_wrongChecks),
     ));
         
         _handleSuccess(totalScore);
       } else {
+        _wrongChecks++;
         context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'solarpanel_game',
       difficulty: widget.level,

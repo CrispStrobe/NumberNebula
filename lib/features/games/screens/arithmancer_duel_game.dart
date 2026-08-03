@@ -12,6 +12,7 @@ import '../../../shared/utils/arithmancer.dart';
 
 import '../constants/app_constants.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../widgets/arithmancer_duel_dialogs.dart';
 import '../widgets/arithmancer_duel_effects.dart';
@@ -716,6 +717,8 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       gameType: 'arithmancer_duel',
       difficulty: widget.level,
       score: baseScore,
+      // Winning the duel barely scratched is the flawless run.
+      performance: Perf.fromLives(_game.playerHealth, _game.maxHealth),
     ));
     
     if (widget.gameMode == GameMode.ladder) {
@@ -805,6 +808,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       gameType: 'arithmancer_duel',
       difficulty: widget.level,
       score: totalScore,
+      performance: Perf.fromLives(_game.playerHealth, _game.maxHealth),
     ));
 
     context.read<GameProvider>().addScore(baseScore + bonusScore);

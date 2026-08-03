@@ -8,6 +8,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -34,6 +35,9 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   int _selectedColor = 0;
   bool _isGenerating = true;
   bool _won = false;
+
+  /// Times the player created an adjacent same-colour clash.
+  int _conflictEvents = 0;
   DifficultyConfig? currentDifficulty;
   Set<int> _conflictRegions = {};
 
@@ -92,6 +96,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   void _generatePuzzle() async {
     setState(() {
       _isGenerating = true;
+      _conflictEvents = 0;
       _won = false;
       _coloring.clear();
       _conflictRegions = {};
@@ -146,6 +151,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
         regions.add(pair[0]);
         regions.add(pair[1]);
       }
+      _conflictEvents++;
       setState(() => _conflictRegions = regions);
       _conflictController.forward(from: 0.0);
       HapticFeedback.heavyImpact();
@@ -168,6 +174,12 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       gameType: 'sector_painter',
       difficulty: widget.level,
       score: totalScore,
+      // Using no more colours than the chromatic number is the actual goal;
+      // every adjacency clash along the way costs a little.
+      performance: Perf.combine([
+        colorsUsed <= _puzzle!.chromaticNumber ? 1.0 : 0.6,
+        Perf.fromMistakes(_conflictEvents, per: 0.1),
+      ], weights: [2, 1]),
     ));
 
     successController.forward(from: 0.0);

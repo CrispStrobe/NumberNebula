@@ -9,6 +9,7 @@ import '../../../core/services/puzzle_evaluation_service.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -38,6 +39,10 @@ class _StarForgeGameState extends State<StarForgeGame>
 
   int _movesRemaining = 0;
   int _maxMoves = 0;
+
+  /// Cells the player has to fill — a flawless solve places each exactly
+  /// once, so it doubles as the optimal move count for the performance grade.
+  int _optimalMoves = 0;
 
   @override
   void initState() {
@@ -117,6 +122,7 @@ class _StarForgeGameState extends State<StarForgeGame>
 
           // Calculate max moves: 2x empty nodes (generous safety net)
           final emptyCount = p.emptyNodes.length;
+          _optimalMoves = emptyCount;
           _maxMoves = emptyCount * 2;
           _movesRemaining = _maxMoves;
 
@@ -177,6 +183,7 @@ class _StarForgeGameState extends State<StarForgeGame>
       gameType: 'star_forge',
       difficulty: widget.level,
       score: totalScore,
+        performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
     ));
 
     successController.forward(from: 0.0);
@@ -211,6 +218,7 @@ class _StarForgeGameState extends State<StarForgeGame>
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'star_forge',
       difficulty: widget.level,
+        progress: _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
     ));
   }
 

@@ -2102,6 +2102,20 @@
   "missionAllPlaced": "Alle Buchstaben platziert!",
   "missionComplete": "Mission abgeschlossen!",
   "missionCompleteDesc": "Du hast das Codewort entschlusselt: {word}",
-  "@missionCompleteDesc": { "placeholders": { "word": { "type": "String" } } }
-
+  "@missionCompleteDesc": { "placeholders": { "word": { "type": "String" } } },
+  "perfGradeExcellent": "Makellos",
+  "perfGradeGood": "Gut",
+  "perfGradeFair": "Fast",
+  "perfGradePoor": "Wackelig",
+  "perfLegendTitle": "Bewertung:",
+  "skillArithmetic": "Rechnen",
+  "skillLogic": "Logik",
+  "skillSpatial": "Raum",
+  "skillPattern": "Muster",
+  "missionTaskNotPlayed": "Noch nicht gespielt",
+  "missionTaskStart": "Tippen, um diese Aufgabe zu spielen",
+  "missionTaskAced": "Perfekter Lauf — nichts zu verbessern!",
+  "missionTaskImproveHint": "Nochmal spielen und Bewertung verbessern",
+  "missionTaskRetryHint": "Noch nicht geschafft — versuch es nochmal",
+  "missionOverallRating": "Missions-Bewertung"
 }

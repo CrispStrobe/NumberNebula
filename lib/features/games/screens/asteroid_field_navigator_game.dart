@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'dart:async';
 
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -403,6 +404,10 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
       gameType: 'asteroid_field_navigator',
       difficulty: widget.grade + (widget.level ~/ 5),
       score: totalScore,
+      // Roughly a second per cell is the pace of confident deduction;
+      // dithering past that costs, but a correct sweep is never "poor".
+      performance: Perf.fromTime(elapsedSeconds, gridRows * gridCols,
+          floor: 0.45),
     ));
     
     Future.delayed(const Duration(milliseconds: 1200), () async {
