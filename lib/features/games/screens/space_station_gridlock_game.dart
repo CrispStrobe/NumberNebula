@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import '../../../core/services/debug_provider.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -593,6 +594,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       gameType: 'space_station_gridlock',
       difficulty: widget.grade + (widget.level ~/ 5),
       score: totalScore,
+      performance: Perf.fromMoves(moveCount, minMoves),
     ));
     
     for (int i = 0; i < 60; i++) {

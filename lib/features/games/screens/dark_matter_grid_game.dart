@@ -6,6 +6,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -121,6 +122,7 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
       gameType: 'dark_matter_grid',
       difficulty: widget.level,
       score: totalScore,
+      performance: Perf.fromMoves(moveCount, puzzle!.minMoves),
     ));
 
     successController.forward(from: 0.0);

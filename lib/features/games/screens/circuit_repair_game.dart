@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -163,6 +164,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
       gameType: 'circuit_repair',
       difficulty: widget.level,
       score: totalScore,
+      performance:
+          Perf.fromAttempts(_attemptsUsed + 1, _puzzle!.maxAttempts),
     ));
 
     successController.forward(from: 0.0);

@@ -125,13 +125,17 @@ class MissionHubScreen extends StatelessWidget {
     final gp = context.read<GameProvider>();
     final locale = Localizations.localeOf(context).languageCode;
     final grade = gp.effectiveGrade;
-    // Use the average game level as mission level
+    // Fallback level for games the player has never opened.
     final level = gp.score > 0 ? ((gp.score / 500) + 1).clamp(1, 20).toInt() : 1;
 
     await provider.startMission(
       grade: grade,
       level: level,
       locale: locale,
+      // Each task runs at the level the player has actually reached in that
+      // game, so a mission never throws them at level 1 content they've long
+      // outgrown — or level 12 content they've never seen.
+      gameProgress: gp.gameProgress,
     );
 
     if (context.mounted) {

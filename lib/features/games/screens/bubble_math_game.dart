@@ -9,6 +9,7 @@ import '../constants/app_constants.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -37,6 +38,9 @@ class _BubbleMathGameState extends State<BubbleMathGame>
   List<MathProblem> _levelProblems = [];
   List<int> targetOrder = [];
   int currentTargetIndex = 0;
+
+  /// Bubbles popped out of order — the quality signal for grading.
+  int _wrongTaps = 0;
   int timeLeft = 60;
   bool gameActive = true;
 
@@ -75,6 +79,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
     targetOrder.clear();
     _levelProblems.clear();
     currentTargetIndex = 0;
+    _wrongTaps = 0;
     
     final screenSize = MediaQuery.of(context).size;
     final difficulty = widget.grade + widget.level;
@@ -199,6 +204,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
         _winGame();
       }
     } else {
+      _wrongTaps++;
       _showWrongBubbleFeedback();
     }
   }
@@ -237,6 +243,8 @@ class _BubbleMathGameState extends State<BubbleMathGame>
       difficulty: widget.level,
       score: totalScore,
       mathProblems: _levelProblems,
+      performance:
+          Perf.fromRatio(currentTargetIndex, currentTargetIndex + _wrongTaps),
     ));
 
     showDialog(
@@ -255,6 +263,9 @@ class _BubbleMathGameState extends State<BubbleMathGame>
       gameType: 'bubble_math',
       difficulty: widget.level,
       mathProblems: _levelProblems,
+      progress: targetOrder.isEmpty
+          ? 0.0
+          : currentTargetIndex / targetOrder.length,
     ));
 
     showDialog(

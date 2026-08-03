@@ -4049,4 +4049,49 @@ class SEn extends S {
   String missionCompleteDesc(String word) {
     return 'You decoded the codeword: $word';
   }
+
+  @override
+  String get perfGradeExcellent => 'Flawless';
+
+  @override
+  String get perfGradeGood => 'Good';
+
+  @override
+  String get perfGradeFair => 'Almost';
+
+  @override
+  String get perfGradePoor => 'Shaky';
+
+  @override
+  String get perfLegendTitle => 'Rating:';
+
+  @override
+  String get skillArithmetic => 'Calculation';
+
+  @override
+  String get skillLogic => 'Logic';
+
+  @override
+  String get skillSpatial => 'Spatial';
+
+  @override
+  String get skillPattern => 'Patterns';
+
+  @override
+  String get missionTaskNotPlayed => 'Not played yet';
+
+  @override
+  String get missionTaskStart => 'Tap to play this task';
+
+  @override
+  String get missionTaskAced => 'Perfect run — nothing to improve!';
+
+  @override
+  String get missionTaskImproveHint => 'Replay to raise your rating';
+
+  @override
+  String get missionTaskRetryHint => 'Not cleared yet — try again';
+
+  @override
+  String get missionOverallRating => 'Mission rating';
 }

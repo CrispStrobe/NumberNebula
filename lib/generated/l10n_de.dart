@@ -4064,4 +4064,51 @@ class SDe extends S {
   String missionCompleteDesc(String word) {
     return 'Du hast das Codewort entschlusselt: $word';
   }
+
+  @override
+  String get perfGradeExcellent => 'Makellos';
+
+  @override
+  String get perfGradeGood => 'Gut';
+
+  @override
+  String get perfGradeFair => 'Fast';
+
+  @override
+  String get perfGradePoor => 'Wackelig';
+
+  @override
+  String get perfLegendTitle => 'Bewertung:';
+
+  @override
+  String get skillArithmetic => 'Rechnen';
+
+  @override
+  String get skillLogic => 'Logik';
+
+  @override
+  String get skillSpatial => 'Raum';
+
+  @override
+  String get skillPattern => 'Muster';
+
+  @override
+  String get missionTaskNotPlayed => 'Noch nicht gespielt';
+
+  @override
+  String get missionTaskStart => 'Tippen, um diese Aufgabe zu spielen';
+
+  @override
+  String get missionTaskAced => 'Perfekter Lauf — nichts zu verbessern!';
+
+  @override
+  String get missionTaskImproveHint =>
+      'Nochmal spielen und Bewertung verbessern';
+
+  @override
+  String get missionTaskRetryHint =>
+      'Noch nicht geschafft — versuch es nochmal';
+
+  @override
+  String get missionOverallRating => 'Missions-Bewertung';
 }

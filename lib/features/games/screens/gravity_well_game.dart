@@ -7,6 +7,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -32,6 +33,10 @@ class _GravityWellGameState extends State<GravityWellGame>
 
   Map<String, int> _userAnswers = {};
   bool _gameOver = false;
+  /// Wrong solutions submitted before the correct one — the quality signal
+  /// behind this round's performance grade.
+  int _wrongChecks = 0;
+
 
   @override
   void initState() {
@@ -66,6 +71,7 @@ class _GravityWellGameState extends State<GravityWellGame>
     setState(() {
       _isGenerating = true;
       _gameOver = false;
+      _wrongChecks = 0;
       successController.reset();
     });
 
@@ -129,6 +135,17 @@ class _GravityWellGameState extends State<GravityWellGame>
         ],
       ),
     );
+  }
+
+  /// Share of unknown weights the player currently has right.
+  double _solvedFraction() {
+    final p = puzzle;
+    if (p == null || p.unknownWeights.isEmpty) return 0;
+    int correct = 0;
+    for (final entry in p.unknownWeights.entries) {
+      if (_userAnswers[entry.key] == entry.value) correct++;
+    }
+    return correct / p.unknownWeights.length;
   }
 
   void _checkSolution() {
@@ -201,6 +218,7 @@ class _GravityWellGameState extends State<GravityWellGame>
       difficulty: widget.level,
       score: totalScore,
       mathProblems: mathProblems,
+      performance: Perf.fromMistakes(_wrongChecks),
     ));
 
     successController.forward(from: 0.0);
@@ -216,11 +234,13 @@ class _GravityWellGameState extends State<GravityWellGame>
 
   void _handleLoss() {
     HapticFeedback.heavyImpact();
+    _wrongChecks++;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'gravity_well',
       difficulty: widget.level,
       mathProblems: _extractMathProblems(),
+      progress: _solvedFraction(),
     ));
 
     ScaffoldMessenger.of(context).showSnackBar(

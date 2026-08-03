@@ -7,6 +7,7 @@ import 'dart:async';
 // Import for MaskFilter
 
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -503,6 +504,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
       gameType: 'star_loader_game',
       difficulty: widget.level,
       score: totalScore,
+      performance: Perf.fromMoves(_moveCount, _optimalMoves),
     ));
 
     showDialog(

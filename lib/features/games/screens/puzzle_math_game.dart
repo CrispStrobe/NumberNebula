@@ -9,6 +9,7 @@ import '../../../core/services/puzzle_image_service.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -34,6 +35,9 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   String? currentPuzzleImage;
   Timer? _timer;
   int _timeLeft = 120;
+
+  /// Pieces dropped into the wrong slot — the quality signal for grading.
+  int _misplacements = 0;
   final Map<String, JigsawSide> _edgeShapes = {}; // Stores the shape of each interior edge
 
   @override
@@ -45,6 +49,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   void _initializeGame() {
     // REFACTORED: Using debugPrint for CLI output
     if (kDebugMode) debugPrint("--- INITIALIZING NEW GAME ---");
+    _misplacements = 0;
     final gameProvider = context.read<GameProvider>();
     
     currentPuzzleImage = PuzzleImageService.instance.getImageForLevel(widget.level);
@@ -101,12 +106,15 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         difficulty: widget.level,
         score: finalScore,
         mathProblems: allProblems,
+        // A clean solve places every piece straight into its slot.
+        performance: Perf.fromMistakes(_misplacements, per: 0.1),
       ));
     } else {
       context.read<GameProvider>().reportOutcome(GameOutcome.loss(
         gameType: 'puzzle_math',
         difficulty: widget.level,
         mathProblems: allProblems,
+        progress: pieces.isEmpty ? 0.0 : placedPieces.length / pieces.length,
       ));
     }
 
@@ -507,6 +515,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
                     }
                   } else {
                     if (kDebugMode) debugPrint("DROP: FAILURE! Incorrect. Reason: ${pieceData.answer != slotData.answer ? 'Wrong Answer' : 'Wrong Rotation'}");
+                    _misplacements++;
                     _showIncorrectPlacement();
                   }
                 },

@@ -7,6 +7,7 @@ import '../../../core/services/sri_service.dart';
 import '../../../core/services/cognitive_profile_service.dart';
 import '../models/game_outcome.dart';
 import '../models/math_problem.dart';
+import '../models/performance.dart';
 import '../tuning.dart';
 import '../constants/app_constants.dart'; // For MathOperation and NumberRange
 
@@ -105,7 +106,24 @@ class GameProvider extends ChangeNotifier {
   /// Star rating from the most recent reportOutcome call.
   int _lastStars = 0;
 
+  /// The most recent outcome reported by any game, and a monotonic counter of
+  /// how many have been reported this session. Callers that launch a game and
+  /// want to know what happened (missions, in particular) snapshot
+  /// [outcomeCount] before pushing the game screen and compare afterwards:
+  /// an unchanged counter means the player quit without finishing a round.
+  GameOutcome? _lastOutcome;
+  int _outcomeCount = 0;
+
   int get lastStars => _lastStars;
+  GameOutcome? get lastOutcome => _lastOutcome;
+  int get outcomeCount => _outcomeCount;
+
+  /// Normalized 0..1 quality of the most recent round (0 if none yet).
+  double get lastPerformance => _lastOutcome?.effectivePerformance ?? 0.0;
+
+  /// Grade bucket of [lastPerformance].
+  PerfGrade get lastGrade => gradeForPerformance(lastPerformance);
+
   Map<String, int> get bestStars => Map.unmodifiable(_bestStars);
 
   // Getter
@@ -197,8 +215,22 @@ class GameProvider extends ChangeNotifier {
 
     if (outcome.wasSuccessful) addScore(outcome.score);
 
-    // Compute normalized star rating
-    _lastStars = scoreToStars(outcome.gameType, outcome.score, outcome.wasSuccessful);
+    _lastOutcome = outcome;
+    _outcomeCount++;
+    if (kDebugMode) {
+      debugPrint('[GAME_PROVIDER] 📊 Performance: '
+          '${performancePercent(outcome.effectivePerformance)}% '
+          '(${outcome.grade.name}${outcome.performance == null ? ', estimated' : ''})');
+    }
+
+    // Compute normalized star rating. Games that measured how cleanly the
+    // round was played grade on that; the rest fall back to raw score.
+    _lastStars = !outcome.wasSuccessful
+        ? 0
+        : outcome.performance != null
+            ? starsForPerformance(outcome.performance!)
+            : scoreToStars(
+                outcome.gameType, outcome.score, outcome.wasSuccessful);
     if (_lastStars > (_bestStars[outcome.gameType] ?? 0)) {
       _bestStars[outcome.gameType] = _lastStars;
     }

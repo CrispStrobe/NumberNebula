@@ -7,6 +7,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -32,6 +33,10 @@ class _CrewManifestGameState extends State<CrewManifestGame>
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
   bool _gameOver = false;
+  /// Wrong solutions submitted before the correct one — the quality signal
+  /// behind this round's performance grade.
+  int _wrongChecks = 0;
+
 
   // Logic grid: Map<'crewIndex_itemIndex', CellMark>
   final Map<String, CellMark> _gridState = {};
@@ -75,6 +80,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     setState(() {
       _isGenerating = true;
       _gameOver = false;
+      _wrongChecks = 0;
       _gridState.clear();
       _highlightedRow = null;
       _highlightedCol = null;
@@ -245,6 +251,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
       gameType: 'crew_manifest',
       difficulty: widget.level,
       score: totalScore,
+      performance: Perf.fromMistakes(_wrongChecks),
     ));
 
     successController.forward(from: 0.0);
@@ -260,6 +267,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
 
   void _handleLoss() {
     HapticFeedback.heavyImpact();
+    _wrongChecks++;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'crew_manifest',

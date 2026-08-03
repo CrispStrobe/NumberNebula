@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/hyperdrive_gates_world.dart';
@@ -814,6 +815,8 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
       gameType: 'hyperdrive_gates',
       difficulty: widget.level,
       score: _levelScore,
+      // Flying the run without taking a hit is the perfect flight.
+      performance: Perf.fromLives(lives, INITIAL_LIVES),
     ));
     
     showDialog(
@@ -832,6 +835,9 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'hyperdrive_gates',
       difficulty: widget.level,
+      progress: targetGatesForLevel == 0
+          ? 0.0
+          : gatesCleared / targetGatesForLevel,
     ));
     
     showDialog(

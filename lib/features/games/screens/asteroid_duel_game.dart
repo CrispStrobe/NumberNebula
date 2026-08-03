@@ -7,6 +7,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -28,6 +29,11 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
   bool _gameOver = false;
+
+  /// Nim-theory move grading: how many winning positions the player was in,
+  /// and how many of those they actually converted.
+  int _winningPositions = 0;
+  int _optimalMoves = 0;
 
   int _totalAsteroids = 0;
   int _remaining = 0;
@@ -81,6 +87,8 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
 
     setState(() {
       _isGenerating = true;
+      _winningPositions = 0;
+      _optimalMoves = 0;
       _gameOver = false;
       _moveHistory.clear();
       _isPlayerTurn = true;
@@ -137,6 +145,15 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
   void _playerTake(int count) {
     if (_gameOver || !_isPlayerTurn) return;
     if (count < 1 || count > math.min(_maxPerTurn, _remaining)) return;
+
+    // Grade the move against Nim theory: from a winning position the player
+    // should leave a multiple of (maxPerTurn + 1) plus one. Losing positions
+    // offer no winning move, so they are not held against the player.
+    final mod = _maxPerTurn + 1;
+    if ((_remaining - 1) % mod != 0) {
+      _winningPositions++;
+      if ((_remaining - count - 1) % mod == 0) _optimalMoves++;
+    }
 
     _removeController.forward(from: 0.0);
 
@@ -213,6 +230,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
       gameType: 'asteroid_duel',
       difficulty: widget.level,
       score: totalScore,
+      performance: Perf.fromRatio(_optimalMoves, _winningPositions),
     ));
 
     successController.forward(from: 0.0);

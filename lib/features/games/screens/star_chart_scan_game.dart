@@ -7,6 +7,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -31,6 +32,9 @@ class _StarChartScanGameState extends State<StarChartScanGame>
 
   // Tracking found equations and current selection
   final Set<String> _foundEquations = {};
+
+  /// Drag sweeps that matched no equation — the quality signal for grading.
+  int _wrongSelections = 0;
   final Set<String> _foundCells = {}; // 'row,col' keys
   // Track which cells belong to which found equation (for colored highlighting)
   final Map<String, int> _cellEquationIndex = {};
@@ -78,6 +82,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
 
     setState(() {
       _isGenerating = true;
+      _wrongSelections = 0;
       _foundEquations.clear();
       _foundCells.clear();
       _cellEquationIndex.clear();
@@ -197,6 +202,10 @@ class _StarChartScanGameState extends State<StarChartScanGame>
       }
     }
 
+    if (matchedEquation == null && _currentSelection.length > 1) {
+      _wrongSelections++;
+    }
+
     setState(() {
       _isDragging = false;
       _currentSelection.clear();
@@ -247,6 +256,11 @@ class _StarChartScanGameState extends State<StarChartScanGame>
       gameType: 'star_chart_scan',
       difficulty: widget.level,
       score: totalScore,
+      // Scanning is exploratory, so one fruitless sweep per equation is free;
+      // beyond that the player is dragging at random.
+      performance: Perf.fromMistakes(
+          _wrongSelections - puzzle!.equationsToFind.length,
+          per: 0.08),
     ));
 
     successController.forward(from: 0.0);

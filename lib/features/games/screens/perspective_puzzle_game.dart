@@ -8,6 +8,7 @@ import 'package:flutter_cube/flutter_cube.dart' as cube;
 import 'package:collection/collection.dart';
 
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -633,6 +634,8 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
       gameType: 'perspective_puzzle',
       difficulty: currentPuzzle?.difficulty ?? 1,
       score: finalScore,
+      // Every view identified first time = flawless; each extra guess costs.
+      performance: Perf.fromRatio(_correctAttempts, _totalAttempts),
     ));
     
     // 3. Trigger UI feedback.
@@ -653,6 +656,9 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'perspective_puzzle',
       difficulty: currentPuzzle?.difficulty ?? 1,
+      progress: _perspectivesToSolve.isEmpty
+          ? 0.0
+          : _currentTurnIndex / _perspectivesToSolve.length,
     ));
 
     // Show a failure dialog.

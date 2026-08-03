@@ -8,6 +8,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -45,6 +46,10 @@ class _KenkenGameState extends State<KenkenGame>
 
   int _movesRemaining = 0;
   int _maxMoves = 0;
+
+  /// Cells the player has to fill — a flawless solve places each exactly
+  /// once, so it doubles as the optimal move count for the performance grade.
+  int _optimalMoves = 0;
 
   @override
   void initState() {
@@ -125,6 +130,7 @@ class _KenkenGameState extends State<KenkenGame>
 
           // Calculate max moves: 2x empty cells (generous safety net)
           final emptyCount = generatedPuzzle.emptyCells.length;
+          _optimalMoves = emptyCount;
           _maxMoves = emptyCount * 2;
           _movesRemaining = _maxMoves;
 
@@ -326,6 +332,7 @@ class _KenkenGameState extends State<KenkenGame>
       difficulty: widget.level,
       score: totalScore,
       mathProblems: mathProblems,
+        performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
     ));
     
     successController.forward(from: 0.0);
@@ -374,6 +381,7 @@ class _KenkenGameState extends State<KenkenGame>
       gameType: 'kenken',
       difficulty: widget.level,
       mathProblems: mathProblems,
+      progress: _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
     ));
   }
 

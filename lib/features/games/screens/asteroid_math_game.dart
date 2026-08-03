@@ -9,6 +9,7 @@ import '../constants/difficulty_manager.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -570,6 +571,13 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       score: finalScore,
       wasSuccessful: isWin,
       mathProblems: levelProblems,
+      // Shooting accuracy: every target hit, nothing wasted = flawless.
+      performance: isWin
+          ? Perf.fromRatio(currentTargetIndex, currentTargetIndex + wrongShots)
+          : Perf.forLoss(
+              progress: targetOrder.isEmpty
+                  ? 0.0
+                  : currentTargetIndex / targetOrder.length),
     ));
     
     if (isWin) {

@@ -9,6 +9,7 @@ import '../../../core/services/puzzle_evaluation_service.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
@@ -34,6 +35,10 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
   // User's assignment: person index -> true (truth-teller) or false (liar) or null
   Map<int, bool?> _userAssignment = {};
   bool _gameOver = false;
+
+  /// Wrong verdicts submitted before the correct one — the quality signal
+  /// behind this round's performance grade.
+  int _wrongVerdicts = 0;
 
   @override
   void initState() {
@@ -66,6 +71,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     setState(() {
       _isGenerating = true;
       _gameOver = false;
+      _wrongVerdicts = 0;
       successController.reset();
     });
 
@@ -140,6 +146,17 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     }
   }
 
+  /// Share of aliens the player judged correctly in the submitted verdict.
+  double _correctlyJudgedFraction() {
+    final p = puzzle;
+    if (p == null || p.personCount == 0) return 0;
+    int correct = 0;
+    for (int i = 0; i < p.personCount; i++) {
+      if (_userAssignment[i] == p.people[i].isTruthTeller) correct++;
+    }
+    return correct / p.personCount;
+  }
+
   void _handleWin() {
     HapticFeedback.lightImpact();
     _gameOver = true;
@@ -153,6 +170,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
       gameType: 'alien_tribunal',
       difficulty: widget.level,
       score: totalScore,
+      performance: Perf.fromMistakes(_wrongVerdicts),
     ));
 
     successController.forward(from: 0.0);
@@ -168,10 +186,12 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
 
   void _handleLoss() {
     HapticFeedback.heavyImpact();
+    _wrongVerdicts++;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'alien_tribunal',
       difficulty: widget.level,
+      progress: _correctlyJudgedFraction(),
     ));
 
     ScaffoldMessenger.of(context).showSnackBar(

@@ -6,6 +6,8 @@
 //
 // If you find a magic number scattered through a game file, move it here.
 
+import 'models/performance.dart';
+
 /// Number of consecutive wins at the current level required before the
 /// player advances to the next one. Lower = faster progression but less
 /// retention; higher = slower progression but better mastery.
@@ -119,6 +121,16 @@ const Map<String, List<int>> kStarThresholds = {
   'arithmatic_square':      [200, 600, 900],
   'arithmancer_duel':       [150, 450, 700],
 };
+
+/// Convert a normalized 0..1 performance ratio to 1-3 stars, using the same
+/// bands the mission grading uses. Preferred over [scoreToStars] whenever the
+/// game reports how cleanly the round was played, because raw scores scale
+/// with grade and level and are not comparable across games.
+int starsForPerformance(double performance) {
+  if (performance >= kPerfExcellent) return 3;
+  if (performance > kPerfGood) return 2;
+  return 1;
+}
 
 /// Convert a raw game score to 1-3 stars.
 /// Returns 0 if the game was lost (score 0 / not successful).

@@ -7,6 +7,7 @@ import '../mixins/game_animations_mixin.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -34,6 +35,9 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
   List<int> _knownCoins = []; // coins already visible (face-up)
   int _unknownCount = 0; // number of face-down coins
   int _correctDenomination = 0; // the answer
+
+  /// Wrong denominations submitted before the correct one.
+  int _wrongChecks = 0;
   String _constraintText = '';
   List<int> _denomOptions = []; // available denomination choices
   int? _selectedDenom;
@@ -83,6 +87,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     setState(() {
       _isGenerating = true;
       _gameOver = false;
+      _wrongChecks = 0;
       _selectedDenom = null;
       _mathProblems.clear();
       successController.reset();
@@ -172,6 +177,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     if (_selectedDenom == _correctDenomination) {
       _handleWin();
     } else {
+      _wrongChecks++;
       HapticFeedback.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -197,6 +203,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
       difficulty: widget.level,
       score: totalScore,
       mathProblems: _mathProblems,
+      performance: Perf.fromMistakes(_wrongChecks, per: 0.25),
     ));
 
     successController.forward(from: 0.0);

@@ -5,6 +5,8 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../core/models/skill_category.dart';
+import '../../../generated/l10n.dart';
 import '../../games/screens/magic_triangles_game.dart';
 import '../../games/screens/asteroid_math_game.dart';
 import '../../games/screens/puzzle_math_game.dart';
@@ -107,6 +109,105 @@ final Map<String, GameBuilder> gameBuilders = {
   'asteroid_duel': (g, l) => AsteroidDuelGame(grade: g, level: l),
   'chrono_repair': (g, l) => ChronoRepairGame(grade: g, level: l),
   'void_crossing': (g, l) => VoidCrossingGame(grade: g, level: l),
+};
+
+/// Localized display title per gameKey, mirroring the game menu so a mission
+/// task shows the same name the player knows from the menu instead of a
+/// SHOUTED_GAME_KEY.
+final Map<String, String Function(S)> gameTitles = {
+  'magic_triangles': (s) => s.magicTrianglesGameTitle,
+  'asteroid_math': (s) => s.asteroidMathHunter,
+  'puzzle_math': (s) => s.puzzleMath,
+  'hyperdrive_gates': (s) => s.hyperdriveGates,
+  'pathfinder': (s) => s.pathFinderTitle,
+  'planet_hopping': (s) => s.planetHoppingTitle,
+  'number_walls': (s) => s.numberWallsGameTitle,
+  'codebreaker': (s) => s.codebreaker,
+  'perspective_puzzle': (s) => s.perspectivePuzzleGameTitle,
+  'block_counter': (s) => s.blockCounterGameTitle,
+  'signal_triangulation': (s) => s.signalTriangulationGameTitle,
+  'cryptex_lock_breaker': (s) => s.cryptexLockBreakerGameTitle,
+  'arithmancer_duel': (s) => s.arithmancerGameTitle,
+  'arithmatic_square': (s) => s.arithmeticSquare,
+  'arithmancer_crosswords': (s) => s.arithmancerCrosswords,
+  'kenken': (s) => s.kenken,
+  'asteroid_field_navigator': (s) => s.asteroidFieldTitle,
+  'cargo_bay_arranger': (s) => s.cargoBayTitle,
+  'quantum_molecule_builder': (s) => s.moleculeBuilderTitle,
+  'space_station_gridlock': (s) => s.spaceGridlockTitle,
+  'star_loader_game': (s) => s.starLoaderGameTitle,
+  'robot_path_game': (s) => s.robotPathTitle,
+  'solarpanel_game': (s) => s.solarPanelGameTitle,
+  'grid_filler_game': (s) => s.gridFillerTitle,
+  'star_chart_scan': (s) => s.starChartScanTitle,
+  'comm_relay': (s) => s.commRelayTitle,
+  'hull_plating': (s) => s.hullPlatingTitle,
+  'vault_cracker': (s) => s.vaultCrackerTitle,
+  'crew_manifest': (s) => s.crewManifestTitle,
+  'alien_tribunal': (s) => s.alienTribunalTitle,
+  'gravity_well': (s) => s.gravityWellTitle,
+  'sector_painter': (s) => s.sectorPainterTitle,
+  'warp_fold': (s) => s.warpFoldTitle,
+  'cube_scanner': (s) => s.cubeScannerTitle,
+  'circuit_repair': (s) => s.circuitRepairTitle,
+  'dark_matter_grid': (s) => s.darkMatterGridTitle,
+  'ion_chain': (s) => s.ionChainTitle,
+  'launch_sequence': (s) => s.launchSequenceTitle,
+  'star_forge': (s) => s.starForgeTitle,
+  'nebula_matrix': (s) => s.nebulaMatrixTitle,
+  'orbital_towers': (s) => s.orbitalTowersTitle,
+  'hive_station': (s) => s.hiveStationTitle,
+  'relic_assembly': (s) => s.relicAssemblyTitle,
+  'xenobiology_lab': (s) => s.xenobiologyLabTitle,
+  'galactic_market': (s) => s.galacticMarketTitle,
+  'asteroid_duel': (s) => s.asteroidDuelTitle,
+  'chrono_repair': (s) => s.chronoRepairTitle,
+  'void_crossing': (s) => s.voidCrossingTitle,
+};
+
+/// Localized title for [gameKey], falling back to a readable form of the key.
+String gameTitleFor(S s, String gameKey) {
+  final builder = gameTitles[gameKey];
+  if (builder != null) return builder(s);
+  return gameKey
+      .split('_')
+      .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
+      .join(' ');
+}
+
+/// Mission games that are calculation practice — the "do the maths" half of a
+/// mission. Derived from the canonical skill map so the two never drift.
+List<String> get calculationGames => gameBuilders.keys
+    .where((k) => gameSkillMap[k] == SkillCategory.arithmetic)
+    .toList();
+
+/// Mission games that are puzzles: logic, deduction, spatial and pattern play.
+List<String> get puzzleGames => gameBuilders.keys
+    .where((k) =>
+        gameSkillMap.containsKey(k) &&
+        gameSkillMap[k] != SkillCategory.arithmetic)
+    .toList();
+
+/// The playful, physically-manipulable puzzles — sokoban, atomix, rush-hour
+/// and friends. Every mission gets at least one so it never degenerates into
+/// a list of grids to fill in.
+const Set<String> signaturePuzzleGames = {
+  'star_loader_game',          // sokoban
+  'quantum_molecule_builder',  // atomix
+  'space_station_gridlock',    // rush hour
+  'robot_path_game',           // programming a path
+  'void_crossing',             // river crossing
+  'dark_matter_grid',          // lights out
+  'launch_sequence',           // sorting
+  'relic_assembly',            // edge-matching tiles
+  'hull_plating',              // polyomino packing
+  'grid_filler_game',          // tiling
+  'cargo_bay_arranger',        // falling blocks
+  'asteroid_field_navigator',  // minesweeper
+  'sector_painter',            // map colouring
+  'ion_chain',                 // chain building
+  'warp_fold',                 // paper folding
+  'cube_scanner',              // dice nets
 };
 
 /// Icons for display in the mission streak screen.

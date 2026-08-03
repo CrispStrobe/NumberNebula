@@ -12,6 +12,7 @@ import '../../../core/services/puzzle_evaluation_service.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
@@ -49,6 +50,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
 
   int _movesRemaining = 0;
   int _maxMoves = 0;
+
+  /// Cells the player has to fill — a flawless solve places each exactly
+  /// once, so it doubles as the optimal move count for the performance grade.
+  int _optimalMoves = 0;
   late AnimationController _moveWarningController;
   late Animation<double> _moveWarningAnimation;
 
@@ -141,6 +146,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
           
           // Calculate max moves: 160% of empty cells, rounded up
           final emptyCount = generatedPuzzle.emptyCells.length;
+          _optimalMoves = emptyCount;
           _maxMoves = (emptyCount * 1.6).ceil();
           _movesRemaining = _maxMoves;
           
@@ -427,6 +433,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       gameType: 'arithmatic_square',
       difficulty: widget.level,
       score: totalScore,
+        performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
     ));
     
     successController.forward(from: 0.0);
@@ -447,6 +454,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'arithmatic_square',
       difficulty: widget.level,
+      progress: _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
     ));
   }
 

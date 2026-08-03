@@ -8,6 +8,7 @@ import 'dart:async';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../../../core/services/sri_service.dart';
@@ -708,6 +709,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       difficulty: widget.level,
       score: totalScore,
       mathProblems: _attemptedProblems,
+      performance: Perf.fromLives(lives, 3),
     ));
     
     if (kDebugMode) debugPrint("[Gameplay] 📊 Reported ${_attemptedProblems.length} attempted problems");
@@ -730,6 +732,9 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       gameType: 'planet_hopping',
       difficulty: widget.level,
       mathProblems: _attemptedProblems,
+      progress: targetSequence.isEmpty
+          ? 0.0
+          : nextTargetIndex / targetSequence.length,
     ));
     
     if (kDebugMode) debugPrint("[Gameplay] 📊 Reported ${_attemptedProblems.length} attempted problems (loss)");

@@ -6987,6 +6987,96 @@ abstract class S {
   /// In en, this message translates to:
   /// **'You decoded the codeword: {word}'**
   String missionCompleteDesc(String word);
+
+  /// No description provided for @perfGradeExcellent.
+  ///
+  /// In en, this message translates to:
+  /// **'Flawless'**
+  String get perfGradeExcellent;
+
+  /// No description provided for @perfGradeGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get perfGradeGood;
+
+  /// No description provided for @perfGradeFair.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost'**
+  String get perfGradeFair;
+
+  /// No description provided for @perfGradePoor.
+  ///
+  /// In en, this message translates to:
+  /// **'Shaky'**
+  String get perfGradePoor;
+
+  /// No description provided for @perfLegendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating:'**
+  String get perfLegendTitle;
+
+  /// No description provided for @skillArithmetic.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculation'**
+  String get skillArithmetic;
+
+  /// No description provided for @skillLogic.
+  ///
+  /// In en, this message translates to:
+  /// **'Logic'**
+  String get skillLogic;
+
+  /// No description provided for @skillSpatial.
+  ///
+  /// In en, this message translates to:
+  /// **'Spatial'**
+  String get skillSpatial;
+
+  /// No description provided for @skillPattern.
+  ///
+  /// In en, this message translates to:
+  /// **'Patterns'**
+  String get skillPattern;
+
+  /// No description provided for @missionTaskNotPlayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not played yet'**
+  String get missionTaskNotPlayed;
+
+  /// No description provided for @missionTaskStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to play this task'**
+  String get missionTaskStart;
+
+  /// No description provided for @missionTaskAced.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect run — nothing to improve!'**
+  String get missionTaskAced;
+
+  /// No description provided for @missionTaskImproveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay to raise your rating'**
+  String get missionTaskImproveHint;
+
+  /// No description provided for @missionTaskRetryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Not cleared yet — try again'**
+  String get missionTaskRetryHint;
+
+  /// No description provided for @missionOverallRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission rating'**
+  String get missionOverallRating;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

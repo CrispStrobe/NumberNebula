@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import '../mixins/game_animations_mixin.dart';
 
 import '../models/game_outcome.dart';
+import '../models/performance.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
@@ -47,6 +48,10 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
   int _movesRemaining = 0;
   int _maxMoves = 0;
+
+  /// Cells the player has to fill — a flawless solve places each exactly
+  /// once, so it doubles as the optimal move count for the performance grade.
+  int _optimalMoves = 0;
 
   @override
   void initState() {
@@ -148,6 +153,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
           // Calculate max moves: 2x hidden positions (generous safety net)
           final hiddenCount = currentPuzzle!.hiddenIndices.length;
+          _optimalMoves = hiddenCount;
           _maxMoves = hiddenCount * 2;
           _movesRemaining = _maxMoves;
 
@@ -244,6 +250,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       gameType: 'magic_triangles',
       difficulty: widget.level,
       score: baseScore + bonusScore,
+        performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
     ));
         successController.forward(from: 0.0);
         
@@ -283,6 +290,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       gameType: 'magic_triangles',
       difficulty: widget.level,
+      progress: _optimalMoves == 0
+          ? 0.0
+          : userAnswers.where((a) => a != null).length / _optimalMoves,
     ));
   }
 
