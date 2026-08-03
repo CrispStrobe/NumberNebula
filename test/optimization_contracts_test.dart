@@ -110,6 +110,52 @@ void main() {
       expect(file.existsSync(), isFalse,
           reason: 'convert_rushdb.dart is a CLI tool — it belongs in tool/');
     });
+
+    test('lib/main.dart is the only entry point in lib/', () {
+      // A `main()` anywhere else means a CLI harness is shipping as app
+      // code: dead weight in the bundle, and usually dragging in dart:io with
+      // it. Such scripts belong in tool/.
+      final violations = <String>[];
+
+      for (final file in _dartFilesIn('lib')) {
+        if (file.path.endsWith('lib/main.dart')) continue;
+        for (final line in file.readAsLinesSync()) {
+          if (RegExp(r'^\s*(void|Future<void>)\s+main\s*\(').hasMatch(line)) {
+            violations.add(file.path);
+            break;
+          }
+        }
+      }
+
+      expect(violations, isEmpty,
+          reason: 'CLI entry points found in lib/ — move them to tool/:\n'
+              '${violations.join('\n')}');
+    });
+
+    test('no dart:io in code that has to build for web', () {
+      // dart:io compiles for web (dart2js ships a stub) but almost every
+      // API in it throws UnsupportedError at runtime there, so an unguarded
+      // use is a crash the build will not catch — verified: a web release
+      // build succeeds with the allowlist below. Those two gate their file
+      // access at the call site; anything new here needs the same care.
+      const allowed = {
+        'lib/core/services/crash_logger.dart',
+        'lib/features/games/services/starloader_level_manager.dart',
+      };
+      final violations = <String>[];
+
+      for (final file in _dartFilesIn('lib')) {
+        final normalized = file.path.replaceFirst(RegExp(r'^\./'), '');
+        if (allowed.contains(normalized)) continue;
+        if (file.readAsStringSync().contains("import 'dart:io'")) {
+          violations.add(normalized);
+        }
+      }
+
+      expect(violations, isEmpty,
+          reason: 'dart:io imported in lib/ outside the platform-gated '
+              'allowlist:\n${violations.join('\n')}');
+    });
   });
 
   group('O6 — DebugPanel guarded by kDebugMode', () {
