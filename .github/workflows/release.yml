@@ -1,6 +1,6 @@
-name: iOS Release (App Store)
+name: Release (App Store — iOS + macOS)
 
-# Builds, signs and uploads the iOS app to App Store Connect from CI.
+# Builds, signs and uploads the iOS and macOS apps to App Store Connect from CI.
 #
 # Triggers:
 #   * push a tag matching v*        -> full build + upload (a real release)
@@ -16,6 +16,10 @@ name: iOS Release (App Store)
 #   DIST_CERT_P12_BASE64   base64 of the "Apple Distribution" .p12 (cert + key)
 #   DIST_CERT_PASSWORD     password for that .p12
 #   ASC_PROFILE_BASE64     base64 of the IOS_APP_STORE .mobileprovision
+#   MAC_DIST_P12           base64 .p12 carrying BOTH "Apple Distribution" and
+#                          "3rd Party Mac Developer Installer" (app + pkg signing)
+#   MAC_DIST_P12_PASSWORD  password for that .p12
+#   MAC_PROFILE_BASE64     base64 of the MAC_APP_STORE .provisionprofile
 #
 # The build number comes from pubspec.yaml (version: x.y.z+BUILD). Bump BUILD
 # before tagging, or Apple rejects a duplicate CFBundleVersion.
@@ -33,6 +37,7 @@ on:
 env:
   BUNDLE_ID: com.crispstrobe.numbernebula
   PROFILE_NAME: NumberNebula AppStore CI
+  MAC_PROFILE_NAME: NumberNebula MacAppStore CI
   FLUTTER_VERSION: '3.44.2'
 
 jobs:
@@ -167,6 +172,150 @@ jobs:
           BUILD=$(grep '^version:' pubspec.yaml | sed 's/.*+//')
           echo "Uploading $VER (build $BUILD)"
           xcrun altool --upload-package "$IPA" --type ios \
+            --apple-id "${{ secrets.ASC_APP_ID }}" \
+            --bundle-id "${{ env.BUNDLE_ID }}" \
+            --bundle-version "$BUILD" \
+            --bundle-short-version-string "$VER" \
+            --api-key "${{ secrets.ASC_KEY_ID }}" \
+            --api-issuer "${{ secrets.ASC_ISSUER_ID }}"
+
+  build-upload-macos:
+    # Mac App Store build. Independent of the iOS job so a macOS-only failure
+    # never blocks an iOS release (and vice versa).
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Disable Swift Package Manager (use pure CocoaPods)
+        run: flutter config --no-enable-swift-package-manager
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Import signing certificates into a temp keychain
+        env:
+          P12_B64: ${{ secrets.MAC_DIST_P12 }}
+          P12_PW: ${{ secrets.MAC_DIST_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+          # A throwaway keychain, never `login`: codesign/productbuild must not
+          # fall through to a keychain whose keys need an interactive unlock.
+          KC="$RUNNER_TEMP/nn-mac-signing.keychain-db"
+          KC_PW="ci-$(uuidgen)"
+          echo "$P12_B64" | base64 --decode > "$RUNNER_TEMP/mac-dist.p12"
+          security create-keychain -p "$KC_PW" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KC_PW" "$KC"
+          security import "$RUNNER_TEMP/mac-dist.p12" -k "$KC" -P "$P12_PW" \
+            -T /usr/bin/codesign -T /usr/bin/productbuild -T /usr/bin/security
+          security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+          security set-key-partition-list -S apple-tool:,apple:,codesign:,productbuild: -s -k "$KC_PW" "$KC" >/dev/null
+          echo "SIGN_KEYCHAIN=$KC" >> "$GITHUB_ENV"
+          security find-identity -v "$KC"
+
+      - name: Install the Mac App Store provisioning profile
+        env:
+          PROFILE_B64: ${{ secrets.MAC_PROFILE_BASE64 }}
+        run: |
+          set -euo pipefail
+          echo "$PROFILE_B64" | base64 --decode > "$RUNNER_TEMP/nn_mac.provisionprofile"
+          UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' \
+            /dev/stdin <<<"$(security cms -D -i "$RUNNER_TEMP/nn_mac.provisionprofile")")
+          for DIR in "$HOME/Library/MobileDevice/Provisioning Profiles" \
+                     "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"; do
+            mkdir -p "$DIR"
+            cp "$RUNNER_TEMP/nn_mac.provisionprofile" "$DIR/$UUID.provisionprofile"
+          done
+          echo "installed macOS profile UUID $UUID"
+
+      - name: Write App Store Connect API key
+        env:
+          P8_B64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.appstoreconnect/private_keys" .appstoreconnect
+          echo "$P8_B64" | base64 --decode > ".appstoreconnect/AuthKey_${{ secrets.ASC_KEY_ID }}.p8"
+          cp ".appstoreconnect/AuthKey_${{ secrets.ASC_KEY_ID }}.p8" "$HOME/.appstoreconnect/private_keys/"
+
+      - name: Write ExportOptions.plist (manual signing, Mac App Store)
+        run: |
+          cat > .appstoreconnect/ExportOptionsMac.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>${{ secrets.ASC_TEAM_ID }}</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>Apple Distribution</string>
+            <key>installerSigningCertificate</key><string>3rd Party Mac Developer Installer</string>
+            <key>provisioningProfiles</key>
+            <dict><key>${{ env.BUNDLE_ID }}</key><string>${{ env.MAC_PROFILE_NAME }}</string></dict>
+            <key>destination</key><string>export</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Build & sign .pkg (xcodebuild, manual signing)
+        run: |
+          set -euo pipefail
+          # Same shape as the iOS job: let Flutter lay down its generated config
+          # and the CocoaPods integration without building, then drive xcodebuild.
+          PATH="/usr/bin:$PATH" flutter build macos --release --config-only
+          PATH="/usr/bin:$PATH" env -u GEM_HOME -u GEM_PATH -u RUBYOPT \
+            pod install --project-directory=macos
+          # Unlike iOS, macOS must be signed AT ARCHIVE TIME. Archiving with
+          # CODE_SIGNING_ALLOWED=NO and signing only at export drops the
+          # entitlements, and altool then rejects the package with "App sandbox
+          # not enabled" — the sandbox entitlement has to be in the signed
+          # binary. There is no Development-profile problem here because a Mac
+          # App Store archive signs with the Distribution identity directly.
+          PATH="/usr/bin:$PATH" xcodebuild -workspace macos/Runner.xcworkspace -scheme Runner \
+            -configuration Release -destination 'generic/platform=macOS' \
+            -archivePath build/macos/archive/Runner.xcarchive \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="${{ env.MAC_PROFILE_NAME }}" \
+            DEVELOPMENT_TEAM="${{ secrets.ASC_TEAM_ID }}" \
+            OTHER_CODE_SIGN_FLAGS="--keychain $SIGN_KEYCHAIN" \
+            clean archive
+          PATH="/usr/bin:$PATH" xcodebuild -exportArchive \
+            -archivePath build/macos/archive/Runner.xcarchive \
+            -exportPath build/macos/pkg \
+            -exportOptionsPlist .appstoreconnect/ExportOptionsMac.plist
+          PKG=$(ls build/macos/pkg/*.pkg | head -1)
+          echo "PKG=$PKG" >> "$GITHUB_ENV"
+          echo "built: $PKG"
+
+      - name: Upload .pkg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: numbernebula-macos-pkg
+          path: build/macos/pkg/*.pkg
+          if-no-files-found: error
+
+      - name: Validate then upload to App Store Connect
+        if: ${{ github.event_name == 'push' || inputs.dry_run == false }}
+        run: |
+          set -euo pipefail
+          VER=$(grep '^version:' pubspec.yaml | sed 's/version:[[:space:]]*//; s/+.*//')
+          BUILD=$(grep '^version:' pubspec.yaml | sed 's/.*+//')
+          # Validate first: catches missing LSApplicationCategoryType, bad
+          # entitlements and signing faults without creating a dud build record.
+          xcrun altool --validate-app --file "$PKG" --type macos \
+            --apple-id "${{ secrets.ASC_APP_ID }}" \
+            --api-key "${{ secrets.ASC_KEY_ID }}" \
+            --api-issuer "${{ secrets.ASC_ISSUER_ID }}"
+          echo "Uploading macOS $VER (build $BUILD)"
+          xcrun altool --upload-package "$PKG" --type macos \
             --apple-id "${{ secrets.ASC_APP_ID }}" \
             --bundle-id "${{ env.BUNDLE_ID }}" \
             --bundle-version "$BUILD" \
