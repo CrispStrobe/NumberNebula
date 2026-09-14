@@ -1,0 +1,10 @@
+Six mini-games repaired.
+
+- Alien Tribunal: puzzles now have a single correct verdict, and the delegates' roles genuinely vary from round to round
+- Star Chart Scan: a quick sweep across an equation now registers properly
+- Star Forge: no more long wait on the loading screen, and every star can be completed
+- Ion Ring: you can no longer be left with a gap that nothing fits
+- Relic Assembly: pieces can be taken back off the grid again
+- Orbital Towers: a new illustrated walkthrough shows how the edge cameras see, reopenable any time from the help button
+
+Also: fixed missing umlauts throughout the German text, and translated a few spots that were still showing English.

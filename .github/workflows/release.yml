@@ -3,7 +3,9 @@ name: Release (App Store — iOS + macOS)
 # Builds, signs and uploads the iOS and macOS apps to App Store Connect from CI.
 #
 # Triggers:
-#   * push a tag matching v*        -> full build + upload (a real release)
+#   * push a tag matching v*        -> build + upload, then TestFlight
+#                                      external distribution and App Store
+#                                      review submission (a real release)
 #   * manual "Run workflow"         -> choose dry_run=true to build+sign WITHOUT
 #                                      uploading (validates signing safely)
 #
@@ -20,6 +22,12 @@ name: Release (App Store — iOS + macOS)
 #                          "3rd Party Mac Developer Installer" (app + pkg signing)
 #   MAC_DIST_P12_PASSWORD  password for that .p12
 #   MAC_PROFILE_BASE64     base64 of the MAC_APP_STORE .provisionprofile
+#
+# Optional repo VARIABLES (Settings > Variables), used for Beta App Review:
+#   BETA_CONTACT_EMAIL, BETA_CONTACT_FIRST_NAME,
+#   BETA_CONTACT_LAST_NAME, BETA_CONTACT_PHONE
+# If unset, the contact already on the app record is reused. An app that has
+# never been through external review needs these set.
 #
 # The build number comes from pubspec.yaml (version: x.y.z+BUILD). Bump BUILD
 # before tagging, or Apple rejects a duplicate CFBundleVersion.
@@ -157,13 +165,6 @@ jobs:
           unzip -qo "$IPA" -d /tmp/ipa_check
           codesign --verify --deep --strict --verbose=2 /tmp/ipa_check/Payload/Runner.app 2>&1 | tail -2
 
-      - name: Upload IPA artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: numbernebula-ipa
-          path: build/ios/ipa/*.ipa
-          if-no-files-found: error
-
       - name: Upload to App Store Connect
         if: ${{ github.event_name == 'push' || inputs.dry_run == false }}
         run: |
@@ -178,6 +179,18 @@ jobs:
             --bundle-short-version-string "$VER" \
             --api-key "${{ secrets.ASC_KEY_ID }}" \
             --api-issuer "${{ secrets.ASC_ISSUER_ID }}"
+
+      # Keep a copy for debugging, but never let it fail a release: this step
+      # used to sit before the upload, so a full artifact-storage quota killed
+      # the job with a good signed build in hand and nothing sent to Apple.
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: numbernebula-ipa
+          path: build/ios/ipa/*.ipa
+          if-no-files-found: warn
+          retention-days: 7
 
   build-upload-macos:
     # Mac App Store build. Independent of the iOS job so a macOS-only failure
@@ -295,13 +308,6 @@ jobs:
           echo "PKG=$PKG" >> "$GITHUB_ENV"
           echo "built: $PKG"
 
-      - name: Upload .pkg artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: numbernebula-macos-pkg
-          path: build/macos/pkg/*.pkg
-          if-no-files-found: error
-
       - name: Validate then upload to App Store Connect
         if: ${{ github.event_name == 'push' || inputs.dry_run == false }}
         run: |
@@ -322,3 +328,23 @@ jobs:
             --bundle-short-version-string "$VER" \
             --api-key "${{ secrets.ASC_KEY_ID }}" \
             --api-issuer "${{ secrets.ASC_ISSUER_ID }}"
+
+      # As on iOS: a keepsake, never a gate.
+      - name: Upload .pkg artifact
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: numbernebula-macos-pkg
+          path: build/macos/pkg/*.pkg
+          if-no-files-found: warn
+          retention-days: 7
+
+  # Hand off to the reusable submission workflow once both binaries are in
+  # App Store Connect. Split out so submission can be re-run on its own without
+  # rebuilding (and without burning a second build number).
+  submit:
+    needs: [build-upload, build-upload-macos]
+    # Only for a real tagged release, and only when the builds actually shipped.
+    if: ${{ github.event_name == 'push' }}
+    uses: ./.github/workflows/submit.yml
+    secrets: inherit

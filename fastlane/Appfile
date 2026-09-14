@@ -1,0 +1,5 @@
+# Identity for `pilot` (TestFlight) and `deliver` (App Store).
+# Credentials come from the App Store Connect API key the CI job writes; no
+# Apple ID password or 2FA session is involved.
+app_identifier ENV['BUNDLE_ID'] || 'com.crispstrobe.numbernebula'
+team_id ENV['ASC_TEAM_ID']

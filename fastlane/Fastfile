@@ -1,0 +1,154 @@
+# fastlane/Fastfile
+#
+# Post-upload release steps. The release workflow builds, signs and uploads the
+# iOS .ipa and macOS .pkg with altool; this lane takes it from there:
+#
+#   distribute   wait for App Store Connect to finish processing the build,
+#                submit it for Beta App Review and hand it to every EXTERNAL
+#                TestFlight group, then attach it to the App Store version and
+#                submit that for review.
+#
+# Authentication is an App Store Connect API key, so there is no Apple ID
+# password and no 2FA session to keep alive.
+#
+# Both platforms live under one app record (same bundle id), but App Store
+# Connect versions them separately, so each run is scoped to one platform:
+#   bundle exec fastlane distribute platform:ios
+#   bundle exec fastlane distribute platform:osx
+
+require 'spaceship'
+
+# Release goes out when a human presses the button in App Store Connect, not
+# the moment Apple approves it. Approval on a children's app is not something
+# to have land unattended.
+AUTOMATIC_RELEASE = false
+
+def asc_api_key
+  app_store_connect_api_key(
+    key_id: ENV.fetch('ASC_KEY_ID'),
+    issuer_id: ENV.fetch('ASC_ISSUER_ID'),
+    key_filepath: ENV.fetch('ASC_KEY_FILEPATH'),
+    duration: 1200,
+    in_house: false,
+  )
+end
+
+# Every external group on the app record.
+#
+# Asking App Store Connect rather than hardcoding names means renaming or
+# adding a group in the console does not silently stop shipping to it. Internal
+# groups are excluded: they get the build automatically and cannot be passed to
+# `distribute_external`.
+def external_group_names
+  Spaceship::ConnectAPI.auth(
+    key_id: ENV.fetch('ASC_KEY_ID'),
+    issuer_id: ENV.fetch('ASC_ISSUER_ID'),
+    filepath: ENV.fetch('ASC_KEY_FILEPATH'),
+  )
+
+  app = Spaceship::ConnectAPI::App.find(ENV.fetch('BUNDLE_ID'))
+  UI.user_error!("no app record found for #{ENV.fetch('BUNDLE_ID')}") if app.nil?
+
+  names = app.get_beta_groups
+             .reject(&:is_internal_group)
+             .map(&:name)
+             .compact
+             .uniq
+
+  UI.important("external TestFlight groups: #{names.inspect}")
+  names
+end
+
+# Beta App Review needs a contact. Supply it only when the repo provides one:
+# an app that has already been through external review keeps the contact on the
+# app record, and re-sending blanks would clear it.
+def beta_review_info
+  email = ENV['BETA_CONTACT_EMAIL'].to_s.strip
+  first = ENV['BETA_CONTACT_FIRST_NAME'].to_s.strip
+  last  = ENV['BETA_CONTACT_LAST_NAME'].to_s.strip
+  phone = ENV['BETA_CONTACT_PHONE'].to_s.strip
+
+  if [email, first, last, phone].any?(&:empty?)
+    UI.important(
+      'BETA_CONTACT_* not fully set; reusing the Beta App Review contact ' \
+      'already on the app record. If this app has never been through external ' \
+      'review, set those repo variables or the submission will be rejected.'
+    )
+    return nil
+  end
+
+  {
+    contact_email: email,
+    contact_first_name: first,
+    contact_last_name: last,
+    contact_phone: phone,
+    notes: 'No account or login needed. Every mini-game is reachable from the ' \
+           'main menu; tap a game card to play it.',
+  }
+end
+
+lane :distribute do |options|
+  platform = (options[:platform] || 'ios').to_s
+  version  = ENV.fetch('APP_VERSION')
+  build    = ENV.fetch('BUILD_NUMBER')
+  notes    = File.read(
+    File.join(__dir__, 'metadata', 'en-US', 'release_notes.txt')
+  ).strip
+
+  api_key = asc_api_key
+  groups  = external_group_names
+
+  if groups.empty?
+    UI.important('no external TestFlight groups on this app; ' \
+                 'uploading to TestFlight without external distribution')
+  end
+
+  # --- TestFlight -------------------------------------------------------
+  # altool returns before App Store Connect has finished processing, so wait
+  # for the build rather than racing it. Beta App Review is required before a
+  # build reaches external testers, which skip_submission: false requests.
+  testflight_args = {
+    api_key: api_key,
+    app_identifier: ENV.fetch('BUNDLE_ID'),
+    app_platform: platform,
+    app_version: version,
+    build_number: build,
+    changelog: notes,
+    distribute_external: !groups.empty?,
+    groups: groups,
+    skip_submission: groups.empty?,
+    # The binary is already uploaded; this only locates it and waits.
+    skip_waiting_for_build_processing: false,
+    wait_processing_interval: 30,
+    demo_account_required: false,
+  }
+  info = beta_review_info
+  testflight_args[:beta_app_review_info] = info if info
+
+  upload_to_testflight(testflight_args)
+
+  # --- App Store --------------------------------------------------------
+  # Metadata and release notes come from fastlane/metadata, the source of truth
+  # in this repo. Screenshots are skipped: unchanged by this release, slow to
+  # push, and re-uploading risks clobbering the live set.
+  upload_to_app_store(
+    api_key: api_key,
+    app_identifier: ENV.fetch('BUNDLE_ID'),
+    platform: platform,
+    app_version: version,
+    build_number: build,
+    submit_for_review: true,
+    automatic_release: AUTOMATIC_RELEASE,
+    force: true,               # no interactive HTML preview on CI
+    skip_binary_upload: true,  # altool already uploaded it
+    skip_screenshots: true,
+    skip_metadata: false,
+    precheck_include_in_app_purchases: false,
+    submission_information: {
+      # ITSAppUsesNonExemptEncryption is false in both Info.plists.
+      export_compliance_uses_encryption: false,
+      add_id_info_uses_idfa: false,
+      content_rights_contains_third_party_content: false,
+    },
+  )
+end

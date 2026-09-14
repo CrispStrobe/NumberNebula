@@ -1,0 +1,10 @@
+Sechs Minispiele repariert.
+
+- Alien-Tribunal: Rätsel haben jetzt genau eine richtige Lösung, und die Rollen der Delegierten wechseln wirklich von Runde zu Runde
+- Sternkarten-Scan: schnelles Wischen über eine Gleichung wird jetzt zuverlässig erkannt
+- Sternen-Schmiede: kein langes Warten mehr im Ladebildschirm, und jeder Stern ist lösbar
+- Ionen-Ring: du kannst nicht mehr mit einer Lücke enden, in die nichts mehr passt
+- Relikte-Puzzle: Teile lassen sich wieder vom Gitter nehmen
+- Orbital-Türme: eine neue bebilderte Anleitung zeigt, wie die Randkameras sehen — jederzeit über den Hilfe-Knopf erneut aufrufbar
+
+Außerdem: fehlende Umlaute im gesamten deutschen Text korrigiert und einige englisch gebliebene Stellen übersetzt.
