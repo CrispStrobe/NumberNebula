@@ -135,10 +135,18 @@ class RelicAssemblyGenerator {
       }
     }
 
-    // Create player tiles: shuffle order and randomize rotations
+    // Create player tiles: shuffle order and turn each one a random amount.
+    //
+    // The turn is baked into the edge list rather than left in `rotation`.
+    // Both the screen and validatePlacement override `rotation` with the
+    // player's own (which starts at 0), so a turn stored there is discarded --
+    // every puzzle then solved with no rotating at all, and the rotate
+    // mechanic did nothing.
     final playerTiles = tiles.map((t) {
-      final rot = _random.nextInt(4);
-      return RelicTile(edges: List.from(t.edges), rotation: rot);
+      final turns = _random.nextInt(4);
+      return RelicTile(edges: [
+        for (int side = 0; side < 4; side++) t.edges[(side - turns + 4) % 4]
+      ]);
     }).toList();
 
     // Shuffle the player tiles

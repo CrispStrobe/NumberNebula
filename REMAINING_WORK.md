@@ -1,6 +1,54 @@
 # Remaining Work -- Game Quality Fixes
 
-Status as of 2026-06-27. All major issues resolved.
+Status as of 2026-09-14.
+
+## 2026-09-14 SESSION
+
+### Games withheld from players (`debugOnlyGames` in `game_pool.dart`)
+
+These are hidden from the game menu and never picked for a mission. They stay
+playable once the debug menu is unlocked (tap the home screen title 7x), and
+shipping one again means deleting its key from that set -- nothing else.
+
+| Game | Why it was pulled | State |
+| --- | --- | --- |
+| Sternen-Schmiede (`star_forge`) | Generation searched for a magic constant that cannot exist, so all 200 CSP attempts timed out (~16 min of spinner), then fell back to a layout whose lines did not sum equally | **Fixed** -- needs a play-through |
+| Ionen-Ring (`ion_chain`) | Legal moves could strand the player with an unfillable slot (45% of puzzles), with no feedback; the same rule could also be listed twice | **Fixed** -- needs a play-through |
+| Relikte-Puzzle (`relic_assembly`) | Pieces could only be removed by an undiscoverable long-press; the generator's random rotation was dead state, so no puzzle ever needed rotating | **Fixed** -- needs a play-through |
+| Galaktischer Markt (`galactic_market`) | Tapping every coin repeatedly stumbles onto the answer; level 1 far too easy | Not started |
+| Würfel-Scanner (`cube_scanner`) | The puzzle does not convey what is being asked | Not started |
+| Void-Überquerung (`void_crossing`) | River-crossing rules are not conveyed by the board as drawn | Not started |
+
+### Fixed and shipping
+
+1. **Alien-Tribunal** — every puzzle was the hardcoded `TLT` fallback. Statements
+   about one other delegate only assert whether two share a role, so flipping
+   everyone is always a second valid solution and the uniqueness check could
+   never pass. Added statements about pairs and about tallies, which break that
+   symmetry; the verdict pattern is now drawn first and held fixed while
+   statements are re-rolled, so all patterns appear evenly.
+2. **Sternkarten-Scan** — a quick sweep reports pointer positions several cells
+   apart and the code kept only those, leaving gaps in the selection; correct
+   sweeps matched nothing. The run is now derived from its two endpoints
+   (`StarChartScanPuzzle.lineBetween`), which also lets the player drag back.
+3. **Orbital-Türme** — added an illustrated walkthrough (the sightline rule is
+   drawn, not just described) plus a "Spielanleitung" button to reopen it. The
+   diagram uses `OrbitalTowersPuzzle.visibilityAlongLine`, the same rule the
+   puzzle is scored by, so it cannot drift.
+4. **Asteroiden-Duell** — "YOUR TURN" / "AI TURN" / "AI THINKING..." were
+   hardcoded English; now localized.
+5. **German i18n** — ~90 words across the file had lost their umlauts
+   (`Lugner`, `Munzen`, `Hohe`, `Turme`, `fur`, `mussen`, ...). Swept and fixed.
+   The onboarding overlay's "Got it"/"Next" buttons were hardcoded English too.
+
+### Notes
+
+- `OnboardingStep` now takes an optional `illustration` widget. Worth reusing
+  for the other games whose rules are hard to convey in a sentence.
+- Only `debugOnlyGames` gates a game. `calculationGames`, `puzzleGames` and the
+  mission generator all filter through `missionGameKeys`, which excludes it.
+
+---
 
 ## 2026-06-27 SESSION FIXES (20 items)
 

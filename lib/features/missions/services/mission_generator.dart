@@ -108,7 +108,7 @@ class MissionGenerator {
     // Only if a pool was too small to fill its share: top up from anything
     // left so the mission still has the requested number of tasks.
     if (picked.length < count) {
-      for (final game in gameBuilders.keys) {
+      for (final game in missionGameKeys) {
         if (picked.length >= count) break;
         if (!picked.contains(game)) picked.add(game);
       }

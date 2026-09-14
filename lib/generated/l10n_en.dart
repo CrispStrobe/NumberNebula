@@ -2658,6 +2658,69 @@ class SEn extends S {
   }
 
   @override
+  String alienTribunalPairBothTruth1(String name1, String name2) {
+    return '\"$name1 and $name2 both tell the truth.\"';
+  }
+
+  @override
+  String alienTribunalPairBothTruth2(String name1, String name2) {
+    return '\"You can trust both $name1 and $name2.\"';
+  }
+
+  @override
+  String alienTribunalPairBothLiar1(String name1, String name2) {
+    return '\"$name1 and $name2 are both liars.\"';
+  }
+
+  @override
+  String alienTribunalPairBothLiar2(String name1, String name2) {
+    return '\"Neither $name1 nor $name2 tells the truth.\"';
+  }
+
+  @override
+  String alienTribunalPairAnyTruth1(String name1, String name2) {
+    return '\"At least one of $name1 and $name2 tells the truth.\"';
+  }
+
+  @override
+  String alienTribunalPairAnyTruth2(String name1, String name2) {
+    return '\"$name1 or $name2 -- at least one of them can be trusted.\"';
+  }
+
+  @override
+  String alienTribunalPairAnyLiar1(String name1, String name2) {
+    return '\"At least one of $name1 and $name2 is a liar.\"';
+  }
+
+  @override
+  String alienTribunalPairAnyLiar2(String name1, String name2) {
+    return '\"$name1 or $name2 -- at least one of them lies.\"';
+  }
+
+  @override
+  String get alienTribunalCountLiarsNone => '\"None of us is a liar.\"';
+
+  @override
+  String get alienTribunalCountLiarsOne => '\"Exactly one of us is a liar.\"';
+
+  @override
+  String alienTribunalCountLiarsMany(int count) {
+    return '\"Exactly $count of us are liars.\"';
+  }
+
+  @override
+  String get alienTribunalCountTruthNone => '\"None of us tells the truth.\"';
+
+  @override
+  String get alienTribunalCountTruthOne =>
+      '\"Exactly one of us tells the truth.\"';
+
+  @override
+  String alienTribunalCountTruthMany(int count) {
+    return '\"Exactly $count of us tell the truth.\"';
+  }
+
+  @override
   String get gravityWellTitle => 'Gravity Well';
 
   @override
@@ -3015,6 +3078,21 @@ class SEn extends S {
       'Too many tower placements! Study the edge clues carefully before placing each tower.';
 
   @override
+  String get orbitalTowersHowToPlay => 'How to play';
+
+  @override
+  String get orbitalTowersOnboardGrid =>
+      'Every row and every column gets each tower height exactly once -- no repeats.';
+
+  @override
+  String get orbitalTowersOnboardSightline =>
+      'A camera sees a tower only when nothing taller stands in front of it. Here it sees 2 of the 4: the 1 hides behind the 2, and the 3 hides behind the 4.';
+
+  @override
+  String get orbitalTowersOnboardPlace =>
+      'Drag a height onto a plot to build. Tap a tower you placed to take it away again.';
+
+  @override
   String get hiveStationTitle => 'Hive Station';
 
   @override
@@ -3175,6 +3253,15 @@ class SEn extends S {
   @override
   String get asteroidDuelLoseDesc =>
       'Your opponent forced you into the last asteroid. Study the patterns -- there\'s always a winning strategy, Commander.';
+
+  @override
+  String get asteroidDuelYourTurn => 'YOUR TURN';
+
+  @override
+  String get asteroidDuelAiTurn => 'AI TURN';
+
+  @override
+  String get asteroidDuelAiThinking => 'AI THINKING...';
 
   @override
   String get chronoRepairTitle => 'Chrono Repair';
@@ -3515,6 +3602,10 @@ class SEn extends S {
   @override
   String get ionChainRuleViolation =>
       'Rule violation! This bead can\'t go here.';
+
+  @override
+  String get ionChainDeadEnd =>
+      'That bead fits here, but then no bead fits somewhere else. Try another slot!';
 
   @override
   String get hullPlatingNoFit =>
@@ -3889,6 +3980,12 @@ class SEn extends S {
 
   @override
   String get skip => 'Skip';
+
+  @override
+  String get onboardingGotIt => 'Got it';
+
+  @override
+  String get onboardingNext => 'Next';
 
   @override
   String get goBack => 'Go Back';

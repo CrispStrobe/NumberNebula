@@ -515,11 +515,11 @@ class SDe extends S {
 
   @override
   String get planetHoppingOrderAsc =>
-      'Lose die Aufgaben und besuche die Planeten vom KLEINSTEN zum GROSSTEN Ergebnis!';
+      'Löse die Aufgaben und besuche die Planeten vom KLEINSTEN zum GRÖSSTEN Ergebnis!';
 
   @override
   String get planetHoppingOrderDesc =>
-      'Lose die Aufgaben und besuche die Planeten vom GROSSTEN zum KLEINSTEN Ergebnis!';
+      'Löse die Aufgaben und besuche die Planeten vom GRÖSSTEN zum KLEINSTEN Ergebnis!';
 
   @override
   String get planetHoppingOrderEvensOdds =>
@@ -1365,7 +1365,7 @@ class SDe extends S {
 
   @override
   String get arithmancerInstructionsParityDaemon =>
-      'Nutze UNGERADE Zahlen! Gerade Zahlen werden von diesem Damon absorbiert';
+      'Nutze UNGERADE Zahlen! Gerade Zahlen werden von diesem Dämon absorbiert';
 
   @override
   String get arithmancerHelpPrimeTitle => 'Was sind Primzahlen?';
@@ -1380,7 +1380,7 @@ class SDe extends S {
 
   @override
   String get arithmancerHelpPrimeStrategy =>
-      'Tipp: Erstelle Ausdrucke, die eine Primzahl >= 11 ergeben, fur 3x Schaden!';
+      'Tipp: Erstelle Ausdrücke, die eine Primzahl >= 11 ergeben, für 3x Schaden!';
 
   @override
   String get arithmancerHelpParityTitle => 'Ungerade vs Gerade Zahlen';
@@ -1410,7 +1410,7 @@ class SDe extends S {
 
   @override
   String get arithmancerHelpSquareStrategy =>
-      'Tipp: Erstelle eine Quadratzahl fur 2,5x Schaden! Nicht-Quadratzahlen richten fast nichts an.';
+      'Tipp: Erstelle eine Quadratzahl für 2,5x Schaden! Nicht-Quadratzahlen richten fast nichts an.';
 
   @override
   String get arithmancerHelpFibTitle => 'Was sind Fibonacci-Zahlen?';
@@ -2433,10 +2433,10 @@ class SDe extends S {
 
   @override
   String get starChartScanInstructions =>
-      'Wische uber Zellen, um versteckte Gleichungen zu markieren (z.B. 3+4=7, 9-2=7). Gleichungen konnen in jeder Richtung verlaufen. Finde alle Gleichungen!';
+      'Wische über Zellen, um versteckte Gleichungen zu markieren (z.B. 3+4=7, 9-2=7). Gleichungen können in jeder Richtung verlaufen. Finde alle Gleichungen!';
 
   @override
-  String get starChartScanWinTitle => 'Karte entschlusselt!';
+  String get starChartScanWinTitle => 'Karte entschlüsselt!';
 
   @override
   String starChartScanWinDesc(String letter, int bonusScore) {
@@ -2444,7 +2444,7 @@ class SDe extends S {
   }
 
   @override
-  String get starChartScanLoseTitle => 'Scan unvollstandig!';
+  String get starChartScanLoseTitle => 'Scan unvollständig!';
 
   @override
   String get starChartScanLoseDesc =>
@@ -2455,18 +2455,18 @@ class SDe extends S {
 
   @override
   String get commRelayDesc =>
-      'Eine verzerrte Ubertragung aus dem tiefen Weltraum! Das Kommunikationsrelais hat jeden Buchstaben verschoben. Knacke die Chiffre, um die Originalnachricht zu lesen!';
+      'Eine verzerrte Übertragung aus dem tiefen Weltraum! Das Kommunikationsrelais hat jeden Buchstaben verschoben. Knacke die Chiffre, um die Originalnachricht zu lesen!';
 
   @override
   String get commRelayInstructions =>
-      'Jeder Buchstabe wurde um einen festen Betrag im Alphabet verschoben. Finde die Verschiebung und entschlussle die Nachricht.';
+      'Jeder Buchstabe wurde um einen festen Betrag im Alphabet verschoben. Finde die Verschiebung und entschlüssle die Nachricht.';
 
   @override
-  String get commRelayWinTitle => 'Nachricht entschlusselt!';
+  String get commRelayWinTitle => 'Nachricht entschlüsselt!';
 
   @override
   String commRelayWinDesc(int bonusScore) {
-    return 'Die Ubertragung ist klar und deutlich! Du hast $bonusScore Intelligenzpunkte verdient.';
+    return 'Die Übertragung ist klar und deutlich! Du hast $bonusScore Intelligenzpunkte verdient.';
   }
 
   @override
@@ -2511,7 +2511,7 @@ class SDe extends S {
 
   @override
   String get hullPlatingDesc =>
-      'Der Schiffsrumpf wurde getroffen! Decke den beschadigten Bereich mit verschieden geformten Panzerplatten ab. Jede Lucke muss versiegelt werden — drehe und platziere jede Platte genau!';
+      'Der Schiffsrumpf wurde getroffen! Decke den beschädigten Bereich mit verschieden geformten Panzerplatten ab. Jede Lücke muss versiegelt werden — drehe und platziere jede Platte genau!';
 
   @override
   String get hullPlatingInstructions =>
@@ -2530,7 +2530,7 @@ class SDe extends S {
 
   @override
   String get hullPlatingLoseDesc =>
-      'Es gibt noch Lucken in der Rumpfpanzerung. Versuche eine andere Anordnung, Commander.';
+      'Es gibt noch Lücken in der Rumpfpanzerung. Versuche eine andere Anordnung, Commander.';
 
   @override
   String get vaultCrackerTitle => 'Tresor-Knacker';
@@ -2541,7 +2541,7 @@ class SDe extends S {
 
   @override
   String get vaultCrackerInstructions =>
-      'Lies die mathematischen Hinweise sorgfaltig. Jeder beschreibt eine Eigenschaft des Geheimcodes (Summen, Produkte, Vergleiche). Finde alle Ziffern und gib den Code ein.';
+      'Lies die mathematischen Hinweise sorgfältig. Jeder beschreibt eine Eigenschaft des Geheimcodes (Summen, Produkte, Vergleiche). Finde alle Ziffern und gib den Code ein.';
 
   @override
   String get vaultCrackerWinTitle => 'Tresor geoffnet!';
@@ -2567,7 +2567,7 @@ class SDe extends S {
 
   @override
   String get crewManifestInstructions =>
-      'Lies die Hinweise und markiere das Logikgitter. Ein X bedeutet \'nicht moglich\', ein Haken bedeutet \'bestatigter Treffer\'.';
+      'Lies die Hinweise und markiere das Logikgitter. Ein X bedeutet \'nicht möglich\', ein Haken bedeutet \'bestätigter Treffer\'.';
 
   @override
   String get crewManifestWinTitle => 'Manifest wiederhergestellt!';
@@ -2582,7 +2582,7 @@ class SDe extends S {
 
   @override
   String get crewManifestLoseDesc =>
-      'Das Manifest enthalt Widerspruche. Lies die Hinweise sorgfaltig noch einmal, Commander.';
+      'Das Manifest enthält Widersprüche. Lies die Hinweise sorgfältig noch einmal, Commander.';
 
   @override
   String get crewManifestSubmit => 'Manifest abgeben';
@@ -2617,11 +2617,11 @@ class SDe extends S {
 
   @override
   String get alienTribunalDesc =>
-      'Galaktische Delegierte sagen aus, aber manche lugen immer! Wahrheitssprecher sagen immer die Wahrheit, Lugner lugen immer. Studiere ihre Aussagen und finde heraus, wer vertrauenswurdig ist!';
+      'Galaktische Delegierte sagen aus, aber manche lügen immer! Wahrheitssprecher sagen immer die Wahrheit, Lügner lügen immer. Studiere ihre Aussagen und finde heraus, wer vertrauenswürdig ist!';
 
   @override
   String get alienTribunalInstructions =>
-      'Lies die Aussage jedes Delegierten. Markiere jeden als \'Wahrheitssprecher\' oder \'Lugner\'. Alle Aussagen mussen mit deinen Zuweisungen ubereinstimmen.';
+      'Lies die Aussage jedes Delegierten. Markiere jeden als \'Wahrheitssprecher\' oder \'Lügner\'. Alle Aussagen müssen mit deinen Zuweisungen übereinstimmen.';
 
   @override
   String get alienTribunalWinTitle => 'Gerechtigkeit!';
@@ -2636,7 +2636,7 @@ class SDe extends S {
 
   @override
   String get alienTribunalLoseDesc =>
-      'Deine Zuweisungen sind widerspruchlich. Wenn jemand ein Wahrheitssprecher ist, mussen seine Aussagen wahr sein, Commander.';
+      'Deine Zuweisungen sind widersprüchlich. Wenn jemand ein Wahrheitssprecher ist, müssen seine Aussagen wahr sein, Commander.';
 
   @override
   String get alienTribunalSubmit => 'Urteil abgeben';
@@ -2669,6 +2669,72 @@ class SDe extends S {
   @override
   String alienTribunalClaimLiar3(String name) {
     return '\"$name lügt immer.\"';
+  }
+
+  @override
+  String alienTribunalPairBothTruth1(String name1, String name2) {
+    return '\"$name1 und $name2 sagen beide die Wahrheit.\"';
+  }
+
+  @override
+  String alienTribunalPairBothTruth2(String name1, String name2) {
+    return '\"Du kannst $name1 und $name2 beiden vertrauen.\"';
+  }
+
+  @override
+  String alienTribunalPairBothLiar1(String name1, String name2) {
+    return '\"$name1 und $name2 sind beide Lügner.\"';
+  }
+
+  @override
+  String alienTribunalPairBothLiar2(String name1, String name2) {
+    return '\"Weder $name1 noch $name2 sagt die Wahrheit.\"';
+  }
+
+  @override
+  String alienTribunalPairAnyTruth1(String name1, String name2) {
+    return '\"Mindestens einer von $name1 und $name2 sagt die Wahrheit.\"';
+  }
+
+  @override
+  String alienTribunalPairAnyTruth2(String name1, String name2) {
+    return '\"$name1 oder $name2 -- mindestens einem von beiden kann man vertrauen.\"';
+  }
+
+  @override
+  String alienTribunalPairAnyLiar1(String name1, String name2) {
+    return '\"Mindestens einer von $name1 und $name2 ist ein Lügner.\"';
+  }
+
+  @override
+  String alienTribunalPairAnyLiar2(String name1, String name2) {
+    return '\"$name1 oder $name2 -- mindestens einer von beiden lügt.\"';
+  }
+
+  @override
+  String get alienTribunalCountLiarsNone =>
+      '\"Keiner von uns ist ein Lügner.\"';
+
+  @override
+  String get alienTribunalCountLiarsOne =>
+      '\"Genau einer von uns ist ein Lügner.\"';
+
+  @override
+  String alienTribunalCountLiarsMany(int count) {
+    return '\"Genau $count von uns sind Lügner.\"';
+  }
+
+  @override
+  String get alienTribunalCountTruthNone =>
+      '\"Keiner von uns sagt die Wahrheit.\"';
+
+  @override
+  String get alienTribunalCountTruthOne =>
+      '\"Genau einer von uns sagt die Wahrheit.\"';
+
+  @override
+  String alienTribunalCountTruthMany(int count) {
+    return '\"Genau $count von uns sagen die Wahrheit.\"';
   }
 
   @override
@@ -2721,18 +2787,18 @@ class SDe extends S {
 
   @override
   String get sectorPainterDesc =>
-      'Weise Kommunikationsfrequenzen den Sternkarten-Sektoren zu! Angrenzende Sektoren mussen verschiedene Frequenzen nutzen, um Signalstorungen zu vermeiden.';
+      'Weise Kommunikationsfrequenzen den Sternkarten-Sektoren zu! Angrenzende Sektoren müssen verschiedene Frequenzen nutzen, um Signalstörungen zu vermeiden.';
 
   @override
   String get sectorPainterInstructions =>
-      'Farbe jeden Sektor ein, sodass keine zwei benachbarten Sektoren die gleiche Farbe haben. Verwende so wenige Farben wie moglich!';
+      'Färbe jeden Sektor ein, sodass keine zwei benachbarten Sektoren die gleiche Farbe haben. Verwende so wenige Farben wie möglich!';
 
   @override
   String get sectorPainterWinTitle => 'Frequenzen zugewiesen!';
 
   @override
   String sectorPainterWinDesc(int colors, int bonusScore) {
-    return 'Keine Interferenz auf der gesamten Sternkarte! Du hast es mit nur $colors Frequenzen gelost und $bonusScore Punkte verdient.';
+    return 'Keine Interferenz auf der gesamten Sternkarte! Du hast es mit nur $colors Frequenzen gelöst und $bonusScore Punkte verdient.';
   }
 
   @override
@@ -2751,7 +2817,7 @@ class SDe extends S {
 
   @override
   String get warpFoldInstructions =>
-      'Beobachte die Faltanimation und wahle dann das korrekte entfaltete Ergebnis.';
+      'Beobachte die Faltanimation und wähle dann das korrekte entfaltete Ergebnis.';
 
   @override
   String get warpFoldWinTitle => 'Raum entfaltet!';
@@ -2766,21 +2832,21 @@ class SDe extends S {
 
   @override
   String get warpFoldLoseDesc =>
-      'Der entfaltete Raum stimmte nicht mit deiner Vorhersage uberein. Verfolge die Faltungen Schritt fur Schritt, Commander.';
+      'Der entfaltete Raum stimmte nicht mit deiner Vorhersage überein. Verfolge die Faltungen Schritt für Schritt, Commander.';
 
   @override
-  String get cubeScannerTitle => 'Wurfel-Scanner';
+  String get cubeScannerTitle => 'Würfel-Scanner';
 
   @override
   String get cubeScannerDesc =>
-      'Alien-Datenwurfel wurden geborgen! Dein Scanner zeigt einige Seiten, aber andere sind verborgen. Nutze die Regel -- gegenuber liegende Seiten ergeben immer 7 -- um die versteckten Werte zu bestimmen.';
+      'Alien-Datenwürfel wurden geborgen! Dein Scanner zeigt einige Seiten, aber andere sind verborgen. Nutze die Regel -- gegenüber liegende Seiten ergeben immer 7 -- um die versteckten Werte zu bestimmen.';
 
   @override
   String get cubeScannerInstructions =>
-      'Studiere die sichtbaren Seiten jedes Wurfels. Gegenuber liegende Seiten ergeben 7. Bestimme die versteckten Seitenwerte.';
+      'Studiere die sichtbaren Seiten jedes Würfels. Gegenüber liegende Seiten ergeben 7. Bestimme die versteckten Seitenwerte.';
 
   @override
-  String get cubeScannerWinTitle => 'Wurfel entschlusselt!';
+  String get cubeScannerWinTitle => 'Würfel entschlüsselt!';
 
   @override
   String cubeScannerWinDesc(int bonusScore) {
@@ -2788,22 +2854,22 @@ class SDe extends S {
   }
 
   @override
-  String get cubeScannerLoseTitle => 'Scan unvollstandig!';
+  String get cubeScannerLoseTitle => 'Scan unvollständig!';
 
   @override
   String get cubeScannerLoseDesc =>
-      'Einige Seitenwerte sind falsch. Denke daran: Gegenuber liegende Seiten ergeben immer 7, Commander.';
+      'Einige Seitenwerte sind falsch. Denke daran: Gegenüber liegende Seiten ergeben immer 7, Commander.';
 
   @override
   String get circuitRepairTitle => 'Schaltkreis-Reparatur';
 
   @override
   String get circuitRepairDesc =>
-      'Die Cockpit-Uhr spinnt! Zwei Ziffernpositionen wurden vertauscht und zeigen eine unmogliche Uhrzeit. Finde die zwei Positionen zum Zurucktauschen!';
+      'Die Cockpit-Uhr spinnt! Zwei Ziffernpositionen wurden vertauscht und zeigen eine unmögliche Uhrzeit. Finde die zwei Positionen zum Zurucktauschen!';
 
   @override
   String get circuitRepairInstructions =>
-      'Die Uhr zeigt eine ungultige Zeit, weil zwei Ziffernpositionen vertauscht sind. Tippe auf zwei Ziffern, um sie zu tauschen. Das Ergebnis muss eine gultige Uhrzeit sein!';
+      'Die Uhr zeigt eine ungültige Zeit, weil zwei Ziffernpositionen vertauscht sind. Tippe auf zwei Ziffern, um sie zu tauschen. Das Ergebnis muss eine gültige Uhrzeit sein!';
 
   @override
   String get circuitRepairWinTitle => 'Display repariert!';
@@ -2818,7 +2884,7 @@ class SDe extends S {
 
   @override
   String get circuitRepairLoseDesc =>
-      'Die Anzeige zeigt immer noch falsche Ziffern. Uberlege, welche zwei Segmente, wenn vertauscht, alle Ziffern gultig machen, Commander.';
+      'Die Anzeige zeigt immer noch falsche Ziffern. Überlege, welche zwei Segmente, wenn vertauscht, alle Ziffern gültig machen, Commander.';
 
   @override
   String get darkMatterGridTitle => 'Dunkelmaterie-Gitter';
@@ -2836,7 +2902,7 @@ class SDe extends S {
 
   @override
   String darkMatterGridWinDesc(int moves, int bonusScore) {
-    return 'Die Dunkelmaterie weicht zuruck! Du hast das Gitter in $moves Zugen befreit und $bonusScore Photonenpunkte verdient.';
+    return 'Die Dunkelmaterie weicht zurück! Du hast das Gitter in $moves Zügen befreit und $bonusScore Photonenpunkte verdient.';
   }
 
   @override
@@ -2844,14 +2910,14 @@ class SDe extends S {
 
   @override
   String get darkMatterGridLoseDesc =>
-      'Das Dunkelmaterie-Gitter bleibt instabil. Uberlege, welche Knoten welche Nachbarn beeinflussen, Commander.';
+      'Das Dunkelmaterie-Gitter bleibt instabil. Überlege, welche Knoten welche Nachbarn beeinflussen, Commander.';
 
   @override
   String get dockClearanceTitle => 'Dock-Freigabe';
 
   @override
   String get dockClearanceDesc =>
-      'Das Raumdock ist verstopft! Verschiebe die geparkten Schiffe, um einen Weg fur dein Raumschiff zur Startschleuse freizumachen. Keine Diagonalbewegungen -- Schiffe gleiten nur entlang ihrer Achse!';
+      'Das Raumdock ist verstopft! Verschiebe die geparkten Schiffe, um einen Weg für dein Raumschiff zur Startschleuse freizumachen. Keine Diagonalbewegungen -- Schiffe gleiten nur entlang ihrer Achse!';
 
   @override
   String get dockClearanceInstructions =>
@@ -2862,7 +2928,7 @@ class SDe extends S {
 
   @override
   String dockClearanceWinDesc(int moves, int bonusScore) {
-    return 'Dein Schiff schießt aus dem Dock! In $moves Zugen freigegeben, $bonusScore Dock-Kredite verdient.';
+    return 'Dein Schiff schießt aus dem Dock! In $moves Zügen freigegeben, $bonusScore Dock-Kredite verdient.';
   }
 
   @override
@@ -2877,7 +2943,7 @@ class SDe extends S {
 
   @override
   String get ionChainDesc =>
-      'Vervollstandige den Ionen-Ring! Ordne geladene Teilchen um die Plasmaschleife an, sodass jedes Nachbarpaar die Regeln erfullt. Eine falsche Platzierung und der Ring wird instabil!';
+      'Vervollständige den Ionen-Ring! Ordne geladene Teilchen um die Plasmaschleife an, sodass jedes Nachbarpaar die Regeln erfüllt. Eine falsche Platzierung und der Ring wird instabil!';
 
   @override
   String get ionChainInstructions =>
@@ -2896,14 +2962,14 @@ class SDe extends S {
 
   @override
   String get ionChainLoseDesc =>
-      'Inkompatible Ionen haben einen Plasmaschub verursacht! Uberprufe die Nachbarschaftsregeln, Commander.';
+      'Inkompatible Ionen haben einen Plasmaschub verursacht! Überprüfe die Nachbarschaftsregeln, Commander.';
 
   @override
   String get launchSequenceTitle => 'Start-Sequenz';
 
   @override
   String get launchSequenceDesc =>
-      'Die Startreihenfolge ist durcheinander! Ordne die Flotte durch Tauschen benachbarter Schiffe neu. Bringe sie mit so wenigen Tauschvorgangen wie moglich in die richtige Reihenfolge!';
+      'Die Startreihenfolge ist durcheinander! Ordne die Flotte durch Tauschen benachbarter Schiffe neu. Bringe sie mit so wenigen Tauschvorgangen wie möglich in die richtige Reihenfolge!';
 
   @override
   String get launchSequenceInstructions =>
@@ -2929,14 +2995,14 @@ class SDe extends S {
 
   @override
   String get starForgeDesc =>
-      'Entzunde einen neuen Stern! Verteile Energiewerte auf die Schmiedeknoten, sodass jeder Plasmaarm die gleiche Gesamtladung tragt. Der Stern entzundet sich, wenn alle Arme ubereinstimmen!';
+      'Entzünde einen neuen Stern! Verteile Energiewerte auf die Schmiedeknoten, sodass jeder Plasmaarm die gleiche Gesamtladung tragt. Der Stern entzündet sich, wenn alle Arme übereinstimmen!';
 
   @override
   String get starForgeInstructions =>
       'Platziere Zahlen in die leeren Knoten. Jede Linie durch den Stern muss die gleiche Summe haben.';
 
   @override
-  String get starForgeWinTitle => 'Stern entzundet!';
+  String get starForgeWinTitle => 'Stern entzündet!';
 
   @override
   String starForgeWinDesc(int bonusScore) {
@@ -2962,7 +3028,7 @@ class SDe extends S {
 
   @override
   String get nebulaMatrixDesc =>
-      'Stabilisiere das Energiefeld! Fulle jede Zeile, Spalte und Zone des Nebelgitters, sodass sich keine Frequenz wiederholt. Eine falsche Resonanz und der Nebel kollabiert!';
+      'Stabilisiere das Energiefeld! Fülle jede Zeile, Spalte und Zone des Nebelgitters, sodass sich keine Frequenz wiederholt. Eine falsche Resonanz und der Nebel kollabiert!';
 
   @override
   String get nebulaMatrixInstructions =>
@@ -2977,7 +3043,7 @@ class SDe extends S {
 
   @override
   String nebulaMatrixWinDesc(int bonusScore) {
-    return 'Das Energiefeld ist perfekt ausbalanciert! Du hast $bonusScore Resonanzpunkte fur deine Prazision verdient.';
+    return 'Das Energiefeld ist perfekt ausbalanciert! Du hast $bonusScore Resonanzpunkte für deine Präzision verdient.';
   }
 
   @override
@@ -2995,15 +3061,15 @@ class SDe extends S {
       'Setze jede Frequenz gezielt ein, um den Nebel zu stabilisieren!';
 
   @override
-  String get orbitalTowersTitle => 'Orbital-Turme';
+  String get orbitalTowersTitle => 'Orbital-Türme';
 
   @override
   String get orbitalTowersDesc =>
-      'Baue eine Weltraumstadt auf der Orbitalplattform! Die Satellitenkameras an jedem Rand melden, wie viele Turme sie sehen konnen. Hohere Turme verbergen niedrigere hinter sich.';
+      'Baue eine Weltraumstadt auf der Orbitalplattform! Die Satellitenkameras an jedem Rand melden, wie viele Türme sie sehen können. Höhere Türme verbergen niedrigere hinter sich.';
 
   @override
   String orbitalTowersInstructions(int size) {
-    return 'Platziere Turme der Hohe 1 bis $size, sodass jede Zeile und Spalte jede Hohe einmal hat. Randhinweise zeigen, wie viele Turme aus dieser Richtung sichtbar sind.';
+    return 'Platziere Türme der Höhe 1 bis $size, sodass jede Zeile und Spalte jede Höhe einmal hat. Randhinweise zeigen, wie viele Türme aus dieser Richtung sichtbar sind.';
   }
 
   @override
@@ -3011,7 +3077,7 @@ class SDe extends S {
 
   @override
   String orbitalTowersWinDesc(int bonusScore) {
-    return 'Die Orbitalstadt erhebt sich! Alle Satellitenwerte stimmen perfekt uberein. Du hast $bonusScore Baukredite verdient.';
+    return 'Die Orbitalstadt erhebt sich! Alle Satellitenwerte stimmen perfekt überein. Du hast $bonusScore Baukredite verdient.';
   }
 
   @override
@@ -3019,7 +3085,7 @@ class SDe extends S {
 
   @override
   String get orbitalTowersLoseDesc =>
-      'Die Satellitenkameras stimmen nicht mit deinem Layout uberein. Denke daran: Hohe Turme blockieren die Sicht auf niedrigere dahinter, Commander.';
+      'Die Satellitenkameras stimmen nicht mit deinem Layout überein. Denke daran: Hohe Türme blockieren die Sicht auf niedrigere dahinter, Commander.';
 
   @override
   String get orbitalTowersOutOfMoves => 'Alle Züge verbraucht!';
@@ -3027,6 +3093,21 @@ class SDe extends S {
   @override
   String get orbitalTowersOutOfMovesDesc =>
       'Studiere die Randhinweise genau, bevor du jeden Turm platzierst!';
+
+  @override
+  String get orbitalTowersHowToPlay => 'Spielanleitung';
+
+  @override
+  String get orbitalTowersOnboardGrid =>
+      'Jede Zeile und jede Spalte bekommt jede Turmhöhe genau einmal -- keine Wiederholungen.';
+
+  @override
+  String get orbitalTowersOnboardSightline =>
+      'Eine Kamera sieht einen Turm nur, wenn kein höherer davor steht. Hier sieht sie 2 von 4 Türmen: die 1 versteckt sich hinter der 2, die 3 hinter der 4.';
+
+  @override
+  String get orbitalTowersOnboardPlace =>
+      'Ziehe eine Höhe auf ein Baufeld. Tippe auf einen gesetzten Turm, um ihn wieder zu entfernen.';
 
   @override
   String get hiveStationTitle => 'Bienen-Station';
@@ -3037,7 +3118,7 @@ class SDe extends S {
 
   @override
   String get hiveStationInstructions =>
-      'Tippe auf sechseckige Zellen, um sie mit Energie zu fullen. Die Zahl in jeder Zelle sagt dir, wie viele benachbarte Zellen Energie enthalten.';
+      'Tippe auf sechseckige Zellen, um sie mit Energie zu füllen. Die Zahl in jeder Zelle sagt dir, wie viele benachbarte Zellen Energie enthalten.';
 
   @override
   String get hiveStationWinTitle => 'Bienenstock geladen!';
@@ -3052,7 +3133,7 @@ class SDe extends S {
 
   @override
   String get hiveStationLoseDesc =>
-      'Einige Zellen melden die falsche Nachbarzahl. Uberprufe deine Energieplatzierung, Commander.';
+      'Einige Zellen melden die falsche Nachbarzahl. Überprüfe deine Energieplatzierung, Commander.';
 
   @override
   String hiveStationWrongAttempt(int remaining) {
@@ -3064,11 +3145,11 @@ class SDe extends S {
 
   @override
   String get relicAssemblyDesc =>
-      'Uralte Alien-Tafelfragmente wurden ausgegraben! Ordne die Stucke an, sodass die Glyphen an beruhrenden Kanten perfekt ubereinstimmen. Das Artefakt birgt den Schlussel zum nachsten Sternensystem!';
+      'Uralte Alien-Tafelfragmente wurden ausgegraben! Ordne die Stücke an, sodass die Glyphen an berührenden Kanten perfekt übereinstimmen. Das Artefakt birgt den Schlüssel zum nächsten Sternensystem!';
 
   @override
   String get relicAssemblyInstructions =>
-      'Platziere und drehe Tafelstucke im Gitter. Beruhrende Kanten mussen ubereinstimmende Glyphen zeigen.';
+      'Platziere und drehe Tafelstücke im Gitter. Berührende Kanten müssen übereinstimmende Glyphen zeigen.';
 
   @override
   String get relicAssemblyWinTitle => 'Artefakt restauriert!';
@@ -3083,7 +3164,7 @@ class SDe extends S {
 
   @override
   String get relicAssemblyLoseDesc =>
-      'Einige Kantenglyphen stimmen nicht mit ihren Nachbarn uberein. Versuche die Stucke zu drehen oder neu zu positionieren, Commander.';
+      'Einige Kantenglyphen stimmen nicht mit ihren Nachbarn überein. Versuche die Stücke zu drehen oder neu zu positionieren, Commander.';
 
   @override
   String get xenobiologyLabTitle => 'Xenobiologie-Labor';
@@ -3101,7 +3182,7 @@ class SDe extends S {
 
   @override
   String xenobiologyLabWinDesc(int bonusScore) {
-    return 'Feldbericht eingereicht! Deine Xenobiologie-Fahigkeiten haben $bonusScore Forschungskredite eingebracht.';
+    return 'Feldbericht eingereicht! Deine Xenobiologie-Fähigkeiten haben $bonusScore Forschungskredite eingebracht.';
   }
 
   @override
@@ -3109,25 +3190,25 @@ class SDe extends S {
 
   @override
   String get xenobiologyLabLoseDesc =>
-      'Die Zahlen stimmen nicht uberein. Uberprufe die Merkmalszahlen fur jede Unterart, Commander.';
+      'Die Zahlen stimmen nicht überein. Überprüfe die Merkmalszahlen für jede Unterart, Commander.';
 
   @override
   String get galacticMarketTitle => 'Galaktischer Markt';
 
   @override
   String get galacticMarketDesc =>
-      'Der Alien-Handler gab dir Wechselgeld, aber einige Munzen liegen verdeckt! Du kennst die Gesamtsumme und siehst manche Munzen. Finde den versteckten Nennwert!';
+      'Der Alien-Händler gab dir Wechselgeld, aber einige Münzen liegen verdeckt! Du kennst die Gesamtsumme und siehst manche Münzen. Finde den versteckten Nennwert!';
 
   @override
   String get galacticMarketInstructions =>
-      'Schau dir das Gesamtwechselgeld und die sichtbaren Munzen an. Die verdeckten Munzen haben alle denselben Wert. Rechne: (Gesamt - bekannte Munzen) / Anzahl verdeckter = ?';
+      'Schau dir das Gesamtwechselgeld und die sichtbaren Münzen an. Die verdeckten Münzen haben alle denselben Wert. Rechne: (Gesamt - bekannte Münzen) / Anzahl verdeckter = ?';
 
   @override
   String get galacticMarketWinTitle => 'Kauf abgeschlossen!';
 
   @override
   String galacticMarketWinDesc(int coins, int bonusScore) {
-    return 'Passendes Wechselgeld! Du hast nur $coins Munzen verwendet und $bonusScore Handelspunkte verdient.';
+    return 'Passendes Wechselgeld! Du hast nur $coins Münzen verwendet und $bonusScore Handelspunkte verdient.';
   }
 
   @override
@@ -3135,21 +3216,21 @@ class SDe extends S {
 
   @override
   String get galacticMarketLoseDesc =>
-      'Der Handler runzelt die Stirn -- das ist nicht der richtige Betrag. Versuche eine andere Munzkombination, Commander.';
+      'Der Händler runzelt die Stirn -- das ist nicht der richtige Betrag. Versuche eine andere Münzkombination, Commander.';
 
   @override
   String get creatureForgeTitle => 'Kreaturen-Schmiede';
 
   @override
   String get creatureForgeDesc =>
-      'Die Xenobiologie-Bucht hat Teile von mehreren Alien-Spezies! Tippe um Kopfe, Korper und Schwanze auszuwahlen und baue Kreaturen. Wie viele einzigartige Wesen kannst du erschaffen?';
+      'Die Xenobiologie-Bucht hat Teile von mehreren Alien-Spezies! Tippe um Köpfe, Körper und Schwänze auszuwählen und baue Kreaturen. Wie viele einzigartige Wesen kannst du erschaffen?';
 
   @override
   String get creatureForgeInstructions =>
-      'Wahle je ein Teil aus jeder Reihe, dann tippe BAUEN um die Kreatur zur Galerie hinzuzufugen. Finde alle gultigen Kombinationen und gib die Gesamtzahl ein!';
+      'Wähle je ein Teil aus jeder Reihe, dann tippe BAUEN um die Kreatur zur Galerie hinzuzufügen. Finde alle gultigen Kombinationen und gib die Gesamtzahl ein!';
 
   @override
-  String get creatureForgeWinTitle => 'Spezieskatalog vollstandig!';
+  String get creatureForgeWinTitle => 'Spezieskatalog vollständig!';
 
   @override
   String creatureForgeWinDesc(int count, int bonusScore) {
@@ -3161,7 +3242,7 @@ class SDe extends S {
 
   @override
   String get creatureForgeLoseDesc =>
-      'Du hast noch nicht alle Kombinationen gefunden. Denke daran: Jeder Kopf kann mit jedem Korper UND jedem Schwanz kombiniert werden, Commander.';
+      'Du hast noch nicht alle Kombinationen gefunden. Denke daran: Jeder Kopf kann mit jedem Körper UND jedem Schwanz kombiniert werden, Commander.';
 
   @override
   String get asteroidDuelTitle => 'Asteroiden-Duell';
@@ -3172,7 +3253,7 @@ class SDe extends S {
 
   @override
   String asteroidDuelInstructions(int max) {
-    return 'Wahle 1 bis $max Asteroiden pro Zug. Zwinge deinen Gegner, den letzten zu nehmen!';
+    return 'Wähle 1 bis $max Asteroiden pro Zug. Zwinge deinen Gegner, den letzten zu nehmen!';
   }
 
   @override
@@ -3189,6 +3270,15 @@ class SDe extends S {
   @override
   String get asteroidDuelLoseDesc =>
       'Dein Gegner hat dich zum letzten Asteroiden gezwungen. Studiere die Muster -- es gibt immer eine Gewinnstrategie, Commander.';
+
+  @override
+  String get asteroidDuelYourTurn => 'DU BIST DRAN';
+
+  @override
+  String get asteroidDuelAiTurn => 'KI IST DRAN';
+
+  @override
+  String get asteroidDuelAiThinking => 'KI DENKT NACH...';
 
   @override
   String get chronoRepairTitle => 'Chrono-Reparatur';
@@ -3529,6 +3619,10 @@ class SDe extends S {
   @override
   String get ionChainRuleViolation =>
       'Regelverletzung! Diese Perle passt hier nicht.';
+
+  @override
+  String get ionChainDeadEnd =>
+      'Diese Perle passt hier, aber dann passt woanders keine mehr. Probiere einen anderen Platz!';
 
   @override
   String get hullPlatingNoFit =>
@@ -3906,6 +4000,12 @@ class SDe extends S {
   String get skip => 'Überspringen';
 
   @override
+  String get onboardingGotIt => 'Verstanden';
+
+  @override
+  String get onboardingNext => 'Weiter';
+
+  @override
   String get goBack => 'Zurück';
 
   @override
@@ -4005,17 +4105,17 @@ class SDe extends S {
 
   @override
   String get gridFillerDesc =>
-      'Fulle ein Raster mit quadratischen Teilen — keine Lucken erlaubt!';
+      'Fülle ein Raster mit quadratischen Teilen — keine Lücken erlaubt!';
 
   @override
   String get missionHubTitle => 'Weltraum-Missionen';
 
   @override
-  String get missionHubStart => 'Bereit fur eine Mission?';
+  String get missionHubStart => 'Bereit für eine Mission?';
 
   @override
   String get missionHubStartDesc =>
-      'Lose eine Reihe von Aufgaben, um ein geheimes Weltraum-Codewort zu entschlusseln!';
+      'Löse eine Reihe von Aufgaben, um ein geheimes Weltraum-Codewort zu entschlüsseln!';
 
   @override
   String get missionHubResume => 'Mission lauft';
@@ -4042,17 +4142,17 @@ class SDe extends S {
   String get missionStreakTitle => 'Missions-Aufgaben';
 
   @override
-  String get missionSolveCodeword => 'Codewort entschlusseln!';
+  String get missionSolveCodeword => 'Codewort entschlüsseln!';
 
   @override
-  String get missionCodewordTitle => 'Codewort-Ratsel';
+  String get missionCodewordTitle => 'Codewort-Rätsel';
 
   @override
   String get missionCodewordInstructions =>
       'Ordne die Buchstaben an, um das geheime Weltraum-Wort zu bilden!';
 
   @override
-  String get missionAvailableLetters => 'Verfugbare Buchstaben';
+  String get missionAvailableLetters => 'Verfügbare Buchstaben';
 
   @override
   String get missionAllPlaced => 'Alle Buchstaben platziert!';
@@ -4062,7 +4162,7 @@ class SDe extends S {
 
   @override
   String missionCompleteDesc(String word) {
-    return 'Du hast das Codewort entschlusselt: $word';
+    return 'Du hast das Codewort entschlüsselt: $word';
   }
 
   @override

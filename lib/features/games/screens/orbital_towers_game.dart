@@ -11,6 +11,8 @@ import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
+import '../widgets/orbital_towers_diagram.dart';
+import '../../../shared/widgets/onboarding_overlay.dart';
 import '../constants/difficulty_manager.dart';
 import '../services/orbital_towers_logic.dart';
 import 'package:flutter/foundation.dart';
@@ -63,8 +65,52 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
         final gp = context.read<GameProvider>();
         currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
         _generatePuzzle();
+        _showOnboarding(onlyIfUnseen: true);
       }
     });
+  }
+
+  /// The walkthrough. Shown once on a player's first visit, and again whenever
+  /// they tap the help button -- the sightline rule is the whole puzzle, and it
+  /// is not something a child guesses from a grid of numbers.
+  void _showOnboarding({bool onlyIfUnseen = false}) {
+    final s = S.of(context)!;
+    final steps = [
+      OnboardingStep(
+        icon: Icons.grid_4x4,
+        body: s.orbitalTowersOnboardGrid,
+        illustration: TowerLatinSquareDiagram(size: puzzle?.size ?? 4),
+      ),
+      OnboardingStep(
+        icon: Icons.videocam,
+        body: s.orbitalTowersOnboardSightline,
+        illustration: const TowerSightlineDiagram(),
+      ),
+      OnboardingStep(
+        icon: Icons.touch_app,
+        body: s.orbitalTowersOnboardPlace,
+      ),
+    ];
+
+    if (onlyIfUnseen) {
+      OnboardingOverlay.maybeShow(
+        context,
+        gameKey: 'orbital_towers',
+        title: s.orbitalTowersTitle,
+        steps: steps,
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => OnboardingOverlay(
+        title: s.orbitalTowersTitle,
+        steps: steps,
+        onDismiss: () => Navigator.of(dialogContext).pop(),
+      ),
+    );
   }
 
   @override
@@ -389,6 +435,22 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                 title: s.orbitalTowersTitle,
                 level: widget.level,
                 onBack: () => Navigator.of(context).pop(),
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: TextButton.icon(
+                    onPressed: _showOnboarding,
+                    icon: const Icon(Icons.help_outline,
+                        size: 18, color: SpaceTheme.starYellow),
+                    label: Text(
+                      s.orbitalTowersHowToPlay,
+                      style: const TextStyle(
+                          color: SpaceTheme.starYellow, fontSize: 13),
+                    ),
+                  ),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

@@ -175,14 +175,51 @@ String gameTitleFor(S s, String gameKey) {
       .join(' ');
 }
 
+/// Games withheld from normal play because they are known-broken or not yet
+/// good enough to put in front of a child.
+///
+/// They stay reachable once the debug menu is unlocked (seven taps on the home
+/// screen title) so they can be finished, but they are kept out of the game
+/// menu and never picked for a mission. Remove a key from here once its game
+/// works -- that is the only step needed to ship it.
+const Set<String> debugOnlyGames = {
+  // Fixed (generation was searching for an impossible magic constant, then
+  // falling back to a layout whose lines did not sum equally) -- still held
+  // back pending a play-through in the app.
+  'star_forge',
+  // Fixed (legal moves could strand the player with an unfillable slot, and
+  // the same rule could be listed twice) -- held back pending a play-through.
+  'ion_chain',
+  // No real deduction: tapping every coin repeatedly stumbles onto the answer.
+  'galactic_market',
+  // The puzzle as presented does not convey what is being asked.
+  'cube_scanner',
+  // Pieces cannot be taken back off the grid, so a wrong placement is fatal.
+  'relic_assembly',
+  // The river-crossing rules are not conveyed by the board as drawn.
+  'void_crossing',
+};
+
+/// Whether [gameKey] may be offered to a player.
+///
+/// Broken games stay playable for whoever is fixing them, and stay hidden from
+/// everyone else.
+bool isGamePlayable(String gameKey, {required bool debugEnabled}) =>
+    debugEnabled || !debugOnlyGames.contains(gameKey);
+
+/// Every game key a mission may draw from -- [debugOnlyGames] excluded, so a
+/// mission never hands a child a game that cannot be completed.
+Iterable<String> get missionGameKeys =>
+    gameBuilders.keys.where((k) => !debugOnlyGames.contains(k));
+
 /// Mission games that are calculation practice — the "do the maths" half of a
 /// mission. Derived from the canonical skill map so the two never drift.
-List<String> get calculationGames => gameBuilders.keys
+List<String> get calculationGames => missionGameKeys
     .where((k) => gameSkillMap[k] == SkillCategory.arithmetic)
     .toList();
 
 /// Mission games that are puzzles: logic, deduction, spatial and pattern play.
-List<String> get puzzleGames => gameBuilders.keys
+List<String> get puzzleGames => missionGameKeys
     .where((k) =>
         gameSkillMap.containsKey(k) &&
         gameSkillMap[k] != SkillCategory.arithmetic)
@@ -196,18 +233,18 @@ const Set<String> signaturePuzzleGames = {
   'quantum_molecule_builder',  // atomix
   'space_station_gridlock',    // rush hour
   'robot_path_game',           // programming a path
-  'void_crossing',             // river crossing
+  'void_crossing',             // river crossing (in debugOnlyGames)
   'dark_matter_grid',          // lights out
   'launch_sequence',           // sorting
-  'relic_assembly',            // edge-matching tiles
+  'relic_assembly',            // edge-matching tiles (in debugOnlyGames)
   'hull_plating',              // polyomino packing
   'grid_filler_game',          // tiling
   'cargo_bay_arranger',        // falling blocks
   'asteroid_field_navigator',  // minesweeper
   'sector_painter',            // map colouring
-  'ion_chain',                 // chain building
+  'ion_chain',                 // chain building (currently in debugOnlyGames)
   'warp_fold',                 // paper folding
-  'cube_scanner',              // dice nets
+  'cube_scanner',              // dice nets (in debugOnlyGames)
 };
 
 /// Icons for display in the mission streak screen.

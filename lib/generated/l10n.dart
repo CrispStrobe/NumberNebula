@@ -4684,6 +4684,90 @@ abstract class S {
   /// **'\"{name} always lies.\"'**
   String alienTribunalClaimLiar3(String name);
 
+  /// No description provided for @alienTribunalPairBothTruth1.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name1} and {name2} both tell the truth.\"'**
+  String alienTribunalPairBothTruth1(String name1, String name2);
+
+  /// No description provided for @alienTribunalPairBothTruth2.
+  ///
+  /// In en, this message translates to:
+  /// **'\"You can trust both {name1} and {name2}.\"'**
+  String alienTribunalPairBothTruth2(String name1, String name2);
+
+  /// No description provided for @alienTribunalPairBothLiar1.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name1} and {name2} are both liars.\"'**
+  String alienTribunalPairBothLiar1(String name1, String name2);
+
+  /// No description provided for @alienTribunalPairBothLiar2.
+  ///
+  /// In en, this message translates to:
+  /// **'\"Neither {name1} nor {name2} tells the truth.\"'**
+  String alienTribunalPairBothLiar2(String name1, String name2);
+
+  /// No description provided for @alienTribunalPairAnyTruth1.
+  ///
+  /// In en, this message translates to:
+  /// **'\"At least one of {name1} and {name2} tells the truth.\"'**
+  String alienTribunalPairAnyTruth1(String name1, String name2);
+
+  /// No description provided for @alienTribunalPairAnyTruth2.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name1} or {name2} -- at least one of them can be trusted.\"'**
+  String alienTribunalPairAnyTruth2(String name1, String name2);
+
+  /// No description provided for @alienTribunalPairAnyLiar1.
+  ///
+  /// In en, this message translates to:
+  /// **'\"At least one of {name1} and {name2} is a liar.\"'**
+  String alienTribunalPairAnyLiar1(String name1, String name2);
+
+  /// No description provided for @alienTribunalPairAnyLiar2.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name1} or {name2} -- at least one of them lies.\"'**
+  String alienTribunalPairAnyLiar2(String name1, String name2);
+
+  /// No description provided for @alienTribunalCountLiarsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'\"None of us is a liar.\"'**
+  String get alienTribunalCountLiarsNone;
+
+  /// No description provided for @alienTribunalCountLiarsOne.
+  ///
+  /// In en, this message translates to:
+  /// **'\"Exactly one of us is a liar.\"'**
+  String get alienTribunalCountLiarsOne;
+
+  /// No description provided for @alienTribunalCountLiarsMany.
+  ///
+  /// In en, this message translates to:
+  /// **'\"Exactly {count} of us are liars.\"'**
+  String alienTribunalCountLiarsMany(int count);
+
+  /// No description provided for @alienTribunalCountTruthNone.
+  ///
+  /// In en, this message translates to:
+  /// **'\"None of us tells the truth.\"'**
+  String get alienTribunalCountTruthNone;
+
+  /// No description provided for @alienTribunalCountTruthOne.
+  ///
+  /// In en, this message translates to:
+  /// **'\"Exactly one of us tells the truth.\"'**
+  String get alienTribunalCountTruthOne;
+
+  /// No description provided for @alienTribunalCountTruthMany.
+  ///
+  /// In en, this message translates to:
+  /// **'\"Exactly {count} of us tell the truth.\"'**
+  String alienTribunalCountTruthMany(int count);
+
   /// No description provided for @gravityWellTitle.
   ///
   /// In en, this message translates to:
@@ -5260,6 +5344,30 @@ abstract class S {
   /// **'Too many tower placements! Study the edge clues carefully before placing each tower.'**
   String get orbitalTowersOutOfMovesDesc;
 
+  /// No description provided for @orbitalTowersHowToPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'How to play'**
+  String get orbitalTowersHowToPlay;
+
+  /// No description provided for @orbitalTowersOnboardGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Every row and every column gets each tower height exactly once -- no repeats.'**
+  String get orbitalTowersOnboardGrid;
+
+  /// No description provided for @orbitalTowersOnboardSightline.
+  ///
+  /// In en, this message translates to:
+  /// **'A camera sees a tower only when nothing taller stands in front of it. Here it sees 2 of the 4: the 1 hides behind the 2, and the 3 hides behind the 4.'**
+  String get orbitalTowersOnboardSightline;
+
+  /// No description provided for @orbitalTowersOnboardPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a height onto a plot to build. Tap a tower you placed to take it away again.'**
+  String get orbitalTowersOnboardPlace;
+
   /// No description provided for @hiveStationTitle.
   ///
   /// In en, this message translates to:
@@ -5517,6 +5625,24 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Your opponent forced you into the last asteroid. Study the patterns -- there\'s always a winning strategy, Commander.'**
   String get asteroidDuelLoseDesc;
+
+  /// No description provided for @asteroidDuelYourTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR TURN'**
+  String get asteroidDuelYourTurn;
+
+  /// No description provided for @asteroidDuelAiTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'AI TURN'**
+  String get asteroidDuelAiTurn;
+
+  /// No description provided for @asteroidDuelAiThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'AI THINKING...'**
+  String get asteroidDuelAiThinking;
 
   /// No description provided for @chronoRepairTitle.
   ///
@@ -6081,6 +6207,12 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Rule violation! This bead can\'t go here.'**
   String get ionChainRuleViolation;
+
+  /// No description provided for @ionChainDeadEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'That bead fits here, but then no bead fits somewhere else. Try another slot!'**
+  String get ionChainDeadEnd;
 
   /// No description provided for @hullPlatingNoFit.
   ///
@@ -6699,6 +6831,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Skip'**
   String get skip;
+
+  /// No description provided for @onboardingGotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get onboardingGotIt;
+
+  /// No description provided for @onboardingNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onboardingNext;
 
   /// No description provided for @goBack.
   ///

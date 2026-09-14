@@ -109,6 +109,17 @@ class _IonChainGameState extends State<IonChainGame>
     }
   }
 
+  /// The beads still in the tray: the puzzle's supply minus what is on the ring.
+  List<IonType> _beadsLeftInTray() {
+    final left = List<IonType>.from(puzzle!.availableIons);
+    for (int i = 0; i < _playerChain.length; i++) {
+      if (puzzle!.chain[i] == null && _playerChain[i] != null) {
+        left.remove(_playerChain[i]);
+      }
+    }
+    return left;
+  }
+
   void _placeBeadInSlot(int slotIndex, IonType bead) {
     if (_playerChain[slotIndex] != null) return;
     if (puzzle!.chain[slotIndex] != null) return;
@@ -133,12 +144,17 @@ class _IonChainGameState extends State<IonChainGame>
     }
 
     if (!valid) {
-      _ruleViolations++;
-      HapticFeedback.heavyImpact();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(S.of(context)!.ionChainRuleViolation),
-        backgroundColor: SpaceTheme.rocketRed, duration: const Duration(seconds: 1),
-      ));
+      _rejectPlacement(S.of(context)!.ionChainRuleViolation);
+      return;
+    }
+
+    // The move breaks no rule, but it can still strand the player: with the
+    // wrong bead here, some other slot ends up with nothing that fits, and the
+    // ring can never be closed. Refuse those too, so every accepted move keeps
+    // the puzzle winnable and the player never has to guess what went wrong.
+    final remaining = _beadsLeftInTray()..remove(bead);
+    if (!IonChainPuzzle.isCompletable(testChain, remaining, puzzle!.rules)) {
+      _rejectPlacement(S.of(context)!.ionChainDeadEnd);
       return;
     }
 
@@ -150,6 +166,16 @@ class _IonChainGameState extends State<IonChainGame>
         _handleWin();
       }
     }
+  }
+
+  void _rejectPlacement(String message) {
+    _ruleViolations++;
+    HapticFeedback.heavyImpact();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: SpaceTheme.rocketRed,
+      duration: const Duration(seconds: 2),
+    ));
   }
 
   void _removeBeadFromSlot(int slotIndex) {

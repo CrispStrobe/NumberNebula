@@ -6,6 +6,62 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:space_math_academy/features/games/services/star_chart_scan_logic.dart';
 
 void main() {
+  group('StarChartScanPuzzle.lineBetween', () {
+    test('fills in the cells a fast drag skips over', () {
+      // The regression: a drag reports positions several cells apart, and the
+      // old code appended only the sampled cells. The selection then read
+      // "3=7" instead of "3+4=7" and matched nothing, which made correct
+      // sweeps look like the puzzle was broken.
+      expect(StarChartScanPuzzle.lineBetween((2, 1), (2, 5)),
+          [(2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]);
+    });
+
+    test('runs in every straight direction, forwards and backwards', () {
+      expect(StarChartScanPuzzle.lineBetween((4, 4), (1, 4)),
+          [(4, 4), (3, 4), (2, 4), (1, 4)]);
+      expect(StarChartScanPuzzle.lineBetween((0, 0), (3, 3)),
+          [(0, 0), (1, 1), (2, 2), (3, 3)]);
+      expect(StarChartScanPuzzle.lineBetween((0, 4), (3, 1)),
+          [(0, 4), (1, 3), (2, 2), (3, 1)]);
+      expect(StarChartScanPuzzle.lineBetween((3, 1), (0, 4)),
+          [(3, 1), (2, 2), (1, 3), (0, 4)]);
+    });
+
+    test('a single cell is a run of one', () {
+      expect(StarChartScanPuzzle.lineBetween((2, 2), (2, 2)), [(2, 2)]);
+    });
+
+    test('rejects cells that share no row, column or diagonal', () {
+      expect(StarChartScanPuzzle.lineBetween((0, 0), (1, 3)), isNull);
+      expect(StarChartScanPuzzle.lineBetween((2, 5), (5, 1)), isNull);
+    });
+
+    test('a sweep along a placed equation reads that equation back', () {
+      for (int seed = 0; seed < 40; seed++) {
+        final puzzle = StarChartScanPuzzle.generate(
+          gridSize: 9,
+          equationCount: 6,
+          allowDiagonal: true,
+          operators: const ['+', '-', 'x'],
+          seed: seed,
+        );
+
+        for (final placed in puzzle.placedEquations) {
+          final last = placed.cells.last;
+          final line = StarChartScanPuzzle.lineBetween(
+              (placed.startRow, placed.startCol), (last.$1, last.$2));
+
+          expect(line, isNotNull,
+              reason: '${placed.equation} does not lie on a straight run');
+          final read =
+              line!.map((cell) => puzzle.grid[cell.$1][cell.$2]).join();
+          expect(read, placed.equation,
+              reason: 'sweeping ${placed.equation} must read it back');
+        }
+      }
+    });
+  });
+
   group('StarChartScanPuzzle.generate: structure', () {
     test('grid has correct dimensions', () {
       for (int seed = 0; seed < 5; seed++) {

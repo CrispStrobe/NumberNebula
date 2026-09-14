@@ -5,7 +5,9 @@
 // shows once per game (keyed by gameKey, stored in SharedPreferences);
 // subsequent runs no-op.
 //
-// Pass [steps] as a list of (icon, body) — typically 3 short cards.
+// Pass [steps] as a list of (icon, body) — typically 3 short cards. A step may
+// also carry an [OnboardingStep.illustration]: a small diagram shown in place
+// of the icon, for rules that are far easier to see than to read.
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,7 +18,17 @@ import '../../generated/l10n.dart';
 class OnboardingStep {
   final IconData icon;
   final String body;
-  const OnboardingStep({required this.icon, required this.body});
+
+  /// A worked example drawn for this step. Shown instead of [icon] when given —
+  /// some rules ("a taller tower hides the ones behind it") only land once the
+  /// player has seen one.
+  final Widget? illustration;
+
+  const OnboardingStep({
+    required this.icon,
+    required this.body,
+    this.illustration,
+  });
 }
 
 class OnboardingOverlay extends StatefulWidget {
@@ -88,7 +100,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20)),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 360),
+        constraints: const BoxConstraints(maxWidth: 400),
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -108,7 +120,8 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
               ),
               child: Column(
                 children: [
-                  Icon(step.icon, size: 48, color: Colors.white),
+                  step.illustration ??
+                      Icon(step.icon, size: 48, color: Colors.white),
                   const SizedBox(height: 12),
                   Text(step.body,
                       style: SpaceTheme.bodyStyle.copyWith(
@@ -158,7 +171,9 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
                     backgroundColor: SpaceTheme.starYellow,
                     foregroundColor: Colors.black,
                   ),
-                  child: Text(isLast ? 'Got it' : 'Next'),
+                  child: Text(isLast
+                      ? S.of(context)!.onboardingGotIt
+                      : S.of(context)!.onboardingNext),
                 ),
               ],
             ),

@@ -1,12 +1,10 @@
 // lib/features/games/services/star_forge_logic.dart
 //
-// Magic Star puzzle generator using dart_csp.
+// Magic Star puzzle generator.
 // A magic star has outer points and inner intersection nodes.
 // Each line through the star must sum to the same "magic constant".
 
 import 'dart:math' as math;
-import 'package:dart_csp/dart_csp.dart';
-import 'package:flutter/foundation.dart';
 
 /// Describes a magic star puzzle.
 class StarForgePuzzle {
@@ -79,30 +77,14 @@ class StarForgeGenerator {
   }) async {
     assert(points >= 5 && points <= 7);
 
-    // A magic star with n points has 2n nodes: n outer tips + n inner intersections
+    // A magic star with n points has 2n nodes: n outer tips + n inner
+    // intersections, and every node sits on exactly two lines.
     final nodeCount = points * 2;
     final values = List.generate(nodeCount, (i) => i + 1);
-
-    // Build star lines: each line has 4 nodes (outer-inner-inner-outer)
     final lines = _buildStarLines(points);
 
-    // Try to find a valid assignment using brute-force + CSP
-    Map<int, int>? solution;
+    final solution = _buildSolution(points);
 
-    // For 5-point stars the magic constant is always 24 (for values 1-10)
-    // For 6-point stars with values 1-12, magic constant is 26
-    // For 7-point stars with values 1-14, magic constant is varies
-    // We'll try different permutations
-
-    for (int attempt = 0; attempt < 200; attempt++) {
-      solution = await _tryGenerateCSP(points, nodeCount, values, lines);
-      if (solution != null) break;
-    }
-
-    // Fallback: use known solutions for 5-point star
-    solution ??= _getFallbackSolution(points);
-
-    // Determine magic constant
     int magicConstant = 0;
     for (final idx in lines[0]) {
       magicConstant += solution[idx]!;
@@ -140,6 +122,38 @@ class StarForgeGenerator {
     );
   }
 
+  /// Lay the values out so that every line hits the same total.
+  ///
+  /// Line i is [tip i, node i, node i+1, tip i+1], so its total is
+  /// (tip i + node i) + (tip i+1 + node i+1): each line is simply two
+  /// neighbouring tip/node pairs added together. Give every pair the same
+  /// total by pairing k with 2n+1-k, and each of the n lines then sums to
+  /// 2(2n+1) -- 22 for a 5-point star, 26 for 6, 30 for 7.
+  ///
+  /// That constant is not a choice: every node lies on exactly two lines, so
+  /// the n line totals add up to twice the sum of 1..2n no matter how the
+  /// values are arranged. A previous version searched for a solution among
+  /// other constants, none of which can exist, and so spent 200 timed-out
+  /// constraint solves -- minutes on the loading spinner -- before falling
+  /// back to a hardcoded layout whose lines did not sum equally either.
+  ///
+  /// Which pair sits at which point, and which half of a pair is the outer
+  /// tip, are both free: n! * 2^n layouts, so puzzles still vary.
+  Map<int, int> _buildSolution(int points) {
+    final pairs = [
+      for (int k = 1; k <= points; k++) [k, 2 * points + 1 - k]
+    ]..shuffle(_random);
+
+    final solution = <int, int>{};
+    for (int i = 0; i < points; i++) {
+      final pair = pairs[i];
+      final tipFirst = _random.nextBool();
+      solution[i] = tipFirst ? pair[0] : pair[1];
+      solution[points + i] = tipFirst ? pair[1] : pair[0];
+    }
+    return solution;
+  }
+
   /// Build the lines of a magic star.
   /// For an n-pointed star, outer nodes are indices 0..n-1,
   /// inner nodes are indices n..2n-1.
@@ -162,110 +176,4 @@ class StarForgeGenerator {
     return lines;
   }
 
-  Future<Map<int, int>?> _tryGenerateCSP(
-    int points,
-    int nodeCount,
-    List<int> values,
-    List<List<int>> lines,
-  ) async {
-    final problem = Problem();
-
-    // Variable names: node_0, node_1, etc.
-    final varNames = List.generate(nodeCount, (i) => 'node_$i');
-
-    // Add variables
-    for (final name in varNames) {
-      problem.addVariable(name, List<int>.from(values));
-    }
-
-    // All different
-    problem.addAllDifferent(varNames);
-
-    // All lines must have the same sum -- we compute what it should be
-    // Total sum of all values = nodeCount*(nodeCount+1)/2
-    // Each inner node appears in exactly 2 lines, each outer in exactly 1
-    // Sum of all lines = magicConstant * points
-    // Sum of all lines = sum_outer * 1 + sum_inner * 2
-    // Let S = total sum. sum_outer + sum_inner = S.
-    // Sum of lines = sum_outer + 2*sum_inner = S + sum_inner
-    // magicConstant * points = S + sum_inner
-    // We don't know the partition, so we try possible magic constants
-
-    final totalSum = nodeCount * (nodeCount + 1) ~/ 2;
-
-    // Possible magic constants
-    // magic * points = totalSum + sum_inner
-    // sum_inner ranges from (1+2+...+points) to ((points+1)+...+2*points)
-    final minInner = points * (points + 1) ~/ 2;
-    final maxInner = (3 * points * points + points) ~/ 2;
-
-    // Pick a random valid magic constant
-    final possibleMagics = <int>[];
-    for (int sumInner = minInner; sumInner <= maxInner; sumInner++) {
-      final numerator = totalSum + sumInner;
-      if (numerator % points == 0) {
-        possibleMagics.add(numerator ~/ points);
-      }
-    }
-
-    if (possibleMagics.isEmpty) return null;
-
-    possibleMagics.shuffle(_random);
-    final targetMagic = possibleMagics.first;
-
-    // Add line sum constraints using built-in exactSum for proper propagation
-    for (final line in lines) {
-      final lineVars = line.map((i) => varNames[i]).toList();
-      problem.addExactSum(lineVars, targetMagic);
-    }
-
-    try {
-      final result = await problem.getSolutionWithRestarts(
-        useDomWdeg: true,
-        scale: 50,
-        maxRestarts: 100,
-      ).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => 'TIMEOUT',
-      );
-
-      if (result is Map<String, dynamic>) {
-        final solution = <int, int>{};
-        for (int i = 0; i < nodeCount; i++) {
-          solution[i] = result[varNames[i]] as int;
-        }
-        return solution;
-      }
-    } catch (e) {
-      if (kDebugMode) debugPrint('[StarForge] CSP solve error: $e');
-    }
-
-    return null;
-  }
-
-  Map<int, int> _getFallbackSolution(int points) {
-    // Known valid magic star solutions
-    if (points == 5) {
-      // 5-point star, magic constant = 24
-      // Outer: 1, 2, 3, 4, 5 at indices 0-4
-      // Inner: 6, 7, 8, 9, 10 at indices 5-9
-      // A known valid arrangement:
-      return {
-        0: 1, 1: 2, 2: 3, 3: 4, 4: 5,
-        5: 10, 6: 6, 7: 9, 8: 7, 9: 8,
-      };
-    } else if (points == 6) {
-      // 6-point star, values 1-12
-      return {
-        0: 1, 1: 4, 2: 2, 3: 6, 4: 3, 5: 5,
-        6: 12, 7: 8, 8: 11, 9: 7, 10: 10, 11: 9,
-      };
-    } else {
-      // 7-point star, values 1-14
-      return {
-        0: 2, 1: 6, 2: 3, 3: 4, 4: 7, 5: 1, 6: 5,
-        7: 14, 8: 9, 9: 13, 10: 11, 11: 8, 12: 12, 13: 10,
-      };
-    }
-  }
 }

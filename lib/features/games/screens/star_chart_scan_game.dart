@@ -147,18 +147,31 @@ class _StarChartScanGameState extends State<StarChartScanGame>
 
   void _onPanUpdate(
       DragUpdateDetails details, double cellSize, Offset gridOrigin) {
-    if (!_isDragging) return;
+    if (!_isDragging || _currentSelection.isEmpty) return;
     final pos =
         _getCellFromPosition(details.localPosition, cellSize, gridOrigin);
-    if (pos != null && _currentSelection.isNotEmpty) {
-      if (_currentSelection.length == 1 || _isValidLineExtension(pos)) {
-        if (!_currentSelection.contains(pos)) {
-          setState(() {
-            _currentSelection.add(pos);
-          });
-        }
-      }
+    if (pos == null) return;
+
+    // Rebuild the whole run from the cell the drag started on, rather than
+    // appending whatever cell the pointer happens to be over. A quick sweep
+    // reports positions several cells apart, and appending those left gaps in
+    // the selection -- the player swept over a correct equation and nothing
+    // matched. Deriving the run from both ends also lets them drag back to
+    // shorten a selection.
+    final line =
+        StarChartScanPuzzle.lineBetween(_currentSelection.first, pos);
+    if (line == null || _sameCells(line, _currentSelection)) return;
+    setState(() {
+      _currentSelection = line;
+    });
+  }
+
+  bool _sameCells(List<(int, int)> a, List<(int, int)> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
     }
+    return true;
   }
 
   void _onPanEnd(DragEndDetails details) {
@@ -210,21 +223,6 @@ class _StarChartScanGameState extends State<StarChartScanGame>
       _isDragging = false;
       _currentSelection.clear();
     });
-  }
-
-  bool _isValidLineExtension((int, int) newPos) {
-    if (_currentSelection.length < 2) return true;
-
-    final first = _currentSelection.first;
-    final second = _currentSelection[1];
-    final dr = second.$1 - first.$1;
-    final dc = second.$2 - first.$2;
-
-    final last = _currentSelection.last;
-    final newDr = newPos.$1 - last.$1;
-    final newDc = newPos.$2 - last.$2;
-
-    return newDr == dr && newDc == dc;
   }
 
   (int, int)? _getCellFromPosition(

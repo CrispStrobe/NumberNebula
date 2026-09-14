@@ -368,6 +368,24 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
               child: Icon(Icons.rotate_right, size: 14,
                 color: SpaceTheme.starYellow.withValues(alpha: 0.7)),
             ),
+            // Taking a piece back off the grid used to be long-press only,
+            // with nothing on screen to suggest it -- so a misplaced piece
+            // looked permanent and the puzzle looked unplayable.
+            Positioned(
+              bottom: 2, right: 2,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _removeTileFromGrid(pos),
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: SpaceTheme.rocketRed.withValues(alpha: 0.85),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close, size: 12, color: Colors.white),
+                ),
+              ),
+            ),
           ],
         ),
       );

@@ -107,19 +107,53 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
   /// Build a localized statement string from the structured person data.
   String _localizedStatement(TribunalPerson person) {
     final s = S.of(context)!;
-    final targetName = puzzle!.people[person.targetIndex].name;
-    if (person.claimsTruthTeller) {
-      switch (person.statementStyle) {
-        case 0: return s.alienTribunalClaimTruth1(targetName);
-        case 1: return s.alienTribunalClaimTruth2(targetName);
-        default: return s.alienTribunalClaimTruth3(targetName);
-      }
-    } else {
-      switch (person.statementStyle) {
-        case 0: return s.alienTribunalClaimLiar1(targetName);
-        case 1: return s.alienTribunalClaimLiar2(targetName);
-        default: return s.alienTribunalClaimLiar3(targetName);
-      }
+    switch (person.kind) {
+      case TribunalClaimKind.single:
+        final name = puzzle!.people[person.targetIndex].name;
+        if (person.claimsTruthTeller) {
+          switch (person.statementStyle) {
+            case 0: return s.alienTribunalClaimTruth1(name);
+            case 1: return s.alienTribunalClaimTruth2(name);
+            default: return s.alienTribunalClaimTruth3(name);
+          }
+        }
+        switch (person.statementStyle) {
+          case 0: return s.alienTribunalClaimLiar1(name);
+          case 1: return s.alienTribunalClaimLiar2(name);
+          default: return s.alienTribunalClaimLiar3(name);
+        }
+
+      case TribunalClaimKind.pair:
+        final first = puzzle!.people[person.targetIndex].name;
+        final second = puzzle!.people[person.secondTargetIndex].name;
+        if (person.pairRequiresBoth) {
+          if (person.claimsTruthTeller) {
+            return person.statementStyle == 0
+                ? s.alienTribunalPairBothTruth1(first, second)
+                : s.alienTribunalPairBothTruth2(first, second);
+          }
+          return person.statementStyle == 0
+              ? s.alienTribunalPairBothLiar1(first, second)
+              : s.alienTribunalPairBothLiar2(first, second);
+        }
+        if (person.claimsTruthTeller) {
+          return person.statementStyle == 0
+              ? s.alienTribunalPairAnyTruth1(first, second)
+              : s.alienTribunalPairAnyTruth2(first, second);
+        }
+        return person.statementStyle == 0
+            ? s.alienTribunalPairAnyLiar1(first, second)
+            : s.alienTribunalPairAnyLiar2(first, second);
+
+      case TribunalClaimKind.count:
+        if (person.countsTruthTellers) {
+          if (person.countValue == 0) return s.alienTribunalCountTruthNone;
+          if (person.countValue == 1) return s.alienTribunalCountTruthOne;
+          return s.alienTribunalCountTruthMany(person.countValue);
+        }
+        if (person.countValue == 0) return s.alienTribunalCountLiarsNone;
+        if (person.countValue == 1) return s.alienTribunalCountLiarsOne;
+        return s.alienTribunalCountLiarsMany(person.countValue);
     }
   }
 

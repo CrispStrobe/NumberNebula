@@ -53,6 +53,66 @@ class IonChainPuzzle {
     return true;
   }
 
+  /// Whether the still-empty slots of [chain] can be filled from [tray]
+  /// without breaking a rule.
+  ///
+  /// The screen uses this to refuse a move that would strand the player: every
+  /// placement it accepts leaves the ring completable, so a legal move can
+  /// never dead-end the puzzle. The search is tiny -- a handful of blanks and
+  /// at most one bead per blank -- and duplicate bead types are tried once.
+  static bool isCompletable(
+    List<IonType?> chain,
+    List<IonType> tray,
+    List<IonRule> rules,
+  ) {
+    final blanks = <int>[];
+    for (int i = 0; i < chain.length; i++) {
+      if (chain[i] == null) blanks.add(i);
+    }
+    if (blanks.length != tray.length) return false;
+
+    final working = List<IonType?>.from(chain);
+    final remaining = List<IonType>.from(tray);
+
+    bool fill(int blankIndex) {
+      if (blankIndex == blanks.length) {
+        return validateChain(working, rules);
+      }
+      final slot = blanks[blankIndex];
+      final tried = <IonType>{};
+      for (int i = 0; i < remaining.length; i++) {
+        final bead = remaining[i];
+        if (!tried.add(bead)) continue; // same type, same outcome
+
+        working[slot] = bead;
+        // Reject early on a neighbour that is already placed.
+        if (_slotFits(working, slot, rules)) {
+          remaining.removeAt(i);
+          final solved = fill(blankIndex + 1);
+          remaining.insert(i, bead);
+          if (solved) return true;
+        }
+        working[slot] = null;
+      }
+      return false;
+    }
+
+    return fill(0);
+  }
+
+  /// Whether the bead now in [slot] agrees with its already-placed neighbours.
+  /// Slots yet to be filled are not a conflict -- they are simply unknown.
+  static bool _slotFits(List<IonType?> chain, int slot, List<IonRule> rules) {
+    final bead = chain[slot];
+    final prev = (slot - 1 + chain.length) % chain.length;
+    final next = (slot + 1) % chain.length;
+    for (final rule in rules) {
+      if (chain[prev] != null && !rule.check(chain[prev], bead)) return false;
+      if (chain[next] != null && !rule.check(bead, chain[next])) return false;
+    }
+    return true;
+  }
+
   static final List<IonRule Function(IonType, IonType)> _ruleFactories = [
     // Rule: no two of type A adjacent
     (IonType a, IonType _) => IonRule(
@@ -116,15 +176,17 @@ class IonChainPuzzle {
         final factoryIdx = rng.nextInt(_ruleFactories.length);
         final a = types[rng.nextInt(types.length)];
         final b = types[rng.nextInt(types.length)];
-        // For bidirectional rules (factory 1), normalize key so (a,b) == (b,a)
+        // Factory 0 ("no two As adjacent") ignores b entirely, so b must stay
+        // out of its key -- otherwise the same rule is generated, and shown to
+        // the player, several times over. Factory 1 is symmetric, so normalise
+        // (a,b) and (b,a) to one key.
         final ka = a.index;
         final kb = b.index;
         final key = factoryIdx == 1
             ? '1:${math.min(ka, kb)}:${math.max(ka, kb)}'
-            : '$factoryIdx:$ka:$kb';
+            : '0:$ka';
 
         if (usedRuleKeys.contains(key)) continue;
-        if (factoryIdx == 0 && a == b) continue; // self-adjacency rule doesn't need b
         if (factoryIdx == 1 && a == b) continue; // same type avoidance is rule 0
 
         usedRuleKeys.add(key);

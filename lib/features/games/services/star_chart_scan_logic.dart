@@ -53,6 +53,30 @@ class StarChartScanPuzzle {
     required this.equationsToFind,
   });
 
+  /// The unbroken run of cells from [start] to [end], or null if the two do
+  /// not share a row, a column or a diagonal.
+  ///
+  /// A drag reports pointer positions several cells apart, so the run has to be
+  /// derived from its two endpoints. Collecting the cells the pointer happened
+  /// to be sampled over instead leaves gaps, and a sweep across a correct
+  /// equation then matches nothing.
+  static List<(int, int)>? lineBetween((int, int) start, (int, int) end) {
+    final dr = end.$1 - start.$1;
+    final dc = end.$2 - start.$2;
+    if (dr == 0 && dc == 0) return [start];
+    // Straight lines only: horizontal, vertical, or exactly 45 degrees.
+    if (dr != 0 && dc != 0 && dr.abs() != dc.abs()) return null;
+
+    final stepR = dr == 0 ? 0 : dr ~/ dr.abs();
+    final stepC = dc == 0 ? 0 : dc ~/ dc.abs();
+    final steps = math.max(dr.abs(), dc.abs());
+
+    return [
+      for (int i = 0; i <= steps; i++)
+        (start.$1 + stepR * i, start.$2 + stepC * i)
+    ];
+  }
+
   /// Generate valid equations for the given operators
   static List<String> _generateEquations(
       List<String> operators, int count, math.Random random) {

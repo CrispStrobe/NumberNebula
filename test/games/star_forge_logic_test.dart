@@ -1,8 +1,7 @@
 // Unit tests for star_forge_logic.dart — pure puzzle logic only.
 //
-// The CSP-based generator is very slow (200 attempts x 3s timeout), so we
-// test the puzzle data structures and validation logic directly using
-// hand-constructed puzzles rather than calling generate().
+// The generator is constructive and instant, so generate() is exercised
+// directly alongside the validation logic.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:space_math_academy/features/games/services/star_forge_logic.dart';
@@ -75,6 +74,73 @@ import 'package:space_math_academy/features/games/services/star_forge_logic.dart
 // the validateSolution method to work correctly.
 
 void main() {
+  group('StarForgeGenerator.generate', () {
+    test('every generated puzzle is actually solvable', () async {
+      // The regression: the generator searched for a magic constant that
+      // cannot exist, burned 200 timed-out constraint solves (minutes on the
+      // loading spinner), then fell back to a hardcoded layout whose lines did
+      // not sum equally -- so the puzzle could not be completed at all.
+      final generator = StarForgeGenerator();
+
+      for (final points in [5, 6, 7]) {
+        for (int i = 0; i < 25; i++) {
+          final puzzle =
+              await generator.generate(points: points, clueCount: points);
+
+          // Every line hits the stated constant.
+          for (final line in puzzle.lines) {
+            final sum = line.fold<int>(0, (a, idx) => a + puzzle.solution[idx]!);
+            expect(sum, puzzle.magicConstant,
+                reason: 'line $line sums to $sum, not ${puzzle.magicConstant}');
+          }
+
+          // Each node sits on exactly two lines, which forces the constant.
+          expect(puzzle.magicConstant, 2 * (2 * points + 1));
+
+          // Values are exactly 1..2n, each used once.
+          expect(puzzle.solution.values.toList()..sort(),
+              List.generate(points * 2, (i) => i + 1));
+
+          // The stored solution passes the game's own check.
+          final answer = {
+            for (final node in puzzle.emptyNodes) node: puzzle.solution[node]!
+          };
+          expect(puzzle.validateSolution(answer), isTrue,
+              reason: 'the generator\'s own solution must be accepted');
+
+          // The player is handed exactly the values still missing.
+          expect(puzzle.numberPool.toSet(),
+              puzzle.emptyNodes.map((n) => puzzle.solution[n]!).toSet());
+          expect(puzzle.clues.length + puzzle.emptyNodes.length,
+              puzzle.nodeCount);
+        }
+      }
+    });
+
+    test('returns promptly instead of hanging on the loading spinner', () async {
+      final generator = StarForgeGenerator();
+      final watch = Stopwatch()..start();
+      for (int i = 0; i < 30; i++) {
+        await generator.generate(points: 7, clueCount: 6);
+      }
+      watch.stop();
+      expect(watch.elapsed, lessThan(const Duration(seconds: 2)),
+          reason: '30 puzzles took ${watch.elapsed}');
+    });
+
+    test('layouts vary between puzzles', () async {
+      final generator = StarForgeGenerator();
+      final seen = <String>{};
+      for (int i = 0; i < 40; i++) {
+        final puzzle = await generator.generate(points: 5, clueCount: 5);
+        seen.add([
+          for (int n = 0; n < puzzle.nodeCount; n++) puzzle.solution[n]
+        ].join(','));
+      }
+      expect(seen.length, greaterThan(20), reason: 'saw ${seen.length} layouts');
+    });
+  });
+
   group('StarForgePuzzle.validateSolution', () {
     // Build a simple 5-point star puzzle with known valid values
     late StarForgePuzzle puzzle;

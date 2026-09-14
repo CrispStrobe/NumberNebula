@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/debug_provider.dart';
+import '../../missions/data/game_pool.dart';
 import '../../../core/services/sri_service.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -839,7 +840,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
           crossAxisSpacing: 20,
           mainAxisSpacing: 20,
           childAspectRatio: 1.1),
-      itemCount: _gamesData.length,
+      itemCount: _visibleGamesData.length,
       itemBuilder: (context, index) => _buildGameCard(index),
     );
   }
@@ -851,22 +852,36 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
           crossAxisSpacing: 20,
           mainAxisSpacing: 20,
           childAspectRatio: 0.85),
-      itemCount: _gamesData.length,
+      itemCount: _visibleGamesData.length,
       itemBuilder: (context, index) => _buildGameCard(index),
     );
   }
   
+  /// The games this player may open. Known-broken games (see [debugOnlyGames])
+  /// are hidden until the debug menu is unlocked by tapping the home screen
+  /// title seven times.
+  List<_GameInfoData> get _visibleGamesData {
+    final debugEnabled = context.watch<DebugProvider>().isDebugMenuEnabled;
+    return _gamesData
+        .where((g) => isGamePlayable(g.gameKey, debugEnabled: debugEnabled))
+        .toList();
+  }
+
   // --- COMPLETELY REFACTORED _buildGameCard ---
   Widget _buildGameCard(int index) {
     final gameProvider = context.read<GameProvider>();
     final debugProvider = context.read<DebugProvider>();
+    final visibleGames = _visibleGamesData;
 
     // Safety check
-    if (index >= _gamesData.length || index >= _cardAnimations.length) {
+    if (index >= visibleGames.length || index >= _cardAnimations.length) {
       return const SizedBox.shrink();
     }
   
-    final gameData = _gamesData[index];
+    final gameData = visibleGames[index];
+    // Only ever true in debug mode, where withheld games are shown so they can
+    // be worked on -- the badge says which ones those are.
+    final bool isUnderRepair = debugOnlyGames.contains(gameData.gameKey);
 
     // --- BUG FIX ---
     // Get the specific saved level for *this* game
@@ -919,6 +934,30 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
                   ),
                 if (isLocked)
                   Icon(Icons.lock, color: SpaceTheme.starYellow, size: 50, shadows: [Shadow(color: Colors.black.withValues(alpha: 0.7), blurRadius: 10)]),
+                if (isUnderRepair)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: SpaceTheme.rocketRed,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.construction, size: 12, color: Colors.white),
+                          SizedBox(width: 4),
+                          Text('WIP',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
           );

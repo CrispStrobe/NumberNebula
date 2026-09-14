@@ -160,8 +160,8 @@
     "planetHoppingTitle": "Planeten-Hüpfen",
     "planetHoppingNextTarget": "Nächstes: {target}",
     "planetHoppingInstructions": "Suche den Planeten mit der größten Gravitation.",
-    "planetHoppingOrderAsc": "Lose die Aufgaben und besuche die Planeten vom KLEINSTEN zum GROSSTEN Ergebnis!",
-    "planetHoppingOrderDesc": "Lose die Aufgaben und besuche die Planeten vom GROSSTEN zum KLEINSTEN Ergebnis!",
+    "planetHoppingOrderAsc": "Löse die Aufgaben und besuche die Planeten vom KLEINSTEN zum GRÖSSTEN Ergebnis!",
+    "planetHoppingOrderDesc": "Löse die Aufgaben und besuche die Planeten vom GRÖSSTEN zum KLEINSTEN Ergebnis!",
     "planetHoppingOrderEvensOdds": "Besuche erst Planeten mit GERADEN Ergebnissen, dann UNGERADE — beide aufsteigend!",
     "planetHoppingOrderAscShort": "Klein\u2192Gro\u00df",
     "planetHoppingOrderDescShort": "Gro\u00df\u2192Klein",
@@ -700,12 +700,12 @@
   "arithmancerInstructionsSquareImmune": "Vermeide Quadratzahlen - dieser Gegner ist immun",
   "arithmancerInstructionsFibonacciOnly": "Nur Fibonacci-Zahlen können Schaden verursachen",
   "arithmancerInstructionsPowerOfTwoOnly": "Nur Zweierpotenzen durchdringen diese Verteidigung",
-  "arithmancerInstructionsParityDaemon": "Nutze UNGERADE Zahlen! Gerade Zahlen werden von diesem Damon absorbiert",
+  "arithmancerInstructionsParityDaemon": "Nutze UNGERADE Zahlen! Gerade Zahlen werden von diesem Dämon absorbiert",
 
   "arithmancerHelpPrimeTitle": "Was sind Primzahlen?",
   "arithmancerHelpPrimeExplain": "Eine Primzahl ist nur durch 1 und sich selbst teilbar. Sie hat keine anderen Teiler.",
   "arithmancerHelpPrimeExamples": "2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47 ...",
-  "arithmancerHelpPrimeStrategy": "Tipp: Erstelle Ausdrucke, die eine Primzahl >= 11 ergeben, fur 3x Schaden!",
+  "arithmancerHelpPrimeStrategy": "Tipp: Erstelle Ausdrücke, die eine Primzahl >= 11 ergeben, für 3x Schaden!",
 
   "arithmancerHelpParityTitle": "Ungerade vs Gerade Zahlen",
   "arithmancerHelpParityExplain": "Gerade Zahlen (durch 2 teilbar) werden ABSORBIERT — sie heilen den Gegner! Ungerade Zahlen machen Bonusschaden.",
@@ -715,7 +715,7 @@
   "arithmancerHelpSquareTitle": "Was sind Quadratzahlen?",
   "arithmancerHelpSquareExplain": "Eine Quadratzahl entsteht, wenn man eine Zahl mit sich selbst multipliziert.",
   "arithmancerHelpSquareExamples": "1x1=1, 2x2=4, 3x3=9, 4x4=16, 5x5=25, 6x6=36, 7x7=49, 8x8=64 ...",
-  "arithmancerHelpSquareStrategy": "Tipp: Erstelle eine Quadratzahl fur 2,5x Schaden! Nicht-Quadratzahlen richten fast nichts an.",
+  "arithmancerHelpSquareStrategy": "Tipp: Erstelle eine Quadratzahl für 2,5x Schaden! Nicht-Quadratzahlen richten fast nichts an.",
 
   "arithmancerHelpFibTitle": "Was sind Fibonacci-Zahlen?",
   "arithmancerHelpFibExplain": "Jede Fibonacci-Zahl ist die Summe der beiden vorherigen. Starte mit 1, 1, dann addiere: 1+1=2, 1+2=3, 2+3=5, ...",
@@ -1265,8 +1265,8 @@
 
   "starChartScanTitle": "Sternkarten-Scan",
   "starChartScanDesc": "Versteckte Gleichungen sind in diesen Sternkartendaten eingebettet! Scanne horizontal, vertikal und diagonal, um Mathe-Gleichungen wie 3+4=7 im Zahlenraster zu finden.",
-  "starChartScanInstructions": "Wische uber Zellen, um versteckte Gleichungen zu markieren (z.B. 3+4=7, 9-2=7). Gleichungen konnen in jeder Richtung verlaufen. Finde alle Gleichungen!",
-  "starChartScanWinTitle": "Karte entschlusselt!",
+  "starChartScanInstructions": "Wische über Zellen, um versteckte Gleichungen zu markieren (z.B. 3+4=7, 9-2=7). Gleichungen können in jeder Richtung verlaufen. Finde alle Gleichungen!",
+  "starChartScanWinTitle": "Karte entschlüsselt!",
   "starChartScanWinDesc": "Alle {letter} Gleichungen gefunden! Du hast {bonusScore} Kartografiepunkte verdient.",
   "@starChartScanWinDesc": {
     "placeholders": {
@@ -1274,14 +1274,14 @@
       "bonusScore": {"type": "int", "example": "150"}
     }
   },
-  "starChartScanLoseTitle": "Scan unvollstandig!",
+  "starChartScanLoseTitle": "Scan unvollständig!",
   "starChartScanLoseDesc": "Einige Gleichungen sind noch in den Daten verborgen. Versuche auch diagonal zu scannen, Commander.",
 
   "commRelayTitle": "Komm-Relais",
-  "commRelayDesc": "Eine verzerrte Ubertragung aus dem tiefen Weltraum! Das Kommunikationsrelais hat jeden Buchstaben verschoben. Knacke die Chiffre, um die Originalnachricht zu lesen!",
-  "commRelayInstructions": "Jeder Buchstabe wurde um einen festen Betrag im Alphabet verschoben. Finde die Verschiebung und entschlussle die Nachricht.",
-  "commRelayWinTitle": "Nachricht entschlusselt!",
-  "commRelayWinDesc": "Die Ubertragung ist klar und deutlich! Du hast {bonusScore} Intelligenzpunkte verdient.",
+  "commRelayDesc": "Eine verzerrte Übertragung aus dem tiefen Weltraum! Das Kommunikationsrelais hat jeden Buchstaben verschoben. Knacke die Chiffre, um die Originalnachricht zu lesen!",
+  "commRelayInstructions": "Jeder Buchstabe wurde um einen festen Betrag im Alphabet verschoben. Finde die Verschiebung und entschlüssle die Nachricht.",
+  "commRelayWinTitle": "Nachricht entschlüsselt!",
+  "commRelayWinDesc": "Die Übertragung ist klar und deutlich! Du hast {bonusScore} Intelligenzpunkte verdient.",
   "@commRelayWinDesc": {
     "placeholders": {
       "bonusScore": {"type": "int", "example": "150"}
@@ -1314,7 +1314,7 @@
   },
 
   "hullPlatingTitle": "Rumpf-Panzerung",
-  "hullPlatingDesc": "Der Schiffsrumpf wurde getroffen! Decke den beschadigten Bereich mit verschieden geformten Panzerplatten ab. Jede Lucke muss versiegelt werden — drehe und platziere jede Platte genau!",
+  "hullPlatingDesc": "Der Schiffsrumpf wurde getroffen! Decke den beschädigten Bereich mit verschieden geformten Panzerplatten ab. Jede Lücke muss versiegelt werden — drehe und platziere jede Platte genau!",
   "hullPlatingInstructions": "Ziehe Panzerplatten aus der Ablage auf das Rumpfgitter. Drehe Platten mit dem Button. Decke jede Zelle ohne Uberlappung ab!",
   "hullPlatingWinTitle": "Rumpf versiegelt!",
   "hullPlatingWinDesc": "Das Leck ist geflickt! Das Schiff ist wieder weltraumtauglich. Du hast {bonusScore} Reparaturkredite verdient.",
@@ -1324,11 +1324,11 @@
     }
   },
   "hullPlatingLoseTitle": "Leck bleibt!",
-  "hullPlatingLoseDesc": "Es gibt noch Lucken in der Rumpfpanzerung. Versuche eine andere Anordnung, Commander.",
+  "hullPlatingLoseDesc": "Es gibt noch Lücken in der Rumpfpanzerung. Versuche eine andere Anordnung, Commander.",
 
   "vaultCrackerTitle": "Tresor-Knacker",
   "vaultCrackerDesc": "Ein uralter Alien-Tresor blockiert deinen Weg! Mathematische Hinweise beschreiben den Geheimcode. Nutze Logik und Rechnen, um die Kombination herauszufinden!",
-  "vaultCrackerInstructions": "Lies die mathematischen Hinweise sorgfaltig. Jeder beschreibt eine Eigenschaft des Geheimcodes (Summen, Produkte, Vergleiche). Finde alle Ziffern und gib den Code ein.",
+  "vaultCrackerInstructions": "Lies die mathematischen Hinweise sorgfältig. Jeder beschreibt eine Eigenschaft des Geheimcodes (Summen, Produkte, Vergleiche). Finde alle Ziffern und gib den Code ein.",
   "vaultCrackerWinTitle": "Tresor geoffnet!",
   "vaultCrackerWinDesc": "Die Tresorturen schwingen auf! Du hast den Code in {attempts} Versuchen geknackt und {bonusScore} Archaologiepunkte verdient.",
   "@vaultCrackerWinDesc": {
@@ -1342,7 +1342,7 @@
 
   "crewManifestTitle": "Crew-Manifest",
   "crewManifestDesc": "Die Crew-Datenbank ist durcheinander! Nutze die Hinweise aus dem Schiffslogbuch, um jedes Crew-Mitglied seiner Rolle, Kabine und seinem Heimatplaneten zuzuordnen.",
-  "crewManifestInstructions": "Lies die Hinweise und markiere das Logikgitter. Ein X bedeutet 'nicht moglich', ein Haken bedeutet 'bestatigter Treffer'.",
+  "crewManifestInstructions": "Lies die Hinweise und markiere das Logikgitter. Ein X bedeutet 'nicht möglich', ein Haken bedeutet 'bestätigter Treffer'.",
   "crewManifestWinTitle": "Manifest wiederhergestellt!",
   "crewManifestWinDesc": "Jedes Crew-Mitglied zugeordnet! Deine Detektivarbeit hat {bonusScore} Intelligenzpunkte eingebracht.",
   "@crewManifestWinDesc": {
@@ -1351,7 +1351,7 @@
     }
   },
   "crewManifestLoseTitle": "Datenbankfehler!",
-  "crewManifestLoseDesc": "Das Manifest enthalt Widerspruche. Lies die Hinweise sorgfaltig noch einmal, Commander.",
+  "crewManifestLoseDesc": "Das Manifest enthält Widersprüche. Lies die Hinweise sorgfältig noch einmal, Commander.",
   "crewManifestSubmit": "Manifest abgeben",
   "crewManifestHas1": "{crew} hat den/die/das {item}.",
   "@crewManifestHas1": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
@@ -1365,8 +1365,8 @@
   "@crewManifestNot2": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
 
   "alienTribunalTitle": "Alien-Tribunal",
-  "alienTribunalDesc": "Galaktische Delegierte sagen aus, aber manche lugen immer! Wahrheitssprecher sagen immer die Wahrheit, Lugner lugen immer. Studiere ihre Aussagen und finde heraus, wer vertrauenswurdig ist!",
-  "alienTribunalInstructions": "Lies die Aussage jedes Delegierten. Markiere jeden als 'Wahrheitssprecher' oder 'Lugner'. Alle Aussagen mussen mit deinen Zuweisungen ubereinstimmen.",
+  "alienTribunalDesc": "Galaktische Delegierte sagen aus, aber manche lügen immer! Wahrheitssprecher sagen immer die Wahrheit, Lügner lügen immer. Studiere ihre Aussagen und finde heraus, wer vertrauenswürdig ist!",
+  "alienTribunalInstructions": "Lies die Aussage jedes Delegierten. Markiere jeden als 'Wahrheitssprecher' oder 'Lügner'. Alle Aussagen müssen mit deinen Zuweisungen übereinstimmen.",
   "alienTribunalWinTitle": "Gerechtigkeit!",
   "alienTribunalWinDesc": "Das Urteil des Tribunals ist fundiert! Deine Deduktion hat {bonusScore} Diplomatiepunkte eingebracht.",
   "@alienTribunalWinDesc": {
@@ -1375,7 +1375,7 @@
     }
   },
   "alienTribunalLoseTitle": "Fehlurteil!",
-  "alienTribunalLoseDesc": "Deine Zuweisungen sind widerspruchlich. Wenn jemand ein Wahrheitssprecher ist, mussen seine Aussagen wahr sein, Commander.",
+  "alienTribunalLoseDesc": "Deine Zuweisungen sind widersprüchlich. Wenn jemand ein Wahrheitssprecher ist, müssen seine Aussagen wahr sein, Commander.",
   "alienTribunalSubmit": "Urteil abgeben",
   "alienTribunalClaimTruth1": "\"{name} sagt die Wahrheit.\"",
   "@alienTribunalClaimTruth1": { "placeholders": { "name": { "type": "String" } } },
@@ -1389,6 +1389,30 @@
   "@alienTribunalClaimLiar2": { "placeholders": { "name": { "type": "String" } } },
   "alienTribunalClaimLiar3": "\"{name} lügt immer.\"",
   "@alienTribunalClaimLiar3": { "placeholders": { "name": { "type": "String" } } },
+  "alienTribunalPairBothTruth1": "\"{name1} und {name2} sagen beide die Wahrheit.\"",
+  "@alienTribunalPairBothTruth1": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "alienTribunalPairBothTruth2": "\"Du kannst {name1} und {name2} beiden vertrauen.\"",
+  "@alienTribunalPairBothTruth2": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "alienTribunalPairBothLiar1": "\"{name1} und {name2} sind beide Lügner.\"",
+  "@alienTribunalPairBothLiar1": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "alienTribunalPairBothLiar2": "\"Weder {name1} noch {name2} sagt die Wahrheit.\"",
+  "@alienTribunalPairBothLiar2": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "alienTribunalPairAnyTruth1": "\"Mindestens einer von {name1} und {name2} sagt die Wahrheit.\"",
+  "@alienTribunalPairAnyTruth1": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "alienTribunalPairAnyTruth2": "\"{name1} oder {name2} -- mindestens einem von beiden kann man vertrauen.\"",
+  "@alienTribunalPairAnyTruth2": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "alienTribunalPairAnyLiar1": "\"Mindestens einer von {name1} und {name2} ist ein Lügner.\"",
+  "@alienTribunalPairAnyLiar1": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "alienTribunalPairAnyLiar2": "\"{name1} oder {name2} -- mindestens einer von beiden lügt.\"",
+  "@alienTribunalPairAnyLiar2": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "alienTribunalCountLiarsNone": "\"Keiner von uns ist ein Lügner.\"",
+  "alienTribunalCountLiarsOne": "\"Genau einer von uns ist ein Lügner.\"",
+  "alienTribunalCountLiarsMany": "\"Genau {count} von uns sind Lügner.\"",
+  "@alienTribunalCountLiarsMany": { "placeholders": { "count": { "type": "int", "example": "2" } } },
+  "alienTribunalCountTruthNone": "\"Keiner von uns sagt die Wahrheit.\"",
+  "alienTribunalCountTruthOne": "\"Genau einer von uns sagt die Wahrheit.\"",
+  "alienTribunalCountTruthMany": "\"Genau {count} von uns sagen die Wahrheit.\"",
+  "@alienTribunalCountTruthMany": { "placeholders": { "count": { "type": "int", "example": "2" } } },
 
   "gravityWellTitle": "Gravitationsfeld",
   "gravityWellDesc": "Kalibriere das Gravitationsfeld! Platziere Himmelsmassen auf kosmischen Waagen, bis ein perfektes Gleichgewicht erreicht ist. Der Warpantrieb funktioniert nur bei ausgeglichener Gravitation.",
@@ -1415,10 +1439,10 @@
   "gravityWellKg": "kg",
 
   "sectorPainterTitle": "Sektor-Maler",
-  "sectorPainterDesc": "Weise Kommunikationsfrequenzen den Sternkarten-Sektoren zu! Angrenzende Sektoren mussen verschiedene Frequenzen nutzen, um Signalstorungen zu vermeiden.",
-  "sectorPainterInstructions": "Farbe jeden Sektor ein, sodass keine zwei benachbarten Sektoren die gleiche Farbe haben. Verwende so wenige Farben wie moglich!",
+  "sectorPainterDesc": "Weise Kommunikationsfrequenzen den Sternkarten-Sektoren zu! Angrenzende Sektoren müssen verschiedene Frequenzen nutzen, um Signalstörungen zu vermeiden.",
+  "sectorPainterInstructions": "Färbe jeden Sektor ein, sodass keine zwei benachbarten Sektoren die gleiche Farbe haben. Verwende so wenige Farben wie möglich!",
   "sectorPainterWinTitle": "Frequenzen zugewiesen!",
-  "sectorPainterWinDesc": "Keine Interferenz auf der gesamten Sternkarte! Du hast es mit nur {colors} Frequenzen gelost und {bonusScore} Punkte verdient.",
+  "sectorPainterWinDesc": "Keine Interferenz auf der gesamten Sternkarte! Du hast es mit nur {colors} Frequenzen gelöst und {bonusScore} Punkte verdient.",
   "@sectorPainterWinDesc": {
     "placeholders": {
       "colors": {"type": "int", "example": "3"},
@@ -1430,7 +1454,7 @@
 
   "warpFoldTitle": "Warp-Faltung",
   "warpFoldDesc": "Der Warpantrieb faltet den Raum selbst! Sage voraus, wie die Sternkarte nach der Raumfaltung und dem Schnitt aussieht. Raumliches Vorstellungsvermogen ist dein einziges Werkzeug!",
-  "warpFoldInstructions": "Beobachte die Faltanimation und wahle dann das korrekte entfaltete Ergebnis.",
+  "warpFoldInstructions": "Beobachte die Faltanimation und wähle dann das korrekte entfaltete Ergebnis.",
   "warpFoldWinTitle": "Raum entfaltet!",
   "warpFoldWinDesc": "Dein raumliches Denken ist makellos! Du hast {bonusScore} Dimensionspunkte verdient.",
   "@warpFoldWinDesc": {
@@ -1439,24 +1463,24 @@
     }
   },
   "warpFoldLoseTitle": "Dimensionspanne!",
-  "warpFoldLoseDesc": "Der entfaltete Raum stimmte nicht mit deiner Vorhersage uberein. Verfolge die Faltungen Schritt fur Schritt, Commander.",
+  "warpFoldLoseDesc": "Der entfaltete Raum stimmte nicht mit deiner Vorhersage überein. Verfolge die Faltungen Schritt für Schritt, Commander.",
 
-  "cubeScannerTitle": "Wurfel-Scanner",
-  "cubeScannerDesc": "Alien-Datenwurfel wurden geborgen! Dein Scanner zeigt einige Seiten, aber andere sind verborgen. Nutze die Regel -- gegenuber liegende Seiten ergeben immer 7 -- um die versteckten Werte zu bestimmen.",
-  "cubeScannerInstructions": "Studiere die sichtbaren Seiten jedes Wurfels. Gegenuber liegende Seiten ergeben 7. Bestimme die versteckten Seitenwerte.",
-  "cubeScannerWinTitle": "Wurfel entschlusselt!",
+  "cubeScannerTitle": "Würfel-Scanner",
+  "cubeScannerDesc": "Alien-Datenwürfel wurden geborgen! Dein Scanner zeigt einige Seiten, aber andere sind verborgen. Nutze die Regel -- gegenüber liegende Seiten ergeben immer 7 -- um die versteckten Werte zu bestimmen.",
+  "cubeScannerInstructions": "Studiere die sichtbaren Seiten jedes Würfels. Gegenüber liegende Seiten ergeben 7. Bestimme die versteckten Seitenwerte.",
+  "cubeScannerWinTitle": "Würfel entschlüsselt!",
   "cubeScannerWinDesc": "Alle Wurfeldaten extrahiert! Deine Analyse hat {bonusScore} Scannerpunkte eingebracht.",
   "@cubeScannerWinDesc": {
     "placeholders": {
       "bonusScore": {"type": "int", "example": "150"}
     }
   },
-  "cubeScannerLoseTitle": "Scan unvollstandig!",
-  "cubeScannerLoseDesc": "Einige Seitenwerte sind falsch. Denke daran: Gegenuber liegende Seiten ergeben immer 7, Commander.",
+  "cubeScannerLoseTitle": "Scan unvollständig!",
+  "cubeScannerLoseDesc": "Einige Seitenwerte sind falsch. Denke daran: Gegenüber liegende Seiten ergeben immer 7, Commander.",
 
   "circuitRepairTitle": "Schaltkreis-Reparatur",
-  "circuitRepairDesc": "Die Cockpit-Uhr spinnt! Zwei Ziffernpositionen wurden vertauscht und zeigen eine unmogliche Uhrzeit. Finde die zwei Positionen zum Zurucktauschen!",
-  "circuitRepairInstructions": "Die Uhr zeigt eine ungultige Zeit, weil zwei Ziffernpositionen vertauscht sind. Tippe auf zwei Ziffern, um sie zu tauschen. Das Ergebnis muss eine gultige Uhrzeit sein!",
+  "circuitRepairDesc": "Die Cockpit-Uhr spinnt! Zwei Ziffernpositionen wurden vertauscht und zeigen eine unmögliche Uhrzeit. Finde die zwei Positionen zum Zurucktauschen!",
+  "circuitRepairInstructions": "Die Uhr zeigt eine ungültige Zeit, weil zwei Ziffernpositionen vertauscht sind. Tippe auf zwei Ziffern, um sie zu tauschen. Das Ergebnis muss eine gültige Uhrzeit sein!",
   "circuitRepairWinTitle": "Display repariert!",
   "circuitRepairWinDesc": "Klare Anzeige wiederhergestellt! Deine Elektrokenntnisse haben {bonusScore} Technikpunkte eingebracht.",
   "@circuitRepairWinDesc": {
@@ -1465,13 +1489,13 @@
     }
   },
   "circuitRepairLoseTitle": "Immer noch gestort!",
-  "circuitRepairLoseDesc": "Die Anzeige zeigt immer noch falsche Ziffern. Uberlege, welche zwei Segmente, wenn vertauscht, alle Ziffern gultig machen, Commander.",
+  "circuitRepairLoseDesc": "Die Anzeige zeigt immer noch falsche Ziffern. Überlege, welche zwei Segmente, wenn vertauscht, alle Ziffern gültig machen, Commander.",
 
   "darkMatterGridTitle": "Dunkelmaterie-Gitter",
   "darkMatterGridDesc": "Dunkelmaterie hat diesen Sektor verhullt! Schalte die Knoten um, um die Dunkelheit zuruckzudrangen. Aber Vorsicht -- jeder Knoten beeinflusst seine Nachbarn!",
   "darkMatterGridInstructions": "Tippe auf einen Knoten, um ihn und alle benachbarten Knoten umzuschalten. Erleuchte das gesamte Gitter, um den Sektor zu befreien.",
   "darkMatterGridWinTitle": "Sektor erleuchtet!",
-  "darkMatterGridWinDesc": "Die Dunkelmaterie weicht zuruck! Du hast das Gitter in {moves} Zugen befreit und {bonusScore} Photonenpunkte verdient.",
+  "darkMatterGridWinDesc": "Die Dunkelmaterie weicht zurück! Du hast das Gitter in {moves} Zügen befreit und {bonusScore} Photonenpunkte verdient.",
   "@darkMatterGridWinDesc": {
     "placeholders": {
       "moves": {"type": "int", "example": "12"},
@@ -1479,13 +1503,13 @@
     }
   },
   "darkMatterGridLoseTitle": "Dunkelheit bleibt!",
-  "darkMatterGridLoseDesc": "Das Dunkelmaterie-Gitter bleibt instabil. Uberlege, welche Knoten welche Nachbarn beeinflussen, Commander.",
+  "darkMatterGridLoseDesc": "Das Dunkelmaterie-Gitter bleibt instabil. Überlege, welche Knoten welche Nachbarn beeinflussen, Commander.",
 
   "dockClearanceTitle": "Dock-Freigabe",
-  "dockClearanceDesc": "Das Raumdock ist verstopft! Verschiebe die geparkten Schiffe, um einen Weg fur dein Raumschiff zur Startschleuse freizumachen. Keine Diagonalbewegungen -- Schiffe gleiten nur entlang ihrer Achse!",
+  "dockClearanceDesc": "Das Raumdock ist verstopft! Verschiebe die geparkten Schiffe, um einen Weg für dein Raumschiff zur Startschleuse freizumachen. Keine Diagonalbewegungen -- Schiffe gleiten nur entlang ihrer Achse!",
   "dockClearanceInstructions": "Verschiebe Schiffe horizontal oder vertikal, um einen freien Weg zu schaffen. Bringe das rote Schiff zum Ausgang!",
   "dockClearanceWinTitle": "Start frei!",
-  "dockClearanceWinDesc": "Dein Schiff schie\u00dft aus dem Dock! In {moves} Zugen freigegeben, {bonusScore} Dock-Kredite verdient.",
+  "dockClearanceWinDesc": "Dein Schiff schie\u00dft aus dem Dock! In {moves} Zügen freigegeben, {bonusScore} Dock-Kredite verdient.",
   "@dockClearanceWinDesc": {
     "placeholders": {
       "moves": {"type": "int", "example": "15"},
@@ -1496,7 +1520,7 @@
   "dockClearanceLoseDesc": "Kein freier Weg zum Ausgang. Versuche, zuerst andere Schiffe zu verschieben, Commander.",
 
   "ionChainTitle": "Ionen-Ring",
-  "ionChainDesc": "Vervollstandige den Ionen-Ring! Ordne geladene Teilchen um die Plasmaschleife an, sodass jedes Nachbarpaar die Regeln erfullt. Eine falsche Platzierung und der Ring wird instabil!",
+  "ionChainDesc": "Vervollständige den Ionen-Ring! Ordne geladene Teilchen um die Plasmaschleife an, sodass jedes Nachbarpaar die Regeln erfüllt. Eine falsche Platzierung und der Ring wird instabil!",
   "ionChainInstructions": "Ziehe Ionen auf den Ring. Lies die Regeln: Manche Formen durfen nicht nebeneinander stehen. Der Ring ist kreisformig — die letzte Perle grenzt an die erste!",
   "ionChainWinTitle": "Ring stabilisiert!",
   "ionChainWinDesc": "Das Plasma flie\u00dft in einer perfekten Schleife! Du hast {bonusScore} Chemiepunkte verdient.",
@@ -1506,10 +1530,10 @@
     }
   },
   "ionChainLoseTitle": "Kettenreaktion!",
-  "ionChainLoseDesc": "Inkompatible Ionen haben einen Plasmaschub verursacht! Uberprufe die Nachbarschaftsregeln, Commander.",
+  "ionChainLoseDesc": "Inkompatible Ionen haben einen Plasmaschub verursacht! Überprüfe die Nachbarschaftsregeln, Commander.",
 
   "launchSequenceTitle": "Start-Sequenz",
-  "launchSequenceDesc": "Die Startreihenfolge ist durcheinander! Ordne die Flotte durch Tauschen benachbarter Schiffe neu. Bringe sie mit so wenigen Tauschvorgangen wie moglich in die richtige Reihenfolge!",
+  "launchSequenceDesc": "Die Startreihenfolge ist durcheinander! Ordne die Flotte durch Tauschen benachbarter Schiffe neu. Bringe sie mit so wenigen Tauschvorgangen wie möglich in die richtige Reihenfolge!",
   "launchSequenceInstructions": "Tippe auf zwei benachbarte Schiffe, um sie zu tauschen. Ordne alle Schiffe in der richtigen Reihenfolge. Weniger Tausche = mehr Punkte!",
   "launchSequenceWinTitle": "Flotte gestartet!",
   "launchSequenceWinDesc": "Perfekte Reihenfolge! Du hast die Flotte in {moves} Tauschen sortiert (optimal: {optimal}) und {bonusScore} Effizienzpunkte verdient.",
@@ -1524,9 +1548,9 @@
   "launchSequenceLoseDesc": "Die Flotte ist immer noch durcheinander. Tausche weiter benachbarte Schiffe, Commander.",
 
   "starForgeTitle": "Sternen-Schmiede",
-  "starForgeDesc": "Entzunde einen neuen Stern! Verteile Energiewerte auf die Schmiedeknoten, sodass jeder Plasmaarm die gleiche Gesamtladung tragt. Der Stern entzundet sich, wenn alle Arme ubereinstimmen!",
+  "starForgeDesc": "Entzünde einen neuen Stern! Verteile Energiewerte auf die Schmiedeknoten, sodass jeder Plasmaarm die gleiche Gesamtladung tragt. Der Stern entzündet sich, wenn alle Arme übereinstimmen!",
   "starForgeInstructions": "Platziere Zahlen in die leeren Knoten. Jede Linie durch den Stern muss die gleiche Summe haben.",
-  "starForgeWinTitle": "Stern entzundet!",
+  "starForgeWinTitle": "Stern entzündet!",
   "starForgeWinDesc": "Ein strahlender neuer Stern erwacht zum Leben! Deine Schmiedekunst hat {bonusScore} Fusionspunkte eingebracht.",
   "@starForgeWinDesc": {
     "placeholders": {
@@ -1539,11 +1563,11 @@
   "starForgeOutOfMovesDesc": "Plane die Energieverteilung genau, um den Stern zu entzünden!",
 
   "nebulaMatrixTitle": "Nebel-Matrix",
-  "nebulaMatrixDesc": "Stabilisiere das Energiefeld! Fulle jede Zeile, Spalte und Zone des Nebelgitters, sodass sich keine Frequenz wiederholt. Eine falsche Resonanz und der Nebel kollabiert!",
+  "nebulaMatrixDesc": "Stabilisiere das Energiefeld! Fülle jede Zeile, Spalte und Zone des Nebelgitters, sodass sich keine Frequenz wiederholt. Eine falsche Resonanz und der Nebel kollabiert!",
   "nebulaMatrixInstructions": "Platziere Zahlen, sodass jede Zeile und Spalte jeden Wert genau einmal enthält.",
   "nebulaMatrixInstructionsZones": "Platziere Zahlen, sodass jede Zeile und Spalte jeden Wert genau einmal enthält. Farbige Zonen müssen ebenfalls jeden Wert einmal enthalten.",
   "nebulaMatrixWinTitle": "Nebel stabilisiert!",
-  "nebulaMatrixWinDesc": "Das Energiefeld ist perfekt ausbalanciert! Du hast {bonusScore} Resonanzpunkte fur deine Prazision verdient.",
+  "nebulaMatrixWinDesc": "Das Energiefeld ist perfekt ausbalanciert! Du hast {bonusScore} Resonanzpunkte für deine Präzision verdient.",
   "@nebulaMatrixWinDesc": {
     "placeholders": {
       "bonusScore": {"type": "int", "example": "150"}
@@ -1554,29 +1578,33 @@
   "nebulaMatrixOutOfMoves": "Alle Züge verbraucht!",
   "nebulaMatrixOutOfMovesDesc": "Setze jede Frequenz gezielt ein, um den Nebel zu stabilisieren!",
 
-  "orbitalTowersTitle": "Orbital-Turme",
-  "orbitalTowersDesc": "Baue eine Weltraumstadt auf der Orbitalplattform! Die Satellitenkameras an jedem Rand melden, wie viele Turme sie sehen konnen. Hohere Turme verbergen niedrigere hinter sich.",
-  "orbitalTowersInstructions": "Platziere Turme der Hohe 1 bis {size}, sodass jede Zeile und Spalte jede Hohe einmal hat. Randhinweise zeigen, wie viele Turme aus dieser Richtung sichtbar sind.",
+  "orbitalTowersTitle": "Orbital-Türme",
+  "orbitalTowersDesc": "Baue eine Weltraumstadt auf der Orbitalplattform! Die Satellitenkameras an jedem Rand melden, wie viele Türme sie sehen können. Höhere Türme verbergen niedrigere hinter sich.",
+  "orbitalTowersInstructions": "Platziere Türme der Höhe 1 bis {size}, sodass jede Zeile und Spalte jede Höhe einmal hat. Randhinweise zeigen, wie viele Türme aus dieser Richtung sichtbar sind.",
   "@orbitalTowersInstructions": {
     "placeholders": {
       "size": {"type": "int", "example": "4"}
     }
   },
   "orbitalTowersWinTitle": "Stadt errichtet!",
-  "orbitalTowersWinDesc": "Die Orbitalstadt erhebt sich! Alle Satellitenwerte stimmen perfekt uberein. Du hast {bonusScore} Baukredite verdient.",
+  "orbitalTowersWinDesc": "Die Orbitalstadt erhebt sich! Alle Satellitenwerte stimmen perfekt überein. Du hast {bonusScore} Baukredite verdient.",
   "@orbitalTowersWinDesc": {
     "placeholders": {
       "bonusScore": {"type": "int", "example": "150"}
     }
   },
   "orbitalTowersLoseTitle": "Bauplanfehler!",
-  "orbitalTowersLoseDesc": "Die Satellitenkameras stimmen nicht mit deinem Layout uberein. Denke daran: Hohe Turme blockieren die Sicht auf niedrigere dahinter, Commander.",
+  "orbitalTowersLoseDesc": "Die Satellitenkameras stimmen nicht mit deinem Layout überein. Denke daran: Hohe Türme blockieren die Sicht auf niedrigere dahinter, Commander.",
   "orbitalTowersOutOfMoves": "Alle Züge verbraucht!",
   "orbitalTowersOutOfMovesDesc": "Studiere die Randhinweise genau, bevor du jeden Turm platzierst!",
+  "orbitalTowersHowToPlay": "Spielanleitung",
+  "orbitalTowersOnboardGrid": "Jede Zeile und jede Spalte bekommt jede Turmhöhe genau einmal -- keine Wiederholungen.",
+  "orbitalTowersOnboardSightline": "Eine Kamera sieht einen Turm nur, wenn kein höherer davor steht. Hier sieht sie 2 von 4 Türmen: die 1 versteckt sich hinter der 2, die 3 hinter der 4.",
+  "orbitalTowersOnboardPlace": "Ziehe eine Höhe auf ein Baufeld. Tippe auf einen gesetzten Turm, um ihn wieder zu entfernen.",
 
   "hiveStationTitle": "Bienen-Station",
   "hiveStationDesc": "Der Energiebienenstock der Station muss aufgeladen werden! Jede Zelle zeigt an, wie viele ihrer Nachbarn einen Energiekern enthalten. Finde heraus, welche Zellen Energie brauchen!",
-  "hiveStationInstructions": "Tippe auf sechseckige Zellen, um sie mit Energie zu fullen. Die Zahl in jeder Zelle sagt dir, wie viele benachbarte Zellen Energie enthalten.",
+  "hiveStationInstructions": "Tippe auf sechseckige Zellen, um sie mit Energie zu füllen. Die Zahl in jeder Zelle sagt dir, wie viele benachbarte Zellen Energie enthalten.",
   "hiveStationWinTitle": "Bienenstock geladen!",
   "hiveStationWinDesc": "Alle Energiekerne korrekt platziert! Die Station summt vor Energie. Du hast {bonusScore} Ladepunkte verdient.",
   "@hiveStationWinDesc": {
@@ -1585,13 +1613,13 @@
     }
   },
   "hiveStationLoseTitle": "Energiefehler!",
-  "hiveStationLoseDesc": "Einige Zellen melden die falsche Nachbarzahl. Uberprufe deine Energieplatzierung, Commander.",
+  "hiveStationLoseDesc": "Einige Zellen melden die falsche Nachbarzahl. Überprüfe deine Energieplatzierung, Commander.",
   "hiveStationWrongAttempt": "Nicht ganz richtig! Noch {remaining} Versuche.",
   "@hiveStationWrongAttempt": { "placeholders": { "remaining": { "type": "int" } } },
 
   "relicAssemblyTitle": "Relikte-Puzzle",
-  "relicAssemblyDesc": "Uralte Alien-Tafelfragmente wurden ausgegraben! Ordne die Stucke an, sodass die Glyphen an beruhrenden Kanten perfekt ubereinstimmen. Das Artefakt birgt den Schlussel zum nachsten Sternensystem!",
-  "relicAssemblyInstructions": "Platziere und drehe Tafelstucke im Gitter. Beruhrende Kanten mussen ubereinstimmende Glyphen zeigen.",
+  "relicAssemblyDesc": "Uralte Alien-Tafelfragmente wurden ausgegraben! Ordne die Stücke an, sodass die Glyphen an berührenden Kanten perfekt übereinstimmen. Das Artefakt birgt den Schlüssel zum nächsten Sternensystem!",
+  "relicAssemblyInstructions": "Platziere und drehe Tafelstücke im Gitter. Berührende Kanten müssen übereinstimmende Glyphen zeigen.",
   "relicAssemblyWinTitle": "Artefakt restauriert!",
   "relicAssemblyWinDesc": "Die uralte Tafel leuchtet voller Kraft! Deine Archaologie hat {bonusScore} Entdeckungspunkte eingebracht.",
   "@relicAssemblyWinDesc": {
@@ -1600,26 +1628,26 @@
     }
   },
   "relicAssemblyLoseTitle": "Fragmente falsch ausgerichtet!",
-  "relicAssemblyLoseDesc": "Einige Kantenglyphen stimmen nicht mit ihren Nachbarn uberein. Versuche die Stucke zu drehen oder neu zu positionieren, Commander.",
+  "relicAssemblyLoseDesc": "Einige Kantenglyphen stimmen nicht mit ihren Nachbarn überein. Versuche die Stücke zu drehen oder neu zu positionieren, Commander.",
 
   "xenobiologyLabTitle": "Xenobiologie-Labor",
   "xenobiologyLabDesc": "Eine neue Spezies wurde entdeckt! Jede Unterart hat verschiedene Anzahlen von Augen, Tentakeln und Beinen. Nutze die Volkszahlungsdaten, um die Kolonie zu klassifizieren!",
   "xenobiologyLabInstructions": "Zwei Alien-Typen leben zusammen. Du kennst die Merkmale jedes Typs und die beobachteten Gesamtzahlen an Augen und Beinen. Berechne, wie viele von jedem Typ es geben muss!",
   "xenobiologyLabWinTitle": "Spezies katalogisiert!",
-  "xenobiologyLabWinDesc": "Feldbericht eingereicht! Deine Xenobiologie-Fahigkeiten haben {bonusScore} Forschungskredite eingebracht.",
+  "xenobiologyLabWinDesc": "Feldbericht eingereicht! Deine Xenobiologie-Fähigkeiten haben {bonusScore} Forschungskredite eingebracht.",
   "@xenobiologyLabWinDesc": {
     "placeholders": {
       "bonusScore": {"type": "int", "example": "150"}
     }
   },
   "xenobiologyLabLoseTitle": "Volkszahlungsfehler!",
-  "xenobiologyLabLoseDesc": "Die Zahlen stimmen nicht uberein. Uberprufe die Merkmalszahlen fur jede Unterart, Commander.",
+  "xenobiologyLabLoseDesc": "Die Zahlen stimmen nicht überein. Überprüfe die Merkmalszahlen für jede Unterart, Commander.",
 
   "galacticMarketTitle": "Galaktischer Markt",
-  "galacticMarketDesc": "Der Alien-Handler gab dir Wechselgeld, aber einige Munzen liegen verdeckt! Du kennst die Gesamtsumme und siehst manche Munzen. Finde den versteckten Nennwert!",
-  "galacticMarketInstructions": "Schau dir das Gesamtwechselgeld und die sichtbaren Munzen an. Die verdeckten Munzen haben alle denselben Wert. Rechne: (Gesamt - bekannte Munzen) / Anzahl verdeckter = ?",
+  "galacticMarketDesc": "Der Alien-Händler gab dir Wechselgeld, aber einige Münzen liegen verdeckt! Du kennst die Gesamtsumme und siehst manche Münzen. Finde den versteckten Nennwert!",
+  "galacticMarketInstructions": "Schau dir das Gesamtwechselgeld und die sichtbaren Münzen an. Die verdeckten Münzen haben alle denselben Wert. Rechne: (Gesamt - bekannte Münzen) / Anzahl verdeckter = ?",
   "galacticMarketWinTitle": "Kauf abgeschlossen!",
-  "galacticMarketWinDesc": "Passendes Wechselgeld! Du hast nur {coins} Munzen verwendet und {bonusScore} Handelspunkte verdient.",
+  "galacticMarketWinDesc": "Passendes Wechselgeld! Du hast nur {coins} Münzen verwendet und {bonusScore} Handelspunkte verdient.",
   "@galacticMarketWinDesc": {
     "placeholders": {
       "coins": {"type": "int", "example": "3"},
@@ -1627,12 +1655,12 @@
     }
   },
   "galacticMarketLoseTitle": "Falscher Betrag!",
-  "galacticMarketLoseDesc": "Der Handler runzelt die Stirn -- das ist nicht der richtige Betrag. Versuche eine andere Munzkombination, Commander.",
+  "galacticMarketLoseDesc": "Der Händler runzelt die Stirn -- das ist nicht der richtige Betrag. Versuche eine andere Münzkombination, Commander.",
 
   "creatureForgeTitle": "Kreaturen-Schmiede",
-  "creatureForgeDesc": "Die Xenobiologie-Bucht hat Teile von mehreren Alien-Spezies! Tippe um Kopfe, Korper und Schwanze auszuwahlen und baue Kreaturen. Wie viele einzigartige Wesen kannst du erschaffen?",
-  "creatureForgeInstructions": "Wahle je ein Teil aus jeder Reihe, dann tippe BAUEN um die Kreatur zur Galerie hinzuzufugen. Finde alle gultigen Kombinationen und gib die Gesamtzahl ein!",
-  "creatureForgeWinTitle": "Spezieskatalog vollstandig!",
+  "creatureForgeDesc": "Die Xenobiologie-Bucht hat Teile von mehreren Alien-Spezies! Tippe um Köpfe, Körper und Schwänze auszuwählen und baue Kreaturen. Wie viele einzigartige Wesen kannst du erschaffen?",
+  "creatureForgeInstructions": "Wähle je ein Teil aus jeder Reihe, dann tippe BAUEN um die Kreatur zur Galerie hinzuzufügen. Finde alle gultigen Kombinationen und gib die Gesamtzahl ein!",
+  "creatureForgeWinTitle": "Spezieskatalog vollständig!",
   "creatureForgeWinDesc": "Du hast alle {count} moglichen Kreaturen entdeckt! Deine Neugier hat {bonusScore} Biologiepunkte eingebracht.",
   "@creatureForgeWinDesc": {
     "placeholders": {
@@ -1641,11 +1669,11 @@
     }
   },
   "creatureForgeLoseTitle": "Fehlende Spezies!",
-  "creatureForgeLoseDesc": "Du hast noch nicht alle Kombinationen gefunden. Denke daran: Jeder Kopf kann mit jedem Korper UND jedem Schwanz kombiniert werden, Commander.",
+  "creatureForgeLoseDesc": "Du hast noch nicht alle Kombinationen gefunden. Denke daran: Jeder Kopf kann mit jedem Körper UND jedem Schwanz kombiniert werden, Commander.",
 
   "asteroidDuelTitle": "Asteroiden-Duell",
   "asteroidDuelDesc": "Ein strategisches Patt im Asteroidengurtel! Baut abwechselnd Gesteinsbrocken ab. Der Commander, der den letzten Asteroiden nimmt, verliert. Denke voraus!",
-  "asteroidDuelInstructions": "Wahle 1 bis {max} Asteroiden pro Zug. Zwinge deinen Gegner, den letzten zu nehmen!",
+  "asteroidDuelInstructions": "Wähle 1 bis {max} Asteroiden pro Zug. Zwinge deinen Gegner, den letzten zu nehmen!",
   "@asteroidDuelInstructions": {
     "placeholders": {
       "max": {"type": "int", "example": "3"}
@@ -1660,6 +1688,9 @@
   },
   "asteroidDuelLoseTitle": "Ausmanoveriert!",
   "asteroidDuelLoseDesc": "Dein Gegner hat dich zum letzten Asteroiden gezwungen. Studiere die Muster -- es gibt immer eine Gewinnstrategie, Commander.",
+  "asteroidDuelYourTurn": "DU BIST DRAN",
+  "asteroidDuelAiTurn": "KI IST DRAN",
+  "asteroidDuelAiThinking": "KI DENKT NACH...",
 
   "chronoRepairTitle": "Chrono-Reparatur",
   "chronoRepairDesc": "Relativistische Effekte haben die Stationsuhren durcheinander gebracht! Manche gehen vor, manche sind gespiegelt, manche haben defekte Segmente. Finde die richtige Uhrzeit!",
@@ -1900,6 +1931,7 @@
   "ionChainRing": "IONEN-RING",
   "ionChainAvailableBeads": "VERFÜGBARE PERLEN",
   "ionChainRuleViolation": "Regelverletzung! Diese Perle passt hier nicht.",
+  "ionChainDeadEnd": "Diese Perle passt hier, aber dann passt woanders keine mehr. Probiere einen anderen Platz!",
 
   "hullPlatingNoFit": "Passt nicht! Versuche es mit Drehen oder einer anderen Position.",
   "hullPlatingAllPlaced": "Alle Teile platziert!",
@@ -2049,6 +2081,8 @@
   "debugModeEnabled": "Debug-Modus aktiviert!",
 
   "skip": "Überspringen",
+  "onboardingGotIt": "Verstanden",
+  "onboardingNext": "Weiter",
   "goBack": "Zurück",
 
   "voidCrossingTitle": "Void-Überquerung",
@@ -2082,11 +2116,11 @@
   "voidCrossingTapToUnload": "Tippe zum Ausladen aus dem Shuttle",
 
   "gridFillerTitle": "Rasterfuller",
-  "gridFillerDesc": "Fulle ein Raster mit quadratischen Teilen — keine Lucken erlaubt!",
+  "gridFillerDesc": "Fülle ein Raster mit quadratischen Teilen — keine Lücken erlaubt!",
 
   "missionHubTitle": "Weltraum-Missionen",
-  "missionHubStart": "Bereit fur eine Mission?",
-  "missionHubStartDesc": "Lose eine Reihe von Aufgaben, um ein geheimes Weltraum-Codewort zu entschlusseln!",
+  "missionHubStart": "Bereit für eine Mission?",
+  "missionHubStartDesc": "Löse eine Reihe von Aufgaben, um ein geheimes Weltraum-Codewort zu entschlüsseln!",
   "missionHubResume": "Mission lauft",
   "missionHubResumeDesc": "{completed} von {total} Aufgaben erledigt.",
   "@missionHubResumeDesc": { "placeholders": { "completed": { "type": "int" }, "total": { "type": "int" } } },
@@ -2095,13 +2129,13 @@
   "missionHubAbandon": "Abbrechen",
   "missionHubAbandonConfirm": "Diese Mission abbrechen? Der gesamte Fortschritt geht verloren.",
   "missionStreakTitle": "Missions-Aufgaben",
-  "missionSolveCodeword": "Codewort entschlusseln!",
-  "missionCodewordTitle": "Codewort-Ratsel",
+  "missionSolveCodeword": "Codewort entschlüsseln!",
+  "missionCodewordTitle": "Codewort-Rätsel",
   "missionCodewordInstructions": "Ordne die Buchstaben an, um das geheime Weltraum-Wort zu bilden!",
-  "missionAvailableLetters": "Verfugbare Buchstaben",
+  "missionAvailableLetters": "Verfügbare Buchstaben",
   "missionAllPlaced": "Alle Buchstaben platziert!",
   "missionComplete": "Mission abgeschlossen!",
-  "missionCompleteDesc": "Du hast das Codewort entschlusselt: {word}",
+  "missionCompleteDesc": "Du hast das Codewort entschlüsselt: {word}",
   "@missionCompleteDesc": { "placeholders": { "word": { "type": "String" } } },
   "perfGradeExcellent": "Makellos",
   "perfGradeGood": "Gut",

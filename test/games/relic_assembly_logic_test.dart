@@ -7,6 +7,79 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:space_math_academy/features/games/services/relic_assembly_logic.dart';
 
 void main() {
+  group('RelicAssemblyGenerator.generate', () {
+    /// Match each solution cell to a player tile plus the rotation that makes
+    /// it fit, the way a player solving the puzzle would.
+    ({List<int> placement, List<int> rotations, int turned})? solve(
+        RelicAssemblyPuzzle p) {
+      final placement = List.filled(p.rows * p.cols, -1);
+      final rotations = List.filled(p.playerTiles.length, 0);
+      final used = <int>{};
+      int turned = 0;
+
+      for (int cell = 0; cell < p.rows * p.cols; cell++) {
+        final want = List.generate(4, p.solutionTiles[cell].getEdge);
+        bool found = false;
+        for (int t = 0; t < p.playerTiles.length && !found; t++) {
+          if (used.contains(t)) continue;
+          for (int r = 0; r < 4; r++) {
+            final cand = p.playerTiles[t].copyWith(rotation: r);
+            if (List.generate(4, cand.getEdge).join(',') == want.join(',')) {
+              placement[cell] = t;
+              rotations[t] = r;
+              used.add(t);
+              if (r != 0) turned++;
+              found = true;
+              break;
+            }
+          }
+        }
+        if (!found) return null;
+      }
+      return (placement: placement, rotations: rotations, turned: turned);
+    }
+
+    test('every generated relic can be reassembled', () async {
+      final generator = RelicAssemblyGenerator();
+      for (final dims in [(2, 2), (3, 3), (3, 4)]) {
+        for (int i = 0; i < 20; i++) {
+          final puzzle = await generator.generate(
+              rows: dims.$1, cols: dims.$2, edgeValueCount: 4);
+
+          final answer = solve(puzzle);
+          expect(answer, isNotNull,
+              reason: '${dims.$1}x${dims.$2} relic cannot be reassembled');
+          expect(
+              puzzle.validatePlacement(answer!.placement, answer.rotations),
+              isTrue);
+        }
+      }
+    });
+
+    test('pieces genuinely have to be turned', () async {
+      // The regression: the generator stored each piece's turn in
+      // RelicTile.rotation, but both the screen and validatePlacement replace
+      // that with the player's own rotation, which starts at 0. The turn was
+      // therefore discarded and every relic solved without rotating anything,
+      // leaving the rotate mechanic doing nothing at all.
+      final generator = RelicAssemblyGenerator();
+      int turned = 0;
+      int tiles = 0;
+      for (int i = 0; i < 40; i++) {
+        final puzzle =
+            await generator.generate(rows: 3, cols: 3, edgeValueCount: 4);
+        final answer = solve(puzzle);
+        expect(answer, isNotNull);
+        turned += answer!.turned;
+        tiles += puzzle.playerTiles.length;
+      }
+
+      // Roughly three quarters of pieces start turned (3 of 4 rotations).
+      expect(turned, greaterThan(tiles ~/ 2),
+          reason: 'only $turned of $tiles pieces needed turning');
+    });
+  });
+
   group('RelicTile.getEdge', () {
     test('rotation 0 returns edges in original order', () {
       final tile = RelicTile(edges: [1, 2, 3, 4], rotation: 0);

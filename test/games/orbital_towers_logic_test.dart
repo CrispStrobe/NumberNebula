@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:space_math_academy/features/games/services/orbital_towers_logic.dart';
 
 void main() {
+  _sightlineTests();
+
   group('OrbitalTowersGenerator Latin square', () {
     for (final size in [3, 4, 5]) {
       test('size $size: solution is a valid Latin square', () async {
@@ -188,6 +190,62 @@ void main() {
       // Every edge clue must be between 1 and size
       for (final count in puzzle.edgeClues.values) {
         expect(count, inInclusiveRange(1, puzzle.size));
+      }
+    });
+  });
+}
+
+// Appended: the sightline rule the onboarding diagram illustrates.
+void _sightlineTests() {
+  group('OrbitalTowersPuzzle.visibilityAlongLine', () {
+    test('a tower is visible only when nothing taller stands in front', () {
+      // The worked example the onboarding draws: the 1 hides behind the 2,
+      // the 3 hides behind the 4, so the camera reports 2.
+      expect(OrbitalTowersPuzzle.visibilityAlongLine([2, 1, 4, 3]),
+          [true, false, true, false]);
+    });
+
+    test('ascending heights are all visible, descending shows only the first',
+        () {
+      expect(OrbitalTowersPuzzle.visibilityAlongLine([1, 2, 3, 4]),
+          [true, true, true, true]);
+      expect(OrbitalTowersPuzzle.visibilityAlongLine([4, 3, 2, 1]),
+          [true, false, false, false]);
+    });
+
+    test('agrees with the edge clues the generator computes', () async {
+      final generator = OrbitalTowersGenerator();
+      for (int size = 3; size <= 5; size++) {
+        for (int i = 0; i < 10; i++) {
+          final puzzle = await generator.generate(
+              size: size, edgeClueCount: size * 2, cellClueCount: 2);
+
+          for (final entry in puzzle.edgeClues.entries) {
+            final parts = entry.key.split('_');
+            final idx = int.parse(parts[1]);
+            final List<int> line;
+            switch (parts[0]) {
+              case 'top':
+                line = List.generate(
+                    size, (r) => puzzle.solution['r${r}c$idx']!);
+              case 'bottom':
+                line = List.generate(
+                    size, (r) => puzzle.solution['r${size - 1 - r}c$idx']!);
+              case 'left':
+                line = List.generate(
+                    size, (c) => puzzle.solution['r${idx}c$c']!);
+              default:
+                line = List.generate(
+                    size, (c) => puzzle.solution['r${idx}c${size - 1 - c}']!);
+            }
+            final visible = OrbitalTowersPuzzle.visibilityAlongLine(line)
+                .where((v) => v)
+                .length;
+            expect(visible, entry.value,
+                reason: 'clue ${entry.key} says ${entry.value}, '
+                    'the rule sees $visible along $line');
+          }
+        }
       }
     });
   });

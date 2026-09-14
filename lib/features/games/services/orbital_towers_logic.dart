@@ -83,17 +83,24 @@ class OrbitalTowersPuzzle {
     return true;
   }
 
-  static int _countVisible(List<int> line) {
+  /// Which towers along [line] the camera at its near end can see: a tower is
+  /// visible only when nothing taller stands in front of it.
+  ///
+  /// Public so the onboarding diagram can illustrate the same rule the puzzle
+  /// is scored by, instead of a hand-drawn copy of it that could drift.
+  static List<bool> visibilityAlongLine(List<int> line) {
+    final visible = <bool>[];
     int maxSeen = 0;
-    int count = 0;
     for (final h in line) {
-      if (h > maxSeen) {
-        count++;
-        maxSeen = h;
-      }
+      final isVisible = h > maxSeen;
+      if (isVisible) maxSeen = h;
+      visible.add(isVisible);
     }
-    return count;
+    return visible;
   }
+
+  static int _countVisible(List<int> line) =>
+      visibilityAlongLine(line).where((v) => v).length;
 }
 
 class OrbitalTowersGenerator {

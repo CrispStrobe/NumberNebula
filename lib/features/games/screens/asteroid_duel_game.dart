@@ -385,7 +385,11 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
             const SizedBox(width: 8),
           ],
           Text(
-            _isAiThinking ? 'AI THINKING...' : (_isPlayerTurn ? 'YOUR TURN' : 'AI TURN'),
+            _isAiThinking
+                ? S.of(context)!.asteroidDuelAiThinking
+                : (_isPlayerTurn
+                    ? S.of(context)!.asteroidDuelYourTurn
+                    : S.of(context)!.asteroidDuelAiTurn),
             style: SpaceTheme.titleStyle.copyWith(
               color: _isPlayerTurn && !_isAiThinking
                   ? const Color(0xFF06FFA5)
