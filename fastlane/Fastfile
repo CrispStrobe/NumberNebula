@@ -3,18 +3,20 @@
 # Post-upload release steps. The release workflow builds, signs and uploads the
 # iOS .ipa and macOS .pkg with altool; this lane takes it from there:
 #
-#   distribute   wait for App Store Connect to finish processing the build,
-#                submit it for Beta App Review and hand it to every EXTERNAL
-#                TestFlight group, then attach it to the App Store version and
-#                submit that for review.
+#   testflight       wait for processing, submit for Beta App Review and hand
+#                    the build to every EXTERNAL TestFlight group. Safe to
+#                    automate; this is what a tagged release runs.
+#   appstore_submit  attach the build to the App Store version and submit it
+#                    for review. NOT automated -- see the lane for why.
+#   status           read-only report of App Store Connect state.
 #
 # Authentication is an App Store Connect API key, so there is no Apple ID
 # password and no 2FA session to keep alive.
 #
 # Both platforms live under one app record (same bundle id), but App Store
 # Connect versions them separately, so each run is scoped to one platform:
-#   bundle exec fastlane distribute platform:ios
-#   bundle exec fastlane distribute platform:osx
+#   bundle exec fastlane testflight platform:ios
+#   bundle exec fastlane testflight platform:osx
 
 require 'spaceship'
 
@@ -87,7 +89,9 @@ def beta_review_info
   }
 end
 
-lane :distribute do |options|
+# TestFlight only. Safe to run on every tagged build: it reaches testers, not
+# the App Store, and does not touch App Review.
+lane :testflight do |options|
   platform = (options[:platform] || 'ios').to_s
   version  = ENV.fetch('APP_VERSION')
   build    = ENV.fetch('BUILD_NUMBER')
@@ -103,10 +107,6 @@ lane :distribute do |options|
                  'uploading to TestFlight without external distribution')
   end
 
-  # --- TestFlight -------------------------------------------------------
-  # altool returns before App Store Connect has finished processing, so wait
-  # for the build rather than racing it. Beta App Review is required before a
-  # build reaches external testers, which skip_submission: false requests.
   testflight_args = {
     api_key: api_key,
     app_identifier: ENV.fetch('BUNDLE_ID'),
@@ -134,17 +134,36 @@ lane :distribute do |options|
   testflight_args[:beta_app_review_info] = info if info
 
   upload_to_testflight(testflight_args)
+end
 
-  # --- App Store --------------------------------------------------------
+# Submit to App Store review. DELIBERATELY NOT AUTOMATED.
+#
+# On 2026-09-12 this app was rejected under guideline 4.3(a) (Design: Spam) and
+# placed under Extended Review, whose notice states that repeated submissions of
+# apps with these issues lead to extended review times and that accounts which
+# repeatedly submit such apps "face removal from the Apple Developer Program".
+#
+# Re-submitting the same binary does not answer a 4.3(a) rejection, so a tag
+# must never trigger this. Run it by hand, and only once the spam finding has
+# actually been addressed or successfully appealed:
+#
+#   gh workflow run submit.yml -f lane=appstore_submit -f platforms='["ios"]'
+lane :appstore_submit do |options|
+  platform = (options[:platform] || 'ios').to_s
+
+  UI.important('Submitting to App Store review. This app has an open 4.3(a) ' \
+               'rejection from 2026-09-12; if that has not been addressed, ' \
+               'stop now.')
+
   # Metadata and release notes come from fastlane/metadata, the source of truth
   # in this repo. Screenshots are skipped: unchanged by this release, slow to
   # push, and re-uploading risks clobbering the live set.
   upload_to_app_store(
-    api_key: api_key,
+    api_key: asc_api_key,
     app_identifier: ENV.fetch('BUNDLE_ID'),
     platform: platform,
-    app_version: version,
-    build_number: build,
+    app_version: ENV.fetch('APP_VERSION'),
+    build_number: ENV.fetch('BUILD_NUMBER'),
     submit_for_review: true,
     automatic_release: AUTOMATIC_RELEASE,
     force: true,               # no interactive HTML preview on CI

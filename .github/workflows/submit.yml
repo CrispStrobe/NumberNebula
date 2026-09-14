@@ -1,8 +1,14 @@
 name: Submit (TestFlight external + App Store review)
 
 # Everything that happens after a signed binary is already in App Store
-# Connect: wait for processing, push the build to every external TestFlight
-# group, and submit the App Store version for review.
+# Connect: wait for processing and push the build to every external TestFlight
+# group.
+#
+# App Store REVIEW SUBMISSION is deliberately not part of a tagged release.
+# The app carries an open 4.3(a) (Design: Spam) rejection from 2026-09-12 and
+# an Extended Review notice warning that repeated submissions risk removal from
+# the Apple Developer Program. Submitting for review is a manual choice:
+#   gh workflow run submit.yml -f lane=appstore_submit -f platforms='["ios"]'
 #
 # Kept separate from the build so it can be re-run on its own. Submission is
 # the flaky half — Apple's API rejects for reasons that have nothing to do with
@@ -21,6 +27,10 @@ on:
         description: 'JSON array of platforms to submit'
         type: string
         default: '["ios", "osx"]'
+      lane:
+        description: 'Lane to run. A tagged release only ever does TestFlight.'
+        type: string
+        default: 'testflight'
   workflow_dispatch:
     inputs:
       platforms:
@@ -29,10 +39,10 @@ on:
         options: ['["ios", "osx"]', '["ios"]', '["osx"]']
         default: '["ios", "osx"]'
       lane:
-        description: 'distribute = ship it; status = read-only report'
+        description: 'testflight = testers only; appstore_submit = SEND TO APP REVIEW; status = read-only'
         type: choice
-        options: ['distribute', 'status']
-        default: 'distribute'
+        options: ['testflight', 'status', 'appstore_submit']
+        default: 'testflight'
 
 env:
   BUNDLE_ID: com.crispstrobe.numbernebula
@@ -91,4 +101,4 @@ jobs:
           FASTLANE_HIDE_CHANGELOG: '1'
           LC_ALL: en_US.UTF-8
           LANG: en_US.UTF-8
-        run: fastlane ${{ inputs.lane || 'distribute' }} platform:${{ matrix.platform }}
+        run: fastlane ${{ inputs.lane || 'testflight' }} platform:${{ matrix.platform }}

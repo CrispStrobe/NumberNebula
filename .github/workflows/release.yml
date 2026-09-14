@@ -4,8 +4,8 @@ name: Release (App Store — iOS + macOS)
 #
 # Triggers:
 #   * push a tag matching v*        -> build + upload, then TestFlight
-#                                      external distribution and App Store
-#                                      review submission (a real release)
+#                                      external distribution. Does NOT submit
+#                                      for App Store review; see submit.yml.
 #   * manual "Run workflow"         -> choose dry_run=true to build+sign WITHOUT
 #                                      uploading (validates signing safely)
 #
@@ -340,11 +340,19 @@ jobs:
           retention-days: 7
 
   # Hand off to the reusable submission workflow once both binaries are in
-  # App Store Connect. Split out so submission can be re-run on its own without
+  # App Store Connect. Split out so it can be re-run on its own without
   # rebuilding (and without burning a second build number).
+  #
+  # TestFlight ONLY. A tag must not submit for App Store review: the app has an
+  # open 4.3(a) (Design: Spam) rejection from 2026-09-12 and an Extended Review
+  # notice warning that repeated submissions risk removal from the Apple
+  # Developer Program. Review submission is a deliberate manual run of
+  # submit.yml with lane=appstore_submit.
   submit:
     needs: [build-upload, build-upload-macos]
     # Only for a real tagged release, and only when the builds actually shipped.
     if: ${{ github.event_name == 'push' }}
     uses: ./.github/workflows/submit.yml
     secrets: inherit
+    with:
+      lane: testflight
