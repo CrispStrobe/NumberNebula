@@ -28,6 +28,11 @@ on:
         type: choice
         options: ['["ios", "osx"]', '["ios"]', '["osx"]']
         default: '["ios", "osx"]'
+      lane:
+        description: 'distribute = ship it; status = read-only report'
+        type: choice
+        options: ['distribute', 'status']
+        default: 'distribute'
 
 env:
   BUNDLE_ID: com.crispstrobe.numbernebula
@@ -86,4 +91,4 @@ jobs:
           FASTLANE_HIDE_CHANGELOG: '1'
           LC_ALL: en_US.UTF-8
           LANG: en_US.UTF-8
-        run: fastlane distribute platform:${{ matrix.platform }}
+        run: fastlane ${{ inputs.lane || 'distribute' }} platform:${{ matrix.platform }}

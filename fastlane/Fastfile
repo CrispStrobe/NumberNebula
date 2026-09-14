@@ -160,3 +160,62 @@ lane :distribute do |options|
     },
   )
 end
+
+# Read-only: report what App Store Connect currently thinks the app's state is.
+#
+# Added because a submission failed with "a review submission is already in
+# progress" and there was no way to see what that submission was without
+# opening the console. Touches nothing.
+lane :status do
+  Spaceship::ConnectAPI.auth(
+    key_id: ENV.fetch('ASC_KEY_ID'),
+    issuer_id: ENV.fetch('ASC_ISSUER_ID'),
+    filepath: ENV.fetch('ASC_KEY_FILEPATH'),
+  )
+  app = Spaceship::ConnectAPI::App.find(ENV.fetch('BUNDLE_ID'))
+  UI.user_error!("no app record for #{ENV.fetch('BUNDLE_ID')}") if app.nil?
+  UI.important("app: #{app.name} (#{app.id})")
+
+  # Each is wrapped: the point is to report as much as the installed spaceship
+  # supports, not to die on the first method it happens not to have.
+  begin
+    app.get_app_store_versions.each do |v|
+      UI.important("version #{v.version_string} [#{v.platform}] " \
+                   "state=#{v.app_store_state} id=#{v.id}")
+    end
+  rescue StandardError => e
+    UI.error("could not list app store versions: #{e.class}: #{e.message}")
+  end
+
+  begin
+    subs = Spaceship::ConnectAPI.get_review_submissions(
+      app_id: app.id,
+    ).to_models
+    if subs.empty?
+      UI.important('no review submissions on record')
+    end
+    subs.each do |s|
+      UI.important("review submission id=#{s.id} platform=#{s.platform} " \
+                   "state=#{s.state} submitted=#{s.submitted_date}")
+      begin
+        s.review_submission_items.each do |item|
+          UI.important("  item: #{item.inspect}")
+        end
+      rescue StandardError => e
+        UI.error("  could not list items: #{e.message}")
+      end
+    end
+  rescue StandardError => e
+    UI.error("could not list review submissions: #{e.class}: #{e.message}")
+  end
+
+  begin
+    builds = app.get_builds(filter: { 'preReleaseVersion.version' => ENV['APP_VERSION'].to_s })
+    builds.first(5).each do |b|
+      UI.important("build #{b.version} processing=#{b.processing_state} " \
+                   "expired=#{b.expired}")
+    end
+  rescue StandardError => e
+    UI.error("could not list builds: #{e.class}: #{e.message}")
+  end
+end
