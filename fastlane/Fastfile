@@ -117,7 +117,10 @@ lane :distribute do |options|
     distribute_external: !groups.empty?,
     groups: groups,
     skip_submission: groups.empty?,
-    # The binary is already uploaded; this only locates it and waits.
+    # altool already uploaded the binary. Without this, pilot looks for an ipa
+    # to upload and dies with "No ipa or pkg file given"; with it, the build is
+    # located by app_version + build_number instead.
+    skip_binary_upload: true,
     skip_waiting_for_build_processing: false,
     wait_processing_interval: 30,
     demo_account_required: false,
