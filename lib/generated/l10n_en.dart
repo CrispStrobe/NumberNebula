@@ -4191,4 +4191,40 @@ class SEn extends S {
 
   @override
   String get missionOverallRating => 'Mission rating';
+
+  @override
+  String get gridFillerWinTitle => '🎉 Grid Complete!';
+
+  @override
+  String get gridFillerWinDesc => 'Perfect fit! All pieces placed!';
+
+  @override
+  String gridFillerPoints(int score) {
+    return '+$score points';
+  }
+
+  @override
+  String gridFillerFillGrid(int size, String symbol) {
+    return 'Fill the $size$symbol$size grid';
+  }
+
+  @override
+  String gridFillerClickToPlace(int size, String symbol) {
+    return 'Click to place $size$symbol$size';
+  }
+
+  @override
+  String get gridFillerAvailablePieces => 'Available Pieces';
+
+  @override
+  String gridFillerPiecesLeft(int remaining, int total) {
+    return '$remaining/$total left';
+  }
+
+  @override
+  String get perspectivePuzzleLoseTitle => 'Mission Failed';
+
+  @override
+  String get perspectivePuzzleLoseDesc =>
+      'You\'ve run out of attempts. Let\'s try a different structure.';
 }

@@ -305,22 +305,22 @@ class _GridFillerGameState extends State<GridFillerGame>
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A2E),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          '🎉 Grid Complete!',
-          style: TextStyle(color: SpaceTheme.alienGreen, fontSize: 24),
+        title: Text(
+          S.of(context)!.gridFillerWinTitle,
+          style: const TextStyle(color: SpaceTheme.alienGreen, fontSize: 24),
           textAlign: TextAlign.center,
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Perfect fit! All pieces placed!',
-              style: TextStyle(color: Colors.white70, fontSize: 16),
+            Text(
+              S.of(context)!.gridFillerWinDesc,
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             Text(
-              '+$score points',
+              S.of(context)!.gridFillerPoints(score),
               style: const TextStyle(
                 color: SpaceTheme.starYellow,
                 fontSize: 32,
@@ -383,16 +383,18 @@ class _GridFillerGameState extends State<GridFillerGame>
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Grid Filler',
-                            style: TextStyle(
+                          Text(
+                            S.of(context)!.gridFillerTitle,
+                            style: const TextStyle(
                               color: SpaceTheme.alienGreen,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           Text(
-                            'Fill the $gridSize${context.read<GameProvider>().multiplicationSymbol}$gridSize grid',
+                            S.of(context)!.gridFillerFillGrid(
+                                gridSize,
+                                context.read<GameProvider>().multiplicationSymbol),
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.7),
                               fontSize: 14,
@@ -440,7 +442,9 @@ class _GridFillerGameState extends State<GridFillerGame>
                               Icon(Icons.touch_app, color: selectedPiece!.color, size: 20),
                               const SizedBox(width: 8),
                               Text(
-                                'Click to place ${selectedPiece!.size}${context.read<GameProvider>().multiplicationSymbol}${selectedPiece!.size}',
+                                S.of(context)!.gridFillerClickToPlace(
+                                    selectedPiece!.size,
+                                    context.read<GameProvider>().multiplicationSymbol),
                                 style: TextStyle(
                                   color: selectedPiece!.color,
                                   fontSize: 14,
@@ -473,11 +477,11 @@ class _GridFillerGameState extends State<GridFillerGame>
                         ),
                         child: Column(
                           children: [
-                            const Padding(
-                              padding: EdgeInsets.all(16),
+                            Padding(
+                              padding: const EdgeInsets.all(16),
                               child: Text(
-                                'Available Pieces',
-                                style: TextStyle(
+                                S.of(context)!.gridFillerAvailablePieces,
+                                style: const TextStyle(
                                   color: SpaceTheme.alienGreen,
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -784,7 +788,8 @@ class _GridFillerGameState extends State<GridFillerGame>
                     ),
                   ),
                   Text(
-                    '${piece.remainingCount}/${piece.count} left',
+                    S.of(context)!
+                        .gridFillerPiecesLeft(piece.remainingCount, piece.count),
                     style: TextStyle(
                       color: canUse ? SpaceTheme.alienGreen : Colors.grey,
                       fontSize: 11,

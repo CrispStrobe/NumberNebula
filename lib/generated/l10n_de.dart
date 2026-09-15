@@ -2515,7 +2515,7 @@ class SDe extends S {
 
   @override
   String get hullPlatingInstructions =>
-      'Ziehe Panzerplatten aus der Ablage auf das Rumpfgitter. Drehe Platten mit dem Button. Decke jede Zelle ohne Uberlappung ab!';
+      'Ziehe Panzerplatten aus der Ablage auf das Rumpfgitter. Drehe Platten mit dem Button. Decke jede Zelle ohne Überlappung ab!';
 
   @override
   String get hullPlatingWinTitle => 'Rumpf versiegelt!';
@@ -2850,7 +2850,7 @@ class SDe extends S {
 
   @override
   String cubeScannerWinDesc(int bonusScore) {
-    return 'Alle Wurfeldaten extrahiert! Deine Analyse hat $bonusScore Scannerpunkte eingebracht.';
+    return 'Alle Würfeldaten extrahiert! Deine Analyse hat $bonusScore Scannerpunkte eingebracht.';
   }
 
   @override
@@ -2891,7 +2891,7 @@ class SDe extends S {
 
   @override
   String get darkMatterGridDesc =>
-      'Dunkelmaterie hat diesen Sektor verhullt! Schalte die Knoten um, um die Dunkelheit zuruckzudrangen. Aber Vorsicht -- jeder Knoten beeinflusst seine Nachbarn!';
+      'Dunkelmaterie hat diesen Sektor verhüllt! Schalte die Knoten um, um die Dunkelheit zurückzudrängen. Aber Vorsicht -- jeder Knoten beeinflusst seine Nachbarn!';
 
   @override
   String get darkMatterGridInstructions =>
@@ -2969,7 +2969,7 @@ class SDe extends S {
 
   @override
   String get launchSequenceDesc =>
-      'Die Startreihenfolge ist durcheinander! Ordne die Flotte durch Tauschen benachbarter Schiffe neu. Bringe sie mit so wenigen Tauschvorgangen wie möglich in die richtige Reihenfolge!';
+      'Die Startreihenfolge ist durcheinander! Ordne die Flotte durch Tauschen benachbarter Schiffe neu. Bringe sie mit so wenigen Tauschvorgängen wie möglich in die richtige Reihenfolge!';
 
   @override
   String get launchSequenceInstructions =>
@@ -3261,7 +3261,7 @@ class SDe extends S {
 
   @override
   String asteroidDuelWinDesc(int bonusScore) {
-    return 'Uberlegene Strategie! Dein Gegner ist gestrandet. Du hast $bonusScore Taktikpunkte verdient.';
+    return 'Überlegene Strategie! Dein Gegner ist gestrandet. Du hast $bonusScore Taktikpunkte verdient.';
   }
 
   @override
@@ -4101,7 +4101,7 @@ class SDe extends S {
   String get voidCrossingTapToUnload => 'Tippe zum Ausladen aus dem Shuttle';
 
   @override
-  String get gridFillerTitle => 'Rasterfuller';
+  String get gridFillerTitle => 'Rasterfüller';
 
   @override
   String get gridFillerDesc =>
@@ -4211,4 +4211,40 @@ class SDe extends S {
 
   @override
   String get missionOverallRating => 'Missions-Bewertung';
+
+  @override
+  String get gridFillerWinTitle => '🎉 Raster komplett!';
+
+  @override
+  String get gridFillerWinDesc => 'Perfekt! Alle Teile platziert!';
+
+  @override
+  String gridFillerPoints(int score) {
+    return '+$score Punkte';
+  }
+
+  @override
+  String gridFillerFillGrid(int size, String symbol) {
+    return 'Fülle das $size$symbol$size Raster';
+  }
+
+  @override
+  String gridFillerClickToPlace(int size, String symbol) {
+    return 'Tippe zum Platzieren von $size$symbol$size';
+  }
+
+  @override
+  String get gridFillerAvailablePieces => 'Verfügbare Teile';
+
+  @override
+  String gridFillerPiecesLeft(int remaining, int total) {
+    return '$remaining/$total übrig';
+  }
+
+  @override
+  String get perspectivePuzzleLoseTitle => 'Mission fehlgeschlagen';
+
+  @override
+  String get perspectivePuzzleLoseDesc =>
+      'Keine Versuche mehr. Probieren wir eine andere Struktur.';
 }

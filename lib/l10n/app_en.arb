@@ -1,636 +1,617 @@
 {
-    "appTitle": "NumberNebula",
-    "@appTitle": {
-        "description": "The application title"
-    },
-    "welcome": "Welcome to NumberNebula!",
-    "startAdventure": "Start Your Math Adventure",
-    "chooseGrade": "Set Your Skill Level",
-    "fast": "FAST",
-    "grade3": "Level 1",
-    "grade4": "Level 2",
-    "grade5": "Level 3",
-    "grade6": "Level 4",
-    "gameMenu": "Mission Control",
-    "magicTriangles": "Cosmic Triangles",
-    "magicTrianglesDesc": "Align the cosmic energy nodes! Each side of the triangle must sum to the same cosmic frequency to stabilize the wormhole.",
-    "bubbleMath": "Asteroid Field Hunter",
-    "bubbleMathDesc": "Navigate a dangerous asteroid field! Blast the drifting space rocks in the correct numerical sequence before they collide.",
-    "puzzleMath": "Constellation Puzzles",
-    "puzzleMathDesc": "Reconstruct celestial star charts! Solve equations to find the correct coordinates and lock star fragments into place.",
-    "hyperdriveGates": "Hyperdrive Gates",
-    "hyperdriveGatesDesc": "Plot a course through quantum space gates! Fly through the gate with the correct answer to make the jump to lightspeed.",
-    "planetHopping": "Gravity Sling",
-    "planetHoppingDesc": "Slingshot your ship between planets! Calculate the right trajectory and visit planets in the correct mathematical sequence.",
-    "level": "Level",
-    "score": "Score",
-    "lives": "Hull Integrity",
-    "time": "Time",
-    "correct": "Correct!",
-    "incorrect": "Recalculating...",
-    "excellent": "Excellent work, Space Commander!",
-    "good": "Good job!",
-    "tryAgain": "Let's try again!",
-    "gameOver": "Mission Complete!",
-    "nextLevel": "Next Mission",
-    "playAgain": "Play Again",
-    "backToMenu": "Back to Mission Control",
-    "settings": "Settings",
-    "sound": "Sound FX",
-    "music": "Music",
-    "language": "Language",
-    "progress": "Career Progress",
-    "achievements": "Achievements",
-    "mathOperationsAddition": "Addition",
-    "mathOperationsSubtraction": "Subtraction",
-    "mathOperationsMultiplication": "Multiplication",
-    "mathOperationsDivision": "Division",
-    "congratulations": "Congratulations, Commander!",
-    "missionsCompleted": "Missions Completed: {count}",
-    "@missionsCompleted": {
-        "description": "Number of missions completed",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
-    },
-    "starsEarned": "Stars Earned: {count}",
-    "@starsEarned": {
-        "description": "Number of stars earned",
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
-    },
-    "audioSettings": "Audio Settings",
-    "soundEffects": "Sound effects",
-    "backgroundMusicDesc": "Background music",
-    "gameplay": "Gameplay",
-    "puzzleTimer": "Puzzle Timer",
-    "puzzleTimerDesc": "Enable timer in puzzle games",
-    "showHints": "Show Hints",
-    "showHintsDesc": "Display helpful hints during games",
-    "hapticFeedback": "Haptic Feedback",
-    "hapticFeedbackDesc": "Vibration on touch (if supported)",
-    "appLanguage": "App Language",
-    "appLanguageDesc": "Choose your preferred language",
-    "languageEnglish": "English",
-    "languageGerman": "Deutsch",
-    "difficulty": "Difficulty",
-    "currentGrade": "Current Skill",
-    "currentLevelDesc": "Current Level",
-    "difficultyDescGrade3": "Basic operations",
-    "difficultyDescGrade4": "Multi-digit math",
-    "difficultyDescGrade5": "Complex problems",
-    "difficultyDescGrade6": "Advanced challenges",
-    "totalScore": "Total Score",
-    "gamesPlayed": "Games Played",
-    "resetProgress": "Reset Progress",
-    "about": "About",
-    "appVersion": "App Version",
-    "developer": "Developer",
-    "developerName": "CrispStrobe",
-    "targetAge": "Target Age",
-    "targetAgeRange": "8-12 years (Grades 3-6)",
-    "aboutApp": "NumberNebula helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.",
-    
-    "languageRestartPrompt": "The app language will change when you restart. Would you like to restart now?",
-    "later": "Later",
-    "restartNow": "Restart Now",
-    "resetProgressConfirm": "Are you sure you want to reset all progress? This action cannot be undone.",
-    "legalNotice": "View Legal Notice",
-    
-    "debugPanelTitle": "Debug Panel",
-    "debugForceUnlock": "Force Full Unlock",
-    "debugApplyAndClose": "Apply & Close",
-    "parentalGateTitle": "Parental Gate",
-    "parentalGateChallenge": "To continue, please solve this problem:",
-    "confirm": "Confirm",
-    "pleaseTryAgain": "Please try again.",
-    "purchaseTitle": "Unlock Full Access",
-    "purchaseDescription": "Unlock all 8 games, all 4 skill levels, and all future updates with a single purchase!",
-    "purchaseButton": "Unlock Now!",
-    "contactingStore": "Contacting Mission Control...",
-    "purchaseError": "An error occurred. Please check your connection and try again.",
-    "restorePurchases": "Restore Purchases",
-    "storeUnavailable": "The store is currently unavailable. Please check your connection and that you are signed in to your account.",
-    "languageChanged": "Language Changed",
-    "languageChangedDesc": "The app language will change when you restart. Would you like to restart now?",
-    "later": "Later",
-    "restartNow": "Restart Now",
-    "selectGrade": "Select Skill Level",
-    "gradeN": "Skill Level {gradeNumber}",
-    "@gradeN": {
-        "placeholders": {
-            "gradeNumber": {
-                "type": "int"
-            }
-        }
-    },
-    "cancel": "Cancel",
-    "restartToApplyChanges": "Please restart the app to apply language changes",
-    "resetProgressConfirmation": "Are you sure you want to reset all progress? This action cannot be undone.",
-    "progressResetSuccess": "Progress reset successfully!",
-    "reset": "Reset",
-    "playToUnlock": "Play to unlock!",
-    "chooseYourGrade": "Choose Your Skill Level",
-    "grade3Desc": "Basic addition, subtraction, and simple multiplication",
-    "grade4Desc": "Multi-digit arithmetic and introduction to division",
-    "grade5Desc": "Complex operations, fractions, and decimals",
-    "grade6Desc": "Advanced math, logic puzzles, and multi-step problems",
-    "adaptiveDifficulty": "Adaptive Difficulty",
-    "adaptiveDifficultyDesc": "Adjusts problems based on your skill",
-    "adjustProblems": "Adjusts problems based on your skill",
-    "settingsComingSoon": "Settings coming soon!",
-    "spaceExplorerProgress": "Space Explorer Progress",
-    "unlocked": "Unlocked",
-    "complete": "Complete",
-    "rankRookie": "Rookie",
-    "rankExplorer": "Explorer",
-    "rankVeteran": "Veteran",
-    "rankExpert": "Expert",
-    "rankLegend": "Legend",
-    "achievementFirstCenturyTitle": "First Century!",
-    "achievementFirstCenturyDesc": "Score 100 points",
-    "achievementScoreMasterTitle": "Score Master",
-    "achievementScoreMasterDesc": "Score 500 points",
-    "achievementThousandClubTitle": "Thousand Club",
-    "achievementThousandClubDesc": "Score 1000 points",
-    "achievementLevelExplorerTitle": "Level Explorer",
-    "achievementLevelExplorerDesc": "Reach level 5",
-    "achievementSpaceCommanderTitle": "Space Commander",
-    "achievementSpaceCommanderDesc": "Reach level 10",
-    "achievementTriangleWizardTitle": "Triangle Wizard",
-    "achievementTriangleWizardDesc": "Complete 3 Magic Triangle levels",
-    "achievementBubblePopperTitle": "Bubble Popper",
-    "achievementBubblePopperDesc": "Complete 3 Bubble Math levels",
-    "achievementPuzzleSolverTitle": "Puzzle Solver",
-    "achievementPuzzleSolverDesc": "Complete 3 Puzzle Math levels",
-    "achievementAllRounderTitle": "All-Rounder",
-    "achievementAllRounderDesc": "Play all game types",
-    "achievementSpeedDemonTitle": "Speed Demon",
-    "achievementSpeedDemonDesc": "Complete a level in under 30 seconds",
-    "achievementPerfectionistTitle": "Perfectionist",
-    "achievementPerfectionistDesc": "Complete a level without mistakes",
-    "achievementMathematicianTitle": "Young Mathematician",
-    "achievementMathematicianDesc": "Solve 100 math problems",
-    "unlockedStatus": "UNLOCKED",
-    "lockedStatus": "LOCKED",
-    "achievementUnlocked": "ACHIEVEMENT UNLOCKED!",
-    "continueExploring": "Continue Exploring",
-    "planetHoppingObjectiveAsc": "Visit planets in ascending order!",
-    "planetHoppingObjectiveDesc": "Visit planets in descending order!",
-    "planetHoppingObjectiveEvenOdd": "Visit even numbers first, then odd!",
-    "planetHoppingTitle": "Gravity Sling",
-    "planetHoppingNextTarget": "Next: {target}",
-    "@planetHoppingNextTarget": {
-        "placeholders": {
-            "target": {}
-        }
-    },
-    "planetHoppingInstructions": "Seek the planet with greatest gravitational pull.",
-    "planetHoppingOrderAsc": "Solve the expressions and visit planets from SMALLEST to LARGEST result!",
-    "planetHoppingOrderDesc": "Solve the expressions and visit planets from LARGEST to SMALLEST result!",
-    "planetHoppingOrderEvensOdds": "Visit planets with EVEN results first, then ODD results — both in ascending order!",
-    "planetHoppingOrderAscShort": "Small\u2192Big",
-    "planetHoppingOrderDescShort": "Big\u2192Small",
-    "planetHoppingOrderEvensOddsShort": "Even\u2192Odd",
-    "planetHoppingWinTitle": "Solar System Mastered!",
-    "planetHoppingWinDesc": "You successfully navigated all planets in the correct sequence!\nLives Bonus: {bonus} points",
-    "planetHoppingWinDescBonus": "You successfully navigated all planets in the correct sequence!\nLives Bonus: {bonus} points",
-    "@planetHoppingWinDescBonus": {
-        "description": "Win message with bonus points.",
-        "placeholders": {
-            "bonus": {
-                "type": "int"
-            }
-        }
-    },
-    "planetHoppingLoseDescCrash": "You crash-landed too many times!\nStudy the planet sequence and try again.",
-    "planetHoppingNextTargetValue": "Next: {value}",
-    "@planetHoppingNextTargetValue": {
-        "description": "Displays the next numerical target in the sequence.",
-        "placeholders": {
-            "value": {
-                "type": "int"
-            }
-        }
-    },
-    "exploreAgain": "Explore Again",
-    "missionCompleteStatus": "Mission Complete",
-    "planetHoppingLoseTitle": "Navigation Failed!",
-    "planetHoppingLoseDesc": "You crash-landed too many times!\nStudy the planet sequence and try again.",
-    "retryMission": "Retry Mission",
-    "returnToBase": "Return to Base",
-    "hyperdriveGatesTitle": "Hyperdrive Gates",
-    "solve": "SOLVE:",
-    "hyperdriveGatesObjective": "Fly through gates with: {correctAnswer}",
-    "@hyperdriveGatesObjective": {
-        "placeholders": {
-            "correctAnswer": {}
-        }
-    },
-    "hyperdriveGatesInstructions": "DRAG to steer your ship up/down • FLY through CORRECT gates • AVOID wrong answers",
-    "hyperdriveGatesWinTitle": "Hyperdrive Navigation Complete!",
-    "hyperdriveGatesWinDesc": "You successfully navigated through {targetGatesNeeded} gates!\nYou're ready for deep space missions!",
-    "@hyperdriveGatesWinDesc": {
-        "placeholders": {
-            "targetGatesNeeded": {}
-        }
-    },
-    "flyAgain": "Fly Again",
-    "hyperdriveGatesLoseTitle": "Navigation System Failure!",
-    "hyperdriveGatesLoseDesc": "Your ship took too much damage!\nReturn to base for repairs and try again.",
-    "noPuzzleImagesFound": "No constellation images found in assets/images/",
-    "puzzleMathInstructions": "Rebuild the space constellation! Drag pieces to correct spots. Tap pieces to rotate them!",
-    "timer": "Timer",
-    "timesUp": "Time's up, space cadet!",
-    "constellationPieces": "Constellation Pieces",
-    "puzzleMathIncorrect": "Check the math answer or try rotating the piece!",
-    "puzzleMathWin": "Constellation restored, Space Explorer!",
-    "puzzleMathWinBonus": "Constellation restored!\nTime Bonus: {bonus} points!",
-    "@puzzleMathWinBonus": {
-        "placeholders": {
-            "bonus": {}
-        }
-    },
-    "puzzleMathTryAnother": "Let's try another constellation!",
-    "magicTrianglesGameTitle": "Wormhole Activator",
-    "magicTrianglesInstructions": "Align the Stargate! Drag resonators to match the required Warp Frequency on each side.",
-    "magicTrianglesWarpFrequency": "Warp Frequency: {warpFrequency}",
-    "@magicTrianglesWarpFrequency": {
-        "placeholders": {
-            "warpFrequency": {}
-        }
-    },
-    "magicTrianglesResonators": "Available Subspace Resonators",
-    "magicTrianglesFail": "Alignment failed. The energy signature is incorrect. Try again!",
-    "magicTrianglesOutOfMoves": "Out of Moves!",
-    "magicTrianglesOutOfMovesDesc": "Too many placements! Position each resonator carefully to align the wormhole efficiently.",
-    "calculatingCoordinates": "Calculating wormhole coordinates...",
-    "magicTrianglesWinTitle": "Wormhole Stabilized!",
-    "magicTrianglesWinDesc": "Perfect alignment! The warp corridor is open.\nBonus: +{bonusScore} points!",
-    "@magicTrianglesWinDesc": {
-        "placeholders": {
-            "bonusScore": {}
-        }
-    },
-    "nextAnomaly": "Next Anomaly",
-    "toTheBridge": "To Bridge",
-    "asteroidMathHunter": "Asteroid Hunter",
-    "asteroidMathHunterDesc": "Navigate a dangerous asteroid field! Blast the drifting space rocks in the correct numerical sequence before they collide.",
-    
-    "asteroidMathTarget": "Target asteroid: {target}",
-    "@asteroidMathTarget": {
-        "placeholders": {
-            "target": {}
-        }
-    },
-    "asteroidMathWinTitle": "Asteroid Field Cleared!",
-    "asteroidMathWinDesc": "Time Bonus: {timeBonus} points!\nYou are a true Space Hunter!",
-    "@asteroidMathWinDesc": {
-        "placeholders": {
-            "timeBonus": {}
-        }
-    },
-    "timesUpSpaceCadet": "Time's Up, Space Cadet!",
-    "asteroidMathLoseTitle": "Mission Failed!",
-    "asteroidMathLoseDesc": "The asteroid field got too chaotic!\nTry again, Commander!",
-    "nextTarget": "Next target: ",
-    "loadingAdventure": "Loading Space Adventure...",
-    "preparingMission": "Preparing your math mission...",
-    "initializing": "Initializing NumberNebula...",
-    "loadingAssets": "Loading game assets...",
-    "loadingProgress": "Loading saved progress...",
-    "preparingSpaceStation": "Preparing space station...",
-    "calibratingNav": "Calibrating navigation systems...",
-    "readyForLaunch": "Ready for launch!",
-    "launch": "Launch",
-    "splashScreenSubtitle": "Explore • Learn • Discover",
-    "pathFinderTitle": "Path Finder",
-    "pathFinderDesc": "Navigate quantum space corridors! Calculate the right trajectory through dangerous cosmic phenomena to reach your destination safely.",
-    "pathFinderSolve": "SOLVE:",
-    "pathFinderChoosePath": "Choose the path for: {expression}",
-    "@pathFinderChoosePath": {
-        "description": "Prompts player to choose the correct path",
-        "placeholders": {
-            "expression": {
-                "type": "String",
-                "description": "The math expression to solve"
-            }
-        }
-    },
-    "pathFinderInstructions": "TAP on space routes • CALCULATE math problems • NAVIGATE through cosmic hazards",
-    "pathFinderWinTitle": "Quantum Navigation Complete!",
-    "pathFinderWinDesc": "You successfully navigated through {targetProblems} quantum corridors!\nTotal Score: {totalScore} points!",
-    "@pathFinderWinDesc": {
-        "description": "Victory message showing problems solved and score",
-        "placeholders": {
-            "targetProblems": {
-                "type": "int",
-                "description": "Number of problems that needed to be solved"
-            },
-            "totalScore": {
-                "type": "int",
-                "description": "Total points earned"
-            }
-        }
-    },
-    "pathFinderLoseTitle": "Navigation Systems Offline!",
-    "pathFinderLoseDesc": "Your ship sustained too much damage from cosmic hazards!\nRecalibrate your navigation systems and try again, Commander!",
-    "pathFinderFailureWormhole": "Wormhole collapse!",
-    "pathFinderFailureNebula": "Nebula interference!",
-    "pathFinderFailureAsteroidBelt": "Asteroid collision!",
-    "pathFinderFailureClearSpace": "Navigation error!",
-    "pathFinderFailureIonStorm": "Ion storm damage!",
-    "pathFinderFailureQuantumTunnel": "Quantum instability!",
-    "numberWalls": "Number Walls",
-    "numberWallsDesc": "Build cosmic calculation pyramids! Stabilize the quantum structure!",
-    "numberWallsGameTitle": "Quantum Pyramid Builder",
-    "numberWallsInstructions": "Build the number wall! Drag numbers to complete the structure.",
-    "numberWallsCalculating": "Calculating pyramid coordinates...",
-    "numberWallsBricks": "Available Building Blocks",
-    "numberWallsFail": "Structural integrity compromised! The mathematical foundation is unstable. Try again!",
-    "numberWallsOutOfMoves": "Out of Moves!",
-    "numberWallsOutOfMovesDesc": "Too many placements! Place each building block carefully to stabilize the pyramid.",
-    "numberWallsWinTitle": "Pyramid Stabilized!",
-    "numberWallsWinDesc": "Perfect mathematical alignment! The quantum structure is stable.\nBonus: +{bonusScore} points!",
-    "@numberWallsWinDesc": {
-        "placeholders": {
-            "bonusScore": {
-                "type": "int"
-            }
-        }
-    },
-    "numberWallsNextWall": "Next Pyramid",
-    "numberWallsAddition": "Quantum Addition Matrix",
-    "numberWallsSubtraction": "Stellar Subtraction Grid",
-    "numberWallsMultiplication": "Cosmic Multiplication Array",
-    "numberWallsDivision": "Galactic Division Network",
-    "numberWallsDropFar": "Drop it closer to the target please.",
-       
-    "numberWallsAddDesc": "Each brick is the sum of the two below it.",
-    "numberWallsSubDesc": "The top brick is the difference of the two below it.",
-    "numberWallsMultDesc": "Each brick is the product of the two below it.",
-    "numberWallsDivDesc": "Each brick is the quotient of the two below it.",
-
-    "codebreaker": "Codebreaker",
-    "codebreakerDesc": "Intercept and decode alien transmissions! Solve complex equation systems to reveal their secrets.",
-    "codebreakerSuccess": "Code cracked!",
-    "codebreakerError": "Transmission corrupted",
-    "codebreakerTransmissionReceived": "Alien transmission intercepted",
-    "codebreakerSelectNumbers": "Select numbers to decode the transmission",
-    "codebreakerInstructions": "Decode the alien symbols by solving the equations. Tap numbers to fill in the missing values.",
-    "codebreakerWinTitle": "Mission Complete!",
-    "codebreakerLoseTitle": "Transmission Lost",
-    "codebreakerWinDesc": "Excellent work, Agent! You earned {totalScore} points. The galaxy is safer thanks to your cryptographic skills!",
-    "@codebreakerWinDesc": {
-        "placeholders": {
-            "totalScore": {
-                "type": "int"
-            }
-        }
-    },
-    "codebreakerLoseDesc": "The alien codes proved too complex to crack in time. Don't worry - even the best codebreakers need practice!",
-    "codebreakerOutOfMoves": "Out of Moves!",
-    "codebreakerOutOfMovesDesc": "Too many placements! Think carefully about each code assignment to crack the transmission efficiently.",
-    "problemCustomization": "Problem Customization",
-    "problemCustomizationDesc": "Customize the math operations and number ranges used in games.",
-    "problemCustomizationUnlock": "This feature requires the full version.",
-    "enableCustomSettings": "Enable Custom Settings",
-    "allowedOperations": "Allowed Operations",
-    "numberRange": "Number Range",
-    "minValue": "Min Value",
-    "maxValue": "Max Value",
-
-    "perspectivePuzzleGameTitle": "Anomaly Scan",
-    "anomalyScanTitle": "Anomaly Scan",
-    "perspectivePuzzleInstructions": "Scan space objects with different sensor perspectives.",
-    "anomalyScanSelectReadout": "Match hologram to correct {perspective} sensor readout",
-    "@anomalyScanSelectReadout": {
-        "placeholders": {
-            "perspective": {
-                "type": "String"
-            }
-        }
-    },
-    "anomalyScanWinTitle": "Analysis Complete!",
-    "anomalyScanWinDesc": "Anomaly Identified. Data logged. Bonus: {bonus} points.",
-
-    "perspectivePuzzleWinTitle": "Analysis Complete!",
-    "perspectivePuzzleWinDesc": "Anomaly Identified. Data logged. Bonus: {bonus} points.",
-    "@perspectivePuzzleWinDesc": {
-        "placeholders": {
-            "bonus": {
-                "type": "int"
-            }
-        }
-    },
-    "perspectivePuzzleSelectView": "Select the {perspective} perspective.",
-    "@perspectivePuzzleSelectView": {
-        "placeholders": {
-            "perspective": {
-                "type": "String"
-            }
-        }
-    },
-    "perspectiveFront": "FRONT",
-    "perspectiveBack": "BACK",
-    "perspectiveLeft": "LEFT",
-    "perspectiveRight": "RIGHT",    
-    
-    "@anomalyScanWinDesc": {
-        "placeholders": {
-            "bonus": {
-                "type": "int"
-            }
-        }
-    },
-    "anomalyScanFail": "Scan Mismatch. Recalibrating sensors...",
-    "perspectiveDensityScan": "DENSITY",
-    "perspectiveStructuralScan": "STRUCTURAL",
-    "perspectiveThermalScan": "THERMAL",
-    "perspectiveEMScan": "EM-FIELD",
-
-    "blockCounterGameTitle": "3D Block Counter",
-    "blockCounterInstructions": "Rotate and count all blocks including hidden ones",
-    "blockCounterFail": "Incorrect count! Try again.",
-    "blockCounterComplexity": "Complexity: {level}",
-    "@blockCounterComplexity": {
-        "placeholders": {
-            "level": {
-                "type": "int"
-            }
-        }
-    },
-    "blockCounterQuestion": "How many blocks are in this structure?",
-    "blockCounterSelectAnswer": "Select Your Answer",
-    "blockCounterShowHint": "Show Hidden",
-    "blockCounterHideHint": "Hide Hint",
-    "blockCounterRotateInstructions": "Drag to rotate • Pinch to zoom",
-    "blockCounterHintShowing": "Hidden blocks are highlighted in yellow",
-    "blockCounterHintHidden": "Some blocks may be hidden behind others",
-    "blockCounterWinTitle": "Perfect Count!",
-    "blockCounterWinDesc": "Correct! There were {count} blocks total.",
-    "@blockCounterWinDesc": {
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
-    },
-    "blockCounterBonusPoints": "Bonus points: {bonus}",
-    "@blockCounterBonusPoints": {
-        "placeholders": {
-            "bonus": {
-                "type": "int"
-            }
-        }
-    },
-    "blockCounterDifficultyVeryEasy": "Very easy",
-    "blockCounterDifficultyEasy": "Easy", 
-    "blockCounterDifficultyMedium": "Middle",
-    "blockCounterDifficultyHard": "Hard",
-    "blockCounterNextPuzzle": "Next mission",
-    "blockCounterBackToMenu": "Back to base",
-
-    "sriStatisticsTitle": "Learning Insights",
-    "sriStatisticsDesc": "View your progress and identify areas for improvement.",
-    "premiumFeature": "This is a premium feature. Unlock the full version to access.",
-    "close": "Close",
-    "sriMastery": "Overall Mastery",
-    "sriTotal": "Total Tracked",
-    "sriMastered": "Mastered",
-    "sriLearning": "Learning",
-    "progressMatrixTitle": "Progress Matrix",
-    "progressMatrixDesc": "Color shows mastery (green is best). Number shows problems tracked in that area.",
-
-      "signalTriangulationGameTitle": "Signal Triangulation",
+  "appTitle": "NumberNebula",
+  "@appTitle": {
+    "description": "The application title"
+  },
+  "welcome": "Welcome to NumberNebula!",
+  "startAdventure": "Start Your Math Adventure",
+  "chooseGrade": "Set Your Skill Level",
+  "fast": "FAST",
+  "grade3": "Level 1",
+  "grade4": "Level 2",
+  "grade5": "Level 3",
+  "grade6": "Level 4",
+  "gameMenu": "Mission Control",
+  "magicTriangles": "Cosmic Triangles",
+  "magicTrianglesDesc": "Align the cosmic energy nodes! Each side of the triangle must sum to the same cosmic frequency to stabilize the wormhole.",
+  "bubbleMath": "Asteroid Field Hunter",
+  "bubbleMathDesc": "Navigate a dangerous asteroid field! Blast the drifting space rocks in the correct numerical sequence before they collide.",
+  "puzzleMath": "Constellation Puzzles",
+  "puzzleMathDesc": "Reconstruct celestial star charts! Solve equations to find the correct coordinates and lock star fragments into place.",
+  "hyperdriveGates": "Hyperdrive Gates",
+  "hyperdriveGatesDesc": "Plot a course through quantum space gates! Fly through the gate with the correct answer to make the jump to lightspeed.",
+  "planetHopping": "Gravity Sling",
+  "planetHoppingDesc": "Slingshot your ship between planets! Calculate the right trajectory and visit planets in the correct mathematical sequence.",
+  "level": "Level",
+  "score": "Score",
+  "lives": "Hull Integrity",
+  "time": "Time",
+  "correct": "Correct!",
+  "incorrect": "Recalculating...",
+  "excellent": "Excellent work, Space Commander!",
+  "good": "Good job!",
+  "tryAgain": "Try Again",
+  "gameOver": "Mission Complete!",
+  "nextLevel": "Next Level",
+  "playAgain": "Play Again",
+  "backToMenu": "Back to Mission Control",
+  "settings": "Settings",
+  "sound": "Sound FX",
+  "music": "Music",
+  "language": "Language",
+  "progress": "Career Progress",
+  "achievements": "Achievements",
+  "mathOperationsAddition": "Addition",
+  "mathOperationsSubtraction": "Subtraction",
+  "mathOperationsMultiplication": "Multiplication",
+  "mathOperationsDivision": "Division",
+  "congratulations": "Congratulations!",
+  "missionsCompleted": "Missions Completed: {count}",
+  "@missionsCompleted": {
+    "description": "Number of missions completed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "starsEarned": "Stars Earned: {count}",
+  "@starsEarned": {
+    "description": "Number of stars earned",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "audioSettings": "Audio Settings",
+  "soundEffects": "Sound effects",
+  "backgroundMusicDesc": "Background music",
+  "gameplay": "Gameplay",
+  "puzzleTimer": "Puzzle Timer",
+  "puzzleTimerDesc": "Enable timer in puzzle games",
+  "showHints": "Show Hints",
+  "showHintsDesc": "Display helpful hints during games",
+  "hapticFeedback": "Haptic Feedback",
+  "hapticFeedbackDesc": "Vibration on touch (if supported)",
+  "appLanguage": "App Language",
+  "appLanguageDesc": "Choose your preferred language",
+  "languageEnglish": "English",
+  "languageGerman": "Deutsch",
+  "difficulty": "Difficulty",
+  "currentGrade": "Current Skill",
+  "currentLevelDesc": "Current Level",
+  "difficultyDescGrade3": "Basic operations",
+  "difficultyDescGrade4": "Multi-digit math",
+  "difficultyDescGrade5": "Complex problems",
+  "difficultyDescGrade6": "Advanced challenges",
+  "totalScore": "Total Score",
+  "gamesPlayed": "Games Played",
+  "resetProgress": "Reset Progress",
+  "about": "About",
+  "appVersion": "App Version",
+  "developer": "Developer",
+  "developerName": "CrispStrobe",
+  "targetAge": "Target Age",
+  "targetAgeRange": "8-12 years (Grades 3-6)",
+  "aboutApp": "NumberNebula helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.",
+  "languageRestartPrompt": "The app language will change when you restart. Would you like to restart now?",
+  "later": "Later",
+  "restartNow": "Restart Now",
+  "resetProgressConfirm": "Are you sure you want to reset all progress? This action cannot be undone.",
+  "legalNotice": "View Legal Notice",
+  "debugPanelTitle": "Debug Panel",
+  "debugForceUnlock": "Force Full Unlock",
+  "debugApplyAndClose": "Apply & Close",
+  "parentalGateTitle": "Parental Gate",
+  "parentalGateChallenge": "To continue, please solve this problem:",
+  "confirm": "Confirm",
+  "pleaseTryAgain": "Please try again.",
+  "purchaseTitle": "Unlock Full Access",
+  "purchaseDescription": "Unlock all 8 games, all 4 skill levels, and all future updates with a single purchase!",
+  "purchaseButton": "Unlock Now!",
+  "contactingStore": "Contacting Mission Control...",
+  "purchaseError": "An error occurred. Please check your connection and try again.",
+  "restorePurchases": "Restore Purchases",
+  "storeUnavailable": "The store is currently unavailable. Please check your connection and that you are signed in to your account.",
+  "languageChanged": "Language Changed",
+  "languageChangedDesc": "The app language will change when you restart. Would you like to restart now?",
+  "selectGrade": "Select Skill Level",
+  "gradeN": "Skill Level {gradeNumber}",
+  "@gradeN": {
+    "placeholders": {
+      "gradeNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "cancel": "Cancel",
+  "restartToApplyChanges": "Please restart the app to apply language changes",
+  "resetProgressConfirmation": "Are you sure you want to reset all progress? This action cannot be undone.",
+  "progressResetSuccess": "Progress reset successfully!",
+  "reset": "Reset",
+  "playToUnlock": "Play to unlock!",
+  "chooseYourGrade": "Choose Your Skill Level",
+  "grade3Desc": "Basic addition, subtraction, and simple multiplication",
+  "grade4Desc": "Multi-digit arithmetic and introduction to division",
+  "grade5Desc": "Complex operations, fractions, and decimals",
+  "grade6Desc": "Advanced math, logic puzzles, and multi-step problems",
+  "adaptiveDifficulty": "Adaptive Difficulty",
+  "adaptiveDifficultyDesc": "Adjusts problems based on your skill",
+  "adjustProblems": "Adjusts problems based on your skill",
+  "settingsComingSoon": "Settings coming soon!",
+  "spaceExplorerProgress": "Space Explorer Progress",
+  "unlocked": "Unlocked",
+  "complete": "Complete",
+  "rankRookie": "Rookie",
+  "rankExplorer": "Explorer",
+  "rankVeteran": "Veteran",
+  "rankExpert": "Expert",
+  "rankLegend": "Legend",
+  "achievementFirstCenturyTitle": "First Century!",
+  "achievementFirstCenturyDesc": "Score 100 points",
+  "achievementScoreMasterTitle": "Score Master",
+  "achievementScoreMasterDesc": "Score 500 points",
+  "achievementThousandClubTitle": "Thousand Club",
+  "achievementThousandClubDesc": "Score 1000 points",
+  "achievementLevelExplorerTitle": "Level Explorer",
+  "achievementLevelExplorerDesc": "Reach level 5",
+  "achievementSpaceCommanderTitle": "Space Commander",
+  "achievementSpaceCommanderDesc": "Reach level 10",
+  "achievementTriangleWizardTitle": "Triangle Wizard",
+  "achievementTriangleWizardDesc": "Complete 3 Magic Triangle levels",
+  "achievementBubblePopperTitle": "Bubble Popper",
+  "achievementBubblePopperDesc": "Complete 3 Bubble Math levels",
+  "achievementPuzzleSolverTitle": "Puzzle Solver",
+  "achievementPuzzleSolverDesc": "Complete 3 Puzzle Math levels",
+  "achievementAllRounderTitle": "All-Rounder",
+  "achievementAllRounderDesc": "Play all game types",
+  "achievementSpeedDemonTitle": "Speed Demon",
+  "achievementSpeedDemonDesc": "Complete a level in under 30 seconds",
+  "achievementPerfectionistTitle": "Perfectionist",
+  "achievementPerfectionistDesc": "Complete a level without mistakes",
+  "achievementMathematicianTitle": "Young Mathematician",
+  "achievementMathematicianDesc": "Solve 100 math problems",
+  "unlockedStatus": "UNLOCKED",
+  "lockedStatus": "LOCKED",
+  "achievementUnlocked": "ACHIEVEMENT UNLOCKED!",
+  "continueExploring": "Continue Exploring",
+  "planetHoppingObjectiveAsc": "Visit planets in ascending order!",
+  "planetHoppingObjectiveDesc": "Visit planets in descending order!",
+  "planetHoppingObjectiveEvenOdd": "Visit even numbers first, then odd!",
+  "planetHoppingTitle": "Gravity Sling",
+  "planetHoppingNextTarget": "Next: {target}",
+  "@planetHoppingNextTarget": {
+    "placeholders": {
+      "target": {}
+    }
+  },
+  "planetHoppingInstructions": "Seek the planet with greatest gravitational pull.",
+  "planetHoppingOrderAsc": "Solve the expressions and visit planets from SMALLEST to LARGEST result!",
+  "planetHoppingOrderDesc": "Solve the expressions and visit planets from LARGEST to SMALLEST result!",
+  "planetHoppingOrderEvensOdds": "Visit planets with EVEN results first, then ODD results — both in ascending order!",
+  "planetHoppingOrderAscShort": "Small→Big",
+  "planetHoppingOrderDescShort": "Big→Small",
+  "planetHoppingOrderEvensOddsShort": "Even→Odd",
+  "planetHoppingWinTitle": "Solar System Mastered!",
+  "planetHoppingWinDesc": "You successfully navigated all planets in the correct sequence!\nLives Bonus: {bonus} points",
+  "planetHoppingWinDescBonus": "You successfully navigated all planets in the correct sequence!\nLives Bonus: {bonus} points",
+  "@planetHoppingWinDescBonus": {
+    "description": "Win message with bonus points.",
+    "placeholders": {
+      "bonus": {
+        "type": "int"
+      }
+    }
+  },
+  "planetHoppingLoseDescCrash": "You crash-landed too many times!\nStudy the planet sequence and try again.",
+  "planetHoppingNextTargetValue": "Next: {value}",
+  "@planetHoppingNextTargetValue": {
+    "description": "Displays the next numerical target in the sequence.",
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "exploreAgain": "Explore Again",
+  "missionCompleteStatus": "Mission Complete",
+  "planetHoppingLoseTitle": "Navigation Failed!",
+  "planetHoppingLoseDesc": "You crash-landed too many times!\nStudy the planet sequence and try again.",
+  "retryMission": "Retry Mission",
+  "returnToBase": "Return to Base",
+  "hyperdriveGatesTitle": "Hyperdrive Gates",
+  "solve": "SOLVE:",
+  "hyperdriveGatesObjective": "Fly through gates with: {correctAnswer}",
+  "@hyperdriveGatesObjective": {
+    "placeholders": {
+      "correctAnswer": {}
+    }
+  },
+  "hyperdriveGatesInstructions": "DRAG to steer your ship up/down • FLY through CORRECT gates • AVOID wrong answers",
+  "hyperdriveGatesWinTitle": "Hyperdrive Navigation Complete!",
+  "hyperdriveGatesWinDesc": "You successfully navigated through {targetGatesNeeded} gates!\nYou're ready for deep space missions!",
+  "@hyperdriveGatesWinDesc": {
+    "placeholders": {
+      "targetGatesNeeded": {}
+    }
+  },
+  "flyAgain": "Fly Again",
+  "hyperdriveGatesLoseTitle": "Navigation System Failure!",
+  "hyperdriveGatesLoseDesc": "Your ship took too much damage!\nReturn to base for repairs and try again.",
+  "noPuzzleImagesFound": "No constellation images found in assets/images/",
+  "puzzleMathInstructions": "Rebuild the space constellation! Drag pieces to correct spots. Tap pieces to rotate them!",
+  "timer": "Timer",
+  "timesUp": "Time's up, space cadet!",
+  "constellationPieces": "Constellation Pieces",
+  "puzzleMathIncorrect": "Check the math answer or try rotating the piece!",
+  "puzzleMathWin": "Constellation restored, Space Explorer!",
+  "puzzleMathWinBonus": "Constellation restored!\nTime Bonus: {bonus} points!",
+  "@puzzleMathWinBonus": {
+    "placeholders": {
+      "bonus": {}
+    }
+  },
+  "puzzleMathTryAnother": "Let's try another constellation!",
+  "magicTrianglesGameTitle": "Wormhole Activator",
+  "magicTrianglesInstructions": "Align the Stargate! Drag resonators to match the required Warp Frequency on each side.",
+  "magicTrianglesWarpFrequency": "Warp Frequency: {warpFrequency}",
+  "@magicTrianglesWarpFrequency": {
+    "placeholders": {
+      "warpFrequency": {}
+    }
+  },
+  "magicTrianglesResonators": "Available Subspace Resonators",
+  "magicTrianglesFail": "Alignment failed. The energy signature is incorrect. Try again!",
+  "magicTrianglesOutOfMoves": "Out of Moves!",
+  "magicTrianglesOutOfMovesDesc": "Too many placements! Position each resonator carefully to align the wormhole efficiently.",
+  "calculatingCoordinates": "Calculating wormhole coordinates...",
+  "magicTrianglesWinTitle": "Wormhole Stabilized!",
+  "magicTrianglesWinDesc": "Perfect alignment! The warp corridor is open.\nBonus: +{bonusScore} points!",
+  "@magicTrianglesWinDesc": {
+    "placeholders": {
+      "bonusScore": {}
+    }
+  },
+  "nextAnomaly": "Next Anomaly",
+  "toTheBridge": "To Bridge",
+  "asteroidMathHunter": "Asteroid Hunter",
+  "asteroidMathHunterDesc": "Navigate a dangerous asteroid field! Blast the drifting space rocks in the correct numerical sequence before they collide.",
+  "asteroidMathTarget": "Target asteroid: {target}",
+  "@asteroidMathTarget": {
+    "placeholders": {
+      "target": {}
+    }
+  },
+  "asteroidMathWinTitle": "Asteroid Field Cleared!",
+  "asteroidMathWinDesc": "Time Bonus: {timeBonus} points!\nYou are a true Space Hunter!",
+  "@asteroidMathWinDesc": {
+    "placeholders": {
+      "timeBonus": {}
+    }
+  },
+  "timesUpSpaceCadet": "Time's Up, Space Cadet!",
+  "asteroidMathLoseTitle": "Mission Failed!",
+  "asteroidMathLoseDesc": "The asteroid field got too chaotic!\nTry again, Commander!",
+  "nextTarget": "Next target: ",
+  "loadingAdventure": "Loading Space Adventure...",
+  "preparingMission": "Preparing your math mission...",
+  "initializing": "Initializing NumberNebula...",
+  "loadingAssets": "Loading game assets...",
+  "loadingProgress": "Loading saved progress...",
+  "preparingSpaceStation": "Preparing space station...",
+  "calibratingNav": "Calibrating navigation systems...",
+  "readyForLaunch": "Ready for launch!",
+  "launch": "Launch",
+  "splashScreenSubtitle": "Explore • Learn • Discover",
+  "pathFinderTitle": "Path Finder",
+  "pathFinderDesc": "Navigate quantum space corridors! Calculate the right trajectory through dangerous cosmic phenomena to reach your destination safely.",
+  "pathFinderSolve": "SOLVE:",
+  "pathFinderChoosePath": "Choose the path for: {expression}",
+  "@pathFinderChoosePath": {
+    "description": "Prompts player to choose the correct path",
+    "placeholders": {
+      "expression": {
+        "type": "String",
+        "description": "The math expression to solve"
+      }
+    }
+  },
+  "pathFinderInstructions": "TAP on space routes • CALCULATE math problems • NAVIGATE through cosmic hazards",
+  "pathFinderWinTitle": "Quantum Navigation Complete!",
+  "pathFinderWinDesc": "You successfully navigated through {targetProblems} quantum corridors!\nTotal Score: {totalScore} points!",
+  "@pathFinderWinDesc": {
+    "description": "Victory message showing problems solved and score",
+    "placeholders": {
+      "targetProblems": {
+        "type": "int",
+        "description": "Number of problems that needed to be solved"
+      },
+      "totalScore": {
+        "type": "int",
+        "description": "Total points earned"
+      }
+    }
+  },
+  "pathFinderLoseTitle": "Navigation Systems Offline!",
+  "pathFinderLoseDesc": "Your ship sustained too much damage from cosmic hazards!\nRecalibrate your navigation systems and try again, Commander!",
+  "pathFinderFailureWormhole": "Wormhole collapse!",
+  "pathFinderFailureNebula": "Nebula interference!",
+  "pathFinderFailureAsteroidBelt": "Asteroid collision!",
+  "pathFinderFailureClearSpace": "Navigation error!",
+  "pathFinderFailureIonStorm": "Ion storm damage!",
+  "pathFinderFailureQuantumTunnel": "Quantum instability!",
+  "numberWalls": "Number Walls",
+  "numberWallsDesc": "Build cosmic calculation pyramids! Stabilize the quantum structure!",
+  "numberWallsGameTitle": "Quantum Pyramid Builder",
+  "numberWallsInstructions": "Build the number wall! Drag numbers to complete the structure.",
+  "numberWallsCalculating": "Calculating pyramid coordinates...",
+  "numberWallsBricks": "Available Building Blocks",
+  "numberWallsFail": "Structural integrity compromised! The mathematical foundation is unstable. Try again!",
+  "numberWallsOutOfMoves": "Out of Moves!",
+  "numberWallsOutOfMovesDesc": "Too many placements! Place each building block carefully to stabilize the pyramid.",
+  "numberWallsWinTitle": "Pyramid Stabilized!",
+  "numberWallsWinDesc": "Perfect mathematical alignment! The quantum structure is stable.\nBonus: +{bonusScore} points!",
+  "@numberWallsWinDesc": {
+    "placeholders": {
+      "bonusScore": {
+        "type": "int"
+      }
+    }
+  },
+  "numberWallsNextWall": "Next Pyramid",
+  "numberWallsAddition": "Quantum Addition Matrix",
+  "numberWallsSubtraction": "Stellar Subtraction Grid",
+  "numberWallsMultiplication": "Cosmic Multiplication Array",
+  "numberWallsDivision": "Galactic Division Network",
+  "numberWallsDropFar": "Drop it closer to the target please.",
+  "numberWallsAddDesc": "Each brick is the sum of the two below it.",
+  "numberWallsSubDesc": "The top brick is the difference of the two below it.",
+  "numberWallsMultDesc": "Each brick is the product of the two below it.",
+  "numberWallsDivDesc": "Each brick is the quotient of the two below it.",
+  "codebreaker": "Codebreaker",
+  "codebreakerDesc": "Intercept and decode alien transmissions! Solve complex equation systems to reveal their secrets.",
+  "codebreakerSuccess": "Code cracked!",
+  "codebreakerError": "Transmission corrupted",
+  "codebreakerTransmissionReceived": "Alien transmission intercepted",
+  "codebreakerSelectNumbers": "Select numbers to decode the transmission",
+  "codebreakerInstructions": "Decode the alien symbols by solving the equations. Tap numbers to fill in the missing values.",
+  "codebreakerWinTitle": "Mission Complete!",
+  "codebreakerLoseTitle": "Transmission Lost",
+  "codebreakerWinDesc": "Excellent work, Agent! You earned {totalScore} points. The galaxy is safer thanks to your cryptographic skills!",
+  "@codebreakerWinDesc": {
+    "placeholders": {
+      "totalScore": {
+        "type": "int"
+      }
+    }
+  },
+  "codebreakerLoseDesc": "The alien codes proved too complex to crack in time. Don't worry - even the best codebreakers need practice!",
+  "codebreakerOutOfMoves": "Out of Moves!",
+  "codebreakerOutOfMovesDesc": "Too many placements! Think carefully about each code assignment to crack the transmission efficiently.",
+  "problemCustomization": "Problem Customization",
+  "problemCustomizationDesc": "Customize the math operations and number ranges used in games.",
+  "problemCustomizationUnlock": "This feature requires the full version.",
+  "enableCustomSettings": "Enable Custom Settings",
+  "allowedOperations": "Allowed Operations",
+  "numberRange": "Number Range",
+  "minValue": "Min Value",
+  "maxValue": "Max Value",
+  "perspectivePuzzleGameTitle": "Anomaly Scan",
+  "anomalyScanTitle": "Anomaly Scan",
+  "perspectivePuzzleInstructions": "Scan space objects with different sensor perspectives.",
+  "anomalyScanSelectReadout": "Match hologram to correct {perspective} sensor readout",
+  "@anomalyScanSelectReadout": {
+    "placeholders": {
+      "perspective": {
+        "type": "String"
+      }
+    }
+  },
+  "anomalyScanWinTitle": "Analysis Complete!",
+  "anomalyScanWinDesc": "Anomaly Identified. Data logged. Bonus: {bonus} points.",
+  "perspectivePuzzleWinTitle": "Analysis Complete!",
+  "perspectivePuzzleWinDesc": "Anomaly Identified. Data logged. Bonus: {bonus} points.",
+  "@perspectivePuzzleWinDesc": {
+    "placeholders": {
+      "bonus": {
+        "type": "int"
+      }
+    }
+  },
+  "perspectivePuzzleSelectView": "Select the {perspective} perspective.",
+  "@perspectivePuzzleSelectView": {
+    "placeholders": {
+      "perspective": {
+        "type": "String"
+      }
+    }
+  },
+  "perspectiveFront": "FRONT",
+  "perspectiveBack": "BACK",
+  "perspectiveLeft": "LEFT",
+  "perspectiveRight": "RIGHT",
+  "@anomalyScanWinDesc": {
+    "placeholders": {
+      "bonus": {
+        "type": "int"
+      }
+    }
+  },
+  "anomalyScanFail": "Scan Mismatch. Recalibrating sensors...",
+  "perspectiveDensityScan": "DENSITY",
+  "perspectiveStructuralScan": "STRUCTURAL",
+  "perspectiveThermalScan": "THERMAL",
+  "perspectiveEMScan": "EM-FIELD",
+  "blockCounterGameTitle": "3D Block Counter",
+  "blockCounterInstructions": "Rotate and count all blocks including hidden ones",
+  "blockCounterFail": "Incorrect count! Try again.",
+  "blockCounterComplexity": "Complexity: {level}",
+  "@blockCounterComplexity": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "blockCounterQuestion": "How many blocks are in this structure?",
+  "blockCounterSelectAnswer": "Select Your Answer",
+  "blockCounterShowHint": "Show Hidden",
+  "blockCounterHideHint": "Hide Hint",
+  "blockCounterRotateInstructions": "Drag to rotate • Pinch to zoom",
+  "blockCounterHintShowing": "Hidden blocks are highlighted in yellow",
+  "blockCounterHintHidden": "Some blocks may be hidden behind others",
+  "blockCounterWinTitle": "Perfect Count!",
+  "blockCounterWinDesc": "Correct! There were {count} blocks total.",
+  "@blockCounterWinDesc": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "blockCounterBonusPoints": "Bonus points: {bonus}",
+  "@blockCounterBonusPoints": {
+    "placeholders": {
+      "bonus": {
+        "type": "int"
+      }
+    }
+  },
+  "blockCounterDifficultyVeryEasy": "Very easy",
+  "blockCounterDifficultyEasy": "Easy",
+  "blockCounterDifficultyMedium": "Middle",
+  "blockCounterDifficultyHard": "Hard",
+  "blockCounterNextPuzzle": "Next mission",
+  "blockCounterBackToMenu": "Back to base",
+  "sriStatisticsTitle": "Learning Insights",
+  "sriStatisticsDesc": "View your progress and identify areas for improvement.",
+  "premiumFeature": "This is a premium feature. Unlock the full version to access.",
+  "close": "Close",
+  "sriMastery": "Overall Mastery",
+  "sriTotal": "Total Tracked",
+  "sriMastered": "Mastered",
+  "sriLearning": "Learning",
+  "progressMatrixTitle": "Progress Matrix",
+  "progressMatrixDesc": "Color shows mastery (green is best). Number shows problems tracked in that area.",
+  "signalTriangulationGameTitle": "Signal Triangulation",
   "signalTriangulationInstructions": "A faint signal has been detected! Decode the frequency sequence by analyzing echo responses. Green dots = correct frequency in correct position, Orange rings = correct frequency in wrong position.",
-  
   "signalTriangulationAttempts": "Attempts: {current}/{max}",
   "@signalTriangulationAttempts": {
     "placeholders": {
-      "current": {"type": "int"},
-      "max": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
     }
   },
-  
   "signalTriangulationLength": "Sequence: {length} frequencies",
   "@signalTriangulationLength": {
     "placeholders": {
-      "length": {"type": "int"}
+      "length": {
+        "type": "int"
+      }
     }
   },
-  
   "signalTriangulationCurrentSequence": "Current Signal Sequence",
   "signalTriangulationFrequencies": "Available Frequencies",
   "signalTriangulationPreviousAttempts": "Echo Analysis Log",
-  
   "signalTriangulationClear": "Clear",
   "signalTriangulationTransmit": "Transmit",
-  
   "signalTriangulationWinTitle": "Signal Source Located!",
   "signalTriangulationWinDesc": "Excellent work, Astro-Technician! You triangulated the sginal in {attempts} attempts, earning {totalScore} points. Efficiency bonus: {bonus} points!",
   "@signalTriangulationWinDesc": {
     "placeholders": {
-      "attempts": {"type": "int"},
-      "totalScore": {"type": "int"}, 
-      "bonus": {"type": "int"}
+      "attempts": {
+        "type": "int"
+      },
+      "totalScore": {
+        "type": "int"
+      },
+      "bonus": {
+        "type": "int"
+      }
     }
   },
-  
   "signalTriangulationLoseTitle": "Signal Lost in Static",
   "signalTriangulationLoseDesc": "The signal has faded beyond detection range. The result cache remains hidden in the cosmic void.",
-  
   "signalTriangulationReveal": "The correct sequence was: {sequence}",
   "@signalTriangulationReveal": {
     "placeholders": {
-      "sequence": {"type": "String"}
+      "sequence": {
+        "type": "String"
+      }
     }
   },
-  
   "nextSignal": "Next Signal",
-
   "cryptexLockBreakerGameTitle": "Cryptex Lock Breaker",
   "cryptexLockBreakerInstructions": "A Code-Cryptex blocks your path! It uses interlocking mathematical equations as its combination. Rotate the dials to satisfy all equations simultaneously.",
-  
   "cryptexLockBreakerControls": "Tap and drag dials up/down to rotate • Watch the equations turn green when solved",
   "cryptexLockBreakerEquations": "Lock Equations",
-  
   "cryptexLockBreakerWinTitle": "Cryptex Unlocked!",
   "cryptexLockBreakerWinDesc": "Brilliant work, Astro-Technician! You've cracked the lock mechanism and earned {totalScore} points. Complexity bonus: {complexityBonus} • Equation bonus: {equationBonus}",
   "@cryptexLockBreakerWinDesc": {
     "placeholders": {
-      "totalScore": {"type": "int"},
-      "complexityBonus": {"type": "int"},
-      "equationBonus": {"type": "int"}
+      "totalScore": {
+        "type": "int"
+      },
+      "complexityBonus": {
+        "type": "int"
+      },
+      "equationBonus": {
+        "type": "int"
+      }
     }
   },
-  
   "nextCryptex": "Next Cryptex",
-
   "arithmancerGameTitle": "Arithmancer's Duel",
   "@arithmancerGameTitle": {
     "description": "Title of the Arithmancer game"
   },
-
   "arithmancerGameInstructions": "Fight as Combat Coder against rogue AI programs, leverage your Neural Arsenal.",
-  
   "arithmancerHealth": "Health",
   "@arithmancerHealth": {
     "description": "Health stat label"
   },
-
   "arithmancerSkipTurn": "Skip turn",
-  
   "arithmancerEnergy": "Energy",
   "@arithmancerEnergy": {
     "description": "Energy stat label"
   },
-  
   "arithmancerBlock": "Block",
   "@arithmancerBlock": {
     "description": "Block stat label"
   },
-  
   "arithmancerExpression": "Combat Sequence",
   "@arithmancerExpression": {
     "description": "Expression builder area title"
   },
-  
   "arithmancerExecute": "Execute",
   "@arithmancerExecute": {
     "description": "Button to execute the mathematical expression"
   },
-  
   "arithmancerDragCards": "Drag cards here to build your combat sequence",
   "@arithmancerDragCards": {
     "description": "Placeholder text for empty expression area"
   },
-  
   "arithmancerHand": "Neural Arsenal",
   "@arithmancerHand": {
     "description": "Hand area title"
   },
-  
   "arithmancerNoCards": "No algorithms available",
   "@arithmancerNoCards": {
     "description": "Message when hand is empty"
   },
-  
   "arithmancerInvalidExpression": "Invalid sequence - check syntax",
   "@arithmancerInvalidExpression": {
     "description": "Error message for invalid mathematical expression"
   },
-  
   "arithmancerNotEnoughEnergy": "Insufficient processing power",
   "@arithmancerNotEnoughEnergy": {
     "description": "Error message when not enough energy to execute"
   },
-  
   "arithmancerEnemyAttack": "AI counterattack deals {damage} damage!",
   "@arithmancerEnemyAttack": {
     "description": "Message when enemy attacks",
@@ -641,76 +622,60 @@
       }
     }
   },
-  
   "arithmancerPropertyPrime": "Prime",
   "@arithmancerPropertyPrime": {
     "description": "Prime number mathematical property"
   },
-  
   "arithmancerPropertySquare": "Perfect Square",
   "@arithmancerPropertySquare": {
     "description": "Perfect square mathematical property"
   },
-
   "arithmeticSquareOutOfMoves": "Out of Moves!",
   "arithmeticSquareOutOfMovesDesc": "Think carefully about each placement to solve the puzzle efficiently.",
-  "tryAgain": "Try Again",
-  
   "arithmancerPropertyFibonacci": "Fibonacci",
   "@arithmancerPropertyFibonacci": {
     "description": "Fibonacci number mathematical property"
   },
-  
   "arithmancerPropertyEven": "Even",
   "@arithmancerPropertyEven": {
     "description": "Even number mathematical property"
   },
-  
   "arithmancerPropertyOdd": "Odd",
   "@arithmancerPropertyOdd": {
     "description": "Odd number mathematical property"
   },
-  
   "arithmancerPropertyPowerOfTwo": "Power of 2",
   "@arithmancerPropertyPowerOfTwo": {
     "description": "Power of two mathematical property"
   },
-  
   "arithmancerShieldPrime": "Prime Shield",
   "@arithmancerShieldPrime": {
     "description": "Prime number defense shield"
   },
-  
   "arithmancerShieldEven": "Even Absorber",
   "@arithmancerShieldEven": {
     "description": "Even number defense shield"
   },
-  
   "arithmancerShieldOdd": "Odd Vulnerable",
   "@arithmancerShieldOdd": {
     "description": "Odd number weakness"
   },
-  
   "arithmancerShieldSquare": "Square Immunity",
   "@arithmancerShieldSquare": {
     "description": "Perfect square defense shield"
   },
-  
   "arithmancerShieldFibonacci": "Fibonacci Lock",
   "@arithmancerShieldFibonacci": {
     "description": "Fibonacci sequence defense shield"
   },
-  
   "arithmancerShieldPowerOfTwo": "Binary Fortress",
   "@arithmancerShieldPowerOfTwo": {
     "description": "Power of two defense shield"
   },
-  
   "arithmancerVictoryTitle": "Neural Breach Successful!",
   "@arithmancerVictoryTitle": {
     "description": "Victory dialog title"
   },
-  
   "arithmancerVictoryDesc": "Rogue AI neutralized! You earned {score} data credits for restoring this network node.",
   "@arithmancerVictoryDesc": {
     "description": "Victory dialog description",
@@ -721,90 +686,80 @@
       }
     }
   },
-  
   "arithmancerDefeatTitle": "System Compromised",
   "@arithmancerDefeatTitle": {
     "description": "Defeat dialog title"
   },
-  
   "arithmancerDefeatDesc": "The rogue AI has overwhelmed your defenses. Analyzing attack patterns for next attempt...",
   "@arithmancerDefeatDesc": {
     "description": "Defeat dialog description"
   },
-  
   "arithmancerNextChallenge": "Engage New Target",
   "@arithmancerNextChallenge": {
     "description": "Button to start next challenge"
   },
-  
   "arithmancerTryAgain": "Retry Infiltration",
   "@arithmancerTryAgain": {
     "description": "Button to try again after defeat"
   },
-  
   "arithmancerReturnToBridge": "Return to Bridge",
   "@arithmancerReturnToBridge": {
     "description": "Button to return to main menu"
   },
-
   "arithmancerGameModeNeuralBreach": "NEURAL BREACH",
-  "arithmancerGameModeAiDuel": "AI COMBAT DUEL", 
+  "arithmancerGameModeAiDuel": "AI COMBAT DUEL",
   "arithmancerGameModeNeuralLadder": "NEURAL LADDER",
-
   "arithmancerDeck": "DECK",
   "arithmancerUsed": "USED",
-
   "arithmancerOpponentProcessing": "OPPONENT PROCESSING...",
-
   "arithmancerBonusPrime": "PRIME",
-  "arithmancerBonusSquare": "SQUARE", 
+  "arithmancerBonusSquare": "SQUARE",
   "arithmancerBonusFibonacci": "FIBONACCI",
   "arithmancerBonusBinary": "BINARY",
-
   "arithmancerInstructionsGeneral": "Create mathematical expressions to deal damage",
   "arithmancerInstructionsAiPlayer": "Defeat {aiName} with clever mathematics",
   "@arithmancerInstructionsAiPlayer": {
     "placeholders": {
-      "aiName": {"type": "String"}
+      "aiName": {
+        "type": "String"
+      }
     }
   },
-  "arithmancerInstructionsPrimeShield": "Use prime numbers to break through the prime shield", 
+  "arithmancerInstructionsPrimeShield": "Use prime numbers to break through the prime shield",
   "arithmancerInstructionsSquareImmune": "Avoid perfect squares - this enemy is immune",
   "arithmancerInstructionsFibonacciOnly": "Only Fibonacci numbers can deal damage",
   "arithmancerInstructionsPowerOfTwoOnly": "Only powers of two penetrate this defense",
   "arithmancerInstructionsParityDaemon": "Use ODD numbers! Even numbers are absorbed by this daemon",
-
   "arithmancerHelpPrimeTitle": "What are Prime Numbers?",
   "arithmancerHelpPrimeExplain": "A prime number can only be divided by 1 and itself. It has no other divisors.",
   "arithmancerHelpPrimeExamples": "2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47 ...",
   "arithmancerHelpPrimeStrategy": "Tip: Create expressions that equal a prime >= 11 for 3x damage!",
-
   "arithmancerHelpParityTitle": "Odd vs Even Numbers",
   "arithmancerHelpParityExplain": "Even numbers (divisible by 2) are ABSORBED — they heal the enemy! Odd numbers deal bonus damage.",
   "arithmancerHelpParityExamples": "Odd: 1, 3, 5, 7, 9, 11, 13 ...  Even: 2, 4, 6, 8, 10, 12 ...",
   "arithmancerHelpParityStrategy": "Tip: Odd + Odd = Even (bad!). Odd x Odd = Odd (good!). Watch your operators!",
-
   "arithmancerHelpSquareTitle": "What are Perfect Squares?",
   "arithmancerHelpSquareExplain": "A perfect square is a number that equals some integer multiplied by itself.",
   "arithmancerHelpSquareExamples": "1x1=1, 2x2=4, 3x3=9, 4x4=16, 5x5=25, 6x6=36, 7x7=49, 8x8=64 ...",
   "arithmancerHelpSquareStrategy": "Tip: Create a perfect square for 2.5x damage! Non-squares deal almost nothing.",
-
   "arithmancerHelpFibTitle": "What are Fibonacci Numbers?",
   "arithmancerHelpFibExplain": "Each Fibonacci number is the sum of the two before it. Start with 1, 1, then add: 1+1=2, 1+2=3, 2+3=5, ...",
   "arithmancerHelpFibExamples": "1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144 ...",
   "arithmancerHelpFibStrategy": "Tip: Only Fibonacci results deal damage! Memorize the sequence or use addition cards to build them.",
-
   "arithmancerHelpPow2Title": "What are Powers of Two?",
   "arithmancerHelpPow2Explain": "Start with 1 and keep doubling: 1, 2, 4, 8, 16, 32, ... Each is 2 multiplied by itself a certain number of times.",
   "arithmancerHelpPow2Examples": "2^0=1, 2^1=2, 2^2=4, 2^3=8, 2^4=16, 2^5=32, 2^6=64, 2^7=128 ...",
   "arithmancerHelpPow2Strategy": "Tip: Use multiplication: 2x2=4, 2x4=8, 4x4=16. Only powers of 2 deal full damage!",
-
-  "arithmancerLadderProgressTitle": "Ladder Progress", 
+  "arithmancerLadderProgressTitle": "Ladder Progress",
   "arithmancerLadderProgressDesc": "Step {step} of {total} complete! Continue climbing the neural ladder.",
   "@arithmancerLadderProgressDesc": {
     "placeholders": {
-      "step": {"type": "int"},
-      "total": {"type": "int"}
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "arithmancerLadderContinue": "Continue Ladder",
@@ -812,12 +767,12 @@
   "arithmancerLadderChampionDesc": "Congratulations! You've conquered the entire neural ladder and earned {score} points!",
   "@arithmancerLadderChampionDesc": {
     "placeholders": {
-      "score": {"type": "int"}
+      "score": {
+        "type": "int"
+      }
     }
   },
-
   "arithmancerTurnSkipped": "Turn skipped - energy saved for next round",
-
   "arithmancerGameplayGuide": "Gameplay Guide",
   "arithmancerGuideBasics": "• Drag cards from your hand to the battlefield to create mathematical expressions\n• Click 'Execute' to deal damage based on the result",
   "arithmancerGuideCards": "• Number cards (green): Provide values\n• Operator cards (yellow): +, -, ×, ÷\n• Parentheses cards (pink): Split into ( and ) for order of operations",
@@ -826,39 +781,30 @@
   "arithmancerGuideShields": "• Enemies have various mathematical shields\n• Some block specific number types\n• Watch enemy descriptions for hints",
   "arithmancerGuideDiscard": "• Drag unwanted cards to the USED pile on the right\n• Use this to manage your hand",
   "arithmancerGuideSkip": "• Click the skip button to end your turn\n• Your energy will be doubled for the next round",
-
   "arithmancerModeSelectionSubtitle": "Choose your combat protocol",
   "arithmancerModeNeuralBreachDesc": "Battle hostile AI programs in sequence",
-  "arithmancerModeAiDuelDesc": "Fight advanced AI personalities one-on-one", 
+  "arithmancerModeAiDuelDesc": "Fight advanced AI personalities one-on-one",
   "arithmancerModeNeuralLadderDesc": "Climb through mixed program and AI challenges",
-
-
-
   "arithmeticSquare": "Arithmetic Square",
   "@arithmeticSquare": {
     "description": "Title for the Arithmetic Square puzzle game"
   },
-  
   "arithmeticSquareInstructions": "Fill the empty cells to make each row and column form valid equations!",
   "@arithmeticSquareInstructions": {
     "description": "Instructions for playing the Arithmetic Square game"
   },
-  
   "arithmeticSquareError": "Some equations don't add up! Check your numbers and try again.",
   "@arithmeticSquareError": {
     "description": "Error message when the arithmetic square solution is incorrect"
   },
-  
   "arithmeticSquareSelectNumbers": "Drag numbers into the empty cells:",
   "@arithmeticSquareSelectNumbers": {
     "description": "Instruction text above the number pool in arithmetic square"
   },
-  
   "arithmeticSquareWinTitle": "Mathematical Mastery!",
   "@arithmeticSquareWinTitle": {
     "description": "Title shown in success dialog for arithmetic square"
   },
-  
   "arithmeticSquareWinDesc": "Outstanding! You've solved the arithmetic square and earned {bonusScore} bonus points for your mathematical precision!",
   "@arithmeticSquareWinDesc": {
     "description": "Success message for completing arithmetic square puzzle",
@@ -869,35 +815,28 @@
       }
     }
   },
-
   "arithmancerCrosswords": "Arithmancer Crosswords",
   "@arithmancerCrosswords": {
     "description": "Title for the Arithmancer Crosswords puzzle game"
   },
-  
   "arithmancerCrosswordsInstructions": "Solve the intersecting math equations by placing numbers in the crossword grid!",
   "@arithmancerCrosswordsInstructions": {
     "description": "Instructions for playing the Arithmancer Crosswords game"
   },
-  
   "arithmancerCrosswordsError": "The crossword equations don't balance! Check your math and try again.",
   "@arithmancerCrosswordsError": {
     "description": "Error message when the crossword solution is incorrect"
   },
-
   "arithmancerCrosswordsOutOfMoves": "Out of Moves!",
   "arithmancerCrosswordsOutOfMovesDesc": "Plan your moves carefully to solve the crossword efficiently.",
-  
   "arithmancerCrosswordsSelectNumbers": "Drag numbers to fill the crossword:",
   "@arithmancerCrosswordsSelectNumbers": {
     "description": "Instruction text above the number pool in arithmancer crosswords"
   },
-  
   "arithmancerCrosswordsWinTitle": "Crossword Champion!",
   "@arithmancerCrosswordsWinTitle": {
     "description": "Title shown in success dialog for arithmancer crosswords"
   },
-  
   "arithmancerCrosswordsWinDesc": "Brilliant! You've mastered the mathematical crossword and earned {bonusScore} bonus points for your arithmantic prowess!",
   "@arithmancerCrosswordsWinDesc": {
     "description": "Success message for completing arithmancer crosswords puzzle",
@@ -908,22 +847,18 @@
       }
     }
   },
-
   "kenken": "KenKen",
   "@kenken": {
     "description": "Name of the KenKen puzzle game"
   },
-  
   "kenkenInstructions": "Fill the grid so each row and column contains every number exactly once. Numbers in cages must satisfy the math clue.",
   "@kenkenInstructions": {
     "description": "Instructions for playing KenKen"
   },
-  
   "kenkenError": "Oops! The solution doesn't satisfy all constraints. Check the cage math and Latin square rules!",
   "@kenkenError": {
     "description": "Error message when KenKen solution is incorrect"
   },
-
   "kenkenOutOfMoves": "Out of Moves!",
   "@kenkenOutOfMoves": {
     "description": "Title for KenKen out-of-moves dialog"
@@ -932,17 +867,14 @@
   "@kenkenOutOfMovesDesc": {
     "description": "Description for KenKen out-of-moves dialog"
   },
-  
   "kenkenSelectNumbers": "Drag numbers to fill the grid:",
   "@kenkenSelectNumbers": {
     "description": "Instructions for the number selection pad in KenKen"
   },
-  
   "kenkenWinTitle": "Mathematical Mastery!",
   "@kenkenWinTitle": {
     "description": "Title for KenKen win dialog"
   },
-  
   "kenkenWinDesc": "Incredible logical thinking! You've solved this KenKen puzzle perfectly and earned {bonusScore} bonus points for your mathematical prowess!",
   "@kenkenWinDesc": {
     "description": "Description for KenKen win dialog with bonus score",
@@ -953,7 +885,6 @@
       }
     }
   },
-
   "asteroidFieldTitle": "Asteroid Field Navigator",
   "asteroidFieldInstructions": "Reveal safe sectors, avoid asteroids! Long-press or use flag mode to mark dangers.",
   "asteroidFieldRevealMode": "Reveal Mode",
@@ -961,30 +892,29 @@
   "asteroidFieldWinTitle": "Field Cleared!",
   "asteroidFieldWinDesc": "Navigation complete in {time}!\n\nTotal Score: {score}\nSpeed Bonus: +{speedBonus}\nEfficiency Bonus: +{efficiencyBonus}",
   "@asteroidFieldWinDesc": {
-      "description": "Victory message with time, score, and bonuses",
-      "placeholders": {
-          "time": {
-              "type": "String",
-              "description": "Time taken to complete the field"
-          },
-          "score": {
-              "type": "int",
-              "description": "Total score achieved"
-          },
-          "speedBonus": {
-              "type": "int",
-              "description": "Bonus points for fast completion"
-          },
-          "efficiencyBonus": {
-              "type": "int",
-              "description": "Bonus points for accurate flagging"
-          }
+    "description": "Victory message with time, score, and bonuses",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "description": "Time taken to complete the field"
+      },
+      "score": {
+        "type": "int",
+        "description": "Total score achieved"
+      },
+      "speedBonus": {
+        "type": "int",
+        "description": "Bonus points for fast completion"
+      },
+      "efficiencyBonus": {
+        "type": "int",
+        "description": "Bonus points for accurate flagging"
       }
+    }
   },
   "asteroidFieldLoseTitle": "Asteroid Impact!",
   "asteroidFieldLoseDesc": "Your ship hit an asteroid. The field has been revealed.",
   "nextField": "Next Field",
-
   "cargoBayTitle": "Cargo Bay Arranger",
   "cargoBayInstructions": "Arrange cargo and watch for number patterns!",
   "cargoBayNext": "Next",
@@ -992,32 +922,37 @@
   "cargoBayPressC": "Press C",
   "cargoBayBonuses": "Bonuses",
   "cargoBayKeyboardHints": "Arrow Keys: Move | ↑: Rotate | Space: Drop | C: Hold",
-  
   "cargoBayWinTitle": "Mission Complete!",
   "cargoBayWinDesc": "Perfect! {rows} rows cleared!\n\nScore: {score}\nBonus Total: +{rowBonus}",
   "@cargoBayWinDesc": {
     "placeholders": {
-      "rows": {"type": "int"},
-      "score": {"type": "int"},
-      "rowBonus": {"type": "int"}
+      "rows": {
+        "type": "int"
+      },
+      "score": {
+        "type": "int"
+      },
+      "rowBonus": {
+        "type": "int"
+      }
     }
   },
-  
   "cargoBayLoseTitle": "Cargo Bay Overloaded!",
   "cargoBayLoseDesc": "The cargo bay is full!\nTry again!",
   "nextShipment": "Next Shipment",
-  
   "bonusTargetSum": "Target Sum",
   "bonusTargetSumDesc": "Full row/column = {target}",
   "@bonusTargetSumDesc": {
-    "placeholders": {"target": {"type": "int"}}
+    "placeholders": {
+      "target": {
+        "type": "int"
+      }
+    }
   },
-  
   "bonusFibonacciTitle": "Fibonacci",
   "bonusDoublingTitle": "Doubling",
   "bonusConsecutiveTitle": "Consecutive",
   "bonusSquareTitle": "Square Sum",
-
   "moleculeBuilderTitle": "Molecule Builder",
   "moleculeBuilderInstructions": "Slide atoms to form the target molecule! Atoms glide until hitting a wall or another atom.",
   "moleculeBuilderMoves": "Moves",
@@ -1032,35 +967,32 @@
   "moleculeBuilderWinTitle": "Molecule Complete!",
   "moleculeBuilderWinDesc": "Solved in {moves} moves\nScore: {score} (+{efficiencyBonus} bonus)",
   "@moleculeBuilderWinDesc": {
-      "description": "Victory message with moves and score",
-      "placeholders": {
-          "moves": {
-              "type": "int",
-              "description": "Number of moves used"
-          },
-          "score": {
-              "type": "int",
-              "description": "Total score achieved"
-          },
-          "efficiencyBonus": {
-              "type": "int",
-              "description": "Bonus points for efficient solution"
-          }
+    "description": "Victory message with moves and score",
+    "placeholders": {
+      "moves": {
+        "type": "int",
+        "description": "Number of moves used"
+      },
+      "score": {
+        "type": "int",
+        "description": "Total score achieved"
+      },
+      "efficiencyBonus": {
+        "type": "int",
+        "description": "Bonus points for efficient solution"
       }
+    }
   },
   "moleculeBuilderLoseTitle": "Out of Moves!",
   "moleculeBuilderLoseDesc": "Move limit exceeded! The molecular structure remains incomplete.\nStudy the pattern and try again, scientist!",
   "moleculeBuilderNextMolecule": "Next Molecule",
-
   "moleculeBuilderUndo": "Undo",
-
   "moleculeBuilderHelp": "Help / Instructions",
   "moleculeBuilderInfoTitle": "How to Play",
   "moleculeBuilderInfoGoal": "Goal: Arrange the loose atoms on the grid to perfectly match the target molecule structure shown on the left.",
   "moleculeBuilderInfoHowTo": "How to Play: Tap an atom to select it. Then, use the arrow buttons or swipe on the atom to slide it. Atoms will slide in a straight line until they hit a wall or another atom.",
   "moleculeBuilderInfoMoves": "Moves: Each slide costs one move. Try to build the molecule before you run out of moves!",
   "moleculeBuilderInfoUndo": "Undo: The 'Undo' button will revert your last move, but it costs 2 moves as a penalty.",
-
   "level01Label": "Water",
   "level02Label": "Methane",
   "level03Label": "Methanol",
@@ -1091,7 +1023,6 @@
   "level28Label": "Propanal",
   "level29Label": "Propyne",
   "level30Label": "Bonus Section 5",
-
   "atomNameHydrogen": "Hydrogen",
   "atomNameOxygen": "Oxygen",
   "atomNameCarbon": "Carbon",
@@ -1099,114 +1030,86 @@
   "atomNameSulfur": "Sulfur",
   "atomNameFluorine": "Fluorine",
   "atomNameSpecial": "Special",
-
   "moleculeBuilderMoleculeInfo": "Molecule Info",
   "moleculeBuilderBonusTitle": "Bonus Target",
   "moleculeInfoNomenclature": "Nomenclature & Description",
   "moleculeInfoKeyFacts": "Key Facts",
   "moleculeInfoInSpace": "In Space",
-
   "level01Desc": "Water (H₂O) is an inorganic compound essential for all known forms of life. It is a tasteless, odorless liquid at standard temperature, often called the 'universal solvent' for its ability to dissolve many substances.",
   "level01Facts": "• Consists of two hydrogen atoms covalently bonded to a single oxygen atom.\n• Due to its polarity, it exhibits strong hydrogen bonds, leading to a high boiling point and surface tension.\n• Ice is less dense than liquid water, a rare property that allows aquatic life to survive under frozen surfaces.",
   "level01Space": "Water is abundant in interstellar clouds, on comets, and on icy moons like Europa. In the vacuum of space, liquid water cannot exist; it either freezes into ice or boils away into vapor. On Mars, its low atmospheric pressure means water boils at just above 0°C (32°F).",
-
   "level02Desc": "Methane (CH₄) is the simplest alkane and the primary component of natural gas. It is a colorless, odorless gas and a potent greenhouse gas.",
   "level02Facts": "• Features a central carbon atom bonded to four hydrogen atoms in a tetrahedral geometry.\n• Produced by anaerobic bacteria in environments like wetlands and the digestive tracts of ruminants.\n• A key fuel source and a starting material for the chemical industry.",
   "level02Space": "Methane is common in our solar system. Titan, Saturn's largest moon, has a thick methane atmosphere with rivers and lakes of liquid methane on its surface, where the temperature is a frigid -179°C (-290°F).",
-
   "level03Desc": "Methanol (CH₃OH), or wood alcohol, is the simplest alcohol. It is a light, volatile, colorless, and flammable liquid with a distinctive odor.",
   "level03Facts": "• Composed of a methyl group (-CH₃) linked to a hydroxyl group (-OH).\n• It is highly toxic if ingested and is used as a solvent, antifreeze, and in chemical synthesis.\n• An important fuel in some specialized engines.",
   "level03Space": "Vast clouds of methanol exist in star-forming regions of the Milky Way. It forms on the surface of icy dust grains and is considered a key building block for more complex organic molecules in space.",
-
   "level04Desc": "Ethylene (C₂H₄), or ethene, is the simplest alkene, characterized by a carbon-carbon double bond. It is a colorless flammable gas with a faint sweet odor.",
   "level04Facts": "• The most produced organic compound in the world, primarily used to make polyethylene plastic.\n• Acts as a natural plant hormone, regulating processes like fruit ripening, flower opening, and leaf shedding.\n• The double bond makes it much more reactive than ethane.",
   "level04Space": "Ethylene is present in the atmospheres of gas giants like Jupiter and Saturn. On Titan, sunlight breaks down methane into more complex hydrocarbons, including ethylene, contributing to the moon's orange haze.",
-
   "level05Desc": "Propene (C₃H₆), or propylene, is an alkene with three carbon atoms and one double bond. It is a colorless gas with a faint petroleum-like odor.",
   "level05Facts": "• A vital starting material in the petrochemical industry, second only to ethylene.\n• Primarily used to produce polypropylene, a versatile plastic used in packaging, textiles, and automotive parts.\n• Produced by steam cracking of hydrocarbon feedstocks.",
   "level05Space": "NASA's Cassini spacecraft detected propene on Titan. Its presence helps scientists model the complex atmospheric chemistry on worlds rich in methane, providing insights into how building blocks for life might form.",
-
   "level07Desc": "Ethanol (C₂H₅OH), or grain alcohol, is the alcohol found in alcoholic beverages. It is a volatile, flammable, colorless liquid produced by the fermentation of sugars.",
   "level07Facts": "• Composed of an ethyl group (-C₂H₅) bonded to a hydroxyl group (-OH).\n• Widely used as a solvent, antiseptic, and as a renewable biofuel to supplement gasoline.\n• It is a central nervous system depressant.",
   "level07Space": "Gigantic clouds of ethanol, billions of kilometers wide, have been found floating in interstellar space. These cosmic spirits are formed on dust grains and are not drinkable! On Mars, the low pressure would cause ethanol to boil at just 10°C (50°F).",
-
   "level08Desc": "Isopropanol ((CH₃)₂CHOH), or isopropyl alcohol, is a common disinfectant and cleaning agent, widely known as rubbing alcohol. It is an isomer of propanol.",
   "level08Facts": "• The hydroxyl group (-OH) is attached to the middle carbon of the three-carbon chain.\n• Its ability to dissolve oils and its rapid evaporation make it an effective cleaner for electronics and a de-icing agent.\n• It is toxic to ingest.",
   "level08Space": "Isopropanol was definitively detected in a star-forming cloud near the center of our galaxy, Sagittarius B2. It is the largest alcohol found so far with a branched structure, giving clues about how complex organic molecules form between stars.",
-
   "level09Desc": "Ethanal (CH₃CHO), commonly known as acetaldehyde, is a reactive, colorless liquid with a pungent, fruity odor. It is an important intermediate in organic synthesis and metabolism.",
   "level09Facts": "• Occurs naturally in coffee, bread, and ripe fruit.\n• In the human body, it is an intermediate in the breakdown of ethanol and is a major cause of hangover symptoms.\n• Used to produce acetic acid, perfumes, and dyes.",
   "level09Space": "Acetaldehyde is found in comets and interstellar molecular clouds. It is a key prebiotic molecule because it can react to form amino acids like alanine under space-like conditions, suggesting that life's building blocks may have extraterrestrial origins.",
-
   "level10Desc": "Acetone (CH₃COCH₃), or propanone, is the simplest ketone. It is a colorless, volatile, and flammable liquid with a distinctive sweet, pungent odor. It's a common solvent, famously used in nail polish remover.",
   "level10Facts": "• Features a central carbonyl group (C=O) bonded to two methyl groups.\n• Miscible with water and serves as an important solvent for cleaning in laboratory and industrial settings.\n• The human body naturally produces small amounts of acetone during metabolism.",
   "level10Space": "Acetone has been detected in the gas cloud surrounding Comet 67P by the Rosetta spacecraft. Its presence on comets suggests that these 'dirty snowballs' could have delivered a cocktail of complex organic molecules to the early Earth.",
-
   "level11Desc": "Formic Acid (HCOOH) is the simplest carboxylic acid. It is a colorless liquid with a pungent, penetrating odor. It is naturally found in the venom of ants and bees.",
   "level11Facts": "• Its name comes from the Latin word for ant, 'formica', as it was first isolated from ant bodies.\n• Used as a preservative and antibacterial agent in livestock feed.\n• It is corrosive and an irritant to the skin.",
   "level11Space": "Formic acid is abundant in interstellar clouds and has been observed in comets. It is a key molecule for astrochemists because it contains the carboxyl group (-COOH) that is the defining feature of all amino acids, the building blocks of proteins.",
-
   "level13Desc": "Acetic Acid (CH₃COOH) is a carboxylic acid that gives vinegar its sour taste and pungent smell. In its pure, water-free form, it is called glacial acetic acid.",
   "level13Facts": "• Consists of a methyl group bonded to a carboxyl group.\n• A fundamental chemical reagent and industrial chemical, used in the production of plastics, photographic film, and textiles.\n• A weak acid, it is used as a food additive (E260) for acidity regulation.",
   "level13Space": "Acetic acid has been detected in the hot molecular cores of star-forming regions like Sagittarius B2. Its presence suggests that the chemistry in these stellar nurseries is complex enough to form the key components of biochemistry.",
-
   "level14Desc": "trans-Butene is an isomer of butene (C₄H₈) where the main carbon chains are on opposite sides of the carbon-carbon double bond. This 'trans' configuration makes it more stable than its cis-isomer.",
   "level14Facts": "• The rigid double bond prevents rotation, creating distinct geometric isomers.\n• It is a colorless, flammable gas at room temperature.\n• Used in the production of synthetic rubber and other chemicals.",
   "level14Space": "The relative abundance of cis and trans isomers in space can tell astronomers about the conditions under which they formed. A high-temperature, gas-phase reaction might produce a different ratio of isomers than a low-temperature reaction on the surface of an ice grain.",
-
   "level15Desc": "cis-Butene is an isomer of butene (C₄H₈) where the main carbon chains are on the same side of the carbon-carbon double bond. This configuration is less stable than the trans-isomer due to steric strain.",
   "level15Facts": "• Has a slightly higher boiling point than its trans-isomer due to a small molecular dipole moment.\n• The cis-trans isomerism is critically important in biology, especially in the function of fatty acids and vision (retinal).",
   "level15Space": "Detecting specific isomers like cis-butene in space is a major challenge for radio astronomy. A confirmed detection could provide deep insights into the physical and chemical processes occurring in protoplanetary disks, where new planets are born.",
-
   "level16Desc": "Dimethyl ether (CH₃OCH₃) is the simplest ether. It is a colorless gas that is an isomer of ethanol, but with very different properties due to the lack of hydrogen bonding.",
   "level16Facts": "• It is being developed as a clean-burning alternative fuel for diesel engines, as it produces very low emissions of particulates and NOx.\n• Used as a propellant in aerosol spray cans, replacing CFCs.\n• Can be produced from natural gas, coal, or biomass.",
   "level16Space": "Dimethyl ether is one of the most abundant large organic molecules found in star-forming clouds. It serves as a crucial chemical tracer for astronomers, helping them gauge the temperature and density of the regions where stars and planets are forming.",
-
   "level17Desc": "Butanol (C₄H₉OH) is a four-carbon alcohol with several isomers. Butan-1-ol, shown here, is a primary alcohol with a banana-like odor. It is used as a solvent and is being researched as a biofuel.",
   "level17Facts": "• As a biofuel ('biobutanol'), it has a higher energy density than ethanol and is less corrosive, making it a more attractive gasoline alternative.\n• Used in a wide range of applications, including as an artificial flavoring in food and an ingredient in perfumes.\n• Its isomers include isobutanol and tert-butanol.",
   "level17Space": "Complex alcohols larger than propanol have not yet been definitively found in interstellar space. The search for butanol is ongoing, as its discovery would push the boundary of known interstellar chemistry and confirm that larger, more complex organic structures can form between the stars.",
-
   "level19Desc": "2-Methyl-2-Propanol ((CH₃)₃COH), also known as tert-Butanol, is the simplest tertiary alcohol. It is a colorless solid at room temperature, which melts easily and has a camphor-like odor.",
   "level19Facts": "• The 'tert' (tertiary) refers to the central carbon being attached to three other carbon atoms.\n• Used as a solvent, a denaturant for ethanol, and a gasoline octane booster.\n• Its bulky shape prevents it from reacting in the same way as other butanol isomers.",
   "level19Space": "Detecting a branched tertiary alcohol like this one in space would be a monumental discovery. It would prove that not only can long chains form, but complex, branched structures can also be synthesized in the harsh environment of interstellar clouds, expanding the inventory of prebiotic molecules.",
-
   "level20Desc": "Glycerin (C₃H₈O₃), or glycerol, is a simple polyol compound. It is a colorless, odorless, viscous, and sweet-tasting liquid. It is non-toxic and is the backbone of all triglycerides (fats).",
   "level20Facts": "• The three hydroxyl (-OH) groups make it highly water-soluble and hygroscopic (it attracts and holds water molecules).\n• Widely used in food as a sweetener, in pharmaceuticals, and in personal care products like soap and moisturizers.\n• A natural antifreeze in some arctic and alpine insects.",
   "level20Space": "Glycerol is a key molecule in the search for extraterrestrial life. Its ability to act as a solvent and lower the freezing point of water could make liquids stable on otherwise frozen worlds, potentially creating habitable environments on icy moons or exoplanets.",
-
   "level21Desc": "Poly-Tetra-Fluoro-Ethene ((C₂F₄)n), or PTFE, is a synthetic polymer best known by the brand name Teflon. The image shows its monomer, tetrafluoroethene.",
   "level21Facts": "• It has one of the lowest coefficients of friction of any solid, making it extremely non-stick.\n• Highly resistant to chemical attack and stable over a wide range of temperatures.\n• Used in non-stick cookware, pipe linings, and medical devices.",
   "level21Space": "Fluorine is a relatively rare element in the cosmos. While complex fluoropolymers are not expected to form naturally in space, PTFE's incredible durability and low-friction properties make it a vital material for space exploration, used in everything from spacesuits to rover components.",
-
   "level22Desc": "Oxalic Acid ((COOH)₂) is the simplest dicarboxylic acid. It is a colorless crystalline solid that dissolves in water to give a colorless solution. It is a much stronger acid than acetic acid.",
   "level22Facts": "• Found naturally in many plants, including leafy greens (like spinach), vegetables, fruits, and nuts.\n• It binds with minerals like calcium to form crystals, which are the main component of the most common type of kidney stones.\n• Used as a cleaning and bleaching agent, especially for removing rust.",
   "level22Space": "On Mars, instruments aboard rovers have detected minerals that could be associated with oxalates. The presence of these salts suggests that water and organic chemistry have occurred on the Red Planet, providing clues about its past habitability.",
-
   "level23Desc": "Formaldehyde (CH₂O), or methanal, is the simplest aldehyde. It is a colorless gas with a characteristic pungent, irritating odor. It's a crucial precursor to many other chemical compounds.",
   "level23Facts": "• Used in the production of industrial resins, such as for particleboard and coatings.\n• An important preservative and disinfectant, though its use is now limited due to its carcinogenicity.\n• It is a product of combustion and is found in tobacco smoke.",
   "level23Space": "Formaldehyde is a cornerstone of astrochemistry. It was one of the first organic molecules detected in the interstellar medium. It forms readily on cosmic ice grains and is considered a starting point for the synthesis of more complex molecules, including sugars like ribose, a component of RNA.",
-
   "level25Desc": "Acetic acid ethyl ester (CH₃COOC₂H₅), or ethyl acetate, is a common ester. It is a colorless liquid with a characteristic sweet, fruity smell, reminiscent of pear drops or nail polish remover.",
   "level25Facts": "• It is an excellent solvent used in glues, nail polish removers, and for decaffeinating tea and coffee.\n• Used as an artificial fruit flavoring in foods, perfumes, and candies.\n• Produced on a large scale for use as a solvent.",
   "level25Space": "Ethyl acetate has been detected in the dust cloud at the center of the Milky Way. Esters are responsible for many of the pleasant smells and tastes we know on Earth (like fruits and flowers). Finding them in space suggests that the universe is a chemically rich place, capable of creating the molecules we associate with life.",
-
   "level26Desc": "Ammonia (NH₃) is a compound of nitrogen and hydrogen. It's a colorless gas with a very sharp, pungent odor. It is a fundamental building block for fertilizers, plastics, and pharmaceuticals.",
   "level26Facts": "• One of the most highly produced inorganic chemicals in the world, primarily for use in nitrogen fertilizers.\n• Its ability to form hydrogen bonds makes it very soluble in water.\n• A key compound in the nitrogen cycle, essential for making proteins and nucleic acids.",
   "level26Space": "Ammonia is a major component of the atmospheres of Jupiter and Saturn, where it forms brilliant white clouds of ammonia ice. It is also frozen solid in comets and on icy moons. The presence of ammonia is a key indicator of the availability of nitrogen for chemistry on other worlds.",
-
   "level27Desc": "3-Methyl-Pentane (C₆H₁₄) is a branched-chain alkane and an isomer of hexane. It is a colorless, flammable liquid and a component of gasoline.",
   "level27Facts": "• As a branched alkane, it has a higher octane rating than straight-chain hexane, making it a better fuel component for preventing engine knocking.\n• It is refined from crude oil.\n• It has two enantiomers, (3R)-methylpentane and (3S)-methylpentane, which are mirror images of each other.",
   "level27Space": "While simple alkanes like methane are common, larger branched alkanes are harder to detect in space. However, they are found in carbonaceous chondrite meteorites. These meteorites are pristine samples from the early solar system and show that complex organic chemistry, including the formation of isomers, was active when the planets were forming.",
-
   "level28Desc": "Propanal (CH₃CH₂CHO) is a three-carbon aldehyde. It is a colorless, flammable liquid with a fruity yet suffocating odor. It is an isomer of acetone.",
   "level28Facts": "• It is primarily used as a precursor to other chemicals, such as propanol and various resins.\n• Like other aldehydes, it is a reactive compound due to its carbonyl group.\n• It can be formed from the oxidation of propan-1-ol.",
   "level28Space": "Propanal has been detected in the Sagittarius B2 star-forming region. Along with its isomer acetone, its detection helps astronomers map the chemical complexity of the interstellar medium and understand the formation routes of molecules containing the important carbonyl functional group.",
-
   "level29Desc": "Propyne (C₃H₄) is an alkyne with three carbon atoms and a carbon-carbon triple bond. It is a colorless, flammable gas. It is a convenient, liquid-at-room-temperature alternative to acetylene.",
   "level29Facts": "• The triple bond makes it highly reactive and useful in organic synthesis.\n• It is a component of MAPP gas, a fuel gas used in welding and brazing for its high flame temperature.\n• It is an isomer of both propadiene and cyclopropene.",
   "level29Space": "Propyne has been detected in the interstellar medium, particularly in the atmosphere of Saturn's moon Titan. On Titan, complex photochemistry driven by sunlight breaks down methane and nitrogen, creating a rich soup of hydrocarbons, including propyne, which contribute to its atmospheric haze.",
-
-
   "spaceGridlockTitle": "Space Station Gridlock",
   "spaceGridlockInstructions": "Drag ships to clear a path! Guide your ship to the exit on the right.",
   "spaceGridlockReset": "Reset Puzzle",
@@ -1216,54 +1119,38 @@
   "spaceGridlockGood": "Good!",
   "spaceGridlockWinDesc": "Ship docked in {moves} moves!\nOptimal: {minMoves} moves\nPerformance: {performance}\n\nTotal Score: {score}\nEfficiency Bonus: +{bonus}",
   "@spaceGridlockWinDesc": {
-      "description": "Victory message with moves, score, and performance rating",
-      "placeholders": {
-          "moves": {
-              "type": "int",
-              "description": "Number of moves taken"
-          },
-          "minMoves": {
-              "type": "int",
-              "description": "Minimum possible moves"
-          },
-          "performance": {
-              "type": "String",
-              "description": "Performance rating (Perfect/Great/Good)"
-          },
-          "score": {
-              "type": "int",
-              "description": "Total score achieved"
-          },
-          "bonus": {
-              "type": "int",
-              "description": "Efficiency bonus points"
-          }
+    "description": "Victory message with moves, score, and performance rating",
+    "placeholders": {
+      "moves": {
+        "type": "int",
+        "description": "Number of moves taken"
+      },
+      "minMoves": {
+        "type": "int",
+        "description": "Minimum possible moves"
+      },
+      "performance": {
+        "type": "String",
+        "description": "Performance rating (Perfect/Great/Good)"
+      },
+      "score": {
+        "type": "int",
+        "description": "Total score achieved"
+      },
+      "bonus": {
+        "type": "int",
+        "description": "Efficiency bonus points"
       }
+    }
   },
   "nextPuzzle": "Next Puzzle",
-
-  "congratulations": "Congratulations!",
   "baseScore": "Base Score",
   "efficiencyBonus": "Efficiency Bonus",
-  "totalScore": "Total Score",
-  "playAgain": "Play Again",
-  "nextLevel": "Next Level",
   "grade": "Grade",
-  "level": "Level",
-  "toTheBridge": "To the Bridge",
   "emptyProgram": "Drag commands here",
-  "baseScore": "Base Score",
-  "efficiencyBonus": "Efficiency Bonus",
-  "totalScore": "Total Score",
   "undo": "Undo",
-  "nextLevel": "Next Level",
-  "playAgain": "Play Again",
-  "toTheBridge": "To Bridge",
-  "congratulations": "Congratulations!",
-
-  "run": "run",
-  "clear": "clear",
-  "reset": "reset",
+  "run": "Run",
+  "clear": "Clear",
   "shoot": "shoot",
   "jump": "jump",
   "robotPathJump": "Jump",
@@ -1271,56 +1158,50 @@
   "robotPathWait": "Wait",
   "robotPathPush": "Push",
   "robotPathPull": "Pull",
-
   "robotPathTooltipWall": "Wall",
   "robotPathTooltipJumpable": "Jumpable Gap",
   "robotPathTooltipDestructible": "Destructible Rock",
   "robotPathTooltipMovable": "Movable Block",
   "robotPathTooltipStart": "Start",
   "robotPathTooltipGoal": "Goal",
-
   "robotPathErrorNotDestructible": "Target is not destructible!",
   "robotPathErrorNotJumpable": "Cannot jump over this!",
   "robotPathErrorNotMovable": "Target is not movable!",
   "robotPathErrorCannotPush": "Cannot push! Destination is blocked.",
   "robotPathErrorCannotPull": "Cannot pull! Not enough space.",
-
   "robotPathTitle": "Robot Path",
   "robotPathDesc": "Program the robot to reach the goal!",
   "robotPathError": "Crash! Robot hit an obstacle.",
   "robotPathNotComplete": "Path incomplete. The robot did not reach the goal.",
   "robotPathSuccess": "Target Acquired! Robot has reached the destination.",
   "program": "Program",
-  "emptyProgram": "Drag commands here",
   "commands": "Commands",
   "forward": "Forward",
   "turnLeft": "Turn Left",
   "turnRight": "Turn Right",
-  "run": "Run",
-  "clear": "Clear",
-  "reset": "Reset",
-
   "starLoaderGameTitle": "Cargo-Loader",
   "starLoaderTitle": "Cargo-Loader",
   "starLoaderGameDesc": "Push the crates onto the indicated targets.",
   "starLoaderHint": "Use arrows or swipe to move. Get all crates to the targets!",
   "moves": "Moves",
   "optimal": "Optimal",
-  "time": "Time",
-  "undo": "Undo",
   "starLoaderWinTitle": "Cargo Loaded!",
-  
   "starLoaderWinDesc": "Completed in {moves} moves, {time}s. Score: {score}",
   "@starLoaderWinDesc": {
     "placeholders": {
-      "moves": {"type": "int"},
-      "time": {"type": "int"},
-      "score": {"type": "int"}
+      "moves": {
+        "type": "int"
+      },
+      "time": {
+        "type": "int"
+      },
+      "score": {
+        "type": "int"
+      }
     }
   },
   "efficiency": "Efficiency",
   "movesVsOptimal": "Moves / Optimal",
-
   "imprint": "Imprint / Legal",
   "imprintServiceProvider": "Service Provider",
   "imprintProviderAddress": "Christian Ströbele\nNikolausstr. 5\n70190 Stuttgart\nDeutschland/Germany",
@@ -1330,8 +1211,6 @@
   "imprintDisclaimer": "Disclaimer",
   "imprintDisclaimerText": "This app is provided as is, exclusively for educational and creative purposes, without any liability.",
   "imprintWebsite": "www.crispstro.be",
-  "close": "Close",
-
   "solarPanelGameTitle": "Solar Panel Builder",
   "solarPanelTitle": "Build Solar Arrays",
   "solarPanelHint": "Height × Width = Panel Area. Add both panels for total power!",
@@ -1341,8 +1220,6 @@
   "solarPanelWinTitle": "🌞 Station Powered!",
   "solarPanelWinDesc": "Amazing work! You earned {bonus} bonus watts!",
   "solarPanelNext": "Next Array",
-  "toTheBridge": "To Bridge",
-
   "starChartScanTitle": "Star Chart Scan",
   "starChartScanDesc": "Hidden equations are embedded in this star chart data! Scan horizontally, vertically, and diagonally to find math equations like 3+4=7 hidden in the number grid.",
   "starChartScanInstructions": "Swipe across cells to highlight hidden equations (e.g. 3+4=7, 9-2=7). Equations can run in any direction. Find all equations to decode the chart!",
@@ -1350,13 +1227,18 @@
   "starChartScanWinDesc": "All {letter} equations found! You earned {bonusScore} cartography points.",
   "@starChartScanWinDesc": {
     "placeholders": {
-      "letter": {"type": "String", "example": "X"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "letter": {
+        "type": "String",
+        "example": "X"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "starChartScanLoseTitle": "Scan Incomplete!",
   "starChartScanLoseDesc": "Some equations remain hidden in the data. Try scanning diagonally too, Commander.",
-
   "commRelayTitle": "Comm Relay",
   "commRelayDesc": "A garbled transmission from deep space! The communication relay has shifted every letter. Crack the cipher to read the original message!",
   "commRelayInstructions": "Each letter has been shifted by a fixed amount in the alphabet. Find the shift and decode the message.",
@@ -1364,7 +1246,10 @@
   "commRelayWinDesc": "The transmission reads loud and clear! You earned {bonusScore} intelligence points.",
   "@commRelayWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "commRelayLoseTitle": "Static!",
@@ -1375,13 +1260,17 @@
   "commRelayShift": "SHIFT: {shift}",
   "@commRelayShift": {
     "placeholders": {
-      "shift": { "type": "String" }
+      "shift": {
+        "type": "String"
+      }
     }
   },
   "commRelayDecodeBtn": "DECODE  ({attemptsLeft} left)",
   "@commRelayDecodeBtn": {
     "placeholders": {
-      "attemptsLeft": { "type": "int" }
+      "attemptsLeft": {
+        "type": "int"
+      }
     }
   },
   "commRelayTypeHint": "TYPE DECODED MESSAGE...",
@@ -1389,10 +1278,11 @@
   "commRelayAnswer": "Answer: {answer}",
   "@commRelayAnswer": {
     "placeholders": {
-      "answer": { "type": "String" }
+      "answer": {
+        "type": "String"
+      }
     }
   },
-
   "hullPlatingTitle": "Hull Plating",
   "hullPlatingDesc": "The ship's hull took a hit! Cover the damaged section with armor plates of different shapes. Every gap must be sealed — rotate and place each plate precisely!",
   "hullPlatingInstructions": "Drag armor plates from the tray onto the hull grid. Rotate plates with the button. Cover every cell with no overlaps!",
@@ -1400,12 +1290,14 @@
   "hullPlatingWinDesc": "The breach is patched! The ship is space-worthy again. You earned {bonusScore} repair credits.",
   "@hullPlatingWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "hullPlatingLoseTitle": "Breach Remains!",
   "hullPlatingLoseDesc": "Gaps remain in the hull plating. Try a different arrangement, Commander.",
-
   "vaultCrackerTitle": "Vault Cracker",
   "vaultCrackerDesc": "An ancient alien vault blocks your path! Mathematical clues describe the secret code. Use logic and arithmetic to deduce the combination!",
   "vaultCrackerInstructions": "Read the mathematical clues carefully. Each describes a property of the secret code (sums, products, comparisons). Deduce all digits, then enter the code.",
@@ -1413,13 +1305,18 @@
   "vaultCrackerWinDesc": "The vault doors swing open! You cracked the code in {attempts} attempts, earning {bonusScore} archaeology points.",
   "@vaultCrackerWinDesc": {
     "placeholders": {
-      "attempts": {"type": "int", "example": "3"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "attempts": {
+        "type": "int",
+        "example": "3"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "vaultCrackerLoseTitle": "Vault Sealed!",
   "vaultCrackerLoseDesc": "Too many failed attempts triggered the lockout. Analyze the clue patterns more carefully, Commander.",
-
   "crewManifestTitle": "Crew Manifest",
   "crewManifestDesc": "The crew database is scrambled! Use the clues from the ship's log to match each crew member to their role, quarters, and home planet.",
   "crewManifestInstructions": "Read the clues and mark the logic grid. An X means 'not possible', a check means 'confirmed match'.",
@@ -1427,23 +1324,70 @@
   "crewManifestWinDesc": "Every crew member accounted for! Your detective work earned {bonusScore} intelligence points.",
   "@crewManifestWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "crewManifestLoseTitle": "Database Error!",
   "crewManifestLoseDesc": "The manifest contains contradictions. Re-read the clues carefully, Commander.",
   "crewManifestSubmit": "Submit Manifest",
   "crewManifestHas1": "{crew} has the {item}.",
-  "@crewManifestHas1": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "@crewManifestHas1": {
+    "placeholders": {
+      "crew": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
   "crewManifestHas2": "The {item} belongs to {crew}.",
-  "@crewManifestHas2": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "@crewManifestHas2": {
+    "placeholders": {
+      "crew": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
   "crewManifestHas3": "{crew} was assigned the {item}.",
-  "@crewManifestHas3": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "@crewManifestHas3": {
+    "placeholders": {
+      "crew": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
   "crewManifestNot1": "{crew} does not have the {item}.",
-  "@crewManifestNot1": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "@crewManifestNot1": {
+    "placeholders": {
+      "crew": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
   "crewManifestNot2": "The {item} does not belong to {crew}.",
-  "@crewManifestNot2": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
-
+  "@crewManifestNot2": {
+    "placeholders": {
+      "crew": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalTitle": "Alien Tribunal",
   "alienTribunalDesc": "Galactic delegates are testifying, but some always lie! Truth-tellers always speak truth, liars always lie. Study their statements and identify who is trustworthy!",
   "alienTribunalInstructions": "Read each delegate's statement. Mark each as 'Truth-Teller' or 'Liar'. All statements must be consistent with your assignments.",
@@ -1451,49 +1395,173 @@
   "alienTribunalWinDesc": "The tribunal's verdict is sound! Your deduction earned {bonusScore} diplomacy points.",
   "@alienTribunalWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "alienTribunalLoseTitle": "Mistrial!",
   "alienTribunalLoseDesc": "Your assignments are contradictory. If someone is a truth-teller, their statements must be true, Commander.",
   "alienTribunalSubmit": "Submit Verdict",
   "alienTribunalClaimTruth1": "\"{name} tells the truth.\"",
-  "@alienTribunalClaimTruth1": { "placeholders": { "name": { "type": "String" } } },
+  "@alienTribunalClaimTruth1": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalClaimTruth2": "\"{name} is trustworthy.\"",
-  "@alienTribunalClaimTruth2": { "placeholders": { "name": { "type": "String" } } },
+  "@alienTribunalClaimTruth2": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalClaimTruth3": "\"{name} is a truth-teller.\"",
-  "@alienTribunalClaimTruth3": { "placeholders": { "name": { "type": "String" } } },
+  "@alienTribunalClaimTruth3": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalClaimLiar1": "\"{name} is a liar.\"",
-  "@alienTribunalClaimLiar1": { "placeholders": { "name": { "type": "String" } } },
+  "@alienTribunalClaimLiar1": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalClaimLiar2": "\"{name} cannot be trusted.\"",
-  "@alienTribunalClaimLiar2": { "placeholders": { "name": { "type": "String" } } },
+  "@alienTribunalClaimLiar2": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalClaimLiar3": "\"{name} always lies.\"",
-  "@alienTribunalClaimLiar3": { "placeholders": { "name": { "type": "String" } } },
+  "@alienTribunalClaimLiar3": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairBothTruth1": "\"{name1} and {name2} both tell the truth.\"",
-  "@alienTribunalPairBothTruth1": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairBothTruth1": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairBothTruth2": "\"You can trust both {name1} and {name2}.\"",
-  "@alienTribunalPairBothTruth2": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairBothTruth2": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairBothLiar1": "\"{name1} and {name2} are both liars.\"",
-  "@alienTribunalPairBothLiar1": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairBothLiar1": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairBothLiar2": "\"Neither {name1} nor {name2} tells the truth.\"",
-  "@alienTribunalPairBothLiar2": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairBothLiar2": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairAnyTruth1": "\"At least one of {name1} and {name2} tells the truth.\"",
-  "@alienTribunalPairAnyTruth1": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairAnyTruth1": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairAnyTruth2": "\"{name1} or {name2} -- at least one of them can be trusted.\"",
-  "@alienTribunalPairAnyTruth2": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairAnyTruth2": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairAnyLiar1": "\"At least one of {name1} and {name2} is a liar.\"",
-  "@alienTribunalPairAnyLiar1": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairAnyLiar1": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairAnyLiar2": "\"{name1} or {name2} -- at least one of them lies.\"",
-  "@alienTribunalPairAnyLiar2": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairAnyLiar2": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalCountLiarsNone": "\"None of us is a liar.\"",
   "alienTribunalCountLiarsOne": "\"Exactly one of us is a liar.\"",
   "alienTribunalCountLiarsMany": "\"Exactly {count} of us are liars.\"",
-  "@alienTribunalCountLiarsMany": { "placeholders": { "count": { "type": "int", "example": "2" } } },
+  "@alienTribunalCountLiarsMany": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
   "alienTribunalCountTruthNone": "\"None of us tells the truth.\"",
   "alienTribunalCountTruthOne": "\"Exactly one of us tells the truth.\"",
   "alienTribunalCountTruthMany": "\"Exactly {count} of us tell the truth.\"",
-  "@alienTribunalCountTruthMany": { "placeholders": { "count": { "type": "int", "example": "2" } } },
-
+  "@alienTribunalCountTruthMany": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
   "gravityWellTitle": "Gravity Well",
   "gravityWellDesc": "Calibrate the gravity well! Place celestial masses on cosmic scales until perfect equilibrium is achieved. The warp drive won't engage without balanced gravity.",
   "gravityWellInstructions": "Determine the weight of each object by reading the balanced scales. Drag your answer onto the target scale.",
@@ -1501,23 +1569,33 @@
   "gravityWellWinDesc": "Perfect equilibrium achieved! The warp drive hums to life. You earned {bonusScore} calibration points.",
   "@gravityWellWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "gravityWellLoseTitle": "Gravitational Anomaly!",
   "gravityWellLoseDesc": "The imbalanced gravity well warped the local spacetime. Recalculate the masses, Commander.",
   "gravityWellKnown": "Known: {values}",
   "@gravityWellKnown": {
-    "placeholders": { "values": { "type": "String" } }
+    "placeholders": {
+      "values": {
+        "type": "String"
+      }
+    }
   },
   "gravityWellScaleN": "Scale {n}",
   "@gravityWellScaleN": {
-    "placeholders": { "n": { "type": "int" } }
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   },
   "gravityWellEnterWeights": "Enter unknown weights:",
   "gravityWellCheckBalance": "Check Balance",
   "gravityWellKg": "kg",
-
   "sectorPainterTitle": "Sector Painter",
   "sectorPainterDesc": "Assign communication frequencies to star map sectors! Bordering sectors must use different frequencies to avoid signal interference.",
   "sectorPainterInstructions": "Color each sector so no two adjacent sectors share the same color. Use as few colors as possible!",
@@ -1525,13 +1603,18 @@
   "sectorPainterWinDesc": "Zero interference across the star map! You solved it with only {colors} frequencies, earning {bonusScore} points.",
   "@sectorPainterWinDesc": {
     "placeholders": {
-      "colors": {"type": "int", "example": "3"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "colors": {
+        "type": "int",
+        "example": "3"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "sectorPainterLoseTitle": "Signal Interference!",
   "sectorPainterLoseDesc": "Adjacent sectors are broadcasting on the same frequency! Reassign the channels, Commander.",
-
   "warpFoldTitle": "Warp Fold",
   "warpFoldDesc": "The warp drive folds space itself! Predict what the star chart looks like after space has been folded and cut. Spatial intuition is your only tool!",
   "warpFoldInstructions": "Watch the folding animation, then choose which unfolded result is correct.",
@@ -1539,12 +1622,14 @@
   "warpFoldWinDesc": "Your spatial reasoning is flawless! You earned {bonusScore} dimensional points.",
   "@warpFoldWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "warpFoldLoseTitle": "Dimensional Mishap!",
   "warpFoldLoseDesc": "The unfolded space didn't match your prediction. Trace the folds step by step, Commander.",
-
   "cubeScannerTitle": "Cube Scanner",
   "cubeScannerDesc": "Alien data cubes have been recovered! Your scanner reveals some faces, but others are hidden. Use the rule -- opposite faces always sum to 7 -- to deduce the hidden values.",
   "cubeScannerInstructions": "Study the visible faces of each cube. Opposite faces sum to 7. Determine the hidden face values.",
@@ -1552,12 +1637,14 @@
   "cubeScannerWinDesc": "All cube data extracted! Your analysis earned {bonusScore} scanner points.",
   "@cubeScannerWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "cubeScannerLoseTitle": "Scan Incomplete!",
   "cubeScannerLoseDesc": "Some face values are wrong. Remember: opposite faces always sum to 7, Commander.",
-
   "circuitRepairTitle": "Circuit Repair",
   "circuitRepairDesc": "The cockpit clock is glitching! Two digit positions got swapped, showing an impossible time. Find the two positions to swap back and restore the correct readout!",
   "circuitRepairInstructions": "The clock shows an invalid time because two digit positions are swapped. Tap two digits to swap them. The result must be a valid time!",
@@ -1565,12 +1652,14 @@
   "circuitRepairWinDesc": "Clear readout restored! Your electrical skills earned {bonusScore} tech points.",
   "@circuitRepairWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "circuitRepairLoseTitle": "Still Glitching!",
   "circuitRepairLoseDesc": "The display is still showing wrong digits. Think about which two segments, when swapped, make all digits valid, Commander.",
-
   "darkMatterGridTitle": "Dark Matter Grid",
   "darkMatterGridDesc": "Dark matter has blanketed this sector! Toggle the nodes to push back the darkness. But beware -- each node affects its neighbors!",
   "darkMatterGridInstructions": "Tap a node to toggle it and all adjacent nodes. Light up the entire grid to clear the sector.",
@@ -1578,13 +1667,18 @@
   "darkMatterGridWinDesc": "The dark matter recedes! You cleared the grid in {moves} moves and earned {bonusScore} photon points.",
   "@darkMatterGridWinDesc": {
     "placeholders": {
-      "moves": {"type": "int", "example": "12"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "moves": {
+        "type": "int",
+        "example": "12"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "darkMatterGridLoseTitle": "Darkness Persists!",
   "darkMatterGridLoseDesc": "The dark matter grid remains unstable. Think about which nodes affect which neighbors, Commander.",
-
   "dockClearanceTitle": "Dock Clearance",
   "dockClearanceDesc": "The space dock is jammed! Slide the parked ships to clear a path for your vessel to reach the launch tube. No diagonal moves -- ships only slide along their axis!",
   "dockClearanceInstructions": "Slide ships horizontally or vertically to create a clear path. Get the red ship to the exit!",
@@ -1592,13 +1686,18 @@
   "dockClearanceWinDesc": "Your ship rockets out of the dock! Cleared in {moves} moves, earning {bonusScore} docking credits.",
   "@dockClearanceWinDesc": {
     "placeholders": {
-      "moves": {"type": "int", "example": "15"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "moves": {
+        "type": "int",
+        "example": "15"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "dockClearanceLoseTitle": "Still Jammed!",
   "dockClearanceLoseDesc": "No clear path to the exit. Try sliding different ships first, Commander.",
-
   "ionChainTitle": "Ion Ring",
   "ionChainDesc": "Complete the ion ring! Arrange charged particles around the plasma loop so every neighbor pair obeys the constraint rules. One wrong placement and the ring destabilizes!",
   "ionChainInstructions": "Drag ions onto the ring. Read the rules carefully — some shapes cannot be neighbors. The ring is circular: the last bead is adjacent to the first!",
@@ -1606,12 +1705,14 @@
   "ionChainWinDesc": "The plasma flows in a perfect loop! You earned {bonusScore} chemistry points.",
   "@ionChainWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "ionChainLoseTitle": "Chain Reaction!",
   "ionChainLoseDesc": "Incompatible ions caused a plasma surge! Check the adjacency rules, Commander.",
-
   "launchSequenceTitle": "Launch Sequence",
   "launchSequenceDesc": "The launch queue is scrambled! Reorder the fleet by swapping adjacent ships. Get them in the correct sequence using the fewest swaps possible!",
   "launchSequenceInstructions": "Tap two adjacent ships to swap them. Arrange all ships in the correct order. Fewer swaps = more points!",
@@ -1619,14 +1720,22 @@
   "launchSequenceWinDesc": "Perfect sequence! You sorted the fleet in {moves} swaps (optimal: {optimal}), earning {bonusScore} efficiency points.",
   "@launchSequenceWinDesc": {
     "placeholders": {
-      "moves": {"type": "int", "example": "8"},
-      "optimal": {"type": "int", "example": "5"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "moves": {
+        "type": "int",
+        "example": "8"
+      },
+      "optimal": {
+        "type": "int",
+        "example": "5"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "launchSequenceLoseTitle": "Sequence Error!",
   "launchSequenceLoseDesc": "The fleet is still out of order. Keep swapping adjacent ships, Commander.",
-
   "starForgeTitle": "Star Forge",
   "starForgeDesc": "Ignite a new star! Distribute energy values across the forge nodes so every plasma arm carries the same total charge. The star ignites when all arms align!",
   "starForgeInstructions": "Place numbers in the empty nodes. Each line through the star must have the same sum.",
@@ -1634,14 +1743,16 @@
   "starForgeWinDesc": "A brilliant new star blazes to life! Your forge mastery earned {bonusScore} fusion points.",
   "@starForgeWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "starForgeLoseTitle": "Forge Misfire!",
   "starForgeLoseDesc": "The energy imbalance caused a plasma leak. Redistribute the charge and try again, Commander.",
   "starForgeOutOfMoves": "Out of Moves!",
   "starForgeOutOfMovesDesc": "Too many node placements! Plan your energy distribution carefully to ignite the star.",
-
   "nebulaMatrixTitle": "Nebula Matrix",
   "nebulaMatrixDesc": "Stabilize the energy field! Fill every row, column, and zone of the nebula grid so no frequency repeats. One wrong resonance and the nebula collapses!",
   "nebulaMatrixInstructions": "Place numbers so each row and column contains every value exactly once.",
@@ -1650,27 +1761,35 @@
   "nebulaMatrixWinDesc": "The energy field is perfectly balanced! You earned {bonusScore} resonance points for your precision.",
   "@nebulaMatrixWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "nebulaMatrixLoseTitle": "Field Collapse!",
   "nebulaMatrixLoseDesc": "Conflicting frequencies destabilized the nebula. Recalibrate your matrix and try again, Commander.",
   "nebulaMatrixOutOfMoves": "Out of Moves!",
   "nebulaMatrixOutOfMovesDesc": "Too many placements! Place each frequency carefully to stabilize the nebula.",
-
   "orbitalTowersTitle": "Orbital Towers",
   "orbitalTowersDesc": "Build a space city on the orbital platform! The satellite cameras on each edge report how many towers they can see. Taller towers hide shorter ones behind them.",
   "orbitalTowersInstructions": "Place towers of height 1 to {size} so each row and column has every height once. Edge clues show how many towers are visible from that direction.",
   "@orbitalTowersInstructions": {
     "placeholders": {
-      "size": {"type": "int", "example": "4"}
+      "size": {
+        "type": "int",
+        "example": "4"
+      }
     }
   },
   "orbitalTowersWinTitle": "City Constructed!",
   "orbitalTowersWinDesc": "The orbital city rises into view! All satellite readings match perfectly. You earned {bonusScore} construction credits.",
   "@orbitalTowersWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "orbitalTowersLoseTitle": "Blueprint Mismatch!",
@@ -1681,7 +1800,6 @@
   "orbitalTowersOnboardGrid": "Every row and every column gets each tower height exactly once -- no repeats.",
   "orbitalTowersOnboardSightline": "A camera sees a tower only when nothing taller stands in front of it. Here it sees 2 of the 4: the 1 hides behind the 2, and the 3 hides behind the 4.",
   "orbitalTowersOnboardPlace": "Drag a height onto a plot to build. Tap a tower you placed to take it away again.",
-
   "hiveStationTitle": "Hive Station",
   "hiveStationDesc": "The station's energy hive needs charging! Each cell displays how many of its neighbors hold an energy core. Deduce which cells need power!",
   "hiveStationInstructions": "Tap hexagonal cells to fill them with energy. The number in each cell tells you how many adjacent cells contain energy.",
@@ -1689,14 +1807,22 @@
   "hiveStationWinDesc": "All energy cores placed correctly! The station hums with power. You earned {bonusScore} charge points.",
   "@hiveStationWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "hiveStationLoseTitle": "Power Mismatch!",
   "hiveStationLoseDesc": "Some cells report the wrong neighbor count. Check your energy placement, Commander.",
   "hiveStationWrongAttempt": "Not quite right! {remaining} attempts left.",
-  "@hiveStationWrongAttempt": { "placeholders": { "remaining": { "type": "int" } } },
-
+  "@hiveStationWrongAttempt": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
   "relicAssemblyTitle": "Relic Assembly",
   "relicAssemblyDesc": "Ancient alien tablet fragments have been excavated! Arrange the pieces so the glyphs on touching edges match perfectly. The artifact holds the key to the next star system!",
   "relicAssemblyInstructions": "Place and rotate tablet pieces in the grid. Touching edges must show matching glyphs.",
@@ -1704,12 +1830,14 @@
   "relicAssemblyWinDesc": "The ancient tablet glows with power! Your archaeology earned {bonusScore} discovery points.",
   "@relicAssemblyWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "relicAssemblyLoseTitle": "Fragments Misaligned!",
   "relicAssemblyLoseDesc": "Some edge glyphs don't match their neighbors. Try rotating or repositioning the pieces, Commander.",
-
   "xenobiologyLabTitle": "Xenobiology Lab",
   "xenobiologyLabDesc": "A new species has been discovered! Each subspecies has different numbers of eyes, tentacles, and legs. Use the census data to classify the colony!",
   "xenobiologyLabInstructions": "Two alien types live together. You know each type's traits and the total eyes and legs observed. Calculate how many of each type there must be, then submit!",
@@ -1717,12 +1845,14 @@
   "xenobiologyLabWinDesc": "Field report filed! Your xenobiology skills earned {bonusScore} research credits.",
   "@xenobiologyLabWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "xenobiologyLabLoseTitle": "Census Error!",
   "xenobiologyLabLoseDesc": "The numbers don't add up. Double-check the trait counts for each subspecies, Commander.",
-
   "galacticMarketTitle": "Galactic Market",
   "galacticMarketDesc": "The alien shopkeeper gave you change, but some coins landed face-down! You know the total and can see some coins. Deduce the hidden denomination!",
   "galacticMarketInstructions": "Look at the total change and the visible coins. The face-down coins all have the same value. Calculate: (total - known coins) / number of hidden coins = ?",
@@ -1730,13 +1860,18 @@
   "galacticMarketWinDesc": "Exact change tendered! You used only {coins} coins, earning {bonusScore} trade points.",
   "@galacticMarketWinDesc": {
     "placeholders": {
-      "coins": {"type": "int", "example": "3"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "coins": {
+        "type": "int",
+        "example": "3"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "galacticMarketLoseTitle": "Incorrect Amount!",
   "galacticMarketLoseDesc": "The merchant frowns -- that's not the right amount. Try a different combination of coins, Commander.",
-
   "creatureForgeTitle": "Creature Forge",
   "creatureForgeDesc": "The xenobiology bay has parts from multiple alien species! Tap to select heads, bodies, and tails, then build creatures. How many unique beings can you create?",
   "creatureForgeInstructions": "Select one part from each row, then tap BUILD to add the creature to your gallery. Find all valid combinations, then enter the total count!",
@@ -1744,26 +1879,37 @@
   "creatureForgeWinDesc": "You discovered all {count} possible creatures! Your curiosity earned {bonusScore} biology points.",
   "@creatureForgeWinDesc": {
     "placeholders": {
-      "count": {"type": "int", "example": "8"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "count": {
+        "type": "int",
+        "example": "8"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "creatureForgeLoseTitle": "Missing Species!",
   "creatureForgeLoseDesc": "You haven't found all the combinations yet. Remember: each head can pair with each body AND each tail, Commander.",
-
   "asteroidDuelTitle": "Asteroid Duel",
   "asteroidDuelDesc": "A strategic standoff in the asteroid belt! Take turns mining rocks with your opponent. The commander who takes the last asteroid loses. Think ahead!",
   "asteroidDuelInstructions": "Choose 1 to {max} asteroids per turn. Force your opponent to take the last one!",
   "@asteroidDuelInstructions": {
     "placeholders": {
-      "max": {"type": "int", "example": "3"}
+      "max": {
+        "type": "int",
+        "example": "3"
+      }
     }
   },
   "asteroidDuelWinTitle": "Duel Won!",
   "asteroidDuelWinDesc": "Superior strategy! Your opponent is stranded. You earned {bonusScore} tactical points.",
   "@asteroidDuelWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "asteroidDuelLoseTitle": "Outmaneuvered!",
@@ -1771,7 +1917,6 @@
   "asteroidDuelYourTurn": "YOUR TURN",
   "asteroidDuelAiTurn": "AI TURN",
   "asteroidDuelAiThinking": "AI THINKING...",
-
   "chronoRepairTitle": "Chrono Repair",
   "chronoRepairDesc": "Relativistic effects have scrambled the station clocks! Some run fast, some are mirrored, some have broken segments. Deduce the real time!",
   "chronoRepairInstructions": "Each clock has a specific malfunction (offset, mirror, broken segments). Figure out the correct time.",
@@ -1779,12 +1924,14 @@
   "chronoRepairWinDesc": "All clocks show the correct time! You earned {bonusScore} temporal points.",
   "@chronoRepairWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "chronoRepairLoseTitle": "Still Out of Sync!",
   "chronoRepairLoseDesc": "The displayed time is incorrect. Consider the specific malfunction of each clock, Commander.",
-
   "gridlockPlayerShip": "Player ship",
   "gridlockBlockingShip": "Blocking ship",
   "gridlockShip": "Ship",
@@ -1806,7 +1953,9 @@
   "gridlockComplexity": "Complexity: {value}",
   "@gridlockComplexity": {
     "placeholders": {
-      "value": {"type": "String"}
+      "value": {
+        "type": "String"
+      }
     }
   },
   "puzzleGenerationFailed": "Puzzle Generation Failed",
@@ -1814,18 +1963,21 @@
   "puzzleGenerationFailedDescAlt": "Unable to generate a puzzle. Would you like to try again or return to the main menu?",
   "retry": "Retry",
   "tryAgainButton": "Try Again",
-
   "creatureForgeAlreadyDiscovered": "Already discovered this creature!",
   "creatureForgeInvalidCombo": "Invalid combination! {constraint}",
   "@creatureForgeInvalidCombo": {
     "placeholders": {
-      "constraint": {"type": "String"}
+      "constraint": {
+        "type": "String"
+      }
     }
   },
   "creatureForgeNotQuiteAnswer": "Not quite! You said {answer}, try again.",
   "@creatureForgeNotQuiteAnswer": {
     "placeholders": {
-      "answer": {"type": "int"}
+      "answer": {
+        "type": "int"
+      }
     }
   },
   "creatureForgeTotalPossible": "Total possible: ",
@@ -1833,220 +1985,263 @@
   "creatureForgeFoundSpecies": "You found {count} species!\nCorrect total: {total}",
   "@creatureForgeFoundSpecies": {
     "placeholders": {
-      "count": {"type": "int"},
-      "total": {"type": "int"}
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "creatureForgeConstraintWingedSpiked": "Winged bodies cannot pair with spiked tails",
   "creatureForgeConstraintAdvanced": "Winged bodies need crystal heads\nAquatic bodies reject flame tails",
-
   "bubbleNextTarget": "Next target: ",
   "bubbleAllTargetsPopped": "All targets popped",
   "bubbleTimeBonusPoints": "Time Bonus: {points} points!",
   "@bubbleTimeBonusPoints": {
     "placeholders": {
-      "points": {"type": "int"}
+      "points": {
+        "type": "int"
+      }
     }
   },
-
   "xenoCensusReport": "Census Report",
   "xenoEyes": "Eyes",
   "xenoLegs": "Legs",
   "xenoCreatures": "Creatures",
   "xenoTarget": "Target: ",
   "xenoYours": "Yours: ",
-
   "sectorMinColors": "Min colors: {count}",
   "@sectorMinColors": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "sectorPainted": "Painted: {done}/{total}",
   "@sectorPainted": {
     "placeholders": {
-      "done": {"type": "int"},
-      "total": {"type": "int"}
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "sectorColors": "Colors",
   "sectorOptimalColoring": "Optimal coloring!",
-
   "warpFoldStep": "Fold {step}: {direction}",
   "@warpFoldStep": {
     "placeholders": {
-      "step": {"type": "int"},
-      "direction": {"type": "String"}
+      "step": {
+        "type": "int"
+      },
+      "direction": {
+        "type": "String"
+      }
     }
   },
   "warpCutHoles": "Cut {count} hole(s)...",
   "@warpCutHoles": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "warpWhichPattern": "Which pattern appears when unfolded?",
   "warpFoldsAndCuts": "Folds: {folds}  |  Cuts: {cuts}",
   "@warpFoldsAndCuts": {
     "placeholders": {
-      "folds": {"type": "String"},
-      "cuts": {"type": "int"}
+      "folds": {
+        "type": "String"
+      },
+      "cuts": {
+        "type": "int"
+      }
     }
   },
-  "warpDirLeft": "\u2190 Left",
-  "warpDirRight": "\u2192 Right",
-  "warpDirUp": "\u2191 Up",
-  "warpDirDown": "\u2193 Down",
-
+  "warpDirLeft": "← Left",
+  "warpDirRight": "→ Right",
+  "warpDirUp": "↑ Up",
+  "warpDirDown": "↓ Down",
   "circuitInvalidTime": "Not a valid time! {remaining} attempts left.",
   "@circuitInvalidTime": {
     "placeholders": {
-      "remaining": {"type": "int"}
+      "remaining": {
+        "type": "int"
+      }
     }
   },
   "circuitSwapInstruction": "Two digits on this clock swapped places! Tap two digit positions to swap them back.",
   "circuitAttempts": "Attempts: {remaining} / {total}",
   "@circuitAttempts": {
     "placeholders": {
-      "remaining": {"type": "int"},
-      "total": {"type": "int"}
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "circuitPositionSelected": "Position {pos} selected -- tap another digit",
   "@circuitPositionSelected": {
     "placeholders": {
-      "pos": {"type": "int"}
+      "pos": {
+        "type": "int"
+      }
     }
   },
   "circuitSwapPositions": "Swap: position {pos1} <-> position {pos2}",
   "@circuitSwapPositions": {
     "placeholders": {
-      "pos1": {"type": "int"},
-      "pos2": {"type": "int"}
+      "pos1": {
+        "type": "int"
+      },
+      "pos2": {
+        "type": "int"
+      }
     }
   },
   "circuitResultValid": "Result: {time} (valid!)",
   "@circuitResultValid": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "circuitResultInvalid": "Result: {time} (invalid)",
   "@circuitResultInvalid": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "circuitTapToStart": "Tap a digit on the clock to start",
   "circuitClockNowReads": "The clock now reads {time}",
   "@circuitClockNowReads": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "circuitCorrectTimeWas": "The correct time was {time}",
   "@circuitCorrectTimeWas": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
-
   "chronoClockRunsFast": "This clock runs {hours} hours fast",
   "@chronoClockRunsFast": {
     "placeholders": {
-      "hours": {"type": "int"}
+      "hours": {
+        "type": "int"
+      }
     }
   },
   "chronoClockMirrored": "This clock is horizontally mirrored",
   "chronoClockRunsFastCombined": "This clock runs {hours} h {minutes} min fast",
   "@chronoClockRunsFastCombined": {
     "placeholders": {
-      "hours": {"type": "int"},
-      "minutes": {"type": "int"}
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "chronoWhatIsCorrectTime": "What is the correct time?",
-
   "asteroidDuelMine": "Mine {count}!",
   "@asteroidDuelMine": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "asteroidDuelTapToSelect": "Tap asteroids to select (1-{max})",
   "@asteroidDuelTapToSelect": {
     "placeholders": {
-      "max": {"type": "int"}
+      "max": {
+        "type": "int"
+      }
     }
   },
   "asteroidDuelHint": "Hint: Try to leave {safe}+1 = {safeP1} asteroids for the AI. The key pattern is multiples of {safe}, plus 1.",
   "@asteroidDuelHint": {
     "placeholders": {
-      "safe": {"type": "int"},
-      "safeP1": {"type": "int"}
+      "safe": {
+        "type": "int"
+      },
+      "safeP1": {
+        "type": "int"
+      }
     }
   },
-
   "crewManifestClues": "Clues:",
   "crewManifestMatch": "Match",
   "crewManifestEliminate": "Eliminate",
-
   "alienTribunalTruth": "Truth",
   "alienTribunalLiar": "Liar",
-
   "puzzleAllPiecesPlaced": "All pieces placed!",
-
   "signalNoAttemptsYet": "No attempts yet",
-
   "perspectiveDragHint": "Drag ±15°",
-
   "allTargetsPopped": "All targets popped",
-
   "creatureForgeForbidden": "FORBIDDEN",
   "creatureForgeAlreadyFound": "ALREADY FOUND",
   "creatureForgeNewSpecies": "NEW SPECIES!",
   "creatureForgeAdd": "ADD",
-
   "ionChainRules": "RULES",
   "ionChainRing": "ION RING",
   "ionChainAvailableBeads": "AVAILABLE BEADS",
   "ionChainRuleViolation": "Rule violation! This bead can't go here.",
   "ionChainDeadEnd": "That bead fits here, but then no bead fits somewhere else. Try another slot!",
-
   "hullPlatingNoFit": "Piece doesn't fit here! Try rotating or a different position.",
   "hullPlatingAllPlaced": "All pieces placed!",
   "hullPlatingClear": "Clear",
-
   "gridFillerPlayAgain": "Play Again",
   "gridFillerExit": "Exit",
   "gridFillerResetGrid": "Reset Grid",
-
   "chronoRepairSubmit": "Submit",
   "xenobiologySubmitCensus": "Submit Census",
-
   "galacticMarketOneCoin": "One coin is face-down.",
   "galacticMarketNCoins": "The {count} face-down coins all have the same value.",
-  "@galacticMarketNCoins": { "placeholders": { "count": { "type": "int" } } },
-
+  "@galacticMarketNCoins": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "launchSequenceTarget": "Target: ",
-
   "difficultyEasy": "Easy",
   "difficultyNormal": "Normal",
   "difficultyChallenge": "Challenge",
-
   "warpFoldReplay": "Replay",
-
   "ok": "OK",
-
   "magicTrianglesOnboardTitle": "Magic Triangles",
   "magicTrianglesOnboardDrag": "Drag numbers from the pool onto the empty triangle nodes.",
   "magicTrianglesOnboardSum": "Every side of the triangle must add up to the same number.",
   "magicTrianglesOnboardTap": "Tap a placed number to send it back to the pool.",
-
   "parentDashboardTitle": "Parent Dashboard",
   "parentDashboardPinTitle": "Parent PIN",
   "parentDashboardPinDesc": "Enter the 4-digit code to view this screen.\nDefault code is {pin} until you change it.",
-  "@parentDashboardPinDesc": { "placeholders": { "pin": { "type": "String" } } },
+  "@parentDashboardPinDesc": {
+    "placeholders": {
+      "pin": {
+        "type": "String"
+      }
+    }
+  },
   "parentDashboardUnlock": "Unlock",
   "parentDashboardMathMastery": "Mathematical Mastery",
   "parentDashboardProblemsTracked": "Problems tracked",
@@ -2071,14 +2266,18 @@
   "parentDashboardPin4Digits": "4 digits required",
   "parentDashboardPinMismatch": "Does not match",
   "parentDashboardLevelN": "Level {level}",
-  "@parentDashboardLevelN": { "placeholders": { "level": { "type": "int" } } },
-
+  "@parentDashboardLevelN": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
   "sriReviewTitle": "Review",
   "sriMasteredLabel": "Mastered",
   "sriLearningLabel": "Learning",
   "sriMasteryLabel": "Mastery",
   "sriToughestProblems": "Toughest problems",
-
   "flashcardBoxTitle": "Flashcard Box",
   "flashcardBoxNew": "New",
   "flashcardBoxFirstReview": "First Review",
@@ -2086,85 +2285,262 @@
   "flashcardBoxConfident": "Confident",
   "flashcardBoxMastered": "Mastered",
   "flashcardBoxMovedToBox": "Moved to Box {boxNum}",
-  "@flashcardBoxMovedToBox": { "placeholders": { "boxNum": { "type": "int" } } },
+  "@flashcardBoxMovedToBox": {
+    "placeholders": {
+      "boxNum": {
+        "type": "int"
+      }
+    }
+  },
   "flashcardBoxMove": "Move",
-
   "cognitiveProfileTitle": "Cognitive Profile",
   "cognitiveProfileEmpty": "Play a few games to start building your profile.",
   "cognitiveProfileAttempts": "{total} attempts across {areas} skill areas",
-  "@cognitiveProfileAttempts": { "placeholders": { "total": { "type": "int" }, "areas": { "type": "int" } } },
+  "@cognitiveProfileAttempts": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "areas": {
+        "type": "int"
+      }
+    }
+  },
   "cognitiveProfileNoData": "No data yet — play to see this fill in.",
   "cognitiveArithmetic": "Arithmetic",
   "cognitiveSpatial2D": "Spatial (2D)",
   "cognitiveSpatial3D": "Spatial (3D)",
   "cognitiveLogic": "Logic & Deduction",
   "cognitivePattern": "Pattern Recognition",
-
   "clearButton": "Clear",
   "levelN": "Level {level}",
-  "@levelN": { "placeholders": { "level": { "type": "int" } } },
-
+  "@levelN": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
   "a11yPlacedValueTapRemove": "Placed value, tap to remove",
   "a11yNumberDragSlot": "Number {number}, drag to a slot",
-  "@a11yNumberDragSlot": { "placeholders": { "number": { "type": "int" } } },
+  "@a11yNumberDragSlot": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "a11yNumberDragCell": "Number {number}, drag to a cell",
-  "@a11yNumberDragCell": { "placeholders": { "number": { "type": "int" } } },
+  "@a11yNumberDragCell": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "a11yMovesRemaining": "Moves remaining: {moves}",
-  "@a11yMovesRemaining": { "placeholders": { "moves": { "type": "int" } } },
+  "@a11yMovesRemaining": {
+    "placeholders": {
+      "moves": {
+        "type": "int"
+      }
+    }
+  },
   "a11yBattlefieldCard": "Battlefield card {name}",
-  "@a11yBattlefieldCard": { "placeholders": { "name": { "type": "String" } } },
+  "@a11yBattlefieldCard": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "a11yHealthStatus": "Health {current} of {max}",
-  "@a11yHealthStatus": { "placeholders": { "current": { "type": "int" }, "max": { "type": "int" } } },
+  "@a11yHealthStatus": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "a11yHandCard": "Hand card {name}",
-  "@a11yHandCard": { "placeholders": { "name": { "type": "String" } } },
+  "@a11yHandCard": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "a11yAsteroid": "Asteroid {problem}",
-  "@a11yAsteroid": { "placeholders": { "problem": { "type": "String" } } },
+  "@a11yAsteroid": {
+    "placeholders": {
+      "problem": {
+        "type": "String"
+      }
+    }
+  },
   "a11yAnswer": "Answer {answer}",
-  "@a11yAnswer": { "placeholders": { "answer": { "type": "String" } } },
+  "@a11yAnswer": {
+    "placeholders": {
+      "answer": {
+        "type": "String"
+      }
+    }
+  },
   "a11yBubble": "Bubble {problem}",
-  "@a11yBubble": { "placeholders": { "problem": { "type": "String" } } },
+  "@a11yBubble": {
+    "placeholders": {
+      "problem": {
+        "type": "String"
+      }
+    }
+  },
   "a11yCargoGrid": "Cargo bay grid",
   "a11yPlacedValue": "Placed value {value}",
-  "@a11yPlacedValue": { "placeholders": { "value": { "type": "String" } } },
+  "@a11yPlacedValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "a11yEmptySlot": "Empty slot for {symbol}",
-  "@a11yEmptySlot": { "placeholders": { "symbol": { "type": "String" } } },
+  "@a11yEmptySlot": {
+    "placeholders": {
+      "symbol": {
+        "type": "String"
+      }
+    }
+  },
   "a11yDial": "Dial {label}, value {value}",
-  "@a11yDial": { "placeholders": { "label": { "type": "String" }, "value": { "type": "int" } } },
+  "@a11yDial": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "value": {
+        "type": "int"
+      }
+    }
+  },
   "a11yDialHint": "Drag up or down to change value, or drop a number",
   "a11yPiece": "Piece {size}x{size2}, {remaining} of {total} left",
-  "@a11yPiece": { "placeholders": { "size": { "type": "int" }, "size2": { "type": "int" }, "remaining": { "type": "int" }, "total": { "type": "int" } } },
+  "@a11yPiece": {
+    "placeholders": {
+      "size": {
+        "type": "int"
+      },
+      "size2": {
+        "type": "int"
+      },
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "a11yPlacedPiece": "Placed {size}x{size2} piece",
-  "@a11yPlacedPiece": { "placeholders": { "size": { "type": "int" }, "size2": { "type": "int" } } },
+  "@a11yPlacedPiece": {
+    "placeholders": {
+      "size": {
+        "type": "int"
+      },
+      "size2": {
+        "type": "int"
+      }
+    }
+  },
   "a11yGameArea": "Game area",
   "a11yAnswerChoice": "Answer choice {index}",
-  "@a11yAnswerChoice": { "placeholders": { "index": { "type": "int" } } },
+  "@a11yAnswerChoice": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "a11yLivesRemaining": "Lives remaining: {lives} of {max}",
-  "@a11yLivesRemaining": { "placeholders": { "lives": { "type": "int" }, "max": { "type": "int" } } },
+  "@a11yLivesRemaining": {
+    "placeholders": {
+      "lives": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "a11yProgress": "Progress {current} of {total}",
-  "@a11yProgress": { "placeholders": { "current": { "type": "int" }, "total": { "type": "int" } } },
+  "@a11yProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "a11yAtom": "Atom {type}",
-  "@a11yAtom": { "placeholders": { "type": { "type": "String" } } },
+  "@a11yAtom": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "a11yRemoveCommand": "Remove command",
   "a11yCommand": "Command {name}",
-  "@a11yCommand": { "placeholders": { "name": { "type": "String" } } },
+  "@a11yCommand": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "a11yGlyph": "Glyph {name}",
-  "@a11yGlyph": { "placeholders": { "name": { "type": "String" } } },
+  "@a11yGlyph": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "a11yResonator": "Resonator {number}, drag to a triangle node",
-  "@a11yResonator": { "placeholders": { "number": { "type": "int" } } },
+  "@a11yResonator": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "a11yBrick": "Number brick {number}, drag to a slot",
-  "@a11yBrick": { "placeholders": { "number": { "type": "int" } } },
-
+  "@a11yBrick": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "diagnosticsTitle": "Diagnostics",
   "crashLogCopied": "Crash log copied to clipboard",
   "languageChangeFailed": "Failed to change language: {error}",
-  "@languageChangeFailed": { "placeholders": { "error": { "type": "String" } } },
+  "@languageChangeFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "debugModeEnabled": "Debug Mode Enabled!",
-
   "skip": "Skip",
   "onboardingGotIt": "Got it",
   "onboardingNext": "Next",
   "goBack": "Go Back",
-
   "voidCrossingTitle": "Void Crossing",
   "voidCrossingDesc": "Transport creatures across the void — but watch who you leave alone!",
   "voidCrossingOnboardTitle": "Void Crossing",
@@ -2180,7 +2556,13 @@
   "voidCrossingTapToLoad": "Tap to load onto shuttle",
   "voidCrossingWin": "All Safe!",
   "voidCrossingWinDesc": "All creatures transported in {moves} crossings!",
-  "@voidCrossingWinDesc": { "placeholders": { "moves": { "type": "int" } } },
+  "@voidCrossingWinDesc": {
+    "placeholders": {
+      "moves": {
+        "type": "int"
+      }
+    }
+  },
   "voidCrossingNextPuzzle": "Next Puzzle",
   "voidCrossingLose": "Out of Fuel!",
   "voidCrossingLoseDesc": "You ran out of shuttle crossings. Try a different strategy!",
@@ -2194,16 +2576,23 @@
   "voidCrossingPyrowyrm": "Pyrowyrm",
   "voidCrossingOnShuttle": "On shuttle:",
   "voidCrossingTapToUnload": "Tap to unload from shuttle",
-
   "gridFillerTitle": "Grid Filler",
   "gridFillerDesc": "Fill a grid with square pieces — no gaps allowed!",
-
   "missionHubTitle": "Space Missions",
   "missionHubStart": "Ready for a Mission?",
   "missionHubStartDesc": "Complete a series of challenges to decode a secret space codeword!",
   "missionHubResume": "Mission in Progress",
   "missionHubResumeDesc": "{completed} of {total} tasks completed.",
-  "@missionHubResumeDesc": { "placeholders": { "completed": { "type": "int" }, "total": { "type": "int" } } },
+  "@missionHubResumeDesc": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "missionHubContinue": "Continue Mission",
   "missionHubNewMission": "New Mission",
   "missionHubAbandon": "Abandon",
@@ -2216,7 +2605,13 @@
   "missionAllPlaced": "All letters placed!",
   "missionComplete": "Mission Complete!",
   "missionCompleteDesc": "You decoded the codeword: {word}",
-  "@missionCompleteDesc": { "placeholders": { "word": { "type": "String" } } },
+  "@missionCompleteDesc": {
+    "placeholders": {
+      "word": {
+        "type": "String"
+      }
+    }
+  },
   "perfGradeExcellent": "Flawless",
   "perfGradeGood": "Good",
   "perfGradeFair": "Almost",
@@ -2231,5 +2626,51 @@
   "missionTaskAced": "Perfect run — nothing to improve!",
   "missionTaskImproveHint": "Replay to raise your rating",
   "missionTaskRetryHint": "Not cleared yet — try again",
-  "missionOverallRating": "Mission rating"
+  "missionOverallRating": "Mission rating",
+  "gridFillerWinTitle": "🎉 Grid Complete!",
+  "gridFillerWinDesc": "Perfect fit! All pieces placed!",
+  "gridFillerPoints": "+{score} points",
+  "@gridFillerPoints": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "gridFillerFillGrid": "Fill the {size}{symbol}{size} grid",
+  "@gridFillerFillGrid": {
+    "placeholders": {
+      "size": {
+        "type": "int"
+      },
+      "symbol": {
+        "type": "String"
+      }
+    }
+  },
+  "gridFillerClickToPlace": "Click to place {size}{symbol}{size}",
+  "@gridFillerClickToPlace": {
+    "placeholders": {
+      "size": {
+        "type": "int"
+      },
+      "symbol": {
+        "type": "String"
+      }
+    }
+  },
+  "gridFillerAvailablePieces": "Available Pieces",
+  "gridFillerPiecesLeft": "{remaining}/{total} left",
+  "@gridFillerPiecesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "perspectivePuzzleLoseTitle": "Mission Failed",
+  "perspectivePuzzleLoseDesc": "You've run out of attempts. Let's try a different structure."
 }

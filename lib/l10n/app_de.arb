@@ -1,568 +1,551 @@
 {
-    "appTitle": "NumberNebula",
-    "welcome": "Entdecke das Mathe-Universum!",
-    "startAdventure": "Starte dein Mathe-Abenteuer",
-    "chooseGrade": "Wähle deine Stufe",
-    "fast": "SCHNELL",
-    "grade3": "Stufe 1",
-    "grade4": "Stufe 2",
-    "grade5": "Stufe 3",
-    "grade6": "Stufe 4",
-    "adaptiveDifficulty": "Angepasste Schwierigkeit",
-    "adaptiveDifficultyDesc": "Passt Aufgaben an dein Können an",
-    "adjustProblems": "Passe die Aufgaben an deine Fähigkeiten an",
-    "gameMenu": "Missionskontrolle",
-    "magicTriangles": "Kosmische Dreiecke",
-    "magicTrianglesDesc": "Richte die kosmischen Energieknoten aus! Jede Seite des Dreiecks muss die gleiche kosmische Frequenz ergeben, um das Wurmloch zu stabilisieren.",
-    "bubbleMath": "Asteroidenfeld-Jäger",
-    "bubbleMathDesc": "Navigiere durch ein gefährliches Asteroidenfeld! Zerstöre die treibenden Weltraumfelsen in der richtigen Reihenfolge, bevor sie kollidieren.",
-    "puzzleMath": "Sternbild-Puzzles",
-    "puzzleMathDesc": "Rekonstruiere himmlische Sternenkarten! Löse Gleichungen, um die richtigen Koordinaten zu finden und Fragmente zu platzieren.",
-    "hyperdriveGates": "Hyperantriebs-Tore",
-    "hyperdriveGatesDesc": "Setze einen Kurs durch Quanten-Raumtore! Fliege durch das Tor mit der richtigen Antwort, um den Sprung auf Lichtgeschwindigkeit zu machen.",
-    "planetHopping": "Gravitations-Schleuder",
-    "planetHoppingDesc": "Schleudere dein Schiff zwischen Planeten! Berechne die richtige Flugbahn und besuche Planeten in der korrekten mathematischen Reihenfolge.",
-    "level": "Level",
-    "score": "Punkte",
-    "lives": "Hüllenintegrität",
-    "time": "Zeit",
-    "correct": "Richtig!",
-    "incorrect": "Neuberechnung...",
-    "excellent": "Hervorragende Arbeit, Weltraum-Kommandant!",
-    "good": "Gut gemacht!",
-    "tryAgain": "Nochmal versuchen!",
-    "gameOver": "Mission abgeschlossen!",
-    "nextLevel": "Nächste Mission",
-    "playAgain": "Nochmal spielen",
-    "backToMenu": "Zurück zur Missionskontrolle",
-    "settings": "Einstellungen",
-    "sound": "Soundeffekte",
-    "music": "Musik",
-    "language": "Sprache",
-    "progress": "Karrierefortschritt",
-    "achievements": "Erfolge",
-    "mathOperationsAddition": "Addition",
-    "mathOperationsSubtraction": "Subtraktion",
-    "mathOperationsMultiplication": "Multiplikation",
-    "mathOperationsDivision": "Division",
-    "congratulations": "Herzlichen Glückwunsch, Kommandant!",
-    "missionsCompleted": "Missionen abgeschlossen: {count}",
-    "starsEarned": "Sterne erhalten: {count}",
-    "audioSettings": "Audio-Einstellungen",
-    "soundEffects": "Soundeffekte",
-    "backgroundMusicDesc": "Hintergrundmusik",
-    "gameplay": "Spielablauf",
-    "puzzleTimer": "Puzzle-Timer",
-    "puzzleTimerDesc": "Timer in Puzzle-Spielen aktivieren",
-    "showHints": "Hinweise anzeigen",
-    "showHintsDesc": "Hilfreiche Tipps während der Spiele anzeigen",
-    "hapticFeedback": "Haptisches Feedback",
-    "hapticFeedbackDesc": "Vibration bei Berührung (falls unterstützt)",
-    "appLanguage": "App-Sprache",
-    "appLanguageDesc": "Wähle deine bevorzugte Sprache",
-    "languageEnglish": "English",
-    "languageGerman": "Deutsch",
-    "difficulty": "Schwierigkeit",
-    "currentGrade": "Aktuelle Stufe",
-    "currentLevelDesc": "Aktuelles Level",
-    "difficultyDescGrade3": "Grundrechenarten",
-    "difficultyDescGrade4": "Mehrstellige Mathematik",
-    "difficultyDescGrade5": "Komplexe Probleme",
-    "difficultyDescGrade6": "Fortgeschrittene Herausforderungen",
-    "totalScore": "Gesamtpunktzahl",
-    "gamesPlayed": "Gespielte Spiele",
-    "resetProgress": "Fortschritt zurücksetzen",
-    "about": "Über",
-    "appVersion": "App-Version",
-    "developer": "Entwickler",
-    "developerName": "CrispStrobe",
-    "targetAge": "Zielalter",
-    "targetAgeRange": "6-12 Jahre (Klassen 1-6)",
-    "aboutApp": "Die App hilft hoffentlich Kindern, Mathematik durch fesselnde Weltraum-Spiele zu lernen. Optimiert für Tablets.",
-    
-    "languageRestartPrompt": "Die App-Sprache wird beim Neustart geändert. Möchtest du jetzt neu starten?",
-    "later": "Später",
-    "restartNow": "Jetzt neu starten",
-    "resetProgressConfirm": "Bist du sicher, dass du den gesamten Fortschritt zurücksetzen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
-    "legalNotice": "Impressum anzeigen",
-    
-    "debugPanelTitle": "Debug-Panel",
-    "debugForceUnlock": "Vollversion erzwingen",
-    "debugApplyAndClose": "Anwenden & Schließen",
-    "parentalGateTitle": "Kindersicherung",
-    "parentalGateChallenge": "Um fortzufahren, bitte diese Aufgabe lösen:",
-    "confirm": "Bestätigen",
-    "pleaseTryAgain": "Bitte versuche es erneut.",
-    "purchaseTitle": "Vollzugriff freischalten",
-    "purchaseDescription": "Schalte alle 8 Spiele, alle 4 Schwierigkeitsstufen und zukünftige Updates mit einem einzigen Kauf frei!",
-    "purchaseButton": "Jetzt freischalten!",
-    "contactingStore": "Verbinde mit Missionskontrolle...",
-    "purchaseError": "Ein Fehler ist aufgetreten. Bitte prüfe deine Verbindung und versuche es erneut.",
-    "restorePurchases": "Käufe wiederherstellen",
-    "storeUnavailable": "Der Store ist derzeit nicht verfügbar. Bitte prüfe deine Verbindung und ob du mit deinem Konto angemeldet bist.",
-    "languageChanged": "Sprache geändert",
-    "languageChangedDesc": "Die App-Sprache wird nach einem Neustart geändert. Möchtest du jetzt neu starten?",
-    "later": "Später",
-    "restartNow": "Jetzt neu starten",
-    "selectGrade": "Stufe auswählen",
-    "gradeN": "Stufe {gradeNumber}",
-    "cancel": "Abbrechen",
-    "restartToApplyChanges": "Bitte starte die App neu, um die Sprachänderungen zu übernehmen",
-    "resetProgressConfirmation": "Bist du sicher, dass du den gesamten Fortschritt zurücksetzen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
-    "progressResetSuccess": "Fortschritt erfolgreich zurückgesetzt!",
-    "reset": "Zurücksetzen",
-    "playToUnlock": "Spielen zum Freischalten!",
-    "chooseYourGrade": "Wähle deine Stufe",
-    "grade3Desc": "Grundlegende Addition, Subtraktion und einfache Multiplikation",
-    "grade4Desc": "Mehrstellige Arithmetik und Einführung in die Division",
-    "grade5Desc": "Komplexe Operationen, Brüche und Dezimalzahlen",
-    "grade6Desc": "Fortgeschrittene Mathematik und anspruchsvolle Rätsel",
-    "settingsComingSoon": "Einstellungen bald verfügbar!",
-    "spaceExplorerProgress": "Weltraumforscher-Fortschritt",
-    "unlocked": "Freigeschaltet",
-    "complete": "Abgeschlossen",
-    "rankRookie": "Rekrut",
-    "rankExplorer": "Entdecker",
-    "rankVeteran": "Veteran",
-    "rankExpert": "Experte",
-    "rankLegend": "Legende",
-    "achievementFirstCenturyTitle": "Erstes Hundert!",
-    "achievementFirstCenturyDesc": "Erreiche 100 Punkte",
-    "achievementScoreMasterTitle": "Punkte-Meister",
-    "achievementScoreMasterDesc": "Erreiche 500 Punkte",
-    "achievementThousandClubTitle": "Tausender-Club",
-    "achievementThousandClubDesc": "Erreiche 1000 Punkte",
-    "achievementLevelExplorerTitle": "Level-Entdecker",
-    "achievementLevelExplorerDesc": "Erreiche Level 5",
-    "achievementSpaceCommanderTitle": "Weltraum-Kommandant",
-    "achievementSpaceCommanderDesc": "Erreiche Level 10",
-    "achievementTriangleWizardTitle": "Dreiecks-Magier",
-    "achievementTriangleWizardDesc": "Schließe 3 Kosmische Dreiecke-Level ab",
-    "achievementBubblePopperTitle": "Blasen-Platzer",
-    "achievementBubblePopperDesc": "Schließe 3 Blasen-Mathe-Level ab",
-    "achievementPuzzleSolverTitle": "Puzzle-Löser",
-    "achievementPuzzleSolverDesc": "Schließe 3 Puzzle-Mathe-Level ab",
-    "achievementAllRounderTitle": "Alleskönner",
-    "achievementAllRounderDesc": "Spiele alle Spieltypen",
-    "achievementSpeedDemonTitle": "Geschwindigkeits-Dämon",
-    "achievementSpeedDemonDesc": "Schließe ein Level in unter 30 Sekunden ab",
-    "achievementPerfectionistTitle": "Perfektionist",
-    "achievementPerfectionistDesc": "Schließe ein Level ohne Fehler ab",
-    "achievementMathematicianTitle": "Junger Mathematiker",
-    "achievementMathematicianDesc": "Löse 100 Matheaufgaben",
-    "unlockedStatus": "FREIGESCHALTET",
-    "lockedStatus": "GESPERRT",
-    "achievementUnlocked": "ERFOLG FREIGESCHALTET!",
-    "continueExploring": "Weiter erkunden",
-    "planetHoppingObjectiveAsc": "Besuche Planeten in aufsteigender Reihenfolge!",
-    "planetHoppingObjectiveDesc": "Besuche Planeten in absteigender Reihenfolge!",
-    "planetHoppingObjectiveEvenOdd": "Besuche zuerst gerade, dann ungerade Zahlen!",
-    "planetHoppingTitle": "Planeten-Hüpfen",
-    "planetHoppingNextTarget": "Nächstes: {target}",
-    "planetHoppingInstructions": "Suche den Planeten mit der größten Gravitation.",
-    "planetHoppingOrderAsc": "Löse die Aufgaben und besuche die Planeten vom KLEINSTEN zum GRÖSSTEN Ergebnis!",
-    "planetHoppingOrderDesc": "Löse die Aufgaben und besuche die Planeten vom GRÖSSTEN zum KLEINSTEN Ergebnis!",
-    "planetHoppingOrderEvensOdds": "Besuche erst Planeten mit GERADEN Ergebnissen, dann UNGERADE — beide aufsteigend!",
-    "planetHoppingOrderAscShort": "Klein\u2192Gro\u00df",
-    "planetHoppingOrderDescShort": "Gro\u00df\u2192Klein",
-    "planetHoppingOrderEvensOddsShort": "Gerade\u2192Ungerade",
-    "planetHoppingWinTitle": "Sonnensystem gemeistert!",
-    "planetHoppingWinDesc": "Du hast erfolgreich alle Planeten in der richtigen Reihenfolge navigiert!\nLebens-Bonus: {bonus} Punkte",
-    "planetHoppingWinDescBonus": "Du hast erfolgreich alle Planeten in der richtigen Reihenfolge navigiert!\nLebens-Bonus: {bonus} Punkte",
-    "@planetHoppingWinDescBonus": {
-        "description": "Win message with bonus points.",
-        "placeholders": {
-            "bonus": {
-                "type": "int"
-            }
-        }
-    },
-    "planetHoppingLoseDescCrash": "Du bist zu oft abgestürzt!\nStudiere die Planetenreihenfolge und versuche es erneut.",
-    "planetHoppingNextTargetValue": "Nächster: {value}",
-    "@planetHoppingNextTargetValue": {
-        "description": "Displays the next numerical target in the sequence.",
-        "placeholders": {
-            "value": {
-                "type": "int"
-            }
-        }
-    },
-    "exploreAgain": "Erneut erkunden",
-    "missionCompleteStatus": "Mission erfolgreich",
-    "planetHoppingLoseTitle": "Navigation fehlgeschlagen!",
-    "planetHoppingLoseDesc": "Du bist zu oft abgestürzt!\nStudiere die Planetenreihenfolge und versuche es erneut.",
-    "retryMission": "Mission wiederholen",
-    "returnToBase": "Zurück zur Basis",
-    "hyperdriveGatesTitle": "Hyperantriebs-Tore",
-    "solve": "LÖSE:",
-    "hyperdriveGatesObjective": "Fliege durch Tore mit: {correctAnswer}",
-    "hyperdriveGatesInstructions": "ZIEHE, um dein Schiff zu steuern • FLIEGE durch KORREKTE Tore • VERMEIDE falsche Antworten",
-    "hyperdriveGatesWinTitle": "Hyperantriebs-Navigation abgeschlossen!",
-    "hyperdriveGatesWinDesc": "Du hast erfolgreich durch {targetGatesNeeded} Tore navigiert!\nDu bist bereit für Missionen im tiefen Weltraum!",
-    "flyAgain": "Erneut fliegen",
-    "hyperdriveGatesLoseTitle": "Navigationssystem ausgefallen!",
-    "hyperdriveGatesLoseDesc": "Dein Schiff hat zu viel Schaden genommen!\nKehre zur Basis zurück für Reparaturen und versuche es erneut.",
-    "noPuzzleImagesFound": "Keine Sternbild-Bilder in assets/images/ gefunden.",
-    "puzzleMathInstructions": "Baue das Weltraum-Sternbild wieder auf! Ziehe Teile an die richtigen Stellen. Tippe auf Teile, um sie zu drehen!",
-    "timer": "Timer",
-    "timesUp": "Zeit abgelaufen, Weltraumkadett!",
-    "constellationPieces": "Sternbild-Teile",
-    "puzzleMathIncorrect": "Überprüfe die Mathe-Antwort oder versuche, das Teil zu drehen!",
-    "puzzleMathWin": "Sternbild wiederhergestellt, Weltraum-Entdecker!",
-    "puzzleMathWinBonus": "Sternbild wiederhergestellt!\nZeitbonus: {bonus} Punkte!",
-    "puzzleMathTryAnother": "Versuchen wir ein anderes Sternbild!",
-    "magicTrianglesGameTitle": "Wurmloch-Aktivator",
-    "magicTrianglesInstructions": "Richte das Stargate aus! Ziehe Resonatoren, um die erforderliche Warp-Frequenz auf jeder Seite zu erreichen.",
-    "magicTrianglesWarpFrequency": "Warp-Frequenz: {warpFrequency}",
-    "magicTrianglesResonators": "Verfügbare Subraum-Resonatoren",
-    "magicTrianglesFail": "Ausrichtung fehlgeschlagen. Die Energiesignatur ist falsch. Versuche es erneut!",
-    "magicTrianglesOutOfMoves": "Alle Züge verbraucht!",
-    "magicTrianglesOutOfMovesDesc": "Setze jeden Resonator gezielt ein, um das Wurmloch effizient auszurichten!",
-    "calculatingCoordinates": "Berechne Wurmloch-Koordinaten...",
-    "magicTrianglesWinTitle": "Wurmloch stabilisiert!",
-    "magicTrianglesWinDesc": "Perfekte Ausrichtung! Der Warp-Korridor ist offen.\nBonus: +{bonusScore} Punkte!",
-    "nextAnomaly": "Nächste Anomalie",
-    "toTheBridge": "Zur Brücke",
-    "asteroidMathHunter": "Asteroiden-Mathe-Jäger",
-    "asteroidMathHunterDesc": "Navigiere durch ein gefährliches Asteroidenfeld! Zerstöre die treibenden Weltraumfelsen in der richtigen Reihenfolge, bevor sie kollidieren.",
-    "asteroidMathTarget": "Ziel-Asteroid: {target}",
-    "asteroidMathWinTitle": "Asteroidenfeld geräumt!",
-    "asteroidMathWinDesc": "Zeitbonus: {timeBonus} Punkte!\nDu bist ein wahrer Weltraum-Jäger!",
-    "timesUpSpaceCadet": "Zeit abgelaufen, Weltraumkadett!",
-    "asteroidMathLoseTitle": "Mission fehlgeschlagen!",
-    "asteroidMathLoseDesc": "Das Asteroidenfeld wurde zu chaotisch!\nVersuche es erneut, Kommandant!",
-    "nextTarget": "Nächstes Ziel: ",
-    "loadingAdventure": "Lade Weltraum-Abenteuer...",
-    "preparingMission": "Bereite deine Mathe-Mission vor...",
-    "initializing": "Initialisiere NumberNebula...",
-    "loadingAssets": "Lade Spiel-Assets...",
-    "loadingProgress": "Lade gespeicherten Fortschritt...",
-    "preparingSpaceStation": "Bereite Raumstation vor...",
-    "calibratingNav": "Kalibriere Navigationssysteme...",
-    "readyForLaunch": "Bereit zum Start!",
-    "launch": "Start",
-    "splashScreenSubtitle": "Erkunden • Lernen • Entdecken",
-    "pathFinderTitle": "PfadFinder",
-    "pathFinderDesc": "Navigiere durch Quanten-Raumkorridore! Berechne die richtige Flugbahn durch gefährliche kosmische Phänomene, um sicher anzukommen.",
-    "pathFinderSolve": "LÖSE:",
-    "pathFinderChoosePath": "Wähle den Pfad für: {expression}",
-    "@pathFinderChoosePath": {
-        "description": "Fordert Spieler auf, den korrekten Pfad zu wählen",
-        "placeholders": {
-            "expression": {
-                "type": "String",
-                "description": "Der zu lösende mathematische Ausdruck"
-            }
-        }
-    },
-    "pathFinderInstructions": "TIPPE auf Weltraumrouten • BERECHNE Matheaufgaben • NAVIGIERE durch kosmische Gefahren",
-    "pathFinderWinTitle": "Quanten-Navigation abgeschlossen!",
-    "pathFinderWinDesc": "Du hast erfolgreich {targetProblems} Quantenkorridore navigiert!\nGesamtpunktzahl: {totalScore} Punkte!",
-    "@pathFinderWinDesc": {
-        "description": "Siegesnachricht mit gelösten Problemen und Punktzahl",
-        "placeholders": {
-            "targetProblems": {
-                "type": "int",
-                "description": "Anzahl der zu lösenden Probleme"
-            },
-            "totalScore": {
-                "type": "int",
-                "description": "Erreichte Gesamtpunktzahl"
-            }
-        }
-    },
-    "pathFinderLoseTitle": "Navigationssysteme offline!",
-    "pathFinderLoseDesc": "Dein Schiff hat zu viel Schaden durch kosmische Gefahren erlitten!\nKalibriere deine Navigationssysteme neu und versuche es erneut, Kommandant!",
-    "pathFinderFailureWormhole": "Wurmloch-Kollaps!",
-    "pathFinderFailureNebula": "Nebel-Interferenz!",
-    "pathFinderFailureAsteroidBelt": "Asteroidenkollision!",
-    "pathFinderFailureClearSpace": "Navigationsfehler!",
-    "pathFinderFailureIonStorm": "Ionensturm-Schäden!",
-    "pathFinderFailureQuantumTunnel": "Quanten-Instabilität!",
-
-    "numberWalls": "Zahlenmauern",
-    "numberWallsDesc": "Baue kosmische Rechenpyramiden! Stabilisiere die Quantenstruktur!",
-    "numberWallsGameTitle": "Quanten-Pyramiden-Baumeister",
-    "numberWallsInstructions": "Baue die Zahlenmauer! Ziehe Zahlen, um die Struktur zu vervollständigen.",
-    "numberWallsCalculating": "Berechne Pyramiden-Koordinaten...",
-    "numberWallsBricks": "Verfügbare Bausteine",
-    "numberWallsFail": "Strukturelle Integrität gefährdet! Das mathematische Fundament ist instabil. Versuche es erneut!",
-    "numberWallsOutOfMoves": "Alle Züge verbraucht!",
-    "numberWallsOutOfMovesDesc": "Setze jeden Baustein gezielt ein, um die Pyramide zu stabilisieren!",
-    "numberWallsWinTitle": "Pyramide stabilisiert!",
-    "numberWallsWinDesc": "Perfekte mathematische Ausrichtung! Die Quantenstruktur ist stabil.\nBonus: +{bonusScore} Punkte!",
-    "@numberWallsWinDesc": {
-        "placeholders": {
-            "bonusScore": {
-                "type": "int"
-            }
-        }
-    },
-    "numberWallsNextWall": "Nächste Pyramide",
-    "numberWallsAddition": "Quanten-Additions-Matrix",
-    "numberWallsSubtraction": "Stern-Subtraktions-Gitter",
-    "numberWallsMultiplication": "Kosmisches Multiplikations-Array",
-    "numberWallsDivision": "Galaktisches Divisions-Netzwerk",
-    "numberWallsDropFar": "Bitte näher zum Ziel platzieren.",
-    "numberWallsAddDesc": "Jeder Stein ist die Summe der zwei darunter.",
-    "numberWallsSubDesc": "Der untere Stein ist der Unterschied zwischen den beiden darüber.",
-    "numberWallsMultDesc": "Jeder Stein ist das Produkt der beiden darunter.",
-    "numberWallsDivDesc": "Jeder Stein ist das Ergebnis der Teilung der beiden darunter.",
-
-    "codebreaker": "Codeknacker",
-    "codebreakerDesc": "Fange außerirdische Übertragungen ab und entschlüssle sie! Löse komplexe Gleichungssysteme, um ihre Geheimnisse zu lüften.",
-    "codebreakerSuccess": "Code geknackt!",
-    "codebreakerError": "Übertragung fehlerhaft",
-    "codebreakerTransmissionReceived": "Alien-Übertragung abgefangen",
-    "codebreakerSelectNumbers": "Wähle Zahlen aus, um die Übertragung zu entschlüsseln",
-    "codebreakerInstructions": "Entschlüssle die Alien-Symbole, indem du die Gleichungen löst. Tippe auf Zahlen, um die fehlenden Werte einzusetzen.",
-    "codebreakerWinTitle": "Mission abgeschlossen!",
-    "codebreakerLoseTitle": "Übertragung verloren",
-    "codebreakerWinDesc": "Ausgezeichnete Arbeit, Kadett! Du hast {totalScore} Punkte verdient. Die Galaxie ist dank deiner kryptografischen Fähigkeiten sicherer!",
-    "@codebreakerWinDesc": {
-        "placeholders": {
-            "totalScore": {
-                "type": "int"
-            }
-        }
-    },
-    "codebreakerLoseDesc": "Die Alien-Codes waren zu komplex, um sie rechtzeitig zu knacken. Keine Sorge – selbst die besten Codeknacker brauchen Übung!",
-    "codebreakerOutOfMoves": "Alle Züge verbraucht!",
-    "codebreakerOutOfMovesDesc": "Überlege dir jeden Zug genau, um die Übertragung effizient zu entschlüsseln!",
-    "problemCustomization": "Aufgaben-Anpassung",
-    "problemCustomizationDesc": "Passe die Rechenarten und Zahlenbereiche in den Spielen an.",
-    "problemCustomizationUnlock": "Diese Funktion erfordert die Vollversion.",
-    "enableCustomSettings": "Eigene Einstellungen aktivieren",
-    "allowedOperations": "Erlaubte Rechenarten",
-    "numberRange": "Zahlenbereich",
-    "minValue": "Min. Wert",
-    "maxValue": "Max. Wert",
-
-    "perspectivePuzzleGameTitle": "Anomalie-Scan",
-    "anomalyScanTitle": "Anomalie-Scan",    
-    "perspectivePuzzleInstructions": "Scanne Astro-Objekte aus verschiedenen Sensor-Perspektiven.",
-    "anomalyScanSelectReadout": "Ordne das Hologramm dem korrekten {perspective} Sensor-Scan zu",
-    "@anomalyScanSelectReadout": {
-        "placeholders": {
-            "perspective": {
-                "type": "String"
-            }
-        }
-    },
-    "anomalyScanWinTitle": "Analyse abgeschlossen!",
-    "anomalyScanWinDesc": "Anomalie identifiziert. Daten protokolliert. Bonus: {bonus} Punkte.",
-    "@anomalyScanWinDesc": {
-        "placeholders": {
-            "bonus": {
-                "type": "int"
-            }
-        }
-    },
-    "anomalyScanFail": "Scan-Fehler. Sensoren werden rekalibriert...",
-    "perspectiveDensityScan": "DICHTE",
-    "perspectiveStructuralScan": "STRUKTUR",
-    "perspectiveThermalScan": "THERMAL",
-    "perspectiveEMScan": "EM-FELD",
-    "perspectivePuzzleWinTitle": "Analyse vollständig!",
-    "perspectivePuzzleWinDesc": "Anomalie identifiziert. Daten protokolliert. Bonus: {bonus} Punkte.",
-    "@perspectivePuzzleWinDesc": {
-        "placeholders": {
-            "bonus": {
-                "type": "int"
-            }
-        }
-    },
-    "perspectivePuzzleSelectView": "Wähle die Perspektive {perspective} .",
-    "@perspectivePuzzleSelectView": {
-        "placeholders": {
-            "perspective": {
-                "type": "String"
-            }
-        }
-    },
-    "perspectiveFront": "VORN",
-    "perspectiveBack": "HINTEN",
-    "perspectiveLeft": "LINKS",
-    "perspectiveRight": "RECHTS",    
-
-    "blockCounterGameTitle": "3D Block-Zähler",
-    "blockCounterInstructions": "Drehe und zähle alle Blöcke einschließlich der versteckten",
-    "blockCounterFail": "Falsche Anzahl! Versuche es erneut.",
-    "blockCounterComplexity": "Komplexität: {level}",
-    "@blockCounterComplexity": {
-        "placeholders": {
-            "level": {
-                "type": "int"
-            }
-        }
-    },
-    "blockCounterQuestion": "Wie viele Blöcke sind in dieser Struktur?",
-    "blockCounterSelectAnswer": "Wähle deine Antwort",
-    "blockCounterShowHint": "Versteckte zeigen",
-    "blockCounterHideHint": "Hinweis verbergen",
-    "blockCounterRotateInstructions": "Ziehen zum Drehen • Kneifen zum Zoomen",
-    "blockCounterHintShowing": "Versteckte Blöcke sind gelb hervorgehoben",
-    "blockCounterHintHidden": "Einige Blöcke können hinter anderen versteckt sein",
-    "blockCounterWinTitle": "Perfekte Zählung!",
-    "blockCounterWinDesc": "Richtig! Es waren {count} Blöcke insgesamt.",
-    "@blockCounterWinDesc": {
-        "placeholders": {
-            "count": {
-                "type": "int"
-            }
-        }
-    },
-    "blockCounterBonusPoints": "Bonuspunkte: {bonus}",
-    "@blockCounterBonusPoints": {
-        "placeholders": {
-            "bonus": {
-                "type": "int"
-            }
-        }
-    },
-    "blockCounterDifficultyVeryEasy": "Sehr Einfach",
-    "blockCounterDifficultyEasy": "Einfach", 
-    "blockCounterDifficultyMedium": "Mittel",
-    "blockCounterDifficultyHard": "Schwer",
-    "blockCounterNextPuzzle": "Nächstes Rätsel",
-    "blockCounterBackToMenu": "Zurück zum Menü",
-
-    "sriStatisticsTitle": "Lernfortschritt",
-    "sriStatisticsDesc": "Sieh dir deinen Fortschritt an und erkenne, wo du dich verbessern kannst.",
-    "premiumFeature": "Dies ist eine Premium-Funktion. Schalte die Vollversion frei, um darauf zuzugreifen.",
-    "close": "Schließen",
-    "sriMastery": "Gesamtbeherrschung",
-    "sriTotal": "Gesamt Erfasst",
-    "sriMastered": "Beherrscht",
-    "sriLearning": "Im Training",
-    "progressMatrixTitle": "Fortschrittsmatrix",
-    "progressMatrixDesc": "Die Farbe zeigt die Beherrschung (grün ist am besten). Die Zahl zeigt die Anzahl der Aufgaben in diesem Bereich.",
-
-      "signalTriangulationGameTitle": "Signal-Triangulation",
+  "appTitle": "NumberNebula",
+  "welcome": "Entdecke das Mathe-Universum!",
+  "startAdventure": "Starte dein Mathe-Abenteuer",
+  "chooseGrade": "Wähle deine Stufe",
+  "fast": "SCHNELL",
+  "grade3": "Stufe 1",
+  "grade4": "Stufe 2",
+  "grade5": "Stufe 3",
+  "grade6": "Stufe 4",
+  "adaptiveDifficulty": "Angepasste Schwierigkeit",
+  "adaptiveDifficultyDesc": "Passt Aufgaben an dein Können an",
+  "adjustProblems": "Passe die Aufgaben an deine Fähigkeiten an",
+  "gameMenu": "Missionskontrolle",
+  "magicTriangles": "Kosmische Dreiecke",
+  "magicTrianglesDesc": "Richte die kosmischen Energieknoten aus! Jede Seite des Dreiecks muss die gleiche kosmische Frequenz ergeben, um das Wurmloch zu stabilisieren.",
+  "bubbleMath": "Asteroidenfeld-Jäger",
+  "bubbleMathDesc": "Navigiere durch ein gefährliches Asteroidenfeld! Zerstöre die treibenden Weltraumfelsen in der richtigen Reihenfolge, bevor sie kollidieren.",
+  "puzzleMath": "Sternbild-Puzzles",
+  "puzzleMathDesc": "Rekonstruiere himmlische Sternenkarten! Löse Gleichungen, um die richtigen Koordinaten zu finden und Fragmente zu platzieren.",
+  "hyperdriveGates": "Hyperantriebs-Tore",
+  "hyperdriveGatesDesc": "Setze einen Kurs durch Quanten-Raumtore! Fliege durch das Tor mit der richtigen Antwort, um den Sprung auf Lichtgeschwindigkeit zu machen.",
+  "planetHopping": "Gravitations-Schleuder",
+  "planetHoppingDesc": "Schleudere dein Schiff zwischen Planeten! Berechne die richtige Flugbahn und besuche Planeten in der korrekten mathematischen Reihenfolge.",
+  "level": "Level",
+  "score": "Punkte",
+  "lives": "Hüllenintegrität",
+  "time": "Zeit",
+  "correct": "Richtig!",
+  "incorrect": "Neuberechnung...",
+  "excellent": "Hervorragende Arbeit, Weltraum-Kommandant!",
+  "good": "Gut gemacht!",
+  "tryAgain": "Nochmal versuchen!",
+  "gameOver": "Mission abgeschlossen!",
+  "nextLevel": "Nächstes Level",
+  "playAgain": "Nochmal",
+  "backToMenu": "Zurück zur Missionskontrolle",
+  "settings": "Einstellungen",
+  "sound": "Soundeffekte",
+  "music": "Musik",
+  "language": "Sprache",
+  "progress": "Karrierefortschritt",
+  "achievements": "Erfolge",
+  "mathOperationsAddition": "Addition",
+  "mathOperationsSubtraction": "Subtraktion",
+  "mathOperationsMultiplication": "Multiplikation",
+  "mathOperationsDivision": "Division",
+  "congratulations": "Glückwunsch!",
+  "missionsCompleted": "Missionen abgeschlossen: {count}",
+  "starsEarned": "Sterne erhalten: {count}",
+  "audioSettings": "Audio-Einstellungen",
+  "soundEffects": "Soundeffekte",
+  "backgroundMusicDesc": "Hintergrundmusik",
+  "gameplay": "Spielablauf",
+  "puzzleTimer": "Puzzle-Timer",
+  "puzzleTimerDesc": "Timer in Puzzle-Spielen aktivieren",
+  "showHints": "Hinweise anzeigen",
+  "showHintsDesc": "Hilfreiche Tipps während der Spiele anzeigen",
+  "hapticFeedback": "Haptisches Feedback",
+  "hapticFeedbackDesc": "Vibration bei Berührung (falls unterstützt)",
+  "appLanguage": "App-Sprache",
+  "appLanguageDesc": "Wähle deine bevorzugte Sprache",
+  "languageEnglish": "English",
+  "languageGerman": "Deutsch",
+  "difficulty": "Schwierigkeit",
+  "currentGrade": "Aktuelle Stufe",
+  "currentLevelDesc": "Aktuelles Level",
+  "difficultyDescGrade3": "Grundrechenarten",
+  "difficultyDescGrade4": "Mehrstellige Mathematik",
+  "difficultyDescGrade5": "Komplexe Probleme",
+  "difficultyDescGrade6": "Fortgeschrittene Herausforderungen",
+  "totalScore": "Gesamtpunkte",
+  "gamesPlayed": "Gespielte Spiele",
+  "resetProgress": "Fortschritt zurücksetzen",
+  "about": "Über",
+  "appVersion": "App-Version",
+  "developer": "Entwickler",
+  "developerName": "CrispStrobe",
+  "targetAge": "Zielalter",
+  "targetAgeRange": "6-12 Jahre (Klassen 1-6)",
+  "aboutApp": "Die App hilft hoffentlich Kindern, Mathematik durch fesselnde Weltraum-Spiele zu lernen. Optimiert für Tablets.",
+  "languageRestartPrompt": "Die App-Sprache wird beim Neustart geändert. Möchtest du jetzt neu starten?",
+  "later": "Später",
+  "restartNow": "Jetzt neu starten",
+  "resetProgressConfirm": "Bist du sicher, dass du den gesamten Fortschritt zurücksetzen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
+  "legalNotice": "Impressum anzeigen",
+  "debugPanelTitle": "Debug-Panel",
+  "debugForceUnlock": "Vollversion erzwingen",
+  "debugApplyAndClose": "Anwenden & Schließen",
+  "parentalGateTitle": "Kindersicherung",
+  "parentalGateChallenge": "Um fortzufahren, bitte diese Aufgabe lösen:",
+  "confirm": "Bestätigen",
+  "pleaseTryAgain": "Bitte versuche es erneut.",
+  "purchaseTitle": "Vollzugriff freischalten",
+  "purchaseDescription": "Schalte alle 8 Spiele, alle 4 Schwierigkeitsstufen und zukünftige Updates mit einem einzigen Kauf frei!",
+  "purchaseButton": "Jetzt freischalten!",
+  "contactingStore": "Verbinde mit Missionskontrolle...",
+  "purchaseError": "Ein Fehler ist aufgetreten. Bitte prüfe deine Verbindung und versuche es erneut.",
+  "restorePurchases": "Käufe wiederherstellen",
+  "storeUnavailable": "Der Store ist derzeit nicht verfügbar. Bitte prüfe deine Verbindung und ob du mit deinem Konto angemeldet bist.",
+  "languageChanged": "Sprache geändert",
+  "languageChangedDesc": "Die App-Sprache wird nach einem Neustart geändert. Möchtest du jetzt neu starten?",
+  "selectGrade": "Stufe auswählen",
+  "gradeN": "Stufe {gradeNumber}",
+  "cancel": "Abbrechen",
+  "restartToApplyChanges": "Bitte starte die App neu, um die Sprachänderungen zu übernehmen",
+  "resetProgressConfirmation": "Bist du sicher, dass du den gesamten Fortschritt zurücksetzen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
+  "progressResetSuccess": "Fortschritt erfolgreich zurückgesetzt!",
+  "reset": "Neustart",
+  "playToUnlock": "Spielen zum Freischalten!",
+  "chooseYourGrade": "Wähle deine Stufe",
+  "grade3Desc": "Grundlegende Addition, Subtraktion und einfache Multiplikation",
+  "grade4Desc": "Mehrstellige Arithmetik und Einführung in die Division",
+  "grade5Desc": "Komplexe Operationen, Brüche und Dezimalzahlen",
+  "grade6Desc": "Fortgeschrittene Mathematik und anspruchsvolle Rätsel",
+  "settingsComingSoon": "Einstellungen bald verfügbar!",
+  "spaceExplorerProgress": "Weltraumforscher-Fortschritt",
+  "unlocked": "Freigeschaltet",
+  "complete": "Abgeschlossen",
+  "rankRookie": "Rekrut",
+  "rankExplorer": "Entdecker",
+  "rankVeteran": "Veteran",
+  "rankExpert": "Experte",
+  "rankLegend": "Legende",
+  "achievementFirstCenturyTitle": "Erstes Hundert!",
+  "achievementFirstCenturyDesc": "Erreiche 100 Punkte",
+  "achievementScoreMasterTitle": "Punkte-Meister",
+  "achievementScoreMasterDesc": "Erreiche 500 Punkte",
+  "achievementThousandClubTitle": "Tausender-Club",
+  "achievementThousandClubDesc": "Erreiche 1000 Punkte",
+  "achievementLevelExplorerTitle": "Level-Entdecker",
+  "achievementLevelExplorerDesc": "Erreiche Level 5",
+  "achievementSpaceCommanderTitle": "Weltraum-Kommandant",
+  "achievementSpaceCommanderDesc": "Erreiche Level 10",
+  "achievementTriangleWizardTitle": "Dreiecks-Magier",
+  "achievementTriangleWizardDesc": "Schließe 3 Kosmische Dreiecke-Level ab",
+  "achievementBubblePopperTitle": "Blasen-Platzer",
+  "achievementBubblePopperDesc": "Schließe 3 Blasen-Mathe-Level ab",
+  "achievementPuzzleSolverTitle": "Puzzle-Löser",
+  "achievementPuzzleSolverDesc": "Schließe 3 Puzzle-Mathe-Level ab",
+  "achievementAllRounderTitle": "Alleskönner",
+  "achievementAllRounderDesc": "Spiele alle Spieltypen",
+  "achievementSpeedDemonTitle": "Geschwindigkeits-Dämon",
+  "achievementSpeedDemonDesc": "Schließe ein Level in unter 30 Sekunden ab",
+  "achievementPerfectionistTitle": "Perfektionist",
+  "achievementPerfectionistDesc": "Schließe ein Level ohne Fehler ab",
+  "achievementMathematicianTitle": "Junger Mathematiker",
+  "achievementMathematicianDesc": "Löse 100 Matheaufgaben",
+  "unlockedStatus": "FREIGESCHALTET",
+  "lockedStatus": "GESPERRT",
+  "achievementUnlocked": "ERFOLG FREIGESCHALTET!",
+  "continueExploring": "Weiter erkunden",
+  "planetHoppingObjectiveAsc": "Besuche Planeten in aufsteigender Reihenfolge!",
+  "planetHoppingObjectiveDesc": "Besuche Planeten in absteigender Reihenfolge!",
+  "planetHoppingObjectiveEvenOdd": "Besuche zuerst gerade, dann ungerade Zahlen!",
+  "planetHoppingTitle": "Planeten-Hüpfen",
+  "planetHoppingNextTarget": "Nächstes: {target}",
+  "planetHoppingInstructions": "Suche den Planeten mit der größten Gravitation.",
+  "planetHoppingOrderAsc": "Löse die Aufgaben und besuche die Planeten vom KLEINSTEN zum GRÖSSTEN Ergebnis!",
+  "planetHoppingOrderDesc": "Löse die Aufgaben und besuche die Planeten vom GRÖSSTEN zum KLEINSTEN Ergebnis!",
+  "planetHoppingOrderEvensOdds": "Besuche erst Planeten mit GERADEN Ergebnissen, dann UNGERADE — beide aufsteigend!",
+  "planetHoppingOrderAscShort": "Klein→Groß",
+  "planetHoppingOrderDescShort": "Groß→Klein",
+  "planetHoppingOrderEvensOddsShort": "Gerade→Ungerade",
+  "planetHoppingWinTitle": "Sonnensystem gemeistert!",
+  "planetHoppingWinDesc": "Du hast erfolgreich alle Planeten in der richtigen Reihenfolge navigiert!\nLebens-Bonus: {bonus} Punkte",
+  "planetHoppingWinDescBonus": "Du hast erfolgreich alle Planeten in der richtigen Reihenfolge navigiert!\nLebens-Bonus: {bonus} Punkte",
+  "@planetHoppingWinDescBonus": {
+    "description": "Win message with bonus points.",
+    "placeholders": {
+      "bonus": {
+        "type": "int"
+      }
+    }
+  },
+  "planetHoppingLoseDescCrash": "Du bist zu oft abgestürzt!\nStudiere die Planetenreihenfolge und versuche es erneut.",
+  "planetHoppingNextTargetValue": "Nächster: {value}",
+  "@planetHoppingNextTargetValue": {
+    "description": "Displays the next numerical target in the sequence.",
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "exploreAgain": "Erneut erkunden",
+  "missionCompleteStatus": "Mission erfolgreich",
+  "planetHoppingLoseTitle": "Navigation fehlgeschlagen!",
+  "planetHoppingLoseDesc": "Du bist zu oft abgestürzt!\nStudiere die Planetenreihenfolge und versuche es erneut.",
+  "retryMission": "Mission wiederholen",
+  "returnToBase": "Zurück zur Basis",
+  "hyperdriveGatesTitle": "Hyperantriebs-Tore",
+  "solve": "LÖSE:",
+  "hyperdriveGatesObjective": "Fliege durch Tore mit: {correctAnswer}",
+  "hyperdriveGatesInstructions": "ZIEHE, um dein Schiff zu steuern • FLIEGE durch KORREKTE Tore • VERMEIDE falsche Antworten",
+  "hyperdriveGatesWinTitle": "Hyperantriebs-Navigation abgeschlossen!",
+  "hyperdriveGatesWinDesc": "Du hast erfolgreich durch {targetGatesNeeded} Tore navigiert!\nDu bist bereit für Missionen im tiefen Weltraum!",
+  "flyAgain": "Erneut fliegen",
+  "hyperdriveGatesLoseTitle": "Navigationssystem ausgefallen!",
+  "hyperdriveGatesLoseDesc": "Dein Schiff hat zu viel Schaden genommen!\nKehre zur Basis zurück für Reparaturen und versuche es erneut.",
+  "noPuzzleImagesFound": "Keine Sternbild-Bilder in assets/images/ gefunden.",
+  "puzzleMathInstructions": "Baue das Weltraum-Sternbild wieder auf! Ziehe Teile an die richtigen Stellen. Tippe auf Teile, um sie zu drehen!",
+  "timer": "Timer",
+  "timesUp": "Zeit abgelaufen, Weltraumkadett!",
+  "constellationPieces": "Sternbild-Teile",
+  "puzzleMathIncorrect": "Überprüfe die Mathe-Antwort oder versuche, das Teil zu drehen!",
+  "puzzleMathWin": "Sternbild wiederhergestellt, Weltraum-Entdecker!",
+  "puzzleMathWinBonus": "Sternbild wiederhergestellt!\nZeitbonus: {bonus} Punkte!",
+  "puzzleMathTryAnother": "Versuchen wir ein anderes Sternbild!",
+  "magicTrianglesGameTitle": "Wurmloch-Aktivator",
+  "magicTrianglesInstructions": "Richte das Stargate aus! Ziehe Resonatoren, um die erforderliche Warp-Frequenz auf jeder Seite zu erreichen.",
+  "magicTrianglesWarpFrequency": "Warp-Frequenz: {warpFrequency}",
+  "magicTrianglesResonators": "Verfügbare Subraum-Resonatoren",
+  "magicTrianglesFail": "Ausrichtung fehlgeschlagen. Die Energiesignatur ist falsch. Versuche es erneut!",
+  "magicTrianglesOutOfMoves": "Alle Züge verbraucht!",
+  "magicTrianglesOutOfMovesDesc": "Setze jeden Resonator gezielt ein, um das Wurmloch effizient auszurichten!",
+  "calculatingCoordinates": "Berechne Wurmloch-Koordinaten...",
+  "magicTrianglesWinTitle": "Wurmloch stabilisiert!",
+  "magicTrianglesWinDesc": "Perfekte Ausrichtung! Der Warp-Korridor ist offen.\nBonus: +{bonusScore} Punkte!",
+  "nextAnomaly": "Nächste Anomalie",
+  "toTheBridge": "Zur Brücke",
+  "asteroidMathHunter": "Asteroiden-Mathe-Jäger",
+  "asteroidMathHunterDesc": "Navigiere durch ein gefährliches Asteroidenfeld! Zerstöre die treibenden Weltraumfelsen in der richtigen Reihenfolge, bevor sie kollidieren.",
+  "asteroidMathTarget": "Ziel-Asteroid: {target}",
+  "asteroidMathWinTitle": "Asteroidenfeld geräumt!",
+  "asteroidMathWinDesc": "Zeitbonus: {timeBonus} Punkte!\nDu bist ein wahrer Weltraum-Jäger!",
+  "timesUpSpaceCadet": "Zeit abgelaufen, Weltraumkadett!",
+  "asteroidMathLoseTitle": "Mission fehlgeschlagen!",
+  "asteroidMathLoseDesc": "Das Asteroidenfeld wurde zu chaotisch!\nVersuche es erneut, Kommandant!",
+  "nextTarget": "Nächstes Ziel: ",
+  "loadingAdventure": "Lade Weltraum-Abenteuer...",
+  "preparingMission": "Bereite deine Mathe-Mission vor...",
+  "initializing": "Initialisiere NumberNebula...",
+  "loadingAssets": "Lade Spiel-Assets...",
+  "loadingProgress": "Lade gespeicherten Fortschritt...",
+  "preparingSpaceStation": "Bereite Raumstation vor...",
+  "calibratingNav": "Kalibriere Navigationssysteme...",
+  "readyForLaunch": "Bereit zum Start!",
+  "launch": "Start",
+  "splashScreenSubtitle": "Erkunden • Lernen • Entdecken",
+  "pathFinderTitle": "PfadFinder",
+  "pathFinderDesc": "Navigiere durch Quanten-Raumkorridore! Berechne die richtige Flugbahn durch gefährliche kosmische Phänomene, um sicher anzukommen.",
+  "pathFinderSolve": "LÖSE:",
+  "pathFinderChoosePath": "Wähle den Pfad für: {expression}",
+  "@pathFinderChoosePath": {
+    "description": "Fordert Spieler auf, den korrekten Pfad zu wählen",
+    "placeholders": {
+      "expression": {
+        "type": "String",
+        "description": "Der zu lösende mathematische Ausdruck"
+      }
+    }
+  },
+  "pathFinderInstructions": "TIPPE auf Weltraumrouten • BERECHNE Matheaufgaben • NAVIGIERE durch kosmische Gefahren",
+  "pathFinderWinTitle": "Quanten-Navigation abgeschlossen!",
+  "pathFinderWinDesc": "Du hast erfolgreich {targetProblems} Quantenkorridore navigiert!\nGesamtpunktzahl: {totalScore} Punkte!",
+  "@pathFinderWinDesc": {
+    "description": "Siegesnachricht mit gelösten Problemen und Punktzahl",
+    "placeholders": {
+      "targetProblems": {
+        "type": "int",
+        "description": "Anzahl der zu lösenden Probleme"
+      },
+      "totalScore": {
+        "type": "int",
+        "description": "Erreichte Gesamtpunktzahl"
+      }
+    }
+  },
+  "pathFinderLoseTitle": "Navigationssysteme offline!",
+  "pathFinderLoseDesc": "Dein Schiff hat zu viel Schaden durch kosmische Gefahren erlitten!\nKalibriere deine Navigationssysteme neu und versuche es erneut, Kommandant!",
+  "pathFinderFailureWormhole": "Wurmloch-Kollaps!",
+  "pathFinderFailureNebula": "Nebel-Interferenz!",
+  "pathFinderFailureAsteroidBelt": "Asteroidenkollision!",
+  "pathFinderFailureClearSpace": "Navigationsfehler!",
+  "pathFinderFailureIonStorm": "Ionensturm-Schäden!",
+  "pathFinderFailureQuantumTunnel": "Quanten-Instabilität!",
+  "numberWalls": "Zahlenmauern",
+  "numberWallsDesc": "Baue kosmische Rechenpyramiden! Stabilisiere die Quantenstruktur!",
+  "numberWallsGameTitle": "Quanten-Pyramiden-Baumeister",
+  "numberWallsInstructions": "Baue die Zahlenmauer! Ziehe Zahlen, um die Struktur zu vervollständigen.",
+  "numberWallsCalculating": "Berechne Pyramiden-Koordinaten...",
+  "numberWallsBricks": "Verfügbare Bausteine",
+  "numberWallsFail": "Strukturelle Integrität gefährdet! Das mathematische Fundament ist instabil. Versuche es erneut!",
+  "numberWallsOutOfMoves": "Alle Züge verbraucht!",
+  "numberWallsOutOfMovesDesc": "Setze jeden Baustein gezielt ein, um die Pyramide zu stabilisieren!",
+  "numberWallsWinTitle": "Pyramide stabilisiert!",
+  "numberWallsWinDesc": "Perfekte mathematische Ausrichtung! Die Quantenstruktur ist stabil.\nBonus: +{bonusScore} Punkte!",
+  "@numberWallsWinDesc": {
+    "placeholders": {
+      "bonusScore": {
+        "type": "int"
+      }
+    }
+  },
+  "numberWallsNextWall": "Nächste Pyramide",
+  "numberWallsAddition": "Quanten-Additions-Matrix",
+  "numberWallsSubtraction": "Stern-Subtraktions-Gitter",
+  "numberWallsMultiplication": "Kosmisches Multiplikations-Array",
+  "numberWallsDivision": "Galaktisches Divisions-Netzwerk",
+  "numberWallsDropFar": "Bitte näher zum Ziel platzieren.",
+  "numberWallsAddDesc": "Jeder Stein ist die Summe der zwei darunter.",
+  "numberWallsSubDesc": "Der untere Stein ist der Unterschied zwischen den beiden darüber.",
+  "numberWallsMultDesc": "Jeder Stein ist das Produkt der beiden darunter.",
+  "numberWallsDivDesc": "Jeder Stein ist das Ergebnis der Teilung der beiden darunter.",
+  "codebreaker": "Codeknacker",
+  "codebreakerDesc": "Fange außerirdische Übertragungen ab und entschlüssle sie! Löse komplexe Gleichungssysteme, um ihre Geheimnisse zu lüften.",
+  "codebreakerSuccess": "Code geknackt!",
+  "codebreakerError": "Übertragung fehlerhaft",
+  "codebreakerTransmissionReceived": "Alien-Übertragung abgefangen",
+  "codebreakerSelectNumbers": "Wähle Zahlen aus, um die Übertragung zu entschlüsseln",
+  "codebreakerInstructions": "Entschlüssle die Alien-Symbole, indem du die Gleichungen löst. Tippe auf Zahlen, um die fehlenden Werte einzusetzen.",
+  "codebreakerWinTitle": "Mission abgeschlossen!",
+  "codebreakerLoseTitle": "Übertragung verloren",
+  "codebreakerWinDesc": "Ausgezeichnete Arbeit, Kadett! Du hast {totalScore} Punkte verdient. Die Galaxie ist dank deiner kryptografischen Fähigkeiten sicherer!",
+  "@codebreakerWinDesc": {
+    "placeholders": {
+      "totalScore": {
+        "type": "int"
+      }
+    }
+  },
+  "codebreakerLoseDesc": "Die Alien-Codes waren zu komplex, um sie rechtzeitig zu knacken. Keine Sorge – selbst die besten Codeknacker brauchen Übung!",
+  "codebreakerOutOfMoves": "Alle Züge verbraucht!",
+  "codebreakerOutOfMovesDesc": "Überlege dir jeden Zug genau, um die Übertragung effizient zu entschlüsseln!",
+  "problemCustomization": "Aufgaben-Anpassung",
+  "problemCustomizationDesc": "Passe die Rechenarten und Zahlenbereiche in den Spielen an.",
+  "problemCustomizationUnlock": "Diese Funktion erfordert die Vollversion.",
+  "enableCustomSettings": "Eigene Einstellungen aktivieren",
+  "allowedOperations": "Erlaubte Rechenarten",
+  "numberRange": "Zahlenbereich",
+  "minValue": "Min. Wert",
+  "maxValue": "Max. Wert",
+  "perspectivePuzzleGameTitle": "Anomalie-Scan",
+  "anomalyScanTitle": "Anomalie-Scan",
+  "perspectivePuzzleInstructions": "Scanne Astro-Objekte aus verschiedenen Sensor-Perspektiven.",
+  "anomalyScanSelectReadout": "Ordne das Hologramm dem korrekten {perspective} Sensor-Scan zu",
+  "@anomalyScanSelectReadout": {
+    "placeholders": {
+      "perspective": {
+        "type": "String"
+      }
+    }
+  },
+  "anomalyScanWinTitle": "Analyse abgeschlossen!",
+  "anomalyScanWinDesc": "Anomalie identifiziert. Daten protokolliert. Bonus: {bonus} Punkte.",
+  "@anomalyScanWinDesc": {
+    "placeholders": {
+      "bonus": {
+        "type": "int"
+      }
+    }
+  },
+  "anomalyScanFail": "Scan-Fehler. Sensoren werden rekalibriert...",
+  "perspectiveDensityScan": "DICHTE",
+  "perspectiveStructuralScan": "STRUKTUR",
+  "perspectiveThermalScan": "THERMAL",
+  "perspectiveEMScan": "EM-FELD",
+  "perspectivePuzzleWinTitle": "Analyse vollständig!",
+  "perspectivePuzzleWinDesc": "Anomalie identifiziert. Daten protokolliert. Bonus: {bonus} Punkte.",
+  "@perspectivePuzzleWinDesc": {
+    "placeholders": {
+      "bonus": {
+        "type": "int"
+      }
+    }
+  },
+  "perspectivePuzzleSelectView": "Wähle die Perspektive {perspective} .",
+  "@perspectivePuzzleSelectView": {
+    "placeholders": {
+      "perspective": {
+        "type": "String"
+      }
+    }
+  },
+  "perspectiveFront": "VORN",
+  "perspectiveBack": "HINTEN",
+  "perspectiveLeft": "LINKS",
+  "perspectiveRight": "RECHTS",
+  "blockCounterGameTitle": "3D Block-Zähler",
+  "blockCounterInstructions": "Drehe und zähle alle Blöcke einschließlich der versteckten",
+  "blockCounterFail": "Falsche Anzahl! Versuche es erneut.",
+  "blockCounterComplexity": "Komplexität: {level}",
+  "@blockCounterComplexity": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "blockCounterQuestion": "Wie viele Blöcke sind in dieser Struktur?",
+  "blockCounterSelectAnswer": "Wähle deine Antwort",
+  "blockCounterShowHint": "Versteckte zeigen",
+  "blockCounterHideHint": "Hinweis verbergen",
+  "blockCounterRotateInstructions": "Ziehen zum Drehen • Kneifen zum Zoomen",
+  "blockCounterHintShowing": "Versteckte Blöcke sind gelb hervorgehoben",
+  "blockCounterHintHidden": "Einige Blöcke können hinter anderen versteckt sein",
+  "blockCounterWinTitle": "Perfekte Zählung!",
+  "blockCounterWinDesc": "Richtig! Es waren {count} Blöcke insgesamt.",
+  "@blockCounterWinDesc": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "blockCounterBonusPoints": "Bonuspunkte: {bonus}",
+  "@blockCounterBonusPoints": {
+    "placeholders": {
+      "bonus": {
+        "type": "int"
+      }
+    }
+  },
+  "blockCounterDifficultyVeryEasy": "Sehr Einfach",
+  "blockCounterDifficultyEasy": "Einfach",
+  "blockCounterDifficultyMedium": "Mittel",
+  "blockCounterDifficultyHard": "Schwer",
+  "blockCounterNextPuzzle": "Nächstes Rätsel",
+  "blockCounterBackToMenu": "Zurück zum Menü",
+  "sriStatisticsTitle": "Lernfortschritt",
+  "sriStatisticsDesc": "Sieh dir deinen Fortschritt an und erkenne, wo du dich verbessern kannst.",
+  "premiumFeature": "Dies ist eine Premium-Funktion. Schalte die Vollversion frei, um darauf zuzugreifen.",
+  "close": "Schließen",
+  "sriMastery": "Gesamtbeherrschung",
+  "sriTotal": "Gesamt Erfasst",
+  "sriMastered": "Beherrscht",
+  "sriLearning": "Im Training",
+  "progressMatrixTitle": "Fortschrittsmatrix",
+  "progressMatrixDesc": "Die Farbe zeigt die Beherrschung (grün ist am besten). Die Zahl zeigt die Anzahl der Aufgaben in diesem Bereich.",
+  "signalTriangulationGameTitle": "Signal-Triangulation",
   "signalTriangulationInstructions": "Ein schwaches Weltraum-Signal wurde erkannt! Entschlüssele die Folge durch Analyse der Echo-Antworten. Grüne Punkte = richtige Frequenz an richtiger Position, Orange Ringe = richtige Frequenz an falscher Position.",
-  
   "signalTriangulationAttempts": "Versuche: {current}/{max}",
   "@signalTriangulationAttempts": {
     "placeholders": {
-      "current": {"type": "int"},
-      "max": {"type": "int"}
+      "current": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
     }
   },
-  
   "signalTriangulationLength": "Sequenz: {length} Frequenzen",
   "@signalTriangulationLength": {
     "placeholders": {
-      "length": {"type": "int"}
+      "length": {
+        "type": "int"
+      }
     }
   },
-  
   "signalTriangulationCurrentSequence": "Aktuelle Signalsequenz",
   "signalTriangulationFrequencies": "Verfügbare Frequenzen",
   "signalTriangulationPreviousAttempts": "Echo-Analyse-Protokoll",
-  
   "signalTriangulationClear": "Löschen",
   "signalTriangulationTransmit": "Senden",
-  
   "signalTriangulationWinTitle": "Signalquelle lokalisiert!",
   "signalTriangulationWinDesc": "Ausgezeichnete Arbeit, Astro-Techniker! Du hast Signal in {attempts} Versuchen trianguliert und {totalScore} Punkte verdient. Effizienz-Bonus: {bonus} Punkte!",
   "@signalTriangulationWinDesc": {
     "placeholders": {
-      "attempts": {"type": "int"},
-      "totalScore": {"type": "int"},
-      "bonus": {"type": "int"}
+      "attempts": {
+        "type": "int"
+      },
+      "totalScore": {
+        "type": "int"
+      },
+      "bonus": {
+        "type": "int"
+      }
     }
   },
-  
   "signalTriangulationLoseTitle": "Signal im Rauschen verloren",
   "signalTriangulationLoseDesc": "Das Signal ist jenseits der Erkennungsreichweite verblasst. Das Signal bleibt in der kosmischen Leere verborgen.",
-  
   "signalTriangulationReveal": "Die korrekte Sequenz war: {sequence}",
   "@signalTriangulationReveal": {
     "placeholders": {
-      "sequence": {"type": "String"}
+      "sequence": {
+        "type": "String"
+      }
     }
   },
-  
   "nextSignal": "Nächstes Signal",
-
   "cryptexLockBreakerGameTitle": "Kryptex-Schloss-Knacker",
   "cryptexLockBreakerInstructions": "Das Code-Kryptex nutzt ineinandergreifende Gleichungen als Kombination. Drehe die Scheiben, um alle Gleichungen gleichzeitig zu erfüllen.",
-  
   "cryptexLockBreakerControls": "Tippe und ziehe Scheiben hoch/runter zum Drehen • Beobachte, wie Gleichungen grün werden, wenn gelöst",
   "cryptexLockBreakerEquations": "Schloss-Gleichungen",
-  
   "cryptexLockBreakerWinTitle": "Kryptex entsperrt!",
   "cryptexLockBreakerWinDesc": "Brillante Arbeit, Astro-Techniker! Du hast den Schlossmechanismus geknackt und {totalScore} Punkte verdient. Komplexitäts-Bonus: {complexityBonus} • Gleichungs-Bonus: {equationBonus}",
   "@cryptexLockBreakerWinDesc": {
     "placeholders": {
-      "totalScore": {"type": "int"},
-      "complexityBonus": {"type": "int"}, 
-      "equationBonus": {"type": "int"}
+      "totalScore": {
+        "type": "int"
+      },
+      "complexityBonus": {
+        "type": "int"
+      },
+      "equationBonus": {
+        "type": "int"
+      }
     }
   },
-  
   "nextCryptex": "Nächstes Kryptex",
-
-  
   "arithmancerGameTitle": "Arithmancer-Duell",
   "@arithmancerGameTitle": {
     "description": "Titel des Arithmancer-Spiels"
   },
-
   "arithmancerGameInstructions": "Kämpfe als Coder gegen feindselige KI Programme.",
-
   "arithmancerHealth": "Gesundheit",
   "@arithmancerHealth": {
     "description": "Gesundheits-Statusanzeige"
   },
-
   "arithmancerSkipTurn": "Zug überspringen",
-  
   "arithmancerEnergy": "Energie",
   "@arithmancerEnergy": {
     "description": "Energie-Statusanzeige"
   },
-  
   "arithmancerBlock": "Schild",
   "@arithmancerBlock": {
     "description": "Schild-Statusanzeige"
   },
-  
   "arithmancerExpression": "Kampfsequenz",
   "@arithmancerExpression": {
     "description": "Titel des Ausdrucks-Baubereichs"
   },
-  
   "arithmancerExecute": "Ausführen",
   "@arithmancerExecute": {
     "description": "Schaltfläche zum Ausführen des mathematischen Ausdrucks"
   },
-  
   "arithmancerDragCards": "Ziehe Karten hierher, um deine Kampfsequenz zu erstellen",
   "@arithmancerDragCards": {
     "description": "Platzhaltertext für leeren Ausdrucksbereich"
   },
-  
   "arithmancerHand": "Neural-Arsenal",
   "@arithmancerHand": {
     "description": "Titel des Handbereichs"
   },
-  
   "arithmancerNoCards": "Keine Algorithmen verfügbar",
   "@arithmancerNoCards": {
     "description": "Nachricht wenn die Hand leer ist"
   },
-  
   "arithmancerInvalidExpression": "Ungültige Sequenz - Syntax prüfen",
   "@arithmancerInvalidExpression": {
     "description": "Fehlermeldung für ungültigen mathematischen Ausdruck"
   },
-  
   "arithmancerNotEnoughEnergy": "Unzureichende Verarbeitungsleistung",
   "@arithmancerNotEnoughEnergy": {
     "description": "Fehlermeldung bei zu wenig Energie"
   },
-  
   "arithmancerEnemyAttack": "KI-Gegenangriff verursacht {damage} Schaden!",
   "@arithmancerEnemyAttack": {
     "description": "Nachricht wenn der Gegner angreift",
@@ -573,72 +556,58 @@
       }
     }
   },
-  
   "arithmancerPropertyPrime": "Primzahl",
   "@arithmancerPropertyPrime": {
     "description": "Primzahl-Eigenschaft"
   },
-  
   "arithmancerPropertySquare": "Quadratzahl",
   "@arithmancerPropertySquare": {
     "description": "Quadratzahl-Eigenschaft"
   },
-  
   "arithmancerPropertyFibonacci": "Fibonacci",
   "@arithmancerPropertyFibonacci": {
     "description": "Fibonacci-Eigenschaft"
   },
-  
   "arithmancerPropertyEven": "Gerade",
   "@arithmancerPropertyEven": {
     "description": "Gerade Zahl-Eigenschaft"
   },
-  
   "arithmancerPropertyOdd": "Ungerade",
   "@arithmancerPropertyOdd": {
     "description": "Ungerade Zahl-Eigenschaft"
   },
-  
   "arithmancerPropertyPowerOfTwo": "Zweierpotenz",
   "@arithmancerPropertyPowerOfTwo": {
     "description": "Zweierpotenz-Eigenschaft"
   },
-  
   "arithmancerShieldPrime": "Primzahl-Schild",
   "@arithmancerShieldPrime": {
     "description": "Primzahl-Verteidigungsschild"
   },
-  
   "arithmancerShieldEven": "Gerade-Absorber",
   "@arithmancerShieldEven": {
     "description": "Gerade Zahlen-Verteidigungsschild"
   },
-  
   "arithmancerShieldOdd": "Ungerade-Schwäche",
   "@arithmancerShieldOdd": {
     "description": "Ungerade Zahlen-Schwäche"
   },
-  
   "arithmancerShieldSquare": "Quadrat-Immunität",
   "@arithmancerShieldSquare": {
     "description": "Quadratzahl-Verteidigungsschild"
   },
-  
   "arithmancerShieldFibonacci": "Fibonacci-Sperre",
   "@arithmancerShieldFibonacci": {
     "description": "Fibonacci-Verteidigungsschild"
   },
-  
   "arithmancerShieldPowerOfTwo": "Binär-Festung",
   "@arithmancerShieldPowerOfTwo": {
     "description": "Zweierpotenz-Verteidigungsschild"
   },
-  
   "arithmancerVictoryTitle": "Neural-Durchbruch erfolgreich!",
   "@arithmancerVictoryTitle": {
     "description": "Titel des Siegesdialogs"
   },
-  
   "arithmancerVictoryDesc": "Schurkische KI neutralisiert! Du hast {score} Daten-Credits für die Wiederherstellung dieses Netzwerkknotens erhalten.",
   "@arithmancerVictoryDesc": {
     "description": "Beschreibung des Siegesdialogs",
@@ -649,90 +618,80 @@
       }
     }
   },
-  
   "arithmancerDefeatTitle": "System kompromittiert",
   "@arithmancerDefeatTitle": {
     "description": "Titel des Niederlagendialogs"
   },
-  
   "arithmancerDefeatDesc": "Die schurkische KI hat deine Verteidigung überwältigt. Analysiere Angriffsmuster für den nächsten Versuch...",
   "@arithmancerDefeatDesc": {
     "description": "Beschreibung des Niederlagendialogs"
   },
-  
   "arithmancerNextChallenge": "Neues Ziel angreifen",
   "@arithmancerNextChallenge": {
     "description": "Schaltfläche für nächste Herausforderung"
   },
-  
   "arithmancerTryAgain": "Infiltration wiederholen",
   "@arithmancerTryAgain": {
     "description": "Schaltfläche zum erneuten Versuchen nach Niederlage"
   },
-  
   "arithmancerReturnToBridge": "Zur Brücke zurück",
   "@arithmancerReturnToBridge": {
     "description": "Schaltfläche zum Hauptmenü zurückkehren"
   },
-
   "arithmancerGameModeNeuralBreach": "NEURAL-DURCHBRUCH",
-  "arithmancerGameModeAiDuel": "KI-KAMPF-DUELL", 
+  "arithmancerGameModeAiDuel": "KI-KAMPF-DUELL",
   "arithmancerGameModeNeuralLadder": "NEURAL-LEITER",
-
   "arithmancerDeck": "STAPEL",
   "arithmancerUsed": "BENUTZT",
-
   "arithmancerOpponentProcessing": "GEGNER VERARBEITET...",
-
   "arithmancerBonusPrime": "PRIMZAHL",
-  "arithmancerBonusSquare": "QUADRAT", 
+  "arithmancerBonusSquare": "QUADRAT",
   "arithmancerBonusFibonacci": "FIBONACCI",
   "arithmancerBonusBinary": "BINÄR",
-
   "arithmancerInstructionsGeneral": "Erstelle mathematische Ausdrücke um Schaden zu verursachen",
   "arithmancerInstructionsAiPlayer": "Besiege {aiName} mit cleverer Mathematik",
   "@arithmancerInstructionsAiPlayer": {
     "placeholders": {
-      "aiName": {"type": "String"}
+      "aiName": {
+        "type": "String"
+      }
     }
   },
-  "arithmancerInstructionsPrimeShield": "Verwende Primzahlen um den Primzahl-Schild zu durchbrechen", 
+  "arithmancerInstructionsPrimeShield": "Verwende Primzahlen um den Primzahl-Schild zu durchbrechen",
   "arithmancerInstructionsSquareImmune": "Vermeide Quadratzahlen - dieser Gegner ist immun",
   "arithmancerInstructionsFibonacciOnly": "Nur Fibonacci-Zahlen können Schaden verursachen",
   "arithmancerInstructionsPowerOfTwoOnly": "Nur Zweierpotenzen durchdringen diese Verteidigung",
   "arithmancerInstructionsParityDaemon": "Nutze UNGERADE Zahlen! Gerade Zahlen werden von diesem Dämon absorbiert",
-
   "arithmancerHelpPrimeTitle": "Was sind Primzahlen?",
   "arithmancerHelpPrimeExplain": "Eine Primzahl ist nur durch 1 und sich selbst teilbar. Sie hat keine anderen Teiler.",
   "arithmancerHelpPrimeExamples": "2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47 ...",
   "arithmancerHelpPrimeStrategy": "Tipp: Erstelle Ausdrücke, die eine Primzahl >= 11 ergeben, für 3x Schaden!",
-
   "arithmancerHelpParityTitle": "Ungerade vs Gerade Zahlen",
   "arithmancerHelpParityExplain": "Gerade Zahlen (durch 2 teilbar) werden ABSORBIERT — sie heilen den Gegner! Ungerade Zahlen machen Bonusschaden.",
   "arithmancerHelpParityExamples": "Ungerade: 1, 3, 5, 7, 9, 11, 13 ...  Gerade: 2, 4, 6, 8, 10, 12 ...",
   "arithmancerHelpParityStrategy": "Tipp: Ungerade + Ungerade = Gerade (schlecht!). Ungerade x Ungerade = Ungerade (gut!). Achte auf die Rechenzeichen!",
-
   "arithmancerHelpSquareTitle": "Was sind Quadratzahlen?",
   "arithmancerHelpSquareExplain": "Eine Quadratzahl entsteht, wenn man eine Zahl mit sich selbst multipliziert.",
   "arithmancerHelpSquareExamples": "1x1=1, 2x2=4, 3x3=9, 4x4=16, 5x5=25, 6x6=36, 7x7=49, 8x8=64 ...",
   "arithmancerHelpSquareStrategy": "Tipp: Erstelle eine Quadratzahl für 2,5x Schaden! Nicht-Quadratzahlen richten fast nichts an.",
-
   "arithmancerHelpFibTitle": "Was sind Fibonacci-Zahlen?",
   "arithmancerHelpFibExplain": "Jede Fibonacci-Zahl ist die Summe der beiden vorherigen. Starte mit 1, 1, dann addiere: 1+1=2, 1+2=3, 2+3=5, ...",
   "arithmancerHelpFibExamples": "1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144 ...",
   "arithmancerHelpFibStrategy": "Tipp: Nur Fibonacci-Ergebnisse machen Schaden! Merke dir die Reihe oder nutze Additions-Karten.",
-
   "arithmancerHelpPow2Title": "Was sind Zweierpotenzen?",
   "arithmancerHelpPow2Explain": "Starte mit 1 und verdopple immer: 1, 2, 4, 8, 16, 32, ... Jede ist 2 multipliziert mit sich selbst eine bestimmte Anzahl.",
   "arithmancerHelpPow2Examples": "2^0=1, 2^1=2, 2^2=4, 2^3=8, 2^4=16, 2^5=32, 2^6=64, 2^7=128 ...",
   "arithmancerHelpPow2Strategy": "Tipp: Nutze Multiplikation: 2x2=4, 2x4=8, 4x4=16. Nur Zweierpotenzen machen vollen Schaden!",
-
-  "arithmancerLadderProgressTitle": "Leiter-Fortschritt", 
+  "arithmancerLadderProgressTitle": "Leiter-Fortschritt",
   "arithmancerLadderProgressDesc": "Stufe {step} von {total} abgeschlossen! Klettere weiter die neurale Leiter hinauf.",
   "@arithmancerLadderProgressDesc": {
     "placeholders": {
-      "step": {"type": "int"},
-      "total": {"type": "int"}
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "arithmancerLadderContinue": "Leiter fortsetzen",
@@ -740,12 +699,12 @@
   "arithmancerLadderChampionDesc": "Glückwunsch! Du hast die gesamte neurale Leiter erobert und {score} Punkte verdient!",
   "@arithmancerLadderChampionDesc": {
     "placeholders": {
-      "score": {"type": "int"}
+      "score": {
+        "type": "int"
+      }
     }
   },
-
   "arithmancerTurnSkipped": "Zug übersprungen - Energie für nächste Runde gespeichert",
-
   "arithmancerGameplayGuide": "Gameplay-Leitfaden",
   "arithmancerGuideBasics": "• Ziehe Karten aus deiner Hand in das Schlachtfeld um mathematische Ausdrücke zu erstellen\n• Klicke 'Ausführen' um Schaden basierend auf dem Ergebnis zu verursachen",
   "arithmancerGuideCards": "• Zahlenkarten (grün): Liefern Werte\n• Operatorkarten (gelb): +, -, ×, ÷\n• Klammerkarten (rosa): Teile in ( und ) für Reihenfolge",
@@ -754,40 +713,32 @@
   "arithmancerGuideShields": "• Gegner haben verschiedene mathematische Schilde\n• Einige blockieren spezifische Zahlentypen\n• Beobachte Feind-Beschreibungen für Hinweise",
   "arithmancerGuideDiscard": "• Ziehe ungewollte Karten auf den BENUTZT-Stapel rechts\n• Verwende dies um deine Hand zu verwalten",
   "arithmancerGuideSkip": "• Klicke den Überspringen-Button um deinen Zug zu beenden\n• Deine Energie wird für die nächste Runde verdoppelt",
-
   "arithmancerModeSelectionSubtitle": "Wähle dein Kampfprotokoll",
   "arithmancerModeNeuralBreachDesc": "Bekämpfe feindliche KI-Programme in Sequenz",
-  "arithmancerModeAiDuelDesc": "Kämpfe gegen fortgeschrittene KI-Persönlichkeiten", 
+  "arithmancerModeAiDuelDesc": "Kämpfe gegen fortgeschrittene KI-Persönlichkeiten",
   "arithmancerModeNeuralLadderDesc": "Klettere durch gemischte Programm- und KI-Herausforderungen",
-
   "arithmeticSquare": "Rechenquadrat",
   "@arithmeticSquare": {
     "description": "Titel für das Rechenquadrat-Puzzle-Spiel"
   },
-  
   "arithmeticSquareInstructions": "Fülle die leeren Felder aus, damit jede Zeile und Spalte gültige Gleichungen bildet!",
   "@arithmeticSquareInstructions": {
     "description": "Anweisungen zum Spielen des Rechenquadrat-Spiels"
   },
-  
   "arithmeticSquareError": "Einige Gleichungen stimmen nicht! Überprüfe deine Zahlen und versuche es erneut.",
   "@arithmeticSquareError": {
     "description": "Fehlermeldung, wenn die Rechenquadrat-Lösung falsch ist"
   },
-
   "arithmeticSquareOutOfMoves": "Alle Züge verbraucht!",
   "arithmeticSquareOutOfMovesDesc": "Überlege dir jeden Zug genau, um das Rätsel zu lösen!",
-  
   "arithmeticSquareSelectNumbers": "Ziehe Zahlen in die leeren Felder:",
   "@arithmeticSquareSelectNumbers": {
     "description": "Anweisungstext über dem Zahlenpool im Rechenquadrat"
   },
-  
   "arithmeticSquareWinTitle": "Mathematische Meisterschaft!",
   "@arithmeticSquareWinTitle": {
     "description": "Titel im Erfolgsdialog für Rechenquadrat"
   },
-  
   "arithmeticSquareWinDesc": "Ausgezeichnet! Du hast das Rechenquadrat gelöst und {bonusScore} Bonuspunkte für deine mathematische Präzision erhalten!",
   "@arithmeticSquareWinDesc": {
     "description": "Erfolgsmeldung für das Lösen des Rechenquadrat-Puzzles",
@@ -798,35 +749,28 @@
       }
     }
   },
-
   "arithmancerCrosswords": "Arithmancer Kreuzworträtsel",
   "@arithmancerCrosswords": {
     "description": "Titel für das Arithmancer Kreuzworträtsel-Puzzle-Spiel"
   },
-  
   "arithmancerCrosswordsInstructions": "Löse die sich kreuzenden Mathe-Gleichungen, indem du Zahlen in das Kreuzworträtsel-Gitter einsetzt!",
   "@arithmancerCrosswordsInstructions": {
     "description": "Anweisungen zum Spielen des Arithmancer Kreuzworträtsel-Spiels"
   },
-  
   "arithmancerCrosswordsError": "Die Kreuzworträtsel-Gleichungen stimmen nicht! Überprüfe deine Mathematik und versuche es erneut.",
   "@arithmancerCrosswordsError": {
     "description": "Fehlermeldung, wenn die Kreuzworträtsel-Lösung falsch ist"
   },
-
   "arithmancerCrosswordsOutOfMoves": "Alle Züge verbraucht.",
   "arithmancerCrosswordsOutOfMovesDesc": "Plane deine Züge genau, um das Rätsel zu lösen!",
-  
   "arithmancerCrosswordsSelectNumbers": "Ziehe Zahlen zum Ausfüllen des Kreuzworträtsels:",
   "@arithmancerCrosswordsSelectNumbers": {
     "description": "Anweisungstext über dem Zahlenpool im Arithmancer Kreuzworträtsel"
   },
-  
   "arithmancerCrosswordsWinTitle": "Kreuzworträtsel-Champion!",
   "@arithmancerCrosswordsWinTitle": {
     "description": "Titel im Erfolgsdialog für Arithmancer Kreuzworträtsel"
   },
-  
   "arithmancerCrosswordsWinDesc": "Brillant! Du hast das mathematische Kreuzworträtsel gemeistert und {bonusScore} Bonuspunkte für deine arithmantische Meisterschaft erhalten!",
   "@arithmancerCrosswordsWinDesc": {
     "description": "Erfolgsmeldung für das Lösen des Arithmancer Kreuzworträtsel-Puzzles",
@@ -837,22 +781,18 @@
       }
     }
   },
-  
   "kenken": "KenKen",
   "@kenken": {
     "description": "Name des KenKen-Rätselspiels"
   },
-  
   "kenkenInstructions": "Fülle das Gitter so, dass jede Zeile und Spalte jede Zahl genau einmal enthält. Zahlen in Käfigen müssen den mathematischen Hinweis erfüllen.",
   "@kenkenInstructions": {
     "description": "Anweisungen zum Spielen von KenKen"
   },
-  
   "kenkenError": "Hoppla! Die Lösung erfüllt nicht alle Bedingungen. Überprüfe die Käfig-Mathematik und die Lateinisches-Quadrat-Regeln!",
   "@kenkenError": {
     "description": "Fehlermeldung wenn die KenKen-Lösung falsch ist"
   },
-
   "kenkenOutOfMoves": "Alle Züge verbraucht!",
   "@kenkenOutOfMoves": {
     "description": "Titel für KenKen-Dialog bei aufgebrauchten Zügen"
@@ -861,17 +801,14 @@
   "@kenkenOutOfMovesDesc": {
     "description": "Beschreibung für KenKen-Dialog bei aufgebrauchten Zügen"
   },
-  
   "kenkenSelectNumbers": "Ziehe Zahlen um das Gitter zu füllen:",
   "@kenkenSelectNumbers": {
     "description": "Anweisungen für die Zahlenauswahl in KenKen"
   },
-  
   "kenkenWinTitle": "Mathematische Meisterschaft!",
   "@kenkenWinTitle": {
     "description": "Titel für KenKen-Gewinn-Dialog"
   },
-  
   "kenkenWinDesc": "Unglaubliches logisches Denken! Du hast dieses KenKen-Rätsel perfekt gelöst und {bonusScore} Bonuspunkte für deine mathematischen Fähigkeiten erhalten!",
   "@kenkenWinDesc": {
     "description": "Beschreibung für KenKen-Gewinn-Dialog mit Bonuspunkten",
@@ -882,7 +819,6 @@
       }
     }
   },
-
   "asteroidFieldTitle": "Asteroiden-Navigator",
   "asteroidFieldInstructions": "Zeige sichere Sektoren auf, vermeide Asteroiden! Langes Drücken oder Flaggen-Modus zum Markieren von Gefahren.",
   "asteroidFieldRevealMode": "Aufdeckmodus",
@@ -890,30 +826,29 @@
   "asteroidFieldWinTitle": "Feld geräumt!",
   "asteroidFieldWinDesc": "Navigation abgeschlossen in {time}!\n\nGesamtpunktzahl: {score}\nGeschwindigkeitsbonus: +{speedBonus}\nEffizienzbonus: +{efficiencyBonus}",
   "@asteroidFieldWinDesc": {
-      "description": "Siegesnachricht mit Zeit, Punktzahl und Boni",
-      "placeholders": {
-          "time": {
-              "type": "String",
-              "description": "Benötigte Zeit für das Feld"
-          },
-          "score": {
-              "type": "int",
-              "description": "Erreichte Gesamtpunktzahl"
-          },
-          "speedBonus": {
-              "type": "int",
-              "description": "Bonuspunkte für schnelle Fertigstellung"
-          },
-          "efficiencyBonus": {
-              "type": "int",
-              "description": "Bonuspunkte für genaues Markieren"
-          }
+    "description": "Siegesnachricht mit Zeit, Punktzahl und Boni",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "description": "Benötigte Zeit für das Feld"
+      },
+      "score": {
+        "type": "int",
+        "description": "Erreichte Gesamtpunktzahl"
+      },
+      "speedBonus": {
+        "type": "int",
+        "description": "Bonuspunkte für schnelle Fertigstellung"
+      },
+      "efficiencyBonus": {
+        "type": "int",
+        "description": "Bonuspunkte für genaues Markieren"
       }
+    }
   },
   "asteroidFieldLoseTitle": "Asteroiden-Einschlag!",
   "asteroidFieldLoseDesc": "Dein Schiff hat einen Asteroiden getroffen. Das Feld wurde aufgedeckt.",
   "nextField": "Nächstes Feld",
-
   "cargoBayTitle": "Frachtraum-Organisator",
   "cargoBayInstructions": "Sortiere das Frachtgut und beachte dabei die Zahlenverhältnisse!",
   "cargoBayNext": "Nächste",
@@ -921,32 +856,37 @@
   "cargoBayPressC": "Drücke C",
   "cargoBayBonuses": "Boni",
   "cargoBayKeyboardHints": "Pfeiltasten: Bewegen | ↑: Drehen | Leertaste: Fallen | C: Halten",
-  
   "cargoBayWinTitle": "Mission erfolgreich!",
   "cargoBayWinDesc": "Perfekt! {rows} Reihen geräumt!\n\nPunktzahl: {score}\nBoni-Bonus: +{rowBonus}",
   "@cargoBayWinDesc": {
     "placeholders": {
-      "rows": {"type": "int"},
-      "score": {"type": "int"},
-      "rowBonus": {"type": "int"}
+      "rows": {
+        "type": "int"
+      },
+      "score": {
+        "type": "int"
+      },
+      "rowBonus": {
+        "type": "int"
+      }
     }
   },
-  
   "cargoBayLoseTitle": "Frachtraum überlastet!",
   "cargoBayLoseDesc": "Der Frachtraum ist voll!\nVersuche es erneut!",
   "nextShipment": "Nächste Ladung",
-  
   "bonusTargetSum": "Zielsumme",
   "bonusTargetSumDesc": "Volle Reihe/Spalte = {target}",
   "@bonusTargetSumDesc": {
-    "placeholders": {"target": {"type": "int"}}
+    "placeholders": {
+      "target": {
+        "type": "int"
+      }
+    }
   },
-  
   "bonusFibonacciTitle": "Fibonacci",
   "bonusDoublingTitle": "Verdopplung",
   "bonusConsecutiveTitle": "Aufsteigend",
   "bonusSquareTitle": "Quadrat-Summe",
-
   "moleculeBuilderTitle": "Molekül-Labor",
   "moleculeBuilderInstructions": "Schiebe Atome zum Zielmolekül! Atome gleiten bis zu einer Wand oder einem anderen Atom.",
   "moleculeBuilderMoves": "Züge",
@@ -961,41 +901,37 @@
   "moleculeBuilderWinTitle": "Molekül zusammengebaut!",
   "moleculeBuilderWinDesc": "Gelöst in {moves} Zügen\nPunktzahl: {score} (+{efficiencyBonus} Bonus)",
   "@moleculeBuilderWinDesc": {
-      "description": "Siegesnachricht mit Zügen und Punktzahl",
-      "placeholders": {
-          "moves": {
-              "type": "int",
-              "description": "Anzahl verwendeter Züge"
-          },
-          "score": {
-              "type": "int",
-              "description": "Erreichte Gesamtpunktzahl"
-          },
-          "efficiencyBonus": {
-              "type": "int",
-              "description": "Bonuspunkte für effiziente Lösung"
-          }
+    "description": "Siegesnachricht mit Zügen und Punktzahl",
+    "placeholders": {
+      "moves": {
+        "type": "int",
+        "description": "Anzahl verwendeter Züge"
+      },
+      "score": {
+        "type": "int",
+        "description": "Erreichte Gesamtpunktzahl"
+      },
+      "efficiencyBonus": {
+        "type": "int",
+        "description": "Bonuspunkte für effiziente Lösung"
       }
+    }
   },
   "moleculeBuilderLoseTitle": "Züge aufgebraucht!",
   "moleculeBuilderLoseDesc": "Zuglimit überschritten! Die Molekülstruktur bleibt unvollständig.\nStudiere das Muster und versuche es erneut, Wissenschaftler!",
   "moleculeBuilderNextMolecule": "Nächstes Molekül",
-
   "moleculeBuilderUndo": "Zurück",
-
   "moleculeBuilderHelp": "Hilfe / Anleitung",
   "moleculeBuilderInfoTitle": "Spielanleitung",
   "moleculeBuilderInfoGoal": "Ziel: Ordne die losen Atome auf dem Gitter an, um die links gezeigte Zielmolekülstruktur perfekt nachzubilden.",
   "moleculeBuilderInfoHowTo": "Spielanleitung: Tippe ein Atom an, um es auszuwählen. Benutze dann die Pfeiltasten oder wische über das Atom, um es zu verschieben. Atome gleiten geradlinig, bis sie auf eine Wand oder ein anderes Atom treffen.",
   "moleculeBuilderInfoMoves": "Züge: Jede Verschiebung kostet einen Zug. Versuche, das Molekül zu bauen, bevor dir die Züge ausgehen!",
   "moleculeBuilderInfoUndo": "Rückgängig: Die 'Rückgängig'-Schaltfläche macht deinen letzten Zug rückgängig, kostet aber als Strafe 2 Züge.",
-
   "moleculeBuilderMoleculeInfo": "Molekül-Info",
   "moleculeBuilderBonusTitle": "Bonus-Ziel",
   "moleculeInfoNomenclature": "Nomenklatur & Beschreibung",
   "moleculeInfoKeyFacts": "Wichtige Fakten",
   "moleculeInfoInSpace": "Im Weltraum",
-
   "atomNameHydrogen": "Wasserstoff",
   "atomNameOxygen": "Sauerstoff",
   "atomNameCarbon": "Kohlenstoff",
@@ -1003,7 +939,6 @@
   "atomNameSulfur": "Schwefel",
   "atomNameFluorine": "Fluor",
   "atomNameSpecial": "Spezial",
-
   "level01Label": "Wasser",
   "level02Label": "Methan",
   "level03Label": "Methanol",
@@ -1034,108 +969,81 @@
   "level28Label": "Propanal",
   "level29Label": "Propin",
   "level30Label": "Bonus-Sektion 5",
-
   "level01Desc": "Wasser (H₂O) ist eine anorganische Verbindung, die für alle bekannten Lebensformen essentiell ist. Bei Standardtemperatur ist es eine geschmacks- und geruchlose Flüssigkeit und wird wegen seiner Fähigkeit, viele Stoffe zu lösen, als 'universelles Lösungsmittel' bezeichnet.",
   "level01Facts": "• Besteht aus zwei Wasserstoffatomen, die kovalent an ein Sauerstoffatom gebunden sind.\n• Aufgrund seiner Polarität bildet es starke Wasserstoffbrückenbindungen, was zu einem hohen Siedepunkt und hoher Oberflächenspannung führt.\n• Eis hat eine geringere Dichte als flüssiges Wasser, eine seltene Eigenschaft, die Wasserlebewesen unter gefrorenen Oberflächen überleben lässt.",
   "level01Space": "Wasser ist in interstellaren Wolken, auf Kometen und auf Eismonden wie Europa reichlich vorhanden. Im Vakuum des Weltraums kann flüssiges Wasser nicht existieren; es gefriert entweder zu Eis oder verdampft. Auf dem Mars führt der niedrige atmosphärische Druck dazu, dass Wasser knapp über 0°C siedet.",
-
   "level02Desc": "Methan (CH₄) ist das einfachste Alkan und der Hauptbestandteil von Erdgas. Es ist ein farb- und geruchloses Gas und ein starkes Treibhausgas.",
   "level02Facts": "• Besitzt ein zentrales Kohlenstoffatom, das an vier Wasserstoffatome in einer tetraedrischen Geometrie gebunden ist.\n• Wird von anaeroben Bakterien in Umgebungen wie Feuchtgebieten und den Verdauungstrakten von Wiederkäuern produziert.\n• Eine wichtige Brennstoffquelle und ein Ausgangsstoff für die chemische Industrie.",
   "level02Space": "Methan ist in unserem Sonnensystem weit verbreitet. Titan, der größte Mond des Saturns, hat eine dichte Methanatmosphäre mit Flüssen und Seen aus flüssigem Methan auf seiner Oberfläche, wo die Temperatur eisige -179°C beträgt.",
-
   "level03Desc": "Methanol (CH₃OH), oder Holzgeist, ist der einfachste Alkohol. Es ist eine leichte, flüchtige, farblose und brennbare Flüssigkeit mit einem charakteristischen Geruch.",
   "level03Facts": "• Besteht aus einer Methylgruppe (-CH₃), die mit einer Hydroxylgruppe (-OH) verbunden ist.\n• Bei Einnahme ist es hochgiftig und wird als Lösungsmittel, Frostschutzmittel und in der chemischen Synthese verwendet.\n• Ein wichtiger Treibstoff in einigen Spezialmotoren.",
   "level03Space": "Riesige Wolken aus Methanol existieren in sternbildenden Regionen der Milchstraße. Es bildet sich auf der Oberfläche von eisigen Staubkörnern und gilt als wichtiger Baustein für komplexere organische Moleküle im Weltraum.",
-
   "level04Desc": "Ethylen (C₂H₄), oder Ethen, ist das einfachste Alken, gekennzeichnet durch eine Kohlenstoff-Kohlenstoff-Doppelbindung. Es ist ein farbloses, brennbares Gas mit einem schwach süßlichen Geruch.",
   "level04Facts": "• Die weltweit am meisten produzierte organische Verbindung, hauptsächlich zur Herstellung von Polyethylen-Kunststoff.\n• Wirkt als natürliches Pflanzenhormon und reguliert Prozesse wie Fruchtreifung, Blütenöffnung und Blattabwurf.\n• Die Doppelbindung macht es wesentlich reaktiver als Ethan.",
   "level04Space": "Ethylen kommt in den Atmosphären von Gasriesen wie Jupiter und Saturn vor. Auf dem Titan zerlegt Sonnenlicht Methan in komplexere Kohlenwasserstoffe, einschließlich Ethylen, was zum orangefarbenen Dunst des Mondes beiträgt.",
-
   "level05Desc": "Propen (C₃H₆), oder Propylen, ist ein Alken mit drei Kohlenstoffatomen und einer Doppelbindung. Es ist ein farbloses Gas mit einem schwachen, erdölähnlichen Geruch.",
   "level05Facts": "• Ein wichtiger Ausgangsstoff in der petrochemischen Industrie, nach Ethylen an zweiter Stelle.\n• Hauptsächlich zur Herstellung von Polypropylen verwendet, einem vielseitigen Kunststoff für Verpackungen, Textilien und Autoteile.\n• Wird durch Dampfspaltung von Kohlenwasserstoffen hergestellt.",
   "level05Space": "Die NASA-Sonde Cassini hat Propen auf dem Saturnmond Titan nachgewiesen. Seine Anwesenheit hilft Wissenschaftlern, die komplexe Atmosphärenchemie auf methanreichen Welten zu modellieren und zu verstehen, wie Bausteine des Lebens entstehen könnten.",
-
   "level07Desc": "Ethanol (C₂H₅OH), oder Trinkalkohol, ist der Alkohol, der in alkoholischen Getränken enthalten ist. Es ist eine flüchtige, brennbare, farblose Flüssigkeit, die durch die Gärung von Zucker hergestellt wird.",
   "level07Facts": "• Besteht aus einer Ethylgruppe (-C₂H₅), die an eine Hydroxylgruppe (-OH) gebunden ist.\n• Weit verbreitet als Lösungsmittel, Antiseptikum und als erneuerbarer Biokraftstoff zur Ergänzung von Benzin.\n• Es ist ein Depressivum des Zentralnervensystems.",
   "level07Space": "Gigantische, Milliarden Kilometer breite Ethanolwolken wurden im interstellaren Raum entdeckt. Diese kosmischen Spirituosen bilden sich auf Staubkörnern und sind nicht trinkbar! Auf dem Mars würde der niedrige Druck Ethanol bereits bei 10°C zum Sieden bringen.",
-
   "level08Desc": "Isopropanol ((CH₃)₂CHOH), oder Isopropylalkohol, ist ein gängiges Desinfektions- und Reinigungsmittel, weithin als Reinigungsalkohol bekannt. Es ist ein Isomer von Propanol.",
   "level08Facts": "• Die Hydroxylgruppe (-OH) ist am mittleren Kohlenstoffatom der Dreikohlenstoffkette angebracht.\n• Seine Fähigkeit, Öle zu lösen, und seine schnelle Verdunstung machen es zu einem wirksamen Reiniger für Elektronik und zu einem Enteisungsmittel.\n• Die Einnahme ist giftig.",
   "level08Space": "Isopropanol wurde eindeutig in einer sternbildenden Wolke nahe dem Zentrum unserer Galaxie, Sagittarius B2, nachgewiesen. Es ist der größte bisher gefundene Alkohol mit einer verzweigten Struktur, was Hinweise darauf gibt, wie komplexe organische Moleküle zwischen Sternen entstehen.",
-
   "level09Desc": "Ethanal (CH₃CHO), allgemein als Acetaldehyd bekannt, ist eine reaktive, farblose Flüssigkeit mit einem stechenden, fruchtigen Geruch. Es ist ein wichtiges Zwischenprodukt in der organischen Synthese und im Stoffwechsel.",
   "level09Facts": "• Kommt natürlich in Kaffee, Brot und reifen Früchten vor.\n• Im menschlichen Körper ist es ein Zwischenprodukt beim Abbau von Ethanol und eine Hauptursache für Katersymptome.\n• Wird zur Herstellung von Essigsäure, Parfums und Farbstoffen verwendet.",
   "level09Space": "Acetaldehyd findet sich in Kometen und interstellaren Molekülwolken. Es gilt als wichtiges präbiotisches Molekül, da es unter weltraumähnlichen Bedingungen zu Aminosäuren wie Alanin reagieren kann, was darauf hindeutet, dass die Bausteine des Lebens einen außerirdischen Ursprung haben könnten.",
-
   "level10Desc": "Aceton (CH₃COCH₃), oder Propanon, ist das einfachste Keton. Es ist eine farblose, flüchtige und brennbare Flüssigkeit mit einem charakteristischen süßlich-stechenden Geruch. Es ist ein gängiges Lösungsmittel, berühmt für seine Verwendung in Nagellackentfernern.",
   "level10Facts": "• Besitzt eine zentrale Carbonylgruppe (C=O), die an zwei Methylgruppen gebunden ist.\n• Ist mit Wasser mischbar und dient als wichtiges Reinigungsmittel im Labor und in der Industrie.\n• Der menschliche Körper produziert auf natürliche Weise geringe Mengen Aceton während des Stoffwechsels.",
   "level10Space": "Aceton wurde von der Raumsonde Rosetta in der Gaswolke um den Kometen 67P nachgewiesen. Seine Anwesenheit auf Kometen stützt die Theorie, dass diese 'schmutzigen Schneebälle' einen Cocktail aus komplexen organischen Molekülen auf die frühe Erde gebracht haben könnten.",
-
   "level11Desc": "Ameisensäure (HCOOH) ist die einfachste Carbonsäure. Es ist eine farblose Flüssigkeit mit einem stechenden, durchdringenden Geruch. Sie kommt natürlich im Gift von Ameisen und Bienen vor.",
   "level11Facts": "• Ihr Name leitet sich vom lateinischen Wort für Ameise, 'formica', ab, da sie erstmals aus Ameisenkörpern isoliert wurde.\n• Wird als Konservierungs- und antibakterielles Mittel in Tierfutter verwendet.\n• Sie ist ätzend und reizt die Haut.",
   "level11Space": "Ameisensäure ist in interstellaren Wolken reichlich vorhanden und wurde in Kometen beobachtet. Sie ist ein Schlüsselmolekül für Astrochemiker, da sie die Carboxylgruppe (-COOH) enthält, die das entscheidende Merkmal aller Aminosäuren, den Bausteinen von Proteinen, ist.",
-
   "level13Desc": "Essigsäure (CH₃COOH) ist eine Carbonsäure, die Essig seinen sauren Geschmack und stechenden Geruch verleiht. In ihrer reinen, wasserfreien Form wird sie Eisessig genannt.",
   "level13Facts": "• Besteht aus einer Methylgruppe, die an eine Carboxylgruppe gebunden ist.\n• Ein grundlegendes chemisches Reagenz und eine Industriechemikalie, die bei der Herstellung von Kunststoffen, Fotofilmen und Textilien verwendet wird.\n• Als schwache Säure wird sie als Lebensmittelzusatzstoff (E260) zur Säureregulierung eingesetzt.",
   "level13Space": "Essigsäure wurde in den heißen molekularen Kernen von sternbildenden Regionen wie Sagittarius B2 nachgewiesen. Ihre Anwesenheit deutet darauf hin, dass die Chemie in diesen stellaren Kinderstuben komplex genug ist, um die Schlüsselkomponenten der Biochemie zu bilden.",
-
   "level14Desc": "trans-Buten ist ein Isomer von Buten (C₄H₈), bei dem die Hauptkohlenstoffketten auf gegenüberliegenden Seiten der Kohlenstoff-Kohlenstoff-Doppelbindung liegen. Diese 'trans'-Konfiguration macht es stabiler als sein cis-Isomer.",
   "level14Facts": "• Die starre Doppelbindung verhindert eine Rotation und erzeugt unterschiedliche geometrische Isomere.\n• Es ist bei Raumtemperatur ein farbloses, brennbares Gas.\n• Wird bei der Herstellung von synthetischem Kautschuk und anderen Chemikalien verwendet.",
   "level14Space": "Das relative Vorkommen von cis- und trans-Isomeren im Weltraum kann Astronomen Aufschluss über die Bedingungen geben, unter denen sie sich gebildet haben. Eine Hochtemperatur-Gasphasenreaktion könnte ein anderes Isomerenverhältnis erzeugen als eine Niedertemperaturreaktion auf der Oberfläche eines Eiskorns.",
-
   "level15Desc": "cis-Buten ist ein Isomer von Buten (C₄H₈), bei dem die Hauptkohlenstoffketten auf der gleichen Seite der Kohlenstoff-Kohlenstoff-Doppelbindung liegen. Diese Konfiguration ist aufgrund sterischer Hinderung weniger stabil als das trans-Isomer.",
   "level15Facts": "• Hat aufgrund eines kleinen molekularen Dipolmoments einen etwas höheren Siedepunkt als sein trans-Isomer.\n• Die cis-trans-Isomerie ist in der Biologie von entscheidender Bedeutung, insbesondere bei der Funktion von Fettsäuren und im Sehvorgang (Retinal).",
   "level15Space": "Der Nachweis spezifischer Isomere wie cis-Buten im Weltraum ist eine große Herausforderung für die Radioastronomie. Ein bestätigter Nachweis könnte tiefe Einblicke in die physikalischen und chemischen Prozesse in protoplanetaren Scheiben geben, wo neue Planeten geboren werden.",
-
   "level16Desc": "Dimethylether (CH₃OCH₃) ist der einfachste Ether. Es ist ein farbloses Gas, das ein Isomer von Ethanol ist, aber aufgrund fehlender Wasserstoffbrückenbindungen sehr unterschiedliche Eigenschaften hat.",
   "level16Facts": "• Es wird als sauber verbrennender Alternativkraftstoff für Dieselmotoren entwickelt, da es sehr geringe Emissionen von Partikeln und Stickoxiden erzeugt.\n• Wird als Treibmittel in Aerosolspraydosen verwendet und ersetzt FCKW.\n• Kann aus Erdgas, Kohle oder Biomasse hergestellt werden.",
   "level16Space": "Dimethylether ist eines der am häufigsten vorkommenden großen organischen Moleküle, die in sternbildenden Wolken gefunden werden. Er dient Astronomen als entscheidender chemischer Indikator, der ihnen hilft, die Temperatur und Dichte der Regionen zu bestimmen, in denen Sterne und Planeten entstehen.",
-
   "level17Desc": "Butanol (C₄H₉OH) ist ein Vier-Kohlenstoff-Alkohol mit mehreren Isomeren. Butan-1-ol, hier gezeigt, ist ein primärer Alkohol mit einem bananenartigen Geruch. Es wird als Lösungsmittel verwendet und als Biokraftstoff erforscht.",
   "level17Facts": "• Als Biokraftstoff ('Biobutanol') hat es eine höhere Energiedichte als Ethanol und ist weniger korrosiv, was es zu einer attraktiveren Benzin-Alternative macht.\n• Wird in einer Vielzahl von Anwendungen eingesetzt, einschließlich als künstliches Aroma in Lebensmitteln und als Zutat in Parfums.\n• Zu seinen Isomeren gehören Isobutanol und tert-Butanol.",
   "level17Space": "Komplexe Alkohole, die größer als Propanol sind, wurden im interstellaren Raum noch nicht eindeutig nachgewiesen. Die Suche nach Butanol dauert an, da seine Entdeckung die Grenzen der bekannten interstellaren Chemie erweitern und bestätigen würde, dass auch größere, komplexere organische Strukturen zwischen den Sternen entstehen können.",
-
   "level19Desc": "2-Methyl-2-Propanol ((CH₃)₃COH), auch als tert-Butanol bekannt, ist der einfachste tertiäre Alkohol. Es ist bei Raumtemperatur ein farbloser Feststoff, der leicht schmilzt und einen kampferartigen Geruch hat.",
   "level19Facts": "• Das 'tert' (tertiär) bezieht sich darauf, dass der zentrale Kohlenstoff an drei andere Kohlenstoffatome gebunden ist.\n• Wird als Lösungsmittel, als Vergällungsmittel für Ethanol und als Oktanzahl-Booster für Benzin verwendet.\n• Seine sperrige Form verhindert, dass es auf die gleiche Weise wie andere Butanol-Isomere reagiert.",
   "level19Space": "Einen verzweigten tertiären Alkohol wie diesen im Weltraum nachzuweisen, wäre eine monumentale Entdeckung. Es würde beweisen, dass nicht nur lange Ketten, sondern auch komplexe, verzweigte Strukturen in der rauen Umgebung interstellarer Wolken synthetisiert werden können, was das Inventar präbiotischer Moleküle erweitert.",
-
   "level20Desc": "Glycerin (C₃H₈O₃), oder Glycerol, ist eine einfache Polyolverbindung. Es ist eine farblose, geruchlose, viskose und süß schmeckende Flüssigkeit. Es ist ungiftig und bildet das Rückgrat aller Triglyceride (Fette).",
   "level20Facts": "• Die drei Hydroxylgruppen (-OH) machen es sehr gut wasserlöslich und hygroskopisch (es zieht Wassermoleküle an und hält sie fest).\n• Weit verbreitet in Lebensmitteln als Süßstoff, in Arzneimitteln und in Körperpflegeprodukten wie Seife und Feuchtigkeitscremes.\n• Ein natürliches Frostschutzmittel bei einigen arktischen und alpinen Insekten.",
   "level20Space": "Glycerin ist ein Schlüsselmolekül bei der Suche nach außerirdischem Leben. Seine Fähigkeit, als Lösungsmittel zu wirken und den Gefrierpunkt von Wasser zu senken, könnte Flüssigkeiten auf ansonsten gefrorenen Welten stabil halten und potenziell bewohnbare Umgebungen auf Eismonden oder Exoplaneten schaffen.",
-
   "level21Desc": "Polytetrafluorethylen ((C₂F₄)n), oder PTFE, ist ein synthetisches Polymer, das am besten unter dem Markennamen Teflon bekannt ist. Das Bild zeigt sein Monomer, Tetrafluorethylen.",
   "level21Facts": "• Es hat einen der niedrigsten Reibungskoeffizienten aller Feststoffe, was es extrem antihaftbeschichtet macht.\n• Sehr beständig gegen chemische Angriffe und stabil über einen weiten Temperaturbereich.\n• Wird in antihaftbeschichtetem Kochgeschirr, Rohrauskleidungen und medizinischen Geräten verwendet.",
   "level21Space": "Fluor ist im Kosmos ein relativ seltenes Element. Obwohl nicht erwartet wird, dass sich komplexe Fluorpolymere auf natürliche Weise im Weltraum bilden, machen die unglaubliche Haltbarkeit und die reibungsarmen Eigenschaften von PTFE es zu einem wichtigen Material für die Raumfahrt, das von Raumanzügen bis zu Rover-Komponenten verwendet wird.",
-
   "level22Desc": "Oxalsäure ((COOH)₂) ist die einfachste Dicarbonsäure. Sie ist ein farbloser kristalliner Feststoff, der sich in Wasser zu einer farblosen Lösung auflöst. Sie ist eine viel stärkere Säure als Essigsäure.",
   "level22Facts": "• Kommt natürlich in vielen Pflanzen vor, einschließlich Blattgemüse (wie Spinat), Gemüse, Obst und Nüssen.\n• Sie bindet sich mit Mineralien wie Kalzium zu Kristallen, die der Hauptbestandteil der häufigsten Art von Nierensteinen sind.\n• Wird als Reinigungs- und Bleichmittel verwendet, insbesondere zur Entfernung von Rost.",
   "level22Space": "Auf dem Mars haben Instrumente an Bord von Rovern Mineralien entdeckt, die mit Oxalaten in Verbindung gebracht werden könnten. Die Anwesenheit dieser Salze deutet darauf hin, dass auf dem Roten Planeten Wasser und organische Chemie stattgefunden haben, was Hinweise auf seine frühere Bewohnbarkeit liefert.",
-
   "level23Desc": "Formaldehyd (CH₂O), oder Methanal, ist das einfachste Aldehyd. Es ist ein farbloses Gas mit einem charakteristischen stechenden, reizenden Geruch. Es ist ein entscheidender Vorläufer für viele andere chemische Verbindungen.",
   "level23Facts": "• Wird bei der Herstellung von Industrieharzen verwendet, z. B. für Spanplatten und Beschichtungen.\n• Ein wichtiges Konservierungs- und Desinfektionsmittel, obwohl seine Verwendung aufgrund seiner Karzinogenität heute eingeschränkt ist.\n• Es ist ein Verbrennungsprodukt und kommt im Tabakrauch vor.",
   "level23Space": "Formaldehyd ist ein Eckpfeiler der Astrochemie. Es war eines der ersten organischen Moleküle, das im interstellaren Medium nachgewiesen wurde. Es bildet sich leicht auf kosmischen Eiskörnern und gilt als Ausgangspunkt für die Synthese komplexerer Moleküle, einschließlich Zuckern wie Ribose, einem Bestandteil der RNA.",
-
   "level25Desc": "Essigsäureethylester (CH₃COOC₂H₅), oder Ethylacetat, ist ein gängiger Ester. Es ist eine farblose Flüssigkeit mit einem charakteristischen süßen, fruchtigen Geruch, der an Birnenbonbons oder Nagellackentferner erinnert.",
   "level25Facts": "• Es ist ein ausgezeichnetes Lösungsmittel, das in Klebstoffen, Nagellackentfernern und zum Entkoffeinieren von Tee und Kaffee verwendet wird.\n• Wird als künstliches Fruchtaroma in Lebensmitteln, Parfums und Süßigkeiten verwendet.\n• Wird im großen Maßstab als Lösungsmittel hergestellt.",
   "level25Space": "Ethylacetat wurde in der Staubwolke im Zentrum der Milchstraße nachgewiesen. Ester sind für viele der angenehmen Gerüche und Geschmäcker verantwortlich, die wir auf der Erde kennen (wie Früchte und Blumen). Ihre Entdeckung im Weltraum deutet darauf hin, dass das Universum ein chemisch reicher Ort ist, der in der Lage ist, die Moleküle zu erzeugen, die wir mit dem Leben verbinden.",
-
   "level26Desc": "Ammoniak (NH₃) ist eine Verbindung aus Stickstoff und Wasserstoff. Es ist ein farbloses Gas mit einem sehr scharfen, stechenden Geruch. Es ist ein grundlegender Baustein für Düngemittel, Kunststoffe und Pharmazeutika.",
   "level26Facts": "• Eine der am meisten produzierten anorganischen Chemikalien der Welt, hauptsächlich zur Verwendung in Stickstoffdüngern.\n• Seine Fähigkeit, Wasserstoffbrückenbindungen zu bilden, macht es sehr gut in Wasser löslich.\n• Eine Schlüsselverbindung im Stickstoffkreislauf, die für die Herstellung von Proteinen und Nukleinsäuren unerlässlich ist.",
   "level26Space": "Ammoniak ist ein Hauptbestandteil der Atmosphären von Jupiter und Saturn, wo es brillante weiße Wolken aus Ammoniak-Eiskristallen bildet. Es ist auch in Kometen und auf Eismonden fest gefroren. Die Anwesenheit von Ammoniak ist ein wichtiger Indikator für die Verfügbarkeit von Stickstoff für die Chemie auf anderen Welten.",
-
   "level27Desc": "3-Methylpentan (C₆H₁₄) ist ein verzweigtkettiges Alkan und ein Isomer von Hexan. Es ist eine farblose, brennbare Flüssigkeit und ein Bestandteil von Benzin.",
   "level27Facts": "• Als verzweigtes Alkan hat es eine höhere Oktanzahl als geradkettiges Hexan, was es zu einer besseren Kraftstoffkomponente zur Verhinderung von Motorklopfen macht.\n• Es wird aus Rohöl raffiniert.\n• Es hat zwei Enantiomere, (3R)-Methylpentan und (3S)-Methylpentan, die Spiegelbilder voneinander sind.",
   "level27Space": "Während einfache Alkane wie Methan häufig sind, sind größere verzweigte Alkane im Weltraum schwerer nachzuweisen. Sie werden jedoch in kohligen Chondrit-Meteoriten gefunden. Diese Meteoriten sind unberührte Proben aus dem frühen Sonnensystem und zeigen, dass komplexe organische Chemie, einschließlich der Bildung von Isomeren, aktiv war, als sich die Planeten bildeten.",
-
   "level28Desc": "Propanal (CH₃CH₂CHO) ist ein Drei-Kohlenstoff-Aldehyd. Es ist eine farblose, brennbare Flüssigkeit mit einem fruchtigen, aber erstickenden Geruch. Es ist ein Isomer von Aceton.",
   "level28Facts": "• Es wird hauptsächlich als Vorläufer zur Herstellung anderer Chemikalien wie Propanol und verschiedener Harze verwendet.\n• Wie andere Aldehyde ist es aufgrund seiner Carbonylgruppe eine reaktive Verbindung.\n• Es kann durch die Oxidation von Propan-1-ol gebildet werden.",
   "level28Space": "Propanal wurde in der sternbildenden Region Sagittarius B2 nachgewiesen. Zusammen mit seinem Isomer Aceton hilft sein Nachweis Astronomen, die chemische Komplexität des interstellaren Mediums zu kartieren und die Bildungswege von Molekülen zu verstehen, die die wichtige Carbonyl-Funktionsgruppe enthalten.",
-
   "level29Desc": "Propin (C₃H₄) ist ein Alkin mit drei Kohlenstoffatomen und einer Kohlenstoff-Kohlenstoff-Dreifachbindung. Es ist ein farbloses, brennbares Gas. Es ist eine praktische, bei Raumtemperatur flüssige Alternative zu Acetylen.",
   "level29Facts": "• Die Dreifachbindung macht es sehr reaktiv und nützlich in der organischen Synthese.\n• Es ist ein Bestandteil von MAPP-Gas, einem Brenngas, das beim Schweißen und Löten wegen seiner hohen Flammentemperatur verwendet wird.\n• Es ist ein Isomer von sowohl Propadien als auch Cyclopropen.",
   "level29Space": "Propin wurde im interstellaren Medium nachgewiesen, insbesondere in der Atmosphäre des Saturnmondes Titan. Auf Titan zerlegt komplexe Photochemie, angetrieben durch Sonnenlicht, Methan und Stickstoff und erzeugt eine reiche Suppe aus Kohlenwasserstoffen, einschließlich Propin, die zu seinem atmosphärischen Dunst beitragen.",
-
-
   "spaceGridlockTitle": "Raumstation-Stau",
   "spaceGridlockInstructions": "Ziehe Schiffe, um einen Weg freizumachen! Führe dein Schiff zum Ausgang rechts.",
   "spaceGridlockReset": "Puzzle zurücksetzen",
@@ -1145,81 +1053,71 @@
   "spaceGridlockGood": "Gut!",
   "spaceGridlockWinDesc": "Schiff angedockt in {moves} Zügen!\nOptimal: {minMoves} Züge\nLeistung: {performance}\n\nGesamtpunktzahl: {score}\nEffizienzbonus: +{bonus}",
   "@spaceGridlockWinDesc": {
-      "description": "Siegesnachricht mit Zügen, Punktzahl und Leistungsbewertung",
-      "placeholders": {
-          "moves": {
-              "type": "int",
-              "description": "Anzahl der verwendeten Züge"
-          },
-          "minMoves": {
-              "type": "int",
-              "description": "Minimal mögliche Züge"
-          },
-          "performance": {
-              "type": "String",
-              "description": "Leistungsbewertung (Perfekt/Großartig/Gut)"
-          },
-          "score": {
-              "type": "int",
-              "description": "Erreichte Gesamtpunktzahl"
-          },
-          "bonus": {
-              "type": "int",
-              "description": "Effizienz-Bonuspunkte"
-          }
+    "description": "Siegesnachricht mit Zügen, Punktzahl und Leistungsbewertung",
+    "placeholders": {
+      "moves": {
+        "type": "int",
+        "description": "Anzahl der verwendeten Züge"
+      },
+      "minMoves": {
+        "type": "int",
+        "description": "Minimal mögliche Züge"
+      },
+      "performance": {
+        "type": "String",
+        "description": "Leistungsbewertung (Perfekt/Großartig/Gut)"
+      },
+      "score": {
+        "type": "int",
+        "description": "Erreichte Gesamtpunktzahl"
+      },
+      "bonus": {
+        "type": "int",
+        "description": "Effizienz-Bonuspunkte"
       }
+    }
   },
   "nextPuzzle": "Nächstes Puzzle",
-
   "starLoaderGameTitle": "Frachtlader",
   "starLoaderTitle": "Frachtlader",
   "starLoaderGameDesc": "Schiebe die Frachtkisten ohne hängen zu bleiben auf die grünen Ziele.",
   "starLoaderHint": "Bewege dich mit Pfeiltasten oder Wischen. Bringe alle Frachtkisten auf die Ziele!",
   "moves": "Züge",
   "optimal": "Optimal",
-  "time": "Zeit",
   "undo": "Zurück",
   "starLoaderWinTitle": "Fracht geladen!",
   "starLoaderWinDesc": "Abgeschlossen in {moves} Zügen, {time}s. Punkte: {score}",
   "@starLoaderWinDesc": {
     "placeholders": {
-      "moves": {"type": "int"},
-      "time": {"type": "int"},
-      "score": {"type": "int"}
+      "moves": {
+        "type": "int"
+      },
+      "time": {
+        "type": "int"
+      },
+      "score": {
+        "type": "int"
+      }
     }
   },
-  
   "robotPathTitle": "Roboterpfad",
   "robotPathDesc": "Programmiere den Roboter, um das Ziel zu erreichen!",
   "robotPathError": "Wumms! Der Roboter hat ein Hindernis getroffen.",
   "robotPathNotComplete": "Pfad unvollständig. Der Roboter hat das Ziel nicht erreicht.",
   "robotPathSuccess": "Ziel erfasst! Der Roboter ist angekommen.",
   "program": "Programm",
-  "emptyProgram": "Befehle hier ablegen",
+  "emptyProgram": "Befehle hierher ziehen",
   "commands": "Befehle",
   "forward": "Vorwärts",
   "turnLeft": "Links drehen",
   "turnRight": "Rechts drehen",
-  "run": "Start",
-  "clear": "Löschen",
-  "reset": "Zurücksetzen",
-  "emptyProgram": "Befehle hierher ziehen",
-  
-  "congratulations": "Glückwunsch!",
-  "baseScore": "Basispunkte",
-  "efficiencyBonus": "Effizienzbonus",
-  "totalScore": "Gesamtpunkte",
-  "playAgain": "Nochmal",
-  "nextLevel": "Nächstes Level",
-  "grade": "Klasse",
-  "level": "Level",
-  "toTheBridge": "Zur Brücke",
-  "efficiency": "Effizienz",
-  "movesVsOptimal": "Züge / Optimal",
-
   "run": "Los!",
   "clear": "Leeren",
-  "reset": "Neustart",
+  "baseScore": "Basispunkte",
+  "efficiencyBonus": "Effizienzbonus",
+  "grade": "Klasse",
+  "efficiency": "Effizienz",
+  "movesVsOptimal": "Züge / Optimal",
   "shoot": "Zerstöre",
   "jump": "Hüpfe",
   "robotPathJump": "Hüpfe",
@@ -1227,20 +1125,17 @@
   "robotPathWait": "Warte",
   "robotPathPush": "Schiebe",
   "robotPathPull": "Ziehe",
-
   "robotPathTooltipWall": "Mauer",
   "robotPathTooltipJumpable": "Springbare Lücke",
   "robotPathTooltipDestructible": "Zerstörbarer Fels",
   "robotPathTooltipMovable": "Beweglicher Fels",
   "robotPathTooltipStart": "Start",
   "robotPathTooltipGoal": "Ziel",
-
   "robotPathErrorNotDestructible": "Ziel ist nicht zerstörbar!",
   "robotPathErrorNotJumpable": "Hier kann nicht gesprungen werden!",
   "robotPathErrorNotMovable": "Ziel ist nicht beweglich!",
   "robotPathErrorCannotPush": "Schieben fehlgeschlagen! Ziel ist blockiert.",
   "robotPathErrorCannotPull": "Ziehen fehlgeschlagen! Nicht genug Platz.",
-
   "imprint": "Impressum",
   "imprintServiceProvider": "Diensteanbieter",
   "imprintProviderAddress": "Christian Ströbele\nNikolausstr. 5\n70190 Stuttgart\nDeutschland/Germany",
@@ -1250,8 +1145,6 @@
   "imprintDisclaimer": "Haftungsausschluss",
   "imprintDisclaimerText": "Diese App wird 'as is' (so wie sie ist) ausschließlich zu Bildungs- und kreativen Zwecken bereitgestellt, ohne jegliche Haftung.",
   "imprintWebsite": "www.crispstro.be",
-  "close": "Schließen",
-
   "solarPanelGameTitle": "Solarpanel-Baumeister",
   "solarPanelTitle": "Baue Solaranlagen",
   "solarPanelHint": "Höhe × Breite = Panelfläche. Addiere beide Panels für Gesamtleistung!",
@@ -1261,8 +1154,6 @@
   "solarPanelWinTitle": "🌞 Station versorgt!",
   "solarPanelWinDesc": "Großartig! Du hast {bonus} Bonus-Watt verdient!",
   "solarPanelNext": "Nächste Anlage",
-  "toTheBridge": "Zur Brücke",
-
   "starChartScanTitle": "Sternkarten-Scan",
   "starChartScanDesc": "Versteckte Gleichungen sind in diesen Sternkartendaten eingebettet! Scanne horizontal, vertikal und diagonal, um Mathe-Gleichungen wie 3+4=7 im Zahlenraster zu finden.",
   "starChartScanInstructions": "Wische über Zellen, um versteckte Gleichungen zu markieren (z.B. 3+4=7, 9-2=7). Gleichungen können in jeder Richtung verlaufen. Finde alle Gleichungen!",
@@ -1270,13 +1161,18 @@
   "starChartScanWinDesc": "Alle {letter} Gleichungen gefunden! Du hast {bonusScore} Kartografiepunkte verdient.",
   "@starChartScanWinDesc": {
     "placeholders": {
-      "letter": {"type": "String", "example": "X"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "letter": {
+        "type": "String",
+        "example": "X"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "starChartScanLoseTitle": "Scan unvollständig!",
   "starChartScanLoseDesc": "Einige Gleichungen sind noch in den Daten verborgen. Versuche auch diagonal zu scannen, Commander.",
-
   "commRelayTitle": "Komm-Relais",
   "commRelayDesc": "Eine verzerrte Übertragung aus dem tiefen Weltraum! Das Kommunikationsrelais hat jeden Buchstaben verschoben. Knacke die Chiffre, um die Originalnachricht zu lesen!",
   "commRelayInstructions": "Jeder Buchstabe wurde um einen festen Betrag im Alphabet verschoben. Finde die Verschiebung und entschlüssle die Nachricht.",
@@ -1284,7 +1180,10 @@
   "commRelayWinDesc": "Die Übertragung ist klar und deutlich! Du hast {bonusScore} Intelligenzpunkte verdient.",
   "@commRelayWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "commRelayLoseTitle": "Rauschen!",
@@ -1295,13 +1194,17 @@
   "commRelayShift": "VERSCHIEBUNG: {shift}",
   "@commRelayShift": {
     "placeholders": {
-      "shift": { "type": "String" }
+      "shift": {
+        "type": "String"
+      }
     }
   },
   "commRelayDecodeBtn": "ENTSCHLÜSSELN  ({attemptsLeft} übrig)",
   "@commRelayDecodeBtn": {
     "placeholders": {
-      "attemptsLeft": { "type": "int" }
+      "attemptsLeft": {
+        "type": "int"
+      }
     }
   },
   "commRelayTypeHint": "ENTSCHLÜSSELTE NACHRICHT EINGEBEN...",
@@ -1309,23 +1212,26 @@
   "commRelayAnswer": "Antwort: {answer}",
   "@commRelayAnswer": {
     "placeholders": {
-      "answer": { "type": "String" }
+      "answer": {
+        "type": "String"
+      }
     }
   },
-
   "hullPlatingTitle": "Rumpf-Panzerung",
   "hullPlatingDesc": "Der Schiffsrumpf wurde getroffen! Decke den beschädigten Bereich mit verschieden geformten Panzerplatten ab. Jede Lücke muss versiegelt werden — drehe und platziere jede Platte genau!",
-  "hullPlatingInstructions": "Ziehe Panzerplatten aus der Ablage auf das Rumpfgitter. Drehe Platten mit dem Button. Decke jede Zelle ohne Uberlappung ab!",
+  "hullPlatingInstructions": "Ziehe Panzerplatten aus der Ablage auf das Rumpfgitter. Drehe Platten mit dem Button. Decke jede Zelle ohne Überlappung ab!",
   "hullPlatingWinTitle": "Rumpf versiegelt!",
   "hullPlatingWinDesc": "Das Leck ist geflickt! Das Schiff ist wieder weltraumtauglich. Du hast {bonusScore} Reparaturkredite verdient.",
   "@hullPlatingWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "hullPlatingLoseTitle": "Leck bleibt!",
   "hullPlatingLoseDesc": "Es gibt noch Lücken in der Rumpfpanzerung. Versuche eine andere Anordnung, Commander.",
-
   "vaultCrackerTitle": "Tresor-Knacker",
   "vaultCrackerDesc": "Ein uralter Alien-Tresor blockiert deinen Weg! Mathematische Hinweise beschreiben den Geheimcode. Nutze Logik und Rechnen, um die Kombination herauszufinden!",
   "vaultCrackerInstructions": "Lies die mathematischen Hinweise sorgfältig. Jeder beschreibt eine Eigenschaft des Geheimcodes (Summen, Produkte, Vergleiche). Finde alle Ziffern und gib den Code ein.",
@@ -1333,13 +1239,18 @@
   "vaultCrackerWinDesc": "Die Tresorturen schwingen auf! Du hast den Code in {attempts} Versuchen geknackt und {bonusScore} Archaologiepunkte verdient.",
   "@vaultCrackerWinDesc": {
     "placeholders": {
-      "attempts": {"type": "int", "example": "3"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "attempts": {
+        "type": "int",
+        "example": "3"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "vaultCrackerLoseTitle": "Tresor versiegelt!",
   "vaultCrackerLoseDesc": "Zu viele Fehlversuche haben die Sperre ausgelost. Analysiere die Hinweismuster sorgfaltiger, Commander.",
-
   "crewManifestTitle": "Crew-Manifest",
   "crewManifestDesc": "Die Crew-Datenbank ist durcheinander! Nutze die Hinweise aus dem Schiffslogbuch, um jedes Crew-Mitglied seiner Rolle, Kabine und seinem Heimatplaneten zuzuordnen.",
   "crewManifestInstructions": "Lies die Hinweise und markiere das Logikgitter. Ein X bedeutet 'nicht möglich', ein Haken bedeutet 'bestätigter Treffer'.",
@@ -1347,23 +1258,70 @@
   "crewManifestWinDesc": "Jedes Crew-Mitglied zugeordnet! Deine Detektivarbeit hat {bonusScore} Intelligenzpunkte eingebracht.",
   "@crewManifestWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "crewManifestLoseTitle": "Datenbankfehler!",
   "crewManifestLoseDesc": "Das Manifest enthält Widersprüche. Lies die Hinweise sorgfältig noch einmal, Commander.",
   "crewManifestSubmit": "Manifest abgeben",
   "crewManifestHas1": "{crew} hat den/die/das {item}.",
-  "@crewManifestHas1": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "@crewManifestHas1": {
+    "placeholders": {
+      "crew": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
   "crewManifestHas2": "Der/Die/Das {item} gehört {crew}.",
-  "@crewManifestHas2": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "@crewManifestHas2": {
+    "placeholders": {
+      "crew": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
   "crewManifestHas3": "{crew} wurde der/die/das {item} zugewiesen.",
-  "@crewManifestHas3": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "@crewManifestHas3": {
+    "placeholders": {
+      "crew": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
   "crewManifestNot1": "{crew} hat den/die/das {item} nicht.",
-  "@crewManifestNot1": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
+  "@crewManifestNot1": {
+    "placeholders": {
+      "crew": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
   "crewManifestNot2": "Der/Die/Das {item} gehört nicht {crew}.",
-  "@crewManifestNot2": { "placeholders": { "crew": {"type":"String"}, "item": {"type":"String"} } },
-
+  "@crewManifestNot2": {
+    "placeholders": {
+      "crew": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalTitle": "Alien-Tribunal",
   "alienTribunalDesc": "Galaktische Delegierte sagen aus, aber manche lügen immer! Wahrheitssprecher sagen immer die Wahrheit, Lügner lügen immer. Studiere ihre Aussagen und finde heraus, wer vertrauenswürdig ist!",
   "alienTribunalInstructions": "Lies die Aussage jedes Delegierten. Markiere jeden als 'Wahrheitssprecher' oder 'Lügner'. Alle Aussagen müssen mit deinen Zuweisungen übereinstimmen.",
@@ -1371,49 +1329,173 @@
   "alienTribunalWinDesc": "Das Urteil des Tribunals ist fundiert! Deine Deduktion hat {bonusScore} Diplomatiepunkte eingebracht.",
   "@alienTribunalWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "alienTribunalLoseTitle": "Fehlurteil!",
   "alienTribunalLoseDesc": "Deine Zuweisungen sind widersprüchlich. Wenn jemand ein Wahrheitssprecher ist, müssen seine Aussagen wahr sein, Commander.",
   "alienTribunalSubmit": "Urteil abgeben",
   "alienTribunalClaimTruth1": "\"{name} sagt die Wahrheit.\"",
-  "@alienTribunalClaimTruth1": { "placeholders": { "name": { "type": "String" } } },
+  "@alienTribunalClaimTruth1": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalClaimTruth2": "\"{name} ist vertrauenswürdig.\"",
-  "@alienTribunalClaimTruth2": { "placeholders": { "name": { "type": "String" } } },
+  "@alienTribunalClaimTruth2": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalClaimTruth3": "\"{name} ist ein Wahrheitssprecher.\"",
-  "@alienTribunalClaimTruth3": { "placeholders": { "name": { "type": "String" } } },
+  "@alienTribunalClaimTruth3": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalClaimLiar1": "\"{name} ist ein Lügner.\"",
-  "@alienTribunalClaimLiar1": { "placeholders": { "name": { "type": "String" } } },
+  "@alienTribunalClaimLiar1": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalClaimLiar2": "\"{name} kann man nicht vertrauen.\"",
-  "@alienTribunalClaimLiar2": { "placeholders": { "name": { "type": "String" } } },
+  "@alienTribunalClaimLiar2": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalClaimLiar3": "\"{name} lügt immer.\"",
-  "@alienTribunalClaimLiar3": { "placeholders": { "name": { "type": "String" } } },
+  "@alienTribunalClaimLiar3": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairBothTruth1": "\"{name1} und {name2} sagen beide die Wahrheit.\"",
-  "@alienTribunalPairBothTruth1": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairBothTruth1": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairBothTruth2": "\"Du kannst {name1} und {name2} beiden vertrauen.\"",
-  "@alienTribunalPairBothTruth2": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairBothTruth2": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairBothLiar1": "\"{name1} und {name2} sind beide Lügner.\"",
-  "@alienTribunalPairBothLiar1": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairBothLiar1": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairBothLiar2": "\"Weder {name1} noch {name2} sagt die Wahrheit.\"",
-  "@alienTribunalPairBothLiar2": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairBothLiar2": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairAnyTruth1": "\"Mindestens einer von {name1} und {name2} sagt die Wahrheit.\"",
-  "@alienTribunalPairAnyTruth1": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairAnyTruth1": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairAnyTruth2": "\"{name1} oder {name2} -- mindestens einem von beiden kann man vertrauen.\"",
-  "@alienTribunalPairAnyTruth2": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairAnyTruth2": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairAnyLiar1": "\"Mindestens einer von {name1} und {name2} ist ein Lügner.\"",
-  "@alienTribunalPairAnyLiar1": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairAnyLiar1": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalPairAnyLiar2": "\"{name1} oder {name2} -- mindestens einer von beiden lügt.\"",
-  "@alienTribunalPairAnyLiar2": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@alienTribunalPairAnyLiar2": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "alienTribunalCountLiarsNone": "\"Keiner von uns ist ein Lügner.\"",
   "alienTribunalCountLiarsOne": "\"Genau einer von uns ist ein Lügner.\"",
   "alienTribunalCountLiarsMany": "\"Genau {count} von uns sind Lügner.\"",
-  "@alienTribunalCountLiarsMany": { "placeholders": { "count": { "type": "int", "example": "2" } } },
+  "@alienTribunalCountLiarsMany": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
   "alienTribunalCountTruthNone": "\"Keiner von uns sagt die Wahrheit.\"",
   "alienTribunalCountTruthOne": "\"Genau einer von uns sagt die Wahrheit.\"",
   "alienTribunalCountTruthMany": "\"Genau {count} von uns sagen die Wahrheit.\"",
-  "@alienTribunalCountTruthMany": { "placeholders": { "count": { "type": "int", "example": "2" } } },
-
+  "@alienTribunalCountTruthMany": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
   "gravityWellTitle": "Gravitationsfeld",
   "gravityWellDesc": "Kalibriere das Gravitationsfeld! Platziere Himmelsmassen auf kosmischen Waagen, bis ein perfektes Gleichgewicht erreicht ist. Der Warpantrieb funktioniert nur bei ausgeglichener Gravitation.",
   "gravityWellInstructions": "Bestimme das Gewicht jedes Objekts anhand der balancierten Waagen. Ziehe deine Antwort auf die Zielwaage.",
@@ -1421,23 +1503,33 @@
   "gravityWellWinDesc": "Perfektes Gleichgewicht erreicht! Der Warpantrieb summt zum Leben. Du hast {bonusScore} Kalibrierungspunkte verdient.",
   "@gravityWellWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "gravityWellLoseTitle": "Gravitationsanomalie!",
   "gravityWellLoseDesc": "Das unausgeglichene Gravitationsfeld hat die lokale Raumzeit verzerrt. Berechne die Massen neu, Commander.",
   "gravityWellKnown": "Bekannt: {values}",
   "@gravityWellKnown": {
-    "placeholders": { "values": { "type": "String" } }
+    "placeholders": {
+      "values": {
+        "type": "String"
+      }
+    }
   },
   "gravityWellScaleN": "Waage {n}",
   "@gravityWellScaleN": {
-    "placeholders": { "n": { "type": "int" } }
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   },
   "gravityWellEnterWeights": "Unbekannte Gewichte eingeben:",
   "gravityWellCheckBalance": "Gleichgewicht prüfen",
   "gravityWellKg": "kg",
-
   "sectorPainterTitle": "Sektor-Maler",
   "sectorPainterDesc": "Weise Kommunikationsfrequenzen den Sternkarten-Sektoren zu! Angrenzende Sektoren müssen verschiedene Frequenzen nutzen, um Signalstörungen zu vermeiden.",
   "sectorPainterInstructions": "Färbe jeden Sektor ein, sodass keine zwei benachbarten Sektoren die gleiche Farbe haben. Verwende so wenige Farben wie möglich!",
@@ -1445,13 +1537,18 @@
   "sectorPainterWinDesc": "Keine Interferenz auf der gesamten Sternkarte! Du hast es mit nur {colors} Frequenzen gelöst und {bonusScore} Punkte verdient.",
   "@sectorPainterWinDesc": {
     "placeholders": {
-      "colors": {"type": "int", "example": "3"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "colors": {
+        "type": "int",
+        "example": "3"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "sectorPainterLoseTitle": "Signalinterferenz!",
   "sectorPainterLoseDesc": "Benachbarte Sektoren senden auf der gleichen Frequenz! Weise die Kanale neu zu, Commander.",
-
   "warpFoldTitle": "Warp-Faltung",
   "warpFoldDesc": "Der Warpantrieb faltet den Raum selbst! Sage voraus, wie die Sternkarte nach der Raumfaltung und dem Schnitt aussieht. Raumliches Vorstellungsvermogen ist dein einziges Werkzeug!",
   "warpFoldInstructions": "Beobachte die Faltanimation und wähle dann das korrekte entfaltete Ergebnis.",
@@ -1459,25 +1556,29 @@
   "warpFoldWinDesc": "Dein raumliches Denken ist makellos! Du hast {bonusScore} Dimensionspunkte verdient.",
   "@warpFoldWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "warpFoldLoseTitle": "Dimensionspanne!",
   "warpFoldLoseDesc": "Der entfaltete Raum stimmte nicht mit deiner Vorhersage überein. Verfolge die Faltungen Schritt für Schritt, Commander.",
-
   "cubeScannerTitle": "Würfel-Scanner",
   "cubeScannerDesc": "Alien-Datenwürfel wurden geborgen! Dein Scanner zeigt einige Seiten, aber andere sind verborgen. Nutze die Regel -- gegenüber liegende Seiten ergeben immer 7 -- um die versteckten Werte zu bestimmen.",
   "cubeScannerInstructions": "Studiere die sichtbaren Seiten jedes Würfels. Gegenüber liegende Seiten ergeben 7. Bestimme die versteckten Seitenwerte.",
   "cubeScannerWinTitle": "Würfel entschlüsselt!",
-  "cubeScannerWinDesc": "Alle Wurfeldaten extrahiert! Deine Analyse hat {bonusScore} Scannerpunkte eingebracht.",
+  "cubeScannerWinDesc": "Alle Würfeldaten extrahiert! Deine Analyse hat {bonusScore} Scannerpunkte eingebracht.",
   "@cubeScannerWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "cubeScannerLoseTitle": "Scan unvollständig!",
   "cubeScannerLoseDesc": "Einige Seitenwerte sind falsch. Denke daran: Gegenüber liegende Seiten ergeben immer 7, Commander.",
-
   "circuitRepairTitle": "Schaltkreis-Reparatur",
   "circuitRepairDesc": "Die Cockpit-Uhr spinnt! Zwei Ziffernpositionen wurden vertauscht und zeigen eine unmögliche Uhrzeit. Finde die zwei Positionen zum Zurucktauschen!",
   "circuitRepairInstructions": "Die Uhr zeigt eine ungültige Zeit, weil zwei Ziffernpositionen vertauscht sind. Tippe auf zwei Ziffern, um sie zu tauschen. Das Ergebnis muss eine gültige Uhrzeit sein!",
@@ -1485,68 +1586,90 @@
   "circuitRepairWinDesc": "Klare Anzeige wiederhergestellt! Deine Elektrokenntnisse haben {bonusScore} Technikpunkte eingebracht.",
   "@circuitRepairWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "circuitRepairLoseTitle": "Immer noch gestort!",
   "circuitRepairLoseDesc": "Die Anzeige zeigt immer noch falsche Ziffern. Überlege, welche zwei Segmente, wenn vertauscht, alle Ziffern gültig machen, Commander.",
-
   "darkMatterGridTitle": "Dunkelmaterie-Gitter",
-  "darkMatterGridDesc": "Dunkelmaterie hat diesen Sektor verhullt! Schalte die Knoten um, um die Dunkelheit zuruckzudrangen. Aber Vorsicht -- jeder Knoten beeinflusst seine Nachbarn!",
+  "darkMatterGridDesc": "Dunkelmaterie hat diesen Sektor verhüllt! Schalte die Knoten um, um die Dunkelheit zurückzudrängen. Aber Vorsicht -- jeder Knoten beeinflusst seine Nachbarn!",
   "darkMatterGridInstructions": "Tippe auf einen Knoten, um ihn und alle benachbarten Knoten umzuschalten. Erleuchte das gesamte Gitter, um den Sektor zu befreien.",
   "darkMatterGridWinTitle": "Sektor erleuchtet!",
   "darkMatterGridWinDesc": "Die Dunkelmaterie weicht zurück! Du hast das Gitter in {moves} Zügen befreit und {bonusScore} Photonenpunkte verdient.",
   "@darkMatterGridWinDesc": {
     "placeholders": {
-      "moves": {"type": "int", "example": "12"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "moves": {
+        "type": "int",
+        "example": "12"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "darkMatterGridLoseTitle": "Dunkelheit bleibt!",
   "darkMatterGridLoseDesc": "Das Dunkelmaterie-Gitter bleibt instabil. Überlege, welche Knoten welche Nachbarn beeinflussen, Commander.",
-
   "dockClearanceTitle": "Dock-Freigabe",
   "dockClearanceDesc": "Das Raumdock ist verstopft! Verschiebe die geparkten Schiffe, um einen Weg für dein Raumschiff zur Startschleuse freizumachen. Keine Diagonalbewegungen -- Schiffe gleiten nur entlang ihrer Achse!",
   "dockClearanceInstructions": "Verschiebe Schiffe horizontal oder vertikal, um einen freien Weg zu schaffen. Bringe das rote Schiff zum Ausgang!",
   "dockClearanceWinTitle": "Start frei!",
-  "dockClearanceWinDesc": "Dein Schiff schie\u00dft aus dem Dock! In {moves} Zügen freigegeben, {bonusScore} Dock-Kredite verdient.",
+  "dockClearanceWinDesc": "Dein Schiff schießt aus dem Dock! In {moves} Zügen freigegeben, {bonusScore} Dock-Kredite verdient.",
   "@dockClearanceWinDesc": {
     "placeholders": {
-      "moves": {"type": "int", "example": "15"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "moves": {
+        "type": "int",
+        "example": "15"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "dockClearanceLoseTitle": "Immer noch blockiert!",
   "dockClearanceLoseDesc": "Kein freier Weg zum Ausgang. Versuche, zuerst andere Schiffe zu verschieben, Commander.",
-
   "ionChainTitle": "Ionen-Ring",
   "ionChainDesc": "Vervollständige den Ionen-Ring! Ordne geladene Teilchen um die Plasmaschleife an, sodass jedes Nachbarpaar die Regeln erfüllt. Eine falsche Platzierung und der Ring wird instabil!",
   "ionChainInstructions": "Ziehe Ionen auf den Ring. Lies die Regeln: Manche Formen durfen nicht nebeneinander stehen. Der Ring ist kreisformig — die letzte Perle grenzt an die erste!",
   "ionChainWinTitle": "Ring stabilisiert!",
-  "ionChainWinDesc": "Das Plasma flie\u00dft in einer perfekten Schleife! Du hast {bonusScore} Chemiepunkte verdient.",
+  "ionChainWinDesc": "Das Plasma fließt in einer perfekten Schleife! Du hast {bonusScore} Chemiepunkte verdient.",
   "@ionChainWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "ionChainLoseTitle": "Kettenreaktion!",
   "ionChainLoseDesc": "Inkompatible Ionen haben einen Plasmaschub verursacht! Überprüfe die Nachbarschaftsregeln, Commander.",
-
   "launchSequenceTitle": "Start-Sequenz",
-  "launchSequenceDesc": "Die Startreihenfolge ist durcheinander! Ordne die Flotte durch Tauschen benachbarter Schiffe neu. Bringe sie mit so wenigen Tauschvorgangen wie möglich in die richtige Reihenfolge!",
+  "launchSequenceDesc": "Die Startreihenfolge ist durcheinander! Ordne die Flotte durch Tauschen benachbarter Schiffe neu. Bringe sie mit so wenigen Tauschvorgängen wie möglich in die richtige Reihenfolge!",
   "launchSequenceInstructions": "Tippe auf zwei benachbarte Schiffe, um sie zu tauschen. Ordne alle Schiffe in der richtigen Reihenfolge. Weniger Tausche = mehr Punkte!",
   "launchSequenceWinTitle": "Flotte gestartet!",
   "launchSequenceWinDesc": "Perfekte Reihenfolge! Du hast die Flotte in {moves} Tauschen sortiert (optimal: {optimal}) und {bonusScore} Effizienzpunkte verdient.",
   "@launchSequenceWinDesc": {
     "placeholders": {
-      "moves": {"type": "int", "example": "8"},
-      "optimal": {"type": "int", "example": "5"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "moves": {
+        "type": "int",
+        "example": "8"
+      },
+      "optimal": {
+        "type": "int",
+        "example": "5"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "launchSequenceLoseTitle": "Sequenzfehler!",
   "launchSequenceLoseDesc": "Die Flotte ist immer noch durcheinander. Tausche weiter benachbarte Schiffe, Commander.",
-
   "starForgeTitle": "Sternen-Schmiede",
   "starForgeDesc": "Entzünde einen neuen Stern! Verteile Energiewerte auf die Schmiedeknoten, sodass jeder Plasmaarm die gleiche Gesamtladung tragt. Der Stern entzündet sich, wenn alle Arme übereinstimmen!",
   "starForgeInstructions": "Platziere Zahlen in die leeren Knoten. Jede Linie durch den Stern muss die gleiche Summe haben.",
@@ -1554,14 +1677,16 @@
   "starForgeWinDesc": "Ein strahlender neuer Stern erwacht zum Leben! Deine Schmiedekunst hat {bonusScore} Fusionspunkte eingebracht.",
   "@starForgeWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "starForgeLoseTitle": "Schmiedefehler!",
   "starForgeLoseDesc": "Das Energieungleichgewicht hat ein Plasmaleck verursacht. Verteile die Ladung neu, Commander.",
   "starForgeOutOfMoves": "Alle Züge verbraucht!",
   "starForgeOutOfMovesDesc": "Plane die Energieverteilung genau, um den Stern zu entzünden!",
-
   "nebulaMatrixTitle": "Nebel-Matrix",
   "nebulaMatrixDesc": "Stabilisiere das Energiefeld! Fülle jede Zeile, Spalte und Zone des Nebelgitters, sodass sich keine Frequenz wiederholt. Eine falsche Resonanz und der Nebel kollabiert!",
   "nebulaMatrixInstructions": "Platziere Zahlen, sodass jede Zeile und Spalte jeden Wert genau einmal enthält.",
@@ -1570,27 +1695,35 @@
   "nebulaMatrixWinDesc": "Das Energiefeld ist perfekt ausbalanciert! Du hast {bonusScore} Resonanzpunkte für deine Präzision verdient.",
   "@nebulaMatrixWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "nebulaMatrixLoseTitle": "Feldkollaps!",
   "nebulaMatrixLoseDesc": "Widerspruchliche Frequenzen haben den Nebel destabilisiert. Kalibriere deine Matrix neu, Commander.",
   "nebulaMatrixOutOfMoves": "Alle Züge verbraucht!",
   "nebulaMatrixOutOfMovesDesc": "Setze jede Frequenz gezielt ein, um den Nebel zu stabilisieren!",
-
   "orbitalTowersTitle": "Orbital-Türme",
   "orbitalTowersDesc": "Baue eine Weltraumstadt auf der Orbitalplattform! Die Satellitenkameras an jedem Rand melden, wie viele Türme sie sehen können. Höhere Türme verbergen niedrigere hinter sich.",
   "orbitalTowersInstructions": "Platziere Türme der Höhe 1 bis {size}, sodass jede Zeile und Spalte jede Höhe einmal hat. Randhinweise zeigen, wie viele Türme aus dieser Richtung sichtbar sind.",
   "@orbitalTowersInstructions": {
     "placeholders": {
-      "size": {"type": "int", "example": "4"}
+      "size": {
+        "type": "int",
+        "example": "4"
+      }
     }
   },
   "orbitalTowersWinTitle": "Stadt errichtet!",
   "orbitalTowersWinDesc": "Die Orbitalstadt erhebt sich! Alle Satellitenwerte stimmen perfekt überein. Du hast {bonusScore} Baukredite verdient.",
   "@orbitalTowersWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "orbitalTowersLoseTitle": "Bauplanfehler!",
@@ -1601,7 +1734,6 @@
   "orbitalTowersOnboardGrid": "Jede Zeile und jede Spalte bekommt jede Turmhöhe genau einmal -- keine Wiederholungen.",
   "orbitalTowersOnboardSightline": "Eine Kamera sieht einen Turm nur, wenn kein höherer davor steht. Hier sieht sie 2 von 4 Türmen: die 1 versteckt sich hinter der 2, die 3 hinter der 4.",
   "orbitalTowersOnboardPlace": "Ziehe eine Höhe auf ein Baufeld. Tippe auf einen gesetzten Turm, um ihn wieder zu entfernen.",
-
   "hiveStationTitle": "Bienen-Station",
   "hiveStationDesc": "Der Energiebienenstock der Station muss aufgeladen werden! Jede Zelle zeigt an, wie viele ihrer Nachbarn einen Energiekern enthalten. Finde heraus, welche Zellen Energie brauchen!",
   "hiveStationInstructions": "Tippe auf sechseckige Zellen, um sie mit Energie zu füllen. Die Zahl in jeder Zelle sagt dir, wie viele benachbarte Zellen Energie enthalten.",
@@ -1609,14 +1741,22 @@
   "hiveStationWinDesc": "Alle Energiekerne korrekt platziert! Die Station summt vor Energie. Du hast {bonusScore} Ladepunkte verdient.",
   "@hiveStationWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "hiveStationLoseTitle": "Energiefehler!",
   "hiveStationLoseDesc": "Einige Zellen melden die falsche Nachbarzahl. Überprüfe deine Energieplatzierung, Commander.",
   "hiveStationWrongAttempt": "Nicht ganz richtig! Noch {remaining} Versuche.",
-  "@hiveStationWrongAttempt": { "placeholders": { "remaining": { "type": "int" } } },
-
+  "@hiveStationWrongAttempt": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
   "relicAssemblyTitle": "Relikte-Puzzle",
   "relicAssemblyDesc": "Uralte Alien-Tafelfragmente wurden ausgegraben! Ordne die Stücke an, sodass die Glyphen an berührenden Kanten perfekt übereinstimmen. Das Artefakt birgt den Schlüssel zum nächsten Sternensystem!",
   "relicAssemblyInstructions": "Platziere und drehe Tafelstücke im Gitter. Berührende Kanten müssen übereinstimmende Glyphen zeigen.",
@@ -1624,12 +1764,14 @@
   "relicAssemblyWinDesc": "Die uralte Tafel leuchtet voller Kraft! Deine Archaologie hat {bonusScore} Entdeckungspunkte eingebracht.",
   "@relicAssemblyWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "relicAssemblyLoseTitle": "Fragmente falsch ausgerichtet!",
   "relicAssemblyLoseDesc": "Einige Kantenglyphen stimmen nicht mit ihren Nachbarn überein. Versuche die Stücke zu drehen oder neu zu positionieren, Commander.",
-
   "xenobiologyLabTitle": "Xenobiologie-Labor",
   "xenobiologyLabDesc": "Eine neue Spezies wurde entdeckt! Jede Unterart hat verschiedene Anzahlen von Augen, Tentakeln und Beinen. Nutze die Volkszahlungsdaten, um die Kolonie zu klassifizieren!",
   "xenobiologyLabInstructions": "Zwei Alien-Typen leben zusammen. Du kennst die Merkmale jedes Typs und die beobachteten Gesamtzahlen an Augen und Beinen. Berechne, wie viele von jedem Typ es geben muss!",
@@ -1637,12 +1779,14 @@
   "xenobiologyLabWinDesc": "Feldbericht eingereicht! Deine Xenobiologie-Fähigkeiten haben {bonusScore} Forschungskredite eingebracht.",
   "@xenobiologyLabWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "xenobiologyLabLoseTitle": "Volkszahlungsfehler!",
   "xenobiologyLabLoseDesc": "Die Zahlen stimmen nicht überein. Überprüfe die Merkmalszahlen für jede Unterart, Commander.",
-
   "galacticMarketTitle": "Galaktischer Markt",
   "galacticMarketDesc": "Der Alien-Händler gab dir Wechselgeld, aber einige Münzen liegen verdeckt! Du kennst die Gesamtsumme und siehst manche Münzen. Finde den versteckten Nennwert!",
   "galacticMarketInstructions": "Schau dir das Gesamtwechselgeld und die sichtbaren Münzen an. Die verdeckten Münzen haben alle denselben Wert. Rechne: (Gesamt - bekannte Münzen) / Anzahl verdeckter = ?",
@@ -1650,13 +1794,18 @@
   "galacticMarketWinDesc": "Passendes Wechselgeld! Du hast nur {coins} Münzen verwendet und {bonusScore} Handelspunkte verdient.",
   "@galacticMarketWinDesc": {
     "placeholders": {
-      "coins": {"type": "int", "example": "3"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "coins": {
+        "type": "int",
+        "example": "3"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "galacticMarketLoseTitle": "Falscher Betrag!",
   "galacticMarketLoseDesc": "Der Händler runzelt die Stirn -- das ist nicht der richtige Betrag. Versuche eine andere Münzkombination, Commander.",
-
   "creatureForgeTitle": "Kreaturen-Schmiede",
   "creatureForgeDesc": "Die Xenobiologie-Bucht hat Teile von mehreren Alien-Spezies! Tippe um Köpfe, Körper und Schwänze auszuwählen und baue Kreaturen. Wie viele einzigartige Wesen kannst du erschaffen?",
   "creatureForgeInstructions": "Wähle je ein Teil aus jeder Reihe, dann tippe BAUEN um die Kreatur zur Galerie hinzuzufügen. Finde alle gultigen Kombinationen und gib die Gesamtzahl ein!",
@@ -1664,26 +1813,37 @@
   "creatureForgeWinDesc": "Du hast alle {count} moglichen Kreaturen entdeckt! Deine Neugier hat {bonusScore} Biologiepunkte eingebracht.",
   "@creatureForgeWinDesc": {
     "placeholders": {
-      "count": {"type": "int", "example": "8"},
-      "bonusScore": {"type": "int", "example": "150"}
+      "count": {
+        "type": "int",
+        "example": "8"
+      },
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "creatureForgeLoseTitle": "Fehlende Spezies!",
   "creatureForgeLoseDesc": "Du hast noch nicht alle Kombinationen gefunden. Denke daran: Jeder Kopf kann mit jedem Körper UND jedem Schwanz kombiniert werden, Commander.",
-
   "asteroidDuelTitle": "Asteroiden-Duell",
   "asteroidDuelDesc": "Ein strategisches Patt im Asteroidengurtel! Baut abwechselnd Gesteinsbrocken ab. Der Commander, der den letzten Asteroiden nimmt, verliert. Denke voraus!",
   "asteroidDuelInstructions": "Wähle 1 bis {max} Asteroiden pro Zug. Zwinge deinen Gegner, den letzten zu nehmen!",
   "@asteroidDuelInstructions": {
     "placeholders": {
-      "max": {"type": "int", "example": "3"}
+      "max": {
+        "type": "int",
+        "example": "3"
+      }
     }
   },
   "asteroidDuelWinTitle": "Duell gewonnen!",
-  "asteroidDuelWinDesc": "Uberlegene Strategie! Dein Gegner ist gestrandet. Du hast {bonusScore} Taktikpunkte verdient.",
+  "asteroidDuelWinDesc": "Überlegene Strategie! Dein Gegner ist gestrandet. Du hast {bonusScore} Taktikpunkte verdient.",
   "@asteroidDuelWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "asteroidDuelLoseTitle": "Ausmanoveriert!",
@@ -1691,7 +1851,6 @@
   "asteroidDuelYourTurn": "DU BIST DRAN",
   "asteroidDuelAiTurn": "KI IST DRAN",
   "asteroidDuelAiThinking": "KI DENKT NACH...",
-
   "chronoRepairTitle": "Chrono-Reparatur",
   "chronoRepairDesc": "Relativistische Effekte haben die Stationsuhren durcheinander gebracht! Manche gehen vor, manche sind gespiegelt, manche haben defekte Segmente. Finde die richtige Uhrzeit!",
   "chronoRepairInstructions": "Jede Uhr hat eine bestimmte Fehlfunktion (Versatz, Spiegelung, defekte Segmente). Finde die korrekte Uhrzeit heraus.",
@@ -1699,12 +1858,14 @@
   "chronoRepairWinDesc": "Alle Uhren zeigen die korrekte Zeit! Du hast {bonusScore} Temporalpunkte verdient.",
   "@chronoRepairWinDesc": {
     "placeholders": {
-      "bonusScore": {"type": "int", "example": "150"}
+      "bonusScore": {
+        "type": "int",
+        "example": "150"
+      }
     }
   },
   "chronoRepairLoseTitle": "Immer noch asynchron!",
   "chronoRepairLoseDesc": "Die angezeigte Zeit ist falsch. Beachte die spezifische Fehlfunktion jeder Uhr, Commander.",
-
   "gridlockPlayerShip": "Spielerschiff",
   "gridlockBlockingShip": "Blockierendes Schiff",
   "gridlockShip": "Schiff",
@@ -1726,7 +1887,9 @@
   "gridlockComplexity": "Komplexität: {value}",
   "@gridlockComplexity": {
     "placeholders": {
-      "value": {"type": "String"}
+      "value": {
+        "type": "String"
+      }
     }
   },
   "puzzleGenerationFailed": "Puzzle-Erzeugung fehlgeschlagen",
@@ -1734,18 +1897,21 @@
   "puzzleGenerationFailedDescAlt": "Puzzle konnte nicht erzeugt werden. Möchtest du es erneut versuchen oder zum Hauptmenü zurückkehren?",
   "retry": "Erneut versuchen",
   "tryAgainButton": "Nochmal",
-
   "creatureForgeAlreadyDiscovered": "Diese Kreatur wurde bereits entdeckt!",
   "creatureForgeInvalidCombo": "Ungültige Kombination! {constraint}",
   "@creatureForgeInvalidCombo": {
     "placeholders": {
-      "constraint": {"type": "String"}
+      "constraint": {
+        "type": "String"
+      }
     }
   },
   "creatureForgeNotQuiteAnswer": "Nicht ganz! Du hast {answer} gesagt, versuch es nochmal.",
   "@creatureForgeNotQuiteAnswer": {
     "placeholders": {
-      "answer": {"type": "int"}
+      "answer": {
+        "type": "int"
+      }
     }
   },
   "creatureForgeTotalPossible": "Insgesamt möglich: ",
@@ -1753,220 +1919,263 @@
   "creatureForgeFoundSpecies": "Du hast {count} Spezies gefunden!\nRichtige Anzahl: {total}",
   "@creatureForgeFoundSpecies": {
     "placeholders": {
-      "count": {"type": "int"},
-      "total": {"type": "int"}
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "creatureForgeConstraintWingedSpiked": "Geflügelte Körper passen nicht zu Stachelschwänzen",
   "creatureForgeConstraintAdvanced": "Geflügelte Körper brauchen Kristallköpfe\nAquatische Körper lehnen Flammenschwänze ab",
-
   "bubbleNextTarget": "Nächstes Ziel: ",
   "bubbleAllTargetsPopped": "Alle Ziele getroffen",
   "bubbleTimeBonusPoints": "Zeitbonus: {points} Punkte!",
   "@bubbleTimeBonusPoints": {
     "placeholders": {
-      "points": {"type": "int"}
+      "points": {
+        "type": "int"
+      }
     }
   },
-
   "xenoCensusReport": "Zählung",
   "xenoEyes": "Augen",
   "xenoLegs": "Beine",
   "xenoCreatures": "Kreaturen",
   "xenoTarget": "Soll: ",
   "xenoYours": "Dein Wert: ",
-
   "sectorMinColors": "Min. Farben: {count}",
   "@sectorMinColors": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "sectorPainted": "Bemalt: {done}/{total}",
   "@sectorPainted": {
     "placeholders": {
-      "done": {"type": "int"},
-      "total": {"type": "int"}
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "sectorColors": "Farben",
   "sectorOptimalColoring": "Optimale Färbung!",
-
   "warpFoldStep": "Faltung {step}: {direction}",
   "@warpFoldStep": {
     "placeholders": {
-      "step": {"type": "int"},
-      "direction": {"type": "String"}
+      "step": {
+        "type": "int"
+      },
+      "direction": {
+        "type": "String"
+      }
     }
   },
   "warpCutHoles": "{count} Loch/Löcher schneiden...",
   "@warpCutHoles": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "warpWhichPattern": "Welches Muster erscheint beim Auffalten?",
   "warpFoldsAndCuts": "Faltungen: {folds}  |  Schnitte: {cuts}",
   "@warpFoldsAndCuts": {
     "placeholders": {
-      "folds": {"type": "String"},
-      "cuts": {"type": "int"}
+      "folds": {
+        "type": "String"
+      },
+      "cuts": {
+        "type": "int"
+      }
     }
   },
-  "warpDirLeft": "\u2190 Links",
-  "warpDirRight": "\u2192 Rechts",
-  "warpDirUp": "\u2191 Oben",
-  "warpDirDown": "\u2193 Unten",
-
+  "warpDirLeft": "← Links",
+  "warpDirRight": "→ Rechts",
+  "warpDirUp": "↑ Oben",
+  "warpDirDown": "↓ Unten",
   "circuitInvalidTime": "Keine gültige Uhrzeit! Noch {remaining} Versuche.",
   "@circuitInvalidTime": {
     "placeholders": {
-      "remaining": {"type": "int"}
+      "remaining": {
+        "type": "int"
+      }
     }
   },
   "circuitSwapInstruction": "Zwei Ziffern dieser Uhr sind vertauscht! Tippe auf zwei Ziffernpositionen, um sie zurückzutauschen.",
   "circuitAttempts": "Versuche: {remaining} / {total}",
   "@circuitAttempts": {
     "placeholders": {
-      "remaining": {"type": "int"},
-      "total": {"type": "int"}
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "circuitPositionSelected": "Position {pos} ausgewählt – tippe auf eine andere Ziffer",
   "@circuitPositionSelected": {
     "placeholders": {
-      "pos": {"type": "int"}
+      "pos": {
+        "type": "int"
+      }
     }
   },
   "circuitSwapPositions": "Tausch: Position {pos1} <-> Position {pos2}",
   "@circuitSwapPositions": {
     "placeholders": {
-      "pos1": {"type": "int"},
-      "pos2": {"type": "int"}
+      "pos1": {
+        "type": "int"
+      },
+      "pos2": {
+        "type": "int"
+      }
     }
   },
   "circuitResultValid": "Ergebnis: {time} (gültig!)",
   "@circuitResultValid": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "circuitResultInvalid": "Ergebnis: {time} (ungültig)",
   "@circuitResultInvalid": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "circuitTapToStart": "Tippe auf eine Ziffer, um zu beginnen",
   "circuitClockNowReads": "Die Uhr zeigt jetzt {time}",
   "@circuitClockNowReads": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "circuitCorrectTimeWas": "Die korrekte Uhrzeit war {time}",
   "@circuitCorrectTimeWas": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
-
   "chronoClockRunsFast": "Diese Uhr geht {hours} Stunden vor",
   "@chronoClockRunsFast": {
     "placeholders": {
-      "hours": {"type": "int"}
+      "hours": {
+        "type": "int"
+      }
     }
   },
   "chronoClockMirrored": "Diese Uhr ist horizontal gespiegelt",
   "chronoClockRunsFastCombined": "Diese Uhr geht {hours} h {minutes} min vor",
   "@chronoClockRunsFastCombined": {
     "placeholders": {
-      "hours": {"type": "int"},
-      "minutes": {"type": "int"}
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "chronoWhatIsCorrectTime": "Wie spät ist es wirklich?",
-
   "asteroidDuelMine": "{count} abbauen!",
   "@asteroidDuelMine": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "asteroidDuelTapToSelect": "Tippe auf Asteroiden (1-{max})",
   "@asteroidDuelTapToSelect": {
     "placeholders": {
-      "max": {"type": "int"}
+      "max": {
+        "type": "int"
+      }
     }
   },
   "asteroidDuelHint": "Tipp: Versuche {safe}+1 = {safeP1} Asteroiden für die KI zu lassen. Das Schlüsselmuster sind Vielfache von {safe}, plus 1.",
   "@asteroidDuelHint": {
     "placeholders": {
-      "safe": {"type": "int"},
-      "safeP1": {"type": "int"}
+      "safe": {
+        "type": "int"
+      },
+      "safeP1": {
+        "type": "int"
+      }
     }
   },
-
   "crewManifestClues": "Hinweise:",
   "crewManifestMatch": "Treffer",
   "crewManifestEliminate": "Ausschließen",
-
   "alienTribunalTruth": "Wahrheit",
   "alienTribunalLiar": "Lügner",
-
   "puzzleAllPiecesPlaced": "Alle Teile platziert!",
-
   "signalNoAttemptsYet": "Noch keine Versuche",
-
   "perspectiveDragHint": "Ziehen ±15°",
-
   "allTargetsPopped": "Alle Ziele getroffen",
-
   "creatureForgeForbidden": "VERBOTEN",
   "creatureForgeAlreadyFound": "BEREITS GEFUNDEN",
   "creatureForgeNewSpecies": "NEUE SPEZIES!",
   "creatureForgeAdd": "HINZUFÜGEN",
-
   "ionChainRules": "REGELN",
   "ionChainRing": "IONEN-RING",
   "ionChainAvailableBeads": "VERFÜGBARE PERLEN",
   "ionChainRuleViolation": "Regelverletzung! Diese Perle passt hier nicht.",
   "ionChainDeadEnd": "Diese Perle passt hier, aber dann passt woanders keine mehr. Probiere einen anderen Platz!",
-
   "hullPlatingNoFit": "Passt nicht! Versuche es mit Drehen oder einer anderen Position.",
   "hullPlatingAllPlaced": "Alle Teile platziert!",
   "hullPlatingClear": "Löschen",
-
   "gridFillerPlayAgain": "Nochmal spielen",
   "gridFillerExit": "Beenden",
   "gridFillerResetGrid": "Gitter zurücksetzen",
-
   "chronoRepairSubmit": "Absenden",
   "xenobiologySubmitCensus": "Zählung abgeben",
-
   "galacticMarketOneCoin": "Eine Münze liegt verdeckt.",
   "galacticMarketNCoins": "Die {count} verdeckten Münzen haben alle den gleichen Wert.",
-  "@galacticMarketNCoins": { "placeholders": { "count": { "type": "int" } } },
-
+  "@galacticMarketNCoins": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "launchSequenceTarget": "Ziel: ",
-
   "difficultyEasy": "Leicht",
   "difficultyNormal": "Normal",
   "difficultyChallenge": "Herausforderung",
-
   "warpFoldReplay": "Wiederholen",
-
   "ok": "OK",
-
   "magicTrianglesOnboardTitle": "Magische Dreiecke",
   "magicTrianglesOnboardDrag": "Ziehe Zahlen aus dem Pool auf die leeren Dreiecks-Knoten.",
   "magicTrianglesOnboardSum": "Jede Seite des Dreiecks muss die gleiche Summe ergeben.",
   "magicTrianglesOnboardTap": "Tippe auf eine platzierte Zahl, um sie zurückzulegen.",
-
   "parentDashboardTitle": "Eltern-Dashboard",
   "parentDashboardPinTitle": "Eltern-PIN",
   "parentDashboardPinDesc": "Gib den 4-stelligen Code ein.\nStandard-Code ist {pin}, bis du ihn änderst.",
-  "@parentDashboardPinDesc": { "placeholders": { "pin": { "type": "String" } } },
+  "@parentDashboardPinDesc": {
+    "placeholders": {
+      "pin": {
+        "type": "String"
+      }
+    }
+  },
   "parentDashboardUnlock": "Entsperren",
   "parentDashboardMathMastery": "Mathematische Beherrschung",
   "parentDashboardProblemsTracked": "Aufgaben verfolgt",
@@ -1991,14 +2200,18 @@
   "parentDashboardPin4Digits": "4 Ziffern erforderlich",
   "parentDashboardPinMismatch": "Stimmt nicht überein",
   "parentDashboardLevelN": "Level {level}",
-  "@parentDashboardLevelN": { "placeholders": { "level": { "type": "int" } } },
-
+  "@parentDashboardLevelN": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
   "sriReviewTitle": "Wiederholung",
   "sriMasteredLabel": "Gemeistert",
   "sriLearningLabel": "Lernend",
   "sriMasteryLabel": "Beherrschung",
   "sriToughestProblems": "Schwierigste Aufgaben",
-
   "flashcardBoxTitle": "Karteikasten",
   "flashcardBoxNew": "Neu",
   "flashcardBoxFirstReview": "Erste Wiederholung",
@@ -2006,85 +2219,262 @@
   "flashcardBoxConfident": "Sicher",
   "flashcardBoxMastered": "Gemeistert",
   "flashcardBoxMovedToBox": "In Fach {boxNum} verschoben",
-  "@flashcardBoxMovedToBox": { "placeholders": { "boxNum": { "type": "int" } } },
+  "@flashcardBoxMovedToBox": {
+    "placeholders": {
+      "boxNum": {
+        "type": "int"
+      }
+    }
+  },
   "flashcardBoxMove": "Verschieben",
-
   "cognitiveProfileTitle": "Kognitives Profil",
   "cognitiveProfileEmpty": "Spiele ein paar Spiele, um dein Profil aufzubauen.",
   "cognitiveProfileAttempts": "{total} Versuche in {areas} Fähigkeitsbereichen",
-  "@cognitiveProfileAttempts": { "placeholders": { "total": { "type": "int" }, "areas": { "type": "int" } } },
+  "@cognitiveProfileAttempts": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "areas": {
+        "type": "int"
+      }
+    }
+  },
   "cognitiveProfileNoData": "Noch keine Daten — spiele, um das hier zu füllen.",
   "cognitiveArithmetic": "Arithmetik",
   "cognitiveSpatial2D": "Räumlich (2D)",
   "cognitiveSpatial3D": "Räumlich (3D)",
   "cognitiveLogic": "Logik & Deduktion",
   "cognitivePattern": "Mustererkennung",
-
   "clearButton": "Löschen",
   "levelN": "Level {level}",
-  "@levelN": { "placeholders": { "level": { "type": "int" } } },
-
+  "@levelN": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
   "a11yPlacedValueTapRemove": "Platzierter Wert, tippen zum Entfernen",
   "a11yNumberDragSlot": "Zahl {number}, zum Feld ziehen",
-  "@a11yNumberDragSlot": { "placeholders": { "number": { "type": "int" } } },
+  "@a11yNumberDragSlot": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "a11yNumberDragCell": "Zahl {number}, in Zelle ziehen",
-  "@a11yNumberDragCell": { "placeholders": { "number": { "type": "int" } } },
+  "@a11yNumberDragCell": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "a11yMovesRemaining": "Verbleibende Züge: {moves}",
-  "@a11yMovesRemaining": { "placeholders": { "moves": { "type": "int" } } },
+  "@a11yMovesRemaining": {
+    "placeholders": {
+      "moves": {
+        "type": "int"
+      }
+    }
+  },
   "a11yBattlefieldCard": "Schlachtfeldkarte {name}",
-  "@a11yBattlefieldCard": { "placeholders": { "name": { "type": "String" } } },
+  "@a11yBattlefieldCard": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "a11yHealthStatus": "Gesundheit {current} von {max}",
-  "@a11yHealthStatus": { "placeholders": { "current": { "type": "int" }, "max": { "type": "int" } } },
+  "@a11yHealthStatus": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "a11yHandCard": "Handkarte {name}",
-  "@a11yHandCard": { "placeholders": { "name": { "type": "String" } } },
+  "@a11yHandCard": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "a11yAsteroid": "Asteroid {problem}",
-  "@a11yAsteroid": { "placeholders": { "problem": { "type": "String" } } },
+  "@a11yAsteroid": {
+    "placeholders": {
+      "problem": {
+        "type": "String"
+      }
+    }
+  },
   "a11yAnswer": "Antwort {answer}",
-  "@a11yAnswer": { "placeholders": { "answer": { "type": "String" } } },
+  "@a11yAnswer": {
+    "placeholders": {
+      "answer": {
+        "type": "String"
+      }
+    }
+  },
   "a11yBubble": "Blase {problem}",
-  "@a11yBubble": { "placeholders": { "problem": { "type": "String" } } },
+  "@a11yBubble": {
+    "placeholders": {
+      "problem": {
+        "type": "String"
+      }
+    }
+  },
   "a11yCargoGrid": "Frachtbucht-Gitter",
   "a11yPlacedValue": "Platzierter Wert {value}",
-  "@a11yPlacedValue": { "placeholders": { "value": { "type": "String" } } },
+  "@a11yPlacedValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "a11yEmptySlot": "Leeres Feld für {symbol}",
-  "@a11yEmptySlot": { "placeholders": { "symbol": { "type": "String" } } },
+  "@a11yEmptySlot": {
+    "placeholders": {
+      "symbol": {
+        "type": "String"
+      }
+    }
+  },
   "a11yDial": "Drehrad {label}, Wert {value}",
-  "@a11yDial": { "placeholders": { "label": { "type": "String" }, "value": { "type": "int" } } },
+  "@a11yDial": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "value": {
+        "type": "int"
+      }
+    }
+  },
   "a11yDialHint": "Nach oben oder unten ziehen zum Ändern, oder Zahl ablegen",
   "a11yPiece": "Teil {size}x{size2}, {remaining} von {total} übrig",
-  "@a11yPiece": { "placeholders": { "size": { "type": "int" }, "size2": { "type": "int" }, "remaining": { "type": "int" }, "total": { "type": "int" } } },
+  "@a11yPiece": {
+    "placeholders": {
+      "size": {
+        "type": "int"
+      },
+      "size2": {
+        "type": "int"
+      },
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "a11yPlacedPiece": "Platziertes {size}x{size2} Teil",
-  "@a11yPlacedPiece": { "placeholders": { "size": { "type": "int" }, "size2": { "type": "int" } } },
+  "@a11yPlacedPiece": {
+    "placeholders": {
+      "size": {
+        "type": "int"
+      },
+      "size2": {
+        "type": "int"
+      }
+    }
+  },
   "a11yGameArea": "Spielbereich",
   "a11yAnswerChoice": "Antwortmöglichkeit {index}",
-  "@a11yAnswerChoice": { "placeholders": { "index": { "type": "int" } } },
+  "@a11yAnswerChoice": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "a11yLivesRemaining": "Verbleibende Leben: {lives} von {max}",
-  "@a11yLivesRemaining": { "placeholders": { "lives": { "type": "int" }, "max": { "type": "int" } } },
+  "@a11yLivesRemaining": {
+    "placeholders": {
+      "lives": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "a11yProgress": "Fortschritt {current} von {total}",
-  "@a11yProgress": { "placeholders": { "current": { "type": "int" }, "total": { "type": "int" } } },
+  "@a11yProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "a11yAtom": "Atom {type}",
-  "@a11yAtom": { "placeholders": { "type": { "type": "String" } } },
+  "@a11yAtom": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "a11yRemoveCommand": "Befehl entfernen",
   "a11yCommand": "Befehl {name}",
-  "@a11yCommand": { "placeholders": { "name": { "type": "String" } } },
+  "@a11yCommand": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "a11yGlyph": "Glyphe {name}",
-  "@a11yGlyph": { "placeholders": { "name": { "type": "String" } } },
+  "@a11yGlyph": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "a11yResonator": "Resonator {number}, zum Dreiecksknoten ziehen",
-  "@a11yResonator": { "placeholders": { "number": { "type": "int" } } },
+  "@a11yResonator": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "a11yBrick": "Zahlenstein {number}, zum Feld ziehen",
-  "@a11yBrick": { "placeholders": { "number": { "type": "int" } } },
-
+  "@a11yBrick": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "diagnosticsTitle": "Diagnose",
   "crashLogCopied": "Absturzbericht in Zwischenablage kopiert",
   "languageChangeFailed": "Sprachwechsel fehlgeschlagen: {error}",
-  "@languageChangeFailed": { "placeholders": { "error": { "type": "String" } } },
+  "@languageChangeFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "debugModeEnabled": "Debug-Modus aktiviert!",
-
   "skip": "Überspringen",
   "onboardingGotIt": "Verstanden",
   "onboardingNext": "Weiter",
   "goBack": "Zurück",
-
   "voidCrossingTitle": "Void-Überquerung",
   "voidCrossingDesc": "Transportiere Kreaturen über die Leere — aber pass auf, wen du allein lässt!",
   "voidCrossingOnboardTitle": "Void-Überquerung",
@@ -2100,7 +2490,13 @@
   "voidCrossingTapToLoad": "Tippe zum Laden in den Shuttle",
   "voidCrossingWin": "Alle sicher!",
   "voidCrossingWinDesc": "Alle Kreaturen in {moves} Überfahrten transportiert!",
-  "@voidCrossingWinDesc": { "placeholders": { "moves": { "type": "int" } } },
+  "@voidCrossingWinDesc": {
+    "placeholders": {
+      "moves": {
+        "type": "int"
+      }
+    }
+  },
   "voidCrossingNextPuzzle": "Nächstes Rätsel",
   "voidCrossingLose": "Treibstoff leer!",
   "voidCrossingLoseDesc": "Dir sind die Shuttle-Überfahrten ausgegangen. Versuche eine andere Strategie!",
@@ -2114,16 +2510,23 @@
   "voidCrossingPyrowyrm": "Pyrowurm",
   "voidCrossingOnShuttle": "Im Shuttle:",
   "voidCrossingTapToUnload": "Tippe zum Ausladen aus dem Shuttle",
-
-  "gridFillerTitle": "Rasterfuller",
+  "gridFillerTitle": "Rasterfüller",
   "gridFillerDesc": "Fülle ein Raster mit quadratischen Teilen — keine Lücken erlaubt!",
-
   "missionHubTitle": "Weltraum-Missionen",
   "missionHubStart": "Bereit für eine Mission?",
   "missionHubStartDesc": "Löse eine Reihe von Aufgaben, um ein geheimes Weltraum-Codewort zu entschlüsseln!",
   "missionHubResume": "Mission lauft",
   "missionHubResumeDesc": "{completed} von {total} Aufgaben erledigt.",
-  "@missionHubResumeDesc": { "placeholders": { "completed": { "type": "int" }, "total": { "type": "int" } } },
+  "@missionHubResumeDesc": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "missionHubContinue": "Mission fortsetzen",
   "missionHubNewMission": "Neue Mission",
   "missionHubAbandon": "Abbrechen",
@@ -2136,7 +2539,13 @@
   "missionAllPlaced": "Alle Buchstaben platziert!",
   "missionComplete": "Mission abgeschlossen!",
   "missionCompleteDesc": "Du hast das Codewort entschlüsselt: {word}",
-  "@missionCompleteDesc": { "placeholders": { "word": { "type": "String" } } },
+  "@missionCompleteDesc": {
+    "placeholders": {
+      "word": {
+        "type": "String"
+      }
+    }
+  },
   "perfGradeExcellent": "Makellos",
   "perfGradeGood": "Gut",
   "perfGradeFair": "Fast",
@@ -2151,5 +2560,51 @@
   "missionTaskAced": "Perfekter Lauf — nichts zu verbessern!",
   "missionTaskImproveHint": "Nochmal spielen und Bewertung verbessern",
   "missionTaskRetryHint": "Noch nicht geschafft — versuch es nochmal",
-  "missionOverallRating": "Missions-Bewertung"
+  "missionOverallRating": "Missions-Bewertung",
+  "gridFillerWinTitle": "🎉 Raster komplett!",
+  "gridFillerWinDesc": "Perfekt! Alle Teile platziert!",
+  "gridFillerPoints": "+{score} Punkte",
+  "@gridFillerPoints": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "gridFillerFillGrid": "Fülle das {size}{symbol}{size} Raster",
+  "@gridFillerFillGrid": {
+    "placeholders": {
+      "size": {
+        "type": "int"
+      },
+      "symbol": {
+        "type": "String"
+      }
+    }
+  },
+  "gridFillerClickToPlace": "Tippe zum Platzieren von {size}{symbol}{size}",
+  "@gridFillerClickToPlace": {
+    "placeholders": {
+      "size": {
+        "type": "int"
+      },
+      "symbol": {
+        "type": "String"
+      }
+    }
+  },
+  "gridFillerAvailablePieces": "Verfügbare Teile",
+  "gridFillerPiecesLeft": "{remaining}/{total} übrig",
+  "@gridFillerPiecesLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "perspectivePuzzleLoseTitle": "Mission fehlgeschlagen",
+  "perspectivePuzzleLoseDesc": "Keine Versuche mehr. Probieren wir eine andere Struktur."
 }

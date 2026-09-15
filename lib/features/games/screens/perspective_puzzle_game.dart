@@ -671,8 +671,10 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
           borderRadius: BorderRadius.circular(15),
           side: const BorderSide(color: SpaceTheme.rocketRed, width: 2)
         ),
-        title: const Text("Mission Failed", style: SpaceTheme.headlineStyle),
-        content: const Text("You've run out of attempts. Let's try a different structure.", style: SpaceTheme.bodyStyle),
+        title: Text(S.of(context)!.perspectivePuzzleLoseTitle,
+            style: SpaceTheme.headlineStyle),
+        content: Text(S.of(context)!.perspectivePuzzleLoseDesc,
+            style: SpaceTheme.bodyStyle),
         actions: [
           TextButton(
             autofocus: true,

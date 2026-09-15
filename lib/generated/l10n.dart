@@ -7221,6 +7221,60 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Mission rating'**
   String get missionOverallRating;
+
+  /// No description provided for @gridFillerWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'🎉 Grid Complete!'**
+  String get gridFillerWinTitle;
+
+  /// No description provided for @gridFillerWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect fit! All pieces placed!'**
+  String get gridFillerWinDesc;
+
+  /// No description provided for @gridFillerPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'+{score} points'**
+  String gridFillerPoints(int score);
+
+  /// No description provided for @gridFillerFillGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill the {size}{symbol}{size} grid'**
+  String gridFillerFillGrid(int size, String symbol);
+
+  /// No description provided for @gridFillerClickToPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Click to place {size}{symbol}{size}'**
+  String gridFillerClickToPlace(int size, String symbol);
+
+  /// No description provided for @gridFillerAvailablePieces.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Pieces'**
+  String get gridFillerAvailablePieces;
+
+  /// No description provided for @gridFillerPiecesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining}/{total} left'**
+  String gridFillerPiecesLeft(int remaining, int total);
+
+  /// No description provided for @perspectivePuzzleLoseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission Failed'**
+  String get perspectivePuzzleLoseTitle;
+
+  /// No description provided for @perspectivePuzzleLoseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve run out of attempts. Let\'s try a different structure.'**
+  String get perspectivePuzzleLoseDesc;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
