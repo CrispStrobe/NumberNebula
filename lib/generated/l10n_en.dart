@@ -3198,10 +3198,6 @@ class SEn extends S {
   String get galacticMarketLoseTitle => 'Incorrect Amount!';
 
   @override
-  String get galacticMarketLoseDesc =>
-      'The merchant frowns -- that\'s not the right amount. Try a different combination of coins, Commander.';
-
-  @override
   String get creatureForgeTitle => 'Creature Forge';
 
   @override
@@ -4308,4 +4304,13 @@ class SEn extends S {
   @override
   String get voidCrossingOnboardShuttle =>
       'The shuttle never travels empty, and you always fly it — so think about who is left behind on both sides.';
+
+  @override
+  String galacticMarketAttempts(int remaining, int total) {
+    return 'Scans left: $remaining of $total';
+  }
+
+  @override
+  String get galacticMarketWrongScan =>
+      'Not that one. Work out the hidden total first: take the known coins off the change, then share what is left between the hidden coins.';
 }

@@ -1805,7 +1805,6 @@
     }
   },
   "galacticMarketLoseTitle": "Falscher Betrag!",
-  "galacticMarketLoseDesc": "Der Händler runzelt die Stirn -- das ist nicht der richtige Betrag. Versuche eine andere Münzkombination, Commander.",
   "creatureForgeTitle": "Kreaturen-Schmiede",
   "creatureForgeDesc": "Die Xenobiologie-Bucht hat Teile von mehreren Alien-Spezies! Tippe um Köpfe, Körper und Schwänze auszuwählen und baue Kreaturen. Wie viele einzigartige Wesen kannst du erschaffen?",
   "creatureForgeInstructions": "Wähle je ein Teil aus jeder Reihe, dann tippe BAUEN um die Kreatur zur Galerie hinzuzufügen. Finde alle gultigen Kombinationen und gib die Gesamtzahl ein!",
@@ -2649,5 +2648,17 @@
   "cubeScannerOnboardHidden": "Der Scanner sieht drei Flächen. Die drei verdeckten sind genau die gegenüberliegenden — jeder verdeckte Wert ist also 7 minus die Fläche davor.",
   "cubeScannerOnboardAnswer": "Lies die Frage, bestimme die gesuchte Fläche und gib den Wert ein. Hier muss nichts geraten werden.",
   "voidCrossingOnboardRuleShown": "Zwei Kreaturen, die sich streiten, dürfen nie allein an einem Ufer bleiben. Solange du dabei bist, benehmen sie sich.",
-  "voidCrossingOnboardShuttle": "Der Shuttle fliegt nie leer, und du steuerst ihn immer — überlege also, wer auf beiden Seiten zurückbleibt."
+  "voidCrossingOnboardShuttle": "Der Shuttle fliegt nie leer, und du steuerst ihn immer — überlege also, wer auf beiden Seiten zurückbleibt.",
+  "galacticMarketAttempts": "Scans übrig: {remaining} von {total}",
+  "@galacticMarketAttempts": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "galacticMarketWrongScan": "Die ist es nicht. Rechne zuerst den verdeckten Betrag aus: Ziehe die bekannten Münzen vom Wechselgeld ab und teile den Rest auf die verdeckten Münzen auf."
 }

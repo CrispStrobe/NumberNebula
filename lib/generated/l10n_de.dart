@@ -3215,10 +3215,6 @@ class SDe extends S {
   String get galacticMarketLoseTitle => 'Falscher Betrag!';
 
   @override
-  String get galacticMarketLoseDesc =>
-      'Der Händler runzelt die Stirn -- das ist nicht der richtige Betrag. Versuche eine andere Münzkombination, Commander.';
-
-  @override
   String get creatureForgeTitle => 'Kreaturen-Schmiede';
 
   @override
@@ -4328,4 +4324,13 @@ class SDe extends S {
   @override
   String get voidCrossingOnboardShuttle =>
       'Der Shuttle fliegt nie leer, und du steuerst ihn immer — überlege also, wer auf beiden Seiten zurückbleibt.';
+
+  @override
+  String galacticMarketAttempts(int remaining, int total) {
+    return 'Scans übrig: $remaining von $total';
+  }
+
+  @override
+  String get galacticMarketWrongScan =>
+      'Die ist es nicht. Rechne zuerst den verdeckten Betrag aus: Ziehe die bekannten Münzen vom Wechselgeld ab und teile den Rest auf die verdeckten Münzen auf.';
 }

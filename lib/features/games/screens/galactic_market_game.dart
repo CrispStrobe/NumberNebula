@@ -37,7 +37,19 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
   int _correctDenomination = 0; // the answer
 
   /// Wrong denominations submitted before the correct one.
-  int _wrongChecks = 0;
+  /// Wrong scans allowed before the round is lost.
+  ///
+  /// The game had no losing condition at all: a wrong answer cleared the
+  /// selection and let the player pick again, forever. With five options and
+  /// no cost to being wrong, tapping every coin in turn solved it in about
+  /// three taps, so there was never a reason to do the arithmetic -- which is
+  /// the entire point of the game.
+  ///
+  /// Two attempts forgives one slip and still leaves guessing a losing
+  /// strategy: blind picking wins at most two times in five, while working the
+  /// answer out wins every time.
+  static const int _maxAttempts = 2;
+  int _attemptsUsed = 0;
   String _constraintText = '';
   List<int> _denomOptions = []; // available denomination choices
   int? _selectedDenom;
@@ -87,7 +99,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     setState(() {
       _isGenerating = true;
       _gameOver = false;
-      _wrongChecks = 0;
+      _attemptsUsed = 0;
       _selectedDenom = null;
       _mathProblems.clear();
       successController.reset();
@@ -177,16 +189,44 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     if (_selectedDenom == _correctDenomination) {
       _handleWin();
     } else {
-      _wrongChecks++;
-      HapticFeedback.heavyImpact();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(S.of(context)!.galacticMarketLoseDesc),
-          backgroundColor: SpaceTheme.rocketRed,
-          duration: const Duration(seconds: 2),
-        ),
+      _handleWrongAnswer();
+    }
+  }
+
+  void _handleWrongAnswer() {
+    _attemptsUsed++;
+    HapticFeedback.heavyImpact();
+
+    if (_attemptsUsed >= _maxAttempts) {
+      _handleLose();
+      return;
+    }
+
+    // Name the method rather than just saying "wrong": a child who guessed
+    // needs to be told what to do instead, and a child who miscalculated
+    // needs to know which step to check.
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(S.of(context)!.galacticMarketWrongScan),
+        backgroundColor: SpaceTheme.rocketRed,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+    setState(() => _selectedDenom = null);
+  }
+
+  void _handleLose() {
+    _gameOver = true;
+    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      gameType: 'galactic_market',
+      difficulty: widget.level,
+    ));
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _buildLoseDialog(),
       );
-      setState(() => _selectedDenom = null);
     }
   }
 
@@ -196,14 +236,16 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
 
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
-    int totalScore = baseScore + levelBonus;
+    // Solving it outright is worth more than arriving by elimination.
+    int attemptBonus = (_maxAttempts - _attemptsUsed) * 50 * widget.grade;
+    int totalScore = baseScore + levelBonus + attemptBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       gameType: 'galactic_market',
       difficulty: widget.level,
       score: totalScore,
       mathProblems: _mathProblems,
-      performance: Perf.fromMistakes(_wrongChecks, per: 0.25),
+      performance: Perf.fromAttempts(_attemptsUsed + 1, _maxAttempts),
     ));
 
     successController.forward(from: 0.0);
@@ -412,6 +454,33 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
               style: SpaceTheme.bodyStyle.copyWith(fontSize: 13),
             ),
           ),
+          // The cost of being wrong, shown before the player commits. Kept
+          // next to the question rather than tucked in a corner: a counter
+          // noticed only after a wrong answer changes nothing about how the
+          // answer was chosen.
+          Container(
+            margin: const EdgeInsets.only(left: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: (_attemptsUsed == 0
+                        ? SpaceTheme.alienGreen
+                        : SpaceTheme.rocketRed)
+                    .withValues(alpha: 0.8),
+              ),
+            ),
+            child: Text(
+              S.of(context)!.galacticMarketAttempts(
+                  _maxAttempts - _attemptsUsed, _maxAttempts),
+              style: SpaceTheme.bodyStyle.copyWith(
+                fontSize: 11,
+                color: _attemptsUsed == 0
+                    ? SpaceTheme.alienGreen
+                    : SpaceTheme.rocketRed,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -482,6 +551,69 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
             ? 'Each hidden coin = $_selectedDenom credits'
             : 'Select a denomination'),
         style: SpaceTheme.primaryButtonStyle,
+      ),
+    );
+  }
+
+  /// Shown when the scans run out.
+  ///
+  /// It reveals the answer *with the arithmetic that reaches it*, because a
+  /// child who ran out of attempts is exactly the one who needs to see the
+  /// method worked through once. Telling them only the number teaches nothing.
+  Widget _buildLoseDialog() {
+    final s = S.of(context)!;
+    final knownTotal = _knownCoins.fold(0, (a, c) => a + c);
+    final hiddenTotal = _unknownCount * _correctDenomination;
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: SpaceTheme.cardDecoration,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.search_off, size: 64, color: SpaceTheme.rocketRed),
+            const SizedBox(height: 16),
+            Text(s.galacticMarketLoseTitle,
+                style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            Text(
+              '$_changeTotal − $knownTotal = $hiddenTotal\n'
+              '$hiddenTotal ÷ $_unknownCount = $_correctDenomination',
+              style: SpaceTheme.bodyStyle.copyWith(
+                fontSize: 18,
+                color: SpaceTheme.starYellow,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Text(s.galacticMarketReveal(_correctDenomination),
+                style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  autofocus: true,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _generatePuzzle();
+                  },
+                  style: SpaceTheme.secondaryButtonStyle,
+                  child: Text(s.playAgain),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  style: SpaceTheme.primaryButtonStyle,
+                  child: Text(s.backToMenu),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

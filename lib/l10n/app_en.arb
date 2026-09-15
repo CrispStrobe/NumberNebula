@@ -1871,7 +1871,6 @@
     }
   },
   "galacticMarketLoseTitle": "Incorrect Amount!",
-  "galacticMarketLoseDesc": "The merchant frowns -- that's not the right amount. Try a different combination of coins, Commander.",
   "creatureForgeTitle": "Creature Forge",
   "creatureForgeDesc": "The xenobiology bay has parts from multiple alien species! Tap to select heads, bodies, and tails, then build creatures. How many unique beings can you create?",
   "creatureForgeInstructions": "Select one part from each row, then tap BUILD to add the creature to your gallery. Find all valid combinations, then enter the total count!",
@@ -2715,5 +2714,17 @@
   "cubeScannerOnboardHidden": "The scanner sees three faces. The three you cannot see are exactly the ones opposite them — so each hidden value is 7 minus the face in front of it.",
   "cubeScannerOnboardAnswer": "Read the question, work out the face it asks for, and enter the value. Nothing here is a guess.",
   "voidCrossingOnboardRuleShown": "Two creatures that fight must never be left on a bank on their own. While you are standing there, they behave.",
-  "voidCrossingOnboardShuttle": "The shuttle never travels empty, and you always fly it — so think about who is left behind on both sides."
+  "voidCrossingOnboardShuttle": "The shuttle never travels empty, and you always fly it — so think about who is left behind on both sides.",
+  "galacticMarketAttempts": "Scans left: {remaining} of {total}",
+  "@galacticMarketAttempts": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "galacticMarketWrongScan": "Not that one. Work out the hidden total first: take the known coins off the change, then share what is left between the hidden coins."
 }

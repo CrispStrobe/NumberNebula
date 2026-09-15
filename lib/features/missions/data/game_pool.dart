@@ -190,15 +190,21 @@ const Set<String> debugOnlyGames = {
   // Fixed (legal moves could strand the player with an unfillable slot, and
   // the same rule could be listed twice) -- held back pending a play-through.
   'ion_chain',
-  // No real deduction: tapping every coin repeatedly stumbles onto the answer.
+  // Fixed (there was no losing condition at all, so tapping every coin in
+  // turn solved it for free and the arithmetic was never worth doing)
+  // -- held back pending a play-through.
   'galactic_market',
-  // The puzzle as presented does not convey what is being asked.
+  // Fixed (nothing on the board said opposite faces sum to 7, nor that the
+  // hidden faces are exactly the ones opposite the visible ones -- there is an
+  // onboarding that draws both now) -- held back pending a play-through.
   'cube_scanner',
   // Fixed (a misplaced piece could not be taken back off the grid, and the
   // long-press that did it was invisible -- there is a remove button now)
   // -- held back pending a play-through.
   'relic_assembly',
-  // The river-crossing rules are not conveyed by the board as drawn.
+  // Fixed (the onboarding described the conflict rule and then told the player
+  // to look it up elsewhere; it draws the situation now) -- held back pending
+  // a play-through.
   'void_crossing',
 };
 

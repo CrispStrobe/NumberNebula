@@ -5536,12 +5536,6 @@ abstract class S {
   /// **'Incorrect Amount!'**
   String get galacticMarketLoseTitle;
 
-  /// No description provided for @galacticMarketLoseDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'The merchant frowns -- that\'s not the right amount. Try a different combination of coins, Commander.'**
-  String get galacticMarketLoseDesc;
-
   /// No description provided for @creatureForgeTitle.
   ///
   /// In en, this message translates to:
@@ -7407,6 +7401,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'The shuttle never travels empty, and you always fly it — so think about who is left behind on both sides.'**
   String get voidCrossingOnboardShuttle;
+
+  /// No description provided for @galacticMarketAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Scans left: {remaining} of {total}'**
+  String galacticMarketAttempts(int remaining, int total);
+
+  /// No description provided for @galacticMarketWrongScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Not that one. Work out the hidden total first: take the known coins off the change, then share what is left between the hidden coins.'**
+  String get galacticMarketWrongScan;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
