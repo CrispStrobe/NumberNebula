@@ -194,7 +194,9 @@ const Set<String> debugOnlyGames = {
   'galactic_market',
   // The puzzle as presented does not convey what is being asked.
   'cube_scanner',
-  // Pieces cannot be taken back off the grid, so a wrong placement is fatal.
+  // Fixed (a misplaced piece could not be taken back off the grid, and the
+  // long-press that did it was invisible -- there is a remove button now)
+  // -- held back pending a play-through.
   'relic_assembly',
   // The river-crossing rules are not conveyed by the board as drawn.
   'void_crossing',

@@ -41,20 +41,51 @@ void main() {
           reason: 'Fallback should trigger rarely with 500 CSP attempts');
     });
 
-    test('fallback produces at least 2 rules now', () {
-      // Force a scenario that's likely to trigger fallback:
-      // many rules with few ion types
+    test('fallback keeps two rules when two are satisfiable', () {
+      // The original intent: a fallback puzzle should still be interesting,
+      // not a single trivial constraint. That holds wherever the ion types can
+      // actually support two rules.
       final puzzle = IonChainPuzzle.generate(
         chainLength: 5,
-        ionTypeCount: 2,
-        ruleCount: 5, // Very hard to satisfy with only 2 types
+        ionTypeCount: 3,
+        ruleCount: 5, // more than the generator can place, so it falls back
         blanksToRemove: 2,
         seed: 999,
       );
 
-      // Even fallback should have >= 2 rules now
       expect(puzzle.rules.length, greaterThanOrEqualTo(2));
       expect(puzzle.solution.length, 5);
+      final nullable = puzzle.solution.map<IonType?>((e) => e).toList();
+      expect(IonChainPuzzle.validateChain(nullable, puzzle.rules), isTrue);
+    });
+
+    test('fallback drops a rule rather than shipping an impossible one', () {
+      // This used to assert >= 2 rules here too, with ionTypeCount: 2 -- and
+      // that is not achievable: the fallback's two rules are "no two the same
+      // adjacent" and "A must not neighbor B", and with only types A and B the
+      // first forces A,B,A,B... while the second forbids exactly that. Demanding
+      // two rules demanded a puzzle with no solution, and the generator duly
+      // produced one whose own solution broke its own rules.
+      //
+      // What matters is not the rule count but that the player can finish it.
+      for (int seed = 0; seed < 25; seed++) {
+        final puzzle = IonChainPuzzle.generate(
+          chainLength: 5,
+          ionTypeCount: 2,
+          ruleCount: 5,
+          blanksToRemove: 2,
+          seed: seed,
+        );
+        final nullable = puzzle.solution.map<IonType?>((e) => e).toList();
+        expect(IonChainPuzzle.validateChain(nullable, puzzle.rules), isTrue,
+            reason: 'solution violates its own rules at seed=$seed');
+        expect(
+          IonChainPuzzle.isCompletable(
+              puzzle.chain, puzzle.availableIons, puzzle.rules),
+          isTrue,
+          reason: 'unfinishable at seed=$seed',
+        );
+      }
     });
 
     test('solution is not a trivial repeating pattern', () {

@@ -229,32 +229,51 @@ class IonChainPuzzle {
     IonType typeB;
     do { typeB = types[rng.nextInt(types.length)]; } while (typeB == typeA);
 
-    final fallbackRules = [
-      IonRule(
-        description: 'No two same-shaped ions adjacent',
-        descriptionDe: 'Keine zwei gleichförmigen Ionen nebeneinander',
-        check: (left, right) {
-          if (left == null || right == null) return true;
-          return left != right;
-        },
-      ),
-      IonRule(
-        description: '${_ionNameEn(typeA)} must not neighbor ${_ionNameEn(typeB)}',
-        descriptionDe: '${_ionNameDe(typeA)} darf nicht neben ${_ionNameDe(typeB)} stehen',
-        check: (left, right) {
-          if (left == null || right == null) return true;
-          return !((left == typeA && right == typeB) || (left == typeB && right == typeA));
-        },
-      ),
-    ];
+    final noSameAdjacent = IonRule(
+      description: 'No two same-shaped ions adjacent',
+      descriptionDe: 'Keine zwei gleichförmigen Ionen nebeneinander',
+      check: (left, right) {
+        if (left == null || right == null) return true;
+        return left != right;
+      },
+    );
+    final pairExclusion = IonRule(
+      description: '${_ionNameEn(typeA)} must not neighbor ${_ionNameEn(typeB)}',
+      descriptionDe: '${_ionNameDe(typeA)} darf nicht neben ${_ionNameDe(typeB)} stehen',
+      check: (left, right) {
+        if (left == null || right == null) return true;
+        return !((left == typeA && right == typeB) || (left == typeB && right == typeA));
+      },
+    );
 
-    // Solve via backtracking (avoids trivial repeating pattern)
+    // Weaken the fallback until it is satisfiable, rather than shipping rules
+    // no arrangement can meet.
+    //
+    // Both rules together are impossible with only two ion types: "no two the
+    // same next to each other" forces A,B,A,B..., which is precisely what "A
+    // must not neighbor B" forbids. The old code then fell through to that
+    // same alternation as a last resort and shipped it *with both rules still
+    // attached* -- a puzzle whose own solution broke its own rules, so no
+    // placement the player made could ever be accepted.
+    //
+    // No difficulty setting asks for two types today, so this was unreachable;
+    // it would have become a shipped-unsolvable game the moment someone tuned
+    // the grade mapping down, which is the failure this game was gated for in
+    // the first place.
+    var fallbackRules = <IonRule>[noSameAdjacent, pairExclusion];
     final fallbackSolution = <IonType>[];
     if (!_solve(fallbackSolution, chainLength, types, fallbackRules, rng)) {
-      // Absolute last resort: simple alternation (should be extremely rare)
+      fallbackRules = <IonRule>[noSameAdjacent];
       fallbackSolution.clear();
-      for (int i = 0; i < chainLength; i++) {
-        fallbackSolution.add(types[i % types.length]);
+      if (!_solve(fallbackSolution, chainLength, types, fallbackRules, rng)) {
+        // Only reachable with a single ion type, where nothing can be
+        // constrained at all. Ship the chain with no rules rather than with
+        // rules it violates.
+        fallbackRules = <IonRule>[];
+        fallbackSolution.clear();
+        for (int i = 0; i < chainLength; i++) {
+          fallbackSolution.add(types[i % types.length]);
+        }
       }
     }
 
