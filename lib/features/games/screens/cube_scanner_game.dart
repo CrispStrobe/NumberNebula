@@ -13,6 +13,8 @@ import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../services/cube_scanner_logic.dart';
+import '../widgets/cube_scanner_diagram.dart';
+import '../../../shared/widgets/onboarding_overlay.dart';
 
 class CubeScannerGame extends StatefulWidget {
   final int grade;
@@ -65,8 +67,38 @@ class _CubeScannerGameState extends State<CubeScannerGame>
         final gp = context.read<GameProvider>();
         currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
         _generatePuzzle();
+        _showOnboarding();
       }
     });
+  }
+
+  /// Show how a die is put together, before asking the player to reason about
+  /// one. Two facts make this puzzle solvable and the board shows neither:
+  /// that opposite faces sum to seven, and that the faces you cannot see are
+  /// exactly the ones opposite the faces you can.
+  void _showOnboarding() {
+    final s = S.of(context)!;
+    OnboardingOverlay.maybeShow(
+      context,
+      gameKey: 'cube_scanner',
+      title: s.cubeScannerOnboardTitle,
+      steps: [
+        OnboardingStep(
+          icon: Icons.casino,
+          body: s.cubeScannerOnboardRule,
+          illustration: const DieOppositePairsDiagram(),
+        ),
+        OnboardingStep(
+          icon: Icons.visibility_off,
+          body: s.cubeScannerOnboardHidden,
+          illustration: const DieHiddenFacesDiagram(),
+        ),
+        OnboardingStep(
+          icon: Icons.keyboard,
+          body: s.cubeScannerOnboardAnswer,
+        ),
+      ],
+    );
   }
 
   @override

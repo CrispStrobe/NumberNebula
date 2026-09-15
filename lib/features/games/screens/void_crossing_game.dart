@@ -20,6 +20,7 @@ import '../services/void_crossing_logic.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../../../shared/widgets/onboarding_overlay.dart';
+import '../widgets/void_crossing_diagram.dart';
 
 class VoidCrossingGame extends StatefulWidget {
   final int grade;
@@ -87,9 +88,21 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
             icon: Icons.rocket_launch,
             body: s.voidCrossingOnboardLaunch,
           ),
+          // The rule the puzzle turns on, drawn rather than described. The
+          // step this replaces ended "check the rules at the bottom", which
+          // pointed at the rule instead of showing it -- and this game was
+          // held back precisely because its rules never landed.
           OnboardingStep(
             icon: Icons.warning_amber,
-            body: s.voidCrossingOnboardConflict,
+            body: s.voidCrossingOnboardRuleShown,
+            illustration: const VoidConflictDiagram(),
+          ),
+          OnboardingStep(
+            icon: Icons.airline_seat_recline_normal,
+            body: s.voidCrossingOnboardShuttle,
+            illustration: VoidShuttleDiagram(
+              capacity: _puzzle?.boatCapacity ?? 2,
+            ),
           ),
         ],
       );

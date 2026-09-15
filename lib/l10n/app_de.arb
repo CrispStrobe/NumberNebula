@@ -2643,5 +2643,11 @@
         "type": "int"
       }
     }
-  }
+  },
+  "cubeScannerOnboardTitle": "Würfel-Scanner",
+  "cubeScannerOnboardRule": "Jeder Würfel ist gleich gebaut: Zwei gegenüberliegende Flächen ergeben zusammen immer 7.",
+  "cubeScannerOnboardHidden": "Der Scanner sieht drei Flächen. Die drei verdeckten sind genau die gegenüberliegenden — jeder verdeckte Wert ist also 7 minus die Fläche davor.",
+  "cubeScannerOnboardAnswer": "Lies die Frage, bestimme die gesuchte Fläche und gib den Wert ein. Hier muss nichts geraten werden.",
+  "voidCrossingOnboardRuleShown": "Zwei Kreaturen, die sich streiten, dürfen nie allein an einem Ufer bleiben. Solange du dabei bist, benehmen sie sich.",
+  "voidCrossingOnboardShuttle": "Der Shuttle fliegt nie leer, und du steuerst ihn immer — überlege also, wer auf beiden Seiten zurückbleibt."
 }

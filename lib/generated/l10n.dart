@@ -7371,6 +7371,42 @@ abstract class S {
   /// In en, this message translates to:
   /// **'The hidden coins were each {value} credits!'**
   String galacticMarketReveal(int value);
+
+  /// No description provided for @cubeScannerOnboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cube Scanner'**
+  String get cubeScannerOnboardTitle;
+
+  /// No description provided for @cubeScannerOnboardRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Every die is built the same way: the two faces opposite each other always add up to 7.'**
+  String get cubeScannerOnboardRule;
+
+  /// No description provided for @cubeScannerOnboardHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'The scanner sees three faces. The three you cannot see are exactly the ones opposite them — so each hidden value is 7 minus the face in front of it.'**
+  String get cubeScannerOnboardHidden;
+
+  /// No description provided for @cubeScannerOnboardAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the question, work out the face it asks for, and enter the value. Nothing here is a guess.'**
+  String get cubeScannerOnboardAnswer;
+
+  /// No description provided for @voidCrossingOnboardRuleShown.
+  ///
+  /// In en, this message translates to:
+  /// **'Two creatures that fight must never be left on a bank on their own. While you are standing there, they behave.'**
+  String get voidCrossingOnboardRuleShown;
+
+  /// No description provided for @voidCrossingOnboardShuttle.
+  ///
+  /// In en, this message translates to:
+  /// **'The shuttle never travels empty, and you always fly it — so think about who is left behind on both sides.'**
+  String get voidCrossingOnboardShuttle;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

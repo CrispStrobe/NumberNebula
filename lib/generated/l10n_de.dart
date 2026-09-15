@@ -4305,4 +4305,27 @@ class SDe extends S {
   String galacticMarketReveal(int value) {
     return 'Die versteckten Münzen waren je $value Credits wert!';
   }
+
+  @override
+  String get cubeScannerOnboardTitle => 'Würfel-Scanner';
+
+  @override
+  String get cubeScannerOnboardRule =>
+      'Jeder Würfel ist gleich gebaut: Zwei gegenüberliegende Flächen ergeben zusammen immer 7.';
+
+  @override
+  String get cubeScannerOnboardHidden =>
+      'Der Scanner sieht drei Flächen. Die drei verdeckten sind genau die gegenüberliegenden — jeder verdeckte Wert ist also 7 minus die Fläche davor.';
+
+  @override
+  String get cubeScannerOnboardAnswer =>
+      'Lies die Frage, bestimme die gesuchte Fläche und gib den Wert ein. Hier muss nichts geraten werden.';
+
+  @override
+  String get voidCrossingOnboardRuleShown =>
+      'Zwei Kreaturen, die sich streiten, dürfen nie allein an einem Ufer bleiben. Solange du dabei bist, benehmen sie sich.';
+
+  @override
+  String get voidCrossingOnboardShuttle =>
+      'Der Shuttle fliegt nie leer, und du steuerst ihn immer — überlege also, wer auf beiden Seiten zurückbleibt.';
 }

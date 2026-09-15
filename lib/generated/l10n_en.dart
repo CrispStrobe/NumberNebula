@@ -4285,4 +4285,27 @@ class SEn extends S {
   String galacticMarketReveal(int value) {
     return 'The hidden coins were each $value credits!';
   }
+
+  @override
+  String get cubeScannerOnboardTitle => 'Cube Scanner';
+
+  @override
+  String get cubeScannerOnboardRule =>
+      'Every die is built the same way: the two faces opposite each other always add up to 7.';
+
+  @override
+  String get cubeScannerOnboardHidden =>
+      'The scanner sees three faces. The three you cannot see are exactly the ones opposite them — so each hidden value is 7 minus the face in front of it.';
+
+  @override
+  String get cubeScannerOnboardAnswer =>
+      'Read the question, work out the face it asks for, and enter the value. Nothing here is a guess.';
+
+  @override
+  String get voidCrossingOnboardRuleShown =>
+      'Two creatures that fight must never be left on a bank on their own. While you are standing there, they behave.';
+
+  @override
+  String get voidCrossingOnboardShuttle =>
+      'The shuttle never travels empty, and you always fly it — so think about who is left behind on both sides.';
 }
