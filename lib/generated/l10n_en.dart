@@ -4227,4 +4227,62 @@ class SEn extends S {
   @override
   String get perspectivePuzzleLoseDesc =>
       'You\'ve run out of attempts. Let\'s try a different structure.';
+
+  @override
+  String get multiplicationSymbolLabel => 'Multiplication Symbol';
+
+  @override
+  String get divisionSymbolLabel => 'Division Symbol';
+
+  @override
+  String get viewCrashLog => 'View crash log';
+
+  @override
+  String get parentDashboardProgressSummary => 'Progress summary';
+
+  @override
+  String get privacyOnDevice => 'What stays on this device';
+
+  @override
+  String get resetAllData => 'Reset all data';
+
+  @override
+  String get resetAllDataDesc => 'Wipe progress on this device';
+
+  @override
+  String get sriProgressMatrix => 'Progress Matrix';
+
+  @override
+  String get sriProgressMatrixHint =>
+      'Color shows mastery (green is best). Number shows problems tracked in that area.';
+
+  @override
+  String get sriReviewEmpty =>
+      'Play a few games to start tracking what you know.';
+
+  @override
+  String bubbleMathLookFor(String target) {
+    return 'Look for: $target';
+  }
+
+  @override
+  String get puzzleMathNoImages =>
+      'No constellation images found in assets/images/';
+
+  @override
+  String get galacticMarketTotalChange => 'TOTAL CHANGE';
+
+  @override
+  String galacticMarketCredits(int amount) {
+    return '$amount credits';
+  }
+
+  @override
+  String get galacticMarketDenominationQuestion =>
+      'What denomination are the hidden coins?';
+
+  @override
+  String galacticMarketReveal(int value) {
+    return 'The hidden coins were each $value credits!';
+  }
 }

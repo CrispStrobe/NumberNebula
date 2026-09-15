@@ -7275,6 +7275,102 @@ abstract class S {
   /// In en, this message translates to:
   /// **'You\'ve run out of attempts. Let\'s try a different structure.'**
   String get perspectivePuzzleLoseDesc;
+
+  /// No description provided for @multiplicationSymbolLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiplication Symbol'**
+  String get multiplicationSymbolLabel;
+
+  /// No description provided for @divisionSymbolLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Division Symbol'**
+  String get divisionSymbolLabel;
+
+  /// No description provided for @viewCrashLog.
+  ///
+  /// In en, this message translates to:
+  /// **'View crash log'**
+  String get viewCrashLog;
+
+  /// No description provided for @parentDashboardProgressSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress summary'**
+  String get parentDashboardProgressSummary;
+
+  /// No description provided for @privacyOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'What stays on this device'**
+  String get privacyOnDevice;
+
+  /// No description provided for @resetAllData.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset all data'**
+  String get resetAllData;
+
+  /// No description provided for @resetAllDataDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Wipe progress on this device'**
+  String get resetAllDataDesc;
+
+  /// No description provided for @sriProgressMatrix.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress Matrix'**
+  String get sriProgressMatrix;
+
+  /// No description provided for @sriProgressMatrixHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Color shows mastery (green is best). Number shows problems tracked in that area.'**
+  String get sriProgressMatrixHint;
+
+  /// No description provided for @sriReviewEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Play a few games to start tracking what you know.'**
+  String get sriReviewEmpty;
+
+  /// No description provided for @bubbleMathLookFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Look for: {target}'**
+  String bubbleMathLookFor(String target);
+
+  /// No description provided for @puzzleMathNoImages.
+  ///
+  /// In en, this message translates to:
+  /// **'No constellation images found in assets/images/'**
+  String get puzzleMathNoImages;
+
+  /// No description provided for @galacticMarketTotalChange.
+  ///
+  /// In en, this message translates to:
+  /// **'TOTAL CHANGE'**
+  String get galacticMarketTotalChange;
+
+  /// No description provided for @galacticMarketCredits.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} credits'**
+  String galacticMarketCredits(int amount);
+
+  /// No description provided for @galacticMarketDenominationQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What denomination are the hidden coins?'**
+  String get galacticMarketDenominationQuestion;
+
+  /// No description provided for @galacticMarketReveal.
+  ///
+  /// In en, this message translates to:
+  /// **'The hidden coins were each {value} credits!'**
+  String galacticMarketReveal(int value);
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

@@ -334,9 +334,9 @@ class _SettingsScreenState extends State<SettingsScreen>
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Multiplication Symbol",
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  Text(
+                    S.of(context)!.multiplicationSymbolLabel,
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -358,9 +358,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    "Division Symbol",
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  Text(
+                    S.of(context)!.divisionSymbolLabel,
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -1059,20 +1059,20 @@ class _SettingsScreenState extends State<SettingsScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Diagnostics',
+                    S.of(context)!.diagnosticsTitle,
                     style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
                   ),
-                  const Row(
+                  Row(
                     children: [
                       Text(
-                        'View crash log',
-                        style: TextStyle(
+                        S.of(context)!.viewCrashLog,
+                        style: const TextStyle(
                           fontSize: 14,
                           color: SpaceTheme.alienGreen,
                         ),
                       ),
-                      SizedBox(width: 4),
-                      Icon(
+                      const SizedBox(width: 4),
+                      const Icon(
                         Icons.bug_report,
                         color: SpaceTheme.alienGreen,
                         size: 16,
@@ -1101,20 +1101,20 @@ class _SettingsScreenState extends State<SettingsScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Parent dashboard',
+                    S.of(context)!.parentDashboardTitle,
                     style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
                   ),
-                  const Row(
+                  Row(
                     children: [
                       Text(
-                        'Progress summary',
-                        style: TextStyle(
+                        S.of(context)!.parentDashboardProgressSummary,
+                        style: const TextStyle(
                           fontSize: 14,
                           color: SpaceTheme.alienGreen,
                         ),
                       ),
-                      SizedBox(width: 4),
-                      Icon(
+                      const SizedBox(width: 4),
+                      const Icon(
                         Icons.family_restroom,
                         color: SpaceTheme.alienGreen,
                         size: 16,
@@ -1145,17 +1145,17 @@ class _SettingsScreenState extends State<SettingsScreen>
                     'Privacy & data',
                     style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
                   ),
-                  const Row(
+                  Row(
                     children: [
                       Text(
-                        'What stays on this device',
-                        style: TextStyle(
+                        S.of(context)!.privacyOnDevice,
+                        style: const TextStyle(
                           fontSize: 14,
                           color: SpaceTheme.alienGreen,
                         ),
                       ),
-                      SizedBox(width: 4),
-                      Icon(
+                      const SizedBox(width: 4),
+                      const Icon(
                         Icons.shield_outlined,
                         color: SpaceTheme.alienGreen,
                         size: 16,
@@ -1178,20 +1178,20 @@ class _SettingsScreenState extends State<SettingsScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Reset all data',
+                    S.of(context)!.resetAllData,
                     style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
                   ),
-                  const Row(
+                  Row(
                     children: [
                       Text(
-                        'Wipe progress on this device',
-                        style: TextStyle(
+                        S.of(context)!.resetAllDataDesc,
+                        style: const TextStyle(
                           fontSize: 14,
                           color: SpaceTheme.rocketRed,
                         ),
                       ),
-                      SizedBox(width: 4),
-                      Icon(
+                      const SizedBox(width: 4),
+                      const Icon(
                         Icons.delete_forever,
                         color: SpaceTheme.rocketRed,
                         size: 16,

@@ -4247,4 +4247,62 @@ class SDe extends S {
   @override
   String get perspectivePuzzleLoseDesc =>
       'Keine Versuche mehr. Probieren wir eine andere Struktur.';
+
+  @override
+  String get multiplicationSymbolLabel => 'Malzeichen';
+
+  @override
+  String get divisionSymbolLabel => 'Geteiltzeichen';
+
+  @override
+  String get viewCrashLog => 'Absturzbericht ansehen';
+
+  @override
+  String get parentDashboardProgressSummary => 'Fortschrittsübersicht';
+
+  @override
+  String get privacyOnDevice => 'Was auf diesem Gerät bleibt';
+
+  @override
+  String get resetAllData => 'Alle Daten zurücksetzen';
+
+  @override
+  String get resetAllDataDesc => 'Fortschritt auf diesem Gerät löschen';
+
+  @override
+  String get sriProgressMatrix => 'Fortschrittsmatrix';
+
+  @override
+  String get sriProgressMatrixHint =>
+      'Die Farbe zeigt die Beherrschung (grün ist am besten). Die Zahl zeigt die erfassten Aufgaben in diesem Bereich.';
+
+  @override
+  String get sriReviewEmpty =>
+      'Spiele ein paar Spiele, damit wir erfassen können, was du schon kannst.';
+
+  @override
+  String bubbleMathLookFor(String target) {
+    return 'Suche: $target';
+  }
+
+  @override
+  String get puzzleMathNoImages =>
+      'Keine Sternbilder in assets/images/ gefunden';
+
+  @override
+  String get galacticMarketTotalChange => 'WECHSELGELD GESAMT';
+
+  @override
+  String galacticMarketCredits(int amount) {
+    return '$amount Credits';
+  }
+
+  @override
+  String get galacticMarketDenominationQuestion =>
+      'Welchen Wert haben die versteckten Münzen?';
+
+  @override
+  String galacticMarketReveal(int value) {
+    return 'Die versteckten Münzen waren je $value Credits wert!';
+  }
 }

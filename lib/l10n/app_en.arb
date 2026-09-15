@@ -2672,5 +2672,42 @@
     }
   },
   "perspectivePuzzleLoseTitle": "Mission Failed",
-  "perspectivePuzzleLoseDesc": "You've run out of attempts. Let's try a different structure."
+  "perspectivePuzzleLoseDesc": "You've run out of attempts. Let's try a different structure.",
+  "multiplicationSymbolLabel": "Multiplication Symbol",
+  "divisionSymbolLabel": "Division Symbol",
+  "viewCrashLog": "View crash log",
+  "parentDashboardProgressSummary": "Progress summary",
+  "privacyOnDevice": "What stays on this device",
+  "resetAllData": "Reset all data",
+  "resetAllDataDesc": "Wipe progress on this device",
+  "sriProgressMatrix": "Progress Matrix",
+  "sriProgressMatrixHint": "Color shows mastery (green is best). Number shows problems tracked in that area.",
+  "sriReviewEmpty": "Play a few games to start tracking what you know.",
+  "bubbleMathLookFor": "Look for: {target}",
+  "@bubbleMathLookFor": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "puzzleMathNoImages": "No constellation images found in assets/images/",
+  "galacticMarketTotalChange": "TOTAL CHANGE",
+  "galacticMarketCredits": "{amount} credits",
+  "@galacticMarketCredits": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "galacticMarketDenominationQuestion": "What denomination are the hidden coins?",
+  "galacticMarketReveal": "The hidden coins were each {value} credits!",
+  "@galacticMarketReveal": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  }
 }

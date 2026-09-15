@@ -219,7 +219,8 @@ class _BubbleMathGameState extends State<BubbleMathGame>
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '${S.of(context)!.tryAgain} Look for: ${targetOrder[currentTargetIndex]}',
+                '${S.of(context)!.tryAgain} '
+                '${S.of(context)!.bubbleMathLookFor(targetOrder[currentTargetIndex].toString())}',
                 style: SpaceTheme.bodyStyle,
               ),
             ),

@@ -227,9 +227,8 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     final isSmallScreen = screenSize.width < 800 || screenSize.height < 500;
     
     if (currentPuzzleImage == null) {
-      return const Scaffold(
-          body: Center(
-              child: Text("No constellation images found in assets/images/")));
+      return Scaffold(
+          body: Center(child: Text(S.of(context)!.puzzleMathNoImages)));
     }
 
     return Scaffold(

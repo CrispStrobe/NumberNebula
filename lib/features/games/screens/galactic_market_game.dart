@@ -315,7 +315,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
           child: Column(
             children: [
               Text(
-                'TOTAL CHANGE',
+                S.of(context)!.galacticMarketTotalChange,
                 style: SpaceTheme.bodyStyle.copyWith(
                   color: SpaceTheme.starYellow,
                   fontSize: 12,
@@ -324,7 +324,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
               ),
               const SizedBox(height: 8),
               Text(
-                '$_changeTotal credits',
+                S.of(context)!.galacticMarketCredits(_changeTotal),
                 style: SpaceTheme.headlineStyle.copyWith(fontSize: 32),
               ),
             ],
@@ -421,7 +421,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     return Column(
       children: [
         Text(
-          'What denomination are the hidden coins?',
+          S.of(context)!.galacticMarketDenominationQuestion,
           style: SpaceTheme.titleStyle.copyWith(fontSize: 14, color: SpaceTheme.starYellow),
           textAlign: TextAlign.center,
         ),
@@ -507,7 +507,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
                       style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 12),
                   Text(
-                    'The hidden coins were each $_correctDenomination credits!\n'
+                    '${s.galacticMarketReveal(_correctDenomination)}\n'
                     '$_unknownCount × $_correctDenomination = ${_unknownCount * _correctDenomination}',
                     style: SpaceTheme.bodyStyle,
                     textAlign: TextAlign.center,

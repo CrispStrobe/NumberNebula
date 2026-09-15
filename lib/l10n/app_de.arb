@@ -2606,5 +2606,42 @@
     }
   },
   "perspectivePuzzleLoseTitle": "Mission fehlgeschlagen",
-  "perspectivePuzzleLoseDesc": "Keine Versuche mehr. Probieren wir eine andere Struktur."
+  "perspectivePuzzleLoseDesc": "Keine Versuche mehr. Probieren wir eine andere Struktur.",
+  "multiplicationSymbolLabel": "Malzeichen",
+  "divisionSymbolLabel": "Geteiltzeichen",
+  "viewCrashLog": "Absturzbericht ansehen",
+  "parentDashboardProgressSummary": "Fortschrittsübersicht",
+  "privacyOnDevice": "Was auf diesem Gerät bleibt",
+  "resetAllData": "Alle Daten zurücksetzen",
+  "resetAllDataDesc": "Fortschritt auf diesem Gerät löschen",
+  "sriProgressMatrix": "Fortschrittsmatrix",
+  "sriProgressMatrixHint": "Die Farbe zeigt die Beherrschung (grün ist am besten). Die Zahl zeigt die erfassten Aufgaben in diesem Bereich.",
+  "sriReviewEmpty": "Spiele ein paar Spiele, damit wir erfassen können, was du schon kannst.",
+  "bubbleMathLookFor": "Suche: {target}",
+  "@bubbleMathLookFor": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "puzzleMathNoImages": "Keine Sternbilder in assets/images/ gefunden",
+  "galacticMarketTotalChange": "WECHSELGELD GESAMT",
+  "galacticMarketCredits": "{amount} Credits",
+  "@galacticMarketCredits": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "galacticMarketDenominationQuestion": "Welchen Wert haben die versteckten Münzen?",
+  "galacticMarketReveal": "Die versteckten Münzen waren je {value} Credits wert!",
+  "@galacticMarketReveal": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  }
 }

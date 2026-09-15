@@ -138,12 +138,13 @@ class SriStatisticsDialog extends StatelessWidget {
           children: [
             const Icon(Icons.grid_view_sharp, color: SpaceTheme.cosmicPink, size: 20),
             const SizedBox(width: 8),
-            Text("Progress Matrix", style: SpaceTheme.titleStyle.copyWith(fontSize: 18)), // TODO: Add to L10n
+            Text(S.of(context)!.sriProgressMatrix,
+                style: SpaceTheme.titleStyle.copyWith(fontSize: 18)),
           ],
         ),
         const SizedBox(height: 8),
         Text(
-          "Color shows mastery (green is best). Number shows problems tracked in that area.", // TODO: Add to L10n
+          S.of(context)!.sriProgressMatrixHint,
           style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white60)
         ),
         const SizedBox(height: 12),

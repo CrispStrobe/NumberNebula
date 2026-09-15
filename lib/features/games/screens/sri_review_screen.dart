@@ -69,10 +69,10 @@ class SriReviewScreen extends StatelessWidget {
             ),
           ],
           if (total == 0)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 32),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
               child: Text(
-                'Play a few games to start tracking what you know.',
+                S.of(context)!.sriReviewEmpty,
                 textAlign: TextAlign.center,
                 style: SpaceTheme.bodyStyle,
               ),
