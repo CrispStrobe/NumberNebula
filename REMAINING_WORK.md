@@ -1,6 +1,6 @@
 # Remaining Work -- Game Quality Fixes
 
-Status as of 2026-09-14.
+Status as of 2026-09-17.
 
 ## 2026-09-14 SESSION
 
@@ -15,9 +15,19 @@ shipping one again means deleting its key from that set -- nothing else.
 | Sternen-Schmiede (`star_forge`) | Generation searched for a magic constant that cannot exist, so all 200 CSP attempts timed out (~16 min of spinner), then fell back to a layout whose lines did not sum equally | **Fixed** -- needs a play-through |
 | Ionen-Ring (`ion_chain`) | Legal moves could strand the player with an unfillable slot (45% of puzzles), with no feedback; the same rule could also be listed twice | **Fixed** -- needs a play-through |
 | Relikte-Puzzle (`relic_assembly`) | Pieces could only be removed by an undiscoverable long-press; the generator's random rotation was dead state, so no puzzle ever needed rotating | **Fixed** -- needs a play-through |
-| Galaktischer Markt (`galactic_market`) | Tapping every coin repeatedly stumbles onto the answer; level 1 far too easy | Not started |
-| Würfel-Scanner (`cube_scanner`) | The puzzle does not convey what is being asked | Not started |
-| Void-Überquerung (`void_crossing`) | River-crossing rules are not conveyed by the board as drawn | Not started |
+| Galaktischer Markt (`galactic_market`) | There was no losing condition at all, so tapping every coin in turn solved it for free and the arithmetic was never worth doing | **Fixed** -- needs a play-through |
+| Würfel-Scanner (`cube_scanner`) | Nothing on the board said opposite faces sum to 7, nor that the hidden faces are exactly the ones opposite the visible ones | **Fixed** -- needs a play-through |
+| Void-Überquerung (`void_crossing`) | The onboarding described the conflict rule in words and then told the player to look it up elsewhere | **Fixed** -- needs a play-through |
+
+All six are fixed in code and all six are still gated. The only thing between
+them and players is someone playing each one once; shipping one is deleting its
+key from `debugOnlyGames` in `lib/features/missions/data/game_pool.dart` and
+nothing else. Unlock the debug menu with seven taps on the home screen title.
+
+`game_pool.dart` is the source of truth for what is gated and why -- each key
+there carries its own note. This table is a summary of it and can go stale, as
+it did: it listed the last three as "Not started" for three commits after they
+were fixed.
 
 ### Fixed and shipping
 
