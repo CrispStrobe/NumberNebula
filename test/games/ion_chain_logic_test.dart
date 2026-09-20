@@ -58,8 +58,7 @@ void main() {
     test('a ring whose blanks cannot be filled is rejected', () {
       final rules = [
         IonRule(
-          description: 'No two same adjacent',
-          descriptionDe: 'Keine zwei gleichen nebeneinander',
+          kind: IonRuleKind.noRepeatAtAll,
           check: (l, r) => l == null || r == null || l != r,
         ),
       ];
@@ -161,12 +160,14 @@ void main() {
         final puzzle = IonChainPuzzle.generate(
           chainLength: 8, ionTypeCount: 4, ruleCount: 3, blanksToRemove: 4);
 
-        final descriptions = puzzle.rules.map((r) => r.description).toList();
-        expect(descriptions.toSet().length, descriptions.length,
-            reason: 'duplicate rule shown: $descriptions');
-
-        final german = puzzle.rules.map((r) => r.descriptionDe).toList();
-        expect(german.toSet().length, german.length);
+        // A rule is identified by what it forbids, not by its wording -- the
+        // wording now lives in the screen so that it can be localized, and a
+        // rule shown twice would be a duplicate in either language.
+        final shown = puzzle.rules
+            .map((r) => '${r.kind}:${r.a}:${r.b}')
+            .toList();
+        expect(shown.toSet().length, shown.length,
+            reason: 'duplicate rule shown: $shown');
       }
     });
   });
@@ -174,8 +175,7 @@ void main() {
   group('IonChainPuzzle.validateChain', () {
     test('valid chain with no-same-adjacent rule passes', () {
       final rule = IonRule(
-        description: 'No two same adjacent',
-        descriptionDe: 'Keine zwei gleichen nebeneinander',
+        kind: IonRuleKind.noRepeatAtAll,
         check: (left, right) {
           if (left == null || right == null) return true;
           return left != right;
@@ -191,8 +191,7 @@ void main() {
 
     test('invalid chain with same-adjacent violates rule', () {
       final rule = IonRule(
-        description: 'No two same adjacent',
-        descriptionDe: 'Keine zwei gleichen nebeneinander',
+        kind: IonRuleKind.noRepeatAtAll,
         check: (left, right) {
           if (left == null || right == null) return true;
           return left != right;
@@ -208,8 +207,8 @@ void main() {
 
     test('chain with nulls skips null-adjacent checks', () {
       final rule = IonRule(
-        description: 'No two red adjacent',
-        descriptionDe: 'Keine zwei Rot nebeneinander',
+        kind: IonRuleKind.noSelfPair,
+        a: IonType.red,
         check: (left, right) {
           if (left == null || right == null) return true;
           return !(left == IonType.red && right == IonType.red);
@@ -227,8 +226,7 @@ void main() {
 
     test('single-element chain validates trivially', () {
       final rule = IonRule(
-        description: 'test',
-        descriptionDe: 'test',
+        kind: IonRuleKind.noRepeatAtAll,
         check: (left, right) => left != right,
       );
       expect(

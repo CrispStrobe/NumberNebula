@@ -261,8 +261,113 @@ class _IonChainGameState extends State<IonChainGame>
     );
   }
 
+  /// The player only ever sees a bead as a shape, never as a word, so a rule
+  /// written purely as "Raute darf nicht neben Stern stehen" asks them to
+  /// match vocabulary they were never taught. Each rule is therefore drawn as
+  /// the two beads it talks about, side by side and struck through, with the
+  /// sentence kept underneath for readers.
+  String _shapeName(IonType type) {
+    final s = S.of(context)!;
+    switch (type) {
+      case IonType.red:
+        return s.ionChainShapeStar;
+      case IonType.blue:
+        return s.ionChainShapeCircle;
+      case IonType.green:
+        return s.ionChainShapeHexagon;
+      case IonType.yellow:
+        return s.ionChainShapeDiamond;
+      case IonType.purple:
+        return s.ionChainShapeTriangle;
+    }
+  }
+
+  String _ruleText(IonRule rule) {
+    final s = S.of(context)!;
+    switch (rule.kind) {
+      case IonRuleKind.noSelfPair:
+        return s.ionChainRuleNoSelfPair(_shapeName(rule.a!));
+      case IonRuleKind.noMixedPair:
+        return s.ionChainRuleNoMixedPair(
+            _shapeName(rule.a!), _shapeName(rule.b!));
+      case IonRuleKind.noRepeatAtAll:
+        return s.ionChainRuleNoRepeatAtAll;
+    }
+  }
+
+  /// One bead drawn at rule size, in its own colour -- the same shape and
+  /// colour the ring and the tray use.
+  Widget _ruleBead(IonType type) {
+    final color = _beadColors[type] ?? Colors.white;
+    return Container(
+      width: 30,
+      height: 30,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withValues(alpha: 0.18),
+        border: Border.all(color: color, width: 1.5),
+      ),
+      child: Icon(_beadShapes[type] ?? Icons.circle, color: color, size: 17),
+    );
+  }
+
+  /// A bead of no particular type, for the "no two identical shapes" rule:
+  /// two of these stand for "whatever shape it is, not twice in a row".
+  Widget _ruleAnyBead() {
+    const color = SpaceTheme.moonSilver;
+    return Container(
+      width: 30,
+      height: 30,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withValues(alpha: 0.12),
+        border: Border.all(
+          color: color.withValues(alpha: 0.7),
+          width: 1.5,
+        ),
+      ),
+      child: const Icon(Icons.question_mark, color: color, size: 15),
+    );
+  }
+
+  /// The pair of beads a rule forbids, with a red slash between them.
+  Widget _ruleDiagram(IonRule rule) {
+    final (Widget left, Widget right) = switch (rule.kind) {
+      IonRuleKind.noSelfPair => (_ruleBead(rule.a!), _ruleBead(rule.a!)),
+      IonRuleKind.noMixedPair => (_ruleBead(rule.a!), _ruleBead(rule.b!)),
+      IonRuleKind.noRepeatAtAll => (_ruleAnyBead(), _ruleAnyBead()),
+    };
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [left, const SizedBox(width: 4), right],
+        ),
+        // The "forbidden" slash, drawn across both beads.
+        Transform.rotate(
+          angle: -math.pi / 4,
+          child: Container(
+            width: 74,
+            height: 3,
+            decoration: BoxDecoration(
+              color: SpaceTheme.rocketRed,
+              borderRadius: BorderRadius.circular(2),
+              boxShadow: [
+                BoxShadow(
+                  color: SpaceTheme.deepSpace.withValues(alpha: 0.9),
+                  blurRadius: 3,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildRules() {
-    final isDE = Localizations.localeOf(context).languageCode == 'de';
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -277,13 +382,20 @@ class _IonChainGameState extends State<IonChainGame>
             fontSize: 14, color: SpaceTheme.rocketRed, letterSpacing: 1.5)),
           const SizedBox(height: 6),
           ...puzzle!.rules.map((rule) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Row(children: [
-              const Icon(Icons.block, color: SpaceTheme.rocketRed, size: 14),
-              const SizedBox(width: 6),
-              Expanded(child: Text(isDE ? rule.descriptionDe : rule.description,
-                style: SpaceTheme.bodyStyle.copyWith(fontSize: 15))),
-            ]),
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: Semantics(
+              label: _ruleText(rule),
+              child: Row(children: [
+                ExcludeSemantics(child: _ruleDiagram(rule)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ExcludeSemantics(
+                    child: Text(_ruleText(rule),
+                        style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
+                  ),
+                ),
+              ]),
+            ),
           )),
         ],
       ),

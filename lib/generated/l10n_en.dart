@@ -2829,6 +2829,71 @@ class SEn extends S {
       'Study the visible faces of each cube. Opposite faces sum to 7. Determine the hidden face values.';
 
   @override
+  String get cubeScannerScanned => 'scanned';
+
+  @override
+  String get cubeScannerHidden => 'hidden';
+
+  @override
+  String get cubeScannerFaceTop => 'top';
+
+  @override
+  String get cubeScannerFaceFront => 'front';
+
+  @override
+  String get cubeScannerFaceRight => 'right';
+
+  @override
+  String get cubeScannerFaceLeft => 'left';
+
+  @override
+  String get cubeScannerFaceBack => 'back';
+
+  @override
+  String get cubeScannerFaceBottom => 'bottom';
+
+  @override
+  String get cubeScannerRollForward => 'forward';
+
+  @override
+  String get cubeScannerRollBackward => 'backward';
+
+  @override
+  String get cubeScannerRollLeft => 'to the left';
+
+  @override
+  String get cubeScannerRollRight => 'to the right';
+
+  @override
+  String get cubeScannerRollJoin => ', then ';
+
+  @override
+  String cubeScannerQHiddenFace(String face) {
+    return 'Which value is on the $face face?';
+  }
+
+  @override
+  String get cubeScannerQHiddenFaceSum =>
+      'What is the total of the three faces you cannot see?';
+
+  @override
+  String cubeScannerQRoll(String rolls, String face) {
+    return 'Tip the cube $rolls. Which value is then on the $face face?';
+  }
+
+  @override
+  String get cubeScannerQHiddenPipsStack =>
+      'The cubes are stacked, and the faces that touch carry the same value. How many pips are on all the faces you cannot see?';
+
+  @override
+  String get cubeScannerQHiddenPipsRow =>
+      'The cubes stand in a row, and the faces that touch carry the same value. How many pips are on all the faces you cannot see?';
+
+  @override
+  String get cubeScannerOnboardTotal =>
+      'Because the three pairs each add up to 7, a whole cube carries 21 pips: 1+2+3+4+5+6. Two cubes carry 42, three carry 63 — that is how you work out what is hidden without seeing it.';
+
+  @override
   String get cubeScannerWinTitle => 'Cubes Decoded!';
 
   @override
@@ -2978,11 +3043,36 @@ class SEn extends S {
 
   @override
   String get starForgeDesc =>
-      'Ignite a new star! Distribute energy values across the forge nodes so every plasma arm carries the same total charge. The star ignites when all arms align!';
+      'Ignite a new star! Every arm of the star covers four nodes. Place the energy values so that all the arms carry exactly the same total charge.';
 
   @override
   String get starForgeInstructions =>
-      'Place numbers in the empty nodes. Each line through the star must have the same sum.';
+      'Each arm covers 4 nodes. Fill the empty nodes so every arm reaches the target total. Tap a total to see the arm it belongs to.';
+
+  @override
+  String get starForgeArmTotal => 'Arm total';
+
+  @override
+  String get starForgeTarget => 'Target';
+
+  @override
+  String get starForgeHowToPlay => 'How to play';
+
+  @override
+  String get starForgeOnboardArm =>
+      'The star has arms. Each arm covers exactly 4 nodes: two outer points and the two nodes between them. Here the lit arm holds 1, 10, 2 and 9 — together 22.';
+
+  @override
+  String get starForgeOnboardOverlap =>
+      'Neighbouring arms share two nodes (ringed in white). So a number you place counts towards two arms at once — that is what makes the puzzle a puzzle.';
+
+  @override
+  String get starForgeOnboardGoal =>
+      'You win when every arm reaches the same total. The target is shown at the top of the screen, and every arm carries its own running total on the outside. Green means that arm is right.';
+
+  @override
+  String get starForgeOnboardPlace =>
+      'Drag a number from the tray onto an empty node. Tap a placed number to take it back. Each number is used exactly once. Tap an arm\'s total to light up the four nodes it covers.';
 
   @override
   String get starForgeWinTitle => 'Star Ignited!';
@@ -3590,6 +3680,35 @@ class SEn extends S {
   String get ionChainRules => 'RULES';
 
   @override
+  String get ionChainShapeStar => 'Star';
+
+  @override
+  String get ionChainShapeCircle => 'Circle';
+
+  @override
+  String get ionChainShapeHexagon => 'Hexagon';
+
+  @override
+  String get ionChainShapeDiamond => 'Diamond';
+
+  @override
+  String get ionChainShapeTriangle => 'Triangle';
+
+  @override
+  String ionChainRuleNoSelfPair(String shape) {
+    return 'Two ${shape}s may not be neighbours';
+  }
+
+  @override
+  String ionChainRuleNoMixedPair(String shapeA, String shapeB) {
+    return '$shapeA may not be next to $shapeB';
+  }
+
+  @override
+  String get ionChainRuleNoRepeatAtAll =>
+      'No two identical shapes may be neighbours';
+
+  @override
   String get ionChainRing => 'ION RING';
 
   @override
@@ -4077,6 +4196,27 @@ class SEn extends S {
 
   @override
   String get voidCrossingTapToUnload => 'Tap to unload from shuttle';
+
+  @override
+  String get voidCrossingSeats => 'Seats';
+
+  @override
+  String voidCrossingShuttleFull(num seats) {
+    final intl.NumberFormat seatsNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String seatsString = seatsNumberFormat.format(seats);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      seats,
+      locale: localeName,
+      other:
+          'The shuttle only seats $seatsString. Tap a boarded creature to unload it.',
+      one:
+          'The shuttle has only one seat. Fly this one across first, or tap it to unload.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get gridFillerTitle => 'Grid Filler';

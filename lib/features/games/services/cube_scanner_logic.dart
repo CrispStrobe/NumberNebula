@@ -151,16 +151,54 @@ class VisibleFaces {
   }
 }
 
-/// Types of questions we can ask.
-enum QuestionType {
-  /// "What value is on the BOTTOM face?" (single die, grade 1-2)
-  singleHiddenFace,
+/// Which face a question asks about.
+enum CubeFace { top, front, right, left, back, bottom }
 
-  /// "What is the sum of the three HIDDEN faces?" (single die, grade 1-2)
+/// A quarter-turn of the cube, named from the player's point of view.
+enum CubeRoll { forward, backward, left, right }
+
+/// What a puzzle asks.
+///
+/// This used to be an English sentence baked into the puzzle by the
+/// generator, which is why "The bottom of Cube 1 touches the top of Cube 2"
+/// showed up in English no matter the app language -- there was no German
+/// string for it to have. The question now travels as data and the screen
+/// renders it through the normal localization, so a new language needs no
+/// change here.
+enum CubeQuestionKind {
+  /// One face you cannot see, on a single cube.
+  hiddenFace,
+
+  /// The total of the three faces of a single cube that are turned away.
   hiddenFaceSum,
 
-  /// "What value is on face X of die Y?" (multi-die, grade 3-4)
-  chainedHiddenFace,
+  /// A named face after the cube has been rolled a few times.
+  rollToFace,
+
+  /// Every pip that is hidden across a stack or row of cubes -- the faces
+  /// turned away, the undersides, and the faces where the cubes touch.
+  hiddenPips,
+}
+
+class CubeScannerQuestion {
+  final CubeQuestionKind kind;
+
+  /// The face asked about, for [CubeQuestionKind.hiddenFace] and
+  /// [CubeQuestionKind.rollToFace].
+  final CubeFace? face;
+
+  /// The rolls to carry out, for [CubeQuestionKind.rollToFace].
+  final List<CubeRoll> rolls;
+
+  /// How many cubes are on the board.
+  final int diceCount;
+
+  const CubeScannerQuestion({
+    required this.kind,
+    this.face,
+    this.rolls = const [],
+    this.diceCount = 1,
+  });
 }
 
 /// Arrangement of multiple dice.
@@ -175,20 +213,16 @@ class CubeScannerPuzzle {
   final List<Die> dice;
   final List<VisibleFaces> visibleFaces;
   final DiceArrangement arrangement;
-  final String questionText;
+  final CubeScannerQuestion question;
   final int correctAnswer;
   final List<int> choices; // 5 options including the correct one
   int get diceCount => dice.length;
-
-  // Kept for backward compatibility with existing code references
-  Map<int, String> get questions => {0: questionText};
-  Map<int, int> get correctAnswers => {0: correctAnswer};
 
   CubeScannerPuzzle({
     required this.dice,
     required this.visibleFaces,
     required this.arrangement,
-    required this.questionText,
+    required this.question,
     required this.correctAnswer,
     required this.choices,
   });
@@ -199,227 +233,310 @@ class CubeScannerGenerator {
 
   CubeScannerGenerator({int? seed}) : _random = math.Random(seed);
 
+  /// Pick a puzzle for this grade and level.
+  ///
+  /// Every grade draws from more than one question type. The old generator
+  /// gave grades 3 and 4 exactly one shape of question each, and both of them
+  /// were answerable without any deduction at all: in the stack, cube 2's
+  /// bottom works out to cube 1's *visible* top face every single time, and in
+  /// the row, cube 1's right face works out to cube 3's visible right face.
+  /// Both were solvable by copying a number off the screen, and there was only
+  /// ever the one of them to play.
   CubeScannerPuzzle generate({required int grade, required int level}) {
-    if (grade <= 1 && level <= 3) {
-      return _generateSingleDie(grade, level); // easy intro
-    } else if (grade <= 2) {
-      // Alternate between bottom-face and rotation puzzles
-      return _random.nextBool()
-          ? _generateSingleDie(grade, level)
-          : _generateRollPuzzle(grade, level);
-    } else if (grade == 3) {
-      return _generateStackedDice(level);
-    } else {
-      return level > 6
-          ? _generateRowDice(level)
-          : _generateStackedDice(level);
+    final g = grade.clamp(1, 4);
+
+    final List<CubeScannerPuzzle Function()> options;
+    switch (g) {
+      case 1:
+        options = level <= 3
+            ? [() => _singleHiddenFace(easy: true)]
+            : [
+                () => _singleHiddenFace(easy: false),
+                _singleHiddenSum,
+              ];
+      case 2:
+        options = [
+          _singleHiddenSum,
+          () => _rollPuzzle(rollCount: level <= 8 ? 1 : 2),
+          () => _singleHiddenFace(easy: false),
+        ];
+      case 3:
+        options = [
+          _stackHiddenPips,
+          () => _rollPuzzle(rollCount: level <= 10 ? 2 : 3),
+        ];
+      default:
+        options = [
+          () => _rowHiddenPips(diceCount: 3),
+          () => _rollPuzzle(rollCount: 3),
+          _stackHiddenPips,
+        ];
     }
+
+    return options[_random.nextInt(options.length)]();
   }
 
   // ---------------------------------------------------------------------------
-  // Single die (grade 1-2)
+  // Single die
   // ---------------------------------------------------------------------------
-  CubeScannerPuzzle _generateSingleDie(int grade, int level) {
+
+  /// "Which value is on the {bottom|back|left} face?"
+  ///
+  /// [easy] pins the question to the bottom face, which is the one the
+  /// onboarding works through. Past that the back and left faces come up too,
+  /// so the same drawing does not always ask the same thing.
+  CubeScannerPuzzle _singleHiddenFace({required bool easy}) {
     final die = Die.random(_random);
-    // Isometric view: always show top, front, right
     final visible = VisibleFaces(
       top: die.top,
       front: die.front,
       right: die.right,
     );
 
-    int correctAnswer;
-    String questionText;
+    const askable = [CubeFace.bottom, CubeFace.back, CubeFace.left];
+    final face = easy
+        ? CubeFace.bottom
+        : askable[_random.nextInt(askable.length)];
 
-    final bool askBottomFace = grade <= 1 || level <= 4;
+    final answer = switch (face) {
+      CubeFace.bottom => die.bottom,
+      CubeFace.back => die.back,
+      CubeFace.left => die.left,
+      CubeFace.top => die.top,
+      CubeFace.front => die.front,
+      CubeFace.right => die.right,
+    };
 
-    if (askBottomFace) {
-      // "What is on the BOTTOM face?"
-      correctAnswer = die.bottom; // = 7 - top
-      questionText = 'What value is on the BOTTOM face?';
-    } else {
-      // "What is the sum of the three HIDDEN faces?"
-      correctAnswer = 21 - visible.visibleSum;
-      questionText = 'What is the sum of the 3 hidden faces?';
-    }
-
-    // Choices MUST match the question type's valid range
-    final choices = askBottomFace
-        ? _generateChoices(correctAnswer, min: 1, max: 6)
-        : _generateChoices(correctAnswer, min: 3, max: 18);
+    // The tempting mistake is reading off the face you can see instead of its
+    // opposite, so that value is deliberately among the choices.
+    final trap = 7 - answer;
 
     return CubeScannerPuzzle(
       dice: [die],
       visibleFaces: [visible],
       arrangement: DiceArrangement.single,
-      questionText: questionText,
-      correctAnswer: correctAnswer,
-      choices: choices,
+      question: CubeScannerQuestion(kind: CubeQuestionKind.hiddenFace, face: face),
+      correctAnswer: answer,
+      choices: _choices(answer, min: 1, max: 6, tempting: [trap]),
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Roll puzzle: show a die, describe rolls, ask what's on top
-  // ---------------------------------------------------------------------------
-  CubeScannerPuzzle _generateRollPuzzle(int grade, int level) {
-    var die = Die.random(_random);
-
-    // Generate 1-3 rolls depending on level
-    final rollCount = level <= 5 ? 1 : (level <= 10 ? 2 : 3);
-    const rollNames = ['forward', 'backward', 'left', 'right'];
-    final rolls = <String>[];
-
-    for (int i = 0; i < rollCount; i++) {
-      final rollType = rollNames[_random.nextInt(rollNames.length)];
-      rolls.add(rollType);
-      switch (rollType) {
-        case 'forward': die = die.rollForward(); break;
-        case 'backward': die = die.rollBackward(); break;
-        case 'left': die = die.rollLeft(); break;
-        case 'right': die = die.rollRight(); break;
-      }
-    }
-
-    // Show the initial die state
-    final initialDie = Die.random(_random);
-    var resultDie = initialDie;
-    final actualRolls = <String>[];
-    for (int i = 0; i < rollCount; i++) {
-      final rollType = rollNames[_random.nextInt(rollNames.length)];
-      actualRolls.add(rollType);
-      switch (rollType) {
-        case 'forward': resultDie = resultDie.rollForward(); break;
-        case 'backward': resultDie = resultDie.rollBackward(); break;
-        case 'left': resultDie = resultDie.rollLeft(); break;
-        case 'right': resultDie = resultDie.rollRight(); break;
-      }
-    }
-
+  /// "What is the total of the three faces you cannot see?"
+  CubeScannerPuzzle _singleHiddenSum() {
+    final die = Die.random(_random);
     final visible = VisibleFaces(
-      top: initialDie.top,
-      front: initialDie.front,
-      right: initialDie.right,
+      top: die.top,
+      front: die.front,
+      right: die.right,
     );
-
-    final rollDesc = actualRolls.join(', then ');
-    final questionText = 'Roll $rollDesc. What is on TOP?';
-    final correctAnswer = resultDie.top;
-    final choices = _generateChoices(correctAnswer, min: 1, max: 6);
+    final answer = 21 - visible.visibleSum;
 
     return CubeScannerPuzzle(
-      dice: [initialDie],
+      dice: [die],
       visibleFaces: [visible],
       arrangement: DiceArrangement.single,
-      questionText: questionText,
-      correctAnswer: correctAnswer,
-      choices: choices,
+      question: const CubeScannerQuestion(kind: CubeQuestionKind.hiddenFaceSum),
+      correctAnswer: answer,
+      // Adding up what you *can* see instead is the classic slip.
+      choices: _choices(answer, min: 3, max: 18, tempting: [visible.visibleSum]),
     );
   }
 
   // ---------------------------------------------------------------------------
-  // Two dice stacked vertically (grade 3)
-  // Bottom of die1 touches top of die2 -- touching faces are EQUAL.
+  // Rolling
   // ---------------------------------------------------------------------------
-  CubeScannerPuzzle _generateStackedDice(int level) {
-    final die1 = Die.random(_random);
-    // die1.bottom == die2.top  (touching faces equal)
-    final touchValue = die1.bottom;
 
-    // Find an orientation for die2 where top == touchValue
-    Die? die2;
-    Die._cachedOrientations ??= Die._allOrientations();
-    final candidates = Die._cachedOrientations!
-        .where((d) => d.top == touchValue)
+  /// "Roll the cube forward, then right. Which value is then on top?"
+  ///
+  /// The only question in the game that needs the cube turned in the head
+  /// rather than a face swapped for 7 minus itself, so it appears from grade 2
+  /// upward and deepens with the level.
+  CubeScannerPuzzle _rollPuzzle({required int rollCount}) {
+    final start = Die.random(_random);
+    final visible = VisibleFaces(
+      top: start.top,
+      front: start.front,
+      right: start.right,
+    );
+
+    var die = start;
+    final rolls = <CubeRoll>[];
+    for (int i = 0; i < rollCount; i++) {
+      // Undoing the roll just made would waste a step and make the puzzle
+      // shorter than it looks.
+      CubeRoll roll;
+      do {
+        roll = CubeRoll.values[_random.nextInt(CubeRoll.values.length)];
+      } while (rolls.isNotEmpty && roll == _opposite(rolls.last));
+      rolls.add(roll);
+      die = switch (roll) {
+        CubeRoll.forward => die.rollForward(),
+        CubeRoll.backward => die.rollBackward(),
+        CubeRoll.left => die.rollLeft(),
+        CubeRoll.right => die.rollRight(),
+      };
+    }
+
+    const askable = [CubeFace.top, CubeFace.front, CubeFace.right];
+    final face = askable[_random.nextInt(askable.length)];
+    final answer = switch (face) {
+      CubeFace.top => die.top,
+      CubeFace.front => die.front,
+      CubeFace.right => die.right,
+      CubeFace.bottom => die.bottom,
+      CubeFace.back => die.back,
+      CubeFace.left => die.left,
+    };
+
+    // Forgetting to roll at all, and rolling one step too far, are the two
+    // mistakes worth catching.
+    final notRolled = switch (face) {
+      CubeFace.top => start.top,
+      CubeFace.front => start.front,
+      _ => start.right,
+    };
+
+    return CubeScannerPuzzle(
+      dice: [start],
+      visibleFaces: [visible],
+      arrangement: DiceArrangement.single,
+      question: CubeScannerQuestion(
+        kind: CubeQuestionKind.rollToFace,
+        face: face,
+        rolls: rolls,
+      ),
+      correctAnswer: answer,
+      choices: _choices(answer, min: 1, max: 6, tempting: [notRolled, 7 - answer]),
+    );
+  }
+
+  static CubeRoll _opposite(CubeRoll roll) => switch (roll) {
+        CubeRoll.forward => CubeRoll.backward,
+        CubeRoll.backward => CubeRoll.forward,
+        CubeRoll.left => CubeRoll.right,
+        CubeRoll.right => CubeRoll.left,
+      };
+
+  // ---------------------------------------------------------------------------
+  // Several cubes: count the pips you cannot see
+  // ---------------------------------------------------------------------------
+
+  /// Two cubes stacked, touching faces equal: "how many pips are hidden?"
+  ///
+  /// Answering needs the fact that a cube carries 21 pips altogether
+  /// (1+2+3+4+5+6), so the hidden total is 42 minus everything on show. That
+  /// is several steps and the answer is not a number anywhere on the board --
+  /// the point of replacing the old stack question, whose answer was always
+  /// cube 1's visible top face.
+  CubeScannerPuzzle _stackHiddenPips() {
+    final die1 = Die.random(_random);
+
+    // The cubes touch, and touching faces carry the same value.
+    final candidates = (Die._cachedOrientations ??= Die._allOrientations())
+        .where((d) => d.top == die1.bottom)
         .toList();
-    die2 = candidates[_random.nextInt(candidates.length)];
+    final die2 = candidates[_random.nextInt(candidates.length)];
 
     final vis1 = VisibleFaces(top: die1.top, front: die1.front, right: die1.right);
-    final vis2 = VisibleFaces(top: null, front: die2.front, right: die2.right);
-    // die2.top is hidden (touching face)
+    // Cube 2's top is the face cube 1 is standing on, so it is not on show.
+    final vis2 = VisibleFaces(front: die2.front, right: die2.right);
 
-    // Ask about die2's bottom, which requires chaining:
-    // die1.bottom = X, die2.top = X, die2.bottom = 7 - X
-    final correctAnswer = die2.bottom;
-    const questionText =
-        'The bottom of Cube 1 touches the top of Cube 2 (touching faces are equal).\n'
-        'What value is on the BOTTOM of Cube 2?';
-
-    final choices = _generateChoices(correctAnswer, min: 1, max: 6);
+    final shown = vis1.visibleSum + vis2.visibleSum;
+    final answer = 42 - shown;
 
     return CubeScannerPuzzle(
       dice: [die1, die2],
       visibleFaces: [vis1, vis2],
       arrangement: DiceArrangement.verticalStack,
-      questionText: questionText,
-      correctAnswer: correctAnswer,
-      choices: choices,
+      question: const CubeScannerQuestion(
+        kind: CubeQuestionKind.hiddenPips,
+        diceCount: 2,
+      ),
+      correctAnswer: answer,
+      // Counting one cube instead of two, and adding up what is on show, are
+      // the two ways this goes wrong.
+      choices: _choices(answer, min: 10, max: 38, tempting: [21 - shown, shown]),
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Three dice in a row (grade 4)
-  // die1.right == die2.left, die2.right == die3.left
-  // ---------------------------------------------------------------------------
-  CubeScannerPuzzle _generateRowDice(int level) {
-    final die1 = Die.random(_random);
-    final touch1 = die1.right; // die1.right == die2.left
+  /// Three cubes side by side, touching faces equal: "how many pips are
+  /// hidden?" -- 63 minus everything on show.
+  CubeScannerPuzzle _rowHiddenPips({required int diceCount}) {
+    final orientations = Die._cachedOrientations ??= Die._allOrientations();
 
-    Die._cachedOrientations ??= Die._allOrientations();
+    final dice = <Die>[Die.random(_random)];
+    for (int i = 1; i < diceCount; i++) {
+      final touch = dice.last.right; // right face meets the next cube's left
+      final candidates = orientations.where((d) => d.left == touch).toList();
+      dice.add(candidates[_random.nextInt(candidates.length)]);
+    }
 
-    // Find die2 where left == touch1
-    final candidates2 = Die._cachedOrientations!
-        .where((d) => d.left == touch1)
-        .toList();
-    final die2 = candidates2[_random.nextInt(candidates2.length)];
+    // Only the last cube's right face is free; the others are pressed against
+    // their neighbour.
+    final visible = <VisibleFaces>[
+      for (int i = 0; i < diceCount; i++)
+        VisibleFaces(
+          top: dice[i].top,
+          front: dice[i].front,
+          right: i == diceCount - 1 ? dice[i].right : null,
+        ),
+    ];
 
-    final touch2 = die2.right; // die2.right == die3.left
-    final candidates3 = Die._cachedOrientations!
-        .where((d) => d.left == touch2)
-        .toList();
-    final die3 = candidates3[_random.nextInt(candidates3.length)];
-
-    final vis1 = VisibleFaces(top: die1.top, front: die1.front);
-    final vis2 = VisibleFaces(top: die2.top, front: die2.front);
-    final vis3 = VisibleFaces(top: die3.top, front: die3.front, right: die3.right);
-
-    // Ask about die3's bottom (requires knowing die3.top -> bottom = 7 - top)
-    // Or ask about die2's right (hidden, equals die3's left = 7 - die3.right)
-    // Let's ask about die1's right face (hidden, requires deduction)
-    final correctAnswer = die1.right;
-    const questionText =
-        'Three cubes in a row. Each cube\'s right face touches the next cube\'s left face (touching faces are equal).\n'
-        'What value is on the RIGHT face of Cube 1?';
-
-    final choices = _generateChoices(correctAnswer, min: 1, max: 6);
+    int shown = 0;
+    for (final v in visible) {
+      shown += v.visibleSum;
+    }
+    final answer = 21 * diceCount - shown;
 
     return CubeScannerPuzzle(
-      dice: [die1, die2, die3],
-      visibleFaces: [vis1, vis2, vis3],
+      dice: dice,
+      visibleFaces: visible,
       arrangement: DiceArrangement.horizontalRow,
-      questionText: questionText,
-      correctAnswer: correctAnswer,
-      choices: choices,
+      question: CubeScannerQuestion(
+        kind: CubeQuestionKind.hiddenPips,
+        diceCount: diceCount,
+      ),
+      correctAnswer: answer,
+      choices: _choices(answer,
+          min: 20, max: 60, tempting: [shown, 21 * diceCount - shown - 7]),
     );
   }
 
   // ---------------------------------------------------------------------------
-  // Generate 5 multiple-choice options including the correct answer
+  // Multiple choice
   // ---------------------------------------------------------------------------
-  List<int> _generateChoices(int correct, {required int min, required int max}) {
+
+  /// Five options: the answer, any [tempting] near-misses that still fit the
+  /// range, then neighbours of the answer.
+  ///
+  /// Distractors used to be drawn uniformly from the whole range, which left
+  /// the right answer guessable whenever it sat far from the rest.
+  List<int> _choices(
+    int correct, {
+    required int min,
+    required int max,
+    List<int> tempting = const [],
+  }) {
     final choices = <int>{correct};
-    int attempts = 0;
-    while (choices.length < 5 && attempts < 100) {
-      final candidate = min + _random.nextInt(max - min + 1);
-      choices.add(candidate);
-      attempts++;
+
+    for (final t in tempting) {
+      if (choices.length >= 5) break;
+      if (t >= min && t <= max) choices.add(t);
     }
-    // If we couldn't get 5 unique, fill with sequential
-    int fill = min;
-    while (choices.length < 5) {
-      choices.add(fill);
-      fill++;
+
+    // Neighbours, closest first, so the options cluster around the answer.
+    for (int d = 1; d <= max - min && choices.length < 5; d++) {
+      for (final candidate in [correct - d, correct + d]) {
+        if (choices.length >= 5) break;
+        if (candidate >= min && candidate <= max) choices.add(candidate);
+      }
     }
-    final list = choices.toList()..shuffle(_random);
-    return list;
+
+    // Only reachable if the range itself holds fewer than five values.
+    for (int v = min; v <= max && choices.length < 5; v++) {
+      choices.add(v);
+    }
+
+    return choices.toList()..shuffle(_random);
   }
 }

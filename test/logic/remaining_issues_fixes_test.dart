@@ -275,8 +275,8 @@ void main() {
   group('Ion Chain — circular validation', () {
     test('circular check catches last-to-first violation', () {
       final rule = IonRule(
-        description: 'No two red adjacent',
-        descriptionDe: 'test',
+        kind: IonRuleKind.noSelfPair,
+        a: IonType.red,
         check: (left, right) {
           if (left == null || right == null) return true;
           return !(left == IonType.red && right == IonType.red);

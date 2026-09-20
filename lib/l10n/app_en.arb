@@ -1633,6 +1633,34 @@
   "cubeScannerTitle": "Cube Scanner",
   "cubeScannerDesc": "Alien data cubes have been recovered! Your scanner reveals some faces, but others are hidden. Use the rule -- opposite faces always sum to 7 -- to deduce the hidden values.",
   "cubeScannerInstructions": "Study the visible faces of each cube. Opposite faces sum to 7. Determine the hidden face values.",
+  "cubeScannerScanned": "scanned",
+  "cubeScannerHidden": "hidden",
+  "cubeScannerFaceTop": "top",
+  "cubeScannerFaceFront": "front",
+  "cubeScannerFaceRight": "right",
+  "cubeScannerFaceLeft": "left",
+  "cubeScannerFaceBack": "back",
+  "cubeScannerFaceBottom": "bottom",
+  "cubeScannerRollForward": "forward",
+  "cubeScannerRollBackward": "backward",
+  "cubeScannerRollLeft": "to the left",
+  "cubeScannerRollRight": "to the right",
+  "cubeScannerRollJoin": ", then ",
+  "cubeScannerQHiddenFace": "Which value is on the {face} face?",
+  "@cubeScannerQHiddenFace": {
+    "placeholders": { "face": { "type": "String" } }
+  },
+  "cubeScannerQHiddenFaceSum": "What is the total of the three faces you cannot see?",
+  "cubeScannerQRoll": "Tip the cube {rolls}. Which value is then on the {face} face?",
+  "@cubeScannerQRoll": {
+    "placeholders": {
+      "rolls": { "type": "String" },
+      "face": { "type": "String" }
+    }
+  },
+  "cubeScannerQHiddenPipsStack": "The cubes are stacked, and the faces that touch carry the same value. How many pips are on all the faces you cannot see?",
+  "cubeScannerQHiddenPipsRow": "The cubes stand in a row, and the faces that touch carry the same value. How many pips are on all the faces you cannot see?",
+  "cubeScannerOnboardTotal": "Because the three pairs each add up to 7, a whole cube carries 21 pips: 1+2+3+4+5+6. Two cubes carry 42, three carry 63 — that is how you work out what is hidden without seeing it.",
   "cubeScannerWinTitle": "Cubes Decoded!",
   "cubeScannerWinDesc": "All cube data extracted! Your analysis earned {bonusScore} scanner points.",
   "@cubeScannerWinDesc": {
@@ -1737,8 +1765,15 @@
   "launchSequenceLoseTitle": "Sequence Error!",
   "launchSequenceLoseDesc": "The fleet is still out of order. Keep swapping adjacent ships, Commander.",
   "starForgeTitle": "Star Forge",
-  "starForgeDesc": "Ignite a new star! Distribute energy values across the forge nodes so every plasma arm carries the same total charge. The star ignites when all arms align!",
-  "starForgeInstructions": "Place numbers in the empty nodes. Each line through the star must have the same sum.",
+  "starForgeDesc": "Ignite a new star! Every arm of the star covers four nodes. Place the energy values so that all the arms carry exactly the same total charge.",
+  "starForgeInstructions": "Each arm covers 4 nodes. Fill the empty nodes so every arm reaches the target total. Tap a total to see the arm it belongs to.",
+  "starForgeArmTotal": "Arm total",
+  "starForgeTarget": "Target",
+  "starForgeHowToPlay": "How to play",
+  "starForgeOnboardArm": "The star has arms. Each arm covers exactly 4 nodes: two outer points and the two nodes between them. Here the lit arm holds 1, 10, 2 and 9 — together 22.",
+  "starForgeOnboardOverlap": "Neighbouring arms share two nodes (ringed in white). So a number you place counts towards two arms at once — that is what makes the puzzle a puzzle.",
+  "starForgeOnboardGoal": "You win when every arm reaches the same total. The target is shown at the top of the screen, and every arm carries its own running total on the outside. Green means that arm is right.",
+  "starForgeOnboardPlace": "Drag a number from the tray onto an empty node. Tap a placed number to take it back. Each number is used exactly once. Tap an arm's total to light up the four nodes it covers.",
   "starForgeWinTitle": "Star Ignited!",
   "starForgeWinDesc": "A brilliant new star blazes to life! Your forge mastery earned {bonusScore} fusion points.",
   "@starForgeWinDesc": {
@@ -2200,6 +2235,23 @@
   "creatureForgeNewSpecies": "NEW SPECIES!",
   "creatureForgeAdd": "ADD",
   "ionChainRules": "RULES",
+  "ionChainShapeStar": "Star",
+  "ionChainShapeCircle": "Circle",
+  "ionChainShapeHexagon": "Hexagon",
+  "ionChainShapeDiamond": "Diamond",
+  "ionChainShapeTriangle": "Triangle",
+  "ionChainRuleNoSelfPair": "Two {shape}s may not be neighbours",
+  "@ionChainRuleNoSelfPair": {
+    "placeholders": { "shape": { "type": "String" } }
+  },
+  "ionChainRuleNoMixedPair": "{shapeA} may not be next to {shapeB}",
+  "@ionChainRuleNoMixedPair": {
+    "placeholders": {
+      "shapeA": { "type": "String" },
+      "shapeB": { "type": "String" }
+    }
+  },
+  "ionChainRuleNoRepeatAtAll": "No two identical shapes may be neighbours",
   "ionChainRing": "ION RING",
   "ionChainAvailableBeads": "AVAILABLE BEADS",
   "ionChainRuleViolation": "Rule violation! This bead can't go here.",
@@ -2575,6 +2627,11 @@
   "voidCrossingPyrowyrm": "Pyrowyrm",
   "voidCrossingOnShuttle": "On shuttle:",
   "voidCrossingTapToUnload": "Tap to unload from shuttle",
+  "voidCrossingSeats": "Seats",
+  "voidCrossingShuttleFull": "{seats, plural, =1{The shuttle has only one seat. Fly this one across first, or tap it to unload.} other{The shuttle only seats {seats}. Tap a boarded creature to unload it.}}",
+  "@voidCrossingShuttleFull": {
+    "placeholders": { "seats": { "type": "num", "format": "compact" } }
+  },
   "gridFillerTitle": "Grid Filler",
   "gridFillerDesc": "Fill a grid with square pieces — no gaps allowed!",
   "missionHubTitle": "Space Missions",

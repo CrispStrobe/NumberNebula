@@ -1567,6 +1567,34 @@
   "cubeScannerTitle": "Würfel-Scanner",
   "cubeScannerDesc": "Alien-Datenwürfel wurden geborgen! Dein Scanner zeigt einige Seiten, aber andere sind verborgen. Nutze die Regel -- gegenüber liegende Seiten ergeben immer 7 -- um die versteckten Werte zu bestimmen.",
   "cubeScannerInstructions": "Studiere die sichtbaren Seiten jedes Würfels. Gegenüber liegende Seiten ergeben 7. Bestimme die versteckten Seitenwerte.",
+  "cubeScannerScanned": "gescannt",
+  "cubeScannerHidden": "verdeckt",
+  "cubeScannerFaceTop": "obere",
+  "cubeScannerFaceFront": "vordere",
+  "cubeScannerFaceRight": "rechte",
+  "cubeScannerFaceLeft": "linke",
+  "cubeScannerFaceBack": "hintere",
+  "cubeScannerFaceBottom": "untere",
+  "cubeScannerRollForward": "nach vorne",
+  "cubeScannerRollBackward": "nach hinten",
+  "cubeScannerRollLeft": "nach links",
+  "cubeScannerRollRight": "nach rechts",
+  "cubeScannerRollJoin": ", dann ",
+  "cubeScannerQHiddenFace": "Welche Zahl steht auf der {face} Seite?",
+  "@cubeScannerQHiddenFace": {
+    "placeholders": { "face": { "type": "String" } }
+  },
+  "cubeScannerQHiddenFaceSum": "Wie groß ist die Summe der drei Seiten, die du nicht sehen kannst?",
+  "cubeScannerQRoll": "Kippe den Würfel {rolls}. Welche Zahl steht dann auf der {face} Seite?",
+  "@cubeScannerQRoll": {
+    "placeholders": {
+      "rolls": { "type": "String" },
+      "face": { "type": "String" }
+    }
+  },
+  "cubeScannerQHiddenPipsStack": "Die Würfel sind gestapelt, und die Seiten, die sich berühren, tragen dieselbe Zahl. Wie viele Augen liegen auf allen Seiten, die du nicht sehen kannst?",
+  "cubeScannerQHiddenPipsRow": "Die Würfel stehen in einer Reihe, und die Seiten, die sich berühren, tragen dieselbe Zahl. Wie viele Augen liegen auf allen Seiten, die du nicht sehen kannst?",
+  "cubeScannerOnboardTotal": "Weil die drei Paare je 7 ergeben, trägt ein ganzer Würfel 21 Augen: 1+2+3+4+5+6. Zwei Würfel tragen 42, drei tragen 63 — so rechnest du aus, was verdeckt ist, ohne es zu sehen.",
   "cubeScannerWinTitle": "Würfel entschlüsselt!",
   "cubeScannerWinDesc": "Alle Würfeldaten extrahiert! Deine Analyse hat {bonusScore} Scannerpunkte eingebracht.",
   "@cubeScannerWinDesc": {
@@ -1634,7 +1662,7 @@
   "dockClearanceLoseDesc": "Kein freier Weg zum Ausgang. Versuche, zuerst andere Schiffe zu verschieben, Commander.",
   "ionChainTitle": "Ionen-Ring",
   "ionChainDesc": "Vervollständige den Ionen-Ring! Ordne geladene Teilchen um die Plasmaschleife an, sodass jedes Nachbarpaar die Regeln erfüllt. Eine falsche Platzierung und der Ring wird instabil!",
-  "ionChainInstructions": "Ziehe Ionen auf den Ring. Lies die Regeln: Manche Formen durfen nicht nebeneinander stehen. Der Ring ist kreisformig — die letzte Perle grenzt an die erste!",
+  "ionChainInstructions": "Ziehe Ionen auf den Ring. Lies die Regeln: Manche Formen dürfen nicht nebeneinander stehen. Der Ring ist kreisförmig — die letzte Perle grenzt an die erste!",
   "ionChainWinTitle": "Ring stabilisiert!",
   "ionChainWinDesc": "Das Plasma fließt in einer perfekten Schleife! Du hast {bonusScore} Chemiepunkte verdient.",
   "@ionChainWinDesc": {
@@ -1671,8 +1699,15 @@
   "launchSequenceLoseTitle": "Sequenzfehler!",
   "launchSequenceLoseDesc": "Die Flotte ist immer noch durcheinander. Tausche weiter benachbarte Schiffe, Commander.",
   "starForgeTitle": "Sternen-Schmiede",
-  "starForgeDesc": "Entzünde einen neuen Stern! Verteile Energiewerte auf die Schmiedeknoten, sodass jeder Plasmaarm die gleiche Gesamtladung tragt. Der Stern entzündet sich, wenn alle Arme übereinstimmen!",
-  "starForgeInstructions": "Platziere Zahlen in die leeren Knoten. Jede Linie durch den Stern muss die gleiche Summe haben.",
+  "starForgeDesc": "Zünde einen neuen Stern! Jeder Arm des Sterns umfasst vier Knoten. Verteile die Energiewerte so, dass alle Arme genau dieselbe Gesamtladung tragen.",
+  "starForgeInstructions": "Jeder Arm umfasst 4 Knoten. Fülle die leeren Knoten, sodass jeder Arm die Zielsumme erreicht. Tippe eine Summe an, um ihren Arm zu sehen.",
+  "starForgeArmTotal": "Arm-Summe",
+  "starForgeTarget": "Ziel",
+  "starForgeHowToPlay": "Spielanleitung",
+  "starForgeOnboardArm": "Der Stern hat Arme. Jeder Arm umfasst genau 4 Knoten: zwei äußere Spitzen und die beiden Knoten dazwischen. Hier enthält der leuchtende Arm 1, 10, 2 und 9 — zusammen 22.",
+  "starForgeOnboardOverlap": "Benachbarte Arme teilen sich zwei Knoten (weiß umrandet). Eine Zahl, die du setzt, zählt also für zwei Arme gleichzeitig — genau das macht die Aufgabe zum Rätsel.",
+  "starForgeOnboardGoal": "Du gewinnst, wenn jeder Arm dieselbe Summe erreicht. Das Ziel steht oben am Bildschirm, und jeder Arm zeigt außen seine eigene Zwischensumme. Grün heißt: dieser Arm stimmt.",
+  "starForgeOnboardPlace": "Ziehe eine Zahl aus der Ablage auf einen leeren Knoten. Tippe eine gesetzte Zahl an, um sie zurückzunehmen. Jede Zahl wird genau einmal benutzt. Tippe die Summe eines Arms an, um seine vier Knoten aufleuchten zu lassen.",
   "starForgeWinTitle": "Stern entzündet!",
   "starForgeWinDesc": "Ein strahlender neuer Stern erwacht zum Leben! Deine Schmiedekunst hat {bonusScore} Fusionspunkte eingebracht.",
   "@starForgeWinDesc": {
@@ -2134,6 +2169,23 @@
   "creatureForgeNewSpecies": "NEUE SPEZIES!",
   "creatureForgeAdd": "HINZUFÜGEN",
   "ionChainRules": "REGELN",
+  "ionChainShapeStar": "Stern",
+  "ionChainShapeCircle": "Kreis",
+  "ionChainShapeHexagon": "Sechseck",
+  "ionChainShapeDiamond": "Raute",
+  "ionChainShapeTriangle": "Dreieck",
+  "ionChainRuleNoSelfPair": "Zwei {shape} dürfen nicht nebeneinander stehen",
+  "@ionChainRuleNoSelfPair": {
+    "placeholders": { "shape": { "type": "String" } }
+  },
+  "ionChainRuleNoMixedPair": "{shapeA} darf nicht neben {shapeB} stehen",
+  "@ionChainRuleNoMixedPair": {
+    "placeholders": {
+      "shapeA": { "type": "String" },
+      "shapeB": { "type": "String" }
+    }
+  },
+  "ionChainRuleNoRepeatAtAll": "Keine zwei gleichen Formen dürfen nebeneinander stehen",
   "ionChainRing": "IONEN-RING",
   "ionChainAvailableBeads": "VERFÜGBARE PERLEN",
   "ionChainRuleViolation": "Regelverletzung! Diese Perle passt hier nicht.",
@@ -2509,6 +2561,11 @@
   "voidCrossingPyrowyrm": "Pyrowurm",
   "voidCrossingOnShuttle": "Im Shuttle:",
   "voidCrossingTapToUnload": "Tippe zum Ausladen aus dem Shuttle",
+  "voidCrossingSeats": "Plätze",
+  "voidCrossingShuttleFull": "{seats, plural, =1{Das Shuttle hat nur einen Platz. Bringe dieses Wesen zuerst hinüber oder tippe es an, um es auszuladen.} other{Das Shuttle hat nur {seats} Plätze. Tippe ein eingestiegenes Wesen an, um es auszuladen.}}",
+  "@voidCrossingShuttleFull": {
+    "placeholders": { "seats": { "type": "num", "format": "compact" } }
+  },
   "gridFillerTitle": "Rasterfüller",
   "gridFillerDesc": "Fülle ein Raster mit quadratischen Teilen — keine Lücken erlaubt!",
   "missionHubTitle": "Weltraum-Missionen",

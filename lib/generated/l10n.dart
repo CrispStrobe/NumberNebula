@@ -4942,6 +4942,120 @@ abstract class S {
   /// **'Study the visible faces of each cube. Opposite faces sum to 7. Determine the hidden face values.'**
   String get cubeScannerInstructions;
 
+  /// No description provided for @cubeScannerScanned.
+  ///
+  /// In en, this message translates to:
+  /// **'scanned'**
+  String get cubeScannerScanned;
+
+  /// No description provided for @cubeScannerHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'hidden'**
+  String get cubeScannerHidden;
+
+  /// No description provided for @cubeScannerFaceTop.
+  ///
+  /// In en, this message translates to:
+  /// **'top'**
+  String get cubeScannerFaceTop;
+
+  /// No description provided for @cubeScannerFaceFront.
+  ///
+  /// In en, this message translates to:
+  /// **'front'**
+  String get cubeScannerFaceFront;
+
+  /// No description provided for @cubeScannerFaceRight.
+  ///
+  /// In en, this message translates to:
+  /// **'right'**
+  String get cubeScannerFaceRight;
+
+  /// No description provided for @cubeScannerFaceLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'left'**
+  String get cubeScannerFaceLeft;
+
+  /// No description provided for @cubeScannerFaceBack.
+  ///
+  /// In en, this message translates to:
+  /// **'back'**
+  String get cubeScannerFaceBack;
+
+  /// No description provided for @cubeScannerFaceBottom.
+  ///
+  /// In en, this message translates to:
+  /// **'bottom'**
+  String get cubeScannerFaceBottom;
+
+  /// No description provided for @cubeScannerRollForward.
+  ///
+  /// In en, this message translates to:
+  /// **'forward'**
+  String get cubeScannerRollForward;
+
+  /// No description provided for @cubeScannerRollBackward.
+  ///
+  /// In en, this message translates to:
+  /// **'backward'**
+  String get cubeScannerRollBackward;
+
+  /// No description provided for @cubeScannerRollLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'to the left'**
+  String get cubeScannerRollLeft;
+
+  /// No description provided for @cubeScannerRollRight.
+  ///
+  /// In en, this message translates to:
+  /// **'to the right'**
+  String get cubeScannerRollRight;
+
+  /// No description provided for @cubeScannerRollJoin.
+  ///
+  /// In en, this message translates to:
+  /// **', then '**
+  String get cubeScannerRollJoin;
+
+  /// No description provided for @cubeScannerQHiddenFace.
+  ///
+  /// In en, this message translates to:
+  /// **'Which value is on the {face} face?'**
+  String cubeScannerQHiddenFace(String face);
+
+  /// No description provided for @cubeScannerQHiddenFaceSum.
+  ///
+  /// In en, this message translates to:
+  /// **'What is the total of the three faces you cannot see?'**
+  String get cubeScannerQHiddenFaceSum;
+
+  /// No description provided for @cubeScannerQRoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip the cube {rolls}. Which value is then on the {face} face?'**
+  String cubeScannerQRoll(String rolls, String face);
+
+  /// No description provided for @cubeScannerQHiddenPipsStack.
+  ///
+  /// In en, this message translates to:
+  /// **'The cubes are stacked, and the faces that touch carry the same value. How many pips are on all the faces you cannot see?'**
+  String get cubeScannerQHiddenPipsStack;
+
+  /// No description provided for @cubeScannerQHiddenPipsRow.
+  ///
+  /// In en, this message translates to:
+  /// **'The cubes stand in a row, and the faces that touch carry the same value. How many pips are on all the faces you cannot see?'**
+  String get cubeScannerQHiddenPipsRow;
+
+  /// No description provided for @cubeScannerOnboardTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Because the three pairs each add up to 7, a whole cube carries 21 pips: 1+2+3+4+5+6. Two cubes carry 42, three carry 63 — that is how you work out what is hidden without seeing it.'**
+  String get cubeScannerOnboardTotal;
+
   /// No description provided for @cubeScannerWinTitle.
   ///
   /// In en, this message translates to:
@@ -5185,14 +5299,56 @@ abstract class S {
   /// No description provided for @starForgeDesc.
   ///
   /// In en, this message translates to:
-  /// **'Ignite a new star! Distribute energy values across the forge nodes so every plasma arm carries the same total charge. The star ignites when all arms align!'**
+  /// **'Ignite a new star! Every arm of the star covers four nodes. Place the energy values so that all the arms carry exactly the same total charge.'**
   String get starForgeDesc;
 
   /// No description provided for @starForgeInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Place numbers in the empty nodes. Each line through the star must have the same sum.'**
+  /// **'Each arm covers 4 nodes. Fill the empty nodes so every arm reaches the target total. Tap a total to see the arm it belongs to.'**
   String get starForgeInstructions;
+
+  /// No description provided for @starForgeArmTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm total'**
+  String get starForgeArmTotal;
+
+  /// No description provided for @starForgeTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get starForgeTarget;
+
+  /// No description provided for @starForgeHowToPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'How to play'**
+  String get starForgeHowToPlay;
+
+  /// No description provided for @starForgeOnboardArm.
+  ///
+  /// In en, this message translates to:
+  /// **'The star has arms. Each arm covers exactly 4 nodes: two outer points and the two nodes between them. Here the lit arm holds 1, 10, 2 and 9 — together 22.'**
+  String get starForgeOnboardArm;
+
+  /// No description provided for @starForgeOnboardOverlap.
+  ///
+  /// In en, this message translates to:
+  /// **'Neighbouring arms share two nodes (ringed in white). So a number you place counts towards two arms at once — that is what makes the puzzle a puzzle.'**
+  String get starForgeOnboardOverlap;
+
+  /// No description provided for @starForgeOnboardGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'You win when every arm reaches the same total. The target is shown at the top of the screen, and every arm carries its own running total on the outside. Green means that arm is right.'**
+  String get starForgeOnboardGoal;
+
+  /// No description provided for @starForgeOnboardPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a number from the tray onto an empty node. Tap a placed number to take it back. Each number is used exactly once. Tap an arm\'s total to light up the four nodes it covers.'**
+  String get starForgeOnboardPlace;
 
   /// No description provided for @starForgeWinTitle.
   ///
@@ -6184,6 +6340,54 @@ abstract class S {
   /// **'RULES'**
   String get ionChainRules;
 
+  /// No description provided for @ionChainShapeStar.
+  ///
+  /// In en, this message translates to:
+  /// **'Star'**
+  String get ionChainShapeStar;
+
+  /// No description provided for @ionChainShapeCircle.
+  ///
+  /// In en, this message translates to:
+  /// **'Circle'**
+  String get ionChainShapeCircle;
+
+  /// No description provided for @ionChainShapeHexagon.
+  ///
+  /// In en, this message translates to:
+  /// **'Hexagon'**
+  String get ionChainShapeHexagon;
+
+  /// No description provided for @ionChainShapeDiamond.
+  ///
+  /// In en, this message translates to:
+  /// **'Diamond'**
+  String get ionChainShapeDiamond;
+
+  /// No description provided for @ionChainShapeTriangle.
+  ///
+  /// In en, this message translates to:
+  /// **'Triangle'**
+  String get ionChainShapeTriangle;
+
+  /// No description provided for @ionChainRuleNoSelfPair.
+  ///
+  /// In en, this message translates to:
+  /// **'Two {shape}s may not be neighbours'**
+  String ionChainRuleNoSelfPair(String shape);
+
+  /// No description provided for @ionChainRuleNoMixedPair.
+  ///
+  /// In en, this message translates to:
+  /// **'{shapeA} may not be next to {shapeB}'**
+  String ionChainRuleNoMixedPair(String shapeA, String shapeB);
+
+  /// No description provided for @ionChainRuleNoRepeatAtAll.
+  ///
+  /// In en, this message translates to:
+  /// **'No two identical shapes may be neighbours'**
+  String get ionChainRuleNoRepeatAtAll;
+
   /// No description provided for @ionChainRing.
   ///
   /// In en, this message translates to:
@@ -7011,6 +7215,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Tap to unload from shuttle'**
   String get voidCrossingTapToUnload;
+
+  /// No description provided for @voidCrossingSeats.
+  ///
+  /// In en, this message translates to:
+  /// **'Seats'**
+  String get voidCrossingSeats;
+
+  /// No description provided for @voidCrossingShuttleFull.
+  ///
+  /// In en, this message translates to:
+  /// **'{seats, plural, =1{The shuttle has only one seat. Fly this one across first, or tap it to unload.} other{The shuttle only seats {seats}. Tap a boarded creature to unload it.}}'**
+  String voidCrossingShuttleFull(num seats);
 
   /// No description provided for @gridFillerTitle.
   ///

@@ -145,7 +145,19 @@ class DieHiddenFacesDiagram extends StatelessWidget {
   /// The three faces the scanner shows: top, left-front, right-front.
   final List<int> visible;
 
-  const DieHiddenFacesDiagram({super.key, this.visible = const [2, 3, 1]});
+  /// Row captions, passed in already localized. They used to be the English
+  /// literals "scanned" and "hidden" written straight into this file, which
+  /// is exactly the kind of player-visible text that has no business living
+  /// outside the ARB.
+  final String scannedLabel;
+  final String hiddenLabel;
+
+  const DieHiddenFacesDiagram({
+    super.key,
+    required this.scannedLabel,
+    required this.hiddenLabel,
+    this.visible = const [2, 3, 1],
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +165,7 @@ class DieHiddenFacesDiagram extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _row(
-          label: 'scanned',
+          label: scannedLabel,
           colour: SpaceTheme.alienGreen,
           faces: visible,
           dimmed: false,
@@ -163,7 +175,7 @@ class DieHiddenFacesDiagram extends StatelessWidget {
             size: 18, color: Colors.white.withValues(alpha: 0.5)),
         const SizedBox(height: 10),
         _row(
-          label: 'hidden',
+          label: hiddenLabel,
           colour: SpaceTheme.rocketRed,
           faces: visible.map((v) => 7 - v).toList(),
           dimmed: true,
@@ -213,6 +225,83 @@ class DieHiddenFacesDiagram extends StatelessWidget {
                       ),
                     ],
                   ],
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Where 21 comes from: the three pairs of 7 laid end to end.
+///
+/// The multi-cube questions all rest on a cube carrying 21 pips altogether,
+/// and two or three cubes carrying 42 or 63. Nothing on the board says so, and
+/// it is not a fact a child is expected to already have -- but it falls
+/// straight out of the pairs they have just been shown.
+class DieTotalPipsDiagram extends StatelessWidget {
+  const DieTotalPipsDiagram({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (final v in const [1, 2, 3, 4, 5, 6])
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: DieFace(value: v, size: 30),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '7 + 7 + 7 = 21',
+          style: SpaceTheme.headlineStyle.copyWith(
+            fontSize: 18,
+            color: SpaceTheme.alienGreen,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (final entry in const [[1, 21], [2, 42], [3, 63]])
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: SpaceTheme.starYellow.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${entry[0]} \u00d7 ',
+                        style: SpaceTheme.bodyStyle.copyWith(
+                          fontSize: 12,
+                          color: SpaceTheme.starYellow,
+                        ),
+                      ),
+                      const DieFace(value: 6, size: 16),
+                      Text(
+                        ' = ${entry[1]}',
+                        style: SpaceTheme.bodyStyle.copyWith(
+                          fontSize: 12,
+                          color: SpaceTheme.starYellow,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
           ],

@@ -111,7 +111,8 @@ void main() {
                 reason: "the generator's own solution fails its rules -- $where");
 
             // The same rule listed twice reads as two constraints.
-            final shown = p.rules.map((r) => r.description).toList();
+            final shown =
+                p.rules.map((r) => '${r.kind}:${r.a}:${r.b}').toList();
             expect(shown.toSet().length, shown.length,
                 reason: 'duplicate rule shown to the player -- $where');
 

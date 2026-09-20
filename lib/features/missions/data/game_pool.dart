@@ -183,12 +183,21 @@ String gameTitleFor(S s, String gameKey) {
 /// menu and never picked for a mission. Remove a key from here once its game
 /// works -- that is the only step needed to ship it.
 const Set<String> debugOnlyGames = {
-  // Fixed (generation was searching for an impossible magic constant, then
-  // falling back to a layout whose lines did not sum equally) -- still held
-  // back pending a play-through in the app.
+  // Fixed twice. First: generation searched for an impossible magic constant,
+  // then fell back to a layout whose lines did not sum equally. Then a
+  // play-through showed the board still made no sense -- the nodes were drawn
+  // on two rings in an order that did not follow the outline, so an "arm" was
+  // a bent polyline crossing its neighbours and "each line must have the same
+  // sum" named nothing a player could point at. The layout now puts every arm
+  // on four neighbouring points of the star outline, each arm carries its own
+  // running total, and there is an illustrated walkthrough. Held back pending
+  // another play-through.
   'star_forge',
   // Fixed (legal moves could strand the player with an unfillable slot, and
-  // the same rule could be listed twice) -- held back pending a play-through.
+  // the same rule could be listed twice). A play-through then showed the rules
+  // were unreadable: they named shapes in words ("Raute", "Stern") that the
+  // board only ever draws, so each rule is now drawn as the two beads it
+  // forbids. Held back pending another play-through.
   'ion_chain',
   // Fixed (there was no losing condition at all, so tapping every coin in
   // turn solved it for free and the arithmetic was never worth doing)
@@ -196,15 +205,24 @@ const Set<String> debugOnlyGames = {
   'galactic_market',
   // Fixed (nothing on the board said opposite faces sum to 7, nor that the
   // hidden faces are exactly the ones opposite the visible ones -- there is an
-  // onboarding that draws both now) -- held back pending a play-through.
+  // onboarding that draws both now). A play-through then found two more: the
+  // question text was English literals baked into the generator, so German
+  // players read "The bottom of Cube 1 ..."; and the questions were trivial --
+  // the grade 3 and grade 4 answers both worked out to a number already
+  // printed on the board. Questions now travel as data through the normal
+  // localization, and each grade draws from several kinds. Held back pending
+  // another play-through.
   'cube_scanner',
   // Fixed (a misplaced piece could not be taken back off the grid, and the
   // long-press that did it was invisible -- there is a remove button now)
   // -- held back pending a play-through.
   'relic_assembly',
   // Fixed (the onboarding described the conflict rule and then told the player
-  // to look it up elsewhere; it draws the situation now) -- held back pending
-  // a play-through.
+  // to look it up elsewhere; it draws the situation now). A play-through then
+  // found that tapping a second creature onto a one-seat shuttle did nothing
+  // at all -- no movement and no message -- which reads as a broken game
+  // rather than a full one; the seats are drawn now and a refused boarding
+  // says why. Held back pending another play-through.
   'void_crossing',
 };
 

@@ -1,6 +1,6 @@
 # Remaining Work -- Game Quality Fixes
 
-Status as of 2026-09-17.
+Status as of 2026-09-20.
 
 ## 2026-09-14 SESSION
 
@@ -12,17 +12,56 @@ shipping one again means deleting its key from that set -- nothing else.
 
 | Game | Why it was pulled | State |
 | --- | --- | --- |
-| Sternen-Schmiede (`star_forge`) | Generation searched for a magic constant that cannot exist, so all 200 CSP attempts timed out (~16 min of spinner), then fell back to a layout whose lines did not sum equally | **Fixed** -- needs a play-through |
-| Ionen-Ring (`ion_chain`) | Legal moves could strand the player with an unfillable slot (45% of puzzles), with no feedback; the same rule could also be listed twice | **Fixed** -- needs a play-through |
+| Sternen-Schmiede (`star_forge`) | Generation searched for a magic constant that cannot exist, so all 200 CSP attempts timed out (~16 min of spinner), then fell back to a layout whose lines did not sum equally. Fixed, but a play-through showed the board itself still made no sense: nodes were drawn on two rings in an order that did not follow the outline, so an "arm" was a bent polyline crossing its neighbours and "each line must have the same sum" named nothing a player could point at | **Fixed again** -- needs a play-through |
+| Ionen-Ring (`ion_chain`) | Legal moves could strand the player with an unfillable slot (45% of puzzles), with no feedback; the same rule could also be listed twice. A play-through then showed the rules named shapes in words ("Raute", "Stern") the board only ever draws | **Fixed again** -- needs a play-through |
 | Relikte-Puzzle (`relic_assembly`) | Pieces could only be removed by an undiscoverable long-press; the generator's random rotation was dead state, so no puzzle ever needed rotating | **Fixed** -- needs a play-through |
 | Galaktischer Markt (`galactic_market`) | There was no losing condition at all, so tapping every coin in turn solved it for free and the arithmetic was never worth doing | **Fixed** -- needs a play-through |
-| Würfel-Scanner (`cube_scanner`) | Nothing on the board said opposite faces sum to 7, nor that the hidden faces are exactly the ones opposite the visible ones | **Fixed** -- needs a play-through |
-| Void-Überquerung (`void_crossing`) | The onboarding described the conflict rule in words and then told the player to look it up elsewhere | **Fixed** -- needs a play-through |
+| Würfel-Scanner (`cube_scanner`) | Nothing on the board said opposite faces sum to 7, nor that the hidden faces are exactly the ones opposite the visible ones. A play-through then found the question text was English literals baked into the generator, and that the questions were trivial -- the grade 3 and grade 4 answers both worked out to a number already printed on the board | **Fixed again** -- needs a play-through |
+| Void-Überquerung (`void_crossing`) | The onboarding described the conflict rule in words and then told the player to look it up elsewhere. A play-through then found that tapping a second creature onto a one-seat shuttle did nothing at all -- no movement, no message | **Fixed again** -- needs a play-through |
 
 All six are fixed in code and all six are still gated. The only thing between
 them and players is someone playing each one once; shipping one is deleting its
 key from `debugOnlyGames` in `lib/features/missions/data/game_pool.dart` and
 nothing else. Unlock the debug menu with seven taps on the home screen title.
+
+## 2026-09-20 SESSION -- second play-through of the four gated puzzles
+
+A play-through of the gated games turned up a distinct class of problem from
+the first round. The first round fixed puzzles that were *unsolvable*; this
+round fixed puzzles that were solvable but *unreadable or not worth solving*.
+
+1. **Void-Überquerung** -- at boat capacity 1, tapping a second creature did
+   nothing: no movement, no haptic, no message. The capacity was shown as a
+   bare "1 / 1" in small grey text. Seats are now drawn as chairs, filled and
+   empty, and a refused boarding says why.
+2. **Sternen-Schmiede** -- the geometry did not match the puzzle. Nodes sat on
+   two rings in an order that did not follow the outline, so each "line" was a
+   bent polyline crossing its neighbours. The layout now puts every arm on four
+   *neighbouring* points of the star outline; every arm carries its own running
+   total against the target, tapping a total lights the four nodes it covers,
+   and there is a four-step illustrated walkthrough drawn from a solved board.
+   The task description no longer talks about "lines".
+3. **Ionen-Ring** -- rules were sentences naming shapes ("Raute darf nicht
+   neben Stern stehen") that the board only ever draws, so the player had to
+   guess which word meant which icon. `IonRule` now carries what it forbids as
+   data; each rule is drawn as the two beads with a red slash through them,
+   with the sentence kept underneath and localized.
+4. **Würfel-Scanner** -- two problems. The question text was English string
+   literals built inside the generator, which is why "The bottom of Cube 1..."
+   appeared in German play. And the questions were trivial: the grade 3 answer
+   always worked out to cube 1's *visible* top face and the grade 4 answer to
+   cube 3's *visible* right face, so both were solvable by copying a number off
+   the screen -- and each grade had exactly one question shape. Questions are
+   now data rendered through the ARB, every grade draws from several kinds, the
+   multi-cube questions ask for the total hidden pips (21 per cube minus what
+   is drawn, never a number on screen), and distractors cluster around the
+   answer instead of being scattered.
+
+Tests added or rewritten: `star_forge_geometry_test.dart` (an arm really is
+four neighbouring outline positions; the worked example really is a solved
+board), the Star Forge diagram tests, and a rewritten
+`cube_scanner_logic_test.dart` -- which had been asserting the degenerate
+answers as if they were the specification.
 
 `game_pool.dart` is the source of truth for what is gated and why -- each key
 there carries its own note. This table is a summary of it and can go stale, as

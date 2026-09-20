@@ -15,6 +15,8 @@ import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../services/star_forge_logic.dart';
+import '../widgets/star_forge_diagram.dart';
+import '../../../shared/widgets/onboarding_overlay.dart';
 import 'package:flutter/foundation.dart';
 
 class StarForgeGame extends StatefulWidget {
@@ -40,6 +42,11 @@ class _StarForgeGameState extends State<StarForgeGame>
   int _movesRemaining = 0;
   int _maxMoves = 0;
 
+  /// Arm whose four nodes are lit up, set by tapping its total. Nothing else
+  /// on the board says which nodes an arm covers, and the arms overlap, so
+  /// being able to ask "show me this one" is what makes the target readable.
+  int? _highlightedArm;
+
   /// Cells the player has to fill — a flawless solve places each exactly
   /// once, so it doubles as the optimal move count for the performance grade.
   int _optimalMoves = 0;
@@ -64,8 +71,80 @@ class _StarForgeGameState extends State<StarForgeGame>
         final gp = context.read<GameProvider>();
         currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
         _generatePuzzle();
+        _showOnboarding(onlyIfUnseen: true);
       }
     });
+  }
+
+  /// The walkthrough. Shown once on a player's first visit and again from the
+  /// help button.
+  ///
+  /// "Each line through the star must have the same sum" was the whole of the
+  /// old explanation, and it was wrong twice over: nothing on the board was a
+  /// line a player could trace, and the sentence never said what a line was
+  /// made of or that neighbouring ones share nodes. All four steps here are
+  /// drawn on a solved 5-point star, so every claim is one the player can
+  /// check by counting.
+  void _showOnboarding({bool onlyIfUnseen = false}) {
+    final s = S.of(context)!;
+    final steps = [
+      OnboardingStep(
+        icon: Icons.hub,
+        body: s.starForgeOnboardArm,
+        illustration: const StarForgeArmDiagram(),
+      ),
+      OnboardingStep(
+        icon: Icons.join_inner,
+        body: s.starForgeOnboardOverlap,
+        illustration: const StarForgeOverlapDiagram(),
+      ),
+      OnboardingStep(
+        icon: Icons.auto_awesome,
+        body: s.starForgeOnboardGoal,
+        illustration: const StarForgeGoalDiagram(),
+      ),
+      OnboardingStep(
+        icon: Icons.touch_app,
+        body: s.starForgeOnboardPlace,
+      ),
+    ];
+
+    if (onlyIfUnseen) {
+      OnboardingOverlay.maybeShow(
+        context,
+        gameKey: 'star_forge',
+        title: s.starForgeTitle,
+        steps: steps,
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => OnboardingOverlay(
+        title: s.starForgeTitle,
+        steps: steps,
+        onDismiss: () => Navigator.of(dialogContext).pop(),
+      ),
+    );
+  }
+
+  /// What the arm at [armIdx] currently adds up to, and whether all four of
+  /// its nodes are filled. Clues and placed numbers count alike.
+  ({int sum, bool complete}) _armTotal(int armIdx) {
+    final line = puzzle!.lines[armIdx];
+    int sum = 0;
+    bool complete = true;
+    for (final nodeIdx in line) {
+      final v = puzzle!.clues[nodeIdx] ?? userSolution[nodeIdx];
+      if (v == null) {
+        complete = false;
+      } else {
+        sum += v;
+      }
+    }
+    return (sum: sum, complete: complete);
   }
 
   @override
@@ -106,6 +185,7 @@ class _StarForgeGameState extends State<StarForgeGame>
     setState(() {
       _isGenerating = true;
       userSolution.clear();
+      _highlightedArm = null;
       successController.reset();
     });
 
@@ -354,6 +434,22 @@ class _StarForgeGameState extends State<StarForgeGame>
                 level: widget.level,
                 onBack: () => Navigator.of(context).pop(),
               ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: TextButton.icon(
+                    onPressed: _showOnboarding,
+                    icon: const Icon(Icons.help_outline,
+                        size: 18, color: SpaceTheme.starYellow),
+                    label: Text(
+                      s.starForgeHowToPlay,
+                      style: const TextStyle(
+                          color: SpaceTheme.starYellow, fontSize: 13),
+                    ),
+                  ),
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Row(
@@ -378,12 +474,28 @@ class _StarForgeGameState extends State<StarForgeGame>
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.5)),
                       ),
-                      child: Text(
-                        '∑ ${puzzle!.magicConstant}',
-                        style: SpaceTheme.headlineStyle.copyWith(
-                          fontSize: 18,
-                          color: SpaceTheme.starYellow,
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            s.starForgeTarget.toUpperCase(),
+                            style: SpaceTheme.bodyStyle.copyWith(
+                              fontSize: 9,
+                              height: 1.0,
+                              letterSpacing: 1.2,
+                              color: SpaceTheme.starYellow
+                                  .withValues(alpha: 0.85),
+                            ),
+                          ),
+                          Text(
+                            '${puzzle!.magicConstant}',
+                            style: SpaceTheme.headlineStyle.copyWith(
+                              fontSize: 18,
+                              height: 1.1,
+                              color: SpaceTheme.starYellow,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -428,12 +540,17 @@ class _StarForgeGameState extends State<StarForgeGame>
                   width: size,
                   height: size,
                   child: CustomPaint(
-                    painter: _StarLinePainter(
-                      puzzle: puzzle!,
+                    painter: StarForgeOutlinePainter(
+                      points: puzzle!.points,
+                      highlightedArm: _highlightedArm,
                       glowValue: glowAnimation.value,
                     ),
                     child: Stack(
-                      children: _buildNodeWidgets(size),
+                      clipBehavior: Clip.none,
+                      children: [
+                        ..._buildArmBadges(size),
+                        ..._buildNodeWidgets(size),
+                      ],
                     ),
                   ),
                 );
@@ -449,26 +566,29 @@ class _StarForgeGameState extends State<StarForgeGame>
     final widgets = <Widget>[];
     final points = puzzle!.points;
     final nodeCount = puzzle!.nodeCount;
-    final center = Offset(areaSize / 2, areaSize / 2);
-    final outerRadius = areaSize * 0.42;
-    final innerRadius = areaSize * 0.2;
     final nodeSize = areaSize * 0.09;
 
+    // Nodes that belong to the arm the player asked to see.
+    final litNodes = _highlightedArm == null
+        ? const <int>{}
+        : puzzle!.lines[_highlightedArm!].toSet();
+
     for (int i = 0; i < nodeCount; i++) {
-      final pos = _getNodePosition(i, points, center, outerRadius, innerRadius);
+      final pos = StarForgeGeometry.nodeCenter(i, points, areaSize);
       final isClue = puzzle!.clues.containsKey(i);
       final value = isClue ? puzzle!.clues[i] : userSolution[i];
+      final lit = litNodes.contains(i);
 
       Widget nodeWidget;
       if (isClue) {
-        nodeWidget = _buildClueNode(value!, nodeSize);
+        nodeWidget = _buildClueNode(value!, nodeSize, lit);
       } else if (userSolution.containsKey(i)) {
         nodeWidget = GestureDetector(
           onTap: () => _removeNumber(i),
-          child: _buildFilledNode(value!, nodeSize, i == _lastDroppedNode),
+          child: _buildFilledNode(value!, nodeSize, i == _lastDroppedNode, lit),
         );
       } else {
-        nodeWidget = _buildEmptyNode(i, nodeSize);
+        nodeWidget = _buildEmptyNode(i, nodeSize, lit);
       }
 
       widgets.add(Positioned(
@@ -481,18 +601,101 @@ class _StarForgeGameState extends State<StarForgeGame>
     return widgets;
   }
 
-  Offset _getNodePosition(int idx, int points, Offset center, double outerR, double innerR) {
-    final isOuter = idx < points;
-    final angle = (idx < points ? idx : idx - points) * (2 * math.pi / points) - math.pi / 2;
-    final radius = isOuter ? outerR : innerR;
-    final adjustedAngle = isOuter ? angle : angle + math.pi / points;
-    return Offset(
-      center.dx + radius * math.cos(adjustedAngle),
-      center.dy + radius * math.sin(adjustedAngle),
-    );
+  /// One badge per arm, sitting outside the middle of the four nodes it
+  /// covers: what that arm adds up to right now, against the target.
+  ///
+  /// This is the feedback the game had none of. Before, a board was either
+  /// accepted or rejected wholesale once the last number went down, with no
+  /// way to tell which arm was wrong or how far off it was.
+  List<Widget> _buildArmBadges(double areaSize) {
+    final s = S.of(context)!;
+    final points = puzzle!.points;
+    final target = puzzle!.magicConstant;
+    final badges = <Widget>[];
+
+    for (int arm = 0; arm < puzzle!.lines.length; arm++) {
+      final pos = StarForgeGeometry.armBadgeCenter(arm, points, areaSize);
+      final total = _armTotal(arm);
+      final armColor = starArmColors[arm % starArmColors.length];
+      final isLit = _highlightedArm == arm;
+
+      final Color edge;
+      final IconData? mark;
+      if (!total.complete) {
+        edge = armColor;
+        mark = null;
+      } else if (total.sum == target) {
+        edge = SpaceTheme.alienGreen;
+        mark = Icons.check;
+      } else {
+        edge = SpaceTheme.rocketRed;
+        mark = Icons.close;
+      }
+
+      badges.add(Positioned(
+        left: pos.dx - 30,
+        top: pos.dy - 15,
+        width: 60,
+        height: 30,
+        child: Center(
+          child: Semantics(
+            label: '${s.starForgeArmTotal}: ${total.sum} / $target',
+            button: true,
+            child: GestureDetector(
+              onTap: () => setState(
+                  () => _highlightedArm = isLit ? null : arm),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isLit
+                      ? edge.withValues(alpha: 0.25)
+                      : SpaceTheme.deepSpace.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(9),
+                  border: Border.all(
+                      color: edge, width: isLit ? 2.5 : 1.5),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${total.sum}',
+                      style: SpaceTheme.bodyStyle.copyWith(
+                        fontSize: 13,
+                        height: 1.0,
+                        fontWeight: FontWeight.bold,
+                        color: edge,
+                      ),
+                    ),
+                    if (mark != null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 2),
+                        child: Icon(mark, size: 12, color: edge),
+                      )
+                    else
+                      Text(
+                        '/$target',
+                        style: SpaceTheme.bodyStyle.copyWith(
+                          fontSize: 10,
+                          height: 1.0,
+                          color: SpaceTheme.moonSilver
+                              .withValues(alpha: 0.8),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ));
+    }
+
+    return badges;
   }
 
-  Widget _buildClueNode(int value, double size) {
+  Widget _buildClueNode(int value, double size, bool lit) {
     return Container(
       width: size,
       height: size,
@@ -501,7 +704,9 @@ class _StarForgeGameState extends State<StarForgeGame>
         gradient: const LinearGradient(
           colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace],
         ),
-        border: Border.all(color: SpaceTheme.alienGreen, width: 2),
+        border: Border.all(
+            color: lit ? Colors.white : SpaceTheme.alienGreen,
+            width: lit ? 3 : 2),
       ),
       child: Center(
         child: Text(
@@ -512,14 +717,17 @@ class _StarForgeGameState extends State<StarForgeGame>
     );
   }
 
-  Widget _buildFilledNode(int value, double size, bool isLastDropped) {
+  Widget _buildFilledNode(
+      int value, double size, bool isLastDropped, bool lit) {
     Widget node = Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: SpaceTheme.starGradient,
-        border: Border.all(color: SpaceTheme.starYellow, width: 2),
+        border: Border.all(
+            color: lit ? Colors.white : SpaceTheme.starYellow,
+            width: lit ? 3 : 2),
       ),
       child: Center(
         child: Text(
@@ -535,7 +743,7 @@ class _StarForgeGameState extends State<StarForgeGame>
     return node;
   }
 
-  Widget _buildEmptyNode(int nodeIdx, double size) {
+  Widget _buildEmptyNode(int nodeIdx, double size, bool lit) {
     return DragTarget<int>(
       builder: (context, candidateData, rejectedData) {
         final isHovering = candidateData.isNotEmpty;
@@ -548,8 +756,12 @@ class _StarForgeGameState extends State<StarForgeGame>
                 ? SpaceTheme.starYellow.withValues(alpha: 0.5)
                 : SpaceTheme.deepSpace.withValues(alpha: 0.8),
             border: Border.all(
-              color: isHovering ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
-              width: 2,
+              color: isHovering
+                  ? SpaceTheme.starYellow
+                  : lit
+                      ? Colors.white
+                      : SpaceTheme.nebulaPurple,
+              width: lit ? 3 : 2,
             ),
           ),
           child: Center(
@@ -680,61 +892,4 @@ class _StarForgeGameState extends State<StarForgeGame>
       },
     );
   }
-}
-
-class _StarLinePainter extends CustomPainter {
-  final StarForgePuzzle puzzle;
-  final double glowValue;
-
-  _StarLinePainter({required this.puzzle, required this.glowValue});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final outerR = size.width * 0.42;
-    final innerR = size.width * 0.2;
-    final points = puzzle.points;
-
-    // Color-code each line so players can see which nodes belong together
-    const lineColors = [
-      Color(0xFFFF6B6B), // red
-      Color(0xFF4ECDC4), // teal
-      Color(0xFFFFD93D), // yellow
-      Color(0xFF6BCB77), // green
-      Color(0xFFBB86FC), // purple
-      Color(0xFFFF9F43), // orange
-      Color(0xFF45B7D1), // cyan
-    ];
-
-    for (int li = 0; li < puzzle.lines.length; li++) {
-      final line = puzzle.lines[li];
-      final lineColor = lineColors[li % lineColors.length];
-      final paint = Paint()
-        ..color = lineColor.withValues(alpha: 0.5 + 0.2 * glowValue)
-        ..strokeWidth = 3
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round;
-
-      for (int i = 0; i < line.length - 1; i++) {
-        final p1 = _getPos(line[i], points, center, outerR, innerR);
-        final p2 = _getPos(line[i + 1], points, center, outerR, innerR);
-        canvas.drawLine(p1, p2, paint);
-      }
-    }
-  }
-
-  Offset _getPos(int idx, int pts, Offset center, double outerR, double innerR) {
-    final isOuter = idx < pts;
-    final angle = (idx < pts ? idx : idx - pts) * (2 * math.pi / pts) - math.pi / 2;
-    final radius = isOuter ? outerR : innerR;
-    final adjustedAngle = isOuter ? angle : angle + math.pi / pts;
-    return Offset(
-      center.dx + radius * math.cos(adjustedAngle),
-      center.dy + radius * math.sin(adjustedAngle),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _StarLinePainter oldDelegate) =>
-      oldDelegate.glowValue != glowValue;
 }

@@ -10,14 +10,39 @@ import 'dart:math' as math;
 
 enum IonType { red, blue, green, yellow, purple }
 
+/// What a rule forbids. The screen renders each kind as a little picture --
+/// the two shapes it talks about, with a "no" mark between them -- so the
+/// rule does not depend on the player matching a word like "Raute" to a shape
+/// they have only ever seen drawn.
+enum IonRuleKind {
+  /// Two beads of type [IonRule.a] may not sit next to each other.
+  noSelfPair,
+
+  /// A bead of type [IonRule.a] may not sit next to one of type [IonRule.b].
+  noMixedPair,
+
+  /// No two beads of the *same* type may sit next to each other, whichever
+  /// type that is. Only the fallback generator produces this.
+  noRepeatAtAll,
+}
+
 class IonRule {
-  final String description;
-  final String descriptionDe;
+  /// Which of the three forbidden-neighbour shapes this rule is.
+  final IonRuleKind kind;
+
+  /// The first shape the rule names. Null only for [IonRuleKind.noRepeatAtAll],
+  /// which names no shape at all.
+  final IonType? a;
+
+  /// The second shape, set only for [IonRuleKind.noMixedPair].
+  final IonType? b;
+
   final bool Function(IonType?, IonType?) check;
 
   IonRule({
-    required this.description,
-    required this.descriptionDe,
+    required this.kind,
+    this.a,
+    this.b,
     required this.check,
   });
 }
@@ -116,8 +141,8 @@ class IonChainPuzzle {
   static final List<IonRule Function(IonType, IonType)> _ruleFactories = [
     // Rule: no two of type A adjacent
     (IonType a, IonType _) => IonRule(
-      description: 'No two ${_ionNameEn(a)}s adjacent',
-      descriptionDe: 'Keine zwei ${_ionNameDe(a)}e nebeneinander',
+      kind: IonRuleKind.noSelfPair,
+      a: a,
       check: (left, right) {
         if (left == null || right == null) return true;
         return !(left == a && right == a);
@@ -125,34 +150,15 @@ class IonChainPuzzle {
     ),
     // Rule: type A must not be next to type B
     (IonType a, IonType b) => IonRule(
-      description: '${_ionNameEn(a)} must not neighbor ${_ionNameEn(b)}',
-      descriptionDe: '${_ionNameDe(a)} darf nicht neben ${_ionNameDe(b)} stehen',
+      kind: IonRuleKind.noMixedPair,
+      a: a,
+      b: b,
       check: (left, right) {
         if (left == null || right == null) return true;
         return !((left == a && right == b) || (left == b && right == a));
       },
     ),
   ];
-
-  static String _ionNameEn(IonType type) {
-    switch (type) {
-      case IonType.red: return 'Star';
-      case IonType.blue: return 'Circle';
-      case IonType.green: return 'Hexagon';
-      case IonType.yellow: return 'Diamond';
-      case IonType.purple: return 'Triangle';
-    }
-  }
-
-  static String _ionNameDe(IonType type) {
-    switch (type) {
-      case IonType.red: return 'Stern';
-      case IonType.blue: return 'Kreis';
-      case IonType.green: return 'Sechseck';
-      case IonType.yellow: return 'Raute';
-      case IonType.purple: return 'Dreieck';
-    }
-  }
 
   /// Generate a puzzle using backtracking CSP.
   static IonChainPuzzle generate({
@@ -230,16 +236,16 @@ class IonChainPuzzle {
     do { typeB = types[rng.nextInt(types.length)]; } while (typeB == typeA);
 
     final noSameAdjacent = IonRule(
-      description: 'No two same-shaped ions adjacent',
-      descriptionDe: 'Keine zwei gleichförmigen Ionen nebeneinander',
+      kind: IonRuleKind.noRepeatAtAll,
       check: (left, right) {
         if (left == null || right == null) return true;
         return left != right;
       },
     );
     final pairExclusion = IonRule(
-      description: '${_ionNameEn(typeA)} must not neighbor ${_ionNameEn(typeB)}',
-      descriptionDe: '${_ionNameDe(typeA)} darf nicht neben ${_ionNameDe(typeB)} stehen',
+      kind: IonRuleKind.noMixedPair,
+      a: typeA,
+      b: typeB,
       check: (left, right) {
         if (left == null || right == null) return true;
         return !((left == typeA && right == typeB) || (left == typeB && right == typeA));

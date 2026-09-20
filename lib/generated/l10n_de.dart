@@ -2846,6 +2846,71 @@ class SDe extends S {
       'Studiere die sichtbaren Seiten jedes Würfels. Gegenüber liegende Seiten ergeben 7. Bestimme die versteckten Seitenwerte.';
 
   @override
+  String get cubeScannerScanned => 'gescannt';
+
+  @override
+  String get cubeScannerHidden => 'verdeckt';
+
+  @override
+  String get cubeScannerFaceTop => 'obere';
+
+  @override
+  String get cubeScannerFaceFront => 'vordere';
+
+  @override
+  String get cubeScannerFaceRight => 'rechte';
+
+  @override
+  String get cubeScannerFaceLeft => 'linke';
+
+  @override
+  String get cubeScannerFaceBack => 'hintere';
+
+  @override
+  String get cubeScannerFaceBottom => 'untere';
+
+  @override
+  String get cubeScannerRollForward => 'nach vorne';
+
+  @override
+  String get cubeScannerRollBackward => 'nach hinten';
+
+  @override
+  String get cubeScannerRollLeft => 'nach links';
+
+  @override
+  String get cubeScannerRollRight => 'nach rechts';
+
+  @override
+  String get cubeScannerRollJoin => ', dann ';
+
+  @override
+  String cubeScannerQHiddenFace(String face) {
+    return 'Welche Zahl steht auf der $face Seite?';
+  }
+
+  @override
+  String get cubeScannerQHiddenFaceSum =>
+      'Wie groß ist die Summe der drei Seiten, die du nicht sehen kannst?';
+
+  @override
+  String cubeScannerQRoll(String rolls, String face) {
+    return 'Kippe den Würfel $rolls. Welche Zahl steht dann auf der $face Seite?';
+  }
+
+  @override
+  String get cubeScannerQHiddenPipsStack =>
+      'Die Würfel sind gestapelt, und die Seiten, die sich berühren, tragen dieselbe Zahl. Wie viele Augen liegen auf allen Seiten, die du nicht sehen kannst?';
+
+  @override
+  String get cubeScannerQHiddenPipsRow =>
+      'Die Würfel stehen in einer Reihe, und die Seiten, die sich berühren, tragen dieselbe Zahl. Wie viele Augen liegen auf allen Seiten, die du nicht sehen kannst?';
+
+  @override
+  String get cubeScannerOnboardTotal =>
+      'Weil die drei Paare je 7 ergeben, trägt ein ganzer Würfel 21 Augen: 1+2+3+4+5+6. Zwei Würfel tragen 42, drei tragen 63 — so rechnest du aus, was verdeckt ist, ohne es zu sehen.';
+
+  @override
   String get cubeScannerWinTitle => 'Würfel entschlüsselt!';
 
   @override
@@ -2947,7 +3012,7 @@ class SDe extends S {
 
   @override
   String get ionChainInstructions =>
-      'Ziehe Ionen auf den Ring. Lies die Regeln: Manche Formen durfen nicht nebeneinander stehen. Der Ring ist kreisformig — die letzte Perle grenzt an die erste!';
+      'Ziehe Ionen auf den Ring. Lies die Regeln: Manche Formen dürfen nicht nebeneinander stehen. Der Ring ist kreisförmig — die letzte Perle grenzt an die erste!';
 
   @override
   String get ionChainWinTitle => 'Ring stabilisiert!';
@@ -2995,11 +3060,36 @@ class SDe extends S {
 
   @override
   String get starForgeDesc =>
-      'Entzünde einen neuen Stern! Verteile Energiewerte auf die Schmiedeknoten, sodass jeder Plasmaarm die gleiche Gesamtladung tragt. Der Stern entzündet sich, wenn alle Arme übereinstimmen!';
+      'Zünde einen neuen Stern! Jeder Arm des Sterns umfasst vier Knoten. Verteile die Energiewerte so, dass alle Arme genau dieselbe Gesamtladung tragen.';
 
   @override
   String get starForgeInstructions =>
-      'Platziere Zahlen in die leeren Knoten. Jede Linie durch den Stern muss die gleiche Summe haben.';
+      'Jeder Arm umfasst 4 Knoten. Fülle die leeren Knoten, sodass jeder Arm die Zielsumme erreicht. Tippe eine Summe an, um ihren Arm zu sehen.';
+
+  @override
+  String get starForgeArmTotal => 'Arm-Summe';
+
+  @override
+  String get starForgeTarget => 'Ziel';
+
+  @override
+  String get starForgeHowToPlay => 'Spielanleitung';
+
+  @override
+  String get starForgeOnboardArm =>
+      'Der Stern hat Arme. Jeder Arm umfasst genau 4 Knoten: zwei äußere Spitzen und die beiden Knoten dazwischen. Hier enthält der leuchtende Arm 1, 10, 2 und 9 — zusammen 22.';
+
+  @override
+  String get starForgeOnboardOverlap =>
+      'Benachbarte Arme teilen sich zwei Knoten (weiß umrandet). Eine Zahl, die du setzt, zählt also für zwei Arme gleichzeitig — genau das macht die Aufgabe zum Rätsel.';
+
+  @override
+  String get starForgeOnboardGoal =>
+      'Du gewinnst, wenn jeder Arm dieselbe Summe erreicht. Das Ziel steht oben am Bildschirm, und jeder Arm zeigt außen seine eigene Zwischensumme. Grün heißt: dieser Arm stimmt.';
+
+  @override
+  String get starForgeOnboardPlace =>
+      'Ziehe eine Zahl aus der Ablage auf einen leeren Knoten. Tippe eine gesetzte Zahl an, um sie zurückzunehmen. Jede Zahl wird genau einmal benutzt. Tippe die Summe eines Arms an, um seine vier Knoten aufleuchten zu lassen.';
 
   @override
   String get starForgeWinTitle => 'Stern entzündet!';
@@ -3607,6 +3697,35 @@ class SDe extends S {
   String get ionChainRules => 'REGELN';
 
   @override
+  String get ionChainShapeStar => 'Stern';
+
+  @override
+  String get ionChainShapeCircle => 'Kreis';
+
+  @override
+  String get ionChainShapeHexagon => 'Sechseck';
+
+  @override
+  String get ionChainShapeDiamond => 'Raute';
+
+  @override
+  String get ionChainShapeTriangle => 'Dreieck';
+
+  @override
+  String ionChainRuleNoSelfPair(String shape) {
+    return 'Zwei $shape dürfen nicht nebeneinander stehen';
+  }
+
+  @override
+  String ionChainRuleNoMixedPair(String shapeA, String shapeB) {
+    return '$shapeA darf nicht neben $shapeB stehen';
+  }
+
+  @override
+  String get ionChainRuleNoRepeatAtAll =>
+      'Keine zwei gleichen Formen dürfen nebeneinander stehen';
+
+  @override
   String get ionChainRing => 'IONEN-RING';
 
   @override
@@ -4095,6 +4214,27 @@ class SDe extends S {
 
   @override
   String get voidCrossingTapToUnload => 'Tippe zum Ausladen aus dem Shuttle';
+
+  @override
+  String get voidCrossingSeats => 'Plätze';
+
+  @override
+  String voidCrossingShuttleFull(num seats) {
+    final intl.NumberFormat seatsNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String seatsString = seatsNumberFormat.format(seats);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      seats,
+      locale: localeName,
+      other:
+          'Das Shuttle hat nur $seatsString Plätze. Tippe ein eingestiegenes Wesen an, um es auszuladen.',
+      one:
+          'Das Shuttle hat nur einen Platz. Bringe dieses Wesen zuerst hinüber oder tippe es an, um es auszuladen.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get gridFillerTitle => 'Rasterfüller';

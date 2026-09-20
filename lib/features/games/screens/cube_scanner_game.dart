@@ -91,7 +91,15 @@ class _CubeScannerGameState extends State<CubeScannerGame>
         OnboardingStep(
           icon: Icons.visibility_off,
           body: s.cubeScannerOnboardHidden,
-          illustration: const DieHiddenFacesDiagram(),
+          illustration: DieHiddenFacesDiagram(
+            scannedLabel: s.cubeScannerScanned,
+            hiddenLabel: s.cubeScannerHidden,
+          ),
+        ),
+        OnboardingStep(
+          icon: Icons.functions,
+          body: s.cubeScannerOnboardTotal,
+          illustration: const DieTotalPipsDiagram(),
         ),
         OnboardingStep(
           icon: Icons.keyboard,
@@ -472,7 +480,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
               ),
             ),
             child: Text(
-              puzzle.questionText,
+              _questionText(puzzle.question),
               style: SpaceTheme.bodyStyle.copyWith(
                 color: SpaceTheme.cosmicPink,
                 fontWeight: FontWeight.bold,
@@ -597,6 +605,52 @@ class _CubeScannerGameState extends State<CubeScannerGame>
         );
       },
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Question text
+  // ---------------------------------------------------------------------------
+
+  /// The puzzle carries its question as data, so the wording lives here and
+  /// goes through the normal localization.
+  String _faceName(CubeFace face) {
+    final s = S.of(context)!;
+    return switch (face) {
+      CubeFace.top => s.cubeScannerFaceTop,
+      CubeFace.front => s.cubeScannerFaceFront,
+      CubeFace.right => s.cubeScannerFaceRight,
+      CubeFace.left => s.cubeScannerFaceLeft,
+      CubeFace.back => s.cubeScannerFaceBack,
+      CubeFace.bottom => s.cubeScannerFaceBottom,
+    };
+  }
+
+  String _rollName(CubeRoll roll) {
+    final s = S.of(context)!;
+    return switch (roll) {
+      CubeRoll.forward => s.cubeScannerRollForward,
+      CubeRoll.backward => s.cubeScannerRollBackward,
+      CubeRoll.left => s.cubeScannerRollLeft,
+      CubeRoll.right => s.cubeScannerRollRight,
+    };
+  }
+
+  String _questionText(CubeScannerQuestion q) {
+    final s = S.of(context)!;
+    switch (q.kind) {
+      case CubeQuestionKind.hiddenFace:
+        return s.cubeScannerQHiddenFace(_faceName(q.face!));
+      case CubeQuestionKind.hiddenFaceSum:
+        return s.cubeScannerQHiddenFaceSum;
+      case CubeQuestionKind.rollToFace:
+        final rolls =
+            q.rolls.map(_rollName).join(s.cubeScannerRollJoin);
+        return s.cubeScannerQRoll(rolls, _faceName(q.face!));
+      case CubeQuestionKind.hiddenPips:
+        return _puzzle!.arrangement == DiceArrangement.verticalStack
+            ? s.cubeScannerQHiddenPipsStack
+            : s.cubeScannerQHiddenPipsRow;
+    }
   }
 
   Widget _buildActionButton() {

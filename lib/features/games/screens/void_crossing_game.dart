@@ -50,6 +50,12 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
   bool _showConflictWarning = false;
   bool _gameOver = false;
 
+  /// Set when a tap tried to board a creature the shuttle has no seat for.
+  /// Without it the tap did nothing at all -- no movement, no message -- and
+  /// a full shuttle read as a broken one.
+  bool _showShuttleFull = false;
+  int _shuttleFullToken = 0;
+
   @override
   void initState() {
     super.initState();
@@ -160,11 +166,28 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
         if (state.onShuttle.length < puzzle.boatCapacity) {
           state.currentBank.remove(entityId);
           state.onShuttle.add(entityId);
+          _showShuttleFull = false;
+        } else {
+          // Every seat taken. Say so instead of swallowing the tap.
+          _flagShuttleFull();
+          return;
         }
       }
       _showConflictWarning = false;
       _activeConflict = null;
       _updateLiveConflicts();
+    });
+  }
+
+  /// Show the "no free seat" notice and let it fade on its own. Called from
+  /// inside a setState, so it only flips the flag and schedules the clear.
+  void _flagShuttleFull() {
+    HapticFeedback.selectionClick();
+    _showShuttleFull = true;
+    final token = ++_shuttleFullToken;
+    Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted || token != _shuttleFullToken) return;
+      setState(() => _showShuttleFull = false);
     });
   }
 
@@ -219,6 +242,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
         state.movesTaken++;
         _isAnimating = false;
         _showConflictWarning = false;
+        _showShuttleFull = false;
         _liveConflictIds = {};
         _activeConflict = null;
       });
@@ -799,22 +823,87 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
                       ),
                     ),
                   ),
-                // Capacity indicator
+                // Seat counter. A bare "1 / 1" in small grey text did not
+                // read as a limit, so the seats are drawn: one filled chair
+                // per passenger, one hollow chair per free seat.
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
-                  child: Text(
-                    '${state.onShuttle.length} / ${puzzle.boatCapacity}',
-                    style: SpaceTheme.bodyStyle.copyWith(
-                      fontSize: 11,
-                      color: SpaceTheme.moonSilver,
+                  child: _buildSeatRow(state, puzzle),
+                ),
+                // Why a tap just did nothing.
+                if (_showShuttleFull)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: SpaceTheme.starYellow.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: SpaceTheme.starYellow.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      child: Text(
+                        s.voidCrossingShuttleFull(puzzle.boatCapacity),
+                        style: SpaceTheme.bodyStyle.copyWith(
+                          fontSize: 11,
+                          color: SpaceTheme.starYellow,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  /// "Seats: [chair][chair-outline]" -- how many the shuttle has and how many
+  /// are still free, at a glance.
+  Widget _buildSeatRow(
+    VoidCrossingGameState state, VoidCrossingPuzzle puzzle) {
+    final s = S.of(context)!;
+    final taken = state.onShuttle.length;
+    return Semantics(
+      label: '${s.voidCrossingSeats}: $taken / ${puzzle.boatCapacity}',
+      child: ExcludeSemantics(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${s.voidCrossingSeats} ',
+              style: SpaceTheme.bodyStyle.copyWith(
+                fontSize: 11,
+                color: SpaceTheme.moonSilver,
+              ),
+            ),
+            for (int i = 0; i < puzzle.boatCapacity; i++)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 1),
+                child: Icon(
+                  i < taken
+                      ? Icons.airline_seat_recline_normal
+                      : Icons.airline_seat_recline_normal_outlined,
+                  size: 15,
+                  color: i < taken
+                      ? SpaceTheme.starYellow
+                      : SpaceTheme.moonSilver.withValues(alpha: 0.45),
+                ),
+              ),
+            Text(
+              ' $taken/${puzzle.boatCapacity}',
+              style: SpaceTheme.bodyStyle.copyWith(
+                fontSize: 11,
+                color: SpaceTheme.moonSilver,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

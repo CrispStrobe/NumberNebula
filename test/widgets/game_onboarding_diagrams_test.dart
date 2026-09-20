@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:space_math_academy/features/games/widgets/cube_scanner_diagram.dart';
+import 'package:space_math_academy/features/games/widgets/star_forge_diagram.dart';
 import 'package:space_math_academy/features/games/widgets/void_crossing_diagram.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) async {
@@ -28,12 +29,29 @@ void main() {
 
     testWidgets('the hidden-faces diagram derives each hidden value from 7',
         (tester) async {
-      await _pump(tester, const DieHiddenFacesDiagram(visible: [2, 3, 1]));
+      await _pump(
+          tester,
+          const DieHiddenFacesDiagram(
+            scannedLabel: 'scanned',
+            hiddenLabel: 'hidden',
+            visible: [2, 3, 1],
+          ));
       expect(find.byType(DieFace), findsNWidgets(6));
       // The subtraction is spelled out, so a hidden value never looks guessed.
       expect(find.text('7−2'), findsOneWidget);
       expect(find.text('7−3'), findsOneWidget);
       expect(find.text('7−1'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the totals diagram shows where 21, 42 and 63 come from',
+        (tester) async {
+      await _pump(tester, const DieTotalPipsDiagram());
+      // All six faces, plus the small cube glyph on each of the three tallies.
+      expect(find.byType(DieFace), findsNWidgets(9));
+      expect(find.text('7 + 7 + 7 = 21'), findsOneWidget);
+      expect(find.text(' = 42'), findsOneWidget);
+      expect(find.text(' = 63'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -70,6 +88,39 @@ void main() {
         expect(find.text('🚀'), findsOneWidget);
         expect(tester.takeException(), isNull);
       }
+    });
+  });
+
+  group('Star Forge diagrams', () {
+    // The example is a solved 5-point star holding 1..10, so every number is
+    // on screen exactly once and every arm shown really does total 22. If the
+    // layout ever stops agreeing with the puzzle the numbers stop adding up,
+    // which is the whole reason the example is drawn from the real geometry.
+    testWidgets('the arm diagram spells out one arm and its total',
+        (tester) async {
+      await _pump(tester, const StarForgeArmDiagram());
+      for (int v = 1; v <= 10; v++) {
+        expect(find.text('$v'), findsOneWidget, reason: 'node $v');
+      }
+      expect(find.text('1 + 10 + 2 + 9 = 22'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the overlap diagram shows two arms at the same total',
+        (tester) async {
+      await _pump(tester, const StarForgeOverlapDiagram());
+      // One badge per arm named, both reading 22 -- the point being that the
+      // two arms share nodes and still agree.
+      expect(find.text('22'), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the goal diagram totals every arm and leaves two nodes open',
+        (tester) async {
+      await _pump(tester, const StarForgeGoalDiagram());
+      expect(find.text('22'), findsNWidgets(5));
+      expect(find.byIcon(Icons.add), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
     });
   });
 }
