@@ -1,10 +1,10 @@
-Sechs Minispiele repariert.
+Deutsche Texte und der richtige App-Name.
 
-- Alien-Tribunal: Rätsel haben jetzt genau eine richtige Lösung, und die Rollen der Delegierten wechseln wirklich von Runde zu Runde
-- Sternkarten-Scan: schnelles Wischen über eine Gleichung wird jetzt zuverlässig erkannt
-- Sternen-Schmiede: kein langes Warten mehr im Ladebildschirm, und jeder Stern ist lösbar
-- Ionen-Ring: du kannst nicht mehr mit einer Lücke enden, in die nichts mehr passt
-- Relikte-Puzzle: Teile lassen sich wieder vom Gitter nehmen
-- Orbital-Türme: eine neue bebilderte Anleitung zeigt, wie die Randkameras sehen — jederzeit über den Hilfe-Knopf erneut aufrufbar
+- Die App zeigt jetzt ihren eigenen Namen, Number Nebula, statt des Repository-Namens
+- Rasterfüller war noch komplett auf Englisch — Titel, Anleitung, Punktestand, Gewinn-Dialog und Teile-Ablage sind jetzt deutsch
+- Auch der Fehlschlag-Dialog von Anomalie-Scan war noch englisch
+- Die Zuganzeigen von Asteroiden-Duell ("YOUR TURN", "AI THINKING...") sind übersetzt
+- Einstellungen, die Fortschritts- und Diagnose-Dialoge, die Aufforderung im Asteroidenfeld-Jäger und die Fehlermeldung in den Sternbild-Puzzles waren ebenfalls noch englisch
+- Rund neunzig deutsche Wörter hatten ihre Umlaute verloren (Lugner, Munzen, fur, mussen ...) — korrigiert, ebenso die Knöpfe "Got it" und "Next" in allen Anleitungen
 
-Außerdem: fehlende Umlaute im gesamten deutschen Text korrigiert und einige englisch gebliebene Stellen übersetzt.
+Einige Minispiele werden noch überarbeitet und bleiben in dieser Version im Menü ausgeblendet.

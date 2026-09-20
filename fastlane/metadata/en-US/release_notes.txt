@@ -1,10 +1,10 @@
-Six mini-games repaired.
+German text and a correct app name.
 
-- Alien Tribunal: puzzles now have a single correct verdict, and the delegates' roles genuinely vary from round to round
-- Star Chart Scan: a quick sweep across an equation now registers properly
-- Star Forge: no more long wait on the loading screen, and every star can be completed
-- Ion Ring: you can no longer be left with a gap that nothing fits
-- Relic Assembly: pieces can be taken back off the grid again
-- Orbital Towers: a new illustrated walkthrough shows how the edge cameras see, reopenable any time from the help button
+- The app now shows its own name, Number Nebula, instead of the repository name
+- Grid Filler was still entirely in English — title, instructions, score line, win dialog and piece tray are now German
+- Anomaly Scan's failure dialog was in English too
+- Asteroid Duel's turn indicators ("YOUR TURN", "AI THINKING...") are translated
+- Settings, the progress and diagnostics dialogs, the Asteroid Field Hunter's prompt and the Constellation Puzzles' error message were all still English
+- Roughly ninety German words had lost their umlauts (Lugner, Munzen, fur, mussen...) — swept and fixed, as were the "Got it" and "Next" buttons on every walkthrough
 
-Also: fixed missing umlauts throughout the German text, and translated a few spots that were still showing English.
+A few mini-games are still being repaired and stay hidden from the menu in this build.
