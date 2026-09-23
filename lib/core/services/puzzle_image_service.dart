@@ -1,6 +1,5 @@
 // lib/core/services/puzzle_image_service.dart
 
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -15,31 +14,19 @@ class PuzzleImageService {
     if (kDebugMode) debugPrint("[PuzzleImageService] Initializing...");
     
     try {
-      // Try multiple ways to load the manifest as it varies by Flutter version
-      String manifestContent = "";
-      try {
-        manifestContent = await rootBundle.loadString('AssetManifest.json');
-      } catch (_) {
-        try {
-          manifestContent = await rootBundle.loadString('AssetManifest.bin.json');
-        } catch (_) {}
-      }
+      // AssetManifest.json is no longer generated; the binary manifest is
+      // what Flutter itself reads, and rootBundle caches it.
+      final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+      final puzzleRegex = RegExp(r'assets/images/puzzle\d+\.(png|jpg|jpeg|webp)$', caseSensitive: false);
 
-      if (manifestContent.isNotEmpty) {
-        final Map<String, dynamic> manifestMap = json.decode(manifestContent);
-        if (kDebugMode) debugPrint("[PuzzleImageService] Asset manifest loaded successfully.");
+      _puzzleImagePaths = manifest
+          .listAssets()
+          .where(puzzleRegex.hasMatch)
+          .toList();
 
-        final allAssetKeys = manifestMap.keys.toList();
-        final puzzleRegex = RegExp(r'assets/images/puzzle\d+\.(png|jpg|jpeg|webp)$', caseSensitive: false);
-        
-        _puzzleImagePaths = allAssetKeys
-            .where(puzzleRegex.hasMatch)
-            .toList();
-            
-        if (kDebugMode) debugPrint("[PuzzleImageService] Found ${_puzzleImagePaths.length} puzzle images after filtering.");
-      }
+      if (kDebugMode) debugPrint("[PuzzleImageService] Found ${_puzzleImagePaths.length} puzzle images after filtering.");
     } catch (e) {
-      debugPrint("[PuzzleImageService] Error parsing asset manifest: $e");
+      debugPrint("[PuzzleImageService] Error reading asset manifest: $e");
     }
 
     // ALWAYS check if we found images, and use fallback if not (regardless of exceptions above)

@@ -157,7 +157,8 @@ class PlanetSurfacePainter extends CustomPainter {
   }
   
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(PlanetSurfacePainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 // Enhanced Space Debris class
@@ -346,7 +347,8 @@ class AsteroidPainter extends CustomPainter {
     }
     
     @override
-    bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+    bool shouldRepaint(AsteroidPainter oldDelegate) =>
+        !identical(oldDelegate.shape, shape);
 }
 
 class ParticleEffect extends Effect {

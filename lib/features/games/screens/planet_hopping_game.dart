@@ -1092,7 +1092,8 @@ class PlanetSurfacePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(PlanetSurfacePainter oldDelegate) => false;
+  bool shouldRepaint(PlanetSurfacePainter oldDelegate) =>
+      oldDelegate.planetColor != planetColor;
 }
 
 extension OffsetExtensions on Offset {

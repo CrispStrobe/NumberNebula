@@ -397,6 +397,26 @@ void main() {
       expect(headers['cross-origin-embedder-policy'], 'credentialless');
     });
   });
+
+  group('O12 — animation runs on vsync', () {
+    test('no Timer.periodic faster than 100 ms drives animation', () {
+      // A fast periodic Timer is not synced to the display, keeps firing in
+      // a background tab and drifts. Use a Ticker / AnimationController.
+      final fast = RegExp(
+          r'Timer\.periodic\(\s*(?:const\s+)?Duration\(\s*milliseconds:\s*(\d+)');
+      final violations = <String>[];
+      for (final file in _dartFilesIn('lib')) {
+        final lines = file.readAsLinesSync();
+        for (var i = 0; i < lines.length; i++) {
+          final m = fast.firstMatch(lines[i]);
+          if (m != null && int.parse(m.group(1)!) < 100) {
+            violations.add('${file.path}:${i + 1}: ${lines[i].trim()}');
+          }
+        }
+      }
+      expect(violations, isEmpty, reason: violations.join('\n'));
+    });
+  });
 }
 
 /// Every local file reachable from [entry] through non-deferred imports and

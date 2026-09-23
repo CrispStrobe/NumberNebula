@@ -34,7 +34,8 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   late int rows;
   String? currentPuzzleImage;
   Timer? _timer;
-  int _timeLeft = 120;
+  // Only the clock listens, so a tick does not rebuild the jigsaw board.
+  final ValueNotifier<int> _timeLeft = ValueNotifier(120);
 
   /// Pieces dropped into the wrong slot — the quality signal for grading.
   int _misplacements = 0;
@@ -62,12 +63,12 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   void _startTimer() {
-    _timeLeft = 120; // Or get from DifficultyManager
+    _timeLeft.value = 120; // Or get from DifficultyManager
     _timer?.cancel();
-    if (kDebugMode) debugPrint("TIMER: Starting timer. Duration: $_timeLeft seconds.");
+    if (kDebugMode) debugPrint("TIMER: Starting timer. Duration: ${_timeLeft.value} seconds.");
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted && _timeLeft > 0) {
-        setState(() => _timeLeft--);
+      if (mounted && _timeLeft.value > 0) {
+        _timeLeft.value--;
       } else {
         timer.cancel();
         if (mounted) {
@@ -91,7 +92,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
       int timeBonus = 0;
       final gameProvider = context.read<GameProvider>();
       if (gameProvider.puzzleTimerEnabled) {
-        timeBonus = (_timeLeft * 2); // Example bonus calculation
+        timeBonus = (_timeLeft.value * 2); // Example bonus calculation
       }
       finalScore = 100 + timeBonus; // Base score + bonus
     }
@@ -129,6 +130,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   @override
   void dispose() {
     _timer?.cancel();
+    _timeLeft.dispose();
     if (kDebugMode) debugPrint("Disposing PuzzleMathGame widget.");
     super.dispose();
   }
@@ -350,21 +352,24 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (gameProvider.puzzleTimerEnabled) ...[
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isSmallScreen ? 4 : 6,
-                    vertical: isSmallScreen ? 2 : 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _timeLeft < 30 ? SpaceTheme.rocketRed : SpaceTheme.cosmicPink,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '${_timeLeft ~/ 60}:${(_timeLeft % 60).toString().padLeft(2, '0')}',
-                    style: TextStyle(
-                      fontSize: isSmallScreen ? 10 : 12,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                ValueListenableBuilder<int>(
+                  valueListenable: _timeLeft,
+                  builder: (context, timeLeft, _) => Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSmallScreen ? 4 : 6,
+                      vertical: isSmallScreen ? 2 : 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: timeLeft < 30 ? SpaceTheme.rocketRed : SpaceTheme.cosmicPink,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${timeLeft ~/ 60}:${(timeLeft % 60).toString().padLeft(2, '0')}',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 10 : 12,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
