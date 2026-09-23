@@ -36,11 +36,11 @@ void main() {
         ChangeNotifierProvider.value(value: cognitiveProfileService),
         Provider.value(value: progressService),
       ],
-      child: MaterialApp(
+      child: const MaterialApp(
         localizationsDelegates: S.localizationsDelegates,
         supportedLocales: S.supportedLocales,
-        locale: const Locale('en'),
-        home: const PuzzleMathGame(grade: 2, level: 1),
+        locale: Locale('en'),
+        home: PuzzleMathGame(grade: 2, level: 1),
       ),
     );
   }

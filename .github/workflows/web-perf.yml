@@ -39,7 +39,9 @@ jobs:
 
       - name: Build web (wasm + js fallback)
         run: |
-          flutter build web --wasm --release \
+          # Source maps only go into the CI artifact (Vercel builds without
+          # them) so a live-test failure can be traced to Dart source.
+          flutter build web --wasm --release --source-maps \
             --dart-define=GIT_HASH="$(git rev-parse --short HEAD)"
 
       - name: Size report
