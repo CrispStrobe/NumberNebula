@@ -24,6 +24,27 @@ them and players is someone playing each one once; shipping one is deleting its
 key from `debugOnlyGames` in `lib/features/missions/data/game_pool.dart` and
 nothing else. Unlock the debug menu with seven taps on the home screen title.
 
+## 2026-09-23 SESSION -- automated play-through of all six gated games
+
+Driven in Chrome against production with Playwright (debug menu unlocked,
+each game opened through the real menu, tutorial stepped through, board
+captured); Void Crossing was also solved end to end. Nothing was ungated --
+that stays a human call.
+
+| Game | Result |
+| --- | --- |
+| Void-Überquerung | **Plays correctly.** Solved in the optimal 7 crossings from the rules drawn on screen; "All Safe!" dialog, score awarded, no errors. |
+| Sternen-Schmiede | **Fixed text.** The tutorial said an arm is "two outer points and the two nodes between them", but an arm is four *consecutive* outline nodes (point, inner, point, inner) -- only one node lies between its two points. The sentence now says so, and the worked example sums along the outline (1 + 10 + 9 + 2). |
+| Ionen-Ring | **Fixed generator.** Grade 1 produced "Circle may not be next to Star" on a ring with no star, so every placement won. Puzzles are now rejected unless every shape a rule names is on the ring and at least one way of filling the blanks breaks a rule (`IonChainPuzzle.rulesMatter`, tested over 200 seeds per level band). |
+| Galaktischer Markt | Reads correctly (total 15, one visible 5, two hidden coins → 5). Not solved end to end yet. |
+| Würfel-Scanner | Reads correctly; grade 1 asks for the bottom face (7 − top). A faint "cubes scanned" bar at the bottom is nearly invisible (dark on dark). |
+| Relikte-Puzzle | Opens and reads, but the tray pieces are small with tiny edge numbers for a child's finger. |
+
+Seen once on production and not reproduced since: a tutorial paragraph
+wrapping mid-word and the title "Relic" drawn as "Blic" in Chrome. Both look
+like the same intermittent rendering race as the Firefox startup null-check
+being bisected on the `bisect/startup-race` branch.
+
 ## 2026-09-20 SESSION -- second play-through of the four gated puzzles
 
 A play-through of the gated games turned up a distinct class of problem from

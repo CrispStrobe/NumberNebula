@@ -3060,7 +3060,7 @@ class SEn extends S {
 
   @override
   String get starForgeOnboardArm =>
-      'The star has arms. Each arm covers exactly 4 nodes: two outer points and the two nodes between them. Here the lit arm holds 1, 10, 2 and 9 — together 22.';
+      'The star has arms. Each arm is 4 nodes in a row along the star\'s outline: a point, the next node, the next point and the node after it. Here the lit arm holds 1, 10, 9 and 2 — together 22.';
 
   @override
   String get starForgeOnboardOverlap =>

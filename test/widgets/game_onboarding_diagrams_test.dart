@@ -102,7 +102,7 @@ void main() {
       for (int v = 1; v <= 10; v++) {
         expect(find.text('$v'), findsOneWidget, reason: 'node $v');
       }
-      expect(find.text('1 + 10 + 2 + 9 = 22'), findsOneWidget);
+      expect(find.text('1 + 10 + 9 + 2 = 22'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

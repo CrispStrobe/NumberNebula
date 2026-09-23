@@ -1770,7 +1770,7 @@
   "starForgeArmTotal": "Arm total",
   "starForgeTarget": "Target",
   "starForgeHowToPlay": "How to play",
-  "starForgeOnboardArm": "The star has arms. Each arm covers exactly 4 nodes: two outer points and the two nodes between them. Here the lit arm holds 1, 10, 2 and 9 — together 22.",
+  "starForgeOnboardArm": "The star has arms. Each arm is 4 nodes in a row along the star's outline: a point, the next node, the next point and the node after it. Here the lit arm holds 1, 10, 9 and 2 — together 22.",
   "starForgeOnboardOverlap": "Neighbouring arms share two nodes (ringed in white). So a number you place counts towards two arms at once — that is what makes the puzzle a puzzle.",
   "starForgeOnboardGoal": "You win when every arm reaches the same total. The target is shown at the top of the screen, and every arm carries its own running total on the outside. Green means that arm is right.",
   "starForgeOnboardPlace": "Drag a number from the tray onto an empty node. Tap a placed number to take it back. Each number is used exactly once. Tap an arm's total to light up the four nodes it covers.",

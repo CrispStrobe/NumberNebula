@@ -336,8 +336,9 @@ class StarForgeArmDiagram extends StatelessWidget {
         const _ExampleStar(arms: [0]),
         const SizedBox(height: 6),
         Text(
+          // Outline order, so the sum reads along the lit arm.
           '${_exampleTips[0]} + ${_exampleInner[0]} + '
-          '${_exampleInner[1]} + ${_exampleTips[1]} = $_exampleTotal',
+          '${_exampleTips[1]} + ${_exampleInner[1]} = $_exampleTotal',
           style: SpaceTheme.bodyStyle.copyWith(
             fontSize: 14,
             color: starArmColors[0],
