@@ -6,23 +6,15 @@ Status as of 2026-09-20.
 
 ### Games withheld from players (`debugOnlyGames` in `game_pool.dart`)
 
-These are hidden from the game menu and never picked for a mission. They stay
-playable once the debug menu is unlocked (tap the home screen title 7x), and
-shipping one again means deleting its key from that set -- nothing else.
+None. The last three -- Sternen-Schmiede, Ionen-Ring and Würfel-Scanner --
+were released on 2026-09-23 after each was played to a win at skill levels 1
+and 3 (below), following Void-Überquerung, Galaktischer Markt and
+Relikte-Puzzle earlier the same day. All 48 games are in the menu. To hold one
+back again, add its key to `debugOnlyGames` with a reason; it is then hidden
+from the menu and from missions, and playable once the debug menu is unlocked
+(seven taps on the home screen title).
 
-| Game | Why it was pulled | State |
-| --- | --- | --- |
-| Sternen-Schmiede (`star_forge`) | Generation searched for a magic constant that cannot exist, so all 200 CSP attempts timed out (~16 min of spinner), then fell back to a layout whose lines did not sum equally. Fixed, but a play-through showed the board itself still made no sense: nodes were drawn on two rings in an order that did not follow the outline, so an "arm" was a bent polyline crossing its neighbours and "each line must have the same sum" named nothing a player could point at | **Fixed again** -- needs a play-through |
-| Ionen-Ring (`ion_chain`) | Legal moves could strand the player with an unfillable slot (45% of puzzles), with no feedback; the same rule could also be listed twice. A play-through then showed the rules named shapes in words ("Raute", "Stern") the board only ever draws | **Fixed again** -- needs a play-through |
-| Würfel-Scanner (`cube_scanner`) | Nothing on the board said opposite faces sum to 7, nor that the hidden faces are exactly the ones opposite the visible ones. A play-through then found the question text was English literals baked into the generator, and that the questions were trivial -- the grade 3 and grade 4 answers both worked out to a number already printed on the board | **Fixed again** -- needs a play-through |
-
-All three are fixed in code and still gated (Void-Überquerung, Galaktischer
-Markt and Relikte-Puzzle shipped on 2026-09-23 after being played to a win). The only thing between
-them and players is someone playing each one once; shipping one is deleting its
-key from `debugOnlyGames` in `lib/features/missions/data/game_pool.dart` and
-nothing else. Unlock the debug menu with seven taps on the home screen title.
-
-## 2026-09-23 -- the last three gated games played to a win (skill level 1)
+## 2026-09-23 -- the last three gated games played to a win (skill levels 1 and 3)
 
 Played interactively in Chrome against production: each board read from a
 screenshot, each move decided and made through the real UI.
@@ -32,6 +24,12 @@ screenshot, each move decided and made through the real UI.
 | Würfel-Scanner | **Won** ("Cubes Decoded!", 200 points): top 1 → bottom 6. A deliberate wrong answer (copying the visible top) ended the round with the right answer marked but no reason given. **Fixed:** a wrong answer now shows the working ("Opposite faces add up to 7: 7 − 5 = 2", and the 21 − visible version for hidden-face sums). |
 | Ionen-Ring | **Won** ("Ring Stabilized!", 125 points). The rule named two shapes on the ring and left exactly one legal placement; a deliberate illegal drop was refused with "Rule violation! This bead can't go here." |
 | Sternen-Schmiede | **Won** ("Star Ignited!", 125 points) by reading two arm totals. A deliberately wrong placement showed "16 ×" on the arm at once. **Fixed:** the move budget was an unlabelled number that started in alarm red on a small board and turned redder with every *correct* placement; it now has a "N moves left" label and turns red only when no mistake is left to spare. |
+
+At skill level 3 all three were won again with no page errors: Würfel-Scanner
+asked a real two-cube deduction (hidden pips across a stack whose touching
+faces match: 10 + 15 = 25); Ionen-Ring had a seven-bead ring under two rules;
+Sternen-Schmiede a six-pointed star (target 26, five empty nodes) solved
+without a wasted move.
 
 ## 2026-09-23 -- three gated games released
 
