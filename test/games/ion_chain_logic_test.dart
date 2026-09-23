@@ -366,4 +366,60 @@ void main() {
       }
     });
   });
+
+  group('generated rules always bind', () {
+    // The level bands ion_chain_game.dart asks for. A play-through of grade 1
+    // got "Circle may not be next to Star" on a ring with no star: any
+    // placement won, so there was nothing to work out.
+    const bands = <(int, int, int, int)>[
+      (5, 3, 1, 2), // grade 1
+      (6, 3, 1, 3), // grade 2, levels 1-5
+      (7, 3, 2, 3), // grade 2, levels 6+
+      (7, 4, 2, 3), // grade 3+, levels 1-5
+      (9, 4, 2, 4), // grade 3+, levels 6-8
+      (9, 4, 3, 4), // grade 3+, levels 9+
+    ];
+
+    for (final (length, types, ruleCount, blanks) in bands) {
+      test('length $length, $types types, $ruleCount rules, $blanks blanks', () {
+        for (var seed = 0; seed < 200; seed++) {
+          final p = IonChainPuzzle.generate(
+            chainLength: length,
+            ionTypeCount: types,
+            ruleCount: ruleCount,
+            blanksToRemove: blanks,
+            seed: seed,
+          );
+          final named = {
+            for (final r in p.rules) ...[if (r.a != null) r.a!, if (r.b != null) r.b!],
+          };
+          expect(p.solution.toSet().containsAll(named), isTrue,
+              reason: 'seed $seed: a rule names a shape that is not on the ring');
+          expect(
+              IonChainPuzzle.rulesMatter(
+                  p.chain, p.solution, p.availableIons, p.rules),
+              isTrue,
+              reason: 'seed $seed: every way of filling the blanks is legal');
+        }
+      });
+    }
+
+    test('rulesMatter spots a rule about an absent shape', () {
+      final rule = IonRule(
+        kind: IonRuleKind.noMixedPair,
+        a: IonType.red,
+        b: IonType.yellow,
+        check: (x, y) => !((x == IonType.red && y == IonType.yellow) ||
+            (x == IonType.yellow && y == IonType.red)),
+      );
+      const solution = [IonType.red, IonType.blue, IonType.green, IonType.blue];
+      expect(
+          IonChainPuzzle.rulesMatter(
+              [IonType.red, null, IonType.green, null],
+              solution,
+              [IonType.blue, IonType.blue],
+              [rule]),
+          isFalse);
+    });
+  });
 }

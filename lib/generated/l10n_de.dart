@@ -3077,7 +3077,7 @@ class SDe extends S {
 
   @override
   String get starForgeOnboardArm =>
-      'Der Stern hat Arme. Jeder Arm umfasst genau 4 Knoten: zwei äußere Spitzen und die beiden Knoten dazwischen. Hier enthält der leuchtende Arm 1, 10, 2 und 9 — zusammen 22.';
+      'Der Stern hat Arme. Jeder Arm besteht aus 4 Knoten, die entlang des Sternumrisses aufeinander folgen: eine Spitze, der nächste Knoten, die nächste Spitze und der Knoten danach. Hier enthält der leuchtende Arm 1, 10, 9 und 2 — zusammen 22.';
 
   @override
   String get starForgeOnboardOverlap =>

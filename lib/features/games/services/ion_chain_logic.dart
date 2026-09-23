@@ -160,6 +160,41 @@ class IonChainPuzzle {
     ),
   ];
 
+  /// Whether [rules] actually constrain the player: every shape a rule
+  /// names is on the finished ring, and at least one way of dropping
+  /// [available] into the empty slots of [chain] breaks a rule.
+  static bool rulesMatter(List<IonType?> chain, List<IonType> solution,
+      List<IonType> available, List<IonRule> rules) {
+    final onRing = solution.toSet();
+    for (final rule in rules) {
+      if (rule.a != null && !onRing.contains(rule.a)) return false;
+      if (rule.b != null && !onRing.contains(rule.b)) return false;
+    }
+
+    final blanks = [
+      for (var i = 0; i < chain.length; i++)
+        if (chain[i] == null) i,
+    ];
+    var foundIllegal = false;
+    void place(int k, List<IonType> left, List<IonType?> working) {
+      if (foundIllegal) return;
+      if (k == blanks.length) {
+        if (!validateChain(working, rules)) foundIllegal = true;
+        return;
+      }
+      final tried = <IonType>{};
+      for (var i = 0; i < left.length; i++) {
+        if (!tried.add(left[i])) continue;
+        working[blanks[k]] = left[i];
+        place(k + 1, [...left]..removeAt(i), working);
+      }
+      working[blanks[k]] = null;
+    }
+
+    place(0, available, List<IonType?>.from(chain));
+    return foundIllegal;
+  }
+
   /// Generate a puzzle using backtracking CSP.
   static IonChainPuzzle generate({
     required int chainLength,
@@ -214,6 +249,11 @@ class IonChainPuzzle {
           availableIons.add(chain[pos]!);
           chain[pos] = null;
         }
+
+        // A rule the board cannot break is noise: "Circle may not be next to
+        // Star" on a ring with no star, or blanks that every arrangement
+        // fills legally, leave the player nothing to work out.
+        if (!rulesMatter(chain, solution, availableIons, rules)) continue;
 
         // Shuffle available ions so it's not trivial
         availableIons.shuffle(rng);

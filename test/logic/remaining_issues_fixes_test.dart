@@ -45,16 +45,25 @@ void main() {
       // The original intent: a fallback puzzle should still be interesting,
       // not a single trivial constraint. That holds wherever the ion types can
       // actually support two rules.
+      //
+      // This used to ask for 5 rules on a 5-bead ring and assumed that forced
+      // the fallback. It did not: three types allow six distinct rules, so
+      // the main generator usually succeeded, and the test passed on that.
+      // The fallback itself can never keep two rules on an *odd* ring: with
+      // "no two alike adjacent" and "A may not touch B", every neighbour of A
+      // and of B must be the third type, which alternates -- impossible on an
+      // odd cycle. So: an even ring, and more rules than three types allow
+      // (seven), which really does force the fallback.
       final puzzle = IonChainPuzzle.generate(
-        chainLength: 5,
+        chainLength: 6,
         ionTypeCount: 3,
-        ruleCount: 5, // more than the generator can place, so it falls back
+        ruleCount: 7,
         blanksToRemove: 2,
         seed: 999,
       );
 
       expect(puzzle.rules.length, greaterThanOrEqualTo(2));
-      expect(puzzle.solution.length, 5);
+      expect(puzzle.solution.length, 6);
       final nullable = puzzle.solution.map<IonType?>((e) => e).toList();
       expect(IonChainPuzzle.validateChain(nullable, puzzle.rules), isTrue);
     });

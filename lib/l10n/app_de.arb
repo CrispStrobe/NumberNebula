@@ -1704,7 +1704,7 @@
   "starForgeArmTotal": "Arm-Summe",
   "starForgeTarget": "Ziel",
   "starForgeHowToPlay": "Spielanleitung",
-  "starForgeOnboardArm": "Der Stern hat Arme. Jeder Arm umfasst genau 4 Knoten: zwei äußere Spitzen und die beiden Knoten dazwischen. Hier enthält der leuchtende Arm 1, 10, 2 und 9 — zusammen 22.",
+  "starForgeOnboardArm": "Der Stern hat Arme. Jeder Arm besteht aus 4 Knoten, die entlang des Sternumrisses aufeinander folgen: eine Spitze, der nächste Knoten, die nächste Spitze und der Knoten danach. Hier enthält der leuchtende Arm 1, 10, 9 und 2 — zusammen 22.",
   "starForgeOnboardOverlap": "Benachbarte Arme teilen sich zwei Knoten (weiß umrandet). Eine Zahl, die du setzt, zählt also für zwei Arme gleichzeitig — genau das macht die Aufgabe zum Rätsel.",
   "starForgeOnboardGoal": "Du gewinnst, wenn jeder Arm dieselbe Summe erreicht. Das Ziel steht oben am Bildschirm, und jeder Arm zeigt außen seine eigene Zwischensumme. Grün heißt: dieser Arm stimmt.",
   "starForgeOnboardPlace": "Ziehe eine Zahl aus der Ablage auf einen leeren Knoten. Tippe eine gesetzte Zahl an, um sie zurückzunehmen. Jede Zahl wird genau einmal benutzt. Tippe die Summe eines Arms an, um seine vier Knoten aufleuchten zu lassen.",
