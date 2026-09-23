@@ -19,7 +19,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   // Levels are an asset now; load them once through the real asset bundle.
-  setUpAll(() => loadMoleculeLevels());
+  setUpAll(loadMoleculeLevels);
 
   group('molecule levels asset', () {
     test('holds all 30 levels, numbered 1..30 in order', () {
