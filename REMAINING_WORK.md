@@ -14,15 +14,21 @@ shipping one again means deleting its key from that set -- nothing else.
 | --- | --- | --- |
 | Sternen-Schmiede (`star_forge`) | Generation searched for a magic constant that cannot exist, so all 200 CSP attempts timed out (~16 min of spinner), then fell back to a layout whose lines did not sum equally. Fixed, but a play-through showed the board itself still made no sense: nodes were drawn on two rings in an order that did not follow the outline, so an "arm" was a bent polyline crossing its neighbours and "each line must have the same sum" named nothing a player could point at | **Fixed again** -- needs a play-through |
 | Ionen-Ring (`ion_chain`) | Legal moves could strand the player with an unfillable slot (45% of puzzles), with no feedback; the same rule could also be listed twice. A play-through then showed the rules named shapes in words ("Raute", "Stern") the board only ever draws | **Fixed again** -- needs a play-through |
-| Relikte-Puzzle (`relic_assembly`) | Pieces could only be removed by an undiscoverable long-press; the generator's random rotation was dead state, so no puzzle ever needed rotating | **Fixed** -- needs a play-through |
-| Galaktischer Markt (`galactic_market`) | There was no losing condition at all, so tapping every coin in turn solved it for free and the arithmetic was never worth doing | **Fixed** -- needs a play-through |
 | Würfel-Scanner (`cube_scanner`) | Nothing on the board said opposite faces sum to 7, nor that the hidden faces are exactly the ones opposite the visible ones. A play-through then found the question text was English literals baked into the generator, and that the questions were trivial -- the grade 3 and grade 4 answers both worked out to a number already printed on the board | **Fixed again** -- needs a play-through |
-| Void-Überquerung (`void_crossing`) | The onboarding described the conflict rule in words and then told the player to look it up elsewhere. A play-through then found that tapping a second creature onto a one-seat shuttle did nothing at all -- no movement, no message | **Fixed again** -- needs a play-through |
 
-All six are fixed in code and all six are still gated. The only thing between
+All three are fixed in code and still gated (Void-Überquerung, Galaktischer
+Markt and Relikte-Puzzle shipped on 2026-09-23 after being played to a win). The only thing between
 them and players is someone playing each one once; shipping one is deleting its
 key from `debugOnlyGames` in `lib/features/missions/data/game_pool.dart` and
 nothing else. Unlock the debug menu with seven taps on the home screen title.
+
+## 2026-09-23 -- three gated games released
+
+Void-Überquerung, Galaktischer Markt and Relikte-Puzzle were each played to
+a win in the browser (below) and are out of `debugOnlyGames`: they are in the
+menu and can be drawn for missions. Sternen-Schmiede, Ionen-Ring and
+Würfel-Scanner stay gated -- their fixes are in, but none has been played to
+a win yet.
 
 ## 2026-09-23 SESSION -- automated play-through of all six gated games
 
@@ -38,7 +44,7 @@ that stays a human call.
 | Ionen-Ring | **Fixed generator.** Grade 1 produced "Circle may not be next to Star" on a ring with no star, so every placement won. Puzzles are now rejected unless every shape a rule names is on the ring and at least one way of filling the blanks breaks a rule (`IonChainPuzzle.rulesMatter`, tested over 200 seeds per level band). |
 | Galaktischer Markt | **Plays correctly.** Solved end to end (total 12, visible 2, two hidden → 5): "Purchase Complete!" with the worked sum. Fixed: the confirm button was hardcoded English ("Each hidden coin = 1 credits"), now localized with a proper singular. |
 | Würfel-Scanner | Reads correctly; grade 1 asks for the bottom face (7 − top). **Fixed:** before any answer, the check button read the win headline ("Cubes Decoded!"), and as a disabled button it was nearly invisible. It now says "Check answer", and disabled primary buttons app-wide keep a dimmed orange. |
-| Relikte-Puzzle | Opens and reads. **Fixed:** board and tray now size to the space they have (a tablet gets 110px pieces instead of 65px, cells up to 140px instead of 80px) and the rotate button is 32px instead of 22px. Not yet solved end to end. |
+| Relikte-Puzzle | Opens and reads. **Fixed:** board and tray now size to the space they have (a tablet gets 110px pieces instead of 65px, cells up to 140px instead of 80px) and the rotate button is 32px instead of 22px. Then solved end to end: "Artifact Restored!", 125 points. |
 
 Seen once on production and **not reproducible**: a tutorial paragraph
 wrapping mid-word, and the title "Relic" drawn as "Blic", both in Chrome while
@@ -102,6 +108,9 @@ were fixed.
 
 ### Fixed and shipping
 
+0. **Void-Überquerung, Galaktischer Markt, Relikte-Puzzle** -- released
+   2026-09-23 after each was played to a win in the browser (see the
+   2026-09-23 sections above).
 1. **Alien-Tribunal** — every puzzle was the hardcoded `TLT` fallback. Statements
    about one other delegate only assert whether two share a role, so flipping
    everyone is always a second valid solution and the uniqueness check could
