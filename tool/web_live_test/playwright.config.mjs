@@ -24,10 +24,6 @@ export default defineConfig({
     viewport: { width: 1280, height: 800 },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
-    // Deployed previews behind Vercel protection need the bypass secret.
-    extraHTTPHeaders: process.env.VERCEL_BYPASS
-      ? { 'x-vercel-protection-bypass': process.env.VERCEL_BYPASS }
-      : undefined,
   },
   projects: [
     { name: 'chromium-wasm', use: { ...devices['Desktop Chrome'], locale: 'en-US' } },

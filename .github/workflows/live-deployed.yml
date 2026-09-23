@@ -1,0 +1,80 @@
+name: Live tests on deployment
+
+# Runs the Playwright live tests against every successful Vercel deployment,
+# using the URL Vercel reports back to GitHub. Production is public; preview
+# deployments sit behind Vercel Deployment Protection and are only tested
+# when the repo secret VERCEL_AUTOMATION_BYPASS_SECRET is set (Vercel project
+# → Settings → Deployment Protection → Protection Bypass for Automation).
+
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    if: >-
+      github.event.deployment_status.state == 'success' &&
+      startsWith(github.event.deployment_status.environment_url, 'https://')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: tool/web_live_test
+    env:
+      BASE_URL: ${{ github.event.deployment_status.environment_url }}
+      ENVIRONMENT: ${{ github.event.deployment.environment }}
+      VERCEL_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+    steps:
+      - name: Decide whether this deployment can be tested
+        id: gate
+        working-directory: .
+        run: |
+          echo "Deployment: $ENVIRONMENT at $BASE_URL"
+          case "$ENVIRONMENT" in
+            # Pages cannot send the COOP/COEP headers the tests expect, and
+            # serves the default (non-wasm) build; see pages.yml.
+            github-pages) echo "run=false" >> "$GITHUB_OUTPUT" ;;
+            Production*) echo "run=true" >> "$GITHUB_OUTPUT" ;;
+            *)
+              if [ -n "$VERCEL_BYPASS" ]; then
+                echo "run=true" >> "$GITHUB_OUTPUT"
+              else
+                echo "::notice::Skipping protected preview: VERCEL_AUTOMATION_BYPASS_SECRET is not set."
+                echo "run=false" >> "$GITHUB_OUTPUT"
+              fi ;;
+          esac
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          ref: ${{ github.event.deployment.sha }}
+
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tool/web_live_test/package-lock.json
+
+      - name: Install Playwright
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium firefox
+
+      - name: Live tests against ${{ github.event.deployment.environment }}
+        if: steps.gate.outputs.run == 'true'
+        env:
+          CI: 'true'
+        run: npx playwright test
+
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.gate.outputs.run == 'true'
+        with:
+          name: live-deployed-report
+          path: |
+            tool/web_live_test/playwright-report
+            tool/web_live_test/test-results
+          retention-days: 7

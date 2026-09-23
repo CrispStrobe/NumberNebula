@@ -1,4 +1,20 @@
-import { expect } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+
+// A protected Vercel preview needs the automation bypass. It is exchanged for
+// a cookie once per context rather than sent as a header on every request:
+// a custom header would also go to gstatic, turning CanvasKit's cross-origin
+// loads into CORS preflights that fail.
+if (process.env.VERCEL_BYPASS) {
+  test.beforeEach(async ({ context, baseURL }) => {
+    const response = await context.request.get(baseURL, {
+      headers: {
+        'x-vercel-protection-bypass': process.env.VERCEL_BYPASS,
+        'x-vercel-set-bypass-cookie': 'true',
+      },
+    });
+    expect(response.ok(), 'the bypass secret was accepted').toBe(true);
+  });
+}
 
 /** A deferred part: dart2js `main.dart.js_N.part.js`, or any same-origin
  * wasm module other than the main one (dart2wasm writes extra modules). */
