@@ -255,7 +255,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     atoms = [];
     
     // Initialize starting level: highest level won at least 2 times
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+        // Levels come from an asset; the first frame shows the empty grid.
+        await loadMoleculeLevels();
         if (mounted) {
         final gameProvider = context.read<GameProvider>();
         
@@ -1248,7 +1250,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                     const Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: 16),
                     const SizedBox(width: 6),
                     Text(
-                      '${S.of(context)!.moleculeBuilderLevel} $_currentLevel/${levelsData.length}',
+                      levelsData.isEmpty
+                          ? S.of(context)!.moleculeBuilderLevel
+                          : '${S.of(context)!.moleculeBuilderLevel} $_currentLevel/${levelsData.length}',
                       style: const TextStyle(
                         color: SpaceTheme.starYellow,
                         fontSize: 13,
