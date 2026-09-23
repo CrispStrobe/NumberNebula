@@ -1,10 +1,9 @@
-Deutsche Texte und der richtige App-Name.
+Sechs weitere Minispiele – und jedes einzelne wurde bis zum Sieg durchgespielt.
 
-- Die App zeigt jetzt ihren eigenen Namen, Number Nebula, statt des Repository-Namens
-- Rasterfüller war noch komplett auf Englisch — Titel, Anleitung, Punktestand, Gewinn-Dialog und Teile-Ablage sind jetzt deutsch
-- Auch der Fehlschlag-Dialog von Anomalie-Scan war noch englisch
-- Die Zuganzeigen von Asteroiden-Duell ("YOUR TURN", "AI THINKING...") sind übersetzt
-- Einstellungen, die Fortschritts- und Diagnose-Dialoge, die Aufforderung im Asteroidenfeld-Jäger und die Fehlermeldung in den Sternbild-Puzzles waren ebenfalls noch englisch
-- Rund neunzig deutsche Wörter hatten ihre Umlaute verloren (Lugner, Munzen, fur, mussen ...) — korrigiert, ebenso die Knöpfe "Got it" und "Next" in allen Anleitungen
-
-Einige Minispiele werden noch überarbeitet und bleiben in dieser Version im Menü ausgeblendet.
+- Void-Überquerung, Galaktischer Markt, Relikte-Puzzle, Sternen-Schmiede, Ionen-Ring und Würfel-Scanner sind wieder im Menü – alle 48 Spiele sind jetzt spielbar
+- Ionen-Ring: Jede Regel zählt jetzt; eine Regel konnte eine Form nennen, die gar nicht auf dem Ring lag, sodass jede Anordnung gewann
+- Sternen-Schmiede: Die Anleitung erklärt richtig, was ein „Arm“ ist, und der Zugzähler sagt „Noch N Züge“, statt bei jedem richtigen Zug roter zu werden
+- Würfel-Scanner: Eine falsche Antwort zeigt den Rechenweg („Gegenüberliegende Seiten ergeben zusammen 7: 7 − 5 = 2“), und der Knopf heißt „Antwort prüfen“, statt vorab den Sieg zu verkünden
+- Relikte-Puzzle: größere Teile und Randzahlen auf Tablets und ein größerer Dreh-Knopf
+- Der Bestätigen-Knopf im Galaktischen Markt, die Karteikasten-Fächer, der Drehen-Knopf in Rumpf-Panzerung und die Anzahl der Absturzberichte waren noch englisch
+- Anleitungskarten passen aufs quergehaltene Handy, und ausgegraute Knöpfe sind auf dem dunklen Hintergrund sichtbar

@@ -1,10 +1,9 @@
-German text and a correct app name.
+Six more mini-games, and every one of them played through to a win.
 
-- The app now shows its own name, Number Nebula, instead of the repository name
-- Grid Filler was still entirely in English — title, instructions, score line, win dialog and piece tray are now German
-- Anomaly Scan's failure dialog was in English too
-- Asteroid Duel's turn indicators ("YOUR TURN", "AI THINKING...") are translated
-- Settings, the progress and diagnostics dialogs, the Asteroid Field Hunter's prompt and the Constellation Puzzles' error message were all still English
-- Roughly ninety German words had lost their umlauts (Lugner, Munzen, fur, mussen...) — swept and fixed, as were the "Got it" and "Next" buttons on every walkthrough
-
-A few mini-games are still being repaired and stay hidden from the menu in this build.
+- Void Crossing, Galactic Market, Relic Assembly, Star Forge, Ion Ring and Cube Scanner are back in the menu — all 48 games are playable now
+- Ion Ring: every rule now matters; a rule could name a shape that was not on the ring, so any placement won
+- Star Forge: the walkthrough explains correctly what an "arm" is, and the moves counter says "moves left" instead of turning red on every correct move
+- Cube Scanner: a wrong answer shows the working ("Opposite faces add up to 7: 7 − 5 = 2"), and the button says "Check answer" instead of announcing a win in advance
+- Relic Assembly: bigger pieces and edge numbers on tablets, and a larger rotate button
+- Galactic Market's confirm button, the flashcard boxes, Hull Plating's rotate button and the crash-report count were still in English
+- Walkthrough cards fit a phone held sideways, and greyed-out buttons are visible on the dark background
