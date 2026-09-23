@@ -5,6 +5,24 @@
   "buildCommand": "export GIT_HASH=$(git rev-parse --short HEAD) && git clone https://github.com/flutter/flutter.git --depth 1 --branch 3.44.2 && ./flutter/bin/flutter pub get && ./flutter/bin/flutter build web --wasm --dart-define=GIT_HASH=$GIT_HASH",
   "outputDirectory": "build/web",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "credentialless"
+        }
+      ]
+    }
   ]
 }
