@@ -176,8 +176,8 @@ class _KarteikastenScreenState extends State<KarteikastenScreen> {
         padding: const EdgeInsets.all(24),
         child: Text(
           _selectedBox == 5
-              ? 'No mastered problems in this box yet.'
-              : 'This box is empty.',
+              ? S.of(context)!.karteikastenEmptyMastered
+              : S.of(context)!.karteikastenEmptyBox,
           textAlign: TextAlign.center,
           style: SpaceTheme.bodyStyle.copyWith(color: Colors.white60),
         ),

@@ -4460,4 +4460,55 @@ class SEn extends S {
   @override
   String get gameLoadFailedMessage =>
       'This game is downloaded the first time you open it, and that download failed. Check the internet connection and try again.';
+
+  @override
+  String galacticMarketSubmitEach(num value) {
+    final intl.NumberFormat valueNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String valueString = valueNumberFormat.format(value);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      value,
+      locale: localeName,
+      other: 'Each hidden coin = $valueString credits',
+      one: 'Each hidden coin = 1 credit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get galacticMarketSelectDenom => 'Select a denomination';
+
+  @override
+  String get karteikastenEmptyMastered =>
+      'No mastered problems in this box yet.';
+
+  @override
+  String get karteikastenEmptyBox => 'This box is empty.';
+
+  @override
+  String get hullPlatingRotate => 'Rotate';
+
+  @override
+  String get diagnosticsNoCrashes => 'No crashes recorded. 🎉';
+
+  @override
+  String diagnosticsCrashCount(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString crash reports on device.',
+      one: '1 crash report on device.',
+    );
+    return '$_temp0 Data stays here unless you share it.';
+  }
+
+  @override
+  String get cubeScannerCheck => 'Check answer';
 }

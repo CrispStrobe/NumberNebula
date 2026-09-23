@@ -68,6 +68,11 @@ class SpaceTheme {
   static ButtonStyle primaryButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: planetOrange,
     foregroundColor: Colors.white,
+    // Material's default disabled colours are a faint grey that all but
+    // vanishes on the dark space background; a dimmed orange still reads as
+    // "the button you will press once you have chosen".
+    disabledBackgroundColor: planetOrange.withValues(alpha: 0.3),
+    disabledForegroundColor: Colors.white60,
     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(30),

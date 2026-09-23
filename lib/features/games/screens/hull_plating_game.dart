@@ -569,7 +569,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
             children: [
               ElevatedButton.icon(
                 icon: const Icon(Icons.rotate_right, size: 24),
-                label: Text(isCompact ? '' : 'Rotate'),
+                label: Text(isCompact ? '' : S.of(context)!.hullPlatingRotate),
                 onPressed: _rotatePiece,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: SpaceTheme.starYellow.withValues(alpha: 0.3),

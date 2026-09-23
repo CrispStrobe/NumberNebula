@@ -79,10 +79,8 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                     Expanded(
                       child: Text(
                         entries.isEmpty
-                            ? 'No crashes recorded. 🎉'
-                            : '${entries.length} crash report'
-                                '${entries.length == 1 ? '' : 's'} on device. '
-                                'Data stays here unless you share it.',
+                            ? S.of(context)!.diagnosticsNoCrashes
+                            : S.of(context)!.diagnosticsCrashCount(entries.length),
                         style: SpaceTheme.bodyStyle,
                       ),
                     ),
