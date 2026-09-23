@@ -110,7 +110,12 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
                 style: SpaceTheme.headlineStyle.copyWith(fontSize: 22),
                 textAlign: TextAlign.center),
             const SizedBox(height: 24),
-            Container(
+            // The step scrolls inside the card so a diagram plus a long
+            // sentence still fits a phone held sideways; title, dots and
+            // buttons stay put.
+            Flexible(
+              child: SingleChildScrollView(
+                child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
@@ -128,6 +133,8 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
                           fontSize: 15, color: Colors.white),
                       textAlign: TextAlign.center),
                 ],
+              ),
+                ),
               ),
             ),
             const SizedBox(height: 24),

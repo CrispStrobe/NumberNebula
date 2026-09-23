@@ -4480,4 +4480,55 @@ class SDe extends S {
   @override
   String get gameLoadFailedMessage =>
       'Dieses Spiel wird beim ersten Öffnen heruntergeladen, und das hat nicht geklappt. Prüfe die Internetverbindung und versuche es noch einmal.';
+
+  @override
+  String galacticMarketSubmitEach(num value) {
+    final intl.NumberFormat valueNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String valueString = valueNumberFormat.format(value);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      value,
+      locale: localeName,
+      other: 'Jede verdeckte Münze = $valueString Credits',
+      one: 'Jede verdeckte Münze = 1 Credit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get galacticMarketSelectDenom => 'Wähle einen Nennwert';
+
+  @override
+  String get karteikastenEmptyMastered =>
+      'In diesem Fach gibt es noch keine gemeisterten Aufgaben.';
+
+  @override
+  String get karteikastenEmptyBox => 'Dieses Fach ist leer.';
+
+  @override
+  String get hullPlatingRotate => 'Drehen';
+
+  @override
+  String get diagnosticsNoCrashes => 'Keine Abstürze aufgezeichnet. 🎉';
+
+  @override
+  String diagnosticsCrashCount(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString Absturzberichte auf dem Gerät.',
+      one: '1 Absturzbericht auf dem Gerät.',
+    );
+    return '$_temp0 Die Daten bleiben hier, außer du teilst sie.';
+  }
+
+  @override
+  String get cubeScannerCheck => 'Antwort prüfen';
 }

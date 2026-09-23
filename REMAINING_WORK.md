@@ -36,9 +36,9 @@ that stays a human call.
 | Void-Überquerung | **Plays correctly.** Solved in the optimal 7 crossings from the rules drawn on screen; "All Safe!" dialog, score awarded, no errors. |
 | Sternen-Schmiede | **Fixed text.** The tutorial said an arm is "two outer points and the two nodes between them", but an arm is four *consecutive* outline nodes (point, inner, point, inner) -- only one node lies between its two points. The sentence now says so, and the worked example sums along the outline (1 + 10 + 9 + 2). |
 | Ionen-Ring | **Fixed generator.** Grade 1 produced "Circle may not be next to Star" on a ring with no star, so every placement won. Puzzles are now rejected unless every shape a rule names is on the ring and at least one way of filling the blanks breaks a rule (`IonChainPuzzle.rulesMatter`, tested over 200 seeds per level band). |
-| Galaktischer Markt | Reads correctly (total 15, one visible 5, two hidden coins → 5). Not solved end to end yet. |
-| Würfel-Scanner | Reads correctly; grade 1 asks for the bottom face (7 − top). A faint "cubes scanned" bar at the bottom is nearly invisible (dark on dark). |
-| Relikte-Puzzle | Opens and reads, but the tray pieces are small with tiny edge numbers for a child's finger. |
+| Galaktischer Markt | **Plays correctly.** Solved end to end (total 12, visible 2, two hidden → 5): "Purchase Complete!" with the worked sum. Fixed: the confirm button was hardcoded English ("Each hidden coin = 1 credits"), now localized with a proper singular. |
+| Würfel-Scanner | Reads correctly; grade 1 asks for the bottom face (7 − top). **Fixed:** before any answer, the check button read the win headline ("Cubes Decoded!"), and as a disabled button it was nearly invisible. It now says "Check answer", and disabled primary buttons app-wide keep a dimmed orange. |
+| Relikte-Puzzle | Opens and reads. **Fixed:** board and tray now size to the space they have (a tablet gets 110px pieces instead of 65px, cells up to 140px instead of 80px) and the rotate button is 32px instead of 22px. Not yet solved end to end. |
 
 Seen once on production and **not reproducible**: a tutorial paragraph
 wrapping mid-word, and the title "Relic" drawn as "Blic", both in Chrome while

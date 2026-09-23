@@ -43,6 +43,14 @@ void main() {
       r'(?:label|title|content|tooltip|semanticLabel|hintText|labelText)'
       r'\s*:\s*(?:const\s+)?Text\(\s*)($lit)'.replaceAll(r'$lit', lit),
     );
+    // Either branch of a conditional passed straight to Text: the pattern
+    // above only sees a literal right after the parenthesis, so
+    // `Text(x ? 'Each hidden coin = $n credits' : 'Select a denomination')`
+    // slipped through and shipped English to German players.
+    final conditional = RegExp(
+      r'Text\(\s*(?:const\s+)?[^;(){}]*?\?\s*($lit)\s*:\s*($lit)'
+          .replaceAll(r'$lit', lit),
+    );
     // Prose: two words, or a single capitalised word. Keeps symbols, numbers
     // and interpolation-only strings out of the results.
     final prose = RegExp(r'[A-Za-z]{3,}\s+[A-Za-z]{2,}|^[A-Z][a-z]{3,}$');
@@ -54,8 +62,14 @@ void main() {
       if (_exempt.containsKey(path)) continue;
 
       final src = entity.readAsStringSync();
-      for (final m in displayed.allMatches(src)) {
-        final raw = m.group(1)!;
+      final found = [
+        for (final m in displayed.allMatches(src)) (m.start, m.group(1)!),
+        for (final m in conditional.allMatches(src)) ...[
+          (m.start, m.group(1)!),
+          (m.start, m.group(2)!),
+        ],
+      ];
+      for (final (start, raw) in found) {
         final text = raw.substring(1, raw.length - 1);
         if (_exemptStrings[path]?.contains(text) ?? false) continue;
         // Interpolation with no prose of its own is a value, not a sentence.
@@ -63,7 +77,7 @@ void main() {
           continue;
         }
         if (!prose.hasMatch(text)) continue;
-        final line = '\n'.allMatches(src.substring(0, m.start)).length + 1;
+        final line = '\n'.allMatches(src.substring(0, start)).length + 1;
         offenders.add('  $path:$line\n      "$text"');
       }
     }

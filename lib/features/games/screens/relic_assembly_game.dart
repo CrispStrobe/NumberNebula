@@ -306,8 +306,14 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
   Widget _buildGridArea() {
     final rows = puzzle!.rows;
     final cols = puzzle!.cols;
-    const maxCellSize = 80.0;
-    final cellSize = math.min(maxCellSize, (MediaQuery.of(context).size.width - 80) / cols);
+    // Fill the space the board is given rather than a fixed 80px: on a tablet
+    // the old cap left the pieces thumbnail-sized with most of the screen
+    // empty, and the edge glyphs scale with the cell.
+    return LayoutBuilder(builder: (context, constraints) {
+    final cellSize = math.min(
+      (constraints.maxWidth - 60) / cols,
+      (constraints.maxHeight - 40) / rows,
+    ).clamp(48.0, 140.0);
 
     return Center(
       child: AnimatedBuilder(
@@ -344,6 +350,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
         },
       ),
     );
+    });
   }
 
   Widget _buildGridSlot(int pos, double cellSize) {
@@ -544,7 +551,14 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
       }
     }
 
-    const tileSize = 65.0;
+    return LayoutBuilder(builder: (context, constraints) {
+    // As large as the tray allows (up to 110px), so the edge glyphs are
+    // readable and a child's finger can hit a piece.
+    final count = math.max(1, availableTiles.length);
+    final tileSize = math.min(
+      (constraints.maxWidth - 64 - 8 * (count - 1)) / count,
+      constraints.maxHeight - 32,
+    ).clamp(56.0, 110.0);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -604,7 +618,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
                               behavior: HitTestBehavior.opaque,
                               onTap: () => _rotateTile(idx),
                               child: Container(
-                                width: 22, height: 22,
+                                width: 32, height: 32,
                                 decoration: BoxDecoration(
                                   color: SpaceTheme.nebulaPurple.withValues(alpha: 0.8),
                                   borderRadius: const BorderRadius.only(
@@ -612,7 +626,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
                                     topRight: Radius.circular(6),
                                   ),
                                 ),
-                                child: const Icon(Icons.rotate_right, color: Colors.white70, size: 14),
+                                child: const Icon(Icons.rotate_right, color: Colors.white70, size: 20),
                               ),
                             ),
                           ),
@@ -624,6 +638,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
               ),
             ),
     );
+    });
   }
 
   Widget _buildWinDialog(int score) {

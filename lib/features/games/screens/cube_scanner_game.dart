@@ -673,7 +673,9 @@ class _CubeScannerGameState extends State<CubeScannerGame>
       child: ElevatedButton.icon(
         onPressed: _selectedAnswer != null ? _submitAnswer : null,
         icon: const Icon(Icons.check_circle_outline),
-        label: Text(S.of(context)!.cubeScannerWinTitle),
+        // This used to read the win headline ("Cubes Decoded!") before the
+        // child had answered anything.
+        label: Text(S.of(context)!.cubeScannerCheck),
         style: SpaceTheme.primaryButtonStyle,
       ),
     );

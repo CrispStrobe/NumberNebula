@@ -548,8 +548,8 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
         onPressed: _selectedDenom != null ? _submitAnswer : null,
         icon: const Icon(Icons.check_circle_outline),
         label: Text(_selectedDenom != null
-            ? 'Each hidden coin = $_selectedDenom credits'
-            : 'Select a denomination'),
+            ? S.of(context)!.galacticMarketSubmitEach(_selectedDenom!)
+            : S.of(context)!.galacticMarketSelectDenom),
         style: SpaceTheme.primaryButtonStyle,
       ),
     );

@@ -2719,5 +2719,13 @@
   },
   "galacticMarketWrongScan": "Die ist es nicht. Rechne zuerst den verdeckten Betrag aus: Ziehe die bekannten Münzen vom Wechselgeld ab und teile den Rest auf die verdeckten Münzen auf.",
   "gameLoadFailedTitle": "Spiel nicht geladen",
-  "gameLoadFailedMessage": "Dieses Spiel wird beim ersten Öffnen heruntergeladen, und das hat nicht geklappt. Prüfe die Internetverbindung und versuche es noch einmal."
+  "gameLoadFailedMessage": "Dieses Spiel wird beim ersten Öffnen heruntergeladen, und das hat nicht geklappt. Prüfe die Internetverbindung und versuche es noch einmal.",
+  "galacticMarketSubmitEach": "{value, plural, =1{Jede verdeckte Münze = 1 Credit} other{Jede verdeckte Münze = {value} Credits}}",
+  "galacticMarketSelectDenom": "Wähle einen Nennwert",
+  "karteikastenEmptyMastered": "In diesem Fach gibt es noch keine gemeisterten Aufgaben.",
+  "karteikastenEmptyBox": "Dieses Fach ist leer.",
+  "hullPlatingRotate": "Drehen",
+  "diagnosticsNoCrashes": "Keine Abstürze aufgezeichnet. 🎉",
+  "diagnosticsCrashCount": "{count, plural, =1{1 Absturzbericht auf dem Gerät.} other{{count} Absturzberichte auf dem Gerät.}} Die Daten bleiben hier, außer du teilst sie.",
+  "cubeScannerCheck": "Antwort prüfen"
 }

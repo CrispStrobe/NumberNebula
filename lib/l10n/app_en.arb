@@ -2785,5 +2785,19 @@
   },
   "galacticMarketWrongScan": "Not that one. Work out the hidden total first: take the known coins off the change, then share what is left between the hidden coins.",
   "gameLoadFailedTitle": "Game didn't load",
-  "gameLoadFailedMessage": "This game is downloaded the first time you open it, and that download failed. Check the internet connection and try again."
+  "gameLoadFailedMessage": "This game is downloaded the first time you open it, and that download failed. Check the internet connection and try again.",
+  "galacticMarketSubmitEach": "{value, plural, =1{Each hidden coin = 1 credit} other{Each hidden coin = {value} credits}}",
+  "@galacticMarketSubmitEach": {
+    "placeholders": { "value": { "type": "num", "format": "compact" } }
+  },
+  "galacticMarketSelectDenom": "Select a denomination",
+  "karteikastenEmptyMastered": "No mastered problems in this box yet.",
+  "karteikastenEmptyBox": "This box is empty.",
+  "hullPlatingRotate": "Rotate",
+  "diagnosticsNoCrashes": "No crashes recorded. 🎉",
+  "diagnosticsCrashCount": "{count, plural, =1{1 crash report on device.} other{{count} crash reports on device.}} Data stays here unless you share it.",
+  "@diagnosticsCrashCount": {
+    "placeholders": { "count": { "type": "num", "format": "compact" } }
+  },
+  "cubeScannerCheck": "Check answer"
 }

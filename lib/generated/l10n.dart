@@ -7641,6 +7641,54 @@ abstract class S {
   /// In en, this message translates to:
   /// **'This game is downloaded the first time you open it, and that download failed. Check the internet connection and try again.'**
   String get gameLoadFailedMessage;
+
+  /// No description provided for @galacticMarketSubmitEach.
+  ///
+  /// In en, this message translates to:
+  /// **'{value, plural, =1{Each hidden coin = 1 credit} other{Each hidden coin = {value} credits}}'**
+  String galacticMarketSubmitEach(num value);
+
+  /// No description provided for @galacticMarketSelectDenom.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a denomination'**
+  String get galacticMarketSelectDenom;
+
+  /// No description provided for @karteikastenEmptyMastered.
+  ///
+  /// In en, this message translates to:
+  /// **'No mastered problems in this box yet.'**
+  String get karteikastenEmptyMastered;
+
+  /// No description provided for @karteikastenEmptyBox.
+  ///
+  /// In en, this message translates to:
+  /// **'This box is empty.'**
+  String get karteikastenEmptyBox;
+
+  /// No description provided for @hullPlatingRotate.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate'**
+  String get hullPlatingRotate;
+
+  /// No description provided for @diagnosticsNoCrashes.
+  ///
+  /// In en, this message translates to:
+  /// **'No crashes recorded. 🎉'**
+  String get diagnosticsNoCrashes;
+
+  /// No description provided for @diagnosticsCrashCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 crash report on device.} other{{count} crash reports on device.}} Data stays here unless you share it.'**
+  String diagnosticsCrashCount(num count);
+
+  /// No description provided for @cubeScannerCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check answer'**
+  String get cubeScannerCheck;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
