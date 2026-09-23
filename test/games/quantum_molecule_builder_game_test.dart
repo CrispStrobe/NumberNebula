@@ -16,6 +16,39 @@ import 'package:space_math_academy/features/games/screens/quantum_molecule_build
 import 'package:space_math_academy/features/games/screens/levels.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  // Levels are an asset now; load them once through the real asset bundle.
+  setUpAll(() => loadMoleculeLevels());
+
+  group('molecule levels asset', () {
+    test('holds all 30 levels, numbered 1..30 in order', () {
+      expect(levelsData.map((l) => l['levelNumber']), [for (var i = 1; i <= 30; i++) i]);
+    });
+
+    test('expands cells back into the maps the game reads', () {
+      // Level 1 (WATER) exactly as the old Dart literal began.
+      final first = levelsData.first;
+      expect(first['name'], 'WATER');
+      expect(first['duration'], 270);
+      expect(first['cursorType'], 1);
+      expect(first['background'], 0);
+      final row2 = (first['playfield'] as List)[2] as List;
+      expect(row2.take(6), [
+        {'type': 'wall', 'index': 1},
+        {'type': 'free', 'index': 0},
+        {'type': 'free', 'index': 0},
+        {'type': 'atom', 'index': 2},
+        {'type': 'wall', 'index': 0},
+        {'type': 'wall', 'index': 1},
+      ]);
+    });
+
+    test('loading twice parses once', () async {
+      expect(identical(await loadMoleculeLevels(), levelsData), isTrue);
+    });
+  });
+
   group('getAtomTypeFromIndex', () {
     test('classifies the documented element ranges', () {
       // Hydrogen: 0..7
