@@ -43,7 +43,7 @@ Widget _harness() {
 /// Sizes of the square tray pieces: Draggable children in the tray.
 List<double> _traySizes(WidgetTester tester) => tester
     .widgetList<Draggable<int>>(find.byType(Draggable<int>))
-    .map((d) => tester.getSize(find.byWidget(d.child!)).width)
+    .map((d) => tester.getSize(find.byWidget(d.child)).width)
     .toList();
 
 void main() {
