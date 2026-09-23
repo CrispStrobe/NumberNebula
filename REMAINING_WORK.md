@@ -40,16 +40,21 @@ that stays a human call.
 | Würfel-Scanner | Reads correctly; grade 1 asks for the bottom face (7 − top). A faint "cubes scanned" bar at the bottom is nearly invisible (dark on dark). |
 | Relikte-Puzzle | Opens and reads, but the tray pieces are small with tiny edge numbers for a child's finger. |
 
-Seen once on production and not reproduced since (5 of 5 and 3 of 3 clean
-re-runs): a tutorial paragraph wrapping mid-word, and the title "Relic" drawn
-as "Blic", both in Chrome while the machine was heavily loaded.
+Seen once on production and **not reproducible**: a tutorial paragraph
+wrapping mid-word, and the title "Relic" drawn as "Blic", both in Chrome while
+the dev box was at load 30+ and short on memory. A CI stress run rendered both
+texts against production with the browsers pinned to one core: all 43 valid
+renders were pixel-identical to a clean reference (at most 4 px apart), plus 8
+clean local re-runs. Closed; `.github/workflows/stress.yml` [glitch] re-runs it.
 
 The intermittent Firefox "Null check operator used on a null value" at
 startup is **not** this app's: a CI bisect with the browsers pinned to one
 core reproduced it in the build from before any of the web changes (9 of 80
 loads). It is a race in Flutter's CanvasKit startup when there is no WebGL
 and rendering falls back to the CPU. The live tests tolerate exactly that
-message in CPU-only mode and fail on anything else.
+message in CPU-only mode and fail on anything else. A plain `flutter create`
+app did not reproduce it (0 of 160 loads), so it is not reported upstream
+yet; the draft is in `docs/flutter-engine-race-report.md`.
 
 ## 2026-09-20 SESSION -- second play-through of the four gated puzzles
 

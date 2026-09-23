@@ -1,0 +1,116 @@
+name: Stress runs
+
+# Manual-only investigations that need a quiet runner, not the shared dev box.
+# Push to a stress/** branch with [glitch] or [race] in the commit message to
+# pick the job, or dispatch by hand to run both. Nothing here gates a merge.
+
+on:
+  push:
+    branches: ['stress/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  text-glitch:
+    # Chrome once drew "Relic" as "Blic" and wrapped a tutorial paragraph
+    # mid-word on production. Render both repeatedly, browsers pinned to one
+    # core, and flag any crop whose text differs from the majority.
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[glitch]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    defaults:
+      run:
+        working-directory: tool/web_live_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tool/web_live_test/package-lock.json
+      - name: Install
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          pip install --quiet pillow
+      - name: Render under load
+        env:
+          BASE_URL: ${{ vars.PRODUCTION_URL || 'https://numbernebula.vercel.app' }}
+        run: |
+          taskset -c 0 bash -c 'while :; do :; done' &
+          CROPS="$PWD/crops" taskset -c 0 npx playwright test -c stress/stress.config.mjs \
+            --project=chromium-wasm stress/text-glitch.spec.mjs --workers=3 --repeat-each=2 || true
+          kill %1 2>/dev/null || true
+      - name: Compare crops
+        run: |
+          python3 stress/compare_crops.py crops | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: glitch-crops-${{ matrix.shard }}
+          path: tool/web_live_test/crops
+          retention-days: 7
+
+  engine-race-minimal:
+    # Does the Firefox CanvasKit startup null-check reproduce in a plain
+    # `flutter create` app? Same Flutter version, same conditions as the
+    # bisect: no WebGL (CPU-only rendering), browsers pinned to one core.
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[race]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        headers: [coop, none]
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.2'
+          channel: stable
+          cache: true
+      - name: Build the counter app
+        run: |
+          cd "$RUNNER_TEMP"
+          flutter create --platforms web counter
+          cd counter && flutter build web --release --source-maps
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tool/web_live_test/package-lock.json
+      - name: Install
+        working-directory: tool/web_live_test
+        run: |
+          npm ci
+          npx playwright install --with-deps firefox
+          if [ "${{ matrix.headers }}" = none ]; then echo '{}' > "$RUNNER_TEMP/vercel.none.json"; fi
+      - name: Load it 40 times under load
+        working-directory: tool/web_live_test
+        env:
+          WEB_ROOT: ${{ runner.temp }}/counter/build/web
+          VERCEL_JSON: ${{ matrix.headers == 'none' && format('{0}/vercel.none.json', runner.temp) || '' }}
+        run: |
+          [ -z "$VERCEL_JSON" ] && unset VERCEL_JSON
+          taskset -c 0 bash -c 'while :; do :; done' &
+          RACE_LOG="$PWD/race.log" taskset -c 0 npx playwright test -c stress/stress.config.mjs \
+            --project=firefox-js stress/minimal-race.spec.mjs --workers=4 --repeat-each=4 || true
+          kill %1 2>/dev/null || true
+          errors=$(grep -c '^ERROR' race.log || true)
+          echo "RESULT counter app, headers=${{ matrix.headers }}: $errors errors in $(wc -l < race.log) loads" | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: minimal-race-${{ matrix.headers }}-${{ matrix.shard }}
+          path: |
+            tool/web_live_test/race.log
+            tool/web_live_test/race.log.stacks
+            ${{ runner.temp }}/counter/build/web/main.dart.js.map
+          retention-days: 7
