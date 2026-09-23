@@ -180,9 +180,11 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       if (!mounted) return;
 
       final tracker = context.read<GridlockPuzzleTracker>();
-      
+      final database = await GridlockPuzzleDatabase.load();
+      if (!mounted) return;
+
       const tolerance = 0.0;
-      final allPuzzlesAtLevel = getPuzzlesByComplexity(_currentComplexity, tolerance: tolerance);
+      final allPuzzlesAtLevel = database.byComplexity(_currentComplexity, tolerance: tolerance);
       _log('🔍 Found puzzles in database', {
         'total_at_complexity': allPuzzlesAtLevel.length,
         'complexity': _currentComplexity,
