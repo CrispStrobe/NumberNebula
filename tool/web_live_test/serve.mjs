@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 const here = fileURLToPath(new URL('.', import.meta.url));
 const root = resolve(process.argv[2] ?? process.env.WEB_ROOT ?? join(here, '../../build/web'));
 const port = Number(process.argv[3] ?? process.env.PORT ?? 4173);
-const vercel = JSON.parse(await readFile(join(here, '../../vercel.json'), 'utf8'));
+const vercel = JSON.parse(await readFile(process.env.VERCEL_JSON ?? join(here, '../../vercel.json'), 'utf8'));
 
 // vercel.json sources use path-to-regexp; this project only uses "/(.*)"
 // style patterns, which translate directly.
