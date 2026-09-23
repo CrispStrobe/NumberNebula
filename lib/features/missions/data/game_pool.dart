@@ -89,6 +89,8 @@ String gameTitleFor(S s, String gameKey) {
 /// menu and never picked for a mission. Remove a key from here once its game
 /// works -- that is the only step needed to ship it.
 const Set<String> debugOnlyGames = {
+  // Released 2026-09-23 after being played to a win in the browser:
+  // galactic_market, relic_assembly, void_crossing (see REMAINING_WORK.md).
   // Fixed twice. First: generation searched for an impossible magic constant,
   // then fell back to a layout whose lines did not sum equally. Then a
   // play-through showed the board still made no sense -- the nodes were drawn
@@ -105,10 +107,6 @@ const Set<String> debugOnlyGames = {
   // board only ever draws, so each rule is now drawn as the two beads it
   // forbids. Held back pending another play-through.
   'ion_chain',
-  // Fixed (there was no losing condition at all, so tapping every coin in
-  // turn solved it for free and the arithmetic was never worth doing)
-  // -- held back pending a play-through.
-  'galactic_market',
   // Fixed (nothing on the board said opposite faces sum to 7, nor that the
   // hidden faces are exactly the ones opposite the visible ones -- there is an
   // onboarding that draws both now). A play-through then found two more: the
@@ -119,17 +117,6 @@ const Set<String> debugOnlyGames = {
   // localization, and each grade draws from several kinds. Held back pending
   // another play-through.
   'cube_scanner',
-  // Fixed (a misplaced piece could not be taken back off the grid, and the
-  // long-press that did it was invisible -- there is a remove button now)
-  // -- held back pending a play-through.
-  'relic_assembly',
-  // Fixed (the onboarding described the conflict rule and then told the player
-  // to look it up elsewhere; it draws the situation now). A play-through then
-  // found that tapping a second creature onto a one-seat shuttle did nothing
-  // at all -- no movement and no message -- which reads as a broken game
-  // rather than a full one; the seats are drawn now and a refused boarding
-  // says why. Held back pending another play-through.
-  'void_crossing',
 };
 
 /// Whether [gameKey] may be offered to a player.
@@ -165,10 +152,10 @@ const Set<String> signaturePuzzleGames = {
   'quantum_molecule_builder',  // atomix
   'space_station_gridlock',    // rush hour
   'robot_path_game',           // programming a path
-  'void_crossing',             // river crossing (in debugOnlyGames)
+  'void_crossing',             // river crossing
   'dark_matter_grid',          // lights out
   'launch_sequence',           // sorting
-  'relic_assembly',            // edge-matching tiles (in debugOnlyGames)
+  'relic_assembly',            // edge-matching tiles
   'hull_plating',              // polyomino packing
   'grid_filler_game',          // tiling
   'cargo_bay_arranger',        // falling blocks
