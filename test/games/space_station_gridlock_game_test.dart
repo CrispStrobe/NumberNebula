@@ -11,12 +11,14 @@
 //     - SpaceShip               (the movable-piece model + mutability contract)
 //     - GridlockParticle.update (the particle physics step + invariants)
 //     - PuzzleConfiguration / PuzzleGenerator.generate (fallback puzzle)
-//     - getPuzzlesByComplexity  (the bundled Rush-Hour puzzle database)
+//     - GridlockPuzzleDatabase  (the bundled Rush-Hour puzzle database)
 //   For the puzzle database we assert structural INVARIANTS that every puzzle
 //   must satisfy for the game to be solvable / renderable: exactly one player
 //   ship, every ship fully in-bounds on the 6x6 grid, the player ship is
 //   horizontal (it must slide out the right edge), and the declared complexity
 //   matches the bucket the lookup returned.
+
+import 'dart:io';
 
 import 'package:flutter/material.dart' show Color, Colors, Offset;
 import 'package:flutter_test/flutter_test.dart';
@@ -110,8 +112,18 @@ void main() {
     });
   });
 
-  group('getPuzzlesByComplexity database invariants', () {
+  group('GridlockPuzzleDatabase invariants', () {
     const buckets = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0];
+    final db = GridlockPuzzleDatabase.fromJson(
+        File(gridlockPuzzlesAsset).readAsStringSync());
+    List<GridlockPuzzleData> getPuzzlesByComplexity(double c,
+            {double tolerance = 0.0}) =>
+        db.byComplexity(c, tolerance: tolerance);
+
+    test('holds the whole bundled database with unique ids', () {
+      expect(db.puzzles.length, 1313);
+      expect(db.puzzles.map((p) => p.id).toSet().length, 1313);
+    });
 
     test('returns non-empty sets for every complexity bucket', () {
       for (final c in buckets) {
@@ -161,6 +173,67 @@ void main() {
       final wide = getPuzzlesByComplexity(2.0, tolerance: 1.0);
       // A wider tolerance must include at least everything the exact match did.
       expect(wide.length, greaterThanOrEqualTo(exact.length));
+    });
+
+    test('no two ships share a cell and the player can reach the exit row', () {
+      for (final puzzle in db.puzzles) {
+        final occupied = <int>{};
+        for (final s in puzzle.ships) {
+          for (int k = 0; k < (s['length'] as int); k++) {
+            final r = (s['row'] as int) + (s['isHorizontal'] == true ? 0 : k);
+            final c = (s['col'] as int) + (s['isHorizontal'] == true ? k : 0);
+            expect(occupied.add(r * gridSize + c), isTrue,
+                reason: '${puzzle.id} overlaps at ($r, $c)');
+          }
+        }
+        final player = puzzle.ships.firstWhere((s) => s['isPlayer'] == true);
+        expect(player['row'], 2, reason: '${puzzle.id} exit row');
+        expect(player['length'], 2, reason: puzzle.id);
+      }
+    });
+
+    test('the bundled asset loads through the asset bundle', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final loaded = await GridlockPuzzleDatabase.load();
+      expect(loaded.puzzles.length, db.puzzles.length);
+      expect(identical(await GridlockPuzzleDatabase.load(), loaded), isTrue,
+          reason: 'the database is parsed once and cached');
+    });
+  });
+
+  group('shipsFromBoard', () {
+    // GRID_1's ship list exactly as the old generated Dart database stored
+    // it, so the derived order (which picks each ship's colour) is pinned.
+    test('matches the ship list GRID_1 was generated with', () {
+      Map<String, dynamic> s(int row, int col, int length, bool h,
+              [bool player = false, bool blocking = false]) =>
+          {
+            'row': row,
+            'col': col,
+            'length': length,
+            'isHorizontal': h,
+            'isPlayer': player,
+            'isBlocking': blocking,
+          };
+      expect(shipsFromBoard('IBBKooIoJKCCAAJoLMoxEELMoooFFooGGHHo'), [
+        s(2, 0, 2, true, true),
+        s(0, 1, 2, true),
+        s(1, 4, 2, true),
+        s(3, 2, 2, true),
+        s(4, 3, 2, true),
+        s(5, 1, 2, true),
+        s(5, 3, 2, true),
+        s(0, 0, 2, false),
+        s(1, 2, 2, false),
+        s(0, 3, 2, false),
+        s(2, 4, 2, false),
+        s(2, 5, 2, false),
+        s(3, 1, 1, true, false, true),
+      ]);
+    });
+
+    test('rejects a board of the wrong size', () {
+      expect(() => shipsFromBoard('AAoo'), throwsFormatException);
     });
   });
 }

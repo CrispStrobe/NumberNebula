@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart' show Ticker;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
-import 'dart:async';
 
 import '../models/game_outcome.dart';
 import '../models/performance.dart';
@@ -181,7 +181,11 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   late AnimationController _pulseController;
   late AnimationController _slideController;
   late AnimationController _successController;
-  late Timer _particleTimer;
+  // Runs only while particles are alive, in step with the display.
+  late final Ticker _particleTicker = createTicker(_onParticleTick);
+  Duration _lastParticleTick = Duration.zero;
+  Duration _particleBacklog = Duration.zero;
+  static const _particleStep = Duration(milliseconds: 16);
   
   late Animation<double> _pulseAnimation;
   late Animation<double> _slideAnimation;
@@ -266,8 +270,6 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         }
     });
     
-    _startParticleTimer();
-    
     // Request focus for keyboard input
     WidgetsBinding.instance.addPostFrameCallback((_) {
         _focusNode.requestFocus();
@@ -295,14 +297,25 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
   }
 
-  void _startParticleTimer() {
-    _particleTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
-      if (mounted && particles.isNotEmpty) {
-        setState(() {
-          particles.removeWhere((p) => p.update(0.016));
-        });
+  void _startParticles() {
+    if (_particleTicker.isActive) return;
+    _lastParticleTick = Duration.zero;
+    _particleBacklog = Duration.zero;
+    _particleTicker.start();
+  }
+
+  void _onParticleTick(Duration elapsed) {
+    _particleBacklog += elapsed - _lastParticleTick;
+    _lastParticleTick = elapsed;
+    // Fixed 16 ms steps keep the per-step damping in MoleculeParticle.update
+    // the same on 60 Hz and 120 Hz displays.
+    setState(() {
+      while (_particleBacklog >= _particleStep && particles.isNotEmpty) {
+        _particleBacklog -= _particleStep;
+        particles.removeWhere((p) => p.update(0.016));
       }
     });
+    if (particles.isEmpty) _particleTicker.stop();
   }
 
   // Keyboard input handler
@@ -892,6 +905,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     for (int i = 0; i < 60; i++) {
       particles.add(MoleculeParticle.celebration(MediaQuery.of(context).size.center(Offset.zero)));
     }
+    _startParticles();
     
     final baseScore = 300 * widget.grade;
     final efficiencyBonus = math.max(0, (moveLimit - movesMade) * 10);
@@ -934,6 +948,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     for (int i = 0; i < 40; i++) {
       particles.add(MoleculeParticle.failure(MediaQuery.of(context).size.center(Offset.zero)));
     }
+    _startParticles();
     
     Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) {
@@ -2419,7 +2434,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     _pulseController.dispose();
     _slideController.dispose();
     _successController.dispose();
-    _particleTimer.cancel();
+    _particleTicker.dispose();
     super.dispose();
   }
 }

@@ -13,54 +13,6 @@ import '../widgets/space_background.dart';
 import '../../../shared/widgets/focusable_tapper.dart';
 import 'karteikasten_screen.dart';
 
-import 'magic_triangles_game.dart';
-import 'asteroid_math_game.dart';
-import 'puzzle_math_game.dart';
-import 'hyperdrive_gates_game.dart';
-import 'path_finder_game.dart';
-import 'planet_hopping_game.dart';
-import 'number_walls_game.dart';
-import 'codebreaker_game.dart';
-import 'perspective_puzzle_game.dart';
-import 'blocks_counter_game.dart';
-import 'signal_triangulation_game.dart';
-import 'cryptex_lock_breaker_game.dart';
-import 'arithmancer_duel_game.dart';
-import 'arithmatic_square_game.dart';
-import 'arithmancer_crosswords_game.dart';
-import 'kenken_game.dart';
-import 'asteroid_field_navigator_game.dart';
-import 'cargo_bay_arranger_game.dart';
-import 'quantum_molecule_builder_game.dart';
-import 'space_station_gridlock_game.dart';
-import 'star_loader_game.dart';
-import 'robot_path_game.dart';
-import 'solarpanel_game.dart';
-import 'grid_filler_game.dart';
-import 'star_chart_scan_game.dart';
-import 'comm_relay_game.dart';
-import 'hull_plating_game.dart';
-import 'vault_cracker_game.dart';
-import 'crew_manifest_game.dart';
-import 'alien_tribunal_game.dart';
-import 'gravity_well_game.dart';
-import 'sector_painter_game.dart';
-import 'warp_fold_game.dart';
-import 'cube_scanner_game.dart';
-import 'circuit_repair_game.dart';
-import 'dark_matter_grid_game.dart';
-import 'ion_chain_game.dart';
-import 'launch_sequence_game.dart';
-import 'star_forge_game.dart';
-import 'nebula_matrix_game.dart';
-import 'orbital_towers_game.dart';
-import 'hive_station_game.dart';
-import 'relic_assembly_game.dart';
-import 'xenobiology_lab_game.dart';
-import 'galactic_market_game.dart';
-import 'asteroid_duel_game.dart';
-import 'chrono_repair_game.dart';
-import 'void_crossing_game.dart';
 
 import '../widgets/debug_panel.dart';
 import '../../settings/screens/settings_screen.dart';
@@ -83,7 +35,6 @@ class _GameInfoData {
   final String description;
   final IconData icon;
   final Gradient gradient;
-  final Widget Function(int grade, int level) gameBuilder;
 
   _GameInfoData({
     required this.gameKey,
@@ -91,7 +42,6 @@ class _GameInfoData {
     required this.description,
     required this.icon,
     required this.gradient,
-    required this.gameBuilder,
   });
 }
 
@@ -160,7 +110,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.magicTrianglesDesc,
         icon: Icons.change_history,
         gradient: const LinearGradient(colors: [SpaceTheme.nebulaPurple, SpaceTheme.cosmicPink]),
-        gameBuilder: (grade, level) => MagicTrianglesGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'asteroid_math', // Game is titled "Asteroid Field Hunter"
@@ -168,7 +117,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.asteroidMathHunterDesc,
         icon: Icons.bubble_chart,
         gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.starYellow]),
-        gameBuilder: (grade, level) => AsteroidMathGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'puzzle_math',
@@ -176,7 +124,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.puzzleMathDesc,
         icon: Icons.extension,
         gradient: const LinearGradient(colors: [SpaceTheme.planetOrange, SpaceTheme.rocketRed]),
-        gameBuilder: (grade, level) => PuzzleMathGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'hyperdrive_gates',
@@ -184,7 +131,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.hyperdriveGatesDesc,
         icon: Icons.rocket_launch,
         gradient: const LinearGradient(colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)]),
-        gameBuilder: (grade, level) => HyperdriveGatesGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'pathfinder',
@@ -192,7 +138,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.pathFinderDesc,
         icon: Icons.map,
         gradient: const LinearGradient(colors: [Colors.teal, Colors.cyan]),
-        gameBuilder: (grade, level) => PathFinderGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'planet_hopping',
@@ -200,7 +145,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.planetHoppingDesc,
         icon: Icons.public,
         gradient: const LinearGradient(colors: [Color(0xFF667eea), Color(0xFF764ba2)]),
-        gameBuilder: (grade, level) => PlanetHoppingGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'number_walls',
@@ -208,7 +152,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.numberWallsDesc,
         icon: Icons.view_module,
         gradient: const LinearGradient(colors: [Color(0xFFf97794), Color(0xFF623aa2)]),
-        gameBuilder: (grade, level) => NumberWallsGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'codebreaker',
@@ -216,7 +159,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.codebreakerDesc,
         icon: Icons.vpn_key,
         gradient: const LinearGradient(colors: [Color(0xFF00c6ff), Color(0xFF0072ff)]),
-        gameBuilder: (grade, level) => CodebreakerGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'perspective_puzzle',
@@ -224,7 +166,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.perspectivePuzzleInstructions,
         icon: Icons.grid_view_sharp,
         gradient: const LinearGradient(colors: [Color(0xFFf5af19), Color(0xFFf12711)]),
-        gameBuilder: (grade, level) => PerspectivePuzzleGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'block_counter',
@@ -232,7 +173,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.blockCounterInstructions,
         icon: Icons.view_in_ar,
         gradient: const LinearGradient(colors: [Color(0xFF00F260), Color(0xFF0575E6)]),
-        gameBuilder: (grade, level) => BlockCounterGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'signal_triangulation',
@@ -240,7 +180,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.signalTriangulationInstructions,
         icon: Icons.track_changes,
         gradient: const LinearGradient(colors: [Color(0xFF00c6ff), Color(0xFF0072ff)]),
-        gameBuilder: (grade, level) => SignalTriangulationGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'cryptex_lock_breaker',
@@ -248,7 +187,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.cryptexLockBreakerInstructions,
         icon: Icons.dialpad,
         gradient: const LinearGradient(colors: [Color(0xFFED213A), Color(0xFF93291E)]),
-        gameBuilder: (grade, level) => CryptexLockBreakerGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'arithmancer_duel',
@@ -256,7 +194,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.arithmancerGameInstructions,
         icon: Icons.auto_awesome,
         gradient: const LinearGradient(colors: [Color(0xFFcc2b5e), Color(0xFF753a88)]),
-        gameBuilder: (grade, level) => ArithmancerDuelGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'arithmatic_square',
@@ -264,7 +201,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.arithmeticSquareInstructions,
         icon: Icons.grid_on,
         gradient: const LinearGradient(colors: [Color(0xFFa8e063), Color(0xFF56ab2f)]),
-        gameBuilder: (grade, level) => ArithmeticSquareGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'arithmancer_crosswords',
@@ -272,7 +208,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.arithmancerCrosswordsInstructions,
         icon: Icons.border_all,
         gradient: const LinearGradient(colors: [Color(0xFFff8008), Color(0xFFffc837)]),
-        gameBuilder: (grade, level) => ArithmancerCrosswordsGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'kenken',
@@ -280,7 +215,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.kenkenInstructions,
         icon: Icons.dashboard_customize,
         gradient: const LinearGradient(colors: [Color(0xFF00d2ff), Color(0xFF3a7bd5)]),
-        gameBuilder: (grade, level) => KenkenGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'asteroid_field_navigator',
@@ -288,7 +222,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.asteroidFieldInstructions,
         icon: Icons.grid_4x4,
         gradient: const LinearGradient(colors: [Color(0xFF141E30), Color(0xFF243B55)]),
-        gameBuilder: (grade, level) => AsteroidFieldNavigatorGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'cargo_bay_arranger',
@@ -296,7 +229,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.cargoBayInstructions,
         icon: Icons.view_module,
         gradient: const LinearGradient(colors: [Color(0xFF7F00FF), Color(0xFFE100FF)]),
-        gameBuilder: (grade, level) => CargoBayArrangerGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'quantum_molecule_builder',
@@ -304,7 +236,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.moleculeBuilderInstructions,
         icon: Icons.science,
         gradient: const LinearGradient(colors: [Color(0xFF02AAB0), Color(0xFF00CDAC)]),
-        gameBuilder: (grade, level) => QuantumMoleculeBuilderGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'space_station_gridlock',
@@ -312,7 +243,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.spaceGridlockInstructions,
         icon: Icons.view_module,
         gradient: const LinearGradient(colors: [Color(0xFF02AAB0), Color(0xFF00CDAC)]),
-        gameBuilder: (grade, level) => SpaceStationGridlockGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'star_loader_game',
@@ -320,7 +250,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.starLoaderGameDesc,
         icon: Icons.move_down,
         gradient: const LinearGradient(colors: [Color(0xFFf9a825), Color(0xFFc66900)]),
-        gameBuilder: (grade, level) => StarLoaderGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'robot_path_game',
@@ -328,7 +257,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.robotPathDesc,
         icon: Icons.smart_toy_outlined,
         gradient: const LinearGradient(colors: [Color(0xFF00bcd4), Color(0xFF00838f)]),
-        gameBuilder: (grade, level) => RobotPathGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'solarpanel_game',
@@ -336,7 +264,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.solarPanelTitle,
         icon: Icons.smart_toy_outlined,
         gradient: const LinearGradient(colors: [Color(0xFF44bcd4), Color(0xFF44838f)]),
-        gameBuilder: (grade, level) => SolarPanelGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'grid_filler_game',
@@ -344,7 +271,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.gridFillerDesc,
         icon: Icons.smart_toy_outlined,
         gradient: const LinearGradient(colors: [Color(0xFF44bcd4), Color(0xFF44838f)]),
-        gameBuilder: (grade, level) => GridFillerGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'star_chart_scan',
@@ -352,7 +278,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.starChartScanDesc,
         icon: Icons.travel_explore,
         gradient: const LinearGradient(colors: [Color(0xFF00C9DB), Color(0xFFFFD700)]),
-        gameBuilder: (grade, level) => StarChartScanGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'comm_relay',
@@ -360,7 +285,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.commRelayDesc,
         icon: Icons.satellite_alt,
         gradient: const LinearGradient(colors: [Color(0xFF00C9DB), Color(0xFF6B48FF)]),
-        gameBuilder: (grade, level) => CommRelayGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'hull_plating',
@@ -368,7 +292,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.hullPlatingDesc,
         icon: Icons.view_compact,
         gradient: const LinearGradient(colors: [Color(0xFF8B8B8B), Color(0xFF00C9DB)]),
-        gameBuilder: (grade, level) => HullPlatingGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'vault_cracker',
@@ -376,7 +299,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.vaultCrackerDesc,
         icon: Icons.lock_open,
         gradient: const LinearGradient(colors: [Color(0xFF6B48FF), Color(0xFFE63946)]),
-        gameBuilder: (grade, level) => VaultCrackerGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'crew_manifest',
@@ -384,7 +306,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.crewManifestDesc,
         icon: Icons.assignment_ind,
         gradient: const LinearGradient(colors: [Color(0xFF00C9DB), Color(0xFF06FFA5)]),
-        gameBuilder: (grade, level) => CrewManifestGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'alien_tribunal',
@@ -392,7 +313,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.alienTribunalDesc,
         icon: Icons.gavel,
         gradient: const LinearGradient(colors: [Color(0xFF6B48FF), Color(0xFFE63946)]),
-        gameBuilder: (grade, level) => AlienTribunalGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'gravity_well',
@@ -400,7 +320,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.gravityWellDesc,
         icon: Icons.balance,
         gradient: const LinearGradient(colors: [Color(0xFF06FFA5), Color(0xFF00C9DB)]),
-        gameBuilder: (grade, level) => GravityWellGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'sector_painter',
@@ -408,7 +327,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.sectorPainterDesc,
         icon: Icons.palette,
         gradient: const LinearGradient(colors: [Color(0xFFFF6B35), Color(0xFFFFD700)]),
-        gameBuilder: (grade, level) => SectorPainterGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'warp_fold',
@@ -416,7 +334,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.warpFoldDesc,
         icon: Icons.content_cut,
         gradient: const LinearGradient(colors: [Color(0xFFFF69B4), Color(0xFF6B48FF)]),
-        gameBuilder: (grade, level) => WarpFoldGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'cube_scanner',
@@ -424,7 +341,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.cubeScannerDesc,
         icon: Icons.view_in_ar_outlined,
         gradient: const LinearGradient(colors: [Color(0xFF6B48FF), Color(0xFFFF69B4)]),
-        gameBuilder: (grade, level) => CubeScannerGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'circuit_repair',
@@ -432,7 +348,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.circuitRepairDesc,
         icon: Icons.electrical_services,
         gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFE63946)]),
-        gameBuilder: (grade, level) => CircuitRepairGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'dark_matter_grid',
@@ -440,7 +355,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.darkMatterGridDesc,
         icon: Icons.grid_view,
         gradient: const LinearGradient(colors: [Color(0xFF1A1A2E), Color(0xFF6B48FF)]),
-        gameBuilder: (grade, level) => DarkMatterGridGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'ion_chain',
@@ -448,7 +362,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.ionChainDesc,
         icon: Icons.link,
         gradient: const LinearGradient(colors: [Color(0xFF06FFA5), Color(0xFF00C9DB)]),
-        gameBuilder: (grade, level) => IonChainGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'launch_sequence',
@@ -456,7 +369,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.launchSequenceDesc,
         icon: Icons.sort,
         gradient: const LinearGradient(colors: [Color(0xFFE63946), Color(0xFFFFD700)]),
-        gameBuilder: (grade, level) => LaunchSequenceGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'star_forge',
@@ -464,7 +376,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.starForgeDesc,
         icon: Icons.auto_awesome_mosaic,
         gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFF6B35)]),
-        gameBuilder: (grade, level) => StarForgeGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'nebula_matrix',
@@ -472,7 +383,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.nebulaMatrixDesc,
         icon: Icons.grid_on_rounded,
         gradient: const LinearGradient(colors: [Color(0xFF6B48FF), Color(0xFFFF6B9D)]),
-        gameBuilder: (grade, level) => NebulaMatrixGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'orbital_towers',
@@ -480,7 +390,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.orbitalTowersDesc,
         icon: Icons.location_city,
         gradient: const LinearGradient(colors: [Color(0xFFE63946), Color(0xFFFFD700)]),
-        gameBuilder: (grade, level) => OrbitalTowersGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'hive_station',
@@ -488,7 +397,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.hiveStationDesc,
         icon: Icons.hexagon,
         gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFF6B35)]),
-        gameBuilder: (grade, level) => HiveStationGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'relic_assembly',
@@ -496,7 +404,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.relicAssemblyDesc,
         icon: Icons.dashboard_customize_outlined,
         gradient: const LinearGradient(colors: [Color(0xFFFF6B35), Color(0xFFFFD700)]),
-        gameBuilder: (grade, level) => RelicAssemblyGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'xenobiology_lab',
@@ -504,7 +411,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.xenobiologyLabDesc,
         icon: Icons.biotech,
         gradient: const LinearGradient(colors: [Color(0xFF06FFA5), Color(0xFFFFD700)]),
-        gameBuilder: (grade, level) => XenobiologyLabGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'galactic_market',
@@ -512,7 +418,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.galacticMarketDesc,
         icon: Icons.storefront,
         gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFF06FFA5)]),
-        gameBuilder: (grade, level) => GalacticMarketGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'asteroid_duel',
@@ -520,7 +425,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.asteroidDuelDesc,
         icon: Icons.sports_kabaddi,
         gradient: const LinearGradient(colors: [Color(0xFFE63946), Color(0xFFFF6B35)]),
-        gameBuilder: (grade, level) => AsteroidDuelGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'chrono_repair',
@@ -528,7 +432,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.chronoRepairDesc,
         icon: Icons.watch_later,
         gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFF6B48FF)]),
-        gameBuilder: (grade, level) => ChronoRepairGame(grade: grade, level: level),
       ),
       _GameInfoData(
         gameKey: 'void_crossing',
@@ -536,7 +439,6 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
         description: s.voidCrossingDesc,
         icon: Icons.flight,
         gradient: const LinearGradient(colors: [Color(0xFF0B1426), Color(0xFF06FFA5)]),
-        gameBuilder: (grade, level) => VoidCrossingGame(grade: grade, level: level),
       ),
     ];
   }
@@ -901,7 +803,7 @@ class _GameMenuScreenState extends State<GameMenuScreen> with TickerProviderStat
       // level. We use effectiveGrade so the player's chosen difficulty
       // mode (easy/normal/challenge) shifts the game's grade band.
       onTap: () => _navigateToGame(
-        gameData.gameBuilder(gameProvider.effectiveGrade, levelToLoad),
+        gameBuilders[gameData.gameKey]!(gameProvider.effectiveGrade, levelToLoad),
       ),
     );
 

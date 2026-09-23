@@ -227,7 +227,8 @@ void _mergeStarLoader(String localDbPath) {
     return count == 0 || rating >= 3;
   }).toList();
 
-  final bundledOutput = const JsonEncoder.withIndent('  ').convert({
+  // Compact: the bundled file ships inside the app.
+  final bundledOutput = jsonEncode({
     'levels': bundledLevels,
   });
   final bundledFile = File('assets/data/starloader_levels.json');

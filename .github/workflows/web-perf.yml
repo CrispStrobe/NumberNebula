@@ -1,0 +1,97 @@
+name: Web build & live tests
+
+# Builds the web app exactly as Vercel does (--wasm, which also emits the JS
+# fallback), reports what a visitor downloads, then opens the build in real
+# browsers: Chromium gets the wasm build, Firefox the JS fallback. The build
+# is served through tool/web_live_test/serve.mjs, which applies vercel.json,
+# so the hosting headers are tested too. Heavy compiles run here rather than
+# on the shared dev box.
+
+on:
+  push:
+    branches: [main, 'perf/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: web-perf-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.44.2'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Build web (wasm + js fallback)
+        run: |
+          # Source maps only go into the CI artifact (Vercel builds without
+          # them) so a live-test failure can be traced to Dart source.
+          flutter build web --wasm --release --source-maps \
+            --dart-define=GIT_HASH="$(git rev-parse --short HEAD)"
+
+      - name: Size report
+        run: |
+          bash tool/web_size_report.sh build/web web-size.json | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: |
+            build/web
+            web-size.json
+          retention-days: 7
+
+  live-test:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: tool/web_live_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: .
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tool/web_live_test/package-lock.json
+
+      - name: Install Playwright
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium firefox
+
+      - name: Live tests (Chromium/wasm, Firefox/js)
+        env:
+          CI: 'true'
+        run: npx playwright test
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-test-report
+          path: |
+            tool/web_live_test/playwright-report
+            tool/web_live_test/test-results
+          retention-days: 7

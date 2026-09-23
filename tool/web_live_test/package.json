@@ -1,0 +1,12 @@
+{
+  "name": "numbernebula-web-live-test",
+  "private": true,
+  "type": "module",
+  "description": "Opens the built web app in real browsers and checks what a visitor gets.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

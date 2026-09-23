@@ -1,8 +1,9 @@
 // ignore_for_file: avoid_print, unused_element, unused_field
 // convert_rush_database.dart
-// Converts Michael Fogleman's Rush Hour database to Dart puzzle format
-// Usage: dart run convert_rush_database.dart input.txt output.dart
+// Converts Michael Fogleman's Rush Hour database to the gridlock puzzle asset
+// Usage: dart run tool/convert_rushdb.dart rush.txt assets/puzzles/gridlock_puzzles.json
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -15,7 +16,7 @@ void main(List<String> args) async {
   if (args.length < 2 || args.length > 3) {
     print('Usage: dart run convert_rush_database.dart <input_file> <output_file> [puzzles_per_level]');
     print('');
-    print('Example: dart run convert_rush_database.dart rush.txt gridlock_puzzles_data.dart 200');
+    print('Example: dart run convert_rush_database.dart rush.txt assets/puzzles/gridlock_puzzles.json 200');
     print('');
     print('Default puzzles_per_level: $puzzlesPerLevel');
     exit(1);
@@ -90,7 +91,7 @@ void main(List<String> args) async {
 
   // Write output
   print('💾 Writing to $outputFile...');
-  await writeDartFile(outputFile, filtered);
+  await writeJsonFile(outputFile, filtered);
 
   // Print statistics
   printStatistics(filtered);
@@ -310,43 +311,10 @@ List<ParsedPuzzle> filterCoolestPuzzles(List<ParsedPuzzle> puzzles, int perLevel
   return filtered;
 }
 
-Future<void> writeDartFile(String outputFile, List<ParsedPuzzle> puzzles) async {
-  final sink = File(outputFile).openWrite();
-
-  // Write header
-  sink.writeln('// gridlock_puzzles_data.dart');
-  sink.writeln('// AUTO-GENERATED FROM RUSH HOUR DATABASE - DO NOT EDIT MANUALLY');
-  sink.writeln('// Converted: ${DateTime.now().toIso8601String()}');
-  sink.writeln('// Total puzzles: ${puzzles.length}');
-  sink.writeln('// Source: Michael Fogleman\'s Rush Hour Database');
-  sink.writeln('//');
-  sink.writeln('// Difficulty Mapping (Grades 1-4, Levels 1-20 each):');
-  sink.writeln('//   1.0 (Easy):     7-12 moves  → Grade 1, Levels 1-6');
-  sink.writeln('//   2.0 (Easy+):    13-17 moves → Grade 1 L7-14, Grade 2 L1-4');
-  sink.writeln('//   3.0 (Medium):   18-23 moves → Grade 1 L15-20, Grade 2 L5-13');
-  sink.writeln('//   4.0 (Medium+):  24-29 moves → Grade 2 L14-20, Grade 3 L1-12');
-  sink.writeln('//   5.0 (Hard):     30-36 moves → Grade 3 L13-19, Grade 4 L1-9');
-  sink.writeln('//   6.0 (Hard+):    37-44 moves → Grade 3 L20, Grade 4 L10-17');
-  sink.writeln('//   7.0 (Expert):   45+ moves   → Grade 4, Levels 18-20');
-  sink.writeln('');
-
-  // Write class definition
-  sink.writeln('class GridlockPuzzleData {');
-  sink.writeln('  final String id;');
-  sink.writeln('  final double complexity;');
-  sink.writeln('  final int minMoves;');
-  sink.writeln('  final List<Map<String, dynamic>> ships;\n');
-  sink.writeln('  final String? originalBoard;\n');
-  
-  sink.writeln('  const GridlockPuzzleData({');
-  sink.writeln('    required this.id,');
-  sink.writeln('    required this.complexity,');
-  sink.writeln('    required this.minMoves,');
-  sink.writeln('    required this.ships,');
-  sink.writeln('    this.originalBoard,');
-  sink.writeln('  });');
-  sink.writeln('}\n');
-
+/// Writes assets/puzzles/gridlock_puzzles.json, the format
+/// GridlockPuzzleDatabase.fromJson reads. Only the board string is stored;
+/// the game derives each ship from it (see shipsFromBoard).
+Future<void> writeJsonFile(String outputFile, List<ParsedPuzzle> puzzles) async {
   // Sort by complexity then moves
   puzzles.sort((a, b) {
     final compCompare = a.complexity.compareTo(b.complexity);
@@ -354,46 +322,24 @@ Future<void> writeDartFile(String outputFile, List<ParsedPuzzle> puzzles) async 
     return a.moves.compareTo(b.moves);
   });
 
-  // Write puzzle list
-  sink.writeln('const gridlockPuzzles = <GridlockPuzzleData>[');
-
-  for (int i = 0; i < puzzles.length; i++) {
-    final puzzle = puzzles[i];
-    final id = 'GRID_${i + 1}';
-
-    sink.writeln('  GridlockPuzzleData(');
-    sink.writeln('    id: \'$id\',');
-    sink.writeln('    complexity: ${puzzle.complexity},');
-    sink.writeln('    minMoves: ${puzzle.moves},');
-    sink.writeln('    originalBoard: \'${puzzle.originalBoard}\',');
-    sink.writeln('    ships: [');
-
-    for (final ship in puzzle.ships) {
-      sink.write('      {');
-      sink.write('\'row\': ${ship['row']}, ');
-      sink.write('\'col\': ${ship['col']}, ');
-      sink.write('\'length\': ${ship['length']}, ');
-      sink.write('\'isHorizontal\': ${ship['isHorizontal']}, ');
-      sink.write('\'isPlayer\': ${ship['isPlayer']}, ');
-      sink.write('\'isBlocking\': ${ship['isBlocking'] ?? false}');
-      sink.writeln('},');
-    }
-
-    sink.writeln('    ],');
-    sink.writeln('  ),');
-  }
-
-  sink.writeln('];\n');
-
-  // Write helper function
-  sink.writeln('List<GridlockPuzzleData> getPuzzlesByComplexity(double complexity, {double tolerance = 0.0}) {');
-  sink.writeln('  return gridlockPuzzles');
-  sink.writeln('      .where((p) => (p.complexity - complexity).abs() <= tolerance)');
-  sink.writeln('      .toList();');
-  sink.writeln('}');
-
-  await sink.flush();
-  await sink.close();
+  final rows = [
+    for (int i = 0; i < puzzles.length; i++)
+      jsonEncode([
+        'GRID_${i + 1}',
+        puzzles[i].complexity.toDouble(),
+        puzzles[i].moves,
+        puzzles[i].originalBoard,
+      ]),
+  ];
+  final header = jsonEncode({
+    'format': 'gridlock-v1',
+    'source': "Michael Fogleman's Rush Hour Database",
+    'fields': ['id', 'complexity', 'minMoves', 'board'],
+  });
+  // One puzzle per line keeps diffs of the asset readable.
+  await File(outputFile).writeAsString(
+      '${header.substring(0, header.length - 1)},"puzzles":[\n'
+      '${rows.join(',\n')}]}\n');
 }
 
 void printStatistics(List<ParsedPuzzle> puzzles) {

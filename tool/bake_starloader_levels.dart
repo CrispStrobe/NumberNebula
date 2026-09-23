@@ -147,7 +147,8 @@ void main(List<String> args) {
   for (final s in specs) {
     all.addAll(kept[s.grade]!);
   }
-  final out = const JsonEncoder.withIndent('  ').convert({'levels': all});
+  // Compact: this ships inside the app and is parsed at runtime.
+  final out = jsonEncode({'levels': all});
   File(assetPath).writeAsStringSync(out);
   stdout.writeln('Wrote ${all.length} levels to $assetPath');
 }

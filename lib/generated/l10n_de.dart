@@ -4473,4 +4473,11 @@ class SDe extends S {
   @override
   String get galacticMarketWrongScan =>
       'Die ist es nicht. Rechne zuerst den verdeckten Betrag aus: Ziehe die bekannten Münzen vom Wechselgeld ab und teile den Rest auf die verdeckten Münzen auf.';
+
+  @override
+  String get gameLoadFailedTitle => 'Spiel nicht geladen';
+
+  @override
+  String get gameLoadFailedMessage =>
+      'Dieses Spiel wird beim ersten Öffnen heruntergeladen, und das hat nicht geklappt. Prüfe die Internetverbindung und versuche es noch einmal.';
 }

@@ -2717,5 +2717,7 @@
       }
     }
   },
-  "galacticMarketWrongScan": "Die ist es nicht. Rechne zuerst den verdeckten Betrag aus: Ziehe die bekannten Münzen vom Wechselgeld ab und teile den Rest auf die verdeckten Münzen auf."
+  "galacticMarketWrongScan": "Die ist es nicht. Rechne zuerst den verdeckten Betrag aus: Ziehe die bekannten Münzen vom Wechselgeld ab und teile den Rest auf die verdeckten Münzen auf.",
+  "gameLoadFailedTitle": "Spiel nicht geladen",
+  "gameLoadFailedMessage": "Dieses Spiel wird beim ersten Öffnen heruntergeladen, und das hat nicht geklappt. Prüfe die Internetverbindung und versuche es noch einmal."
 }

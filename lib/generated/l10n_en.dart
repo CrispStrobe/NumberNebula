@@ -4453,4 +4453,11 @@ class SEn extends S {
   @override
   String get galacticMarketWrongScan =>
       'Not that one. Work out the hidden total first: take the known coins off the change, then share what is left between the hidden coins.';
+
+  @override
+  String get gameLoadFailedTitle => 'Game didn\'t load';
+
+  @override
+  String get gameLoadFailedMessage =>
+      'This game is downloaded the first time you open it, and that download failed. Check the internet connection and try again.';
 }
