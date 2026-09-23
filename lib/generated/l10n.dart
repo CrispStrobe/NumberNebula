@@ -7629,6 +7629,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Not that one. Work out the hidden total first: take the known coins off the change, then share what is left between the hidden coins.'**
   String get galacticMarketWrongScan;
+
+  /// No description provided for @gameLoadFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Game didn\'t load'**
+  String get gameLoadFailedTitle;
+
+  /// No description provided for @gameLoadFailedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This game is downloaded the first time you open it, and that download failed. Check the internet connection and try again.'**
+  String get gameLoadFailedMessage;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

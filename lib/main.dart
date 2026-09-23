@@ -29,29 +29,8 @@ import 'features/home/screens/home_screen.dart';
 import 'features/games/screens/game_menu_screen.dart';
 import 'features/settings/screens/settings_screen.dart';
 import 'features/achievements/screens/achievements_screen.dart';
-import 'features/games/screens/magic_triangles_game.dart';
-import 'features/games/screens/asteroid_math_game.dart';
-import 'features/games/screens/puzzle_math_game.dart';
-import 'features/games/screens/hyperdrive_gates_game.dart';
-import 'features/games/screens/planet_hopping_game.dart';
-import 'features/games/screens/number_walls_game.dart';
-import 'features/games/screens/codebreaker_game.dart';
-import 'features/games/screens/perspective_puzzle_game.dart'; 
-import 'features/games/screens/blocks_counter_game.dart';
-import 'features/games/screens/signal_triangulation_game.dart'; 
-import 'features/games/screens/cryptex_lock_breaker_game.dart'; 
-import 'features/games/screens/arithmancer_duel_game.dart'; 
-import 'features/games/screens/arithmatic_square_game.dart'; 
-import 'features/games/screens/arithmancer_crosswords_game.dart'; 
-import 'features/games/screens/asteroid_field_navigator_game.dart';
-import 'features/games/screens/cargo_bay_arranger_game.dart';
-import 'features/games/screens/quantum_molecule_builder_game.dart';
-import 'features/games/screens/space_station_gridlock_game.dart';
-import 'features/games/screens/star_loader_game.dart';
-import 'features/games/screens/robot_path_game.dart';
-import 'features/games/screens/solarpanel_game.dart';
-import 'features/games/screens/grid_filler_game.dart';
 
+import 'features/games/game_registry.dart';
 import 'features/games/services/gridlock_puzzle_tracker.dart';
 
 // --- UTILS & GENERATED ---
@@ -352,9 +331,42 @@ class AppRoutes {
   static const String loading = '/loading';
   static const String error = '/error';
   
+  /// Game routes, each resolved to its gameKey in game_registry.dart.
+  static const Map<String, String> _gameRouteKeys = {
+    magicTriangles: 'magic_triangles',
+    asteroidGame: 'asteroid_math',
+    puzzleGame: 'puzzle_math',
+    hyperdriveGates: 'hyperdrive_gates',
+    planetHopping: 'planet_hopping',
+    numberWalls: 'number_walls',
+    codebreaker: 'codebreaker',
+    perspectivePuzzle: 'perspective_puzzle',
+    blockCounter: 'block_counter',
+    signalTriangulation: 'signal_triangulation',
+    cryptexLockBreaker: 'cryptex_lock_breaker',
+    arithmancerDuel: 'arithmancer_duel',
+    arithmaticSquare: 'arithmatic_square',
+    arithmancerCrosswords: 'arithmancer_crosswords',
+    asteroidFieldNavigator: 'asteroid_field_navigator',
+    cargoBayArranger: 'cargo_bay_arranger',
+    quantumMoleculeBuilder: 'quantum_molecule_builder',
+    spaceStationGridlock: 'space_station_gridlock',
+    starLoader: 'star_loader_game',
+    robotPath: 'robot_path_game',
+    solarPanel: 'solarpanel_game',
+    gridFiller: 'grid_filler_game',
+  };
+
   static Route<dynamic> generateRoute(RouteSettings settings) {
     final args = settings.arguments as Map<String, dynamic>?;
-    
+
+    final gameKey = _gameRouteKeys[settings.name];
+    if (gameKey != null) {
+      final grade = args?['grade'] as int? ?? 3;
+      final level = args?['level'] as int? ?? 1;
+      return _createRoute(gameBuilderFor(gameKey)!(grade, level));
+    }
+
     switch (settings.name) {
         case splash:
           return _createRoute(const SplashScreen());
@@ -365,115 +377,27 @@ class AppRoutes {
         case gameMenu:
           return _createRoute(const GameMenuScreen());
           
-        case magicTriangles:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(MagicTrianglesGame(grade: grade, level: level));
           
-        case asteroidGame:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(AsteroidMathGame(grade: grade, level: level));
           
-        case puzzleGame:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(PuzzleMathGame(grade: grade, level: level));
           
-        case hyperdriveGates:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(HyperdriveGatesGame(grade: grade, level: level));
           
-        case planetHopping:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(PlanetHoppingGame(grade: grade, level: level));
 
-        case numberWalls:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(NumberWallsGame(grade: grade, level: level));
 
-        case codebreaker:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(CodebreakerGame(grade: grade, level: level));
       
-        case perspectivePuzzle:
-            final grade = args?['grade'] as int? ?? 3;
-            final level = args?['level'] as int? ?? 1;
-            return _createRoute(PerspectivePuzzleGame(grade: grade, level: level));
 
-        case blockCounter: 
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(BlockCounterGame(grade: grade, level: level));
 
-        case signalTriangulation:
-            final grade = args?['grade'] as int? ?? 3;
-            final level = args?['level'] as int? ?? 1;
-            return _createRoute(SignalTriangulationGame(grade: grade, level: level));
 
-        case cryptexLockBreaker:
-            final grade = args?['grade'] as int? ?? 3;
-            final level = args?['level'] as int? ?? 1;
-            return _createRoute(CryptexLockBreakerGame(grade: grade, level: level));
         
-        case arithmancerDuel:
-            final grade = args?['grade'] as int? ?? 3;
-            final level = args?['level'] as int? ?? 1;
-            return _createRoute(ArithmancerDuelGame(grade: grade, level: level));
 
-        case arithmaticSquare:
-            final grade = args?['grade'] as int? ?? 3;
-            final level = args?['level'] as int? ?? 1;
-            return _createRoute(ArithmeticSquareGame(grade: grade, level: level)); 
 
-        case arithmancerCrosswords:
-            final grade = args?['grade'] as int? ?? 3;
-            final level = args?['level'] as int? ?? 1;
-            return _createRoute(ArithmancerCrosswordsGame(grade: grade, level: level));  
 
-        case asteroidFieldNavigator:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(AsteroidFieldNavigatorGame(grade: grade, level: level));
         
-        case cargoBayArranger:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(CargoBayArrangerGame(grade: grade, level: level));
         
-        case quantumMoleculeBuilder:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(QuantumMoleculeBuilderGame(grade: grade, level: level));
 
-        case spaceStationGridlock:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(SpaceStationGridlockGame(grade: grade, level: level));
 
-        case starLoader:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(StarLoaderGame(grade: grade, level: level));
         
-        case robotPath:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(RobotPathGame(grade: grade, level: level));
 
-        case solarPanel:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(SolarPanelGame(grade: grade, level: level));
 
-        case gridFiller:
-          final grade = args?['grade'] as int? ?? 3;
-          final level = args?['level'] as int? ?? 1;
-          return _createRoute(GridFillerGame(grade: grade, level: level));
             
         case AppRoutes.settings:
           return _createRoute(const SettingsScreen());

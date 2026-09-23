@@ -2783,5 +2783,7 @@
       }
     }
   },
-  "galacticMarketWrongScan": "Not that one. Work out the hidden total first: take the known coins off the change, then share what is left between the hidden coins."
+  "galacticMarketWrongScan": "Not that one. Work out the hidden total first: take the known coins off the change, then share what is left between the hidden coins.",
+  "gameLoadFailedTitle": "Game didn't load",
+  "gameLoadFailedMessage": "This game is downloaded the first time you open it, and that download failed. Check the internet connection and try again."
 }

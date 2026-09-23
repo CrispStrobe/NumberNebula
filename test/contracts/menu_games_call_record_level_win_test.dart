@@ -38,18 +38,17 @@ const Map<String, String> _filenameOverrides = {
 
 void main() {
   test('every game class in the menu calls recordLevelWin', () {
-    final menuFile =
-        File('lib/features/games/screens/game_menu_screen.dart')
-            .readAsStringSync();
+    // The menu launches games by gameKey through game_registry.dart, which
+    // registers each game class behind a deferred import. Patterns like:
+    //   (g, l) => magic_triangles_game.MagicTrianglesGame(grade: g, ...)
+    final registryFile =
+        File('lib/features/games/game_registry.dart').readAsStringSync();
 
-    // Extract class names invoked inside gameBuilder: callbacks.
-    // Patterns like:
-    //   gameBuilder: (grade, level) => MagicTrianglesGame(grade: grade, ...)
     final regex = RegExp(
-      r'gameBuilder:\s*\([^)]*\)\s*=>\s*(\w+Game)\s*\(',
+      r'\(g, l\)\s*=>\s*\w+\.(\w+Game)\s*\(',
     );
     final gameClasses = regex
-        .allMatches(menuFile)
+        .allMatches(registryFile)
         .map((m) => m.group(1)!)
         .toSet();
 
