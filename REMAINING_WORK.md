@@ -40,10 +40,16 @@ that stays a human call.
 | Würfel-Scanner | Reads correctly; grade 1 asks for the bottom face (7 − top). A faint "cubes scanned" bar at the bottom is nearly invisible (dark on dark). |
 | Relikte-Puzzle | Opens and reads, but the tray pieces are small with tiny edge numbers for a child's finger. |
 
-Seen once on production and not reproduced since: a tutorial paragraph
-wrapping mid-word and the title "Relic" drawn as "Blic" in Chrome. Both look
-like the same intermittent rendering race as the Firefox startup null-check
-being bisected on the `bisect/startup-race` branch.
+Seen once on production and not reproduced since (5 of 5 and 3 of 3 clean
+re-runs): a tutorial paragraph wrapping mid-word, and the title "Relic" drawn
+as "Blic", both in Chrome while the machine was heavily loaded.
+
+The intermittent Firefox "Null check operator used on a null value" at
+startup is **not** this app's: a CI bisect with the browsers pinned to one
+core reproduced it in the build from before any of the web changes (9 of 80
+loads). It is a race in Flutter's CanvasKit startup when there is no WebGL
+and rendering falls back to the CPU. The live tests tolerate exactly that
+message in CPU-only mode and fail on anything else.
 
 ## 2026-09-20 SESSION -- second play-through of the four gated puzzles
 
