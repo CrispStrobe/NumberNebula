@@ -2727,5 +2727,8 @@
   "hullPlatingRotate": "Drehen",
   "diagnosticsNoCrashes": "Keine Abstürze aufgezeichnet. 🎉",
   "diagnosticsCrashCount": "{count, plural, =1{1 Absturzbericht auf dem Gerät.} other{{count} Absturzberichte auf dem Gerät.}} Die Daten bleiben hier, außer du teilst sie.",
-  "cubeScannerCheck": "Antwort prüfen"
+  "cubeScannerCheck": "Antwort prüfen",
+  "starForgeMovesLeft": "{count, plural, =1{Noch 1 Zug} other{Noch {count} Züge}}",
+  "cubeScannerWhyHiddenFace": "Gegenüberliegende Seiten ergeben zusammen 7: 7 − {visible} = {answer}.",
+  "cubeScannerWhyHiddenSum": "Die verdeckten Seiten liegen den sichtbaren gegenüber, und alle Seiten eines Würfels ergeben zusammen 21: 21 − {visible} = {answer}."
 }

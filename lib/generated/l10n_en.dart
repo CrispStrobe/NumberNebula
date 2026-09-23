@@ -4511,4 +4511,30 @@ class SEn extends S {
 
   @override
   String get cubeScannerCheck => 'Check answer';
+
+  @override
+  String starForgeMovesLeft(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString moves left',
+      one: '1 move left',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cubeScannerWhyHiddenFace(int visible, int answer) {
+    return 'Opposite faces add up to 7: 7 − $visible = $answer.';
+  }
+
+  @override
+  String cubeScannerWhyHiddenSum(int visible, int answer) {
+    return 'The hidden faces are opposite the visible ones, and a cube\'s faces add up to 21: 21 − $visible = $answer.';
+  }
 }

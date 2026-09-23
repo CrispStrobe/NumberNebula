@@ -2799,5 +2799,17 @@
   "@diagnosticsCrashCount": {
     "placeholders": { "count": { "type": "num", "format": "compact" } }
   },
-  "cubeScannerCheck": "Check answer"
+  "cubeScannerCheck": "Check answer",
+  "starForgeMovesLeft": "{count, plural, =1{1 move left} other{{count} moves left}}",
+  "@starForgeMovesLeft": {
+    "placeholders": { "count": { "type": "num", "format": "compact" } }
+  },
+  "cubeScannerWhyHiddenFace": "Opposite faces add up to 7: 7 − {visible} = {answer}.",
+  "@cubeScannerWhyHiddenFace": {
+    "placeholders": { "visible": { "type": "int" }, "answer": { "type": "int" } }
+  },
+  "cubeScannerWhyHiddenSum": "The hidden faces are opposite the visible ones, and a cube's faces add up to 21: 21 − {visible} = {answer}.",
+  "@cubeScannerWhyHiddenSum": {
+    "placeholders": { "visible": { "type": "int" }, "answer": { "type": "int" } }
+  }
 }

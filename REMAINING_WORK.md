@@ -22,6 +22,17 @@ them and players is someone playing each one once; shipping one is deleting its
 key from `debugOnlyGames` in `lib/features/missions/data/game_pool.dart` and
 nothing else. Unlock the debug menu with seven taps on the home screen title.
 
+## 2026-09-23 -- the last three gated games played to a win (skill level 1)
+
+Played interactively in Chrome against production: each board read from a
+screenshot, each move decided and made through the real UI.
+
+| Game | Result |
+| --- | --- |
+| Würfel-Scanner | **Won** ("Cubes Decoded!", 200 points): top 1 → bottom 6. A deliberate wrong answer (copying the visible top) ended the round with the right answer marked but no reason given. **Fixed:** a wrong answer now shows the working ("Opposite faces add up to 7: 7 − 5 = 2", and the 21 − visible version for hidden-face sums). |
+| Ionen-Ring | **Won** ("Ring Stabilized!", 125 points). The rule named two shapes on the ring and left exactly one legal placement; a deliberate illegal drop was refused with "Rule violation! This bead can't go here." |
+| Sternen-Schmiede | **Won** ("Star Ignited!", 125 points) by reading two arm totals. A deliberately wrong placement showed "16 ×" on the arm at once. **Fixed:** the move budget was an unlabelled number that started in alarm red on a small board and turned redder with every *correct* placement; it now has a "N moves left" label and turns red only when no mistake is left to spare. |
+
 ## 2026-09-23 -- three gated games released
 
 Void-Überquerung, Galaktischer Markt and Relikte-Puzzle were each played to

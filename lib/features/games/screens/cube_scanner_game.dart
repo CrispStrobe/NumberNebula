@@ -501,6 +501,17 @@ class _CubeScannerGameState extends State<CubeScannerGame>
           Expanded(
             child: _buildChoiceButtons(puzzle),
           ),
+          // After a wrong answer, show the step that reaches the right one:
+          // a child who guessed needs the rule, one who slipped needs the sum.
+          if (_showResult && !_resultCorrect && _whyText(puzzle) != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Text(
+                _whyText(puzzle)!,
+                textAlign: TextAlign.center,
+                style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.alienGreen),
+              ),
+            ),
           // Submit button
           if (!_showResult || !_resultCorrect) ...[
             const SizedBox(height: 8),
@@ -510,6 +521,22 @@ class _CubeScannerGameState extends State<CubeScannerGame>
         ],
       ),
     );
+  }
+
+  /// The working for the questions it can be given in one line. Rolls and
+  /// multi-cube totals take several steps, so they get none.
+  String? _whyText(CubeScannerPuzzle puzzle) {
+    final s = S.of(context)!;
+    final answer = puzzle.correctAnswer;
+    switch (puzzle.question.kind) {
+      case CubeQuestionKind.hiddenFace:
+        return s.cubeScannerWhyHiddenFace(7 - answer, answer);
+      case CubeQuestionKind.hiddenFaceSum:
+        return s.cubeScannerWhyHiddenSum(21 - answer, answer);
+      case CubeQuestionKind.rollToFace:
+      case CubeQuestionKind.hiddenPips:
+        return null;
+    }
   }
 
   Widget _buildChoiceButtons(CubeScannerPuzzle puzzle) {
