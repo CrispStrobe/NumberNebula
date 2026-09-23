@@ -1,4 +1,8 @@
-# Draft upstream report: CanvasKit startup null check (not yet filed)
+# Upstream report: CanvasKit startup null check
+
+Filed 2026-09-23 as https://github.com/flutter/flutter/issues/193243, after it
+reproduced unchanged on Flutter 3.47.5 (5 of 80 loads, same as 3.44.2). The
+text below is the investigation it was filed from.
 
 Not filed because there is no minimal reproduction: a plain `flutter create`
 counter app, built and loaded under the same conditions, gave **0 errors in
