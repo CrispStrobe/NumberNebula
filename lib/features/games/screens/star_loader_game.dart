@@ -247,6 +247,11 @@ class _StarLoaderGameState extends State<StarLoaderGame>
               _playerPos = pos;
               row.add(CellType.floor);
               break;
+            case 'Y': // Player on target
+              _playerPos = pos;
+              _targetPositions.add(pos);
+              row.add(CellType.target);
+              break;
             case 'B':
               _boxPositions.add(pos);
               row.add(CellType.floor);
