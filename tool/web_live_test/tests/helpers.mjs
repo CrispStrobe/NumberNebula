@@ -60,7 +60,9 @@ export function watch(page) {
   });
   page.on('console', (msg) => {
     if (/Falling back to CPU-only rendering/.test(msg.text())) log.cpuOnly = true;
-    if (msg.type() === 'error') log.errors.push(msg.text());
+    if (msg.type() === 'error' && !/vercel\.live/.test(msg.text() + (msg.location()?.url ?? ''))) {
+      log.errors.push(msg.text());
+    }
   });
   return log;
 }
