@@ -68,8 +68,10 @@ core reproduced it in the build from before any of the web changes (9 of 80
 loads). It is a race in Flutter's CanvasKit startup when there is no WebGL
 and rendering falls back to the CPU. The live tests tolerate exactly that
 message in CPU-only mode and fail on anything else. A plain `flutter create`
-app did not reproduce it (0 of 160 loads), so it is not reported upstream
-yet; the draft is in `docs/flutter-engine-race-report.md`.
+app did not reproduce it (0 of 160 loads), and it reproduced unchanged on
+Flutter 3.47.5 (5 of 80 loads). Reported upstream as
+https://github.com/flutter/flutter/issues/193243; notes in
+`docs/flutter-engine-race-report.md`.
 
 ## 2026-09-20 SESSION -- second play-through of the four gated puzzles
 

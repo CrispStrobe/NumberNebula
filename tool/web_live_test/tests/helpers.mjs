@@ -30,6 +30,7 @@ export function isDeferredPart(url) {
 // reproduced it in the build from before any of this app's web changes (9 of
 // 80 loads with the browsers pinned to one core), so it is tolerated -- but
 // only when the page announced that fallback. Any other error still fails.
+// Upstream: https://github.com/flutter/flutter/issues/193243
 const knownEngineRace = /^Null check operator used on a null value/;
 
 /** Records every response and failure the page sees, plus JS errors. */
