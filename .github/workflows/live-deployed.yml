@@ -30,21 +30,32 @@ jobs:
       - name: Decide whether this deployment can be tested
         id: gate
         working-directory: .
+        env:
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL || 'https://numbernebula.vercel.app' }}
         run: |
           echo "Deployment: $ENVIRONMENT at $BASE_URL"
+          # Vercel reports each deployment under its own URL, and those stay
+          # behind Deployment Protection even for production; only the
+          # production domain is public.
+          status=$(curl -s -o /dev/null -w '%{http_code}' "$BASE_URL" || echo 000)
+          url="$BASE_URL"
           case "$ENVIRONMENT" in
             # Pages cannot send the COOP/COEP headers the tests expect, and
             # serves the default (non-wasm) build; see pages.yml.
-            github-pages) echo "run=false" >> "$GITHUB_OUTPUT" ;;
-            Production*) echo "run=true" >> "$GITHUB_OUTPUT" ;;
+            github-pages) echo "run=false" >> "$GITHUB_OUTPUT"; exit 0 ;;
+            Production*)
+              if [ "$status" != 200 ] && [ -z "$VERCEL_BYPASS" ]; then
+                url="$PRODUCTION_URL"
+                echo "::notice::$BASE_URL is protected ($status); testing the production domain $url."
+              fi ;;
             *)
-              if [ -n "$VERCEL_BYPASS" ]; then
-                echo "run=true" >> "$GITHUB_OUTPUT"
-              else
-                echo "::notice::Skipping protected preview: VERCEL_AUTOMATION_BYPASS_SECRET is not set."
-                echo "run=false" >> "$GITHUB_OUTPUT"
+              if [ "$status" != 200 ] && [ -z "$VERCEL_BYPASS" ]; then
+                echo "::notice::Skipping protected preview ($status): VERCEL_AUTOMATION_BYPASS_SECRET is not set."
+                echo "run=false" >> "$GITHUB_OUTPUT"; exit 0
               fi ;;
           esac
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "run=true" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v4
         if: steps.gate.outputs.run == 'true'
@@ -68,6 +79,7 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         env:
           CI: 'true'
+          BASE_URL: ${{ steps.gate.outputs.url }}
         run: npx playwright test
 
       - uses: actions/upload-artifact@v4
