@@ -151,7 +151,7 @@ void _applyEvaluations(
 /// Takes a local DB file (with ratings from debug play) and merges it into
 /// the bundled asset, keeping well-rated and unrated puzzles.
 ///
-/// Usage: dart run tool/puzzle_merge.dart --merge-starloader <local_db.json>
+/// Usage: `dart run tool/puzzle_merge.dart --merge-starloader <local_db.json>`
 ///
 /// The local DB is the file from getApplicationDocumentsDirectory/starloader_db.json
 /// on the VPS after debug play sessions. It contains levels with ratings.
