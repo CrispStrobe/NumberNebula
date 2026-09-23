@@ -178,7 +178,7 @@ class StarLoaderLevelManager {
     // CRITICAL: Mark as played NOW so we don't get it again next click
     await _markAsPlayed(selectedEntry.id);
 
-    return _convertToLevelData(selectedEntry);
+    return convertToLevelData(selectedEntry);
   }
 
   /// 3. RATE LEVEL: Update Memory -> Write to File
@@ -341,7 +341,14 @@ class StarLoaderLevelManager {
     prefs.setStringList('starloader_played_ids', _playedLevelIds.toList());
   }
 
-  LevelData _convertToLevelData(LevelEntry entry) {
+  /// The layout the game reads: W wall, P player, Y player on a target,
+  /// B box, X box on a target, T target, space floor.
+  ///
+  /// A player standing on a target used to be written as plain P, which the
+  /// game reads as floor -- the target vanished, leaving one box more than
+  /// targets, so the level could not be won. The pre-built pool never starts
+  /// a player on a target, but freshly generated levels sometimes do.
+  static LevelData convertToLevelData(LevelEntry entry) {
     List<String> layout = [];
     const int WALL = 0, PLAYER = 5, BOX = 4, TARGET = 2;
     for (int y = 0; y < entry.roomState.length; y++) {
@@ -352,7 +359,7 @@ class StarLoaderLevelManager {
         if (state == WALL) {
           line += 'W';
         } else if (state == PLAYER) {
-          line += 'P';
+          line += structure == TARGET ? 'Y' : 'P';
         } else if (state == BOX) {
           line += (structure == TARGET ? 'X' : 'B');
         } else if (structure == TARGET) {

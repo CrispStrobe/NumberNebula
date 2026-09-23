@@ -14,6 +14,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:space_math_academy/features/games/models/starloader_level_model.dart';
 import 'package:space_math_academy/features/games/screens/star_loader_game.dart';
 import 'package:space_math_academy/features/games/services/starloader_level_manager.dart';
 import 'package:space_math_academy/features/games/services/starloader_solver.dart';
@@ -35,6 +36,9 @@ import 'package:space_math_academy/features/games/services/starloader_solver.dar
           dRow.add(wall);
         case 'P':
           sRow.add(floor);
+          dRow.add(player);
+        case 'Y': // player on a target
+          sRow.add(target);
           dRow.add(player);
         case 'B':
           sRow.add(floor);
@@ -91,4 +95,32 @@ void main() {
     // and this one both generates and solves — CPU contention can slow it well
     // past the wall-clock the work actually needs.
   }, timeout: const Timeout(Duration(minutes: 2)));
+
+  test('a player starting on a target keeps that target', () {
+    // Structure: 0 wall, 1 floor, 2 target. State: 5 player, 4 box.
+    // One box, one target -- and the player starts on the target.
+    final entry = LevelEntry(
+      id: 'player_on_target',
+      difficulty: 'grade_1',
+      dimX: 5,
+      dimY: 3,
+      roomStructure: [
+        [0, 0, 0, 0, 0],
+        [0, 2, 1, 1, 0],
+        [0, 0, 0, 0, 0],
+      ],
+      roomState: [
+        [0, 0, 0, 0, 0],
+        [0, 5, 4, 1, 0],
+        [0, 0, 0, 0, 0],
+      ],
+      optimalMoves: 0,
+    );
+    final layout = StarLoaderLevelManager.convertToLevelData(entry).layout;
+    expect(layout[1], 'WYB W');
+    final targets = layout.join().split('').where((c) => 'TXY'.contains(c));
+    final boxes = layout.join().split('').where((c) => 'BX'.contains(c));
+    expect(targets.length, boxes.length,
+        reason: 'every box needs a target, or the level cannot be won');
+  });
 }
