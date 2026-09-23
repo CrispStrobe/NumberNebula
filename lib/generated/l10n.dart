@@ -7689,6 +7689,24 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Check answer'**
   String get cubeScannerCheck;
+
+  /// No description provided for @starForgeMovesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 move left} other{{count} moves left}}'**
+  String starForgeMovesLeft(num count);
+
+  /// No description provided for @cubeScannerWhyHiddenFace.
+  ///
+  /// In en, this message translates to:
+  /// **'Opposite faces add up to 7: 7 − {visible} = {answer}.'**
+  String cubeScannerWhyHiddenFace(int visible, int answer);
+
+  /// No description provided for @cubeScannerWhyHiddenSum.
+  ///
+  /// In en, this message translates to:
+  /// **'The hidden faces are opposite the visible ones, and a cube\'s faces add up to 21: 21 − {visible} = {answer}.'**
+  String cubeScannerWhyHiddenSum(int visible, int answer);
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

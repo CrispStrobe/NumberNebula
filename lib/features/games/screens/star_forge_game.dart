@@ -370,16 +370,28 @@ class _StarForgeGameState extends State<StarForgeGame>
   }
 
   Widget _buildMovesIndicator() {
+    // Colour by the moves to spare, not the raw count: a level with two empty
+    // nodes has only four moves, and the old fixed thresholds showed that in
+    // alarm red from the first frame -- and turned it redder with every
+    // correct placement. Red now means no room left for a mistake.
+    final stillEmpty = (puzzle?.emptyNodes.length ?? 0) - userSolution.length;
+    final spare = _movesRemaining - stillEmpty;
     Color indicatorColor;
-    if (_movesRemaining <= 3) {
+    if (spare <= 0) {
       indicatorColor = SpaceTheme.rocketRed;
-    } else if (_movesRemaining <= 5) {
+    } else if (spare == 1) {
       indicatorColor = SpaceTheme.planetOrange;
     } else {
       indicatorColor = SpaceTheme.cosmicPink;
     }
 
-    return Container(
+    final label = S.of(context)!.starForgeMovesLeft(_movesRemaining);
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        label: label,
+        excludeSemantics: true,
+        child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
@@ -399,6 +411,8 @@ class _StarForgeGameState extends State<StarForgeGame>
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }

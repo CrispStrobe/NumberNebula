@@ -4531,4 +4531,30 @@ class SDe extends S {
 
   @override
   String get cubeScannerCheck => 'Antwort prüfen';
+
+  @override
+  String starForgeMovesLeft(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Noch $countString Züge',
+      one: 'Noch 1 Zug',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cubeScannerWhyHiddenFace(int visible, int answer) {
+    return 'Gegenüberliegende Seiten ergeben zusammen 7: 7 − $visible = $answer.';
+  }
+
+  @override
+  String cubeScannerWhyHiddenSum(int visible, int answer) {
+    return 'Die verdeckten Seiten liegen den sichtbaren gegenüber, und alle Seiten eines Würfels ergeben zusammen 21: 21 − $visible = $answer.';
+  }
 }
