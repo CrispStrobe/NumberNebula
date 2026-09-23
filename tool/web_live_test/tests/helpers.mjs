@@ -44,6 +44,10 @@ export function watch(page) {
     log.responses.push({ url, status: response.status(), bytes });
   });
   page.on('requestfailed', (request) => {
+    // Vercel injects its feedback toolbar (a vercel.live iframe) into preview
+    // deployments. It is not part of the app, and the app's cross-origin
+    // isolation blocks it, which is fine: the toolbar just does not appear.
+    if (new URL(request.url()).hostname === 'vercel.live') return;
     log.failures.push(`${request.url()} ${request.failure()?.errorText ?? ''}`);
   });
   page.on('pageerror', (error) => {
@@ -56,7 +60,9 @@ export function watch(page) {
   });
   page.on('console', (msg) => {
     if (/Falling back to CPU-only rendering/.test(msg.text())) log.cpuOnly = true;
-    if (msg.type() === 'error') log.errors.push(msg.text());
+    if (msg.type() === 'error' && !/vercel\.live/.test(msg.text() + (msg.location()?.url ?? ''))) {
+      log.errors.push(msg.text());
+    }
   });
   return log;
 }

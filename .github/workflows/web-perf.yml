@@ -97,18 +97,21 @@ jobs:
           retention-days: 7
 
   # Deploys the build tested above, so Vercel no longer downloads Flutter and
-  # rebuilds on every push. Off until the repo variable VERCEL_PREBUILT is
-  # "true". To switch over:
-  #   1. repo secret VERCEL_TOKEN, repo variables VERCEL_TEAM_ID and
-  #      VERCEL_PROJECT_IDS (space-separated prj_… ids to deploy to);
-  #   2. set VERCEL_PREBUILT=true;
-  #   3. add "git": {"deploymentEnabled": false} to vercel.json so Vercel
-  #      stops building from Git itself.
+  # rebuilds on every push: a push to main goes to production, a pull request
+  # from this repo gets a preview. Vercel's own Git builds are switched off in
+  # vercel.json ("git": {"deploymentEnabled": false}), so this job is also
+  # where the deployed site gets its live tests. Needs secret VERCEL_TOKEN and
+  # variables VERCEL_TEAM_ID, VERCEL_PROJECT_IDS and VERCEL_PREBUILT=true;
+  # previews are tested through VERCEL_AUTOMATION_BYPASS_SECRET.
   deploy:
     needs: [build, live-test]
-    if: vars.VERCEL_PREBUILT == 'true' && github.event_name == 'push'
+    if: >-
+      vars.VERCEL_PREBUILT == 'true' && (
+        (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+        (github.event_name == 'pull_request' &&
+         github.event.pull_request.head.repo.full_name == github.repository))
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     concurrency:
       group: vercel-deploy-${{ github.ref }}
       cancel-in-progress: false
@@ -126,11 +129,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: tool/web_live_test/package-lock.json
 
       - name: Wrap the build as Vercel Build Output
         run: bash tool/vercel_prebuilt.sh build/web
 
       - name: Deploy
+        id: deploy
         run: |
           prod=''
           [ "$GITHUB_REF" = refs/heads/main ] && prod='--prod'
@@ -139,3 +145,29 @@ jobs:
               --token "$VERCEL_TOKEN" --yes)
             echo "Deployed $project: $url" | tee -a "$GITHUB_STEP_SUMMARY"
           done
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Install Playwright
+        working-directory: tool/web_live_test
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium firefox
+
+      - name: Live tests against the deployment
+        working-directory: tool/web_live_test
+        env:
+          CI: 'true'
+          # Production is checked at its public domain; the per-deployment
+          # URL sits behind Deployment Protection.
+          BASE_URL: ${{ github.ref == 'refs/heads/main' && (vars.PRODUCTION_URL || 'https://numbernebula.vercel.app') || steps.deploy.outputs.url }}
+          VERCEL_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: npx playwright test
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deployed-live-report
+          path: |
+            tool/web_live_test/playwright-report
+            tool/web_live_test/test-results
+          retention-days: 7
