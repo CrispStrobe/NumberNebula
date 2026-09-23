@@ -351,6 +351,7 @@ void main() {
       for (final path in [
         'assets/data/starloader_levels.json',
         'assets/puzzles/gridlock_puzzles.json',
+        'assets/data/molecule_levels.json',
       ]) {
         final text = File(path).readAsStringSync();
         expect(text, isNot(contains('\n  ')),

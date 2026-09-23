@@ -62,6 +62,7 @@ flutter:
     # section below, and the variable font would ship unused.
     - assets/fonts/OFL.txt
     - assets/data/starloader_levels.json
+    - assets/data/molecule_levels.json
     - assets/puzzles/
     
   fonts:
