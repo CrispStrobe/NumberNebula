@@ -1,0 +1,53 @@
+name: Web build & live tests
+
+# Builds the web app exactly as Vercel does (--wasm, which also emits the JS
+# fallback), reports what a visitor downloads, and uploads the build so it can
+# be served and tested in a real browser. Heavy compiles run here rather than
+# on the shared dev box.
+
+on:
+  push:
+    branches: [main, 'perf/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: web-perf-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.44.2'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Build web (wasm + js fallback)
+        run: |
+          flutter build web --wasm --release \
+            --dart-define=GIT_HASH="$(git rev-parse --short HEAD)"
+
+      - name: Size report
+        run: |
+          bash tool/web_size_report.sh build/web web-size.json | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: |
+            build/web
+            web-size.json
+          retention-days: 7
