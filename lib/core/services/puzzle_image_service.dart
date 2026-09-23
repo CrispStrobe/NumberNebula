@@ -46,13 +46,13 @@ class PuzzleImageService {
     if (_puzzleImagePaths.isEmpty) {
       if (kDebugMode) debugPrint("[PuzzleImageService] WARNING: No puzzle images found in manifest. Using hardcoded fallback.");
       _puzzleImagePaths = [
-        'assets/images/puzzle01.png',
-        'assets/images/puzzle02.jpg',
-        'assets/images/puzzle03.jpg',
-        'assets/images/puzzle04.jpg',
-        'assets/images/puzzle05.jpg',
-        'assets/images/puzzle06.jpg',
-        'assets/images/puzzle07.jpg',
+        'assets/images/puzzle01.webp',
+        'assets/images/puzzle02.webp',
+        'assets/images/puzzle03.webp',
+        'assets/images/puzzle04.webp',
+        'assets/images/puzzle05.webp',
+        'assets/images/puzzle06.webp',
+        'assets/images/puzzle07.webp',
       ];
     }
     
