@@ -95,3 +95,47 @@ jobs:
             tool/web_live_test/playwright-report
             tool/web_live_test/test-results
           retention-days: 7
+
+  # Deploys the build tested above, so Vercel no longer downloads Flutter and
+  # rebuilds on every push. Off until the repo variable VERCEL_PREBUILT is
+  # "true". To switch over:
+  #   1. repo secret VERCEL_TOKEN, repo variables VERCEL_TEAM_ID and
+  #      VERCEL_PROJECT_IDS (space-separated prj_… ids to deploy to);
+  #   2. set VERCEL_PREBUILT=true;
+  #   3. add "git": {"deploymentEnabled": false} to vercel.json so Vercel
+  #      stops building from Git itself.
+  deploy:
+    needs: [build, live-test]
+    if: vars.VERCEL_PREBUILT == 'true' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: vercel-deploy-${{ github.ref }}
+      cancel-in-progress: false
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: .
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Wrap the build as Vercel Build Output
+        run: bash tool/vercel_prebuilt.sh build/web
+
+      - name: Deploy
+        run: |
+          prod=''
+          [ "$GITHUB_REF" = refs/heads/main ] && prod='--prod'
+          for project in ${{ vars.VERCEL_PROJECT_IDS }}; do
+            url=$(VERCEL_PROJECT_ID="$project" npx --yes vercel@latest deploy --prebuilt $prod \
+              --token "$VERCEL_TOKEN" --yes)
+            echo "Deployed $project: $url" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
