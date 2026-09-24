@@ -1,0 +1,14 @@
+Thank you for reviewing NumberNebula again. Since the review on 12 September 2026 under guideline 4.3(a), we have worked on what makes this app its own product rather than a template:
+
+What the app is
+- 48 distinct math puzzle games for primary school children, each with its own mechanic, based on problems from the German "Känguru der Mathematik" competition: sliding-block and Sokoban-style puzzles, a river-crossing logic puzzle, magic stars, edge-matching tiles, dice deduction, coin arithmetic, KenKen, and more. The games are written for this app, not reskins of one another.
+- Every game adapts to four skill levels, and the missions, spaced repetition of practice problems and progress screens tie them into one learning path.
+- Fully localized in German and English.
+- Private by design: no accounts, no ads, no analytics, no tracking. Progress is stored only on the device.
+
+What changed since the last review
+- Six games that were unfinished are now complete. Each was played through to a win at two skill levels before it was put back in the menu.
+- Fixes found by playing the games: rules that did not constrain anything, an unwinnable generated level, unclear feedback on wrong answers, text that was still in English, and layout on small screens.
+- The app now shows its own name everywhere, not the name of its source project.
+
+No login or demo account is needed; all content is available right away.

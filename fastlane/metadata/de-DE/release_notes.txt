@@ -7,3 +7,4 @@ Sechs weitere Minispiele – und jedes einzelne wurde bis zum Sieg durchgespielt
 - Relikte-Puzzle: größere Teile und Randzahlen auf Tablets und ein größerer Dreh-Knopf
 - Der Bestätigen-Knopf im Galaktischen Markt, die Karteikasten-Fächer, der Drehen-Knopf in Rumpf-Panzerung und die Anzahl der Absturzberichte waren noch englisch
 - Anleitungskarten passen aufs quergehaltene Handy, und ausgegraute Knöpfe sind auf dem dunklen Hintergrund sichtbar
+- Frachtlader konnte in seltenen Fällen ein neu erzeugtes Level ausgeben, das nicht lösbar war; behoben

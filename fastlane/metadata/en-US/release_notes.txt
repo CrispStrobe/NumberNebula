@@ -7,3 +7,4 @@ Six more mini-games, and every one of them played through to a win.
 - Relic Assembly: bigger pieces and edge numbers on tablets, and a larger rotate button
 - Galactic Market's confirm button, the flashcard boxes, Hull Plating's rotate button and the crash-report count were still in English
 - Walkthrough cards fit a phone held sideways, and greyed-out buttons are visible on the dark background
+- Cargo-Loader could, rarely, deal a newly generated level that could not be won; fixed
