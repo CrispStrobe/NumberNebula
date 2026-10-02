@@ -6,6 +6,7 @@ import { openGameMenu, watch } from './helpers.mjs';
 // Browser measurements, not a substitute for native device frame/battery tests.
 // CI artifacts retain raw values; shared runners use generous startup gates.
 test('startup, idle rendering and autosave overhead', async ({ page, browserName }, testInfo) => {
+  const reducedMotion = process.env.PERF_REDUCE_MOTION === 'true';
   // Three navigations plus two sampling windows need more than a smoke test.
   // The separate cold-start budget below remains 30 seconds.
   test.setTimeout(180_000);
@@ -35,7 +36,7 @@ test('startup, idle rendering and autosave overhead', async ({ page, browserName
       });
     }, 1500);
   }));
-  await page.addInitScript(() => {
+  await page.addInitScript((reduceMotion) => {
     window.__appPerf = { writes: [], longTasks: [], frames: [],
       longTasksSupported: typeof PerformanceObserver !== 'undefined' &&
         (PerformanceObserver.supportedEntryTypes ?? []).includes('longtask') };
@@ -68,7 +69,8 @@ test('startup, idle rendering and autosave overhead', async ({ page, browserName
       localStorage.setItem(`flutter.onboarding_seen_${key}_all_games_guided_v1`, 'true');
       localStorage.setItem(`flutter.onboarding_seen_${key}`, 'true');
     }
-  });
+    localStorage.setItem('flutter.reduce_motion', JSON.stringify(reduceMotion));
+  }, reducedMotion);
   const log = watch(page);
   const start = Date.now();
   await openGameMenu(page);
@@ -119,7 +121,8 @@ test('startup, idle rendering and autosave overhead', async ({ page, browserName
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#splash')).toHaveCount(0);
   const warmFrameMs = Date.now() - warmStart;
-  const report = { browserName, browserBaseline, site: page.url(), coldMenuReadyMs: coldReadyMs,
+  const report = { browserName, browserBaseline, reducedMotion,
+    cpuOnlyRendering: log.cpuOnly, site: page.url(), coldMenuReadyMs: coldReadyMs,
     warmFirstFrameMs: warmFrameMs, sampleMs, ...metrics, movingGame: moving,
     notes: ['RAF measures browser scheduling, not Flutter raster frame time.',
       'Resource transfer size may be zero for cache hits or cross-origin resources without Timing-Allow-Origin.',
