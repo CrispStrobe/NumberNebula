@@ -75,14 +75,18 @@ class GameConfig {
   static const int spaceshipThrusterCycleSeconds = 3;
 }
 
+enum AsteroidRenderPath { legacy, cached }
+
 class AsteroidMathGame extends StatefulWidget {
   final int grade;
   final int level;
+  final AsteroidRenderPath? renderingPath;
 
   const AsteroidMathGame({
     super.key,
     required this.grade,
     required this.level,
+    this.renderingPath,
   });
 
   @override
@@ -91,6 +95,12 @@ class AsteroidMathGame extends StatefulWidget {
 
 class _AsteroidMathGameState extends State<AsteroidMathGame>
     with TickerProviderStateMixin, PuzzleSessionMixin<AsteroidMathGame> {
+  final _playfieldFrame = ValueNotifier<int>(0);
+  final _renderCache = AsteroidRenderCache();
+  bool get _cachedRendering => widget.renderingPath != null
+      ? widget.renderingPath == AsteroidRenderPath.cached
+      : const String.fromEnvironment('ASTEROID_RENDER_PATH',
+          defaultValue: 'cached') == 'cached';
   bool _sessionReady = false;
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
@@ -106,6 +116,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     return {'asteroids': asteroids.map((v0) => v0.toJson()).toList(), 'targetOrder': targetOrder.map((v0) => v0).toList(), 'currentTargetIndex': currentTargetIndex, 'timeLeft': timeLeft, 'wrongShots': wrongShots, 'levelProblems': levelProblems.map((v0) => v0.toJson()).toList()};
   }
   @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _renderCache.dispose();
     asteroids = (state["asteroids"] as List).map((v0) => Asteroid.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
 targetOrder = (state["targetOrder"] as List).map((v0) => v0 as int).toList();
 currentTargetIndex = state["currentTargetIndex"] as int;
@@ -185,6 +196,8 @@ levelProblems = (state["levelProblems"] as List).map((v0) => MathProblem.fromJso
   @override
   void dispose() {
     disposePuzzleSession();
+    _renderCache.dispose();
+    _playfieldFrame.dispose();
     _gameLoopController.dispose();
     _explosionController.dispose();
     _laserController.dispose();
@@ -197,6 +210,7 @@ levelProblems = (state["levelProblems"] as List).map((v0) => MathProblem.fromJso
   }
 
   void _resetGame() {
+    _renderCache.dispose();
     beginPuzzleSession();
     setState(() {
       gameActive = true;
@@ -332,7 +346,7 @@ levelProblems = (state["levelProblems"] as List).map((v0) => MathProblem.fromJso
 
     spaceshipPosition = Offset(50, screenSize.height - 90);
 
-    setVisualState(() {
+    void advance() {
       for (var asteroid in asteroids) {
         // Store old values for comparison and logging
         final oldPosition = asteroid.position;
@@ -457,7 +471,13 @@ levelProblems = (state["levelProblems"] as List).map((v0) => MathProblem.fromJso
       for(var e in explosions) { e.update(GameConfig.updateDeltaTime); }
       for(var l in laserBeams) { l.update(GameConfig.updateDeltaTime); }
       for(var s in floatingScores) { s.update(GameConfig.updateDeltaTime); }
-    });
+    }
+    if (_cachedRendering) {
+      advance();
+      _playfieldFrame.value++;
+    } else {
+      setVisualState(advance);
+    }
   }
 
   void _startGameTimer() {
@@ -650,15 +670,17 @@ levelProblems = (state["levelProblems"] as List).map((v0) => MathProblem.fromJso
 
   @override
   Widget build(BuildContext context) {
-    final screenOffset = _screenShakeController.isAnimating
-        ? Offset(
-            math.sin(_screenShakeController.value * math.pi * 4) * GameConfig.screenShakeIntensity,
-            math.cos(_screenShakeController.value * math.pi * 3) * (GameConfig.screenShakeIntensity * 0.75))
-        : Offset.zero;
-
     return Scaffold(
-      body: Transform.translate(
-        offset: screenOffset,
+      body: AnimatedBuilder(
+        animation: _screenShakeController,
+        builder: (_, child) => Transform.translate(
+          offset: _screenShakeController.isAnimating
+              ? Offset(
+                  math.sin(_screenShakeController.value * math.pi * 4) * GameConfig.screenShakeIntensity,
+                  math.cos(_screenShakeController.value * math.pi * 3) * (GameConfig.screenShakeIntensity * 0.75))
+              : Offset.zero,
+          child: child,
+        ),
         child: SpaceBackground(
           child: SafeArea(
             child: Column(
@@ -698,13 +720,14 @@ levelProblems = (state["levelProblems"] as List).map((v0) => MathProblem.fromJso
                         spaceshipPosition = Offset(50, playableArea!.height - 90);
                       }
 
-                      return Stack(
+                      Widget playfield() => Stack(
                         clipBehavior: Clip.none,
                         children: [
                           // Game Objects
                           CustomPaint(
                             painter: GameObjectsPainter(
                               asteroids: asteroids,
+                              renderCache: _cachedRendering ? _renderCache : null,
                               explosions: explosions,
                               laserBeams: laserBeams,
                               floatingScores: floatingScores,
@@ -723,6 +746,7 @@ levelProblems = (state["levelProblems"] as List).map((v0) => MathProblem.fromJso
                                 left: asteroid.position.dx - asteroid.size / 2,
                                 top: asteroid.position.dy - asteroid.size / 2,
                                 child: Semantics(
+                                  key: ValueKey('asteroid_hit_${asteroid.id}'),
                                   label: S.of(context)!.a11yAsteroid(asteroid.mathProblem),
                                   button: true,
                                   child: GestureDetector(
@@ -741,14 +765,24 @@ levelProblems = (state["levelProblems"] as List).map((v0) => MathProblem.fromJso
                             Positioned(
                               left: spaceshipPosition.dx - 40,
                               bottom: 10,
-                              child: CustomPaint(
-                                painter: SpaceshipPainter(
-                                  thrusterAnimation: _spaceshipController.value,
+                              child: AnimatedBuilder(
+                                animation: _spaceshipController,
+                                builder: (_, __) => CustomPaint(
+                                  painter: SpaceshipPainter(
+                                    thrusterAnimation: _spaceshipController.value,
+                                  ),
+                                  size: const Size(80, 80),
                                 ),
-                                size: const Size(80, 80),
                               ),
                             )
                         ],
+                      );
+                      if (!_cachedRendering) return playfield();
+                      return RepaintBoundary(
+                        child: AnimatedBuilder(
+                          animation: _playfieldFrame,
+                          builder: (_, __) => playfield(),
+                        ),
                       );
                     },
                   ),
@@ -865,6 +899,7 @@ class SpaceshipPainter extends CustomPainter {
 
 class GameObjectsPainter extends CustomPainter {
   final List<Asteroid> asteroids;
+  final AsteroidRenderCache? renderCache;
   final List<ParticleExplosion> explosions;
   final List<LaserBeam> laserBeams;
   final List<FloatingScore> floatingScores;
@@ -875,6 +910,7 @@ class GameObjectsPainter extends CustomPainter {
 
   GameObjectsPainter({
     required this.asteroids,
+    this.renderCache,
     required this.explosions,
     required this.laserBeams,
     required this.floatingScores,
@@ -886,13 +922,14 @@ class GameObjectsPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    renderCache?.retain(asteroids);
     for (final laser in laserBeams) {
       laser.draw(canvas);
     }
     
     for (final asteroid in asteroids) {
       final bool isTarget = targetAnswer == asteroid.answer;
-      asteroid.draw(canvas, isHintActive: showVisualHint && isTarget, divisionSymbol: divisionSymbol, multiplicationSymbol: multiplicationSymbol);
+      asteroid.draw(canvas, isHintActive: showVisualHint && isTarget, divisionSymbol: divisionSymbol, multiplicationSymbol: multiplicationSymbol, renderCache: renderCache);
     }
     
     for (final explosion in explosions) {
@@ -964,7 +1001,7 @@ class Asteroid {
   String get mathProblem => problem.expression;
   int get answer => problem.answer;
 
-  void draw(Canvas canvas, {required bool isHintActive, required String divisionSymbol, required String multiplicationSymbol}) {
+  void draw(Canvas canvas, {required bool isHintActive, required String divisionSymbol, required String multiplicationSymbol, AsteroidRenderCache? renderCache}) {
     canvas.save();
     canvas.translate(position.dx, position.dy);
     canvas.rotate(rotation);
@@ -988,7 +1025,7 @@ class Asteroid {
         break;
       case AsteroidType.crystalline:
         asteroidPaint.color = HSVColor.fromAHSV(1.0, 280 + hue * 0.1, 0.7, 0.9).toColor();
-        _drawCrystallineAsteroid(canvas, rect, asteroidPaint);
+        _drawCrystallineAsteroid(canvas, rect, asteroidPaint, renderCache);
         break;
       case AsteroidType.volcanic:
         asteroidPaint.color = HSVColor.fromAHSV(1.0, 10 + hue * 0.1, 0.8, 0.6).toColor();
@@ -1020,21 +1057,13 @@ class Asteroid {
 
     canvas.restore();
     
-    final textStyle = TextStyle(
-      color: Colors.white,
-      fontSize: size * 0.2,
-      fontWeight: FontWeight.bold,
-      shadows: const [
-        Shadow(blurRadius: 3, color: Colors.black, offset: Offset(1, 1)),
-      ],
-    );
     final displayProblem = mathProblem
         .replaceAll('÷', divisionSymbol)
         .replaceAll('×', multiplicationSymbol);
-    final textSpan = TextSpan(text: displayProblem, style: textStyle);
-    final textPainter = TextPainter(text: textSpan, textAlign: TextAlign.center, textDirection: TextDirection.ltr);
-    textPainter.layout();
+    final cachedLabel = renderCache?.label(this, displayProblem);
+    final textPainter = cachedLabel ?? _asteroidLabel(displayProblem, size);
     textPainter.paint(canvas, position - Offset(textPainter.width / 2, textPainter.height / 2));
+    if (cachedLabel == null) textPainter.dispose();
   }
 
   void _drawRockyAsteroid(Canvas canvas, Rect rect, Paint paint) {
@@ -1076,7 +1105,7 @@ class Asteroid {
     );
   }
 
-  void _drawCrystallineAsteroid(Canvas canvas, Rect rect, Paint paint) {
+  Path _crystallinePath() {
     final path = Path();
     const vertices = 6;
     for (int i = 0; i < vertices; i++) {
@@ -1091,8 +1120,13 @@ class Asteroid {
       }
     }
     path.close();
+    return path;
+  }
+
+  void _drawCrystallineAsteroid(Canvas canvas, Rect rect, Paint paint,
+      AsteroidRenderCache? renderCache) {
+    final path = renderCache?.crystalPath(this, _crystallinePath) ?? _crystallinePath();
     canvas.drawPath(path, paint);
-    
     final glowPaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
@@ -1111,6 +1145,82 @@ class Asteroid {
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     canvas.drawOval(rect, glowPaint);
   }
+}
+
+TextPainter _asteroidLabel(String text, double size) {
+  final painter = TextPainter(
+    text: TextSpan(text: text, style: TextStyle(
+      color: Colors.white,
+      fontSize: size * 0.2,
+      fontWeight: FontWeight.bold,
+      shadows: const [Shadow(blurRadius: 3, color: Colors.black, offset: Offset(1, 1))],
+    )),
+    textAlign: TextAlign.center,
+    textDirection: TextDirection.ltr,
+  );
+  try {
+    painter.layout();
+    return painter;
+  } catch (_) {
+    painter.dispose();
+    rethrow;
+  }
+}
+
+/// Round-local rendering resources; never serialized with gameplay snapshots.
+/// Passing no cache to Asteroid.draw retains the original rendering path.
+class AsteroidRenderCache {
+  final _entries = <Asteroid, _AsteroidRenderEntry>{};
+
+  TextPainter? label(Asteroid asteroid, String text) {
+    final entry = _entries.putIfAbsent(asteroid, _AsteroidRenderEntry.new);
+    if (entry.painter == null || entry.labelSize != asteroid.size || entry.labelText != text) {
+      entry.painter?.dispose();
+      entry.painter = null;
+      try {
+        entry.painter = _asteroidLabel(text, asteroid.size);
+        entry.labelSize = asteroid.size;
+        entry.labelText = text;
+      } catch (_) {
+        // A failed candidate layout leaves the original path available.
+        return null;
+      }
+    }
+    return entry.painter;
+  }
+
+  Path crystalPath(Asteroid asteroid, Path Function() create) {
+    final entry = _entries.putIfAbsent(asteroid, _AsteroidRenderEntry.new);
+    if (entry.path == null || entry.pathSize != asteroid.size) {
+      entry.path = create();
+      entry.pathSize = asteroid.size;
+    }
+    return entry.path!;
+  }
+
+  void retain(Iterable<Asteroid> asteroids) {
+    final alive = asteroids.toSet();
+    _entries.removeWhere((asteroid, entry) {
+      if (alive.contains(asteroid)) return false;
+      entry.painter?.dispose();
+      return true;
+    });
+  }
+
+  void dispose() {
+    for (final entry in _entries.values) {
+      entry.painter?.dispose();
+    }
+    _entries.clear();
+  }
+}
+
+class _AsteroidRenderEntry {
+  double? labelSize;
+  String? labelText;
+  TextPainter? painter;
+  double? pathSize;
+  Path? path;
 }
 
 class ParticleExplosion {

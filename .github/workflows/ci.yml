@@ -42,6 +42,9 @@ jobs:
       - name: Check all games with reduced motion
         run: flutter test test/widgets/all_games_sessions_test.dart --dart-define=CALIBRATION_REDUCE_MOTION=true --concurrency=1 --reporter expanded
 
+      - name: Check legacy Asteroid rendering fallback
+        run: flutter test test/widgets/asteroid_rendering_test.dart test/games/asteroid_render_cache_test.dart --dart-define=ASTEROID_RENDER_PATH=legacy --concurrency=1 --reporter expanded
+
       - name: Run tests
         run: flutter test --concurrency=2 --reporter expanded
 
