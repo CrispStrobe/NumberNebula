@@ -1,3 +1,4 @@
+import 'generator_random.dart';
 // lib/features/games/services/nebula_matrix_logic.dart
 //
 // Latin square (mini-Sudoku) puzzle generator using dart_csp.
@@ -6,11 +7,31 @@
 import 'dart:math' as math;
 
 class NebulaMatrixPuzzle {
+  Map<String, dynamic> toJson() => {
+        'size': size,
+        'solution': solution,
+        'clues': clues,
+        'emptyCells': emptyCells.toList(),
+        'numberPool': numberPool,
+        'zones': zones
+      };
+  factory NebulaMatrixPuzzle.fromJson(Map<String, dynamic> json) =>
+      NebulaMatrixPuzzle(
+          size: json['size'],
+          solution: Map<String, int>.from(json['solution']),
+          clues: Map<String, int>.from(json['clues']),
+          emptyCells: Set<String>.from(json['emptyCells']),
+          numberPool: List<int>.from(json['numberPool']),
+          zones: (json['zones'] as List)
+              .map((v) => List<String>.from(v))
+              .toList());
+
   final int size;
   final Map<String, int> solution;
   final Map<String, int> clues;
   final Set<String> emptyCells;
   final List<int> numberPool;
+
   /// Zone definitions: list of zones, each zone is a list of cell keys.
   /// For size 4: four 2x2 zones. For size 6: six 2x3 zones. For others: empty.
   final List<List<String>> zones;
@@ -83,8 +104,7 @@ class NebulaMatrixPuzzle {
           for (int bc = 0; bc < 2; bc++)
             [
               for (int r = br * 2; r < br * 2 + 2; r++)
-                for (int c = bc * 2; c < bc * 2 + 2; c++)
-                  'r${r}c$c'
+                for (int c = bc * 2; c < bc * 2 + 2; c++) 'r${r}c$c'
             ],
       ];
     }
@@ -95,8 +115,7 @@ class NebulaMatrixPuzzle {
           for (int bc = 0; bc < 2; bc++)
             [
               for (int r = bc * 3; r < bc * 3 + 3; r++)
-                for (int c = br * 2; c < br * 2 + 2; c++)
-                  'r${r}c$c'
+                for (int c = br * 2; c < br * 2 + 2; c++) 'r${r}c$c'
             ],
       ];
     }
@@ -105,7 +124,7 @@ class NebulaMatrixPuzzle {
 }
 
 class NebulaMatrixGenerator {
-  final math.Random _random = math.Random();
+  final math.Random _random = generatorRandom();
 
   /// Generate a Latin square puzzle.
   /// [size] is the grid dimension (3-6).

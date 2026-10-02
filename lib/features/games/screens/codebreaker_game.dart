@@ -1,9 +1,11 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
 // ignore_for_file: constant_identifier_names
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
+import '../mixins/puzzle_session_mixin.dart';
 
 import '../../../core/services/debug_provider.dart';
 import '../../../core/services/puzzle_evaluation_service.dart';
@@ -34,7 +36,7 @@ class CodebreakerGame extends StatefulWidget {
 }
 
 class _CodebreakerGameState extends State<CodebreakerGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<CodebreakerGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<CodebreakerGame>, PuzzleSessionMixin<CodebreakerGame> {
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
 
@@ -54,6 +56,30 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   /// once, so it doubles as the optimal move count for the performance grade.
   int _optimalMoves = 0;
 
+  @override String get sessionGameKey => 'codebreaker';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (puzzle == null || _isGenerating) return null;
+    return {'puzzle': puzzle!.toJson(), 'answers': userSolution,
+      'moves': _movesRemaining, 'maxMoves': _maxMoves, 'optimal': _optimalMoves,
+      'pool': numberPool,
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    puzzle = AdvancedCodebreakerPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle'] as Map));
+    userSolution = Map<String, int>.from(state['answers'] as Map);
+    _movesRemaining = state['moves'] as int;
+    _maxMoves = state['maxMoves'] as int;
+    _optimalMoves = state['optimal'] as int;
+
+      numberPool = List<int>.from(state['pool'] as List);
+    _isGenerating = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) _generatePuzzle();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -72,15 +98,16 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gameProvider = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level);
+        currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level, gradeOverride: widget.grade);
         if (kDebugMode) debugPrint("🚀 [CODEBREAKER UI] Difficulty initialized: ${currentDifficulty?.grade}");
-        _generatePuzzle();
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     if (kDebugMode) debugPrint("🚀 [CODEBREAKER UI] Disposing game and cleaning up resources");
     
     glowController.stop();
@@ -98,6 +125,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   }
 
   void _generatePuzzle() async {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
     
     if (kDebugMode) debugPrint("🎯 [CODEBREAKER UI] Starting puzzle generation process");
@@ -395,8 +423,9 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   }
 
   void _handleSuccess() {
+    finishPuzzleSession();
     if (kDebugMode) debugPrint("🎉 [CODEBREAKER UI] SUCCESS! Player solved the puzzle!");
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
 
     int baseScore = 150 * widget.grade;
     int complexityBonus = puzzle!.equations.length * 25;
@@ -413,11 +442,15 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     
     // SINGLE CALL to unified progression system
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'codebreaker',
       difficulty: widget.level,
       score: totalScore,
       mathProblems: mathProblems,
         performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
+
+      movesUsed: _maxMoves - _movesRemaining,
+      optimalMoves: _optimalMoves,
     ));
     
     successController.forward(from: 0.0);
@@ -439,6 +472,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     
     // Record the failure
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'codebreaker',
       difficulty: widget.level,
       mathProblems: mathProblems,
@@ -447,6 +481,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   }
 
   void _handleOutOfMoves() {
+    finishPuzzleSession();
     if (kDebugMode) debugPrint("❌ [CODEBREAKER UI] Out of moves! Game over.");
     _handleFailure();
 
@@ -460,7 +495,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   }
 
   Widget _buildOutOfMovesDialog() {
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -470,6 +505,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'codebreaker'),
             const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(
@@ -564,7 +600,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
   void _handleIncorrect() {
     if (kDebugMode) debugPrint("❌ [CODEBREAKER UI] Incorrect solution - showing error message");
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -1275,7 +1311,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -1283,6 +1319,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'codebreaker'),
                   const Icon(Icons.emoji_events, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(S.of(context)!.codebreakerWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),

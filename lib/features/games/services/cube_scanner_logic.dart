@@ -1,8 +1,14 @@
+import 'generator_random.dart';
 import 'dart:math' as math;
 
 /// Standard die: opposite faces sum to 7.
 /// Face indices: 0=top, 1=front, 2=right, 3=left, 4=back, 5=bottom
 class Die {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {'faces': faces.map((v0) => v0).toList()};
+  factory Die.fromJson(Map<String, dynamic> json) =>
+      Die((json['faces'] as List).map((v0) => v0 as int).toList());
+
   final List<int> faces;
 
   Die(this.faces)
@@ -110,21 +116,34 @@ class Die {
   }
 
   /// Roll the die forward (top goes to front, front goes to bottom, etc.)
-  Die rollForward() => Die([faces[1], faces[5], faces[2], faces[3], faces[0], faces[4]]);
+  Die rollForward() =>
+      Die([faces[1], faces[5], faces[2], faces[3], faces[0], faces[4]]);
 
   /// Roll the die backward (top goes to back)
-  Die rollBackward() => Die([faces[4], faces[0], faces[2], faces[3], faces[5], faces[1]]);
+  Die rollBackward() =>
+      Die([faces[4], faces[0], faces[2], faces[3], faces[5], faces[1]]);
 
   /// Roll the die to the right (top goes to right)
-  Die rollRight() => Die([faces[3], faces[1], faces[0], faces[5], faces[4], faces[2]]);
+  Die rollRight() =>
+      Die([faces[3], faces[1], faces[0], faces[5], faces[4], faces[2]]);
 
   /// Roll the die to the left (top goes to left)
-  Die rollLeft() => Die([faces[2], faces[1], faces[5], faces[0], faces[4], faces[3]]);
+  Die rollLeft() =>
+      Die([faces[2], faces[1], faces[5], faces[0], faces[4], faces[3]]);
 }
 
 /// Which faces of a die are visible in the isometric view.
 /// In our isometric projection we always show: top, left-front, right-front.
 class VisibleFaces {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() =>
+      {'top': (top), 'front': (front), 'right': (right), 'left': (left)};
+  factory VisibleFaces.fromJson(Map<String, dynamic> json) => VisibleFaces(
+      top: (json['top'] == null ? null : json['top'] as int),
+      front: (json['front'] == null ? null : json['front'] as int),
+      right: (json['right'] == null ? null : json['right'] as int),
+      left: (json['left'] == null ? null : json['left'] as int));
+
   final int? top;
   final int? front;
   final int? right;
@@ -181,6 +200,24 @@ enum CubeQuestionKind {
 }
 
 class CubeScannerQuestion {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'kind': kind.name,
+        'face': (face?.name),
+        'rolls': rolls.map((v0) => v0.name).toList(),
+        'diceCount': diceCount
+      };
+  factory CubeScannerQuestion.fromJson(Map<String, dynamic> json) =>
+      CubeScannerQuestion(
+          kind: CubeQuestionKind.values.byName(json['kind'] as String),
+          face: (json['face'] == null
+              ? null
+              : CubeFace.values.byName(json['face'] as String)),
+          rolls: (json['rolls'] as List)
+              .map((v0) => CubeRoll.values.byName(v0 as String))
+              .toList(),
+          diceCount: json['diceCount'] as int);
+
   final CubeQuestionKind kind;
 
   /// The face asked about, for [CubeQuestionKind.hiddenFace] and
@@ -210,6 +247,31 @@ enum DiceArrangement {
 
 /// A complete puzzle.
 class CubeScannerPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'dice': dice.map((v0) => v0.toJson()).toList(),
+        'visibleFaces': visibleFaces.map((v0) => v0.toJson()).toList(),
+        'arrangement': arrangement.name,
+        'question': question.toJson(),
+        'correctAnswer': correctAnswer,
+        'choices': choices.map((v0) => v0).toList()
+      };
+  factory CubeScannerPuzzle.fromJson(Map<String, dynamic> json) =>
+      CubeScannerPuzzle(
+          dice: (json['dice'] as List)
+              .map((v0) => Die.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toList(),
+          visibleFaces: (json['visibleFaces'] as List)
+              .map((v0) =>
+                  VisibleFaces.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toList(),
+          arrangement:
+              DiceArrangement.values.byName(json['arrangement'] as String),
+          question: CubeScannerQuestion.fromJson(
+              Map<String, dynamic>.from(json['question'] as Map)),
+          correctAnswer: json['correctAnswer'] as int,
+          choices: (json['choices'] as List).map((v0) => v0 as int).toList());
+
   final List<Die> dice;
   final List<VisibleFaces> visibleFaces;
   final DiceArrangement arrangement;
@@ -231,7 +293,7 @@ class CubeScannerPuzzle {
 class CubeScannerGenerator {
   final math.Random _random;
 
-  CubeScannerGenerator({int? seed}) : _random = math.Random(seed);
+  CubeScannerGenerator({int? seed}) : _random = generatorRandom(seed);
 
   /// Pick a puzzle for this grade and level.
   ///
@@ -294,9 +356,8 @@ class CubeScannerGenerator {
     );
 
     const askable = [CubeFace.bottom, CubeFace.back, CubeFace.left];
-    final face = easy
-        ? CubeFace.bottom
-        : askable[_random.nextInt(askable.length)];
+    final face =
+        easy ? CubeFace.bottom : askable[_random.nextInt(askable.length)];
 
     final answer = switch (face) {
       CubeFace.bottom => die.bottom,
@@ -315,7 +376,8 @@ class CubeScannerGenerator {
       dice: [die],
       visibleFaces: [visible],
       arrangement: DiceArrangement.single,
-      question: CubeScannerQuestion(kind: CubeQuestionKind.hiddenFace, face: face),
+      question:
+          CubeScannerQuestion(kind: CubeQuestionKind.hiddenFace, face: face),
       correctAnswer: answer,
       choices: _choices(answer, min: 1, max: 6, tempting: [trap]),
     );
@@ -338,7 +400,8 @@ class CubeScannerGenerator {
       question: const CubeScannerQuestion(kind: CubeQuestionKind.hiddenFaceSum),
       correctAnswer: answer,
       // Adding up what you *can* see instead is the classic slip.
-      choices: _choices(answer, min: 3, max: 18, tempting: [visible.visibleSum]),
+      choices:
+          _choices(answer, min: 3, max: 18, tempting: [visible.visibleSum]),
     );
   }
 
@@ -406,7 +469,8 @@ class CubeScannerGenerator {
         rolls: rolls,
       ),
       correctAnswer: answer,
-      choices: _choices(answer, min: 1, max: 6, tempting: [notRolled, 7 - answer]),
+      choices:
+          _choices(answer, min: 1, max: 6, tempting: [notRolled, 7 - answer]),
     );
   }
 
@@ -437,7 +501,8 @@ class CubeScannerGenerator {
         .toList();
     final die2 = candidates[_random.nextInt(candidates.length)];
 
-    final vis1 = VisibleFaces(top: die1.top, front: die1.front, right: die1.right);
+    final vis1 =
+        VisibleFaces(top: die1.top, front: die1.front, right: die1.right);
     // Cube 2's top is the face cube 1 is standing on, so it is not on show.
     final vis2 = VisibleFaces(front: die2.front, right: die2.right);
 
@@ -455,7 +520,8 @@ class CubeScannerGenerator {
       correctAnswer: answer,
       // Counting one cube instead of two, and adding up what is on show, are
       // the two ways this goes wrong.
-      choices: _choices(answer, min: 10, max: 38, tempting: [21 - shown, shown]),
+      choices:
+          _choices(answer, min: 10, max: 38, tempting: [21 - shown, shown]),
     );
   }
 

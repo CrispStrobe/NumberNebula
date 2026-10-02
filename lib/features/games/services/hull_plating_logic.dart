@@ -1,8 +1,22 @@
+import 'generator_random.dart';
 // lib/features/games/services/hull_plating_logic.dart
 import 'dart:math' as math;
 
 /// A polyomino piece defined by its cell offsets from (0,0).
 class PlatingPiece {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'cells': cells.map((v0) => [v0.$1, v0.$2]).toList(),
+        'color': color.name
+      };
+  factory PlatingPiece.fromJson(Map<String, dynamic> json) => PlatingPiece(
+      id: json['id'] as int,
+      cells: (json['cells'] as List)
+          .map((v0) => (v0[0] as int, v0[1] as int))
+          .toList(),
+      color: Color4.values.byName(json['color'] as String));
+
   final int id;
   final List<(int, int)> cells; // relative offsets
   final Color4 color;
@@ -66,6 +80,17 @@ enum Color4 { red, blue, green, yellow, cyan, purple }
 
 /// A placed piece on the board.
 class PlacedPiece {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'pieceId': pieceId,
+        'absoluteCells': absoluteCells.map((v0) => [v0.$1, v0.$2]).toList()
+      };
+  factory PlacedPiece.fromJson(Map<String, dynamic> json) => PlacedPiece(
+      pieceId: json['pieceId'] as int,
+      absoluteCells: (json['absoluteCells'] as List)
+          .map((v0) => (v0[0] as int, v0[1] as int))
+          .toList());
+
   final int pieceId;
   final List<(int, int)> absoluteCells; // actual board positions
 
@@ -76,6 +101,30 @@ class PlacedPiece {
 }
 
 class HullPlatingPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'rows': rows,
+        'cols': cols,
+        'board': board.map((v0) => v0.map((v1) => v1).toList()).toList(),
+        'pieces': pieces.map((v0) => v0.toJson()).toList(),
+        'solution': solution.map((v0) => v0.toJson()).toList()
+      };
+  factory HullPlatingPuzzle.fromJson(Map<String, dynamic> json) =>
+      HullPlatingPuzzle(
+          rows: json['rows'] as int,
+          cols: json['cols'] as int,
+          board: (json['board'] as List)
+              .map((v0) => (v0 as List).map((v1) => v1 as bool).toList())
+              .toList(),
+          pieces: (json['pieces'] as List)
+              .map((v0) =>
+                  PlatingPiece.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toList(),
+          solution: (json['solution'] as List)
+              .map((v0) =>
+                  PlacedPiece.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toList());
+
   final int rows;
   final int cols;
   final List<List<bool>> board; // true = must be covered
@@ -146,7 +195,7 @@ class HullPlatingPuzzle {
     required int level,
     int? seed,
   }) {
-    final rng = math.Random(seed);
+    final rng = generatorRandom(seed);
 
     int rows, cols;
     List<List<(int, int)>> shapePool;
@@ -164,8 +213,13 @@ class HullPlatingPuzzle {
       rows = 4;
       cols = 6;
       shapePool = [
-        _dominoShape, _lTriShape, _squareShape,
-        _tShape, _lShape, _sShape, _iShape,
+        _dominoShape,
+        _lTriShape,
+        _squareShape,
+        _tShape,
+        _lShape,
+        _sShape,
+        _iShape,
       ];
     }
 
@@ -210,8 +264,11 @@ class HullPlatingPuzzle {
                   // Check if all cells are valid and uncovered
                   bool canPlace = true;
                   for (final ac in absoluteCells) {
-                    if (ac.$1 < 0 || ac.$1 >= rows || ac.$2 < 0 ||
-                        ac.$2 >= cols || !board[ac.$1][ac.$2] ||
+                    if (ac.$1 < 0 ||
+                        ac.$1 >= rows ||
+                        ac.$2 < 0 ||
+                        ac.$2 >= cols ||
+                        !board[ac.$1][ac.$2] ||
                         used[ac.$1][ac.$2]) {
                       canPlace = false;
                       break;
@@ -264,7 +321,8 @@ class HullPlatingPuzzle {
       rows: rows,
       cols: cols,
       board: board,
-      pieces: pieces..shuffle(rng), // shuffle so player doesn't see solution order
+      pieces: pieces
+        ..shuffle(rng), // shuffle so player doesn't see solution order
       solution: solution,
     );
   }

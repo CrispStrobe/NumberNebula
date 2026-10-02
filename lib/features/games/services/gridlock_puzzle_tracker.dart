@@ -1,6 +1,6 @@
 // lib/features/games/services/gridlock_puzzle_tracker.dart
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/services/profile_preferences.dart';
 import 'dart:convert';
 
 /// Evaluation data for a single puzzle play session.
@@ -52,9 +52,11 @@ class GridlockPuzzleTracker with ChangeNotifier {
 
   /// Load played puzzle IDs and evaluations from storage
   Future<void> loadPlayedPuzzles() async {
+    _playedPuzzleIds = {};
+    _evaluations = [];
     if (kDebugMode) debugPrint('[GRIDLOCK_TRACKER] Loading played puzzles...');
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await ProfilePreferences.getInstance();
 
       final jsonString = prefs.getString(_storageKey);
       if (jsonString != null) {
@@ -66,8 +68,7 @@ class GridlockPuzzleTracker with ChangeNotifier {
       if (evalString != null) {
         final List<dynamic> evalList = json.decode(evalString);
         _evaluations = evalList
-            .map((e) =>
-                PuzzleEvaluation.fromJson(e as Map<String, dynamic>))
+            .map((e) => PuzzleEvaluation.fromJson(e as Map<String, dynamic>))
             .toList();
       }
 
@@ -85,11 +86,10 @@ class GridlockPuzzleTracker with ChangeNotifier {
 
   Future<void> _save() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await ProfilePreferences.getInstance();
       await prefs.setString(
           _storageKey, json.encode(_playedPuzzleIds.toList()));
-      await prefs.setString(
-          _evalStorageKey,
+      await prefs.setString(_evalStorageKey,
           json.encode(_evaluations.map((e) => e.toJson()).toList()));
     } catch (e) {
       if (kDebugMode) debugPrint('[GRIDLOCK_TRACKER] ❌ Error saving: $e');
@@ -120,12 +120,10 @@ class GridlockPuzzleTracker with ChangeNotifier {
   double? getAverageRating(String puzzleId) {
     final evals = _evaluations.where((e) => e.puzzleId == puzzleId);
     if (evals.isEmpty) return null;
-    return evals.map((e) => e.rating).reduce((a, b) => a + b) /
-        evals.length;
+    return evals.map((e) => e.rating).reduce((a, b) => a + b) / evals.length;
   }
 
-  bool hasPlayedPuzzle(String puzzleId) =>
-      _playedPuzzleIds.contains(puzzleId);
+  bool hasPlayedPuzzle(String puzzleId) => _playedPuzzleIds.contains(puzzleId);
 
   int get playedCount => _playedPuzzleIds.length;
   int get evaluationCount => _evaluations.length;

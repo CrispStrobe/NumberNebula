@@ -1,12 +1,30 @@
+import '../services/generator_random.dart';
 // ignore_for_file: unused_element, unused_field
 // lib/features/games/models/math_problem.dart:
 
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
+import '../services/generator_diagnostics.dart';
 import '../constants/app_constants.dart';
-import '../../../core/services/sri_service.dart'; // Import SRI Service
-import '../providers/game_provider.dart'; 
+
 import '../constants/difficulty_manager.dart';
+
+abstract interface class ProblemReviewSource {
+  List<String> getProblemsForReview(
+      {int limit = 5, Set<String>? excludeIds, bool resetSessionFirst = false});
+  bool isProblemMastered(String problemId);
+}
+
+class NoProblemReviews implements ProblemReviewSource {
+  const NoProblemReviews();
+  @override
+  List<String> getProblemsForReview(
+          {int limit = 5,
+          Set<String>? excludeIds,
+          bool resetSessionFirst = false}) =>
+      [];
+  @override
+  bool isProblemMastered(String problemId) => false;
+}
 
 class MathProblem {
   final String expression;
@@ -28,7 +46,7 @@ class MathProblem {
         return 'DIV_${operandA}_$operandB';
     }
   }
-  
+
   MathProblem({
     required this.expression,
     required this.answer,
@@ -38,37 +56,52 @@ class MathProblem {
     required this.difficulty,
   });
 
-  static MathProblem generateProblem(GameProvider gameProvider, int level, SriService sriService) {
-    final difficultyConfig = DifficultyManager.getDifficulty(gameProvider, level);
-    
+  static MathProblem generateProblem(DifficultySource gameProvider, int level,
+      ProblemReviewSource sriService) {
+    final difficultyConfig =
+        DifficultyManager.getDifficulty(gameProvider, level);
+
     // 1. Check if custom settings are active for filtering
     if (gameProvider.useCustomProblemSettings) {
       // Get all reviewable problems that match the custom operations
-      final allReviewable = sriService.getProblemsForReview(limit: 100); // Get a larger batch to filter
+      final allReviewable = sriService.getProblemsForReview(
+          limit: 100); // Get a larger batch to filter
       final filteredReviewable = allReviewable.where((problemId) {
         final opString = problemId.split('_').first;
         switch (opString) {
-          case 'ADD': return gameProvider.customOperations.contains('addition');
-          case 'SUB': return gameProvider.customOperations.contains('subtraction');
-          case 'MUL': return gameProvider.customOperations.contains('multiplication');
-          case 'DIV': return gameProvider.customOperations.contains('division');
-          default: return false;
+          case 'ADD':
+            return gameProvider.customOperations.contains('addition');
+          case 'SUB':
+            return gameProvider.customOperations.contains('subtraction');
+          case 'MUL':
+            return gameProvider.customOperations.contains('multiplication');
+          case 'DIV':
+            return gameProvider.customOperations.contains('division');
+          default:
+            return false;
         }
       }).toList();
 
       if (filteredReviewable.isNotEmpty) {
         final problemId = filteredReviewable.first;
-        if (kDebugMode) debugPrint('[SRI] Found CUSTOM-FILTERED problem to review: $problemId');
+        if (kDebugMode) {
+          traceGenerator(
+              '[SRI] Found CUSTOM-FILTERED problem to review: $problemId');
+        }
         // (The logic to parse and return the problem remains the same)
         final parts = problemId.split('_');
         final type = parts[0];
         final operandA = int.parse(parts[1]);
         final operandB = int.parse(parts[2]);
         switch (type) {
-          case 'ADD': return MathProblem.addition(operandA, operandB);
-          case 'SUB': return MathProblem.subtraction(operandA, operandB);
-          case 'MUL': return MathProblem.multiplication(operandA, operandB);
-          case 'DIV': return MathProblem.division(operandA, operandB);
+          case 'ADD':
+            return MathProblem.addition(operandA, operandB);
+          case 'SUB':
+            return MathProblem.subtraction(operandA, operandB);
+          case 'MUL':
+            return MathProblem.multiplication(operandA, operandB);
+          case 'DIV':
+            return MathProblem.division(operandA, operandB);
         }
       }
       // If no suitable review problems are found, fall through to generate a new one using custom settings.
@@ -77,16 +110,22 @@ class MathProblem {
       final problemsToReview = sriService.getProblemsForReview(limit: 1);
       if (problemsToReview.isNotEmpty) {
         final problemId = problemsToReview.first;
-        if (kDebugMode) debugPrint('[SRI] Found problem to review: $problemId');
+        if (kDebugMode) {
+          traceGenerator('[SRI] Found problem to review: $problemId');
+        }
         final parts = problemId.split('_');
         final type = parts[0];
         final operandA = int.parse(parts[1]);
         final operandB = int.parse(parts[2]);
         switch (type) {
-          case 'ADD': return MathProblem.addition(operandA, operandB);
-          case 'SUB': return MathProblem.subtraction(operandA, operandB);
-          case 'MUL': return MathProblem.multiplication(operandA, operandB);
-          case 'DIV': return MathProblem.division(operandA, operandB);
+          case 'ADD':
+            return MathProblem.addition(operandA, operandB);
+          case 'SUB':
+            return MathProblem.subtraction(operandA, operandB);
+          case 'MUL':
+            return MathProblem.multiplication(operandA, operandB);
+          case 'DIV':
+            return MathProblem.division(operandA, operandB);
         }
       }
     }
@@ -99,18 +138,24 @@ class MathProblem {
       newProblem = _generateFromConfig(difficultyConfig);
       attempts++;
       if (attempts > 20) {
-        if (kDebugMode) debugPrint('[SRI] Could not find a non-mastered problem after 20 attempts. Serving a random one.');
+        if (kDebugMode) {
+          traceGenerator(
+              '[SRI] Could not find a non-mastered problem after 20 attempts. Serving a random one.');
+        }
         break;
       }
     } while (sriService.isProblemMastered(newProblem.id));
 
-    if (kDebugMode) debugPrint('[SRI] Generated new non-mastered problem: ${newProblem.expression}');
+    if (kDebugMode) {
+      traceGenerator(
+          '[SRI] Generated new non-mastered problem: ${newProblem.expression}');
+    }
     return newProblem;
   }
 
   // **NEW**: A private static helper that generates a problem based on a DifficultyConfig
   static MathProblem _generateFromConfig(DifficultyConfig config) {
-    final random = math.Random();
+    final random = generatorRandom();
     final operations = config.operationTypes;
     final range = config.numberRange;
     // Normalise the range. A custom range can arrive with min == max (the
@@ -143,19 +188,20 @@ class MathProblem {
         final maxDivisor = math.min(12, 4 + config.grade);
         final divisor = random.nextInt(maxDivisor - 1) + 2;
         final quotient = random.nextInt(12) + 2;
-        return MathProblem.division(divisor * quotient, divisor, difficulty: config.grade);
+        return MathProblem.division(divisor * quotient, divisor,
+            difficulty: config.grade);
     }
   }
 
   // **FIX**: Changed this from a private factory to a private static method
   static MathProblem _generateRandom(int grade, {int? difficulty}) {
-    final random = math.Random();
+    final random = generatorRandom();
     final actualDifficulty = difficulty ?? (grade - 2);
     final operations = MathOperations.getOperationsForGrade(grade);
     final ranges = MathOperations.getNumberRangesForGrade(grade);
-    
+
     final operation = operations[random.nextInt(operations.length)];
-    
+
     switch (operation) {
       case AppConstants.additionSymbol:
         return _generateAddition(random, ranges, actualDifficulty);
@@ -169,7 +215,7 @@ class MathProblem {
         return _generateAddition(random, ranges, actualDifficulty);
     }
   }
-  
+
   // Factory constructors for different problem types
   factory MathProblem.addition(int a, int b, {int difficulty = 1}) {
     return MathProblem(
@@ -181,7 +227,7 @@ class MathProblem {
       difficulty: difficulty,
     );
   }
-  
+
   factory MathProblem.subtraction(int a, int b, {int difficulty = 1}) {
     // Ensure a >= b for positive results
     if (a < b) {
@@ -189,7 +235,7 @@ class MathProblem {
       a = b;
       b = temp;
     }
-    
+
     return MathProblem(
       expression: '$a - $b',
       answer: a - b,
@@ -199,7 +245,7 @@ class MathProblem {
       difficulty: difficulty,
     );
   }
-  
+
   factory MathProblem.multiplication(int a, int b, {int difficulty = 1}) {
     return MathProblem(
       expression: '$a × $b',
@@ -210,12 +256,13 @@ class MathProblem {
       difficulty: difficulty,
     );
   }
-  
-  factory MathProblem.division(int dividend, int divisor, {int difficulty = 1}) {
+
+  factory MathProblem.division(int dividend, int divisor,
+      {int difficulty = 1}) {
     // Ensure clean division
     final quotient = dividend ~/ divisor;
     final actualDividend = divisor * quotient;
-    
+
     return MathProblem(
       expression: '$actualDividend ÷ $divisor',
       answer: quotient,
@@ -225,16 +272,16 @@ class MathProblem {
       difficulty: difficulty,
     );
   }
-  
+
   // Generate random problem based on grade and difficulty
   factory MathProblem.random(int grade, {int? difficulty}) {
-    final random = math.Random();
+    final random = generatorRandom();
     final actualDifficulty = difficulty ?? (grade - 2);
     final operations = MathOperations.getOperationsForGrade(grade);
     final ranges = MathOperations.getNumberRangesForGrade(grade);
-    
+
     final operation = operations[random.nextInt(operations.length)];
-    
+
     switch (operation) {
       case AppConstants.additionSymbol:
         return _generateAddition(random, ranges, actualDifficulty);
@@ -248,7 +295,7 @@ class MathProblem {
         return _generateAddition(random, ranges, actualDifficulty);
     }
   }
-  
+
   static MathProblem _generateAddition(
     math.Random random,
     Map<String, int> ranges,
@@ -259,7 +306,7 @@ class MathProblem {
     final b = random.nextInt(maxNum) + ranges['min']!;
     return MathProblem.addition(a, b, difficulty: difficulty);
   }
-  
+
   static MathProblem _generateSubtraction(
     math.Random random,
     Map<String, int> ranges,
@@ -270,7 +317,7 @@ class MathProblem {
     final b = random.nextInt(a - ranges['min']!) + ranges['min']!;
     return MathProblem.subtraction(a, b, difficulty: difficulty);
   }
-  
+
   static MathProblem _generateMultiplication(
     math.Random random,
     Map<String, int> ranges,
@@ -281,7 +328,7 @@ class MathProblem {
     final b = random.nextInt(maxFactor) + 2;
     return MathProblem.multiplication(a, b, difficulty: difficulty);
   }
-  
+
   static MathProblem _generateDivision(
     math.Random random,
     Map<String, int> ranges,
@@ -293,7 +340,7 @@ class MathProblem {
     final dividend = divisor * quotient;
     return MathProblem.division(dividend, divisor, difficulty: difficulty);
   }
-  
+
   // Validation methods
   bool isValid() {
     switch (operation) {
@@ -307,7 +354,7 @@ class MathProblem {
         return operandA ~/ operandB == answer && operandA % operandB == 0;
     }
   }
-  
+
   // Helper methods
   String get operationSymbol {
     switch (operation) {
@@ -321,7 +368,7 @@ class MathProblem {
         return AppConstants.divisionSymbol;
     }
   }
-  
+
   String get operationName {
     switch (operation) {
       case MathOperation.addition:
@@ -334,15 +381,15 @@ class MathProblem {
         return 'Division';
     }
   }
-  
+
   // Generate multiple choice options
   List<int> generateMultipleChoiceOptions({int optionsCount = 4}) {
     final options = <int>[answer];
-    final random = math.Random();
-    
+    final random = generatorRandom();
+
     while (options.length < optionsCount) {
       int wrongAnswer;
-      
+
       // Generate plausible wrong answers
       switch (operation) {
         case MathOperation.addition:
@@ -358,34 +405,34 @@ class MathProblem {
           wrongAnswer = answer + random.nextInt(6) - 3;
           break;
       }
-      
+
       // Ensure positive answers and no duplicates
       if (wrongAnswer > 0 && !options.contains(wrongAnswer)) {
         options.add(wrongAnswer);
       }
     }
-    
+
     options.shuffle(random);
     return options;
   }
-  
+
   // Difficulty assessment
   DifficultyLevel get difficultyLevel {
     final score = _calculateDifficultyScore();
-    
+
     if (score < 10) return DifficultyLevel.easy;
     if (score < 20) return DifficultyLevel.medium;
     if (score < 30) return DifficultyLevel.hard;
     return DifficultyLevel.expert;
   }
-  
+
   int _calculateDifficultyScore() {
     int score = 0;
-    
+
     // Base score from operands
     score += (operandA / 10).ceil();
     score += (operandB / 10).ceil();
-    
+
     // Operation complexity
     switch (operation) {
       case MathOperation.addition:
@@ -401,13 +448,13 @@ class MathProblem {
         score += 4;
         break;
     }
-    
+
     // Answer magnitude
     score += (answer / 20).ceil();
-    
+
     return score;
   }
-  
+
   // Serialization
   Map<String, dynamic> toJson() {
     return {
@@ -419,7 +466,7 @@ class MathProblem {
       'difficulty': difficulty,
     };
   }
-  
+
   factory MathProblem.fromJson(Map<String, dynamic> json) {
     return MathProblem(
       expression: json['expression'],
@@ -430,16 +477,16 @@ class MathProblem {
       difficulty: json['difficulty'],
     );
   }
-  
+
   @override
   String toString() {
     return 'MathProblem($expression = $answer)';
   }
-  
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    
+
     return other is MathProblem &&
         other.expression == expression &&
         other.answer == answer &&
@@ -447,7 +494,7 @@ class MathProblem {
         other.operandA == operandA &&
         other.operandB == operandB;
   }
-  
+
   @override
   int get hashCode {
     return expression.hashCode ^
@@ -463,13 +510,13 @@ class MathProblemSet {
   final List<MathProblem> problems;
   final int grade;
   final int difficulty;
-  
+
   MathProblemSet({
     required this.problems,
     required this.grade,
     required this.difficulty,
   });
-  
+
   factory MathProblemSet.generate({
     required int grade,
     required int count,
@@ -478,51 +525,55 @@ class MathProblemSet {
   }) {
     final problems = <MathProblem>[];
     final actualDifficulty = difficulty ?? grade - 2;
-    
+
     for (int i = 0; i < count; i++) {
       problems.add(MathProblem.random(grade, difficulty: actualDifficulty));
     }
-    
+
     return MathProblemSet(
       problems: problems,
       grade: grade,
       difficulty: actualDifficulty,
     );
   }
-  
+
   // Sort problems by difficulty
   void sortByDifficulty() {
-    problems.sort((a, b) => a._calculateDifficultyScore().compareTo(b._calculateDifficultyScore()));
+    problems.sort((a, b) =>
+        a._calculateDifficultyScore().compareTo(b._calculateDifficultyScore()));
   }
-  
+
   // Filter by operation type
   List<MathProblem> filterByOperation(MathOperation operation) {
     return problems.where((problem) => problem.operation == operation).toList();
   }
-  
+
   // Get problems in answer range
   List<MathProblem> getProblemsInRange(int minAnswer, int maxAnswer) {
     return problems
-        .where((problem) => problem.answer >= minAnswer && problem.answer <= maxAnswer)
+        .where((problem) =>
+            problem.answer >= minAnswer && problem.answer <= maxAnswer)
         .toList();
   }
-  
+
   // Statistics
   Map<MathOperation, int> get operationDistribution {
     final distribution = <MathOperation, int>{};
     for (final problem in problems) {
-      distribution[problem.operation] = (distribution[problem.operation] ?? 0) + 1;
+      distribution[problem.operation] =
+          (distribution[problem.operation] ?? 0) + 1;
     }
     return distribution;
   }
-  
+
   double get averageDifficulty {
     if (problems.isEmpty) return 0.0;
-    final totalScore = problems.fold(0, (sum, problem) => sum + problem._calculateDifficultyScore());
+    final totalScore = problems.fold(
+        0, (sum, problem) => sum + problem._calculateDifficultyScore());
     return totalScore / problems.length;
   }
-  
+
   List<int> get allAnswers => problems.map((p) => p.answer).toList();
-  
+
   List<int> get sortedAnswers => allAnswers..sort();
 }

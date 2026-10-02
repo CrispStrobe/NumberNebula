@@ -1,9 +1,12 @@
+import 'algorithm_path.dart';
+import 'arithmetic_tables.dart';
+import 'generator_random.dart';
 // ignore_for_file: unused_element, unused_field
 import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:dart_csp/dart_csp.dart';
-import 'package:flutter/foundation.dart';
+import 'generator_diagnostics.dart';
 
 // ============================================================================
 // CROSSWORD PUZZLE SCALING CONFIGURATION
@@ -14,7 +17,8 @@ class CrosswordConfig {
   // Number range scaling (compress into 4 grades)
   static const int baseMinNumber = 1;
   static const int baseMaxNumber = 9;
-  static const int numberRangeGrowthPerGrade = 5; // Aggressive growth: +5 to max per grade
+  static const int numberRangeGrowthPerGrade =
+      5; // Aggressive growth: +5 to max per grade
   static const int maxNumberCap = 25; // Higher cap for grade 4
 
   // Puzzle size scaling (compress into 4 grades + 20 levels each)
@@ -22,7 +26,8 @@ class CrosswordConfig {
   static const int edgesGrowthPerLevel = 1; // +1 edge every 2 levels
   static const int levelDivisorForEdges = 2; // level/2 for growth calculation
   static const int edgesGrowthPerGrade = 4; // +4 edges per grade
-  static const int maxEdges = 20; // Maximum puzzle complexity for grade 4 level 20
+  static const int maxEdges =
+      20; // Maximum puzzle complexity for grade 4 level 20
 
   // Clue system (pre-filled cells) - ALWAYS provide clues for mathematical reasoning
   static const int baseClues = 2; // Always start with at least 2 clues
@@ -48,17 +53,28 @@ class CrosswordConfig {
   static const int maxTimeout = 90; // Up to 90 seconds for grade 4
 
   // Calculate actual config for a given grade/level with optional custom settings
-  static PuzzleConfig createConfig(int grade, int level, {
+  static PuzzleConfig createConfig(
+    int grade,
+    int level, {
     bool useCustomSettings = false,
     List<String>? customOps,
     int? customMin,
     int? customMax,
   }) {
     // Number range - use custom settings if provided
-    final minN = useCustomSettings && customMin != null ? customMin : baseMinNumber;
+    final minN =
+        useCustomSettings && customMin != null ? customMin : baseMinNumber;
     final maxN = useCustomSettings && customMax != null
         ? customMax
-        : math.min(baseMaxNumber + (grade * numberRangeGrowthPerGrade), maxNumberCap);
+        : math.min(
+            baseMaxNumber + (grade * numberRangeGrowthPerGrade),
+            algorithmPath == AlgorithmPath.legacy
+                ? maxNumberCap
+                : grade >= 6
+                    ? 40
+                    : grade >= 5
+                        ? 32
+                        : maxNumberCap);
 
     // Puzzle size - both grade and level scaling
     final baseForGrade = baseEdges + (grade * edgesGrowthPerGrade);
@@ -72,22 +88,22 @@ class CrosswordConfig {
 
     // Clues - ALWAYS provide clues for mathematical reasoning
     final clues = math.min(
-      baseClues + (grade * cluesGrowthPerGrade) + (level ~/ 10 * cluesGrowthPerLevel),
-      maxClues
-    );
+        baseClues +
+            (grade * cluesGrowthPerGrade) +
+            (level ~/ 10 * cluesGrowthPerLevel),
+        maxClues);
 
     // Advanced constraints
     final noDups = grade >= noDupsStartGrade && level >= noDupsStartLevel;
 
     // Timeout - generous for complex grade 4 puzzles
-    final timeout = math.min(
-      baseTimeout + (grade * timeoutGrowthPerGrade),
-      maxTimeout
-    );
+    final timeout =
+        math.min(baseTimeout + (grade * timeoutGrowthPerGrade), maxTimeout);
 
     return PuzzleConfig(
       minN: minN,
       maxN: maxN,
+      legacyMaxN: useCustomSettings ? null : math.min(maxN, maxNumberCap),
       ops: ops,
       targetEdges: edges,
       numClues: clues,
@@ -112,13 +128,17 @@ class CrosswordConfig {
   }
 
   // Debug helper to see what config will be generated
-  static String debugConfig(int grade, int level, {
+  static String debugConfig(
+    int grade,
+    int level, {
     bool useCustomSettings = false,
     List<String>? customOps,
     int? customMin,
     int? customMax,
   }) {
-    final config = createConfig(grade, level,
+    final config = createConfig(
+      grade,
+      level,
       useCustomSettings: useCustomSettings,
       customOps: customOps,
       customMin: customMin,
@@ -126,9 +146,9 @@ class CrosswordConfig {
     );
     final customStr = useCustomSettings ? ' [CUSTOM]' : '';
     return 'Grade $grade, Level $level$customStr → Range=${config.minN}-${config.maxN}, '
-           'Ops=${config.ops}, Edges=${config.targetEdges}, '
-           'Clues=${config.numClues}, NoDups=${config.noDups}, '
-           'Timeout=${config.timeoutSeconds}s';
+        'Ops=${config.ops}, Edges=${config.targetEdges}, '
+        'Clues=${config.numClues}, NoDups=${config.noDups}, '
+        'Timeout=${config.timeoutSeconds}s';
   }
 }
 
@@ -140,6 +160,7 @@ class CrosswordConfig {
 class PuzzleConfig {
   int minN;
   int maxN;
+  final int? legacyMaxN;
   List<String> ops;
   int targetEdges;
   int numClues;
@@ -150,6 +171,7 @@ class PuzzleConfig {
   PuzzleConfig({
     this.minN = 1,
     this.maxN = 9,
+    this.legacyMaxN,
     this.ops = const ['+', '−', '×', '÷'],
     this.targetEdges = 8,
     this.numClues = 0,
@@ -165,7 +187,7 @@ class GridPatternGenerator {
   final int height;
   final int targetEdges;
   late List<List<String>> grid;
-  final math.Random random = math.Random();
+  final math.Random random = generatorRandom();
   int edgeCount = 0;
   late math.Point<int> mazeStart;
   late int firstDirection;
@@ -240,13 +262,15 @@ class GridPatternGenerator {
       if (canWalk4Steps(currentPos, currentDirection)) {
         currentPos = walk4Steps(currentPos, currentDirection);
         int decision = random.nextInt(100);
-        List<int> turnOptions = [(currentDirection + 1) % 4, (currentDirection + 3) % 4]
-          ..shuffle(random);
+        List<int> turnOptions = [
+          (currentDirection + 1) % 4,
+          (currentDirection + 3) % 4
+        ]..shuffle(random);
 
         if (decision < 40) {
           math.Point<int> dir = directions[currentDirection];
-          math.Point<int> backPos =
-              math.Point(currentPos.x - (dir.x * 2), currentPos.y - (dir.y * 2));
+          math.Point<int> backPos = math.Point(
+              currentPos.x - (dir.x * 2), currentPos.y - (dir.y * 2));
           bool foundTurn = false;
           for (int newDir in turnOptions) {
             if (canWalk4Steps(backPos, newDir)) {
@@ -269,8 +293,10 @@ class GridPatternGenerator {
           if (!foundTurn) break;
         }
       } else {
-        List<int> turnOptions = [(currentDirection + 1) % 4, (currentDirection + 3) % 4]
-          ..shuffle(random);
+        List<int> turnOptions = [
+          (currentDirection + 1) % 4,
+          (currentDirection + 3) % 4
+        ]..shuffle(random);
         bool foundTurn = false;
         for (int newDir in turnOptions) {
           if (canWalk4Steps(currentPos, newDir)) {
@@ -292,8 +318,6 @@ class GridPatternGenerator {
     }
     return grid;
   }
-
-
 }
 
 /// Equation representation - EXACT COPY from gencw.dart
@@ -301,12 +325,12 @@ class Equation {
   final List<math.Point<int>> numberCells;
   final math.Point<int> operatorCell;
   final String operator;
-  
+
   Equation(this.numberCells, this.operatorCell, this.operator);
-  
+
   List<String> get variableNames =>
       numberCells.map((p) => 'C_${p.y}_${p.x}').toList();
-      
+
   Set<math.Point<int>> get allCells {
     final op = operatorCell;
     final n1 = numberCells[0];
@@ -331,7 +355,7 @@ class Equation {
 class PuzzleParser {
   final List<List<String>> grid;
   final PuzzleConfig config;
-  final math.Random random = math.Random();
+  final math.Random random = generatorRandom();
   final List<Equation> equations = [];
   final Set<math.Point<int>> numberCellLocations = {};
 
@@ -346,7 +370,11 @@ class PuzzleParser {
       for (int c = 0; c < width - 4; c++) {
         if (List.generate(5, (i) => grid[r][c + i])
             .every((cell) => cell == '█')) {
-          final numberCells = [math.Point(c, r), math.Point(c + 2, r), math.Point(c + 4, r)];
+          final numberCells = [
+            math.Point(c, r),
+            math.Point(c + 2, r),
+            math.Point(c + 4, r)
+          ];
           final operatorCell = math.Point(c + 1, r);
           final eq = Equation(numberCells, operatorCell,
               config.ops[random.nextInt(config.ops.length)]);
@@ -359,7 +387,11 @@ class PuzzleParser {
       for (int c = 0; c < width; c++) {
         if (List.generate(5, (i) => grid[r + i][c])
             .every((cell) => cell == '█')) {
-          final numberCells = [math.Point(c, r), math.Point(c, r + 2), math.Point(c, r + 4)];
+          final numberCells = [
+            math.Point(c, r),
+            math.Point(c, r + 2),
+            math.Point(c, r + 4)
+          ];
           final operatorCell = math.Point(c, r + 1);
           final eq = Equation(numberCells, operatorCell,
               config.ops[random.nextInt(config.ops.length)]);
@@ -418,7 +450,8 @@ class AsciiRenderer {
     final maxY = allDrawableCells.map((p) => p.y).reduce(math.max);
     final canvasWidth = (maxX - minX + 1) * (cellWidth + 1) + 1;
     final canvasHeight = (maxY - minY + 1) * 2 + 1;
-    var canvas = List.generate(canvasHeight, (_) => List.filled(canvasWidth, ' '));
+    var canvas =
+        List.generate(canvasHeight, (_) => List.filled(canvasWidth, ' '));
 
     for (final point in allDrawableCells) {
       _drawBox(canvas, point.x - minX, point.y - minY);
@@ -464,9 +497,38 @@ class AsciiRenderer {
 
 /// MAIN GENERATOR
 Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
-  if (kDebugMode) debugPrint('🔧 [GENERATOR] ========================================');
-  debugPrint('🔧 [GENERATOR] MATH CROSSWORD PUZZLE GENERATOR & SOLVER');
-  debugPrint('🔧 [GENERATOR] Config: Range=${config.minN}-${config.maxN}, Ops=${config.ops}, Edges=${config.targetEdges}, Clues=${config.numClues}, NoDups=${config.noDups}, Timeout=${config.timeoutSeconds}s');
+  if (algorithmPath == AlgorithmPath.legacy) {
+    recordAlgorithm('crossword', 'legacy');
+    return _generateCrosswordLegacy(config);
+  }
+  try {
+    final puzzle = await _generateCrosswordLegacy(config, useTables: true);
+    recordAlgorithm('crossword', 'candidate');
+    return puzzle;
+  } catch (_) {
+    if (algorithmPath == AlgorithmPath.candidate) rethrow;
+    recordAlgorithm('crossword', 'legacy-fallback');
+    final fallback = PuzzleConfig(
+        minN: config.minN,
+        maxN: config.legacyMaxN ?? config.maxN,
+        ops: config.ops,
+        targetEdges: config.targetEdges,
+        numClues: config.numClues,
+        noDups: config.noDups,
+        verbose: config.verbose,
+        timeoutSeconds: config.timeoutSeconds);
+    return _generateCrosswordLegacy(fallback);
+  }
+}
+
+Future<CrosswordPuzzle> _generateCrosswordLegacy(PuzzleConfig config,
+    {bool useTables = false}) async {
+  if (kDebugMode) {
+    traceGenerator('🔧 [GENERATOR] ========================================');
+  }
+  traceGenerator('🔧 [GENERATOR] MATH CROSSWORD PUZZLE GENERATOR & SOLVER');
+  traceGenerator(
+      '🔧 [GENERATOR] Config: Range=${config.minN}-${config.maxN}, Ops=${config.ops}, Edges=${config.targetEdges}, Clues=${config.numClues}, NoDups=${config.noDups}, Timeout=${config.timeoutSeconds}s');
 
   dynamic solution;
   PuzzleParser? successfulPuzzle;
@@ -474,25 +536,37 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
   const maxAttempts = 30;
 
   final totalStopwatch = Stopwatch()..start();
-  const maxTotalSeconds = 10; // Allow more total time since individual solves are faster
+  const maxTotalSeconds =
+      10; // Allow more total time since individual solves are faster
 
   for (int attempt = 1; attempt <= maxAttempts; attempt++) {
     if (totalStopwatch.elapsed.inSeconds >= maxTotalSeconds) {
-      if (kDebugMode) debugPrint("⏰ [GENERATOR] Hard timeout at ${totalStopwatch.elapsed.inSeconds}s (max: ${maxTotalSeconds}s)");
+      if (kDebugMode) {
+        traceGenerator(
+            "⏰ [GENERATOR] Hard timeout at ${totalStopwatch.elapsed.inSeconds}s (max: ${maxTotalSeconds}s)");
+      }
       break;
     }
-    
-    if (kDebugMode) debugPrint('🔧 [GENERATOR] ------------------------------------------------------------');
-    debugPrint('🔧 [GENERATOR] ATTEMPT $attempt/$maxAttempts (elapsed: ${totalStopwatch.elapsed.inSeconds}s)');
+
+    if (kDebugMode) {
+      traceGenerator(
+          '🔧 [GENERATOR] ------------------------------------------------------------');
+    }
+    traceGenerator(
+        '🔧 [GENERATOR] ATTEMPT $attempt/$maxAttempts (elapsed: ${totalStopwatch.elapsed.inSeconds}s)');
 
     // STEP 1: Generate a valid pattern
-    if (kDebugMode) debugPrint("🔧 [GENERATOR] [1] Generating pattern...");
+    if (kDebugMode) traceGenerator("🔧 [GENERATOR] [1] Generating pattern...");
     PuzzleParser? puzzle;
     int patternAttempt = 0;
     do {
       patternAttempt++;
-      if (patternAttempt > 20) { // Don't spend forever on pattern
-        if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> Pattern generation taking too long, restarting attempt");
+      if (patternAttempt > 20) {
+        // Don't spend forever on pattern
+        if (kDebugMode) {
+          traceGenerator(
+              "🔧 [GENERATOR]   -> Pattern generation taking too long, restarting attempt");
+        }
         break;
       }
       final generator = GridPatternGenerator(targetEdges: config.targetEdges);
@@ -501,18 +575,23 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
     } while (puzzle.isPatternValid() != true && patternAttempt < 20);
 
     if (puzzle == null || !puzzle.isPatternValid()) {
-      if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> FAILED to generate valid pattern, retrying...");
+      if (kDebugMode) {
+        traceGenerator(
+            "🔧 [GENERATOR]   -> FAILED to generate valid pattern, retrying...");
+      }
       continue;
     }
 
     final allVarNames =
         puzzle.numberCellLocations.map((p) => 'C_${p.y}_${p.x}').toList();
-    if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> Pattern OK: ${puzzle.equations.length} equations, ${allVarNames.length} cells");
+    if (kDebugMode) {
+      traceGenerator(
+          "🔧 [GENERATOR]   -> Pattern OK: ${puzzle.equations.length} equations, ${allVarNames.length} cells");
+    }
 
     // STEP 2: Generate clues (keeping existing logic)
-    debugPrint("🔧 [GENERATOR] [2] Generating ${config.numClues} clues...");
+    traceGenerator("🔧 [GENERATOR] [2] Generating ${config.numClues} clues...");
     final clues = <String, int>{};
-    final domain = List<int>.generate(config.maxN - config.minN + 1, (i) => i + config.minN);
 
     final variableCounts = <String, int>{};
     for (final varName in allVarNames) {
@@ -529,12 +608,15 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
     final disqualifiedEquations = <Equation>{};
 
     for (int i = 0; i < config.numClues && candidates.isNotEmpty; i++) {
-      candidates.sort((a, b) => variableCounts[b]!.compareTo(variableCounts[a]!));
+      candidates
+          .sort((a, b) => variableCounts[b]!.compareTo(variableCounts[a]!));
       if (candidates.isEmpty) break;
       final bestCandidate = candidates.first;
 
       final chosenEquation = puzzle.equations.firstWhere(
-        (eq) => eq.variableNames.contains(bestCandidate) && !disqualifiedEquations.contains(eq),
+        (eq) =>
+            eq.variableNames.contains(bestCandidate) &&
+            !disqualifiedEquations.contains(eq),
         orElse: () => puzzle!.equations.first,
       );
 
@@ -556,19 +638,13 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
       candidates.removeWhere((v) => chosenEquation.variableNames.contains(v));
     }
 
-    final usedClueValues = <int>{};
-    for (final clueVar in clueVars.toSet()) {
-      int clueValue;
-      do {
-        clueValue = domain[math.Random().nextInt(domain.length)];
-      } while (config.noDups && usedClueValues.contains(clueValue));
-      clues[clueVar] = clueValue;
-      if (config.noDups) usedClueValues.add(clueValue);
-    }
-    if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> Clues: $clues");
+    // Choose clue locations now, but reveal values only from a solved board.
+    // Independent random clue values can contradict intersecting equations.
+    if (kDebugMode) traceGenerator("🔧 [GENERATOR]   -> Clues: $clues");
 
     // STEP 3: Solve CSP using built-in constraints for better propagation
-    debugPrint("🔧 [GENERATOR] [3] Solving CSP (timeout: ${config.timeoutSeconds}s)...");
+    traceGenerator(
+        "🔧 [GENERATOR] [3] Solving CSP (timeout: ${config.timeoutSeconds}s)...");
     final p = Problem();
     final domainSize = config.maxN - config.minN + 1;
     // "No duplicates" requires every number cell to take a distinct value, which
@@ -578,17 +654,30 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
     // arithmetic constraints make it rarely satisfiable, so we require a
     // comfortable margin (cells ≤ ~⅔ of the domain) before enforcing
     // uniqueness; otherwise we allow repeats so a valid puzzle is still produced.
-    final effectiveNoDups =
-        config.noDups && allVarNames.length * 3 <= domainSize * 2;
+    final effectiveNoDups = config.noDups &&
+        allVarNames.length * 3 <=
+            (useTables
+                    ? math.min(domainSize, CrosswordConfig.maxNumberCap)
+                    : domainSize) *
+                2;
     final fullDomain = List<int>.generate(domainSize, (i) => i + config.minN);
     if (effectiveNoDups) {
       fullDomain.removeWhere((val) => clues.values.contains(val));
     }
+    final narrowed = useTables
+        ? pruneArithmeticDomains({
+            for (final cell in allVarNames) cell: fullDomain
+          }, [
+            for (final eq in puzzle.equations)
+              (cells: eq.variableNames, op: eq.operator)
+          ])
+        : null;
+    if (useTables && narrowed == null) continue;
     for (final varName in allVarNames) {
       if (clues.containsKey(varName)) {
         p.addVariable(varName, [clues[varName]!]);
       } else {
-        p.addVariable(varName, fullDomain);
+        p.addVariable(varName, narrowed?[varName] ?? fullDomain);
       }
     }
 
@@ -603,6 +692,10 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
     // (dom/wdeg + restarts) still applies its propagation over these.
     for (final eq in puzzle.equations) {
       final vars = eq.variableNames;
+      if (useTables) {
+        addArithmeticConstraint(p, vars, fullDomain, eq.operator);
+        continue;
+      }
       p.addConstraint(vars, (a) {
         final x = a[vars[0]], y = a[vars[1]], z = a[vars[2]];
         if (x == null || y == null || z == null) return false;
@@ -630,14 +723,14 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
     // for far longer than the requested duration), whereas the token is polled
     // at every solver checkpoint, so a hard instance is abandoned promptly and
     // the next pattern is tried instead of freezing the app.
-    final perSolveCap =
-        Duration(seconds: math.min(config.timeoutSeconds, 3));
+    final perSolveCap = Duration(seconds: math.min(config.timeoutSeconds, 3));
     final solveToken = CancellationToken();
     final perSolveTimer = Timer(perSolveCap, solveToken.cancel);
     try {
       // Use restarts + dom/wdeg heuristic for much faster solving on
       // hard instances. Falls back gracefully on easy ones.
       final potentialSolution = await p.getSolutionWithRestarts(
+        seed: generatorSolverSeed(),
         useDomWdeg: true,
         scale: 50,
         maxRestarts: 200,
@@ -646,58 +739,81 @@ Future<CrosswordPuzzle> generateCrosswordPuzzle(PuzzleConfig config) async {
       solveStopwatch.stop();
 
       if (potentialSolution != 'FAILURE') {
-        if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> SOLVED in ${solveStopwatch.elapsedMilliseconds}ms");
+        if (kDebugMode) {
+          traceGenerator(
+              "🔧 [GENERATOR]   -> SOLVED in ${solveStopwatch.elapsedMilliseconds}ms");
+        }
         solution = potentialSolution;
         successfulPuzzle = puzzle;
-        finalClues = clues;
-        
-        if (kDebugMode) debugPrint("🔧 [GENERATOR] [4] Rendering ASCII preview...");
+        final solvedValues = (potentialSolution as Map).cast<String, int>();
+        finalClues = {
+          for (final cell in clueVars.toSet()) cell: solvedValues[cell]!,
+        };
+
+        if (kDebugMode) {
+          traceGenerator("🔧 [GENERATOR] [4] Rendering ASCII preview...");
+        }
         final emptyRenderer = AsciiRenderer(puzzle, config, solution: clues);
-        debugPrint(emptyRenderer.render());
+        traceGenerator(emptyRenderer.render());
         break;
       } else {
-        if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> UNSOLVABLE (contradiction in clues)");
+        if (kDebugMode) {
+          traceGenerator(
+              "🔧 [GENERATOR]   -> UNSOLVABLE (contradiction in clues)");
+        }
       }
     } catch (e) {
       solveStopwatch.stop();
-      if (kDebugMode) debugPrint("🔧 [GENERATOR]   -> TIMEOUT after ${solveStopwatch.elapsedMilliseconds}ms");
+      if (kDebugMode) {
+        traceGenerator(
+            "🔧 [GENERATOR]   -> TIMEOUT after ${solveStopwatch.elapsedMilliseconds}ms");
+      }
     } finally {
       perSolveTimer.cancel();
     }
   }
 
   totalStopwatch.stop();
-  if (kDebugMode) debugPrint('🔧 [GENERATOR] ========================================');
-  
+  if (kDebugMode) {
+    traceGenerator('🔧 [GENERATOR] ========================================');
+  }
+
   if (solution != null && solution != 'FAILURE' && successfulPuzzle != null) {
-    debugPrint("🔧 [GENERATOR] SUCCESS - Converting to game format...");
-    
+    traceGenerator("🔧 [GENERATOR] SUCCESS - Converting to game format...");
+
     try {
       final typedSolution = solution.cast<String, int>();
-      if (kDebugMode) debugPrint("🔧 [GENERATOR] Solution cast successful");
-      
-      debugPrint("🔧 [GENERATOR] Calling _convertToGameFormat...");
-      final result = _convertToGameFormat(successfulPuzzle, finalClues, typedSolution);
-      
-      if (kDebugMode) debugPrint("🔧 [GENERATOR] _convertToGameFormat returned successfully");
-      debugPrint("🔧 [GENERATOR] Result structure validated - ready to return");
-      
+      if (kDebugMode) traceGenerator("🔧 [GENERATOR] Solution cast successful");
+
+      traceGenerator("🔧 [GENERATOR] Calling _convertToGameFormat...");
+      final result =
+          _convertToGameFormat(successfulPuzzle, finalClues, typedSolution);
+
+      if (kDebugMode) {
+        traceGenerator(
+            "🔧 [GENERATOR] _convertToGameFormat returned successfully");
+      }
+      traceGenerator(
+          "🔧 [GENERATOR] Result structure validated - ready to return");
+
       return result;
     } catch (e, stackTrace) {
-      if (kDebugMode) debugPrint("❌ [GENERATOR] ERROR in conversion: $e");
-      debugPrint("❌ [GENERATOR] StackTrace: $stackTrace");
+      if (kDebugMode) traceGenerator("❌ [GENERATOR] ERROR in conversion: $e");
+      traceGenerator("❌ [GENERATOR] StackTrace: $stackTrace");
       throw Exception("Puzzle generation succeeded but conversion failed: $e");
     }
   } else {
     final msg = "Failed after ${totalStopwatch.elapsed.inSeconds}s";
-    if (kDebugMode) debugPrint("❌ [GENERATOR] FAILURE: $msg");
+    if (kDebugMode) traceGenerator("❌ [GENERATOR] FAILURE: $msg");
     throw Exception(msg);
   }
 }
 
-CrosswordPuzzle _convertToGameFormat(PuzzleParser puzzle, Map<String, int> clues, Map<String, int> solution) {
-  final allVarNames = puzzle.numberCellLocations.map((p) => 'C_${p.y}_${p.x}').toList();
-  
+CrosswordPuzzle _convertToGameFormat(
+    PuzzleParser puzzle, Map<String, int> clues, Map<String, int> solution) {
+  final allVarNames =
+      puzzle.numberCellLocations.map((p) => 'C_${p.y}_${p.x}').toList();
+
   final emptyCells = <String>{};
   for (final varName in allVarNames) {
     if (!clues.containsKey(varName)) {
@@ -710,11 +826,12 @@ CrosswordPuzzle _convertToGameFormat(PuzzleParser puzzle, Map<String, int> clues
 
   // Create visual layout
   final (numberCells, operatorCells, equalsCells) = _createVisualLayout(puzzle);
-  
+
   // Convert equations
-  final gameEquations = puzzle.equations.map((eq) => CrosswordEquation(
-    eq.numberCells, eq.operatorCell, eq.operator
-  )).toList();
+  final gameEquations = puzzle.equations
+      .map((eq) =>
+          CrosswordEquation(eq.numberCells, eq.operatorCell, eq.operator))
+      .toList();
 
   return CrosswordPuzzle(
     clues: clues,
@@ -730,7 +847,7 @@ CrosswordPuzzle _convertToGameFormat(PuzzleParser puzzle, Map<String, int> clues
 
 List<int> _generateNumberPool(Set<int> correctNumbers) {
   final pool = <int>[...correctNumbers];
-  final random = math.Random();
+  final random = generatorRandom();
 
   // Decoys are plausible wrong answers drawn from the same range as the real
   // numbers. Crucially, the candidate range is derived from the solution
@@ -755,40 +872,87 @@ List<int> _generateNumberPool(Set<int> correctNumbers) {
   return pool;
 }
 
-(Map<math.Point<int>, String>, Map<math.Point<int>, String>, Set<math.Point<int>>) _createVisualLayout(PuzzleParser puzzle) {
+(
+  Map<math.Point<int>, String>,
+  Map<math.Point<int>, String>,
+  Set<math.Point<int>>
+) _createVisualLayout(PuzzleParser puzzle) {
   final numberCells = <math.Point<int>, String>{};
   final operatorCells = <math.Point<int>, String>{};
   final equalsCells = <math.Point<int>>{};
-  
+
   for (final eq in puzzle.equations) {
     // Number cells
     for (int i = 0; i < eq.numberCells.length; i++) {
       numberCells[eq.numberCells[i]] = eq.variableNames[i];
     }
-    
+
     // Operator cell
     operatorCells[eq.operatorCell] = eq.operator;
-    
+
     // Equals cell (between second number and result)
     final eqPos = math.Point(
       (eq.numberCells[1].x + eq.numberCells[2].x) ~/ 2,
       (eq.numberCells[1].y + eq.numberCells[2].y) ~/ 2,
     );
-    equalsCells.add(eqPos);  // Add the Point directly, not wrapped in {}
+    equalsCells.add(eqPos); // Add the Point directly, not wrapped in {}
   }
-  
-  if (kDebugMode) debugPrint("🎯 [LAYOUT] Created visual layout: ${numberCells.length} number cells, ${operatorCells.length} operator cells, ${equalsCells.length} equals cells");
-  
-  return (numberCells, operatorCells, equalsCells);  // Return the proper tuple
+
+  if (kDebugMode) {
+    traceGenerator(
+        "🎯 [LAYOUT] Created visual layout: ${numberCells.length} number cells, ${operatorCells.length} operator cells, ${equalsCells.length} equals cells");
+  }
+
+  return (numberCells, operatorCells, equalsCells); // Return the proper tuple
 }
 
 class CrosswordPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'clues': clues.entries.map((v0) => [v0.key, v0.value]).toList(),
+        'emptyCells': emptyCells.map((v0) => v0).toList(),
+        'equations': equations.map((v0) => v0.toJson()).toList(),
+        'numberPool': numberPool.map((v0) => v0).toList(),
+        'fullSolution':
+            fullSolution.entries.map((v0) => [v0.key, v0.value]).toList(),
+        'numberCells': numberCells.entries
+            .map((v0) => [
+                  [v0.key.x, v0.key.y],
+                  v0.value
+                ])
+            .toList(),
+        'operatorCells': operatorCells.entries
+            .map((v0) => [
+                  [v0.key.x, v0.key.y],
+                  v0.value
+                ])
+            .toList(),
+        'equalsCells': equalsCells.map((v0) => [v0.x, v0.y]).toList()
+      };
+  factory CrosswordPuzzle.fromJson(Map<String, dynamic> json) => CrosswordPuzzle(
+      clues: Map<String, int>.fromEntries((json['clues'] as List)
+          .map((v0) => MapEntry(v0[0] as String, v0[1] as int))),
+      emptyCells:
+          (json['emptyCells'] as List).map((v0) => v0 as String).toSet(),
+      equations: (json['equations'] as List)
+          .map((v0) =>
+              CrosswordEquation.fromJson(Map<String, dynamic>.from(v0 as Map)))
+          .toList(),
+      numberPool: (json['numberPool'] as List).map((v0) => v0 as int).toList(),
+      fullSolution: Map<String, int>.fromEntries((json['fullSolution'] as List)
+          .map((v0) => MapEntry(v0[0] as String, v0[1] as int))),
+      numberCells: Map<math.Point<int>, String>.fromEntries(
+          (json['numberCells'] as List).map((v0) => MapEntry(
+              math.Point<int>(v0[0][0] as int, v0[0][1] as int), v0[1] as String))),
+      operatorCells: Map<math.Point<int>, String>.fromEntries((json['operatorCells'] as List).map((v0) => MapEntry(math.Point<int>(v0[0][0] as int, v0[0][1] as int), v0[1] as String))),
+      equalsCells: (json['equalsCells'] as List).map((v0) => math.Point<int>(v0[0] as int, v0[1] as int)).toSet());
+
   final Map<String, int> clues;
   final Set<String> emptyCells;
   final List<CrosswordEquation> equations;
   final List<int> numberPool;
   final Map<String, int> fullSolution;
-  
+
   // Visual layout data
   final Map<math.Point<int>, String> numberCells; // Position -> CellId
   final Map<math.Point<int>, String> operatorCells; // Position -> Operator
@@ -807,65 +971,83 @@ class CrosswordPuzzle {
 
   static Future<CrosswordPuzzle> generate(Map<String, dynamic> args) async {
     final attempt = args['attemptNumber'] as int? ?? 0;
-    if (kDebugMode) debugPrint("🏭 [FACTORY-$attempt] ========================================");
-    debugPrint("🏭 [FACTORY-$attempt] CrosswordPuzzle.generate() called in isolate");
-    
+    if (kDebugMode) {
+      traceGenerator(
+          "🏭 [FACTORY-$attempt] ========================================");
+    }
+    traceGenerator(
+        "🏭 [FACTORY-$attempt] CrosswordPuzzle.generate() called in isolate");
+
     final grade = args['grade'] as int;
     final level = args['level'] as int;
     final useCustomSettings = args['useCustomSettings'] as bool? ?? false;
     final customOps = args['customOps'] as List<String>? ?? [];
     final customMin = args['customMin'] as int?;
     final customMax = args['customMax'] as int?;
-    
-    if (kDebugMode) debugPrint("🏭 [FACTORY-$attempt] Grade: $grade, Level: $level");
-    debugPrint("🏭 [FACTORY-$attempt] Custom: $useCustomSettings");
-    
+
+    if (kDebugMode) {
+      traceGenerator("🏭 [FACTORY-$attempt] Grade: $grade, Level: $level");
+    }
+    traceGenerator("🏭 [FACTORY-$attempt] Custom: $useCustomSettings");
+
     // Use the new scaling configuration system with custom settings support
     final config = CrosswordConfig.createConfig(
-      grade, 
+      grade,
       level,
       useCustomSettings: useCustomSettings,
       customOps: customOps,
       customMin: customMin,
       customMax: customMax,
     );
-    
+
     if (kDebugMode) {
-      debugPrint("🏭 [FACTORY-$attempt] Config created: ${CrosswordConfig.debugConfig(
-      grade, 
-      level,
-      useCustomSettings: useCustomSettings,
-      customOps: customOps,
-      customMin: customMin,
-      customMax: customMax,
+      traceGenerator(
+          "🏭 [FACTORY-$attempt] Config created: ${CrosswordConfig.debugConfig(
+        grade,
+        level,
+        useCustomSettings: useCustomSettings,
+        customOps: customOps,
+        customMin: customMin,
+        customMax: customMax,
       )}");
     }
-    
-    if (kDebugMode) debugPrint("🏭 [FACTORY-$attempt] Calling generateCrosswordPuzzle()...");
-    
+
+    if (kDebugMode) {
+      traceGenerator(
+          "🏭 [FACTORY-$attempt] Calling generateCrosswordPuzzle()...");
+    }
+
     final result = await generateCrosswordPuzzle(config);
-    
-    if (kDebugMode) debugPrint("🏭 [FACTORY-$attempt] generateCrosswordPuzzle() returned");
-    debugPrint("🏭 [FACTORY-$attempt] Result has ${result.equations.length} equations");
-    debugPrint("🏭 [FACTORY-$attempt] About to return from isolate...");
-    
+
+    if (kDebugMode) {
+      traceGenerator(
+          "🏭 [FACTORY-$attempt] generateCrosswordPuzzle() returned");
+    }
+    traceGenerator(
+        "🏭 [FACTORY-$attempt] Result has ${result.equations.length} equations");
+    traceGenerator("🏭 [FACTORY-$attempt] About to return from isolate...");
+
     return result;
   }
 
   bool validateSolution(Map<String, int> userSolution) {
-    if (kDebugMode) debugPrint("✅ [CROSSWORD VALIDATION] Starting solution validation");
-    
+    if (kDebugMode) {
+      traceGenerator("✅ [CROSSWORD VALIDATION] Starting solution validation");
+    }
+
     // Create complete solution
     final completeGrid = Map<String, int>.from(clues);
     completeGrid.addAll(userSolution);
-    
+
     // Validate all equations
     for (final equation in equations) {
-      final values = equation.variableNames.map((varName) => completeGrid[varName]!).toList();
+      final values = equation.variableNames
+          .map((varName) => completeGrid[varName]!)
+          .toList();
       final operand1 = values[0];
       final operand2 = values[1];
       final result = values[2];
-      
+
       bool isValid = false;
       switch (equation.operator) {
         case '+':
@@ -881,17 +1063,24 @@ class CrosswordPuzzle {
           break;
         case '÷':
         case '/':
-          isValid = operand2 != 0 && operand1 % operand2 == 0 && operand1 ~/ operand2 == result;
+          isValid = operand2 != 0 &&
+              operand1 % operand2 == 0 &&
+              operand1 ~/ operand2 == result;
           break;
       }
-      
+
       if (!isValid) {
-        if (kDebugMode) debugPrint("✅ [CROSSWORD VALIDATION] ❌ Equation failed: $equation -> $operand1 ${equation.operator} $operand2 = $result");
+        if (kDebugMode) {
+          traceGenerator(
+              "✅ [CROSSWORD VALIDATION] ❌ Equation failed: $equation -> $operand1 ${equation.operator} $operand2 = $result");
+        }
         return false;
       }
     }
-    
-    if (kDebugMode) debugPrint("✅ [CROSSWORD VALIDATION] ✅ Solution is valid!");
+
+    if (kDebugMode) {
+      traceGenerator("✅ [CROSSWORD VALIDATION] ✅ Solution is valid!");
+    }
     return true;
   }
 
@@ -901,15 +1090,30 @@ class CrosswordPuzzle {
 }
 
 class CrosswordEquation {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'numberCells': numberCells.map((v0) => [v0.x, v0.y]).toList(),
+        'operatorCell': [operatorCell.x, operatorCell.y],
+        'operator': operator
+      };
+  factory CrosswordEquation.fromJson(Map<String, dynamic> json) =>
+      CrosswordEquation(
+          (json['numberCells'] as List)
+              .map((v0) => math.Point<int>(v0[0] as int, v0[1] as int))
+              .toList(),
+          math.Point<int>(
+              json['operatorCell'][0] as int, json['operatorCell'][1] as int),
+          json['operator'] as String);
+
   final List<math.Point<int>> numberCells;
   final math.Point<int> operatorCell;
   final String operator;
-  
+
   CrosswordEquation(this.numberCells, this.operatorCell, this.operator);
-  
+
   List<String> get variableNames =>
       numberCells.map((p) => 'C_${p.y}_${p.x}').toList();
-      
+
   Set<math.Point<int>> get allCells {
     final op = operatorCell;
     final n1 = numberCells[0];

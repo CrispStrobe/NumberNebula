@@ -1,7 +1,14 @@
+import 'generator_random.dart';
 import 'dart:math' as math;
 
 /// Direction offsets for equation placement: (dr, dc)
 class EquationDirection {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {'dr': dr, 'dc': dc, 'name': name};
+  factory EquationDirection.fromJson(Map<String, dynamic> json) =>
+      EquationDirection(
+          json['dr'] as int, json['dc'] as int, json['name'] as String);
+
   final int dr;
   final int dc;
   final String name;
@@ -25,6 +32,24 @@ const List<EquationDirection> cardinalDirections = [
 ];
 
 class PlacedEquation {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'equation': equation,
+        'startRow': startRow,
+        'startCol': startCol,
+        'direction': direction.toJson(),
+        'cells': cells.map((v0) => [v0.$1, v0.$2]).toList()
+      };
+  factory PlacedEquation.fromJson(Map<String, dynamic> json) => PlacedEquation(
+      equation: json['equation'] as String,
+      startRow: json['startRow'] as int,
+      startCol: json['startCol'] as int,
+      direction: EquationDirection.fromJson(
+          Map<String, dynamic>.from(json['direction'] as Map)),
+      cells: (json['cells'] as List)
+          .map((v0) => (v0[0] as int, v0[1] as int))
+          .toList());
+
   final String equation; // e.g. "3+4=7"
   final int startRow;
   final int startCol;
@@ -41,6 +66,27 @@ class PlacedEquation {
 }
 
 class StarChartScanPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'gridSize': gridSize,
+        'grid': grid.map((v0) => v0.map((v1) => v1).toList()).toList(),
+        'placedEquations': placedEquations.map((v0) => v0.toJson()).toList(),
+        'equationsToFind': equationsToFind.map((v0) => v0).toList()
+      };
+  factory StarChartScanPuzzle.fromJson(Map<String, dynamic> json) =>
+      StarChartScanPuzzle(
+          gridSize: json['gridSize'] as int,
+          grid: (json['grid'] as List)
+              .map((v0) => (v0 as List).map((v1) => v1 as String).toList())
+              .toList(),
+          placedEquations: (json['placedEquations'] as List)
+              .map((v0) =>
+                  PlacedEquation.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toList(),
+          equationsToFind: (json['equationsToFind'] as List)
+              .map((v0) => v0 as String)
+              .toList());
+
   final int gridSize;
   final List<List<String>> grid;
   final List<PlacedEquation> placedEquations;
@@ -196,7 +242,7 @@ class StarChartScanPuzzle {
     required List<String> operators,
     int? seed,
   }) {
-    final random = math.Random(seed);
+    final random = generatorRandom(seed);
     final directions = allowDiagonal ? allDirections : cardinalDirections;
 
     // Generate more candidate equations than needed
@@ -211,8 +257,7 @@ class StarChartScanPuzzle {
     for (final eq in candidateEquations) {
       if (placedEquations.length >= equationCount) break;
 
-      final placed =
-          _tryPlaceEquation(grid, eq, gridSize, directions, random);
+      final placed = _tryPlaceEquation(grid, eq, gridSize, directions, random);
       if (placed != null) {
         placedEquations.add(placed);
       }

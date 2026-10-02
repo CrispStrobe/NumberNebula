@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/space_theme.dart';
 import '../../generated/l10n.dart';
+import 'widgets/game_learning_shell.dart';
 import '../../shared/utils/app_utilities.dart' show SpaceErrorScreen;
 
 import 'screens/magic_triangles_game.dart'
@@ -224,6 +225,14 @@ final Map<String, _DeferredGame> _games = {
 /// Every registered gameKey.
 Iterable<String> get registeredGameKeys => _games.keys;
 
+/// Warm a game's deferred code before presenting its route.
+Future<void> loadGameLibrary(String gameKey) async {
+  final game = _games[gameKey];
+  if (game == null) throw ArgumentError.value(gameKey, 'gameKey');
+  await game.load();
+  DeferredGameLoader.markLoaded(gameKey);
+}
+
 /// Returns a builder that shows the game once its code is loaded, or null
 /// for an unknown [gameKey].
 GameBuilder? gameBuilderFor(String gameKey) {
@@ -233,7 +242,8 @@ GameBuilder? gameBuilderFor(String gameKey) {
         key: ValueKey('deferred_$gameKey'),
         gameKey: gameKey,
         load: game.load,
-        builder: (_) => game.build(grade, level),
+        builder: (_) => GameLearningShell(
+          gameKey: gameKey, builder: (_) => game.build(grade, level)),
       );
 }
 

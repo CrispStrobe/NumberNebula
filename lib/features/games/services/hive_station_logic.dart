@@ -1,3 +1,4 @@
+import 'generator_random.dart';
 // lib/features/games/services/hive_station_logic.dart
 //
 // Hexagonal minesweeper variant.
@@ -7,6 +8,11 @@ import 'dart:math' as math;
 
 /// Axial coordinate for a hex cell.
 class HexCoord {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {'q': q, 'r': r};
+  factory HexCoord.fromJson(Map<String, dynamic> json) =>
+      HexCoord(json['q'] as int, json['r'] as int);
+
   final int q;
   final int r;
   const HexCoord(this.q, this.r);
@@ -33,6 +39,36 @@ class HexCoord {
 }
 
 class HiveStationPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'allCells': allCells.map((v0) => v0.toJson()).toList(),
+        'energyCells': energyCells.map((v0) => v0.toJson()).toList(),
+        'numberHints': numberHints.entries
+            .map((v0) => [v0.key.toJson(), v0.value])
+            .toList(),
+        'revealedHints': revealedHints.map((v0) => v0.toJson()).toList(),
+        'radius': radius
+      };
+  factory HiveStationPuzzle.fromJson(Map<String, dynamic> json) =>
+      HiveStationPuzzle(
+          allCells: (json['allCells'] as List)
+              .map((v0) =>
+                  HexCoord.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toSet(),
+          energyCells: (json['energyCells'] as List)
+              .map((v0) =>
+                  HexCoord.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toSet(),
+          numberHints: Map<HexCoord, int>.fromEntries(
+              (json['numberHints'] as List).map((v0) => MapEntry(
+                  HexCoord.fromJson(Map<String, dynamic>.from(v0[0] as Map)),
+                  v0[1] as int))),
+          revealedHints: (json['revealedHints'] as List)
+              .map((v0) =>
+                  HexCoord.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toSet(),
+          radius: json['radius'] as int);
+
   /// All cells in the hex grid.
   final Set<HexCoord> allCells;
 
@@ -64,7 +100,7 @@ class HiveStationPuzzle {
 }
 
 class HiveStationGenerator {
-  final math.Random _random = math.Random();
+  final math.Random _random = generatorRandom();
 
   /// Check if the revealed hints uniquely determine which cells are energy.
   /// Uses constraint propagation: for each unrevealed non-energy cell,
@@ -79,9 +115,7 @@ class HiveStationGenerator {
     // For each non-energy cell that is NOT a revealed hint, try placing
     // energy there and removing energy from an actual energy cell.
     // If the result is consistent with all revealed hints, it's ambiguous.
-    final nonEnergy = allCells
-        .where((c) => !energyCells.contains(c))
-        .toList();
+    final nonEnergy = allCells.where((c) => !energyCells.contains(c)).toList();
 
     for (final candidate in nonEnergy) {
       // Skip cells whose hint is revealed — those are anchored
@@ -142,7 +176,9 @@ class HiveStationGenerator {
 
     // Select energy cells
     final cellList = allCells.toList()..shuffle(_random);
-    final energyCount = (allCells.length * energyFraction).round().clamp(1, allCells.length - 1);
+    final energyCount = (allCells.length * energyFraction)
+        .round()
+        .clamp(1, allCells.length - 1);
     final energyCells = cellList.take(energyCount).toSet();
 
     // Compute number hints for all cells
@@ -160,18 +196,20 @@ class HiveStationGenerator {
     // Select which hints to reveal, ensuring unique solution.
     final hintCells = numberHints.keys.toList()..shuffle(_random);
     final revealCount = (hintCells.length * hintFraction).round().clamp(
-      (allCells.length * 0.15).round(), // minimum hints
-      hintCells.length,
-    );
+          (allCells.length * 0.15).round(), // minimum hints
+          hintCells.length,
+        );
     final revealedHints = hintCells.take(revealCount).toSet();
 
     // Verify uniqueness: if the revealed hints don't uniquely determine
     // the energy cells, progressively reveal more hints until they do.
     // Skip for very small grids (radius <= 1) where it's trivially unique.
     if (radius > 1 && revealedHints.length < hintCells.length) {
-      final remaining = hintCells.where((c) => !revealedHints.contains(c)).toList();
+      final remaining =
+          hintCells.where((c) => !revealedHints.contains(c)).toList();
       for (final extra in remaining) {
-        if (_hasUniqueSolution(allCells, energyCells, numberHints, revealedHints)) {
+        if (_hasUniqueSolution(
+            allCells, energyCells, numberHints, revealedHints)) {
           break;
         }
         revealedHints.add(extra);

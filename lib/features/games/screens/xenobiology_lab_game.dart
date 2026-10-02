@@ -1,6 +1,9 @@
+import '../services/xenobiology_lab_logic.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
 
@@ -24,7 +27,68 @@ class XenobiologyLabGame extends StatefulWidget {
 }
 
 class _XenobiologyLabGameState extends State<XenobiologyLabGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<XenobiologyLabGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<XenobiologyLabGame>, PuzzleSessionMixin<XenobiologyLabGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'xenobiology_lab';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      '_eyesA': _eyesA,
+      '_legsA': _legsA,
+      '_eyesB': _eyesB,
+      '_legsB': _legsB,
+      '_countA': _countA,
+      '_countB': _countB,
+      '_totalEyes': _totalEyes,
+      '_totalLegs': _totalLegs,
+      '_nameA': _nameA,
+      '_nameB': _nameB,
+      '_hasThirdType': _hasThirdType,
+      '_eyesC': _eyesC,
+      '_legsC': _legsC,
+      '_countC': _countC,
+      '_nameC': _nameC,
+      '_sliderA': _sliderA,
+      '_sliderB': _sliderB,
+      '_sliderC': _sliderC,
+      '_maxSliderValue': _maxSliderValue,
+      '_mathProblems': _mathProblems.map((v0) => v0.toJson()).toList(),
+      '_wrongChecks': _wrongChecks
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _eyesA = state["_eyesA"] as int;
+    _legsA = state["_legsA"] as int;
+    _eyesB = state["_eyesB"] as int;
+    _legsB = state["_legsB"] as int;
+    _countA = state["_countA"] as int;
+    _countB = state["_countB"] as int;
+    _totalEyes = state["_totalEyes"] as int;
+    _totalLegs = state["_totalLegs"] as int;
+    _nameA = state["_nameA"] as String;
+    _nameB = state["_nameB"] as String;
+    _hasThirdType = state["_hasThirdType"] as bool;
+    _eyesC = state["_eyesC"] as int;
+    _legsC = state["_legsC"] as int;
+    _countC = state["_countC"] as int;
+    _nameC = state["_nameC"] as String;
+    _sliderA = state["_sliderA"] as int;
+    _sliderB = state["_sliderB"] as int;
+    _sliderC = state["_sliderC"] as int;
+    _maxSliderValue = state["_maxSliderValue"] as int;
+    _mathProblems..clear()..addAll((state["_mathProblems"] as List).map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map))).toList());
+    _wrongChecks = state["_wrongChecks"] as int;
+    _isGenerating = false; _gameOver = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -57,10 +121,6 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
   final _random = math.Random();
 
-  static const List<String> _alienNames = [
-    'Zorblings', 'Glimfoxes', 'Kraknids', 'Snazzles',
-    'Whifflers', 'Bloopoids', 'Drixels', 'Quazzites',
-  ];
 
   @override
   void initState() {
@@ -74,19 +134,21 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     disposeGameAnimations();
     super.dispose();
   }
 
   void _generatePuzzle() {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     setState(() {
@@ -101,57 +163,24 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     });
 
     final grade = currentDifficulty!.grade;
-    _hasThirdType = grade >= 3;
-
-    final shuffledNames = List<String>.from(_alienNames)..shuffle(_random);
-    _nameA = shuffledNames[0];
-    _nameB = shuffledNames[1];
-
-    if (grade <= 2) {
-      _eyesA = _random.nextInt(3) + 2;
-      _legsA = _random.nextInt(3) + 2;
-      _eyesB = _random.nextInt(3) + 2;
-      _legsB = _random.nextInt(3) + 2;
-
-      var guard = 0;
-      while (_eyesA * _legsB == _eyesB * _legsA && guard++ < 500) {
-        _eyesB = _random.nextInt(3) + 2;
-        _legsB = _random.nextInt(3) + 2;
-      }
-
-      _countA = _random.nextInt(5) + 1;
-      _countB = _random.nextInt(5) + 1;
-      _maxSliderValue = 8;
-    } else {
-      _eyesA = _random.nextInt(4) + 2;
-      _legsA = _random.nextInt(5) + 2;
-      _eyesB = _random.nextInt(4) + 2;
-      _legsB = _random.nextInt(5) + 2;
-
-      var guard = 0;
-      while (_eyesA * _legsB == _eyesB * _legsA && guard++ < 500) {
-        _eyesB = _random.nextInt(4) + 2;
-        _legsB = _random.nextInt(5) + 2;
-      }
-
-      _countA = _random.nextInt(6) + 2;
-      _countB = _random.nextInt(6) + 2;
-      _maxSliderValue = 12;
-
-      if (_hasThirdType) {
-        _nameC = shuffledNames[2];
-        _eyesC = _random.nextInt(3) + 1;
-        _legsC = _random.nextInt(4) + 2;
-        _countC = _random.nextInt(3) + 1;
-      }
-    }
-
-    _totalEyes = _countA * _eyesA + _countB * _eyesB + (_hasThirdType ? _countC * _eyesC : 0);
-    _totalLegs = _countA * _legsA + _countB * _legsB + (_hasThirdType ? _countC * _legsC : 0);
-
-    _mathProblems.add(MathProblem.multiplication(_countA, _eyesA, difficulty: grade));
-    _mathProblems.add(MathProblem.multiplication(_countB, _legsB, difficulty: grade));
-    _mathProblems.add(MathProblem.addition(_countA * _eyesA, _countB * _eyesB, difficulty: grade));
+    final generated=generateXenobiologyLab(grade, widget.level, random: _random);
+_countA=generated['_countA'] as int;
+_countB=generated['_countB'] as int;
+_countC=generated['_countC'] as int;
+_eyesA=generated['_eyesA'] as int;
+_eyesB=generated['_eyesB'] as int;
+_eyesC=generated['_eyesC'] as int;
+_hasThirdType=generated['_hasThirdType'] as bool;
+_legsA=generated['_legsA'] as int;
+_legsB=generated['_legsB'] as int;
+_legsC=generated['_legsC'] as int;
+_mathProblems.addAll((generated['_mathProblems'] as List).map((p)=>MathProblem.fromJson(Map<String,dynamic>.from(p as Map))));
+_maxSliderValue=generated['_maxSliderValue'] as int;
+_nameA=generated['_nameA'] as String;
+_nameB=generated['_nameB'] as String;
+_nameC=generated['_nameC'] as String;
+_totalEyes=generated['_totalEyes'] as int;
+_totalLegs=generated['_totalLegs'] as int;
 
     if (mounted) {
       setState(() {
@@ -172,10 +201,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
   void _checkSolution() {
     if (_gameOver) return;
 
-    bool correct = _sliderA == _countA && _sliderB == _countB;
-    if (_hasThirdType) {
-      correct = correct && _sliderC == _countC;
-    }
+    final correct=matchesCensusTotals(capturePuzzleSession()!,_sliderA,_sliderB,_sliderC);
 
     if (correct) {
       _handleWin();
@@ -185,7 +211,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     _gameOver = true;
 
     int baseScore = 100 * widget.grade;
@@ -193,7 +219,10 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     int complexityBonus = _hasThirdType ? 100 : 50;
     int totalScore = baseScore + levelBonus + complexityBonus;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'xenobiology_lab',
       difficulty: widget.level,
       score: totalScore,
@@ -213,10 +242,13 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
   }
 
   void _handleLoss() {
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     _wrongChecks++;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'xenobiology_lab',
       difficulty: widget.level,
       mathProblems: _mathProblems,
@@ -238,6 +270,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_isGenerating || currentDifficulty == null) {
@@ -648,7 +681,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -656,6 +689,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'xenobiology_lab'),
                   const Icon(Icons.biotech, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.xenobiologyLabWinTitle,

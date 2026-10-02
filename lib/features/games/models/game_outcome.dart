@@ -15,6 +15,7 @@ import 'performance.dart';
 class GameOutcome {
   final String gameType;
   final int difficulty;
+  final int? skillLevel;
   final int score;
   final bool wasSuccessful;
   final List<MathProblem> mathProblems;
@@ -27,15 +28,37 @@ class GameOutcome {
   /// [effectivePerformance], which derives a coarse value from the outcome.
   /// Build it with the [Perf] helpers rather than hand-rolled arithmetic.
   final double? performance;
+  final int? hintsUsed;
+  final int? movesUsed;
+  final int? optimalMoves;
 
   const GameOutcome({
     required this.gameType,
     required this.difficulty,
+    this.skillLevel,
     required this.score,
     required this.wasSuccessful,
     this.mathProblems = const [],
     this.performance,
+    this.hintsUsed,
+    this.movesUsed,
+    this.optimalMoves,
   });
+
+  GameOutcome withCoachingHints(int count) => GameOutcome(
+        gameType: gameType,
+        difficulty: difficulty,
+        skillLevel: skillLevel,
+        score: score,
+        wasSuccessful: wasSuccessful,
+        mathProblems: mathProblems,
+        performance: performance == null || count == 0
+            ? performance
+            : Perf.penalize(performance!, hints: count),
+        hintsUsed: (hintsUsed ?? 0) + count,
+        movesUsed: movesUsed,
+        optimalMoves: optimalMoves,
+      );
 
   /// Performance ratio with a fallback for games that don't report one.
   ///
@@ -57,17 +80,25 @@ class GameOutcome {
   factory GameOutcome.win({
     required String gameType,
     required int difficulty,
+    int? skillLevel,
     required int score,
     List<MathProblem> mathProblems = const [],
     double? performance,
+    int? hintsUsed,
+    int? movesUsed,
+    int? optimalMoves,
   }) =>
       GameOutcome(
         gameType: gameType,
         difficulty: difficulty,
+        skillLevel: skillLevel,
         score: score,
         wasSuccessful: true,
         mathProblems: mathProblems,
         performance: performance,
+        hintsUsed: hintsUsed,
+        movesUsed: movesUsed,
+        optimalMoves: optimalMoves,
       );
 
   /// Binary completion: player failed. No score, but the attempted problems
@@ -80,12 +111,14 @@ class GameOutcome {
   factory GameOutcome.loss({
     required String gameType,
     required int difficulty,
+    int? skillLevel,
     List<MathProblem> mathProblems = const [],
     double progress = 0.0,
   }) =>
       GameOutcome(
         gameType: gameType,
         difficulty: difficulty,
+        skillLevel: skillLevel,
         score: 0,
         wasSuccessful: false,
         mathProblems: mathProblems,
@@ -97,6 +130,7 @@ class GameOutcome {
   factory GameOutcome.fromRatio({
     required String gameType,
     required int difficulty,
+    int? skillLevel,
     required int score,
     required int correct,
     required int total,
@@ -107,6 +141,7 @@ class GameOutcome {
       GameOutcome(
         gameType: gameType,
         difficulty: difficulty,
+        skillLevel: skillLevel,
         score: score,
         wasSuccessful: total > 0 && (correct / total) >= passThreshold,
         mathProblems: mathProblems,

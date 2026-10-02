@@ -1,5 +1,8 @@
+import '../services/generation_configs.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../mixins/game_animations_mixin.dart';
@@ -25,7 +28,32 @@ class HiveStationGame extends StatefulWidget {
 }
 
 class _HiveStationGameState extends State<HiveStationGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<HiveStationGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<HiveStationGame>, PuzzleSessionMixin<HiveStationGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'hive_station';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      'puzzle': (puzzle?.toJson()),
+      'userMarked': userMarked.map((v0) => v0.toJson()).toList(),
+      '_attemptsLeft': _attemptsLeft
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    puzzle = (state["puzzle"] == null ? null : HiveStationPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
+    userMarked = (state["userMarked"] as List).map((v0) => HexCoord.fromJson(Map<String, dynamic>.from(v0 as Map))).toSet();
+    _attemptsLeft = state["_attemptsLeft"] as int;
+    _isGenerating = false; _gameOver = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
 
   HiveStationPuzzle? puzzle;
   Set<HexCoord> userMarked = {};
@@ -43,14 +71,15 @@ class _HiveStationGameState extends State<HiveStationGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
@@ -68,44 +97,16 @@ class _HiveStationGameState extends State<HiveStationGame>
   //   - Energy fraction increases slightly (more mines to find)
   //   - Attempts stay fixed per grade (mechanical gate)
 
-  int _getRadius() {
-    final grade = currentDifficulty?.grade ?? widget.grade;
-    final level = widget.level;
-    if (grade <= 1) return 2; // 19 cells — enough for a real puzzle
-    if (grade <= 2) return level >= 10 ? 3 : 2;
-    if (grade <= 3) return 3; // 37 cells
-    return level >= 8 ? 4 : 3; // grade 4: up to 61 cells
-  }
+  int _getRadius() => HiveStationGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getRadius();
 
-  double _getEnergyFraction() {
-    final grade = currentDifficulty?.grade ?? widget.grade;
-    final level = widget.level;
-    // Grade 1: 25%→30%, Grade 2: 28%→33%, Grade 3: 30%→35%, Grade 4: 30%→38%
-    final base = [0, 0.25, 0.28, 0.30, 0.30][grade.clamp(0, 4)];
-    final max = [0, 0.30, 0.33, 0.35, 0.38][grade.clamp(0, 4)];
-    return base + (level - 1) * (max - base) / 19;
-  }
+  double _getEnergyFraction() => HiveStationGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getEnergyFraction();
 
-  double _getHintFraction() {
-    if (currentDifficulty == null) return 0.75;
-    final grade = currentDifficulty!.grade;
-    final level = widget.level;
-    // Grade determines range, level slides within it:
-    //   Grade 1: 0.75 → 0.60  (most hints visible, some deduction)
-    //   Grade 2: 0.65 → 0.50  (moderate deduction)
-    //   Grade 3: 0.55 → 0.40  (significant deduction)
-    //   Grade 4: 0.50 → 0.30  (expert: many hidden cells)
-    final start = [1.0, 0.75, 0.65, 0.55, 0.50][grade.clamp(0, 4)];
-    final end = [1.0, 0.60, 0.50, 0.40, 0.30][grade.clamp(0, 4)];
-    return start - (level - 1) * (start - end) / 19;
-  }
+  double _getHintFraction() => HiveStationGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getHintFraction();
 
-  int _getMaxAttempts() {
-    final grade = currentDifficulty?.grade ?? widget.grade;
-    return grade <= 2 ? 3 : 2;
-  }
+  int _getMaxAttempts() => HiveStationGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getMaxAttempts();
 
-  void _generatePuzzle() async {
+  Future<void> _generatePuzzle() async {
+    beginPuzzleSession();
     setState(() {
       _isGenerating = true;
       userMarked.clear();
@@ -146,7 +147,7 @@ class _HiveStationGameState extends State<HiveStationGame>
       }
     });
 
-    HapticFeedback.selectionClick();
+    AppHaptics.selectionClick();
   }
 
   void _checkSolution() {
@@ -167,7 +168,7 @@ class _HiveStationGameState extends State<HiveStationGame>
   }
 
   void _handleWrongAttempt() {
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -186,8 +187,10 @@ class _HiveStationGameState extends State<HiveStationGame>
   }
 
   void _handleFinalLoss() {
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'hive_station',
       difficulty: widget.level,
     ));
@@ -201,14 +204,17 @@ class _HiveStationGameState extends State<HiveStationGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     _gameOver = true;
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
     int attemptBonus = _attemptsLeft * 30;
     int totalScore = baseScore + levelBonus + attemptBonus;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'hive_station',
       difficulty: widget.level,
       score: totalScore,
@@ -228,6 +234,7 @@ class _HiveStationGameState extends State<HiveStationGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (puzzle == null || _isGenerating) {
@@ -456,7 +463,7 @@ class _HiveStationGameState extends State<HiveStationGame>
 
   Widget _buildLossDialog() {
     final s = S.of(context)!;
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -466,6 +473,7 @@ class _HiveStationGameState extends State<HiveStationGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'hive_station'),
             const Icon(Icons.hexagon_outlined, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(
@@ -515,7 +523,7 @@ class _HiveStationGameState extends State<HiveStationGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -523,6 +531,7 @@ class _HiveStationGameState extends State<HiveStationGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'hive_station'),
                   const Icon(Icons.hexagon, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.hiveStationWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),

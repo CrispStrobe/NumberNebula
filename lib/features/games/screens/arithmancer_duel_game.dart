@@ -1,5 +1,7 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
+import '../widgets/game_learning_shell.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
@@ -42,7 +44,42 @@ class ArithmancerDuelGame extends StatefulWidget {
 }
 
 class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, PuzzleSessionMixin<ArithmancerDuelGame> {
+  bool _sessionReady = false;
+  GameMode? _restoredMode;
+  GameMode get _sessionMode => _restoredMode ?? widget.gameMode;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_pulseController], reduced);
+  }
+
+  @override String get sessionGameKey => 'arithmancer_duel';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isCalculating || _isOpponentTurn || _showingResult) return null;
+    return {'_ladderProgress': _ladderProgress, '_enemiesDefeated': _enemiesDefeated, '_accumulatedEnergy': _accumulatedEnergy, '_lastExpression': _lastExpression, '_lastDamage': _lastDamage, '_lastProperties': _lastProperties.map((v0) => v0).toList(), 'mode': _sessionMode.name, 'engine': _pvpGame == null ? _game.toJson() : null, 'pvp': _pvpGame?.toJson(), 'hand': _handCards.map((c) => c.toJson()).toList(), 'battlefield': _battlefieldCards.map((c) => c.toJson()).toList(), 'opponent': _opponentBattlefield.map((c) => c.toJson()).toList()};
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _ladderProgress = state["_ladderProgress"] as int;
+_enemiesDefeated = state["_enemiesDefeated"] as int;
+_accumulatedEnergy = state["_accumulatedEnergy"] as int;
+_lastExpression = state["_lastExpression"] as String;
+_lastDamage = state["_lastDamage"] as int;
+_lastProperties = (state["_lastProperties"] as List).map((v0) => v0 as String).toList();
+    _restoredMode = GameMode.values.byName(state['mode'] as String); _pvpGame = state['pvp'] == null ? null : PvPGame.fromJson(Map<String, dynamic>.from(state['pvp'] as Map)); if (_pvpGame == null) { _game = ArithmancerGame.fromJson(Map<String, dynamic>.from(state['engine'] as Map)); _currentEnemy = _game.currentEnemy; _deckCards = List.from(_game.drawPile); _discardCards = List.from(_game.discardPile); } else { _currentAIOpponent = _pvpGame!.player2AI; _deckCards = List.from(_pvpGame!.player1State.gameInstance.drawPile); _discardCards = List.from(_pvpGame!.player1State.gameInstance.discardPile); } _handCards = (state['hand'] as List).map((v) => MathCard.fromJson(Map<String, dynamic>.from(v as Map))).toList(); _battlefieldCards..clear()..addAll((state['battlefield'] as List).map((v) => MathCard.fromJson(Map<String, dynamic>.from(v as Map)))); _opponentBattlefield..clear()..addAll((state['opponent'] as List).map((v) => MathCard.fromJson(Map<String, dynamic>.from(v as Map))));
+    final engine = _pvpGame?.player1State.gameInstance ?? _game;
+    final cards = {for (final c in [...engine.deck, ...engine.drawPile, ...engine.hand, ...engine.discardPile]) c.id: c};
+    _handCards = _handCards.map((c) => cards[c.id] ?? c).toList();
+    final battlefield = _battlefieldCards.map((c) => cards[c.id] ?? c).toList();
+    _battlefieldCards..clear()..addAll(battlefield);
+    _isCalculating = false; _isOpponentTurn = false; _showingResult = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) { await Future<void>.sync(_initializeGame); }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   
   // Animation Controllers
   late AnimationController _pulseController;
@@ -111,7 +148,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   void initState() {
     super.initState();
     _setupAnimations();
-    _initializeGame();
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
   }
 
   void _setupAnimations() {
@@ -210,9 +247,10 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   }
 
   void _initializeGame() {
+    beginPuzzleSession();
     final random = math.Random();
     
-    switch (widget.gameMode) {
+    switch (_sessionMode) {
       case GameMode.vsPrograms:
         _initializeProgramMode(random);
         break;
@@ -430,6 +468,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       return;
     }
 
+    savePuzzleSession();
     setState(() {
       _isCalculating = true;
       _showingResult = false;
@@ -440,6 +479,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     _energyTransferController.forward(from: 0.0);
 
     await Future.delayed(const Duration(milliseconds: 400));
+    if (!mounted) return ;
+    await GamePauseScope.of(context)?.waitUntilResumed();
+    if (!mounted) return ;
 
     // Calculate the mathematical result using the exact same evaluator as the CLI
     final evaluator = ExpressionEvaluator();
@@ -578,7 +620,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       // Add combat effects
       _addCombatParticles();
       _damageController.forward(from: 0.0);
-      HapticFeedback.heavyImpact();
+      AppHaptics.heavyImpact();
     } else {
       _lastDamage = 0;
     }
@@ -610,6 +652,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     _drawCardsFromDeck(7 - _handCards.length);
 
     await Future.delayed(const Duration(milliseconds: 1500));
+    if (!mounted) return ;
+    await GamePauseScope.of(context)?.waitUntilResumed();
+    if (!mounted) return ;
     
     if (_pvpGame != null) {
       _handlePvPResult();
@@ -673,6 +718,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     });
 
     await Future.delayed(const Duration(milliseconds: 1000));
+    if (!mounted) return ;
+    await GamePauseScope.of(context)?.waitUntilResumed();
+    if (!mounted) return ;
 
     // AI opponent plays
     final opponentResults = _currentAIOpponent!.decideTurn(_pvpGame!.player2State.gameInstance);
@@ -696,6 +744,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     }
 
     await Future.delayed(const Duration(milliseconds: 1500));
+    if (!mounted) return ;
+    await GamePauseScope.of(context)?.waitUntilResumed();
+    if (!mounted) return ;
 
     if (_pvpGame!.player1State.health <= 0) {
       _handleDefeat();
@@ -713,15 +764,17 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
     // Pattern recognition victory tracking
     // Arithmetic was already tracked during each _executeBattlefield() call
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'arithmancer_duel',
       difficulty: widget.level,
       score: baseScore,
       // Winning the duel barely scratched is the flawless run.
-      performance: Perf.fromLives(_game.playerHealth, _game.maxHealth),
+      performance: Perf.fromLives(_pvpGame!.player1State.health, 120),
     ));
     
-    if (widget.gameMode == GameMode.ladder) {
+    if (_sessionMode == GameMode.ladder) {
       _ladderProgress++;
       if (_ladderProgress >= _totalLadderSteps) {
         // Ladder complete
@@ -804,7 +857,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
     // DUAL TRACKING: Pattern recognition victory (no mathProblem needed)
     // The arithmetic was already tracked during _executeBattlefield()
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'arithmancer_duel',
       difficulty: widget.level,
       score: totalScore,
@@ -813,7 +868,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
     context.read<GameProvider>().addScore(baseScore + bonusScore);
     
-    if (widget.gameMode == GameMode.ladder) {
+    if (_sessionMode == GameMode.ladder) {
         _ladderProgress++;
         if (_ladderProgress >= _totalLadderSteps) {
         showDialog(
@@ -854,7 +909,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
     // Save current hand before advancing
     final currentHand = List<MathCard>.from(_handCards);
     
-    if (widget.gameMode == GameMode.ladder) {
+    if (_sessionMode == GameMode.ladder) {
         // Ladder mode: cycle through pattern
         if (_ladderProgress % 4 < 3) {
         // Program mode - preserve enemy progress
@@ -872,7 +927,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
         // Player mode for 4th step
         _initializePlayerMode(random);
         }
-    } else if (widget.gameMode == GameMode.vsPrograms) {
+    } else if (_sessionMode == GameMode.vsPrograms) {
         // Continue with existing game instance to preserve progress
         _game.startNewBattle();
 
@@ -900,7 +955,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       
       // Add enemy attack effects
       _addEnemyAttackParticles();
-      HapticFeedback.vibrate();
+      AppHaptics.vibrate();
       
       if (_game.playerHealth <= 0) {
         _handleDefeat();
@@ -908,7 +963,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
       }
     }
 
-    Future.delayed(const Duration(milliseconds: 2000), () {
+    Future.delayed(const Duration(milliseconds: 2000), () async {
+      if (!mounted) return;
+      await GamePauseScope.of(context)?.waitUntilResumed();
       if (mounted) {
         _game.startTurn();
         _syncGameState();
@@ -926,7 +983,9 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   void _handleDefeat() {
     // Track pattern recognition failure
     // Arithmetic tracking already happened during gameplay
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'arithmancer_duel',
       difficulty: widget.level,
     ));
@@ -942,7 +1001,8 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   }
 
   void _updateEffects() {
-    setState(() {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
+    setVisualState(() {
       _particles.removeWhere((p) => p.update());
       _energyOrbs.removeWhere((orb) => orb.update(_energyTransferAnimation.value));
       for (var shield in _shieldEffects) {
@@ -971,6 +1031,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final screenWidth = MediaQuery.of(context).size.width;
     final sideBarWidth = screenWidth * 0.15; 
 
@@ -1127,7 +1188,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   }
 
   String _getGameModeTitle() {
-    switch (widget.gameMode) {
+    switch (_sessionMode) {
       case GameMode.vsPrograms:
         return S.of(context)!.arithmancerGameModeNeuralBreach;
       case GameMode.vsPlayers:
@@ -1257,7 +1318,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
   void _skipTurn() {
     if (_isOpponentTurn || _isCalculating) return;
     
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     
     setState(() {
       // Save current energy for next turn
@@ -1429,7 +1490,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             onPressed: () => setState(() => _showInstructions = !_showInstructions),
           ),
           const SizedBox(width: 12), // ADD THIS SPACING
-          if (widget.gameMode == GameMode.ladder)
+          if (_sessionMode == GameMode.ladder)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -1478,7 +1539,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             onWillAcceptWithDetails: (details) => !_isOpponentTurn,
             onAcceptWithDetails: (details) {
                 final card = details.data;
-                HapticFeedback.lightImpact();
+                AppHaptics.lightImpact();
                 setState(() {
                 // Handle parentheses halves specially
                 if (card.name == "Open Parenthesis" || card.name == "Close Parenthesis") {
@@ -1823,7 +1884,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
             },
             onAcceptWithDetails: (details) {
               final card = details.data;
-              HapticFeedback.lightImpact();
+              AppHaptics.lightImpact();
               setState(() {
                 _battlefieldCards.add(card);
 
@@ -1938,7 +1999,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
                                           child: GestureDetector(
                                           onTap: () {
                                             if (!_isOpponentTurn) {
-                                              HapticFeedback.lightImpact();
+                                              AppHaptics.lightImpact();
                                               setState(() {
                                                 final card = _battlefieldCards.removeAt(entry.key);
                                                 
@@ -2910,6 +2971,7 @@ class _ArithmancerDuelGameState extends State<ArithmancerDuelGame>
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _pulseController.dispose();
     _combatController.dispose();
     _particleController.dispose();

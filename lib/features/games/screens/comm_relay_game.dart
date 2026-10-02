@@ -1,5 +1,7 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
 
@@ -23,7 +25,36 @@ class CommRelayGame extends StatefulWidget {
 }
 
 class _CommRelayGameState extends State<CommRelayGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<CommRelayGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<CommRelayGame>, PuzzleSessionMixin<CommRelayGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'comm_relay';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      'puzzle': (puzzle?.toJson()),
+      '_currentShift': _currentShift,
+      '_attempts': _attempts,
+      '_maxAttempts': _maxAttempts,
+      '_text': _answerController.text
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    puzzle = (state["puzzle"] == null ? null : CommRelayPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
+    _currentShift = state["_currentShift"] as int;
+    _attempts = state["_attempts"] as int;
+    _maxAttempts = state["_maxAttempts"] as int;
+    _answerController.text = state['_text'] as String;
+    _isGenerating = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
 
   CommRelayPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
@@ -49,20 +80,22 @@ class _CommRelayGameState extends State<CommRelayGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _answerController.dispose();
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
   void _generatePuzzle() {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     // Scale max attempts: grade 1 level 1 = 5 tries, grade 4 level 20 = 1 try
@@ -149,7 +182,7 @@ class _CommRelayGameState extends State<CommRelayGame>
     } else if (_attempts >= _maxAttempts) {
       _handleLoss();
     } else {
-      HapticFeedback.heavyImpact();
+      AppHaptics.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -179,7 +212,7 @@ class _CommRelayGameState extends State<CommRelayGame>
     } else if (_attempts >= _maxAttempts) {
       _handleLoss();
     } else {
-      HapticFeedback.heavyImpact();
+      AppHaptics.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -197,14 +230,17 @@ class _CommRelayGameState extends State<CommRelayGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
 
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
     int attemptBonus = (_maxAttempts - _attempts) * 50;
     int totalScore = baseScore + levelBonus + attemptBonus;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'comm_relay',
       difficulty: widget.level,
       score: totalScore,
@@ -223,8 +259,10 @@ class _CommRelayGameState extends State<CommRelayGame>
   }
 
   void _handleLoss() {
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'comm_relay',
       difficulty: widget.level,
     ));
@@ -240,6 +278,7 @@ class _CommRelayGameState extends State<CommRelayGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (puzzle == null || _isGenerating) {
@@ -655,7 +694,7 @@ class _CommRelayGameState extends State<CommRelayGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -663,6 +702,7 @@ class _CommRelayGameState extends State<CommRelayGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'comm_relay'),
                   const Icon(Icons.satellite_alt,
                       size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
@@ -707,7 +747,7 @@ class _CommRelayGameState extends State<CommRelayGame>
 
   Widget _buildLoseDialog() {
     final s = S.of(context)!;
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -715,6 +755,7 @@ class _CommRelayGameState extends State<CommRelayGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'comm_relay'),
             const Icon(Icons.signal_wifi_off,
                 size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),

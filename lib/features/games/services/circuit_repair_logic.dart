@@ -1,3 +1,4 @@
+import 'generator_random.dart';
 import 'dart:math' as math;
 
 /// 7-segment display encoding for digits 0-9.
@@ -24,6 +25,24 @@ class SevenSegment {
 
 /// A circuit repair puzzle where two digit positions on a clock are swapped.
 class CircuitRepairPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'correctDigits': correctDigits.map((v0) => v0).toList(),
+        'displayedDigits': displayedDigits.map((v0) => v0).toList(),
+        'swapPosA': swapPosA,
+        'swapPosB': swapPosB,
+        'maxAttempts': maxAttempts
+      };
+  factory CircuitRepairPuzzle.fromJson(Map<String, dynamic> json) =>
+      CircuitRepairPuzzle(
+          correctDigits:
+              (json['correctDigits'] as List).map((v0) => v0 as int).toList(),
+          displayedDigits:
+              (json['displayedDigits'] as List).map((v0) => v0 as int).toList(),
+          swapPosA: json['swapPosA'] as int,
+          swapPosB: json['swapPosB'] as int,
+          maxAttempts: json['maxAttempts'] as int);
+
   /// The correct time digits [H1, H2, M1, M2].
   final List<int> correctDigits;
 
@@ -116,7 +135,7 @@ class CircuitRepairPuzzle {
 class CircuitRepairGenerator {
   final math.Random _random;
 
-  CircuitRepairGenerator({int? seed}) : _random = math.Random(seed);
+  CircuitRepairGenerator({int? seed}) : _random = generatorRandom(seed);
 
   /// Generate a puzzle for the given grade and level.
   CircuitRepairPuzzle generate({required int grade, required int level}) {

@@ -1,6 +1,6 @@
 # Privacy Policy — NumberNebula
 
-_Last updated: 10 July 2026_
+_Last updated: 2 October 2026_
 
 NumberNebula is designed for children and built to be private by default.
 
@@ -12,8 +12,9 @@ or advertising SDKs. The app does not track you across apps or websites.
 
 ## Data stored on your device
 
-The app saves your game progress, difficulty settings, and learning statistics
-(for example, which math facts you have mastered) **locally on your device
+The app saves your chosen player names or nicknames, separate game progress,
+difficulty settings, recent round history, unfinished puzzle boards and learning
+statistics (for example, which math facts you have mastered) **locally on your device
 only**, using the operating system's standard on-device storage. This data
 never leaves the device, is not accessible to us, and is removed when you
 delete the app.
@@ -31,9 +32,9 @@ policy governs that transaction.
 
 ## Children's privacy
 
-Because the app collects no personal data at all, it is suitable for children
-and complies with children's-privacy requirements such as COPPA and GDPR-K by
-design.
+Player profiles do not require online accounts or real names. A nickname is
+enough. Profile names and learning data stay on the device and are not
+transmitted to us.
 
 ## Changes to this policy
 

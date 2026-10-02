@@ -1,6 +1,10 @@
+import '../services/chrono_repair_logic.dart';
+export '../services/chrono_repair_logic.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
 
@@ -23,10 +27,53 @@ class ChronoRepairGame extends StatefulWidget {
   State<ChronoRepairGame> createState() => _ChronoRepairGameState();
 }
 
-enum ClockMalfunction { offset, mirror, combined }
+
 
 class _ChronoRepairGameState extends State<ChronoRepairGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<ChronoRepairGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<ChronoRepairGame>, PuzzleSessionMixin<ChronoRepairGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'chrono_repair';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      '_correctHour': _correctHour,
+      '_correctMinute': _correctMinute,
+      '_displayedHour': _displayedHour,
+      '_displayedMinute': _displayedMinute,
+      '_malfunction': _malfunction.name,
+      '_offsetHours': _offsetHours,
+      '_offsetMinutes': _offsetMinutes,
+      '_malfunctionHint': _malfunctionHint,
+      '_selectedHour': _selectedHour,
+      '_selectedMinute': _selectedMinute,
+      '_mathProblems': _mathProblems.map((v0) => v0.toJson()).toList(),
+      '_wrongChecks': _wrongChecks
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _correctHour = state["_correctHour"] as int;
+    _correctMinute = state["_correctMinute"] as int;
+    _displayedHour = state["_displayedHour"] as int;
+    _displayedMinute = state["_displayedMinute"] as int;
+    _malfunction = ClockMalfunction.values.byName(state["_malfunction"] as String);
+    _offsetHours = state["_offsetHours"] as int;
+    _offsetMinutes = state["_offsetMinutes"] as int;
+    _malfunctionHint = state["_malfunctionHint"] as String;
+    _selectedHour = state["_selectedHour"] as int;
+    _selectedMinute = state["_selectedMinute"] as int;
+    _mathProblems..clear()..addAll((state["_mathProblems"] as List).map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map))).toList());
+    _wrongChecks = state["_wrongChecks"] as int;
+    _isGenerating = false; _gameOver = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -67,14 +114,15 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     glowController.stop();
     successController.stop();
     pulseController.stop();
@@ -85,6 +133,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   }
 
   void _generatePuzzle() {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     setState(() {
@@ -97,44 +146,20 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
 
     final grade = currentDifficulty!.grade;
 
-    // Generate a random correct time
-    _correctHour = _random.nextInt(12) + 1; // 1-12
-    _correctMinute = _random.nextInt(12) * 5; // 0, 5, 10, ..., 55
-
-    if (grade <= 1) {
-      // Simple offset
-      _malfunction = ClockMalfunction.offset;
-      _offsetHours = _random.nextInt(3) + 1; // 1-3 hours
-      _offsetMinutes = 0;
-      _displayedHour = ((_correctHour + _offsetHours - 1) % 12) + 1;
-      _displayedMinute = _correctMinute;
-      _malfunctionHint = S.of(context)!.chronoClockRunsFast(_offsetHours);
-    } else if (grade == 2) {
-      // Mirror: hour hand and minute hand positions swap visually
-      _malfunction = ClockMalfunction.mirror;
-      _displayedHour = ((12 - _correctHour) % 12);
-      if (_displayedHour == 0) _displayedHour = 12;
-      _displayedMinute = (60 - _correctMinute) % 60;
-      _malfunctionHint = S.of(context)!.chronoClockMirrored;
-    } else {
-      // Combined: offset + mirror or offset with minutes
-      _malfunction = ClockMalfunction.combined;
-      _offsetHours = _random.nextInt(4) + 1;
-      _offsetMinutes = (_random.nextInt(4) + 1) * 15; // 15, 30, 45, 60
-
-      int totalMinutes = _correctHour * 60 + _correctMinute + _offsetHours * 60 + _offsetMinutes;
-      _displayedHour = ((totalMinutes ~/ 60) % 12);
-      if (_displayedHour == 0) _displayedHour = 12;
-      _displayedMinute = totalMinutes % 60;
-      _malfunctionHint = S.of(context)!.chronoClockRunsFastCombined(_offsetHours, _offsetMinutes);
-    }
-
-    // Create MathProblem for SRI tracking
-    _mathProblems.add(MathProblem.addition(_correctHour, _offsetHours, difficulty: grade));
-    if (_offsetMinutes > 0) {
-      _mathProblems.add(MathProblem.addition(_correctMinute, _offsetMinutes, difficulty: grade));
-    }
-
+    final generated=generateChronoRepair(grade, widget.level, random: _random);
+_correctHour=generated['_correctHour'] as int;
+_correctMinute=generated['_correctMinute'] as int;
+_displayedHour=generated['_displayedHour'] as int;
+_displayedMinute=generated['_displayedMinute'] as int;
+_malfunction=ClockMalfunction.values.byName(generated['_malfunction'] as String);
+_mathProblems.addAll((generated['_mathProblems'] as List).map((p)=>MathProblem.fromJson(Map<String,dynamic>.from(p as Map))));
+_offsetHours=generated['_offsetHours'] as int;
+_offsetMinutes=generated['_offsetMinutes'] as int;
+_malfunctionHint = switch (_malfunction) {
+ ClockMalfunction.offset => S.of(context)!.chronoClockRunsFast(_offsetHours),
+ ClockMalfunction.mirror => S.of(context)!.chronoClockMirrored,
+ ClockMalfunction.combined => S.of(context)!.chronoClockRunsFastCombined(_offsetHours, _offsetMinutes),
+ };
     // Reset scroll controllers
     
     
@@ -171,7 +196,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
         IconButton(
           icon: const Icon(Icons.keyboard_arrow_up, color: SpaceTheme.starYellow, size: 32),
           onPressed: () {
-            HapticFeedback.selectionClick();
+            AppHaptics.selectionClick();
             onChanged(value + step > max ? min : value + step);
           },
         ),
@@ -194,7 +219,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
         IconButton(
           icon: const Icon(Icons.keyboard_arrow_down, color: SpaceTheme.starYellow, size: 32),
           onPressed: () {
-            HapticFeedback.selectionClick();
+            AppHaptics.selectionClick();
             onChanged(value - step < min ? max : value - step);
           },
         ),
@@ -203,7 +228,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     _gameOver = true;
 
     int baseScore = 100 * widget.grade;
@@ -211,7 +236,10 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
     int complexityBonus = _malfunction == ClockMalfunction.combined ? 80 : 40;
     int totalScore = baseScore + levelBonus + complexityBonus;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'chrono_repair',
       difficulty: widget.level,
       score: totalScore,
@@ -231,10 +259,13 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   }
 
   void _handleLoss() {
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     _wrongChecks++;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'chrono_repair',
       difficulty: widget.level,
       mathProblems: _mathProblems,
@@ -256,6 +287,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_isGenerating || currentDifficulty == null) {
@@ -518,7 +550,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -526,6 +558,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'chrono_repair'),
                   const Icon(Icons.watch_later, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.chronoRepairWinTitle,

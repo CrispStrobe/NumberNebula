@@ -1,3 +1,4 @@
+import 'generator_random.dart';
 // lib/features/games/services/void_crossing_logic.dart
 //
 // Logic engine for the Void Crossing puzzle — a space-themed river crossing
@@ -5,13 +6,21 @@
 
 import 'dart:math' as math;
 
-final math.Random _rng = math.Random();
+math.Random get _rng => generatorRandom();
 
 /// Represents a creature/cargo that must be transported across the void.
 class VoidEntity {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() =>
+      {'id': id, 'nameKey': nameKey, 'emoji': emoji};
+  factory VoidEntity.fromJson(Map<String, dynamic> json) => VoidEntity(
+      id: json['id'] as String,
+      nameKey: json['nameKey'] as String,
+      emoji: json['emoji'] as String);
+
   final String id;
   final String nameKey; // i18n key
-  final String emoji;   // fallback visual
+  final String emoji; // fallback visual
 
   const VoidEntity({
     required this.id,
@@ -33,6 +42,14 @@ class VoidEntity {
 /// A conflict rule: entityA and entityB cannot be left alone without the
 /// guardian entity present.
 class ConflictRule {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() =>
+      {'entityA': entityA, 'entityB': entityB, 'guardian': (guardian)};
+  factory ConflictRule.fromJson(Map<String, dynamic> json) => ConflictRule(
+      entityA: json['entityA'] as String,
+      entityB: json['entityB'] as String,
+      guardian: (json['guardian'] == null ? null : json['guardian'] as String));
+
   final String entityA;
   final String entityB;
   final String? guardian; // if null, they simply can't be together
@@ -46,6 +63,28 @@ class ConflictRule {
 
 /// A complete puzzle definition.
 class VoidCrossingPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'entities': entities.map((v0) => v0.toJson()).toList(),
+        'conflicts': conflicts.map((v0) => v0.toJson()).toList(),
+        'boatCapacity': boatCapacity,
+        'optimalMoves': optimalMoves,
+        'maxMoves': maxMoves
+      };
+  factory VoidCrossingPuzzle.fromJson(Map<String, dynamic> json) =>
+      VoidCrossingPuzzle(
+          entities: (json['entities'] as List)
+              .map((v0) =>
+                  VoidEntity.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toList(),
+          conflicts: (json['conflicts'] as List)
+              .map((v0) =>
+                  ConflictRule.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toList(),
+          boatCapacity: json['boatCapacity'] as int,
+          optimalMoves: json['optimalMoves'] as int,
+          maxMoves: json['maxMoves'] as int);
+
   final List<VoidEntity> entities;
   final List<ConflictRule> conflicts;
   final int boatCapacity;
@@ -86,6 +125,25 @@ class _State {
 
 /// Game state tracking for the running game.
 class VoidCrossingGameState {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'leftStation': leftStation.map((v0) => v0).toList(),
+        'rightStation': rightStation.map((v0) => v0).toList(),
+        'onShuttle': onShuttle.map((v0) => v0).toList(),
+        'shuttleOnLeft': shuttleOnLeft,
+        'movesTaken': movesTaken
+      };
+  factory VoidCrossingGameState.fromJson(Map<String, dynamic> json) =>
+      VoidCrossingGameState(
+          leftStation:
+              (json['leftStation'] as List).map((v0) => v0 as String).toSet(),
+          rightStation:
+              (json['rightStation'] as List).map((v0) => v0 as String).toSet(),
+          onShuttle:
+              (json['onShuttle'] as List).map((v0) => v0 as String).toSet(),
+          shuttleOnLeft: json['shuttleOnLeft'] as bool,
+          movesTaken: json['movesTaken'] as int);
+
   final Set<String> leftStation;
   final Set<String> rightStation;
   final Set<String> onShuttle;
@@ -119,28 +177,44 @@ class VoidCrossingLogic {
   // ─── Entity catalogue ────────────────────────────────────────────────
 
   static const _zorblex = VoidEntity(
-    id: 'zorblex', nameKey: 'voidCrossingZorblex', emoji: '👾',
+    id: 'zorblex',
+    nameKey: 'voidCrossingZorblex',
+    emoji: '👾',
   );
   static const _glimbit = VoidEntity(
-    id: 'glimbit', nameKey: 'voidCrossingGlimbit', emoji: '🐛',
+    id: 'glimbit',
+    nameKey: 'voidCrossingGlimbit',
+    emoji: '🐛',
   );
   static const _starMoss = VoidEntity(
-    id: 'star_moss', nameKey: 'voidCrossingStarMoss', emoji: '🌿',
+    id: 'star_moss',
+    nameKey: 'voidCrossingStarMoss',
+    emoji: '🌿',
   );
   static const _kraxxon = VoidEntity(
-    id: 'kraxxon', nameKey: 'voidCrossingKraxxon', emoji: '🦎',
+    id: 'kraxxon',
+    nameKey: 'voidCrossingKraxxon',
+    emoji: '🦎',
   );
   static const _lumifae = VoidEntity(
-    id: 'lumifae', nameKey: 'voidCrossingLumifae', emoji: '🦋',
+    id: 'lumifae',
+    nameKey: 'voidCrossingLumifae',
+    emoji: '🦋',
   );
   static const _voidCrab = VoidEntity(
-    id: 'void_crab', nameKey: 'voidCrossingVoidCrab', emoji: '🦀',
+    id: 'void_crab',
+    nameKey: 'voidCrossingVoidCrab',
+    emoji: '🦀',
   );
   static const _nebulaSeed = VoidEntity(
-    id: 'nebula_seed', nameKey: 'voidCrossingNebulaSeed', emoji: '🌰',
+    id: 'nebula_seed',
+    nameKey: 'voidCrossingNebulaSeed',
+    emoji: '🌰',
   );
   static const _pyrowyrm = VoidEntity(
-    id: 'pyrowyrm', nameKey: 'voidCrossingPyrowyrm', emoji: '🐉',
+    id: 'pyrowyrm',
+    nameKey: 'voidCrossingPyrowyrm',
+    emoji: '🐉',
   );
 
   /// Generate a puzzle appropriate for the given grade + level.
@@ -171,7 +245,19 @@ class VoidCrossingLogic {
         _ => _gradeFour(l),
       };
       final opt = solve(puzzle);
-      if (opt >= 0 && opt <= puzzle.maxMoves) return puzzle;
+      if (opt >= 0) {
+        // Conflict density can change the optimum even at the same grade.
+        // Preserve the existing extra-move allowance relative to the true optimum.
+        // An underestimated optimum otherwise forces high levels into the
+        // easier grade-one fallback despite having a solvable intended board.
+        return VoidCrossingPuzzle(
+          entities: puzzle.entities,
+          conflicts: puzzle.conflicts,
+          boatCapacity: puzzle.boatCapacity,
+          optimalMoves: opt,
+          maxMoves: opt + (puzzle.maxMoves - puzzle.optimalMoves),
+        );
+      }
     }
     // Fallback: deterministic classic puzzle
     return _gradeOne(l);
@@ -185,20 +271,25 @@ class VoidCrossingLogic {
 
   /// All 8 entities in a flat list for random selection.
   static const _allEntities = [
-    _zorblex, _glimbit, _starMoss, _kraxxon,
-    _lumifae, _voidCrab, _nebulaSeed, _pyrowyrm,
+    _zorblex,
+    _glimbit,
+    _starMoss,
+    _kraxxon,
+    _lumifae,
+    _voidCrab,
+    _nebulaSeed,
+    _pyrowyrm,
   ];
 
   /// Pick [count] random entities from the catalogue; return them in a
   /// stable order together with a chain conflict A→B→…→N.
-  static ({List<VoidEntity> entities, List<ConflictRule> chain})
-      _randomChain(int count) {
+  static ({List<VoidEntity> entities, List<ConflictRule> chain}) _randomChain(
+      int count) {
     final pool = List<VoidEntity>.from(_allEntities)..shuffle(_rng);
     final picked = pool.take(count).toList();
     final chain = <ConflictRule>[];
     for (int i = 0; i < picked.length - 1; i++) {
-      chain.add(ConflictRule(
-          entityA: picked[i].id, entityB: picked[i + 1].id));
+      chain.add(ConflictRule(entityA: picked[i].id, entityB: picked[i + 1].id));
     }
     return (entities: picked, chain: chain);
   }
@@ -279,12 +370,22 @@ class VoidCrossingLogic {
     final extraMoves = (5 - ((level - 1) * 5 / 19).round()).clamp(0, 5);
     final conflictCount = level > 12 ? 5 : (level > 5 ? 4 : 3);
     final r = _randomWithConflicts(6, conflictCount);
-    // BFS-verified: optimal=7 for chain conflicts at 6 entities / boat=2
+    final conflicts = List<ConflictRule>.from(r.conflicts);
+    if (conflictCount == 5) {
+      // A six-entity chain needs three passengers to leave the first bank
+      // safe, so it cannot be solved with this two-seat shuttle. Branch the
+      // last link from the second entity instead: six entities and five
+      // conflicts remain, and BFS verifies the intended seven-crossing puzzle.
+      conflicts[4] = ConflictRule(
+        entityA: r.entities[1].id,
+        entityB: r.entities[5].id,
+      );
+    }
     const optimal = 7;
 
     return VoidCrossingPuzzle(
       entities: r.entities,
-      conflicts: r.conflicts,
+      conflicts: conflicts,
       boatCapacity: 2,
       optimalMoves: optimal,
       maxMoves: optimal + extraMoves,
@@ -356,8 +457,7 @@ class VoidCrossingLogic {
 
       final fromBank =
           current.boatOnLeft ? current.leftBank : current.rightBank;
-      final toBank =
-          current.boatOnLeft ? current.rightBank : current.leftBank;
+      final toBank = current.boatOnLeft ? current.rightBank : current.leftBank;
 
       // Generate all possible passenger combinations (1..boatCapacity)
       final passengers = _combinations(fromBank.toList(), puzzle.boatCapacity);
@@ -372,10 +472,8 @@ class VoidCrossingLogic {
         // classic wolf-goat-cabbage puzzle.
         if (hasConflict(newFrom, puzzle.conflicts)) continue;
 
-        final newLeft =
-            current.boatOnLeft ? newFrom : newTo;
-        final newRight =
-            current.boatOnLeft ? newTo : newFrom;
+        final newLeft = current.boatOnLeft ? newFrom : newTo;
+        final newRight = current.boatOnLeft ? newTo : newFrom;
 
         final next = _State(newLeft, newRight, !current.boatOnLeft);
         if (!visited.contains(next)) {

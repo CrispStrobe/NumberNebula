@@ -1,8 +1,9 @@
+import 'generator_random.dart';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
+import 'generator_diagnostics.dart';
 
-import '../constants/difficulty_manager.dart';
+import '../constants/difficulty_config.dart';
 
 /// The shape of a delegate's statement.
 ///
@@ -24,6 +25,33 @@ enum TribunalClaimKind {
 
 /// A delegate at the tribunal: either a truth-teller or a liar.
 class TribunalPerson {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'isTruthTeller': isTruthTeller,
+        'statement': statement,
+        'targetIndex': targetIndex,
+        'claimsTruthTeller': claimsTruthTeller,
+        'kind': kind.name,
+        'secondTargetIndex': secondTargetIndex,
+        'pairRequiresBoth': pairRequiresBoth,
+        'countValue': countValue,
+        'countsTruthTellers': countsTruthTellers,
+        'statementStyle': statementStyle
+      };
+  factory TribunalPerson.fromJson(Map<String, dynamic> json) => TribunalPerson(
+      name: json['name'] as String,
+      isTruthTeller: json['isTruthTeller'] as bool,
+      statement: json['statement'] as String,
+      targetIndex: json['targetIndex'] as int,
+      claimsTruthTeller: json['claimsTruthTeller'] as bool,
+      kind: TribunalClaimKind.values.byName(json['kind'] as String),
+      secondTargetIndex: json['secondTargetIndex'] as int,
+      pairRequiresBoth: json['pairRequiresBoth'] as bool,
+      countValue: json['countValue'] as int,
+      countsTruthTellers: json['countsTruthTellers'] as bool,
+      statementStyle: json['statementStyle'] as int);
+
   final String name;
   final bool isTruthTeller;
 
@@ -89,6 +117,19 @@ class TribunalPerson {
 }
 
 class AlienTribunalPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'people': people.map((v0) => v0.toJson()).toList(),
+        'personCount': personCount
+      };
+  factory AlienTribunalPuzzle.fromJson(Map<String, dynamic> json) =>
+      AlienTribunalPuzzle(
+          people: (json['people'] as List)
+              .map((v0) =>
+                  TribunalPerson.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toList(),
+          personCount: json['personCount'] as int);
+
   final List<TribunalPerson> people;
   final int personCount;
 
@@ -138,8 +179,16 @@ class AlienTribunalPuzzle {
 
 class AlienTribunalLogic {
   static const _alienNames = [
-    'Zyx', 'Qar', 'Meb', 'Tol', 'Pix',
-    'Vor', 'Kel', 'Dun', 'Rix', 'Baf',
+    'Zyx',
+    'Qar',
+    'Meb',
+    'Tol',
+    'Pix',
+    'Vor',
+    'Kel',
+    'Dun',
+    'Rix',
+    'Baf',
   ];
 
   /// Statement re-rolls per role pattern. One draw is unique roughly 20-50% of
@@ -153,10 +202,11 @@ class AlienTribunalLogic {
     final grade = args['grade'] as int;
     final level = args['level'] as int;
     final difficulty = args['difficulty'] as DifficultyConfig;
-    final rng = math.Random();
+    final rng = generatorRandom();
 
     if (kDebugMode) {
-      debugPrint('[ALIEN_TRIBUNAL] Generating puzzle for grade=$grade, level=$level');
+      traceGenerator(
+          '[ALIEN_TRIBUNAL] Generating puzzle for grade=$grade, level=$level');
     }
 
     // Minimum 3 delegates -- 2-delegate puzzles are almost always ambiguous.
@@ -186,7 +236,8 @@ class AlienTribunalLogic {
         final puzzle = _tryBuild(roles, rng, allowDisjunction);
         if (puzzle != null) {
           if (kDebugMode) {
-            debugPrint('[ALIEN_TRIBUNAL] Unique puzzle after ${p * _statementAttempts + a + 1} draws: '
+            traceGenerator(
+                '[ALIEN_TRIBUNAL] Unique puzzle after ${p * _statementAttempts + a + 1} draws: '
                 '${roles.map((r) => r ? "T" : "L").join()}');
           }
           return puzzle;
@@ -194,7 +245,7 @@ class AlienTribunalLogic {
       }
     }
 
-    if (kDebugMode) debugPrint('[ALIEN_TRIBUNAL] Using fallback puzzle');
+    if (kDebugMode) traceGenerator('[ALIEN_TRIBUNAL] Using fallback puzzle');
     return _fallback(rng);
   }
 
@@ -213,8 +264,9 @@ class AlienTribunalLogic {
     bool allowDisjunction,
   ) {
     final personCount = roles.length;
-    final names =
-        (List<String>.from(_alienNames)..shuffle(rng)).take(personCount).toList();
+    final names = (List<String>.from(_alienNames)..shuffle(rng))
+        .take(personCount)
+        .toList();
 
     final people = <TribunalPerson>[];
     for (int i = 0; i < personCount; i++) {
@@ -296,7 +348,9 @@ class AlienTribunalLogic {
             pairRequiresBoth: both,
             styleCount: 2,
           );
-          if (candidate.claimHolds(roles) == mustHold) candidates.add(candidate);
+          if (candidate.claimHolds(roles) == mustHold) {
+            candidates.add(candidate);
+          }
         }
       }
     }
@@ -333,7 +387,8 @@ class AlienTribunalLogic {
   /// the mutual vouching alone would leave the flipped verdict open, and the
   /// tally claim is what rules it out.
   static AlienTribunalPuzzle _fallback(math.Random rng) {
-    final names = (List<String>.from(_alienNames)..shuffle(rng)).take(3).toList();
+    final names =
+        (List<String>.from(_alienNames)..shuffle(rng)).take(3).toList();
     // Shuffle which seat plays which part, so even this path varies.
     final seats = [0, 1, 2]..shuffle(rng);
     final vouchA = seats[0];

@@ -64,9 +64,11 @@ void main(List<String> args) {
 
   // 1. Re-score and filter the existing baked levels.
   var reExisting = 0, droppedUnsolvable = 0, droppedTrivial = 0;
-  final existing = File(assetPath).existsSync()
-      ? (jsonDecode(File(assetPath).readAsStringSync())['levels'] as List)
-      : const [];
+  final previous = File(assetPath).existsSync()
+      ? jsonDecode(File(assetPath).readAsStringSync()) as Map<String, dynamic>
+      : <String, dynamic>{};
+  final existing = previous['levels'] as List? ?? [];
+  final retired = Set<String>.from(previous['retiredLevelIds'] ?? []);
   for (final l in existing) {
     final grade = int.parse((l['difficulty'] as String).split('_')[1]);
     final spec = specByGrade[grade];
@@ -79,10 +81,12 @@ void main(List<String> args) {
         .solve(nodeBudget: 500000);
     if (!res.solved) {
       droppedUnsolvable++;
+      retired.add(l['id'] as String);
       continue;
     }
     if (res.pushes! < spec.minPushes) {
       droppedTrivial++;
+      retired.add(l['id'] as String);
       continue;
     }
     final hash = _contentHash(structure, state);
@@ -148,7 +152,7 @@ void main(List<String> args) {
     all.addAll(kept[s.grade]!);
   }
   // Compact: this ships inside the app and is parsed at runtime.
-  final out = jsonEncode({'levels': all});
+  final out = jsonEncode({'levels': all, 'retiredLevelIds': retired.toList()..sort()});
   File(assetPath).writeAsStringSync(out);
   stdout.writeln('Wrote ${all.length} levels to $assetPath');
 }

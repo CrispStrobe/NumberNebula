@@ -355,22 +355,28 @@ class StarloaderSolver {
     );
   }
 
-  /// Detects the classic "frozen" deadlock: a box pushed into a position where
-  /// it is blocked on both a vertical and a horizontal neighbour (by a wall or
-  /// another box) and is not on a target. Such a box can never move again.
+  /// A solid 2x2 square of walls/boxes permanently traps any off-target box.
+  /// An adjacent box alone is movable and cannot be treated as a wall.
   bool _isFrozenDeadlock(int cell, Set<int> boxSet) {
-    if (_target[cell]) return false;
-    final r = cell ~/ cols;
-    final c = cell % cols;
-    bool blocked(int rr, int cc) {
-      if (!_inBounds(rr, cc)) return true;
-      final idx = _idx(rr, cc);
-      return _wall[idx] || boxSet.contains(idx);
+    final r = cell ~/ cols, c = cell % cols;
+    for (final dr in [-1, 0]) {
+      for (final dc in [-1, 0]) {
+        final cells = <int>[];
+        bool blocked = true;
+        for (int y = r + dr; y <= r + dr + 1; y++) {
+          for (int x = c + dc; x <= c + dc + 1; x++) {
+            if (!_inBounds(y, x)) continue;
+            final i = _idx(y, x);
+            cells.add(i);
+            if (!_wall[i] && !boxSet.contains(i)) blocked = false;
+          }
+        }
+        if (blocked && cells.any((i) => boxSet.contains(i) && !_target[i])) {
+          return true;
+        }
+      }
     }
-
-    final vBlocked = blocked(r - 1, c) || blocked(r + 1, c);
-    final hBlocked = blocked(r, c - 1) || blocked(r, c + 1);
-    return vBlocked && hBlocked;
+    return false;
   }
 }
 

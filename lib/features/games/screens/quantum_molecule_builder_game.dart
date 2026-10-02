@@ -1,4 +1,7 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'package:flutter/material.dart';
+import '../widgets/round_summary.dart';
 import 'package:flutter/scheduler.dart' show Ticker;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -174,7 +177,67 @@ class QuantumMoleculeBuilderGame extends StatefulWidget {
 }
 
 class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, PuzzleSessionMixin<QuantumMoleculeBuilderGame> {
+  bool _sessionReady = false;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_pulseController], reduced);
+  }
+
+  @override String get sessionGameKey => 'quantum_molecule_builder';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady) return null;
+    return {
+      '_currentLevel': _currentLevel,
+      'grid': grid.map((v0) => v0.map((v1) => v1.name).toList()).toList(),
+      'atoms': atoms.map((v0) => v0.toJson()).toList(),
+      'targetPattern': targetPattern.toJson(),
+      'moveLimit': moveLimit,
+      'movesMade': movesMade,
+      'levelName': levelName,
+      'gridOffsetX': gridOffsetX,
+      'gridOffsetY': gridOffsetY,
+      'visibleWidth': visibleWidth,
+      'visibleHeight': visibleHeight,
+      '_moveHistory': _moveHistory.map((v0) => v0.entries.map((v1) => [v1.key, v1.value]).toList()).toList(),
+      '_startingLevel': _startingLevel,
+      '_levelsWonThisSession': _levelsWonThisSession.map((v0) => v0).toList(),
+      'levelDisplayName': levelDisplayName,
+      '_moleculeDescription': _moleculeDescription,
+      '_moleculeFacts': _moleculeFacts,
+      '_moleculeSpaceInfo': _moleculeSpaceInfo
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _currentLevel = state["_currentLevel"] as int;
+    grid = (state["grid"] as List).map((v0) => (v0 as List).map((v1) => CellType.values.byName(v1 as String)).toList()).toList();
+    atoms = (state["atoms"] as List).map((v0) => Atom.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+    targetPattern = MoleculePattern.fromJson(Map<String, dynamic>.from(state["targetPattern"] as Map));
+    moveLimit = state["moveLimit"] as int;
+    movesMade = state["movesMade"] as int;
+    levelName = state["levelName"] as String;
+    gridOffsetX = state["gridOffsetX"] as int;
+    gridOffsetY = state["gridOffsetY"] as int;
+    visibleWidth = state["visibleWidth"] as int;
+    visibleHeight = state["visibleHeight"] as int;
+    _moveHistory..clear()..addAll((state["_moveHistory"] as List).map((v0) => Map<String, dynamic>.fromEntries((v0 as List).map((v1) => MapEntry(v1[0] as String, v1[1])))).toList());
+    _startingLevel = state["_startingLevel"] as int;
+    _levelsWonThisSession..clear()..addAll((state["_levelsWonThisSession"] as List).map((v0) => v0 as int).toSet());
+    levelDisplayName = state["levelDisplayName"] as String;
+    _moleculeDescription = state["_moleculeDescription"] as String;
+    _moleculeFacts = state["_moleculeFacts"] as String;
+    _moleculeSpaceInfo = state["_moleculeSpaceInfo"] as String;
+    gameActive = true; hasWon = false; hasLost = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_loadLevel);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
 
   int _currentLevel = 1;
   
@@ -268,7 +331,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         _currentLevel = _startingLevel;
         
         if (kDebugMode) debugPrint("🎮 Starting at level $_startingLevel (last level with 2+ wins)");
-        _loadLevel();
+        _restoreOrGenerate();
         }
     });
     
@@ -358,6 +421,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     }
 
   void _loadLevel({int? levelToLoad}) {
+    beginPuzzleSession();
     if (levelsData.isEmpty) {
       _loadFallbackLevel();
       return;
@@ -674,7 +738,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     setState(() {
       selectedAtom = (selectedAtom?.id == atom.id) ? null : atom;
     });
-    HapticFeedback.selectionClick();
+    AppHaptics.selectionClick();
   }
 
   void _handleAtomPanStart(Atom atom, DragStartDetails details) {
@@ -770,7 +834,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     }
     
     if (newRow != atom.row || newCol != atom.col) {
-      HapticFeedback.lightImpact();
+      AppHaptics.lightImpact();
 
       _moveHistory.add({
         'atomId': atom.id,
@@ -845,7 +909,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   void _undoLastMove() {
     if (_moveHistory.isEmpty || !gameActive) return;
 
-    HapticFeedback.mediumImpact();
+    AppHaptics.mediumImpact();
 
     final lastMove = _moveHistory.removeLast();
     final atomToUndo = atoms.firstWhere(
@@ -902,7 +966,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     _levelsWonThisSession.add(_currentLevel);
     
     _successController.forward();
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     
     for (int i = 0; i < 60; i++) {
       particles.add(MoleculeParticle.celebration(MediaQuery.of(context).size.center(Offset.zero)));
@@ -913,13 +977,19 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     final efficiencyBonus = math.max(0, (moveLimit - movesMade) * 10);
     final totalScore = baseScore + efficiencyBonus;
     
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'quantum_molecule_builder',
       difficulty: widget.grade + (widget.level ~/ 5),
       score: totalScore,
       // The move limit is deliberately generous; assembling the molecule
       // inside half of it is what a clean solution looks like.
       performance: Perf.fromMoves(movesMade, (moveLimit * 0.5).round()),
+
+      movesUsed: movesMade,
+      optimalMoves: (moveLimit * 0.5).round(),
     ));
     
     Future.delayed(const Duration(milliseconds: 1200), () {
@@ -939,9 +1009,12 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       hasLost = true;
     });
     
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'quantum_molecule_builder',
       difficulty: widget.grade + (widget.level ~/ 5),
       progress: atoms.isEmpty ? 0.0 : _atomsInPlace() / atoms.length,
@@ -987,14 +1060,14 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   void _goToPreviousLevel() {
     if (_canNavigateBackward()) {
       _navigateToLevel(_currentLevel - 1);
-      HapticFeedback.selectionClick();
+      AppHaptics.selectionClick();
     }
   }
 
   void _goToNextLevel() {
     if (_canNavigateForward()) {
       _navigateToLevel(_currentLevel + 1);
-      HapticFeedback.selectionClick();
+      AppHaptics.selectionClick();
     }
   }
 
@@ -1029,7 +1102,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         setState(() {
           _showInstructions = true;
         });
-        HapticFeedback.selectionClick();
+        AppHaptics.selectionClick();
       },
       tooltip: S.of(context)!.moleculeBuilderHelp,
     );
@@ -1136,6 +1209,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final screenSize = MediaQuery.of(context).size;
     final isWideScreen = screenSize.width > screenSize.height && screenSize.width > 600;
 
@@ -1321,7 +1395,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                      GestureDetector(
                        onTap: () {
                          setState(() => _showMoleculeInfo = true);
-                         HapticFeedback.selectionClick();
+                         AppHaptics.selectionClick();
                        },
                        child: _buildCompactTargetDisplay(),
                      ),
@@ -1419,7 +1493,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                 child: GestureDetector(
                   onTap: () {
                     setState(() => _showMoleculeInfo = true);
-                    HapticFeedback.selectionClick();
+                    AppHaptics.selectionClick();
                   },
                   child: _buildCompactTargetDisplay(),
                 ),
@@ -2284,7 +2358,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         builder: (context, child) {
         return Transform.scale(
             scale: _successAnimation.value,
-            child: Dialog(
+            child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
                 padding: const EdgeInsets.all(22),
@@ -2294,6 +2368,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                 child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'quantum_molecule_builder'),
                     const Icon(Icons.science, size: 54, color: SpaceTheme.alienGreen),
                     const SizedBox(height: 8),
                     Text(
@@ -2354,7 +2429,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   }
 
   Widget _buildFailureDialog() {
-    return Dialog(
+    return ScrollableRoundDialog(
         backgroundColor: Colors.transparent,
         child: Container(
         padding: const EdgeInsets.all(22),
@@ -2364,6 +2439,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+                  RoundSummary(gameKey: 'quantum_molecule_builder'),
             const Icon(Icons.warning, size: 54, color: SpaceTheme.rocketRed),
             const SizedBox(height: 12),
             Text(
@@ -2434,6 +2510,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _focusNode.dispose();
     _pulseController.dispose();
     _slideController.dispose();
@@ -2467,6 +2544,18 @@ String getLocalizedAtomName(AtomType type, BuildContext context) {
 }
 
 class AtomType {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'symbol': symbol,
+    'name': name,
+    'color': color.toARGB32()
+  };
+  factory AtomType.fromJson(Map<String, dynamic> json) => AtomType(
+    symbol: json['symbol'] as String,
+    name: json['name'] as String,
+    color: Color(json['color'] as int)
+  );
+
   final String symbol;
   final String name;
   final Color color;
@@ -2494,6 +2583,22 @@ class AtomType {
 }
 
 class Atom {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'type': type.toJson(),
+    'row': row,
+    'col': col,
+    'id': id,
+    'atomixIndex': atomixIndex
+  };
+  factory Atom.fromJson(Map<String, dynamic> json) => Atom(
+    type: AtomType.fromJson(Map<String, dynamic>.from(json['type'] as Map)),
+    row: json['row'] as int,
+    col: json['col'] as int,
+    id: json['id'] as String,
+    atomixIndex: json['atomixIndex'] as int
+  );
+
   final AtomType type;
   int row;
   int col;
@@ -2504,6 +2609,20 @@ class Atom {
 }
 
 class MoleculePattern {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'size': size,
+    'grid': grid.map((v0) => v0.map((v1) => (v1)).toList()).toList(),
+    'atomTypes': atomTypes.map((v0) => v0.toJson()).toList()
+  };
+  factory MoleculePattern.fromJson(Map<String, dynamic> json) => MoleculePattern(
+    name: json['name'] as String,
+    size: json['size'] as int,
+    grid: (json['grid'] as List).map((v0) => (v0 as List).map((v1) => (v1 == null ? null : v1 as int)).toList()).toList(),
+    atomTypes: (json['atomTypes'] as List).map((v0) => AtomType.fromJson(Map<String, dynamic>.from(v0 as Map))).toList()
+  );
+
   final String name;
   final int size;
   final List<List<int?>> grid;

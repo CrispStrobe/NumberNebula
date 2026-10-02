@@ -1,5 +1,8 @@
+import '../mixins/puzzle_session_mixin.dart';
+import '../widgets/game_learning_shell.dart';
 // ignore_for_file: constant_identifier_names
 import 'package:flutter/material.dart';
+import '../widgets/round_summary.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -48,6 +51,18 @@ class Star {
 }
 
 class GravityField {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'center': [center.dx, center.dy],
+    'strength': strength,
+    'maxDistance': maxDistance
+  };
+  factory GravityField.fromJson(Map<String, dynamic> json) => GravityField(
+    center: Offset((json['center'][0] as num).toDouble(), (json['center'][1] as num).toDouble()),
+    strength: (json['strength'] as num).toDouble(),
+    maxDistance: (json['maxDistance'] as num).toDouble()
+  );
+
   final Offset center;
   final double strength;
   final double maxDistance;
@@ -152,7 +167,44 @@ class HyperdriveGatesGame extends StatefulWidget {
   State<HyperdriveGatesGame> createState() => _HyperdriveGatesGameState();
 }
 
-class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerProviderStateMixin {
+class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerProviderStateMixin, PuzzleSessionMixin<HyperdriveGatesGame> {
+  bool _sessionReady = false;
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_thrusterController, _problemGlowController], reduced);
+  }
+
+  @override String get sessionGameKey => 'hyperdrive_gates';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady) return null;
+    return {'lives': lives, 'gatesCleared': gatesCleared, 'targetGatesForLevel': targetGatesForLevel, 'gameSpeed': gameSpeed, 'comboCounter': comboCounter, '_levelScore': _levelScore, '_temporarySpeedBoost': _temporarySpeedBoost, 'hasShield': hasShield, 'timeSlowActive': timeSlowActive, 'activePowerUps': activePowerUps.entries.map((v0) => [v0.key.name, v0.value]).toList(), '_choiceMadeForCurrentSet': _choiceMadeForCurrentSet, 'currentProblem': (currentProblem?.toJson()), 'laneCenters': laneCenters.map((v0) => [v0.dx, v0.dy]).toList(), 'gravityFields': gravityFields.map((v0) => v0.toJson()).toList(), 'objects': gameObjects.map(gameObjectToJson).toList(), 'powerups': powerUps.map((p) => {'position': [p.position.dx, p.position.dy], 'type': p.type.name}).toList(), 'ship': {'pos': [spaceship.position.dx, spaceship.position.dy], 'target': spaceship.targetY, 'velocity': [spaceship.velocity.dx, spaceship.velocity.dy], 'cooldown': spaceship.damageCooldown}};
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    lives = state["lives"] as int;
+gatesCleared = state["gatesCleared"] as int;
+targetGatesForLevel = state["targetGatesForLevel"] as int;
+gameSpeed = (state["gameSpeed"] as num).toDouble();
+comboCounter = state["comboCounter"] as int;
+_levelScore = state["_levelScore"] as int;
+_temporarySpeedBoost = (state["_temporarySpeedBoost"] as num).toDouble();
+hasShield = state["hasShield"] as bool;
+timeSlowActive = state["timeSlowActive"] as bool;
+activePowerUps = Map<PowerUpType, double>.fromEntries((state["activePowerUps"] as List).map((v0) => MapEntry(PowerUpType.values.byName(v0[0] as String), (v0[1] as num).toDouble())));
+_choiceMadeForCurrentSet = state["_choiceMadeForCurrentSet"] as bool;
+currentProblem = (state["currentProblem"] == null ? null : MathProblem.fromJson(Map<String, dynamic>.from(state["currentProblem"] as Map)));
+laneCenters = (state["laneCenters"] as List).map((v0) => Offset((v0[0] as num).toDouble(), (v0[1] as num).toDouble())).toList();
+gravityFields = (state["gravityFields"] as List).map((v0) => GravityField.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+    gameObjects = (state['objects'] as List).map((v) => gameObjectFromJson(Map<String, dynamic>.from(v as Map))).toList(); powerUps = (state['powerups'] as List).map((v) => PowerUp(position: Offset((v['position'][0] as num).toDouble(), (v['position'][1] as num).toDouble()), type: PowerUpType.values.byName(v['type'] as String))).toList(); final h = state['ship']; spaceship.position = Offset((h['pos'][0] as num).toDouble(), (h['pos'][1] as num).toDouble()); spaceship.targetY = (h['target'] as num).toDouble(); spaceship.velocity = Offset((h['velocity'][0] as num).toDouble(), (h['velocity'][1] as num).toDouble()); spaceship.damageCooldown = (h['cooldown'] as num).toDouble(); _generateBackgroundStars(MediaQuery.of(context).size);
+    gameActive = true; gameInitialized = true; _resumeTimers();
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) { await Future<void>.sync(() { _initializeGame(MediaQuery.of(context).size); }); }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   // --- Animation & Timers ---
   late AnimationController _gameController;
   late AnimationController _thrusterController;
@@ -209,9 +261,6 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
         
     _timeSlowController = AnimationController(vsync: this, duration: const Duration(seconds: 1));
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).requestFocus(_focusNode);
-    });
   }
 
   @override
@@ -220,13 +269,14 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     if (!gameInitialized) {
       final screenSize = MediaQuery.of(context).size;
       spaceship = Spaceship(initialPosition: Offset(150, screenSize.height / 2));
-      _initializeGame(screenSize);
       gameInitialized = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
     }
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _gameController.dispose();
     _thrusterController.dispose();
     _screenShakeController.dispose();
@@ -239,6 +289,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   }
 
   void _initializeGame(Size screenSize) {
+    beginPuzzleSession();
     setState(() {
       lives = INITIAL_LIVES;
       gatesCleared = 0;
@@ -264,6 +315,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
 
     _speedIncreaseTimer?.cancel();
     _speedIncreaseTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context)) return;
       if (gameActive) {
         setState(() => gameSpeed += 12);
       }
@@ -271,6 +323,28 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
 
     _powerUpSpawnTimer?.cancel();
     _powerUpSpawnTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
+      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context)) return;
+      if (gameActive && math.Random().nextDouble() < 0.4) {
+        _spawnRandomPowerUp(screenSize);
+      }
+    });
+
+    _gameController.repeat();
+  }
+
+  void _resumeTimers() {
+    final screenSize = MediaQuery.of(context).size;
+    _speedIncreaseTimer?.cancel();
+    _speedIncreaseTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context)) return;
+      if (gameActive) {
+        setState(() => gameSpeed += 12);
+      }
+    });
+
+    _powerUpSpawnTimer?.cancel();
+    _powerUpSpawnTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
+      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context)) return;
       if (gameActive && math.Random().nextDouble() < 0.4) {
         _spawnRandomPowerUp(screenSize);
       }
@@ -431,6 +505,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   }
 
   void _updateGame() {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     if (!gameActive) return;
 
     final dt = timeSlowActive ? 0.008 : 0.016; // Time slow effect
@@ -451,7 +526,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     }
     
     if (_temporarySpeedBoost > 1.0) {
-      setState(() {
+      setVisualState(() {
         _temporarySpeedBoost *= 0.95; 
       });
     } else {
@@ -460,7 +535,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
 
     final effectiveGameSpeed = gameSpeed + _temporarySpeedBoost;
 
-    setState(() {
+    setVisualState(() {
       // Update background stars
       for (var layer in backgroundStars) {
         for (var star in layer) {
@@ -562,6 +637,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
   }
 
   void _updatePowerUps(double dt) {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     final toRemove = <PowerUpType>[];
     activePowerUps.forEach((type, timeLeft) {
       final newTime = timeLeft - dt;
@@ -811,7 +887,9 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     _gameController.stop();
     
     // DON'T pass mathProblems - already recorded during gameplay
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'hyperdrive_gates',
       difficulty: widget.level,
       score: _levelScore,
@@ -832,7 +910,9 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
     _gameController.stop();
     
     // DON'T pass mathProblems - already recorded during gameplay
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'hyperdrive_gates',
       difficulty: widget.level,
       progress: targetGatesForLevel == 0
@@ -855,6 +935,7 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (!gameInitialized) {
       return const Scaffold(backgroundColor: Color(0xFF000510), body: Center(child: CircularProgressIndicator()));
     }
@@ -1098,15 +1179,15 @@ class _HyperdriveGatesGameState extends State<HyperdriveGatesGame> with TickerPr
 
   Widget _buildEndGameDialog({required bool isWin}) {
     final l10n = S.of(context)!;
-    return AlertDialog(
+    return AlertDialog(scrollable: true,
       backgroundColor: const Color(0xFF1A1A3E),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0), side: BorderSide(color: isWin ? Colors.cyanAccent : Colors.redAccent, width: 3)),
       title: Text(isWin ? l10n.hyperdriveGatesWinTitle : l10n.hyperdriveGatesLoseTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-      content: Text(
+      content: Column(mainAxisSize: MainAxisSize.min, children: [RoundSummary(gameKey: 'hyperdrive_gates'), Text(
         isWin ? l10n.hyperdriveGatesWinDesc(targetGatesForLevel) : l10n.hyperdriveGatesLoseDesc,
         style: const TextStyle(color: Colors.white70, fontSize: 16),
         textAlign: TextAlign.center,
-      ),
+      )]),
       actions: <Widget>[
         TextButton(autofocus: true, onPressed: _resetGame, child: Text(l10n.flyAgain, style: const TextStyle(color: Colors.white, fontSize: 16))),
         TextButton(

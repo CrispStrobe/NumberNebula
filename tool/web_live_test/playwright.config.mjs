@@ -9,7 +9,7 @@
 
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.BASE_URL ?? 'http://localhost:4173';
+const baseURL = `${(process.env.BASE_URL ?? 'http://localhost:4173').replace(/\/+$/, '')}/`;
 
 export default defineConfig({
   testDir: './tests',
@@ -26,7 +26,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [
-    { name: 'chromium-wasm', use: { ...devices['Desktop Chrome'], locale: 'en-US' } },
+    { name: 'chromium-wasm', use: { ...devices['Desktop Chrome'], locale: 'en-US',
+      launchOptions: process.env.CHROMIUM_EXECUTABLE ? { executablePath: process.env.CHROMIUM_EXECUTABLE } : {} } },
     { name: 'firefox-js', use: { ...devices['Desktop Firefox'], locale: 'en-US' } },
   ],
   webServer: process.env.BASE_URL

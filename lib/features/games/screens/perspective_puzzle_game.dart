@@ -1,7 +1,11 @@
+import '../services/perspective_logic.dart' as generation;
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
+import '../widgets/game_learning_shell.dart';
 // lib/features/games/screens/perspective_puzzle_game.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'package:flutter_cube/flutter_cube.dart' as cube;
@@ -261,6 +265,22 @@ typedef Block = ({int x, int y, int z, Color color});
 typedef PerspectiveView = List<List<Block?>>;
 
 class PerspectivePuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'structure': structure.map((v0) => {'x': v0.x, 'y': v0.y, 'z': v0.z, 'color': v0.color.toARGB32()}).toList(),
+    'gridSize': gridSize,
+    'maxHeight': maxHeight,
+    'difficulty': difficulty,
+    'correctViews': correctViews.entries.map((v0) => [v0.key, v0.value.map((v1) => v1.map((v2) => (v2 == null ? null : {'x': v2.x, 'y': v2.y, 'z': v2.z, 'color': v2.color.toARGB32()})).toList()).toList()]).toList()
+  };
+  factory PerspectivePuzzle.fromJson(Map<String, dynamic> json) => PerspectivePuzzle(
+    structure: (json['structure'] as List).map((v0) => (x: v0['x'] as int, y: v0['y'] as int, z: v0['z'] as int, color: Color(v0['color'] as int))).toSet(),
+    gridSize: json['gridSize'] as int,
+    maxHeight: json['maxHeight'] as int,
+    difficulty: json['difficulty'] as int,
+    correctViews: Map<String, PerspectiveView>.fromEntries((json['correctViews'] as List).map((v0) => MapEntry(v0[0] as String, (v0[1] as List).map((v1) => (v1 as List).map((v2) => (v2 == null ? null : (x: v2['x'] as int, y: v2['y'] as int, z: v2['z'] as int, color: Color(v2['color'] as int)))).toList()).toList())))
+  );
+
   final Set<Block> structure;
   final int gridSize;
   final int maxHeight;
@@ -275,127 +295,10 @@ class PerspectivePuzzle {
     required this.correctViews,
   });
 
-  static PerspectivePuzzle generate(Map<String, int> args) {
-    final grade = args['grade']!;
-    final level = args['level']!;
-    final random = math.Random();
-    final difficulty = math.min(5, (grade) + (level ~/ 4));
-    final gridSize = 3 + (difficulty ~/ 3);
-    final totalBlocks = 4 + (difficulty * 2) + random.nextInt(difficulty + 2);
-    Set<Block> structure = {};
-    var heightMap = List.generate(gridSize, (_) => List.generate(gridSize, (_) => 0));
+  static PerspectivePuzzle generate(Map<String, int> args) =>
+      PerspectivePuzzle.fromJson(generation.PerspectivePuzzle.generate(args).toJson());
 
-    int currentX = gridSize ~/ 2;
-    int currentZ = gridSize ~/ 2;
 
-    for (int i = 0; i < totalBlocks; i++) {
-      if (random.nextDouble() < 0.5 || heightMap[currentX][currentZ] >= 2) {
-        final moves = [[-1, 0], [1, 0], [0, -1], [0, 1]]..shuffle();
-        for (var move in moves) {
-          int nextX = currentX + move[0], nextZ = currentZ + move[1];
-          if (nextX >= 0 && nextX < gridSize && nextZ >= 0 && nextZ < gridSize) {
-            currentX = nextX;
-            currentZ = nextZ;
-            break;
-          }
-        }
-      }
-      int currentY = heightMap[currentX][currentZ];
-      final color = _VisualConfig.blockColors[random.nextInt(_VisualConfig.blockColors.length)];
-      structure.add((x: currentX, y: currentY, z: currentZ, color: color));
-      heightMap[currentX][currentZ] = currentY + 1;
-    }
-
-    int maxHeight = structure.isEmpty ? 0 : structure.map((b) => b.y).reduce(math.max);
-    final correctViews = {
-      'Front': _getFrontView(structure, gridSize, maxHeight),
-      'Back': _getBackView(structure, gridSize, maxHeight),
-      'Left': _getLeftView(structure, gridSize, maxHeight),
-      'Right': _getRightView(structure, gridSize, maxHeight),
-    };
-    return PerspectivePuzzle(
-      structure: structure,
-      gridSize: gridSize,
-      maxHeight: maxHeight,
-      difficulty: difficulty,
-      correctViews: correctViews,
-    );
-  }
-
-  static PerspectiveView _createEmptyView(int width, int height) =>
-      List.generate(height + 1, (_) => List.generate(width, (_) => null));
-
-  // View from the Front (+Z axis looking toward -Z)
-  static PerspectiveView _getFrontView(Set<Block> s, int size, int maxH) {
-    if (kDebugMode) print('[PerspectivePuzzle] Calculating Front View...');
-    var view = _createEmptyView(size, maxH);
-    for (int y = 0; y <= maxH; y++) {
-      for (int x = 0; x < size; x++) {
-        final block = s.where((b) => b.x == x && b.y == y).sortedBy<num>((b) => -b.z).firstOrNull; // Max Z is visible
-        if (block != null) {
-          final viewRow = maxH - y;
-          final viewCol = x;
-          view[viewRow][viewCol] = block;
-          if (kDebugMode) print('  - Found block at (x:${block.x}, y:${block.y}, z:${block.z}). Mapped to view[$viewRow][$viewCol].');
-        }
-      }
-    }
-    return view;
-  }
-
-  // View from the Back (-Z axis looking toward +Z), mirrored horizontally
-  static PerspectiveView _getBackView(Set<Block> s, int size, int maxH) {
-    if (kDebugMode) print('[PerspectivePuzzle] Calculating Back View...');
-    var view = _createEmptyView(size, maxH);
-    for (int y = 0; y <= maxH; y++) {
-      for (int x = 0; x < size; x++) {
-        final block = s.where((b) => b.x == x && b.y == y).sortedBy<num>((b) => b.z).firstOrNull; // Min Z is visible
-        if (block != null) {
-          final viewRow = maxH - y;
-          final viewCol = size - 1 - x; // Flipped horizontally
-          view[viewRow][viewCol] = block;
-          if (kDebugMode) print('  - Found block at (x:${block.x}, y:${block.y}, z:${block.z}). Mapped to view[$viewRow][$viewCol]. (Original x:${block.x} flipped to $viewCol)');
-        }
-      }
-    }
-    return view;
-  }
-
-  // View from the Left (-X axis looking toward +X)
-  static PerspectiveView _getLeftView(Set<Block> s, int size, int maxH) {
-    if (kDebugMode) print('[PerspectivePuzzle] Calculating Left View...');
-    var view = _createEmptyView(size, maxH);
-    for (int y = 0; y <= maxH; y++) {
-      for (int z = 0; z < size; z++) {
-        final block = s.where((b) => b.z == z && b.y == y).sortedBy<num>((b) => b.x).firstOrNull; // Min X is visible
-        if (block != null) {
-          final viewRow = maxH - y;
-          final viewCol = z; // Z-axis becomes the horizontal axis
-          view[viewRow][viewCol] = block;
-          if (kDebugMode) print('  - Found block at (x:${block.x}, y:${block.y}, z:${block.z}). Mapped to view[$viewRow][$viewCol].');
-        }
-      }
-    }
-    return view;
-  }
-
-  // View from the Right (+X axis looking toward -X), mirrored horizontally
-  static PerspectiveView _getRightView(Set<Block> s, int size, int maxH) {
-    if (kDebugMode) print('[PerspectivePuzzle] Calculating Right View...');
-    var view = _createEmptyView(size, maxH);
-    for (int y = 0; y <= maxH; y++) {
-      for (int z = 0; z < size; z++) {
-        final block = s.where((b) => b.z == z && b.y == y).sortedBy<num>((b) => -b.x).firstOrNull; // Max X is visible
-        if (block != null) {
-          final viewRow = maxH - y;
-          final viewCol = size - 1 - z; // Flipped horizontally
-          view[viewRow][viewCol] = block;
-          if (kDebugMode) print('  - Found block at (x:${block.x}, y:${block.y}, z:${block.z}). Mapped to view[$viewRow][$viewCol]. (Original z:${block.z} flipped to $viewCol)');
-        }
-      }
-    }
-    return view;
-  }
 }
 
 // =============================================================================
@@ -411,7 +314,42 @@ class PerspectivePuzzleGame extends StatefulWidget {
   State<PerspectivePuzzleGame> createState() => _PerspectivePuzzleGameState();
 }
 
-class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with TickerProviderStateMixin {
+class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with TickerProviderStateMixin, PuzzleSessionMixin<PerspectivePuzzleGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'perspective_puzzle';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      'currentPuzzle': (currentPuzzle?.toJson()),
+      '_perspectivesToSolve': _perspectivesToSolve.map((v0) => v0).toList(),
+      '_currentTurnIndex': _currentTurnIndex,
+      '_answerChoices': _answerChoices.map((v0) => v0.map((v1) => v1.map((v2) => (v2 == null ? null : {'x': v2.x, 'y': v2.y, 'z': v2.z, 'color': v2.color.toARGB32()})).toList()).toList()).toList(),
+      '_correctAnswerIndex': _correctAnswerIndex,
+      '_correctAttempts': _correctAttempts,
+      '_totalAttempts': _totalAttempts,
+      '_lives': _lives
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    currentPuzzle = (state["currentPuzzle"] == null ? null : PerspectivePuzzle.fromJson(Map<String, dynamic>.from(state["currentPuzzle"] as Map)));
+    _perspectivesToSolve = (state["_perspectivesToSolve"] as List).map((v0) => v0 as String).toList();
+    _currentTurnIndex = state["_currentTurnIndex"] as int;
+    _answerChoices = (state["_answerChoices"] as List).map((v0) => (v0 as List).map((v1) => (v1 as List).map((v2) => (v2 == null ? null : (x: v2['x'] as int, y: v2['y'] as int, z: v2['z'] as int, color: Color(v2['color'] as int)))).toList()).toList()).toList();
+    _correctAnswerIndex = state["_correctAnswerIndex"] as int;
+    _correctAttempts = state["_correctAttempts"] as int;
+    _totalAttempts = state["_totalAttempts"] as int;
+    _lives = state["_lives"] as int;
+    _isGenerating = false; _selectedAnswerIndex = -1; _answerState = AnswerState.unanswered; _createSceneObject(currentPuzzle!.structure);
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   late AnimationController _successController;
   PerspectivePuzzle? currentPuzzle;
   bool _isGenerating = true;
@@ -437,16 +375,18 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   void initState() {
     super.initState();
     _successController = AnimationController(duration: const Duration(milliseconds: 800), vsync: this);
-    _generatePuzzle();
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _successController.dispose();
     super.dispose();
   }
 
-  void _generatePuzzle() async {
+  Future<void> _generatePuzzle() async {
+    beginPuzzleSession();
     if (!mounted) return; // Check before starting
     setState(() => _isGenerating = true);
     
@@ -484,6 +424,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   }
   
   void _updateArrowForPerspective(String perspective) {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     if (_scene == null) return;
     
     _arrowObject.children.clear();
@@ -504,6 +445,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   }
   
   void _updateCameraPosition() {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     if (_scene == null) return;
     
     final basePos = _VisualConfig.baseCameraPosition;
@@ -575,7 +517,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     });
 
     if (index == _correctAnswerIndex) {
-      HapticFeedback.lightImpact();
+      AppHaptics.lightImpact();
       setState(() {
         _correctAttempts++; // Track correct attempts.
         _answerState = AnswerState.correct;
@@ -583,7 +525,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
       // Move to the next turn or win the game.
       Future.delayed(const Duration(milliseconds: 1000), _nextTurn);
     } else {
-      HapticFeedback.heavyImpact();
+      AppHaptics.heavyImpact();
       // On incorrect guess, lose a life.
       setState(() {
         _lives--;
@@ -630,7 +572,9 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     int finalScore = (baseScore + difficultyBonus - penalty).clamp(50, 1000).toInt();
 
     // 2. Make the single, unified call to the GameProvider.
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'perspective_puzzle',
       difficulty: currentPuzzle?.difficulty ?? 1,
       score: finalScore,
@@ -653,7 +597,9 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     if (kDebugMode) debugPrint("Perspective Puzzle Failed: Ran out of lives.");
 
     // Report the failure to the GameProvider.
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'perspective_puzzle',
       difficulty: currentPuzzle?.difficulty ?? 1,
       progress: _perspectivesToSolve.isEmpty
@@ -719,6 +665,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (_isGenerating || currentPuzzle == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -986,13 +933,13 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   Widget _buildSuccessDialog(int bonusScore) {
      return ScaleTransition(
       scale: CurvedAnimation(parent: _successController, curve: Curves.elasticOut),
-      child: AlertDialog(
+      child: AlertDialog(scrollable: true,
         backgroundColor: SpaceTheme.deepSpace.withValues(alpha: 0.9),
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
             side: const BorderSide(color: SpaceTheme.alienGreen, width: 2)),
         title: Text(S.of(context)!.perspectivePuzzleWinTitle, style: SpaceTheme.headlineStyle),
-        content: Text(S.of(context)!.perspectivePuzzleWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center,),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [RoundSummary(gameKey: 'perspective_puzzle'), Text(S.of(context)!.perspectivePuzzleWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center,)]),
         actions: [
           TextButton(
             autofocus: true,

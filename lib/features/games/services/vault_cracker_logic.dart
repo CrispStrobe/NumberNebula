@@ -1,14 +1,16 @@
+import 'generator_random.dart';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
+import 'generator_diagnostics.dart';
 
-import '../constants/difficulty_manager.dart';
+import '../constants/difficulty_config.dart';
 
 /// A mathematical constraint clue about the secret code.
 /// Each clue describes a property of the digits (sum, comparison, parity, etc.)
 class VaultClue {
   final String clueTextEn;
   final String clueTextDe;
+
   /// Function that checks if a candidate code satisfies this clue
   final bool Function(List<int>) check;
 
@@ -21,6 +23,45 @@ class VaultClue {
 
 /// Result of puzzle generation
 class VaultCrackerPuzzle {
+  Map<String, dynamic> toJson() => {
+        'secret': secretCode,
+        'length': codeLength,
+        'range': digitRange,
+        'clues':
+            clues.map((c) => {'en': c.clueTextEn, 'de': c.clueTextDe}).toList()
+      };
+  factory VaultCrackerPuzzle.fromJson(Map<String, dynamic> json) {
+    final secret = List<int>.from(json['secret']);
+    final range = json['range'] as int;
+    final candidates = VaultCrackerLogic._clueFactories
+        .map((f) => f(secret, range))
+        .whereType<VaultClue>()
+        .toList();
+    for (int i = 0; i < secret.length - 1; i++) {
+      final pos = i, value = secret[i];
+      final suffix = i == 0
+          ? 'st'
+          : i == 1
+              ? 'nd'
+              : i == 2
+                  ? 'rd'
+                  : 'th';
+      candidates.add(VaultClue(
+          clueTextEn: 'The ${i + 1}$suffix digit is $value.',
+          clueTextDe: 'Die ${i + 1}. Ziffer ist $value.',
+          check: (code) => code[pos] == value));
+    }
+    final clues = (json['clues'] as List)
+        .map((raw) => candidates.firstWhere(
+            (c) => c.clueTextEn == raw['en'] && c.clueTextDe == raw['de']))
+        .toList();
+    return VaultCrackerPuzzle(
+        secretCode: secret,
+        codeLength: json['length'],
+        digitRange: range,
+        clues: clues);
+  }
+
   final List<int> secretCode;
   final int codeLength;
   final int digitRange; // digits go from 1 to digitRange
@@ -109,11 +150,14 @@ class VaultCrackerLogic {
     (secret, range) {
       final pos = secret.length > 2 ? 1 : 0; // 2nd digit if available
       final isEven = secret[pos] % 2 == 0;
-      final posLabel = pos == 0 ? '1st' : '${pos + 1}${pos == 1 ? 'nd' : pos == 2 ? 'rd' : 'th'}';
+      final posLabel = pos == 0
+          ? '1st'
+          : '${pos + 1}${pos == 1 ? 'nd' : pos == 2 ? 'rd' : 'th'}';
       final posLabelDe = '${pos + 1}.';
       return VaultClue(
         clueTextEn: 'The $posLabel digit is ${isEven ? "even" : "odd"}.',
-        clueTextDe: 'Die $posLabelDe Ziffer ist ${isEven ? "gerade" : "ungerade"}.',
+        clueTextDe:
+            'Die $posLabelDe Ziffer ist ${isEven ? "gerade" : "ungerade"}.',
         check: (c) => (c[pos] % 2 == 0) == isEven,
       );
     },
@@ -149,7 +193,9 @@ class VaultCrackerLogic {
     // A specific digit value is known
     (secret, range) {
       final pos = secret.length > 2 ? 2 : 0;
-      final posLabel = pos == 0 ? '1st' : '${pos + 1}${pos == 1 ? 'nd' : pos == 2 ? 'rd' : 'th'}';
+      final posLabel = pos == 0
+          ? '1st'
+          : '${pos + 1}${pos == 1 ? 'nd' : pos == 2 ? 'rd' : 'th'}';
       final posLabelDe = '${pos + 1}.';
       return VaultClue(
         clueTextEn: 'The $posLabel digit is ${secret[pos]}.',
@@ -237,7 +283,8 @@ class VaultCrackerLogic {
       final isEven = secret[mid] % 2 == 0;
       return VaultClue(
         clueTextEn: 'The middle digit is ${isEven ? "even" : "odd"}.',
-        clueTextDe: 'Die mittlere Ziffer ist ${isEven ? "gerade" : "ungerade"}.',
+        clueTextDe:
+            'Die mittlere Ziffer ist ${isEven ? "gerade" : "ungerade"}.',
         check: (c) => (c[c.length ~/ 2] % 2 == 0) == isEven,
       );
     },
@@ -257,11 +304,11 @@ class VaultCrackerLogic {
     final grade = args['grade'] as int;
     final level = args['level'] as int;
     final difficulty = args['difficulty'] as DifficultyConfig;
-    final rng = math.Random();
+    final rng = generatorRandom();
 
     if (kDebugMode) {
-      debugPrint(
-        '[VAULT_CRACKER] Generating algebraic constraint puzzle for grade=$grade, level=$level');
+      traceGenerator(
+          '[VAULT_CRACKER] Generating algebraic constraint puzzle for grade=$grade, level=$level');
     }
 
     // Difficulty scaling
@@ -290,11 +337,13 @@ class VaultCrackerLogic {
     // Try generating puzzles until we find one with a unique solution
     for (int attempt = 0; attempt < 200; attempt++) {
       // Generate secret code with digits 1..digitRange
-      final secretCode = List.generate(codeLength, (_) => rng.nextInt(digitRange) + 1);
+      final secretCode =
+          List.generate(codeLength, (_) => rng.nextInt(digitRange) + 1);
 
       // Generate all applicable clues for this code
       final applicableClues = <VaultClue>[];
-      final shuffledFactories = List<_ClueFactory>.from(_clueFactories)..shuffle(rng);
+      final shuffledFactories = List<_ClueFactory>.from(_clueFactories)
+        ..shuffle(rng);
 
       for (final factory in shuffledFactories) {
         final clue = factory(secretCode, digitRange);
@@ -314,9 +363,9 @@ class VaultCrackerLogic {
 
         if (solutions == 1) {
           if (kDebugMode) {
-            debugPrint(
-              '[VAULT_CRACKER] Generated code: $secretCode, clues=${clueSubset.length}, '
-              'codeLength=$codeLength, digitRange=1-$digitRange');
+            traceGenerator(
+                '[VAULT_CRACKER] Generated code: $secretCode, clues=${clueSubset.length}, '
+                'codeLength=$codeLength, digitRange=1-$digitRange');
           }
 
           return VaultCrackerPuzzle(
@@ -330,15 +379,20 @@ class VaultCrackerLogic {
     }
 
     // Fallback: generate a simple puzzle with direct digit clues
-    if (kDebugMode) debugPrint('[VAULT_CRACKER] Warning: falling back to direct-clue puzzle');
-    final secretCode = List.generate(codeLength, (_) => rng.nextInt(digitRange) + 1);
+    if (kDebugMode) {
+      traceGenerator(
+          '[VAULT_CRACKER] Warning: falling back to direct-clue puzzle');
+    }
+    final secretCode =
+        List.generate(codeLength, (_) => rng.nextInt(digitRange) + 1);
     final clues = <VaultClue>[];
 
     // Give away all but one digit directly, plus the sum
     for (int i = 0; i < codeLength - 1; i++) {
       final pos = i;
       final val = secretCode[pos];
-      final posLabel = '${pos + 1}${pos == 0 ? 'st' : pos == 1 ? 'nd' : pos == 2 ? 'rd' : 'th'}';
+      final posLabel =
+          '${pos + 1}${pos == 0 ? 'st' : pos == 1 ? 'nd' : pos == 2 ? 'rd' : 'th'}';
       clues.add(VaultClue(
         clueTextEn: 'The $posLabel digit is $val.',
         clueTextDe: 'Die ${pos + 1}. Ziffer ist $val.',

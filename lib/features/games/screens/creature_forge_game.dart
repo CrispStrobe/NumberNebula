@@ -1,6 +1,8 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
 
@@ -23,7 +25,52 @@ class CreatureForgeGame extends StatefulWidget {
 }
 
 class _CreatureForgeGameState extends State<CreatureForgeGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<CreatureForgeGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<CreatureForgeGame>, PuzzleSessionMixin<CreatureForgeGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'creature_forge';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      '_headCount': _headCount,
+      '_bodyCount': _bodyCount,
+      '_tailCount': _tailCount,
+      '_forbiddenCombos': _forbiddenCombos,
+      '_correctAnswer': _correctAnswer,
+      '_hasConstraints': _hasConstraints,
+      '_constraintText': _constraintText,
+      '_selectedHead': _selectedHead,
+      '_selectedBody': _selectedBody,
+      '_selectedTail': _selectedTail,
+      '_discoveredCombos': _discoveredCombos.map((v0) => v0).toList(),
+      '_wrongForges': _wrongForges,
+      '_text': _answerController.text
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _headCount = state["_headCount"] as int;
+    _bodyCount = state["_bodyCount"] as int;
+    _tailCount = state["_tailCount"] as int;
+    _forbiddenCombos = state["_forbiddenCombos"] as int;
+    _correctAnswer = state["_correctAnswer"] as int;
+    _hasConstraints = state["_hasConstraints"] as bool;
+    _constraintText = state["_constraintText"] as String;
+    _selectedHead = state["_selectedHead"] as int;
+    _selectedBody = state["_selectedBody"] as int;
+    _selectedTail = state["_selectedTail"] as int;
+    _discoveredCombos..clear()..addAll((state["_discoveredCombos"] as List).map((v0) => v0 as String).toSet());
+    _wrongForges = state["_wrongForges"] as int;
+    _answerController.text = state['_text'] as String;
+    _isGenerating = false; _gameOver = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -65,20 +112,22 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _answerController.dispose();
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
   void _generatePuzzle() {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     final grade = currentDifficulty!.grade;
@@ -161,7 +210,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
     final key = _comboKey(_selectedHead, _selectedBody, _selectedTail);
 
     if (_discoveredCombos.contains(key)) {
-      HapticFeedback.heavyImpact();
+      AppHaptics.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(S.of(context)!.creatureForgeAlreadyDiscovered),
@@ -173,7 +222,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
     }
 
     if (_isForbidden(_selectedHead, _selectedBody, _selectedTail)) {
-      HapticFeedback.heavyImpact();
+      AppHaptics.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(S.of(context)!.creatureForgeInvalidCombo(_constraintText)),
@@ -184,7 +233,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       return;
     }
 
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     setState(() {
       _discoveredCombos.add(key);
     });
@@ -199,7 +248,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       _handleWin();
     } else {
       _wrongForges++;
-      HapticFeedback.heavyImpact();
+      AppHaptics.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(S.of(context)!.creatureForgeNotQuiteAnswer(answer)),
@@ -211,7 +260,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     _gameOver = true;
 
     int baseScore = 100 * widget.grade;
@@ -219,7 +268,10 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
     int discoveryBonus = _discoveredCombos.length * 10;
     int totalScore = baseScore + levelBonus + discoveryBonus;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'creature_forge',
       difficulty: widget.level,
       score: totalScore,
@@ -238,6 +290,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_isGenerating || currentDifficulty == null) {
@@ -368,7 +421,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    HapticFeedback.selectionClick();
+                    AppHaptics.selectionClick();
                     onSelect(i);
                   },
                   child: AnimatedContainer(
@@ -629,7 +682,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -637,6 +690,7 @@ class _CreatureForgeGameState extends State<CreatureForgeGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'creature_forge'),
                   const Icon(Icons.pets, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.creatureForgeWinTitle,

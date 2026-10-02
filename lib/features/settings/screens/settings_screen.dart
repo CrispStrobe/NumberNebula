@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/services/profile_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:math' as math;
 
@@ -99,7 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       if (kDebugMode) debugPrint("[SETTINGS] 🌍 Context locale: $contextLocale");
       
       // Load saved locale from SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await ProfilePreferences.getInstance();
       final savedLocale = prefs.getString('language');
       if (kDebugMode) debugPrint("[SETTINGS] 💾 Saved locale from SharedPreferences: $savedLocale");
       
@@ -127,7 +127,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     if (kDebugMode) debugPrint("[SETTINGS] 📚 Loading all application settings...");
     
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final gameProvider = context.read<GameProvider>();
+      final prefs = await ProfilePreferences.getInstance();
       
       // Log all current preference keys
       final keys = prefs.getKeys();
@@ -137,7 +138,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       final soundEnabled = prefs.getBool('sound_enabled') ?? true;
       final musicEnabled = prefs.getBool('music_enabled') ?? true;
       final hintsEnabled = prefs.getBool('hints_enabled') ?? true;
-      final hapticEnabled = prefs.getBool('haptic_enabled') ?? true;
+      final hapticEnabled = prefs.getBool('haptic_enabled') ?? gameProvider.hapticEnabled;
+      final reduceMotion = prefs.getBool('reduce_motion') ?? gameProvider.reduceMotion;
       final puzzleTimerEnabled = prefs.getBool('puzzle_timer_enabled') ?? true;
 
       final useCustomSettings = prefs.getBool('use_custom_settings') ?? false;
@@ -168,6 +170,8 @@ class _SettingsScreenState extends State<SettingsScreen>
         gameProvider.setSoundEnabled(soundEnabled);
         gameProvider.setMusicEnabled(musicEnabled);
         gameProvider.setPuzzleTimer(puzzleTimerEnabled);
+        gameProvider.setHapticEnabled(hapticEnabled);
+        gameProvider.setReduceMotion(reduceMotion);
 
         gameProvider.setUseCustomSettings(useCustomSettings);
         gameProvider.setCustomOperations(customOps);
@@ -439,11 +443,22 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
                   
                   _buildSwitchTile(
+                    title: S.of(context)!.reduceMotion,
+                    subtitle: S.of(context)!.reduceMotionDesc,
+                    value: gameProvider.reduceMotion,
+                    onChanged: (value) {
+                      gameProvider.setReduceMotion(value);
+                      _saveSetting('reduce_motion', value);
+                    },
+                    icon: Icons.motion_photos_off_outlined,
+                  ),
+                  _buildSwitchTile(
                     title: S.of(context)!.hapticFeedback,
                     subtitle: S.of(context)!.hapticFeedbackDesc,
-                    value: true, // TODO: Add to GameProvider
+                    value: gameProvider.hapticEnabled,
                     onChanged: (value) {
                       if (kDebugMode) debugPrint("[SETTINGS] 📳 Haptic feedback setting changed to: $value");
+                      gameProvider.setHapticEnabled(value);
                       _saveSetting('haptic_enabled', value);
                     },
                     icon: Icons.vibration,
@@ -1396,7 +1411,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     if (kDebugMode) debugPrint("[SETTINGS] 💾 Saving setting: $key = $value");
     
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await ProfilePreferences.getInstance();
       
       if (value is bool) {
         await prefs.setBool(key, value);
@@ -1422,7 +1437,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
   }
   
-  dynamic _getSettingValue(SharedPreferences prefs, String key, Type type) {
+  dynamic _getSettingValue(ProfilePreferences prefs, String key, Type type) {
     if (type == bool) return prefs.getBool(key);
     if (type == String) return prefs.getString(key);
     if (type == int) return prefs.getInt(key);
@@ -1477,7 +1492,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     if (kDebugMode) debugPrint("[SETTINGS] 🌍 Saving language preference: $localeCode");
     
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await ProfilePreferences.getInstance();
       await prefs.setString('language', localeCode);
       
       // Verify it was saved

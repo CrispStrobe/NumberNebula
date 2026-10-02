@@ -1,3 +1,4 @@
+import 'generator_random.dart';
 // lib/features/games/services/relic_assembly_logic.dart
 //
 // Edge-matching card puzzle generator.
@@ -7,6 +8,13 @@
 import 'dart:math' as math;
 
 class RelicTile {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() =>
+      {'edges': edges.map((v0) => v0).toList(), 'rotation': rotation};
+  factory RelicTile.fromJson(Map<String, dynamic> json) => RelicTile(
+      edges: (json['edges'] as List).map((v0) => v0 as int).toList(),
+      rotation: json['rotation'] as int);
+
   /// Edge values: [top, right, bottom, left]
   final List<int> edges;
 
@@ -30,6 +38,28 @@ class RelicTile {
 }
 
 class RelicAssemblyPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'rows': rows,
+        'cols': cols,
+        'solutionTiles': solutionTiles.map((v0) => v0.toJson()).toList(),
+        'playerTiles': playerTiles.map((v0) => v0.toJson()).toList(),
+        'edgeValueCount': edgeValueCount
+      };
+  factory RelicAssemblyPuzzle.fromJson(Map<String, dynamic> json) =>
+      RelicAssemblyPuzzle(
+          rows: json['rows'] as int,
+          cols: json['cols'] as int,
+          solutionTiles: (json['solutionTiles'] as List)
+              .map((v0) =>
+                  RelicTile.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toList(),
+          playerTiles: (json['playerTiles'] as List)
+              .map((v0) =>
+                  RelicTile.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toList(),
+          edgeValueCount: json['edgeValueCount'] as int);
+
   final int rows;
   final int cols;
 
@@ -63,21 +93,28 @@ class RelicAssemblyPuzzle {
         final tileIdx = placement[idx];
         if (tileIdx < 0 || tileIdx >= playerTiles.length) return false;
 
-        final tile = playerTiles[tileIdx].copyWith(rotation: rotations[tileIdx]);
+        final tile =
+            playerTiles[tileIdx].copyWith(rotation: rotations[tileIdx]);
 
         // Check right neighbor
         if (c < cols - 1) {
           final rightTileIdx = placement[idx + 1];
-          if (rightTileIdx < 0 || rightTileIdx >= playerTiles.length) return false;
-          final rightTile = playerTiles[rightTileIdx].copyWith(rotation: rotations[rightTileIdx]);
+          if (rightTileIdx < 0 || rightTileIdx >= playerTiles.length) {
+            return false;
+          }
+          final rightTile = playerTiles[rightTileIdx]
+              .copyWith(rotation: rotations[rightTileIdx]);
           if (tile.getEdge(1) != rightTile.getEdge(3)) return false;
         }
 
         // Check bottom neighbor
         if (r < rows - 1) {
           final bottomTileIdx = placement[idx + cols];
-          if (bottomTileIdx < 0 || bottomTileIdx >= playerTiles.length) return false;
-          final bottomTile = playerTiles[bottomTileIdx].copyWith(rotation: rotations[bottomTileIdx]);
+          if (bottomTileIdx < 0 || bottomTileIdx >= playerTiles.length) {
+            return false;
+          }
+          final bottomTile = playerTiles[bottomTileIdx]
+              .copyWith(rotation: rotations[bottomTileIdx]);
           if (tile.getEdge(2) != bottomTile.getEdge(0)) return false;
         }
       }
@@ -88,7 +125,7 @@ class RelicAssemblyPuzzle {
 }
 
 class RelicAssemblyGenerator {
-  final math.Random _random = math.Random();
+  final math.Random _random = generatorRandom();
 
   /// Generate an edge-matching puzzle.
   /// [rows] and [cols] define the grid.
@@ -104,8 +141,10 @@ class RelicAssemblyGenerator {
     // Create a grid of edge values
     // Horizontal edges: between (r,c) bottom and (r+1,c) top
     // Vertical edges: between (r,c) right and (r,c+1) left
-    final hEdges = <String, int>{}; // 'r_c' -> value for horizontal edge below (r,c)
-    final vEdges = <String, int>{}; // 'r_c' -> value for vertical edge right of (r,c)
+    final hEdges =
+        <String, int>{}; // 'r_c' -> value for horizontal edge below (r,c)
+    final vEdges =
+        <String, int>{}; // 'r_c' -> value for vertical edge right of (r,c)
 
     // Assign random matching values to internal edges
     for (int r = 0; r < rows; r++) {
@@ -123,13 +162,21 @@ class RelicAssemblyGenerator {
     for (int r = 0; r < rows; r++) {
       for (int c = 0; c < cols; c++) {
         // Top edge
-        final top = r > 0 ? hEdges['${r - 1}_$c']! : (_random.nextInt(edgeValueCount) + 1);
+        final top = r > 0
+            ? hEdges['${r - 1}_$c']!
+            : (_random.nextInt(edgeValueCount) + 1);
         // Right edge
-        final right = c < cols - 1 ? vEdges['${r}_$c']! : (_random.nextInt(edgeValueCount) + 1);
+        final right = c < cols - 1
+            ? vEdges['${r}_$c']!
+            : (_random.nextInt(edgeValueCount) + 1);
         // Bottom edge
-        final bottom = r < rows - 1 ? hEdges['${r}_$c']! : (_random.nextInt(edgeValueCount) + 1);
+        final bottom = r < rows - 1
+            ? hEdges['${r}_$c']!
+            : (_random.nextInt(edgeValueCount) + 1);
         // Left edge
-        final left = c > 0 ? vEdges['${r}_${c - 1}']! : (_random.nextInt(edgeValueCount) + 1);
+        final left = c > 0
+            ? vEdges['${r}_${c - 1}']!
+            : (_random.nextInt(edgeValueCount) + 1);
 
         tiles.add(RelicTile(edges: [top, right, bottom, left]));
       }

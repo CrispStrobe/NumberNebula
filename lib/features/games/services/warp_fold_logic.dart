@@ -1,3 +1,4 @@
+import 'generator_random.dart';
 import 'dart:math' as math;
 
 /// Direction of a fold.
@@ -5,12 +6,24 @@ enum FoldDirection { left, right, top, bottom }
 
 /// Represents a single fold operation.
 class FoldStep {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {'direction': direction.name};
+  factory FoldStep.fromJson(Map<String, dynamic> json) =>
+      FoldStep(FoldDirection.values.byName(json['direction'] as String));
+
   final FoldDirection direction;
   const FoldStep(this.direction);
 }
 
 /// Represents a cut position on the folded paper.
 class CutPosition {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {'x': x, 'y': y, 'size': size};
+  factory CutPosition.fromJson(Map<String, dynamic> json) => CutPosition(
+      (json['x'] as num).toDouble(),
+      (json['y'] as num).toDouble(),
+      (json['size'] as num).toDouble());
+
   final double x; // 0..1 normalized
   final double y; // 0..1 normalized
   final double size; // size of the cut hole
@@ -20,6 +33,37 @@ class CutPosition {
 /// The puzzle: a sequence of folds + cuts, and the correct unfolded result
 /// plus 4 distractors.
 class WarpFoldPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'folds': folds.map((v0) => v0.toJson()).toList(),
+        'cuts': cuts.map((v0) => v0.toJson()).toList(),
+        'gridSize': gridSize,
+        'correctResult':
+            correctResult.map((v0) => v0.map((v1) => v1).toList()).toList(),
+        'options': options
+            .map((v0) => v0.map((v1) => v1.map((v2) => v2).toList()).toList())
+            .toList(),
+        'correctIndex': correctIndex
+      };
+  factory WarpFoldPuzzle.fromJson(Map<String, dynamic> json) => WarpFoldPuzzle(
+      folds: (json['folds'] as List)
+          .map((v0) => FoldStep.fromJson(Map<String, dynamic>.from(v0 as Map)))
+          .toList(),
+      cuts: (json['cuts'] as List)
+          .map((v0) =>
+              CutPosition.fromJson(Map<String, dynamic>.from(v0 as Map)))
+          .toList(),
+      gridSize: json['gridSize'] as int,
+      correctResult: (json['correctResult'] as List)
+          .map((v0) => (v0 as List).map((v1) => v1 as bool).toList())
+          .toList(),
+      options: (json['options'] as List)
+          .map((v0) => (v0 as List)
+              .map((v1) => (v1 as List).map((v2) => v2 as bool).toList())
+              .toList())
+          .toList(),
+      correctIndex: json['correctIndex'] as int);
+
   /// The sequence of folds to perform.
   final List<FoldStep> folds;
 
@@ -51,7 +95,7 @@ class WarpFoldPuzzle {
 class WarpFoldGenerator {
   final math.Random _random;
 
-  WarpFoldGenerator({int? seed}) : _random = math.Random(seed);
+  WarpFoldGenerator({int? seed}) : _random = generatorRandom(seed);
 
   /// Generate a puzzle:
   /// - grade 1: 1 fold, 4x4 grid
@@ -90,7 +134,8 @@ class WarpFoldGenerator {
       } else {
         // Avoid repeating the same axis
         final prev = folds[i - 1].direction;
-        final isHorizontal = prev == FoldDirection.left || prev == FoldDirection.right;
+        final isHorizontal =
+            prev == FoldDirection.left || prev == FoldDirection.right;
         if (isHorizontal) {
           available = [FoldDirection.top, FoldDirection.bottom];
         } else {
@@ -120,8 +165,10 @@ class WarpFoldGenerator {
     for (int i = 0; i < numCuts; i++) {
       // Place cut within visible area with margin
       const margin = 0.08;
-      final x = (visMinX + margin) + _random.nextDouble() * (visMaxX - visMinX - 2 * margin);
-      final y = (visMinY + margin) + _random.nextDouble() * (visMaxY - visMinY - 2 * margin);
+      final x = (visMinX + margin) +
+          _random.nextDouble() * (visMaxX - visMinX - 2 * margin);
+      final y = (visMinY + margin) +
+          _random.nextDouble() * (visMaxY - visMinY - 2 * margin);
       cuts.add(CutPosition(x.clamp(0.05, 0.95), y.clamp(0.05, 0.95), 0.1));
     }
 
@@ -146,7 +193,8 @@ class WarpFoldGenerator {
     while (allOptions.length < 5) {
       final d = correctResult.map(List<bool>.from).toList();
       for (int m = 0; m < 4; m++) {
-        d[_random.nextInt(gridSize)][_random.nextInt(gridSize)] = _random.nextBool();
+        d[_random.nextInt(gridSize)][_random.nextInt(gridSize)] =
+            _random.nextBool();
       }
       allOptions.add(d);
     }
@@ -254,7 +302,8 @@ class WarpFoldGenerator {
       if (dx == 0 && dy == 0) {
         return _flipRandomCells(correct, gridSize);
       }
-      final shifted = List.generate(gridSize, (_) => List.filled(gridSize, false));
+      final shifted =
+          List.generate(gridSize, (_) => List.filled(gridSize, false));
       for (int r = 0; r < gridSize; r++) {
         for (int c = 0; c < gridSize; c++) {
           if (correct[r][c]) {

@@ -1,7 +1,7 @@
 // lib/core/services/progress_service.dart
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'profile_preferences.dart';
 import '../../../features/games/providers/game_provider.dart';
 
 class ProgressService {
@@ -15,10 +15,8 @@ class ProgressService {
   Future<void> saveProgress(GameProvider gameProvider) async {
     _log('Saving game progress...');
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final data = gameProvider.toJson();
-      final jsonString = json.encode(data);
-      await prefs.setString(_progressKey, jsonString);
+      final jsonString = json.encode(gameProvider.toJson());
+      await ProfilePreferences.writeString(_progressKey, jsonString);
       _log('✅ Game progress saved successfully.');
       _log('Data: $jsonString');
     } catch (e) {
@@ -29,7 +27,7 @@ class ProgressService {
   Future<void> loadProgress(GameProvider gameProvider) async {
     _log('Loading game progress...');
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await ProfilePreferences.getInstance();
       final jsonString = prefs.getString(_progressKey);
       if (jsonString != null) {
         final Map<String, dynamic> data = json.decode(jsonString);
@@ -37,9 +35,11 @@ class ProgressService {
         _log('✅ Game progress loaded successfully.');
         _log('Data: $jsonString');
       } else {
+        gameProvider.fromJson({});
         _log('No saved progress found.');
       }
     } catch (e) {
+      gameProvider.fromJson({});
       _log('❌ Error loading progress: $e. Starting with default state.');
     }
   }

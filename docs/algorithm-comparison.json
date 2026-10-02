@@ -1,0 +1,5218 @@
+{
+  "kind": "paired-algorithm-comparison",
+  "sameHintBoards": true,
+  "summary": [
+    {
+      "game": "robot_path_game",
+      "algorithm": "legacy",
+      "samples": 36,
+      "generationMedianMs": 0.079,
+      "hintMedianMs": 0.02,
+      "verifiedHints": 0,
+      "failedBoards": 4
+    },
+    {
+      "game": "robot_path_game",
+      "algorithm": "candidate",
+      "samples": 36,
+      "generationMedianMs": 2.273,
+      "hintMedianMs": 0.022,
+      "verifiedHints": 0,
+      "failedBoards": 0
+    },
+    {
+      "game": "arithmatic_square",
+      "algorithm": "legacy",
+      "samples": 36,
+      "generationMedianMs": 159.514,
+      "hintMedianMs": 0.081,
+      "verifiedHints": 0,
+      "failedBoards": 0
+    },
+    {
+      "game": "arithmatic_square",
+      "algorithm": "candidate",
+      "samples": 36,
+      "generationMedianMs": 6.661,
+      "hintMedianMs": 0.033,
+      "verifiedHints": 0,
+      "failedBoards": 0
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "algorithm": "legacy",
+      "samples": 36,
+      "generationMedianMs": 63.848,
+      "hintMedianMs": 0.073,
+      "verifiedHints": 0,
+      "failedBoards": 0
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "algorithm": "candidate",
+      "samples": 36,
+      "generationMedianMs": 15.781,
+      "hintMedianMs": 0.06,
+      "verifiedHints": 0,
+      "failedBoards": 0
+    },
+    {
+      "game": "kenken",
+      "algorithm": "legacy",
+      "samples": 36,
+      "generationMedianMs": 0.13,
+      "hintMedianMs": 26.408,
+      "verifiedHints": 21,
+      "failedBoards": 0
+    },
+    {
+      "game": "kenken",
+      "algorithm": "candidate",
+      "samples": 36,
+      "generationMedianMs": 0.13,
+      "hintMedianMs": 1.014,
+      "verifiedHints": 32,
+      "failedBoards": 0
+    },
+    {
+      "game": "orbital_towers",
+      "algorithm": "legacy",
+      "samples": 36,
+      "generationMedianMs": 0.167,
+      "hintMedianMs": 40.178,
+      "verifiedHints": 16,
+      "failedBoards": 0
+    },
+    {
+      "game": "orbital_towers",
+      "algorithm": "candidate",
+      "samples": 36,
+      "generationMedianMs": 0.173,
+      "hintMedianMs": 5.831,
+      "verifiedHints": 36,
+      "failedBoards": 0
+    }
+  ],
+  "results": [
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 1,
+      "sample": 0,
+      "seed": 20272018,
+      "algorithm": "legacy",
+      "generationMs": 0.129,
+      "hintMs": 0.028,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 1,
+      "sample": 0,
+      "seed": 20272018,
+      "algorithm": "candidate",
+      "generationMs": 0.174,
+      "hintMs": 0.01,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 1,
+      "sample": 1,
+      "seed": 20272115,
+      "algorithm": "legacy",
+      "generationMs": 0.023,
+      "hintMs": 0.004,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 1,
+      "sample": 1,
+      "seed": 20272115,
+      "algorithm": "candidate",
+      "generationMs": 0.09,
+      "hintMs": 0.004,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 1,
+      "sample": 2,
+      "seed": 20272212,
+      "algorithm": "legacy",
+      "generationMs": 0.016,
+      "hintMs": 0.004,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 1,
+      "sample": 2,
+      "seed": 20272212,
+      "algorithm": "candidate",
+      "generationMs": 0.104,
+      "hintMs": 0.004,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 10,
+      "sample": 0,
+      "seed": 20281099,
+      "algorithm": "legacy",
+      "generationMs": 0.031,
+      "hintMs": 0.003,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 10,
+      "sample": 0,
+      "seed": 20281099,
+      "algorithm": "candidate",
+      "generationMs": 3.449,
+      "hintMs": 0.014,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 10,
+      "sample": 1,
+      "seed": 20281196,
+      "algorithm": "legacy",
+      "generationMs": 0.078,
+      "hintMs": 0.015,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 10,
+      "sample": 1,
+      "seed": 20281196,
+      "algorithm": "candidate",
+      "generationMs": 0.691,
+      "hintMs": 0.026,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 10,
+      "sample": 2,
+      "seed": 20281293,
+      "algorithm": "legacy",
+      "generationMs": 0.087,
+      "hintMs": 0.013,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 10,
+      "sample": 2,
+      "seed": 20281293,
+      "algorithm": "candidate",
+      "generationMs": 0.783,
+      "hintMs": 0.028,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 20,
+      "sample": 0,
+      "seed": 20291189,
+      "algorithm": "legacy",
+      "generationMs": 0.099,
+      "hintMs": 0.014,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 20,
+      "sample": 0,
+      "seed": 20291189,
+      "algorithm": "candidate",
+      "generationMs": 4.118,
+      "hintMs": 0.019,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 20,
+      "sample": 1,
+      "seed": 20291286,
+      "algorithm": "legacy",
+      "generationMs": 0.079,
+      "hintMs": 0.022,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 20,
+      "sample": 1,
+      "seed": 20291286,
+      "algorithm": "candidate",
+      "generationMs": 4.281,
+      "hintMs": 0.025,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 20,
+      "sample": 2,
+      "seed": 20291383,
+      "algorithm": "legacy",
+      "generationMs": 0.077,
+      "hintMs": 0.021,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 1,
+      "level": 20,
+      "sample": 2,
+      "seed": 20291383,
+      "algorithm": "candidate",
+      "generationMs": 0.795,
+      "hintMs": 0.02,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 1,
+      "sample": 0,
+      "seed": 20282025,
+      "algorithm": "legacy",
+      "generationMs": 0.063,
+      "hintMs": 0.012,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 1,
+      "sample": 0,
+      "seed": 20282025,
+      "algorithm": "candidate",
+      "generationMs": 0.371,
+      "hintMs": 0.017,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 1,
+      "sample": 1,
+      "seed": 20282122,
+      "algorithm": "legacy",
+      "generationMs": 0.059,
+      "hintMs": 0.01,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 1,
+      "sample": 1,
+      "seed": 20282122,
+      "algorithm": "candidate",
+      "generationMs": 3.466,
+      "hintMs": 0.02,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 1,
+      "sample": 2,
+      "seed": 20282219,
+      "algorithm": "legacy",
+      "generationMs": 0.064,
+      "hintMs": 0.014,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 1,
+      "sample": 2,
+      "seed": 20282219,
+      "algorithm": "candidate",
+      "generationMs": 0.415,
+      "hintMs": 0.024,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 10,
+      "sample": 0,
+      "seed": 20291106,
+      "algorithm": "legacy",
+      "generationMs": 0.085,
+      "hintMs": 0.02,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 10,
+      "sample": 0,
+      "seed": 20291106,
+      "algorithm": "candidate",
+      "generationMs": 4.996,
+      "hintMs": 0.027,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 10,
+      "sample": 1,
+      "seed": 20291203,
+      "algorithm": "legacy",
+      "generationMs": 0.084,
+      "hintMs": 0.044,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 10,
+      "sample": 1,
+      "seed": 20291203,
+      "algorithm": "candidate",
+      "generationMs": 1.065,
+      "hintMs": 0.026,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 10,
+      "sample": 2,
+      "seed": 20291300,
+      "algorithm": "legacy",
+      "generationMs": 0.082,
+      "hintMs": 0.011,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 10,
+      "sample": 2,
+      "seed": 20291300,
+      "algorithm": "candidate",
+      "generationMs": 0.429,
+      "hintMs": 0.02,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 20,
+      "sample": 0,
+      "seed": 20301196,
+      "algorithm": "legacy",
+      "generationMs": 0.073,
+      "hintMs": 0.015,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 20,
+      "sample": 0,
+      "seed": 20301196,
+      "algorithm": "candidate",
+      "generationMs": 0.546,
+      "hintMs": 0.008,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 20,
+      "sample": 1,
+      "seed": 20301293,
+      "algorithm": "legacy",
+      "generationMs": 0.06,
+      "hintMs": 0.023,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 20,
+      "sample": 1,
+      "seed": 20301293,
+      "algorithm": "candidate",
+      "generationMs": 0.733,
+      "hintMs": 0.009,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 20,
+      "sample": 2,
+      "seed": 20301390,
+      "algorithm": "legacy",
+      "generationMs": 0.062,
+      "hintMs": 0.017,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 2,
+      "level": 20,
+      "sample": 2,
+      "seed": 20301390,
+      "algorithm": "candidate",
+      "generationMs": 0.465,
+      "hintMs": 0.014,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 1,
+      "sample": 0,
+      "seed": 20292032,
+      "algorithm": "legacy",
+      "generationMs": 0.128,
+      "hintMs": 0.008,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 1,
+      "sample": 0,
+      "seed": 20292032,
+      "algorithm": "candidate",
+      "generationMs": 3.973,
+      "hintMs": 0.016,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 1,
+      "sample": 1,
+      "seed": 20292129,
+      "algorithm": "legacy",
+      "generationMs": 0.065,
+      "hintMs": 0.004,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 1,
+      "sample": 1,
+      "seed": 20292129,
+      "algorithm": "candidate",
+      "generationMs": 0.552,
+      "hintMs": 0.01,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 1,
+      "sample": 2,
+      "seed": 20292226,
+      "algorithm": "legacy",
+      "generationMs": 0.053,
+      "hintMs": 0.021,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 1,
+      "sample": 2,
+      "seed": 20292226,
+      "algorithm": "candidate",
+      "generationMs": 6.066,
+      "hintMs": 0.03,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 10,
+      "sample": 0,
+      "seed": 20301113,
+      "algorithm": "legacy",
+      "generationMs": 0.251,
+      "hintMs": 0.028,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 10,
+      "sample": 0,
+      "seed": 20301113,
+      "algorithm": "candidate",
+      "generationMs": 2.851,
+      "hintMs": 0.024,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 10,
+      "sample": 1,
+      "seed": 20301210,
+      "algorithm": "legacy",
+      "generationMs": 0.085,
+      "hintMs": 0.021,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 10,
+      "sample": 1,
+      "seed": 20301210,
+      "algorithm": "candidate",
+      "generationMs": 19.168,
+      "hintMs": 0.12,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 10,
+      "sample": 2,
+      "seed": 20301307,
+      "algorithm": "legacy",
+      "generationMs": 0.072,
+      "hintMs": 0.026,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 10,
+      "sample": 2,
+      "seed": 20301307,
+      "algorithm": "candidate",
+      "generationMs": 1.535,
+      "hintMs": 0.279,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 20,
+      "sample": 0,
+      "seed": 20311203,
+      "algorithm": "legacy",
+      "generationMs": 0.161,
+      "hintMs": 0.011,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 20,
+      "sample": 0,
+      "seed": 20311203,
+      "algorithm": "candidate",
+      "generationMs": 0.586,
+      "hintMs": 0.022,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 20,
+      "sample": 1,
+      "seed": 20311300,
+      "algorithm": "legacy",
+      "generationMs": 0.069,
+      "hintMs": 0.011,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 20,
+      "sample": 1,
+      "seed": 20311300,
+      "algorithm": "candidate",
+      "generationMs": 1.176,
+      "hintMs": 0.019,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 20,
+      "sample": 2,
+      "seed": 20311397,
+      "algorithm": "legacy",
+      "generationMs": 0.052,
+      "hintMs": 0.023,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 3,
+      "level": 20,
+      "sample": 2,
+      "seed": 20311397,
+      "algorithm": "candidate",
+      "generationMs": 7.525,
+      "hintMs": 0.029,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 1,
+      "sample": 0,
+      "seed": 20302039,
+      "algorithm": "legacy",
+      "generationMs": 0.18,
+      "hintMs": 0.022,
+      "hintVerified": false,
+      "failures": [
+        "Robot command allowance is below proven solution"
+      ],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 1,
+      "sample": 0,
+      "seed": 20302039,
+      "algorithm": "candidate",
+      "generationMs": 3.105,
+      "hintMs": 0.023,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 1,
+      "sample": 1,
+      "seed": 20302136,
+      "algorithm": "legacy",
+      "generationMs": 0.063,
+      "hintMs": 0.036,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 1,
+      "sample": 1,
+      "seed": 20302136,
+      "algorithm": "candidate",
+      "generationMs": 4.039,
+      "hintMs": 0.015,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 1,
+      "sample": 2,
+      "seed": 20302233,
+      "algorithm": "legacy",
+      "generationMs": 0.116,
+      "hintMs": 0.017,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 1,
+      "sample": 2,
+      "seed": 20302233,
+      "algorithm": "candidate",
+      "generationMs": 2.273,
+      "hintMs": 0.021,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 10,
+      "sample": 0,
+      "seed": 20311120,
+      "algorithm": "legacy",
+      "generationMs": 0.062,
+      "hintMs": 0.02,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 10,
+      "sample": 0,
+      "seed": 20311120,
+      "algorithm": "candidate",
+      "generationMs": 3.534,
+      "hintMs": 0.024,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 10,
+      "sample": 1,
+      "seed": 20311217,
+      "algorithm": "legacy",
+      "generationMs": 0.137,
+      "hintMs": 0.032,
+      "hintVerified": false,
+      "failures": [
+        "Robot command allowance is below proven solution"
+      ],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 10,
+      "sample": 1,
+      "seed": 20311217,
+      "algorithm": "candidate",
+      "generationMs": 16.377,
+      "hintMs": 0.031,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 10,
+      "sample": 2,
+      "seed": 20311314,
+      "algorithm": "legacy",
+      "generationMs": 0.08,
+      "hintMs": 0.017,
+      "hintVerified": false,
+      "failures": [
+        "Robot command allowance is below proven solution"
+      ],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 10,
+      "sample": 2,
+      "seed": 20311314,
+      "algorithm": "candidate",
+      "generationMs": 7.043,
+      "hintMs": 0.028,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 20,
+      "sample": 0,
+      "seed": 20321210,
+      "algorithm": "legacy",
+      "generationMs": 0.079,
+      "hintMs": 0.028,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 20,
+      "sample": 0,
+      "seed": 20321210,
+      "algorithm": "candidate",
+      "generationMs": 1.253,
+      "hintMs": 0.018,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 20,
+      "sample": 1,
+      "seed": 20321307,
+      "algorithm": "legacy",
+      "generationMs": 0.15,
+      "hintMs": 0.025,
+      "hintVerified": false,
+      "failures": [
+        "Robot command allowance is below proven solution"
+      ],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 20,
+      "sample": 1,
+      "seed": 20321307,
+      "algorithm": "candidate",
+      "generationMs": 19.505,
+      "hintMs": 0.031,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 20,
+      "sample": 2,
+      "seed": 20321404,
+      "algorithm": "legacy",
+      "generationMs": 1.292,
+      "hintMs": 0.022,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "legacy"
+      }
+    },
+    {
+      "game": "robot_path_game",
+      "grade": 4,
+      "level": 20,
+      "sample": 2,
+      "seed": 20321404,
+      "algorithm": "candidate",
+      "generationMs": 18.282,
+      "hintMs": 0.034,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "robot-path": "candidate-verified"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 1,
+      "sample": 0,
+      "seed": 20272018,
+      "algorithm": "legacy",
+      "generationMs": 4.609,
+      "hintMs": 1.617,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 1,
+      "sample": 0,
+      "seed": 20272018,
+      "algorithm": "candidate",
+      "generationMs": 0.608,
+      "hintMs": 0.042,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 1,
+      "sample": 1,
+      "seed": 20272115,
+      "algorithm": "legacy",
+      "generationMs": 4.084,
+      "hintMs": 0.066,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 1,
+      "sample": 1,
+      "seed": 20272115,
+      "algorithm": "candidate",
+      "generationMs": 0.443,
+      "hintMs": 0.018,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 1,
+      "sample": 2,
+      "seed": 20272212,
+      "algorithm": "legacy",
+      "generationMs": 5.129,
+      "hintMs": 0.031,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 1,
+      "sample": 2,
+      "seed": 20272212,
+      "algorithm": "candidate",
+      "generationMs": 2.107,
+      "hintMs": 0.067,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 10,
+      "sample": 0,
+      "seed": 20281099,
+      "algorithm": "legacy",
+      "generationMs": 18.667,
+      "hintMs": 0.033,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 10,
+      "sample": 0,
+      "seed": 20281099,
+      "algorithm": "candidate",
+      "generationMs": 3.761,
+      "hintMs": 0.031,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 10,
+      "sample": 1,
+      "seed": 20281196,
+      "algorithm": "legacy",
+      "generationMs": 18.839,
+      "hintMs": 0.084,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 10,
+      "sample": 1,
+      "seed": 20281196,
+      "algorithm": "candidate",
+      "generationMs": 2.292,
+      "hintMs": 0.027,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 10,
+      "sample": 2,
+      "seed": 20281293,
+      "algorithm": "legacy",
+      "generationMs": 21.771,
+      "hintMs": 0.04,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 10,
+      "sample": 2,
+      "seed": 20281293,
+      "algorithm": "candidate",
+      "generationMs": 3.232,
+      "hintMs": 0.034,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 20,
+      "sample": 0,
+      "seed": 20291189,
+      "algorithm": "legacy",
+      "generationMs": 28.229,
+      "hintMs": 0.032,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 20,
+      "sample": 0,
+      "seed": 20291189,
+      "algorithm": "candidate",
+      "generationMs": 4.822,
+      "hintMs": 0.032,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 20,
+      "sample": 1,
+      "seed": 20291286,
+      "algorithm": "legacy",
+      "generationMs": 18.739,
+      "hintMs": 0.114,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 20,
+      "sample": 1,
+      "seed": 20291286,
+      "algorithm": "candidate",
+      "generationMs": 3.411,
+      "hintMs": 0.032,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 20,
+      "sample": 2,
+      "seed": 20291383,
+      "algorithm": "legacy",
+      "generationMs": 23.155,
+      "hintMs": 0.038,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 1,
+      "level": 20,
+      "sample": 2,
+      "seed": 20291383,
+      "algorithm": "candidate",
+      "generationMs": 3.384,
+      "hintMs": 0.034,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 1,
+      "sample": 0,
+      "seed": 20282025,
+      "algorithm": "legacy",
+      "generationMs": 45.834,
+      "hintMs": 0.032,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 1,
+      "sample": 0,
+      "seed": 20282025,
+      "algorithm": "candidate",
+      "generationMs": 4.68,
+      "hintMs": 0.034,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 1,
+      "sample": 1,
+      "seed": 20282122,
+      "algorithm": "legacy",
+      "generationMs": 40.477,
+      "hintMs": 0.176,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 1,
+      "sample": 1,
+      "seed": 20282122,
+      "algorithm": "candidate",
+      "generationMs": 2.845,
+      "hintMs": 0.029,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 1,
+      "sample": 2,
+      "seed": 20282219,
+      "algorithm": "legacy",
+      "generationMs": 113.454,
+      "hintMs": 0.08,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 1,
+      "sample": 2,
+      "seed": 20282219,
+      "algorithm": "candidate",
+      "generationMs": 7.895,
+      "hintMs": 0.032,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 10,
+      "sample": 0,
+      "seed": 20291106,
+      "algorithm": "legacy",
+      "generationMs": 271.895,
+      "hintMs": 1.115,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 10,
+      "sample": 0,
+      "seed": 20291106,
+      "algorithm": "candidate",
+      "generationMs": 26.461,
+      "hintMs": 0.059,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 10,
+      "sample": 1,
+      "seed": 20291203,
+      "algorithm": "legacy",
+      "generationMs": 130.697,
+      "hintMs": 0.081,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 10,
+      "sample": 1,
+      "seed": 20291203,
+      "algorithm": "candidate",
+      "generationMs": 6.022,
+      "hintMs": 0.031,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 10,
+      "sample": 2,
+      "seed": 20291300,
+      "algorithm": "legacy",
+      "generationMs": 192.722,
+      "hintMs": 0.091,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 10,
+      "sample": 2,
+      "seed": 20291300,
+      "algorithm": "candidate",
+      "generationMs": 6.895,
+      "hintMs": 0.033,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 20,
+      "sample": 0,
+      "seed": 20301196,
+      "algorithm": "legacy",
+      "generationMs": 832.97,
+      "hintMs": 0.134,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 20,
+      "sample": 0,
+      "seed": 20301196,
+      "algorithm": "candidate",
+      "generationMs": 69.171,
+      "hintMs": 0.033,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 20,
+      "sample": 1,
+      "seed": 20301293,
+      "algorithm": "legacy",
+      "generationMs": 159.514,
+      "hintMs": 0.091,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 20,
+      "sample": 1,
+      "seed": 20301293,
+      "algorithm": "candidate",
+      "generationMs": 5.134,
+      "hintMs": 0.042,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 20,
+      "sample": 2,
+      "seed": 20301390,
+      "algorithm": "legacy",
+      "generationMs": 1052.131,
+      "hintMs": 2.464,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 2,
+      "level": 20,
+      "sample": 2,
+      "seed": 20301390,
+      "algorithm": "candidate",
+      "generationMs": 59.722,
+      "hintMs": 0.032,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 1,
+      "sample": 0,
+      "seed": 20292032,
+      "algorithm": "legacy",
+      "generationMs": 50.117,
+      "hintMs": 0.078,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 1,
+      "sample": 0,
+      "seed": 20292032,
+      "algorithm": "candidate",
+      "generationMs": 22.455,
+      "hintMs": 0.032,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 1,
+      "sample": 1,
+      "seed": 20292129,
+      "algorithm": "legacy",
+      "generationMs": 205.2,
+      "hintMs": 0.078,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 1,
+      "sample": 1,
+      "seed": 20292129,
+      "algorithm": "candidate",
+      "generationMs": 7.209,
+      "hintMs": 0.035,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 1,
+      "sample": 2,
+      "seed": 20292226,
+      "algorithm": "legacy",
+      "generationMs": 13.978,
+      "hintMs": 0.076,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 1,
+      "sample": 2,
+      "seed": 20292226,
+      "algorithm": "candidate",
+      "generationMs": 1.857,
+      "hintMs": 0.031,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 10,
+      "sample": 0,
+      "seed": 20301113,
+      "algorithm": "legacy",
+      "generationMs": 259.873,
+      "hintMs": 0.078,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 10,
+      "sample": 0,
+      "seed": 20301113,
+      "algorithm": "candidate",
+      "generationMs": 15.963,
+      "hintMs": 0.059,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 10,
+      "sample": 1,
+      "seed": 20301210,
+      "algorithm": "legacy",
+      "generationMs": 258.068,
+      "hintMs": 0.12,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 10,
+      "sample": 1,
+      "seed": 20301210,
+      "algorithm": "candidate",
+      "generationMs": 6.661,
+      "hintMs": 0.032,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 10,
+      "sample": 2,
+      "seed": 20301307,
+      "algorithm": "legacy",
+      "generationMs": 508.526,
+      "hintMs": 0.078,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 10,
+      "sample": 2,
+      "seed": 20301307,
+      "algorithm": "candidate",
+      "generationMs": 18.018,
+      "hintMs": 0.033,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 20,
+      "sample": 0,
+      "seed": 20311203,
+      "algorithm": "legacy",
+      "generationMs": 384.813,
+      "hintMs": 0.088,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 20,
+      "sample": 0,
+      "seed": 20311203,
+      "algorithm": "candidate",
+      "generationMs": 1.046,
+      "hintMs": 0.027,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 20,
+      "sample": 1,
+      "seed": 20311300,
+      "algorithm": "legacy",
+      "generationMs": 828.311,
+      "hintMs": 0.08,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 20,
+      "sample": 1,
+      "seed": 20311300,
+      "algorithm": "candidate",
+      "generationMs": 13.844,
+      "hintMs": 0.034,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 20,
+      "sample": 2,
+      "seed": 20311397,
+      "algorithm": "legacy",
+      "generationMs": 321.448,
+      "hintMs": 0.078,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 3,
+      "level": 20,
+      "sample": 2,
+      "seed": 20311397,
+      "algorithm": "candidate",
+      "generationMs": 9.499,
+      "hintMs": 0.035,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 1,
+      "sample": 0,
+      "seed": 20302039,
+      "algorithm": "legacy",
+      "generationMs": 920.189,
+      "hintMs": 0.094,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 1,
+      "sample": 0,
+      "seed": 20302039,
+      "algorithm": "candidate",
+      "generationMs": 5.79,
+      "hintMs": 0.048,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 1,
+      "sample": 1,
+      "seed": 20302136,
+      "algorithm": "legacy",
+      "generationMs": 113.161,
+      "hintMs": 0.079,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 1,
+      "sample": 1,
+      "seed": 20302136,
+      "algorithm": "candidate",
+      "generationMs": 15.934,
+      "hintMs": 0.032,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 1,
+      "sample": 2,
+      "seed": 20302233,
+      "algorithm": "legacy",
+      "generationMs": 292.647,
+      "hintMs": 0.093,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 1,
+      "sample": 2,
+      "seed": 20302233,
+      "algorithm": "candidate",
+      "generationMs": 9.705,
+      "hintMs": 0.033,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 10,
+      "sample": 0,
+      "seed": 20311120,
+      "algorithm": "legacy",
+      "generationMs": 1038.217,
+      "hintMs": 0.097,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 10,
+      "sample": 0,
+      "seed": 20311120,
+      "algorithm": "candidate",
+      "generationMs": 4.707,
+      "hintMs": 0.031,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 10,
+      "sample": 1,
+      "seed": 20311217,
+      "algorithm": "legacy",
+      "generationMs": 121.213,
+      "hintMs": 0.107,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 10,
+      "sample": 1,
+      "seed": 20311217,
+      "algorithm": "candidate",
+      "generationMs": 12.055,
+      "hintMs": 0.044,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 10,
+      "sample": 2,
+      "seed": 20311314,
+      "algorithm": "legacy",
+      "generationMs": 45.14,
+      "hintMs": 0.082,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 10,
+      "sample": 2,
+      "seed": 20311314,
+      "algorithm": "candidate",
+      "generationMs": 5.886,
+      "hintMs": 0.031,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 20,
+      "sample": 0,
+      "seed": 20321210,
+      "algorithm": "legacy",
+      "generationMs": 331.175,
+      "hintMs": 0.078,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 20,
+      "sample": 0,
+      "seed": 20321210,
+      "algorithm": "candidate",
+      "generationMs": 17.882,
+      "hintMs": 0.045,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 20,
+      "sample": 1,
+      "seed": 20321307,
+      "algorithm": "legacy",
+      "generationMs": 675.759,
+      "hintMs": 0.079,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 20,
+      "sample": 1,
+      "seed": 20321307,
+      "algorithm": "candidate",
+      "generationMs": 42.951,
+      "hintMs": 0.048,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 20,
+      "sample": 2,
+      "seed": 20321404,
+      "algorithm": "legacy",
+      "generationMs": 2023.971,
+      "hintMs": 0.094,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "legacy"
+      }
+    },
+    {
+      "game": "arithmatic_square",
+      "grade": 4,
+      "level": 20,
+      "sample": 2,
+      "seed": 20321404,
+      "algorithm": "candidate",
+      "generationMs": 15.271,
+      "hintMs": 0.081,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "arithmetic-square": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 1,
+      "sample": 0,
+      "seed": 20272018,
+      "algorithm": "legacy",
+      "generationMs": 2.66,
+      "hintMs": 0.033,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 1,
+      "sample": 0,
+      "seed": 20272018,
+      "algorithm": "candidate",
+      "generationMs": 1.469,
+      "hintMs": 0.071,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 1,
+      "sample": 1,
+      "seed": 20272115,
+      "algorithm": "legacy",
+      "generationMs": 3.405,
+      "hintMs": 0.031,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 1,
+      "sample": 1,
+      "seed": 20272115,
+      "algorithm": "candidate",
+      "generationMs": 1.869,
+      "hintMs": 0.032,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 1,
+      "sample": 2,
+      "seed": 20272212,
+      "algorithm": "legacy",
+      "generationMs": 4.809,
+      "hintMs": 0.037,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 1,
+      "sample": 2,
+      "seed": 20272212,
+      "algorithm": "candidate",
+      "generationMs": 1.717,
+      "hintMs": 0.039,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 10,
+      "sample": 0,
+      "seed": 20281099,
+      "algorithm": "legacy",
+      "generationMs": 14.294,
+      "hintMs": 0.062,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 10,
+      "sample": 0,
+      "seed": 20281099,
+      "algorithm": "candidate",
+      "generationMs": 4.173,
+      "hintMs": 0.046,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 10,
+      "sample": 1,
+      "seed": 20281196,
+      "algorithm": "legacy",
+      "generationMs": 15.513,
+      "hintMs": 0.057,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 10,
+      "sample": 1,
+      "seed": 20281196,
+      "algorithm": "candidate",
+      "generationMs": 5.599,
+      "hintMs": 0.053,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 10,
+      "sample": 2,
+      "seed": 20281293,
+      "algorithm": "legacy",
+      "generationMs": 15.89,
+      "hintMs": 0.048,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 10,
+      "sample": 2,
+      "seed": 20281293,
+      "algorithm": "candidate",
+      "generationMs": 3.576,
+      "hintMs": 0.049,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 20,
+      "sample": 0,
+      "seed": 20291189,
+      "algorithm": "legacy",
+      "generationMs": 12.656,
+      "hintMs": 0.058,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 20,
+      "sample": 0,
+      "seed": 20291189,
+      "algorithm": "candidate",
+      "generationMs": 4.969,
+      "hintMs": 0.053,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 20,
+      "sample": 1,
+      "seed": 20291286,
+      "algorithm": "legacy",
+      "generationMs": 2.182,
+      "hintMs": 0.897,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 20,
+      "sample": 1,
+      "seed": 20291286,
+      "algorithm": "candidate",
+      "generationMs": 0.883,
+      "hintMs": 0.162,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 20,
+      "sample": 2,
+      "seed": 20291383,
+      "algorithm": "legacy",
+      "generationMs": 8.708,
+      "hintMs": 0.109,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 1,
+      "level": 20,
+      "sample": 2,
+      "seed": 20291383,
+      "algorithm": "candidate",
+      "generationMs": 5.03,
+      "hintMs": 0.049,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 1,
+      "sample": 0,
+      "seed": 20282025,
+      "algorithm": "legacy",
+      "generationMs": 24.424,
+      "hintMs": 0.055,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 1,
+      "sample": 0,
+      "seed": 20282025,
+      "algorithm": "candidate",
+      "generationMs": 4.947,
+      "hintMs": 0.062,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 1,
+      "sample": 1,
+      "seed": 20282122,
+      "algorithm": "legacy",
+      "generationMs": 31.342,
+      "hintMs": 0.042,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 1,
+      "sample": 1,
+      "seed": 20282122,
+      "algorithm": "candidate",
+      "generationMs": 3.223,
+      "hintMs": 0.043,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 1,
+      "sample": 2,
+      "seed": 20282219,
+      "algorithm": "legacy",
+      "generationMs": 41.902,
+      "hintMs": 0.082,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 1,
+      "sample": 2,
+      "seed": 20282219,
+      "algorithm": "candidate",
+      "generationMs": 8.599,
+      "hintMs": 0.075,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 10,
+      "sample": 0,
+      "seed": 20291106,
+      "algorithm": "legacy",
+      "generationMs": 51.321,
+      "hintMs": 0.107,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 10,
+      "sample": 0,
+      "seed": 20291106,
+      "algorithm": "candidate",
+      "generationMs": 6.973,
+      "hintMs": 0.147,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 10,
+      "sample": 1,
+      "seed": 20291203,
+      "algorithm": "legacy",
+      "generationMs": 44.046,
+      "hintMs": 0.05,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 10,
+      "sample": 1,
+      "seed": 20291203,
+      "algorithm": "candidate",
+      "generationMs": 8.467,
+      "hintMs": 0.062,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 10,
+      "sample": 2,
+      "seed": 20291300,
+      "algorithm": "legacy",
+      "generationMs": 63.342,
+      "hintMs": 0.044,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 10,
+      "sample": 2,
+      "seed": 20291300,
+      "algorithm": "candidate",
+      "generationMs": 10.028,
+      "hintMs": 0.045,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 20,
+      "sample": 0,
+      "seed": 20301196,
+      "algorithm": "legacy",
+      "generationMs": 24.889,
+      "hintMs": 0.049,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 20,
+      "sample": 0,
+      "seed": 20301196,
+      "algorithm": "candidate",
+      "generationMs": 3.823,
+      "hintMs": 0.089,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 20,
+      "sample": 1,
+      "seed": 20301293,
+      "algorithm": "legacy",
+      "generationMs": 63.848,
+      "hintMs": 0.044,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 20,
+      "sample": 1,
+      "seed": 20301293,
+      "algorithm": "candidate",
+      "generationMs": 17.404,
+      "hintMs": 0.05,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 20,
+      "sample": 2,
+      "seed": 20301390,
+      "algorithm": "legacy",
+      "generationMs": 231.385,
+      "hintMs": 0.148,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 2,
+      "level": 20,
+      "sample": 2,
+      "seed": 20301390,
+      "algorithm": "candidate",
+      "generationMs": 44.76,
+      "hintMs": 0.056,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 1,
+      "sample": 0,
+      "seed": 20292032,
+      "algorithm": "legacy",
+      "generationMs": 343.264,
+      "hintMs": 0.042,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 1,
+      "sample": 0,
+      "seed": 20292032,
+      "algorithm": "candidate",
+      "generationMs": 50.683,
+      "hintMs": 0.093,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 1,
+      "sample": 1,
+      "seed": 20292129,
+      "algorithm": "legacy",
+      "generationMs": 444.787,
+      "hintMs": 0.08,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 1,
+      "sample": 1,
+      "seed": 20292129,
+      "algorithm": "candidate",
+      "generationMs": 127.927,
+      "hintMs": 0.119,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 1,
+      "sample": 2,
+      "seed": 20292226,
+      "algorithm": "legacy",
+      "generationMs": 76.058,
+      "hintMs": 0.071,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 1,
+      "sample": 2,
+      "seed": 20292226,
+      "algorithm": "candidate",
+      "generationMs": 33.772,
+      "hintMs": 0.061,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 10,
+      "sample": 0,
+      "seed": 20301113,
+      "algorithm": "legacy",
+      "generationMs": 154.158,
+      "hintMs": 0.09,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 10,
+      "sample": 0,
+      "seed": 20301113,
+      "algorithm": "candidate",
+      "generationMs": 81.373,
+      "hintMs": 0.058,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 10,
+      "sample": 1,
+      "seed": 20301210,
+      "algorithm": "legacy",
+      "generationMs": 299.052,
+      "hintMs": 0.121,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 10,
+      "sample": 1,
+      "seed": 20301210,
+      "algorithm": "candidate",
+      "generationMs": 17.839,
+      "hintMs": 0.051,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 10,
+      "sample": 2,
+      "seed": 20301307,
+      "algorithm": "legacy",
+      "generationMs": 610.837,
+      "hintMs": 0.096,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 10,
+      "sample": 2,
+      "seed": 20301307,
+      "algorithm": "candidate",
+      "generationMs": 57.84,
+      "hintMs": 0.102,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 20,
+      "sample": 0,
+      "seed": 20311203,
+      "algorithm": "legacy",
+      "generationMs": 202.301,
+      "hintMs": 0.079,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 20,
+      "sample": 0,
+      "seed": 20311203,
+      "algorithm": "candidate",
+      "generationMs": 46.987,
+      "hintMs": 3.072,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 20,
+      "sample": 1,
+      "seed": 20311300,
+      "algorithm": "legacy",
+      "generationMs": 362.424,
+      "hintMs": 0.163,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 20,
+      "sample": 1,
+      "seed": 20311300,
+      "algorithm": "candidate",
+      "generationMs": 53.452,
+      "hintMs": 0.054,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 20,
+      "sample": 2,
+      "seed": 20311397,
+      "algorithm": "legacy",
+      "generationMs": 228.58,
+      "hintMs": 0.088,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 3,
+      "level": 20,
+      "sample": 2,
+      "seed": 20311397,
+      "algorithm": "candidate",
+      "generationMs": 59.535,
+      "hintMs": 0.099,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 1,
+      "sample": 0,
+      "seed": 20302039,
+      "algorithm": "legacy",
+      "generationMs": 325.949,
+      "hintMs": 0.073,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 1,
+      "sample": 0,
+      "seed": 20302039,
+      "algorithm": "candidate",
+      "generationMs": 22.199,
+      "hintMs": 0.077,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 1,
+      "sample": 1,
+      "seed": 20302136,
+      "algorithm": "legacy",
+      "generationMs": 216.67,
+      "hintMs": 0.15,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 1,
+      "sample": 1,
+      "seed": 20302136,
+      "algorithm": "candidate",
+      "generationMs": 49.386,
+      "hintMs": 0.041,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 1,
+      "sample": 2,
+      "seed": 20302233,
+      "algorithm": "legacy",
+      "generationMs": 169.258,
+      "hintMs": 0.1,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 1,
+      "sample": 2,
+      "seed": 20302233,
+      "algorithm": "candidate",
+      "generationMs": 15.781,
+      "hintMs": 0.084,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 10,
+      "sample": 0,
+      "seed": 20311120,
+      "algorithm": "legacy",
+      "generationMs": 72.17,
+      "hintMs": 0.066,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 10,
+      "sample": 0,
+      "seed": 20311120,
+      "algorithm": "candidate",
+      "generationMs": 15.802,
+      "hintMs": 0.081,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 10,
+      "sample": 1,
+      "seed": 20311217,
+      "algorithm": "legacy",
+      "generationMs": 62.524,
+      "hintMs": 0.09,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 10,
+      "sample": 1,
+      "seed": 20311217,
+      "algorithm": "candidate",
+      "generationMs": 18.551,
+      "hintMs": 0.049,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 10,
+      "sample": 2,
+      "seed": 20311314,
+      "algorithm": "legacy",
+      "generationMs": 20.38,
+      "hintMs": 0.04,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 10,
+      "sample": 2,
+      "seed": 20311314,
+      "algorithm": "candidate",
+      "generationMs": 10.276,
+      "hintMs": 0.038,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 20,
+      "sample": 0,
+      "seed": 20321210,
+      "algorithm": "legacy",
+      "generationMs": 74.699,
+      "hintMs": 0.048,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 20,
+      "sample": 0,
+      "seed": 20321210,
+      "algorithm": "candidate",
+      "generationMs": 12.292,
+      "hintMs": 0.069,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 20,
+      "sample": 1,
+      "seed": 20321307,
+      "algorithm": "legacy",
+      "generationMs": 294.797,
+      "hintMs": 0.106,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 20,
+      "sample": 1,
+      "seed": 20321307,
+      "algorithm": "candidate",
+      "generationMs": 114.017,
+      "hintMs": 0.06,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 20,
+      "sample": 2,
+      "seed": 20321404,
+      "algorithm": "legacy",
+      "generationMs": 587.07,
+      "hintMs": 0.108,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "legacy"
+      }
+    },
+    {
+      "game": "arithmancer_crosswords",
+      "grade": 4,
+      "level": 20,
+      "sample": 2,
+      "seed": 20321404,
+      "algorithm": "candidate",
+      "generationMs": 32.438,
+      "hintMs": 0.047,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {
+        "crossword": "candidate"
+      }
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 1,
+      "sample": 0,
+      "seed": 20272018,
+      "algorithm": "legacy",
+      "generationMs": 0.163,
+      "hintMs": 0.64,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 1,
+      "sample": 0,
+      "seed": 20272018,
+      "algorithm": "candidate",
+      "generationMs": 0.057,
+      "hintMs": 0.232,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 1,
+      "sample": 1,
+      "seed": 20272115,
+      "algorithm": "legacy",
+      "generationMs": 0.075,
+      "hintMs": 0.638,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 1,
+      "sample": 1,
+      "seed": 20272115,
+      "algorithm": "candidate",
+      "generationMs": 0.083,
+      "hintMs": 0.293,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 1,
+      "sample": 2,
+      "seed": 20272212,
+      "algorithm": "legacy",
+      "generationMs": 0.065,
+      "hintMs": 2.062,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 1,
+      "sample": 2,
+      "seed": 20272212,
+      "algorithm": "candidate",
+      "generationMs": 0.085,
+      "hintMs": 0.184,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 10,
+      "sample": 0,
+      "seed": 20281099,
+      "algorithm": "legacy",
+      "generationMs": 0.051,
+      "hintMs": 0.366,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 10,
+      "sample": 0,
+      "seed": 20281099,
+      "algorithm": "candidate",
+      "generationMs": 0.067,
+      "hintMs": 0.234,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 10,
+      "sample": 1,
+      "seed": 20281196,
+      "algorithm": "legacy",
+      "generationMs": 0.051,
+      "hintMs": 0.633,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 10,
+      "sample": 1,
+      "seed": 20281196,
+      "algorithm": "candidate",
+      "generationMs": 0.057,
+      "hintMs": 0.285,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 10,
+      "sample": 2,
+      "seed": 20281293,
+      "algorithm": "legacy",
+      "generationMs": 0.056,
+      "hintMs": 0.309,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 10,
+      "sample": 2,
+      "seed": 20281293,
+      "algorithm": "candidate",
+      "generationMs": 0.066,
+      "hintMs": 0.337,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 20,
+      "sample": 0,
+      "seed": 20291189,
+      "algorithm": "legacy",
+      "generationMs": 0.055,
+      "hintMs": 0.414,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 20,
+      "sample": 0,
+      "seed": 20291189,
+      "algorithm": "candidate",
+      "generationMs": 0.049,
+      "hintMs": 0.242,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 20,
+      "sample": 1,
+      "seed": 20291286,
+      "algorithm": "legacy",
+      "generationMs": 0.064,
+      "hintMs": 0.417,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 20,
+      "sample": 1,
+      "seed": 20291286,
+      "algorithm": "candidate",
+      "generationMs": 0.058,
+      "hintMs": 0.171,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 20,
+      "sample": 2,
+      "seed": 20291383,
+      "algorithm": "legacy",
+      "generationMs": 0.047,
+      "hintMs": 0.267,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 1,
+      "level": 20,
+      "sample": 2,
+      "seed": 20291383,
+      "algorithm": "candidate",
+      "generationMs": 0.13,
+      "hintMs": 0.244,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 1,
+      "sample": 0,
+      "seed": 20282025,
+      "algorithm": "legacy",
+      "generationMs": 0.062,
+      "hintMs": 0.695,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 1,
+      "sample": 0,
+      "seed": 20282025,
+      "algorithm": "candidate",
+      "generationMs": 0.072,
+      "hintMs": 0.229,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 1,
+      "sample": 1,
+      "seed": 20282122,
+      "algorithm": "legacy",
+      "generationMs": 0.05,
+      "hintMs": 1.184,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 1,
+      "sample": 1,
+      "seed": 20282122,
+      "algorithm": "candidate",
+      "generationMs": 0.056,
+      "hintMs": 0.193,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 1,
+      "sample": 2,
+      "seed": 20282219,
+      "algorithm": "legacy",
+      "generationMs": 0.05,
+      "hintMs": 0.968,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 1,
+      "sample": 2,
+      "seed": 20282219,
+      "algorithm": "candidate",
+      "generationMs": 0.063,
+      "hintMs": 0.187,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 10,
+      "sample": 0,
+      "seed": 20291106,
+      "algorithm": "legacy",
+      "generationMs": 0.063,
+      "hintMs": 7.883,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 10,
+      "sample": 0,
+      "seed": 20291106,
+      "algorithm": "candidate",
+      "generationMs": 0.103,
+      "hintMs": 0.922,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 10,
+      "sample": 1,
+      "seed": 20291203,
+      "algorithm": "legacy",
+      "generationMs": 0.144,
+      "hintMs": 36.439,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 10,
+      "sample": 1,
+      "seed": 20291203,
+      "algorithm": "candidate",
+      "generationMs": 0.112,
+      "hintMs": 1.29,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 10,
+      "sample": 2,
+      "seed": 20291300,
+      "algorithm": "legacy",
+      "generationMs": 0.13,
+      "hintMs": 4.241,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 10,
+      "sample": 2,
+      "seed": 20291300,
+      "algorithm": "candidate",
+      "generationMs": 0.108,
+      "hintMs": 0.836,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 20,
+      "sample": 0,
+      "seed": 20301196,
+      "algorithm": "legacy",
+      "generationMs": 0.085,
+      "hintMs": 26.408,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 20,
+      "sample": 0,
+      "seed": 20301196,
+      "algorithm": "candidate",
+      "generationMs": 0.11,
+      "hintMs": 1.014,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 20,
+      "sample": 1,
+      "seed": 20301293,
+      "algorithm": "legacy",
+      "generationMs": 0.078,
+      "hintMs": 31.761,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 20,
+      "sample": 1,
+      "seed": 20301293,
+      "algorithm": "candidate",
+      "generationMs": 0.107,
+      "hintMs": 1.103,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 20,
+      "sample": 2,
+      "seed": 20301390,
+      "algorithm": "legacy",
+      "generationMs": 0.087,
+      "hintMs": 7.015,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 2,
+      "level": 20,
+      "sample": 2,
+      "seed": 20301390,
+      "algorithm": "candidate",
+      "generationMs": 0.177,
+      "hintMs": 1.187,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 1,
+      "sample": 0,
+      "seed": 20292032,
+      "algorithm": "legacy",
+      "generationMs": 0.117,
+      "hintMs": 14.802,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 1,
+      "sample": 0,
+      "seed": 20292032,
+      "algorithm": "candidate",
+      "generationMs": 0.111,
+      "hintMs": 0.682,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 1,
+      "sample": 1,
+      "seed": 20292129,
+      "algorithm": "legacy",
+      "generationMs": 0.084,
+      "hintMs": 5.885,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 1,
+      "sample": 1,
+      "seed": 20292129,
+      "algorithm": "candidate",
+      "generationMs": 0.124,
+      "hintMs": 0.763,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 1,
+      "sample": 2,
+      "seed": 20292226,
+      "algorithm": "legacy",
+      "generationMs": 0.175,
+      "hintMs": 1.985,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 1,
+      "sample": 2,
+      "seed": 20292226,
+      "algorithm": "candidate",
+      "generationMs": 0.135,
+      "hintMs": 0.544,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 10,
+      "sample": 0,
+      "seed": 20301113,
+      "algorithm": "legacy",
+      "generationMs": 0.173,
+      "hintMs": 40.831,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 10,
+      "sample": 0,
+      "seed": 20301113,
+      "algorithm": "candidate",
+      "generationMs": 0.246,
+      "hintMs": 6.777,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 10,
+      "sample": 1,
+      "seed": 20301210,
+      "algorithm": "legacy",
+      "generationMs": 0.216,
+      "hintMs": 41.023,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 10,
+      "sample": 1,
+      "seed": 20301210,
+      "algorithm": "candidate",
+      "generationMs": 0.179,
+      "hintMs": 43.262,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 10,
+      "sample": 2,
+      "seed": 20301307,
+      "algorithm": "legacy",
+      "generationMs": 0.292,
+      "hintMs": 41.102,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 10,
+      "sample": 2,
+      "seed": 20301307,
+      "algorithm": "candidate",
+      "generationMs": 0.191,
+      "hintMs": 2.244,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 20,
+      "sample": 0,
+      "seed": 20311203,
+      "algorithm": "legacy",
+      "generationMs": 0.162,
+      "hintMs": 41.153,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 20,
+      "sample": 0,
+      "seed": 20311203,
+      "algorithm": "candidate",
+      "generationMs": 0.167,
+      "hintMs": 5.727,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 20,
+      "sample": 1,
+      "seed": 20311300,
+      "algorithm": "legacy",
+      "generationMs": 0.162,
+      "hintMs": 40.145,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 20,
+      "sample": 1,
+      "seed": 20311300,
+      "algorithm": "candidate",
+      "generationMs": 0.169,
+      "hintMs": 5.592,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 20,
+      "sample": 2,
+      "seed": 20311397,
+      "algorithm": "legacy",
+      "generationMs": 0.165,
+      "hintMs": 40.534,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 3,
+      "level": 20,
+      "sample": 2,
+      "seed": 20311397,
+      "algorithm": "candidate",
+      "generationMs": 0.168,
+      "hintMs": 3.511,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 1,
+      "sample": 0,
+      "seed": 20302039,
+      "algorithm": "legacy",
+      "generationMs": 0.136,
+      "hintMs": 41.138,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 1,
+      "sample": 0,
+      "seed": 20302039,
+      "algorithm": "candidate",
+      "generationMs": 0.139,
+      "hintMs": 0.804,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 1,
+      "sample": 1,
+      "seed": 20302136,
+      "algorithm": "legacy",
+      "generationMs": 0.113,
+      "hintMs": 44.169,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 1,
+      "sample": 1,
+      "seed": 20302136,
+      "algorithm": "candidate",
+      "generationMs": 0.147,
+      "hintMs": 1.161,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 1,
+      "sample": 2,
+      "seed": 20302233,
+      "algorithm": "legacy",
+      "generationMs": 0.136,
+      "hintMs": 40.237,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 1,
+      "sample": 2,
+      "seed": 20302233,
+      "algorithm": "candidate",
+      "generationMs": 0.155,
+      "hintMs": 26.436,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 10,
+      "sample": 0,
+      "seed": 20311120,
+      "algorithm": "legacy",
+      "generationMs": 4.105,
+      "hintMs": 41.874,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 10,
+      "sample": 0,
+      "seed": 20311120,
+      "algorithm": "candidate",
+      "generationMs": 0.263,
+      "hintMs": 5.327,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 10,
+      "sample": 1,
+      "seed": 20311217,
+      "algorithm": "legacy",
+      "generationMs": 0.251,
+      "hintMs": 40.996,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 10,
+      "sample": 1,
+      "seed": 20311217,
+      "algorithm": "candidate",
+      "generationMs": 0.212,
+      "hintMs": 22.859,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 10,
+      "sample": 2,
+      "seed": 20311314,
+      "algorithm": "legacy",
+      "generationMs": 0.197,
+      "hintMs": 40.58,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 10,
+      "sample": 2,
+      "seed": 20311314,
+      "algorithm": "candidate",
+      "generationMs": 0.166,
+      "hintMs": 8.454,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 20,
+      "sample": 0,
+      "seed": 20321210,
+      "algorithm": "legacy",
+      "generationMs": 0.241,
+      "hintMs": 42.822,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 20,
+      "sample": 0,
+      "seed": 20321210,
+      "algorithm": "candidate",
+      "generationMs": 0.363,
+      "hintMs": 43.416,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 20,
+      "sample": 1,
+      "seed": 20321307,
+      "algorithm": "legacy",
+      "generationMs": 0.313,
+      "hintMs": 61.558,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 20,
+      "sample": 1,
+      "seed": 20321307,
+      "algorithm": "candidate",
+      "generationMs": 0.317,
+      "hintMs": 43.038,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 20,
+      "sample": 2,
+      "seed": 20321404,
+      "algorithm": "legacy",
+      "generationMs": 0.342,
+      "hintMs": 54.533,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "kenken",
+      "grade": 4,
+      "level": 20,
+      "sample": 2,
+      "seed": 20321404,
+      "algorithm": "candidate",
+      "generationMs": 0.245,
+      "hintMs": 44.2,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 1,
+      "sample": 0,
+      "seed": 20272018,
+      "algorithm": "legacy",
+      "generationMs": 0.105,
+      "hintMs": 0.31,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 1,
+      "sample": 0,
+      "seed": 20272018,
+      "algorithm": "candidate",
+      "generationMs": 0.049,
+      "hintMs": 0.213,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 1,
+      "sample": 1,
+      "seed": 20272115,
+      "algorithm": "legacy",
+      "generationMs": 0.056,
+      "hintMs": 1.923,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 1,
+      "sample": 1,
+      "seed": 20272115,
+      "algorithm": "candidate",
+      "generationMs": 0.077,
+      "hintMs": 0.195,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 1,
+      "sample": 2,
+      "seed": 20272212,
+      "algorithm": "legacy",
+      "generationMs": 0.056,
+      "hintMs": 0.174,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 1,
+      "sample": 2,
+      "seed": 20272212,
+      "algorithm": "candidate",
+      "generationMs": 3.177,
+      "hintMs": 2.04,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 10,
+      "sample": 0,
+      "seed": 20281099,
+      "algorithm": "legacy",
+      "generationMs": 0.087,
+      "hintMs": 1.05,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 10,
+      "sample": 0,
+      "seed": 20281099,
+      "algorithm": "candidate",
+      "generationMs": 0.084,
+      "hintMs": 8.473,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 10,
+      "sample": 1,
+      "seed": 20281196,
+      "algorithm": "legacy",
+      "generationMs": 0.104,
+      "hintMs": 0.366,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 10,
+      "sample": 1,
+      "seed": 20281196,
+      "algorithm": "candidate",
+      "generationMs": 0.056,
+      "hintMs": 1.251,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 10,
+      "sample": 2,
+      "seed": 20281293,
+      "algorithm": "legacy",
+      "generationMs": 0.08,
+      "hintMs": 0.364,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 10,
+      "sample": 2,
+      "seed": 20281293,
+      "algorithm": "candidate",
+      "generationMs": 0.055,
+      "hintMs": 8.309,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 20,
+      "sample": 0,
+      "seed": 20291189,
+      "algorithm": "legacy",
+      "generationMs": 0.094,
+      "hintMs": 0.56,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 20,
+      "sample": 0,
+      "seed": 20291189,
+      "algorithm": "candidate",
+      "generationMs": 0.065,
+      "hintMs": 0.196,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 20,
+      "sample": 1,
+      "seed": 20291286,
+      "algorithm": "legacy",
+      "generationMs": 0.069,
+      "hintMs": 0.53,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 20,
+      "sample": 1,
+      "seed": 20291286,
+      "algorithm": "candidate",
+      "generationMs": 0.092,
+      "hintMs": 0.199,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 20,
+      "sample": 2,
+      "seed": 20291383,
+      "algorithm": "legacy",
+      "generationMs": 0.071,
+      "hintMs": 0.45,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 1,
+      "level": 20,
+      "sample": 2,
+      "seed": 20291383,
+      "algorithm": "candidate",
+      "generationMs": 0.095,
+      "hintMs": 0.454,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 1,
+      "sample": 0,
+      "seed": 20282025,
+      "algorithm": "legacy",
+      "generationMs": 0.113,
+      "hintMs": 9.955,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 1,
+      "sample": 0,
+      "seed": 20282025,
+      "algorithm": "candidate",
+      "generationMs": 0.151,
+      "hintMs": 1.496,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 1,
+      "sample": 1,
+      "seed": 20282122,
+      "algorithm": "legacy",
+      "generationMs": 0.138,
+      "hintMs": 11.707,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 1,
+      "sample": 1,
+      "seed": 20282122,
+      "algorithm": "candidate",
+      "generationMs": 0.128,
+      "hintMs": 0.78,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 1,
+      "sample": 2,
+      "seed": 20282219,
+      "algorithm": "legacy",
+      "generationMs": 0.13,
+      "hintMs": 6.936,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 1,
+      "sample": 2,
+      "seed": 20282219,
+      "algorithm": "candidate",
+      "generationMs": 0.151,
+      "hintMs": 0.495,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 10,
+      "sample": 0,
+      "seed": 20291106,
+      "algorithm": "legacy",
+      "generationMs": 0.088,
+      "hintMs": 41.122,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 10,
+      "sample": 0,
+      "seed": 20291106,
+      "algorithm": "candidate",
+      "generationMs": 3.082,
+      "hintMs": 1.187,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 10,
+      "sample": 1,
+      "seed": 20291203,
+      "algorithm": "legacy",
+      "generationMs": 0.189,
+      "hintMs": 16.085,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 10,
+      "sample": 1,
+      "seed": 20291203,
+      "algorithm": "candidate",
+      "generationMs": 0.132,
+      "hintMs": 1.183,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 10,
+      "sample": 2,
+      "seed": 20291300,
+      "algorithm": "legacy",
+      "generationMs": 0.193,
+      "hintMs": 22.07,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 10,
+      "sample": 2,
+      "seed": 20291300,
+      "algorithm": "candidate",
+      "generationMs": 0.124,
+      "hintMs": 9.627,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 20,
+      "sample": 0,
+      "seed": 20301196,
+      "algorithm": "legacy",
+      "generationMs": 0.104,
+      "hintMs": 7.476,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 20,
+      "sample": 0,
+      "seed": 20301196,
+      "algorithm": "candidate",
+      "generationMs": 0.112,
+      "hintMs": 0.528,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 20,
+      "sample": 1,
+      "seed": 20301293,
+      "algorithm": "legacy",
+      "generationMs": 0.207,
+      "hintMs": 40.131,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 20,
+      "sample": 1,
+      "seed": 20301293,
+      "algorithm": "candidate",
+      "generationMs": 0.137,
+      "hintMs": 0.836,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 20,
+      "sample": 2,
+      "seed": 20301390,
+      "algorithm": "legacy",
+      "generationMs": 0.123,
+      "hintMs": 5.779,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 2,
+      "level": 20,
+      "sample": 2,
+      "seed": 20301390,
+      "algorithm": "candidate",
+      "generationMs": 0.162,
+      "hintMs": 0.828,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 1,
+      "sample": 0,
+      "seed": 20292032,
+      "algorithm": "legacy",
+      "generationMs": 0.186,
+      "hintMs": 40.192,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 1,
+      "sample": 0,
+      "seed": 20292032,
+      "algorithm": "candidate",
+      "generationMs": 0.186,
+      "hintMs": 3.692,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 1,
+      "sample": 1,
+      "seed": 20292129,
+      "algorithm": "legacy",
+      "generationMs": 0.229,
+      "hintMs": 40.728,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 1,
+      "sample": 1,
+      "seed": 20292129,
+      "algorithm": "candidate",
+      "generationMs": 0.205,
+      "hintMs": 24.313,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 1,
+      "sample": 2,
+      "seed": 20292226,
+      "algorithm": "legacy",
+      "generationMs": 0.201,
+      "hintMs": 40.178,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 1,
+      "sample": 2,
+      "seed": 20292226,
+      "algorithm": "candidate",
+      "generationMs": 0.363,
+      "hintMs": 2.217,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 10,
+      "sample": 0,
+      "seed": 20301113,
+      "algorithm": "legacy",
+      "generationMs": 0.805,
+      "hintMs": 40.253,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 10,
+      "sample": 0,
+      "seed": 20301113,
+      "algorithm": "candidate",
+      "generationMs": 0.186,
+      "hintMs": 21.819,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 10,
+      "sample": 1,
+      "seed": 20301210,
+      "algorithm": "legacy",
+      "generationMs": 0.208,
+      "hintMs": 42.44,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 10,
+      "sample": 1,
+      "seed": 20301210,
+      "algorithm": "candidate",
+      "generationMs": 1.266,
+      "hintMs": 9.576,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 10,
+      "sample": 2,
+      "seed": 20301307,
+      "algorithm": "legacy",
+      "generationMs": 0.226,
+      "hintMs": 40.124,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 10,
+      "sample": 2,
+      "seed": 20301307,
+      "algorithm": "candidate",
+      "generationMs": 0.175,
+      "hintMs": 7.862,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 20,
+      "sample": 0,
+      "seed": 20311203,
+      "algorithm": "legacy",
+      "generationMs": 0.175,
+      "hintMs": 41.144,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 20,
+      "sample": 0,
+      "seed": 20311203,
+      "algorithm": "candidate",
+      "generationMs": 0.216,
+      "hintMs": 7.213,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 20,
+      "sample": 1,
+      "seed": 20311300,
+      "algorithm": "legacy",
+      "generationMs": 1.541,
+      "hintMs": 40.688,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 20,
+      "sample": 1,
+      "seed": 20311300,
+      "algorithm": "candidate",
+      "generationMs": 0.221,
+      "hintMs": 8.892,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 20,
+      "sample": 2,
+      "seed": 20311397,
+      "algorithm": "legacy",
+      "generationMs": 0.146,
+      "hintMs": 46.612,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 3,
+      "level": 20,
+      "sample": 2,
+      "seed": 20311397,
+      "algorithm": "candidate",
+      "generationMs": 0.173,
+      "hintMs": 9.564,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 1,
+      "sample": 0,
+      "seed": 20302039,
+      "algorithm": "legacy",
+      "generationMs": 0.167,
+      "hintMs": 46.654,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 1,
+      "sample": 0,
+      "seed": 20302039,
+      "algorithm": "candidate",
+      "generationMs": 0.191,
+      "hintMs": 8.631,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 1,
+      "sample": 1,
+      "seed": 20302136,
+      "algorithm": "legacy",
+      "generationMs": 0.154,
+      "hintMs": 44.304,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 1,
+      "sample": 1,
+      "seed": 20302136,
+      "algorithm": "candidate",
+      "generationMs": 0.174,
+      "hintMs": 5.949,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 1,
+      "sample": 2,
+      "seed": 20302233,
+      "algorithm": "legacy",
+      "generationMs": 0.234,
+      "hintMs": 41.518,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 1,
+      "sample": 2,
+      "seed": 20302233,
+      "algorithm": "candidate",
+      "generationMs": 0.209,
+      "hintMs": 5.689,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 10,
+      "sample": 0,
+      "seed": 20311120,
+      "algorithm": "legacy",
+      "generationMs": 0.155,
+      "hintMs": 45.437,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 10,
+      "sample": 0,
+      "seed": 20311120,
+      "algorithm": "candidate",
+      "generationMs": 0.161,
+      "hintMs": 8.837,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 10,
+      "sample": 1,
+      "seed": 20311217,
+      "algorithm": "legacy",
+      "generationMs": 0.172,
+      "hintMs": 42.656,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 10,
+      "sample": 1,
+      "seed": 20311217,
+      "algorithm": "candidate",
+      "generationMs": 0.175,
+      "hintMs": 8.801,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 10,
+      "sample": 2,
+      "seed": 20311314,
+      "algorithm": "legacy",
+      "generationMs": 0.239,
+      "hintMs": 42.818,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 10,
+      "sample": 2,
+      "seed": 20311314,
+      "algorithm": "candidate",
+      "generationMs": 0.289,
+      "hintMs": 8.921,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 20,
+      "sample": 0,
+      "seed": 20321210,
+      "algorithm": "legacy",
+      "generationMs": 0.254,
+      "hintMs": 40.935,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 20,
+      "sample": 0,
+      "seed": 20321210,
+      "algorithm": "candidate",
+      "generationMs": 0.177,
+      "hintMs": 5.831,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 20,
+      "sample": 1,
+      "seed": 20321307,
+      "algorithm": "legacy",
+      "generationMs": 0.19,
+      "hintMs": 40.303,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 20,
+      "sample": 1,
+      "seed": 20321307,
+      "algorithm": "candidate",
+      "generationMs": 6.287,
+      "hintMs": 10.063,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 20,
+      "sample": 2,
+      "seed": 20321404,
+      "algorithm": "legacy",
+      "generationMs": 0.168,
+      "hintMs": 40.469,
+      "hintVerified": false,
+      "failures": [],
+      "trace": {}
+    },
+    {
+      "game": "orbital_towers",
+      "grade": 4,
+      "level": 20,
+      "sample": 2,
+      "seed": 20321404,
+      "algorithm": "candidate",
+      "generationMs": 0.168,
+      "hintMs": 8.383,
+      "hintVerified": true,
+      "failures": [],
+      "trace": {}
+    }
+  ]
+}

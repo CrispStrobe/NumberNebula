@@ -637,3 +637,23 @@ class SpaceshipPainter extends CustomPainter {
     return oldDelegate.thrusting != thrusting || oldDelegate.thrusterFlicker != thrusterFlicker;
   }
 }
+
+Map<String, dynamic> gameObjectToJson(GameObject object) {
+  final data = <String, dynamic>{'position': [object.position.dx, object.position.dy]};
+  if (object is Gate) return {...data, 'type': 'gate', 'answer': object.answer, 'correct': object.isCorrect, 'size': [object.size.width, object.size.height], 'color': object.color.toARGB32()};
+  if (object is Planet) return {...data, 'type': 'planet', 'radius': object.radius, 'color': object.color.toARGB32(), 'rotation': object.rotation};
+  if (object is Asteroid) return {...data, 'type': 'asteroid', 'size': object.sizeValue, 'rotation': object.rotation, 'velocity': [object.velocity.dx, object.velocity.dy]};
+  if (object is SpaceDebris) return {...data, 'type': 'debris', 'rotation': object.rotation, 'velocity': [object.velocity.dx, object.velocity.dy]};
+  throw StateError('Unknown world object');
+}
+GameObject gameObjectFromJson(Map<String, dynamic> data) {
+  Offset offset(dynamic v) => Offset((v[0] as num).toDouble(), (v[1] as num).toDouble());
+  final pos = offset(data['position']);
+  return switch (data['type']) {
+    'gate' => Gate(position: pos, answer: data['answer'] as int, isCorrect: data['correct'] as bool, size: Size((data['size'][0] as num).toDouble(), (data['size'][1] as num).toDouble()), color: Color(data['color'] as int)),
+    'planet' => Planet(position: pos, radius: (data['radius'] as num).toDouble(), color: Color(data['color'] as int))..rotation = (data['rotation'] as num).toDouble(),
+    'asteroid' => Asteroid(position: pos, sizeValue: (data['size'] as num).toDouble())..rotation = (data['rotation'] as num).toDouble()..velocity = offset(data['velocity']),
+    'debris' => SpaceDebris(position: pos)..rotation = (data['rotation'] as num).toDouble()..velocity = offset(data['velocity']),
+    _ => throw const FormatException('Unknown world object'),
+  };
+}

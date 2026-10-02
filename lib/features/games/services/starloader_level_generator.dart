@@ -1,3 +1,4 @@
+import 'generator_random.dart';
 // ignore_for_file: avoid_print, constant_identifier_names
 // lib/features/games/services/starloader_level_generator.dart
 //
@@ -24,7 +25,7 @@ class LevelGenerator {
   static const int PLAYER = 5;
 
   // --- Internal State ---
-  final math.Random _random = math.Random();
+  final math.Random _random = generatorRandom();
   final bool _verbose;
 
   // --- Reverse Play State ---
@@ -34,15 +35,38 @@ class LevelGenerator {
   Map<String, List<int>>? _bestBoxMapping;
 
   static const Map<int, List<int>> CHANGE_COORDINATES = {
-    0: [-1, 0], 1: [1, 0], 2: [0, -1], 3: [0, 1],
+    0: [-1, 0],
+    1: [1, 0],
+    2: [0, -1],
+    3: [0, 1],
   };
 
   static const List<List<List<int>>> MASKS = [
-    [[0, 0, 0], [1, 1, 1], [0, 0, 0]],
-    [[0, 1, 0], [0, 1, 0], [0, 1, 0]],
-    [[0, 0, 0], [1, 1, 0], [0, 1, 0]],
-    [[0, 0, 0], [1, 1, 0], [1, 1, 0]],
-    [[0, 0, 0], [0, 1, 1], [0, 1, 0]]
+    [
+      [0, 0, 0],
+      [1, 1, 1],
+      [0, 0, 0]
+    ],
+    [
+      [0, 1, 0],
+      [0, 1, 0],
+      [0, 1, 0]
+    ],
+    [
+      [0, 0, 0],
+      [1, 1, 0],
+      [0, 1, 0]
+    ],
+    [
+      [0, 0, 0],
+      [1, 1, 0],
+      [1, 1, 0]
+    ],
+    [
+      [0, 0, 0],
+      [0, 1, 1],
+      [0, 1, 0]
+    ]
   ];
 
   LevelGenerator({bool verbose = false}) : _verbose = verbose;
@@ -50,7 +74,6 @@ class LevelGenerator {
   void _log(String message) {
     if (_verbose) print('\x1B[90m[Gen] $message\x1B[0m');
   }
-
 
   /// NEW METHOD: Ensures all floor tiles are connected using flood-fill.
   /// Keeps the largest connected component and walls off the rest.
@@ -91,7 +114,7 @@ class LevelGenerator {
     if (components.length > 1) {
       components.sort((a, b) => b.length.compareTo(a.length));
       Set<String> largestComponent = components[0];
-      
+
       _log('Keeping largest component with ${largestComponent.length} tiles');
 
       // Wall off smaller components
@@ -113,10 +136,11 @@ class LevelGenerator {
   }
 
   /// NEW METHOD: Flood-fill helper to find connected floor tiles.
-  void _floodFill(List<List<int>> room, int x, int y, Set<String> visited, Set<String> component) {
+  void _floodFill(List<List<int>> room, int x, int y, Set<String> visited,
+      Set<String> component) {
     String key = '$x,$y';
     if (visited.contains(key)) return;
-    
+
     if (x < 0 || x >= room.length || y < 0 || y >= room[0].length) return;
     if (room[x][y] != FLOOR) return;
 
@@ -129,9 +153,6 @@ class LevelGenerator {
     _floodFill(room, x, y - 1, visited, component);
     _floodFill(room, x, y + 1, visited, component);
   }
-
-
-
 
   GeneratedLevel generateLevel({
     required int dimX,
@@ -174,7 +195,8 @@ class LevelGenerator {
 
         // Cheap pre-filter: skip candidates the heuristic deems trivial.
         if (result.score <= 0 || result.score < minMoves) {
-          _log('⚠️ Heuristic reject (score ${result.score} < min $minMoves). Retrying...');
+          _log(
+              '⚠️ Heuristic reject (score ${result.score} < min $minMoves). Retrying...');
           continue;
         }
 
@@ -195,7 +217,8 @@ class LevelGenerator {
         // the solver ran out of budget (level is large/hard — accept it).
         final realPushes = solve.solved ? solve.pushes! : result.score;
         if (solve.solved && realPushes < minOptimalPushes) {
-          _log('⚠️ Too easy: $realPushes pushes < min $minOptimalPushes. Retrying...');
+          _log(
+              '⚠️ Too easy: $realPushes pushes < min $minOptimalPushes. Retrying...');
           continue;
         }
 
@@ -223,14 +246,17 @@ class LevelGenerator {
     return _createFallbackLevel(dimX, dimY, numBoxes);
   }
 
-  List<List<int>> _generateTopology(int dimX, int dimY, int numSteps, double pChangeDirection) {
+  List<List<int>> _generateTopology(
+      int dimX, int dimY, int numSteps, double pChangeDirection) {
     List<List<int>> level = List.generate(dimX, (_) => List.filled(dimY, 0));
     int posX = 1 + _random.nextInt(dimX - 2);
     int posY = 1 + _random.nextInt(dimY - 2);
     int direction = _random.nextInt(4);
 
     for (int step = 0; step < numSteps; step++) {
-      if (_random.nextDouble() < pChangeDirection) direction = _random.nextInt(4);
+      if (_random.nextDouble() < pChangeDirection) {
+        direction = _random.nextInt(4);
+      }
       final change = CHANGE_COORDINATES[direction]!;
       posX = (posX + change[0]).clamp(1, dimX - 2);
       posY = (posY + change[1]).clamp(1, dimY - 2);
@@ -260,7 +286,10 @@ class LevelGenerator {
       for (int j = 0; j < 3; j++) {
         int targetX = x - 1 + i;
         int targetY = y - 1 + j;
-        if (targetX >= 0 && targetX < level.length && targetY >= 0 && targetY < level[0].length) {
+        if (targetX >= 0 &&
+            targetX < level.length &&
+            targetY >= 0 &&
+            targetY < level[0].length) {
           level[targetX][targetY] += mask[i][j];
         }
       }
@@ -276,7 +305,9 @@ class LevelGenerator {
       }
     }
 
-    if (floorPositions.length < numBoxes + 1) throw Exception('Not enough space');
+    if (floorPositions.length < numBoxes + 1) {
+      throw Exception('Not enough space');
+    }
     floorPositions.shuffle(_random);
 
     final playerPos = floorPositions.removeLast();
@@ -290,20 +321,28 @@ class LevelGenerator {
   }
 
   List<List<int>> _createRoomStructure(List<List<int>> room) {
-    return room.map((row) => row.map((cell) => cell == PLAYER ? FLOOR : cell).toList()).toList();
+    return room
+        .map((row) => row.map((cell) => cell == PLAYER ? FLOOR : cell).toList())
+        .toList();
   }
 
   List<List<int>> _createInitialStateWithBoxesOnTargets(List<List<int>> room) {
-    return room.map((row) => row.map((cell) => cell == TARGET ? BOX : cell).toList()).toList();
+    return room
+        .map((row) => row.map((cell) => cell == TARGET ? BOX : cell).toList())
+        .toList();
   }
 
   List<List<int>> _cleanupBoxesOnTargets(List<List<int>> room) {
-    return room.map((row) => row.map((cell) => cell == BOX_ON_TARGET ? BOX : cell).toList()).toList();
+    return room
+        .map((row) =>
+            row.map((cell) => cell == BOX_ON_TARGET ? BOX : cell).toList())
+        .toList();
   }
 
   // --- Reverse Play Logic ---
 
-  ReversePlayResult _reversePlaying(List<List<int>> roomState, List<List<int>> roomStructure, int numBoxes) {
+  ReversePlayResult _reversePlaying(
+      List<List<int>> roomState, List<List<int>> roomStructure, int numBoxes) {
     Map<String, List<int>> boxMapping = {};
     for (int i = 0; i < roomStructure.length; i++) {
       for (int j = 0; j < roomStructure[i].length; j++) {
@@ -313,7 +352,7 @@ class LevelGenerator {
 
     _exploredStates.clear();
     _bestRoom = null;
-    _bestScore = -1; 
+    _bestScore = -1;
     _bestBoxMapping = null;
 
     _depthFirstSearch(
@@ -355,18 +394,20 @@ class LevelGenerator {
         if (roomState[i][j] == TARGET) emptyTargets++;
       }
     }
-    
+
     // Only count score if all boxes are moved off targets
     // (Or at least, we prioritize states where they are)
     int displacement = _boxDisplacementScore(boxMapping);
     int score = boxSwaps * displacement;
-    
+
     // Strictness: We usually only want to consider it a "solution" if all boxes are off targets.
     // However, for generation, we keep the best partial solution we find.
     if (emptyTargets != numBoxes) score = 0;
 
     if (score > _bestScore) {
-      if (_verbose && score > 0) _log('New Best Score: $score (Swaps: $boxSwaps, Disp: $displacement)');
+      if (_verbose && score > 0) {
+        _log('New Best Score: $score (Swaps: $boxSwaps, Disp: $displacement)');
+      }
       _bestRoom = roomState.map(List<int>.from).toList();
       _bestScore = score;
       _bestBoxMapping = Map<String, List<int>>.from(boxMapping);
@@ -377,7 +418,7 @@ class LevelGenerator {
 
       if (result != null) {
         int newBoxSwaps = boxSwaps;
-        
+
         // --- FIX 1: Correct Swap Logic ---
         if (result.pulled && result.pulledBoxKey != null) {
           if (result.pulledBoxKey != lastPulledBoxKey) {
@@ -388,7 +429,8 @@ class LevelGenerator {
         // --- FIX 2: Recursive Parameter ---
         // We must pass the NEW box key if we pulled one, otherwise keep the old one.
         // This ensures the next step knows what we just pulled.
-        String? nextLastPulledKey = result.pulled ? result.pulledBoxKey : lastPulledBoxKey;
+        String? nextLastPulledKey =
+            result.pulled ? result.pulledBoxKey : lastPulledBoxKey;
 
         _depthFirstSearch(
           result.room,
@@ -403,14 +445,16 @@ class LevelGenerator {
     }
   }
 
-  String _hashState(List<List<int>> room) => room.map((row) => row.join()).join();
+  String _hashState(List<List<int>> room) =>
+      room.map((row) => row.join()).join();
 
   int _boxDisplacementScore(Map<String, List<int>> boxMapping) {
     int score = 0;
     for (var entry in boxMapping.entries) {
       final targetPos = entry.key.split(',').map(int.parse).toList();
       final boxPos = entry.value;
-      score += (targetPos[0] - boxPos[0]).abs() + (targetPos[1] - boxPos[1]).abs();
+      score +=
+          (targetPos[0] - boxPos[0]).abs() + (targetPos[1] - boxPos[1]).abs();
     }
     return score;
   }
@@ -441,7 +485,12 @@ class LevelGenerator {
     final nextPos = [playerPos[0] + change[0], playerPos[1] + change[1]];
 
     // Bounds and Floor check
-    if (nextPos[0] < 0 || nextPos[0] >= newRoom.length || nextPos[1] < 0 || nextPos[1] >= newRoom[0].length) return null;
+    if (nextPos[0] < 0 ||
+        nextPos[0] >= newRoom.length ||
+        nextPos[1] < 0 ||
+        nextPos[1] >= newRoom[0].length) {
+      return null;
+    }
     if (![FLOOR, TARGET].contains(newRoom[nextPos[0]][nextPos[1]])) return null;
 
     bool pulled = false;
@@ -450,24 +499,28 @@ class LevelGenerator {
     // Pull Logic
     if (action < 4) {
       final behindPos = [playerPos[0] - change[0], playerPos[1] - change[1]];
-      if (behindPos[0] >= 0 && behindPos[0] < newRoom.length && behindPos[1] >= 0 && behindPos[1] < newRoom[0].length) {
-        
+      if (behindPos[0] >= 0 &&
+          behindPos[0] < newRoom.length &&
+          behindPos[1] >= 0 &&
+          behindPos[1] < newRoom[0].length) {
         // Check for ANY box type (4=BOX, 3=BOX_ON_TARGET)
-        if ([BOX, BOX_ON_TARGET].contains(newRoom[behindPos[0]][behindPos[1]])) {
-          
+        if ([BOX, BOX_ON_TARGET]
+            .contains(newRoom[behindPos[0]][behindPos[1]])) {
           // --- FIX 3: Maintain correct state type ---
           // When pulling a box onto 'playerPos', check what 'playerPos' really is structurally.
           // If it's a TARGET, the box becomes BOX_ON_TARGET (3).
           // If it's a FLOOR, the box becomes BOX (4).
           // This prevents state corruption.
           bool isTarget = roomStructure[playerPos[0]][playerPos[1]] == TARGET;
-          newRoom[playerPos[0]][playerPos[1]] = isTarget ? BOX_ON_TARGET : BOX; 
+          newRoom[playerPos[0]][playerPos[1]] = isTarget ? BOX_ON_TARGET : BOX;
 
           // Restore the tile where the box was
-          newRoom[behindPos[0]][behindPos[1]] = roomStructure[behindPos[0]][behindPos[1]];
+          newRoom[behindPos[0]][behindPos[1]] =
+              roomStructure[behindPos[0]][behindPos[1]];
 
           for (var entry in newBoxMapping.entries) {
-            if (entry.value[0] == behindPos[0] && entry.value[1] == behindPos[1]) {
+            if (entry.value[0] == behindPos[0] &&
+                entry.value[1] == behindPos[1]) {
               newBoxMapping[entry.key] = [playerPos[0], playerPos[1]];
               pulledBoxKey = entry.key;
               break;
@@ -480,7 +533,8 @@ class LevelGenerator {
 
     if (!pulled) {
       // Just moving, restore tile under player
-      newRoom[playerPos[0]][playerPos[1]] = roomStructure[playerPos[0]][playerPos[1]];
+      newRoom[playerPos[0]][playerPos[1]] =
+          roomStructure[playerPos[0]][playerPos[1]];
     }
 
     newRoom[nextPos[0]][nextPos[1]] = PLAYER;
@@ -495,7 +549,8 @@ class LevelGenerator {
 
   GeneratedLevel _createFallbackLevel(int dimX, int dimY, int numBoxes) {
     // Basic fallback implementation
-     List<List<int>> structure = List.generate(dimX, (_) => List.filled(dimY, WALL));
+    List<List<int>> structure =
+        List.generate(dimX, (_) => List.filled(dimY, WALL));
     List<List<int>> state = List.generate(dimX, (_) => List.filled(dimY, WALL));
     int startRow = dimX ~/ 2;
     for (int j = 1; j < dimY - 1; j++) {

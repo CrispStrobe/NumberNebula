@@ -13,7 +13,7 @@
 // matches what kids actually experience.
 
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'profile_preferences.dart';
 
 class StreakService extends ChangeNotifier {
   static const _kCurrentKey = 'streak_current';
@@ -45,7 +45,7 @@ class StreakService extends ChangeNotifier {
   }
 
   Future<void> load() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await ProfilePreferences.getInstance();
     _current = prefs.getInt(_kCurrentKey) ?? 0;
     _longest = prefs.getInt(_kLongestKey) ?? 0;
     final raw = prefs.getString(_kLastDayKey);
@@ -91,7 +91,7 @@ class StreakService extends ChangeNotifier {
     if (_current > _longest) _longest = _current;
     _lastPlayedDay = today;
 
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await ProfilePreferences.getInstance();
     await prefs.setInt(_kCurrentKey, _current);
     await prefs.setInt(_kLongestKey, _longest);
     await prefs.setString(_kLastDayKey, today.toIso8601String());

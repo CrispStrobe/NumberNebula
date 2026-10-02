@@ -1,10 +1,13 @@
+import '../services/round_generation.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
+import '../widgets/game_learning_shell.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
 
-import '../constants/app_constants.dart';
 import '../constants/difficulty_manager.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -87,7 +90,36 @@ class AsteroidMathGame extends StatefulWidget {
 }
 
 class _AsteroidMathGameState extends State<AsteroidMathGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, PuzzleSessionMixin<AsteroidMathGame> {
+  bool _sessionReady = false;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_spaceshipController], reduced);
+  }
+  bool _sessionStarting = false;
+
+  @override String get sessionGameKey => 'asteroid_math';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady) return null;
+    return {'asteroids': asteroids.map((v0) => v0.toJson()).toList(), 'targetOrder': targetOrder.map((v0) => v0).toList(), 'currentTargetIndex': currentTargetIndex, 'timeLeft': timeLeft, 'wrongShots': wrongShots, 'levelProblems': levelProblems.map((v0) => v0.toJson()).toList()};
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    asteroids = (state["asteroids"] as List).map((v0) => Asteroid.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+targetOrder = (state["targetOrder"] as List).map((v0) => v0 as int).toList();
+currentTargetIndex = state["currentTargetIndex"] as int;
+timeLeft = state["timeLeft"] as int;
+wrongShots = state["wrongShots"] as int;
+levelProblems = (state["levelProblems"] as List).map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+
+    gameActive = true; _startGameTimer(); timeLeft = state['timeLeft'] as int; _startHintTimers();
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) { await Future<void>.sync(() { _generateAsteroids(); _startGameTimer(); _startHintTimers(); }); }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   // Animation Controllers
   late AnimationController _gameLoopController;
   late AnimationController _explosionController;
@@ -144,7 +176,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gameProvider = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level);
+        currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level, gradeOverride: widget.grade);
         _gameLoopController.addListener(_updateGame);
       }
     });
@@ -152,6 +184,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _gameLoopController.dispose();
     _explosionController.dispose();
     _laserController.dispose();
@@ -164,6 +197,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   }
 
   void _resetGame() {
+    beginPuzzleSession();
     setState(() {
       gameActive = true;
       showTextHint = false;
@@ -214,7 +248,6 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     final screenSize = playableArea!;
     final difficulty = currentDifficulty!;
     final random = math.Random();
-    final usedAnswers = <int>{};
 
     // RESPONSIVE ASTEROID COUNT
     final screenArea = screenSize.width * screenSize.height;
@@ -225,51 +258,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     final sriService = context.read<SriService>();
     final gameProvider = context.read<GameProvider>();
     
-    int attempts = 0;
-    while (problems.length < asteroidCount && attempts < 100) {
-      attempts++;
-      
-      final problem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
-      
-      if (!usedAnswers.contains(problem.answer) && problem.answer > 0 && problem.answer < 1000) {
-        problems.add(problem);
-        usedAnswers.add(problem.answer);
-      }
-    }
-    
-    final range = difficulty.numberRange;
-    final span = range['max']! - range['min']!;
-    var fillGuard = 0;
-    while (problems.length < asteroidCount && fillGuard++ < 500) {
-      // Find a DISTINCT filler answer. `span <= 0` (possible with custom
-      // min>=max settings) would make nextInt throw, so guard it.
-      int? plainNumber;
-      for (var attempt = 0; attempt < 200; attempt++) {
-        final candidate =
-            span > 0 ? random.nextInt(span) + range['min']! : range['min']!;
-        if (!usedAnswers.contains(candidate)) {
-          plainNumber = candidate;
-          break;
-        }
-      }
-      // No distinct value left — stop rather than spawn a duplicate-answer
-      // asteroid that can never be a valid target (and would penalise the
-      // player when tapped).
-      if (plainNumber == null) break;
-
-      final simpleProblem = MathProblem(
-        expression: plainNumber.toString(),
-        answer: plainNumber,
-        operation: MathOperation.addition,
-        operandA: plainNumber,
-        operandB: 0,
-        difficulty: 1,
-      );
-
-      problems.add(simpleProblem);
-      usedAnswers.add(plainNumber);
-    }
-
+    problems.addAll(generateAsteroidProblems(gameProvider, widget.level, sriService, asteroidCount));
     // Store all problems for this level
     levelProblems = List.from(problems);
 
@@ -320,7 +309,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
       ));
     }
     
-    targetOrder.addAll(usedAnswers);
+    targetOrder.addAll(problems.map((p) => p.answer));
     targetOrder.sort();
     setState(() {});
   }
@@ -335,6 +324,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   }
 
   void _updateGame() {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     if (!mounted || !gameActive || playableArea == null) return;
     
     // FIXED: Use playableArea instead of MediaQuery
@@ -342,7 +332,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
 
     spaceshipPosition = Offset(50, screenSize.height - 90);
 
-    setState(() {
+    setVisualState(() {
       for (var asteroid in asteroids) {
         // Store old values for comparison and logging
         final oldPosition = asteroid.position;
@@ -471,12 +461,14 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   }
 
   void _startGameTimer() {
+    _gameTimer?.cancel();
     if (currentDifficulty == null) return;
     timeLeft = currentDifficulty!.timeLimit;
     
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context)) return;
       if (mounted && gameActive && timeLeft > 0) {
-        setState(() => timeLeft--);
+        setVisualState(() => timeLeft--);
       } else if (mounted) {
         timer.cancel();
         _endGame(isWin: false);
@@ -500,7 +492,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     _startHintTimers();
 
     if (isCorrect) {
-      HapticFeedback.lightImpact();
+      AppHaptics.lightImpact();
       _triggerScreenShake();
 
       final scoreToAdd = (15 * widget.grade * currentDifficulty!.difficultyMultiplier).round();
@@ -522,7 +514,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
         _endGame(isWin: true);
       }
     } else {
-      HapticFeedback.heavyImpact();
+      AppHaptics.heavyImpact();
       setState(() {
         wrongShots++;
         explosions.add(ParticleExplosion(position: asteroid.position, isCorrect: false));
@@ -565,6 +557,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     }
     
     // SINGLE CALL to unified progression system
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome(
       gameType: 'asteroid_math',
       difficulty: widget.level,
@@ -596,7 +589,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   }
   
   Widget _buildGameEndDialog({required bool isWin, int? timeBonus}) {
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -604,6 +597,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+              RoundSummary(gameKey: 'asteroid_math'),
             Icon(
               isWin ? Icons.emoji_events : Icons.error_outline,
               size: 64,
@@ -691,10 +685,9 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
                             setState(() {
                               playableArea = newPlayableArea;
                             });
-                            if (asteroids.isEmpty && gameActive) {
-                              _generateAsteroids();
-                              _startGameTimer();
-                              _startHintTimers();
+                            if (!_sessionReady && !_sessionStarting) {
+                              _sessionStarting = true;
+                              _restoreOrGenerate();
                             }
                           }
                         });
@@ -922,6 +915,30 @@ class GameObjectsPainter extends CustomPainter {
 enum AsteroidType { rocky, icy, metallic, crystalline, volcanic }
 
 class Asteroid {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'problem': problem.toJson(),
+    'position': [position.dx, position.dy],
+    'velocity': [velocity.dx, velocity.dy],
+    'size': size,
+    'rotationSpeed': rotationSpeed,
+    'rotation': rotation,
+    'type': type.name,
+    'hue': hue
+  };
+  factory Asteroid.fromJson(Map<String, dynamic> json) => Asteroid(
+    id: json['id'] as int,
+    problem: MathProblem.fromJson(Map<String, dynamic>.from(json['problem'] as Map)),
+    position: Offset((json['position'][0] as num).toDouble(), (json['position'][1] as num).toDouble()),
+    velocity: Offset((json['velocity'][0] as num).toDouble(), (json['velocity'][1] as num).toDouble()),
+    size: (json['size'] as num).toDouble(),
+    rotationSpeed: (json['rotationSpeed'] as num).toDouble(),
+    rotation: (json['rotation'] as num).toDouble(),
+    type: AsteroidType.values.byName(json['type'] as String),
+    hue: (json['hue'] as num).toDouble()
+  );
+
   final int id;
   final MathProblem problem;
   Offset position;

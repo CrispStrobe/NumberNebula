@@ -6,7 +6,7 @@ import {
 test.describe('first visit', () => {
   test('shows the splash at once, then the app, with no errors', async ({ page }) => {
     const log = watch(page);
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.goto('./', { waitUntil: 'domcontentloaded' });
     // Painted from inline CSS before any script has loaded.
     await expect(page.locator('#splash')).toBeVisible({ timeout: 5_000 });
     await expect(page.locator('#splash')).toHaveCount(0);
@@ -41,7 +41,7 @@ test.describe('first visit', () => {
 
   test('is cross-origin isolated, and every cross-origin file still loads', async ({ page }) => {
     const log = watch(page);
-    const response = await page.goto('/', { waitUntil: 'domcontentloaded' });
+    const response = await page.goto('./', { waitUntil: 'domcontentloaded' });
     expect(response.headers()['cross-origin-opener-policy']).toBe('same-origin');
     expect(response.headers()['cross-origin-embedder-policy']).toBe('credentialless');
     await expect(page.locator('#splash')).toHaveCount(0);
@@ -101,4 +101,33 @@ test.describe('opening a game', () => {
     const unexpected = log.errors.filter((e) => !/part|deferred|load/i.test(e));
     expect(unexpected).toEqual([]);
   });
+});
+
+test.describe('candidate generators', () => {
+  for (const game of [
+    { title: 'Launch Sequence', ready: /^Optimal: \d+$/ },
+    { title: 'Arithmetic Square', ready: /^Number \d+, drag to a cell/, readyRole: 'button' },
+  ]) {
+    test(`${game.title} generates a playable board`, async ({ page }) => {
+      const log = watch(page);
+      await openGameMenu(page);
+      const card = page.getByRole('button', { name: new RegExp(`^${game.title} `) }).first();
+      // Flutter's lazy grid creates semantics nodes only near the viewport.
+      for (let step = 0; step < 16 && await card.count() === 0; step++) {
+        await page.mouse.move(900, 650);
+        await page.mouse.wheel(0, 500);
+        await page.waitForTimeout(150);
+      }
+      await expect(card).toBeVisible();
+      await card.click();
+      const skip = page.getByRole('button', { name: /^Skip$/ });
+      await expect(skip).toBeVisible();
+      await skip.click();
+      const board = game.readyRole
+        ? page.getByRole(game.readyRole, { name: game.ready }).first()
+        : page.getByText(game.ready).first();
+      await expect(board).toBeVisible();
+      expect(log.errors).toEqual([]);
+    });
+  }
 });

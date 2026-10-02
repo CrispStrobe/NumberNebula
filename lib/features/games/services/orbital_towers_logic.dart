@@ -1,3 +1,4 @@
+import 'generator_random.dart';
 // lib/features/games/services/orbital_towers_logic.dart
 //
 // Skyscraper puzzle generator.
@@ -7,6 +8,24 @@
 import 'dart:math' as math;
 
 class OrbitalTowersPuzzle {
+  Map<String, dynamic> toJson() => {
+        'size': size,
+        'solution': solution,
+        'clues': clues,
+        'emptyCells': emptyCells.toList(),
+        'edgeClues': edgeClues,
+        'numberPool': numberPool,
+      };
+  factory OrbitalTowersPuzzle.fromJson(Map<String, dynamic> json) =>
+      OrbitalTowersPuzzle(
+        size: json['size'] as int,
+        solution: Map<String, int>.from(json['solution'] as Map),
+        clues: Map<String, int>.from(json['clues'] as Map),
+        emptyCells: Set<String>.from(json['emptyCells'] as List),
+        edgeClues: Map<String, int>.from(json['edgeClues'] as Map),
+        numberPool: List<int>.from(json['numberPool'] as List),
+      );
+
   final int size;
 
   /// Full solution grid: 'r{row}c{col}' -> height (1..size)
@@ -104,7 +123,7 @@ class OrbitalTowersPuzzle {
 }
 
 class OrbitalTowersGenerator {
-  final math.Random _random = math.Random();
+  final math.Random _random = generatorRandom();
 
   /// Generate a skyscraper puzzle.
   /// [size] grid dimension (3-5).
@@ -127,7 +146,8 @@ class OrbitalTowersGenerator {
       final topLine = List.generate(size, (r) => solution['r${r}c$c']!);
       allEdgeClues['top_$c'] = OrbitalTowersPuzzle._countVisible(topLine);
 
-      final bottomLine = List.generate(size, (r) => solution['r${size - 1 - r}c$c']!);
+      final bottomLine =
+          List.generate(size, (r) => solution['r${size - 1 - r}c$c']!);
       allEdgeClues['bottom_$c'] = OrbitalTowersPuzzle._countVisible(bottomLine);
     }
 
@@ -135,7 +155,8 @@ class OrbitalTowersGenerator {
       final leftLine = List.generate(size, (c) => solution['r${r}c$c']!);
       allEdgeClues['left_$r'] = OrbitalTowersPuzzle._countVisible(leftLine);
 
-      final rightLine = List.generate(size, (c) => solution['r${r}c${size - 1 - c}']!);
+      final rightLine =
+          List.generate(size, (c) => solution['r${r}c${size - 1 - c}']!);
       allEdgeClues['right_$r'] = OrbitalTowersPuzzle._countVisible(rightLine);
     }
 

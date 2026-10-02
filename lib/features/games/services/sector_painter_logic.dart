@@ -1,7 +1,31 @@
+import 'generator_random.dart';
 import 'dart:math' as math;
 
 /// Represents a planar graph for the Sector Painter (graph coloring) game.
 class SectorPainterPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'regions': regions.map((v0) => v0).toList(),
+        'adjacency': adjacency.entries
+            .map((v0) => [v0.key, v0.value.map((v1) => v1).toList()])
+            .toList(),
+        'chromaticNumber': chromaticNumber,
+        'availableColors': availableColors,
+        'positions': positions.map((v0) => [v0.x, v0.y]).toList()
+      };
+  factory SectorPainterPuzzle.fromJson(Map<String, dynamic> json) =>
+      SectorPainterPuzzle(
+          regions: (json['regions'] as List).map((v0) => v0 as int).toList(),
+          adjacency: Map<int, Set<int>>.fromEntries((json['adjacency'] as List)
+              .map((v0) => MapEntry(v0[0] as int,
+                  (v0[1] as List).map((v1) => v1 as int).toSet()))),
+          chromaticNumber: json['chromaticNumber'] as int,
+          availableColors: json['availableColors'] as int,
+          positions: (json['positions'] as List)
+              .map((v0) => math.Point<double>(
+                  (v0[0] as num).toDouble(), (v0[1] as num).toDouble()))
+              .toList());
+
   /// List of region names/IDs
   final List<int> regions;
 
@@ -61,7 +85,7 @@ class SectorPainterPuzzle {
 class SectorPainterGenerator {
   final math.Random _random;
 
-  SectorPainterGenerator({int? seed}) : _random = math.Random(seed);
+  SectorPainterGenerator({int? seed}) : _random = generatorRandom(seed);
 
   /// Generate a puzzle based on grade/level difficulty.
   SectorPainterPuzzle generate({required int grade, required int level}) {
@@ -177,6 +201,7 @@ class SectorPainterGenerator {
       }
       return x;
     }
+
     void union(int a, int b) {
       parent[find(a)] = find(b);
     }
@@ -243,14 +268,12 @@ class SectorPainterGenerator {
   }
 
   /// Island chain: points scattered along a curved path
-  void _scatterIslandChain(
-      List<math.Point<double>> positions, int count) {
+  void _scatterIslandChain(List<math.Point<double>> positions, int count) {
     final startAngle = _random.nextDouble() * math.pi * 0.5;
     for (int i = 0; i < count; i++) {
       final t = i / (count - 1);
       final baseX = 0.15 + t * 0.7;
-      final baseY =
-          0.5 + 0.2 * math.sin(startAngle + t * math.pi * 1.5);
+      final baseY = 0.5 + 0.2 * math.sin(startAngle + t * math.pi * 1.5);
       final jitterX = (_random.nextDouble() - 0.5) * 0.1;
       final jitterY = (_random.nextDouble() - 0.5) * 0.1;
       positions.add(math.Point(
@@ -261,8 +284,7 @@ class SectorPainterGenerator {
   }
 
   /// Galaxy cluster: 2-3 clusters of points
-  void _scatterGalaxyCluster(
-      List<math.Point<double>> positions, int count) {
+  void _scatterGalaxyCluster(List<math.Point<double>> positions, int count) {
     final clusterCount = 2 + _random.nextInt(2); // 2 or 3
     final centers = <math.Point<double>>[];
     for (int c = 0; c < clusterCount; c++) {
@@ -284,8 +306,7 @@ class SectorPainterGenerator {
   }
 
   /// Nebula cloud: scattered broadly with some clustering
-  void _scatterNebulaCloud(
-      List<math.Point<double>> positions, int count) {
+  void _scatterNebulaCloud(List<math.Point<double>> positions, int count) {
     for (int i = 0; i < count; i++) {
       // Use normal-ish distribution via Box-Muller
       final u1 = _random.nextDouble();
@@ -300,8 +321,7 @@ class SectorPainterGenerator {
   }
 
   /// Ring formation: points on a ring with some inner nodes
-  void _scatterRingFormation(
-      List<math.Point<double>> positions, int count) {
+  void _scatterRingFormation(List<math.Point<double>> positions, int count) {
     final outerCount = (count * 0.7).ceil();
     final innerCount = count - outerCount;
 
@@ -325,8 +345,7 @@ class SectorPainterGenerator {
   }
 
   /// Cross pattern: points along a + shape
-  void _scatterCrossPattern(
-      List<math.Point<double>> positions, int count) {
+  void _scatterCrossPattern(List<math.Point<double>> positions, int count) {
     final half = count ~/ 2;
     // Horizontal arm
     for (int i = 0; i < half; i++) {
@@ -371,7 +390,8 @@ class SectorPainterGenerator {
   /// Test if two line segments (p1-p2) and (p3-p4) properly intersect.
   static bool _segmentsIntersect(math.Point<double> p1, math.Point<double> p2,
       math.Point<double> p3, math.Point<double> p4) {
-    double cross(math.Point<double> o, math.Point<double> a, math.Point<double> b) =>
+    double cross(
+            math.Point<double> o, math.Point<double> a, math.Point<double> b) =>
         (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
     final d1 = cross(p3, p4, p1);
     final d2 = cross(p3, p4, p2);
@@ -384,8 +404,7 @@ class SectorPainterGenerator {
     return false;
   }
 
-  int _greedyChromaticNumber(
-      List<int> regions, Map<int, Set<int>> adjacency) {
+  int _greedyChromaticNumber(List<int> regions, Map<int, Set<int>> adjacency) {
     final coloring = <int, int>{};
     // Sort by degree (most constrained first) for better estimate
     final sorted = List<int>.from(regions);

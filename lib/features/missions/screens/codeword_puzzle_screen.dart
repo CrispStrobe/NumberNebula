@@ -1,3 +1,4 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
 // lib/features/missions/screens/codeword_puzzle_screen.dart
 //
 // Codeword anagram puzzle: arrange earned letters to form the target word.
@@ -5,7 +6,6 @@
 
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/space_theme.dart';
@@ -131,7 +131,7 @@ class _CodewordPuzzleScreenState extends State<CodewordPuzzleScreen>
     final current = _slots.join();
     if (current == widget.codeword) {
       _solved = true;
-      HapticFeedback.lightImpact();
+      AppHaptics.lightImpact();
       _successController.forward(from: 0.0);
 
       context.read<MissionProvider>().solveCodeword();

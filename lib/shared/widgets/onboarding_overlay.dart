@@ -10,7 +10,7 @@
 // of the icon, for rules that are far easier to see than to read.
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/profile_preferences.dart';
 
 import '../../core/theme/space_theme.dart';
 import '../../generated/l10n.dart';
@@ -24,10 +24,19 @@ class OnboardingStep {
   /// player has seen one.
   final Widget? illustration;
 
+  final String? practiceBoard;
+  final List<int> choices;
+  final int? answer;
+  final String? explanation;
+
   const OnboardingStep({
     required this.icon,
     required this.body,
     this.illustration,
+    this.practiceBoard,
+    this.choices = const [],
+    this.answer,
+    this.explanation,
   });
 }
 
@@ -48,13 +57,13 @@ class OnboardingOverlay extends StatefulWidget {
   /// Returns true iff the user has already dismissed the overlay for
   /// this game.
   static Future<bool> hasBeenSeen(String gameKey) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await ProfilePreferences.getInstance();
     return prefs.getBool(_key(gameKey)) ?? false;
   }
 
   /// Marks the overlay as seen for this game.
   static Future<void> markSeen(String gameKey) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await ProfilePreferences.getInstance();
     await prefs.setBool(_key(gameKey), true);
   }
 
@@ -89,6 +98,7 @@ class OnboardingOverlay extends StatefulWidget {
 
 class _OnboardingOverlayState extends State<OnboardingOverlay> {
   int _index = 0;
+  int? _choice;
 
   @override
   Widget build(BuildContext context) {
@@ -97,8 +107,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
 
     return Dialog(
       backgroundColor: SpaceTheme.deepSpace,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 400),
         padding: const EdgeInsets.all(24),
@@ -116,24 +125,57 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
             Flexible(
               child: SingleChildScrollView(
                 child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [SpaceTheme.nebulaPurple, SpaceTheme.spaceBlue],
-                ),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  step.illustration ??
-                      Icon(step.icon, size: 48, color: Colors.white),
-                  const SizedBox(height: 12),
-                  Text(step.body,
-                      style: SpaceTheme.bodyStyle.copyWith(
-                          fontSize: 15, color: Colors.white),
-                      textAlign: TextAlign.center),
-                ],
-              ),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [SpaceTheme.nebulaPurple, SpaceTheme.spaceBlue],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      (step.practiceBoard != null
+                              ? Text(
+                                  step.practiceBoard!.replaceAll(
+                                      '?', _choice?.toString() ?? '?'),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 22))
+                              : step.illustration) ??
+                          Icon(step.icon, size: 48, color: Colors.white),
+                      const SizedBox(height: 12),
+                      Text(step.body,
+                          style: SpaceTheme.bodyStyle
+                              .copyWith(fontSize: 15, color: Colors.white),
+                          textAlign: TextAlign.center),
+                      if (step.answer != null) ...[
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 12,
+                          alignment: WrapAlignment.center,
+                          children: step.choices
+                              .map((value) => OutlinedButton(
+                                    onPressed: _choice == step.answer
+                                        ? null
+                                        : () => setState(() => _choice = value),
+                                    child: Text(value.toString()),
+                                  ))
+                              .toList(),
+                        ),
+                        if (_choice != null)
+                          Semantics(
+                            liveRegion: true,
+                            child: Text(
+                              _choice == step.answer
+                                  ? step.explanation!
+                                  : S.of(context)!.guidedRetry,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -148,17 +190,19 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
                     width: i == _index ? 16 : 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: i == _index
-                          ? SpaceTheme.starYellow
-                          : Colors.white24,
+                      color:
+                          i == _index ? SpaceTheme.starYellow : Colors.white24,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
               ],
             ),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            OverflowBar(
+              alignment: MainAxisAlignment.spaceBetween,
+              overflowAlignment: OverflowBarAlignment.end,
+              spacing: 8,
+              overflowSpacing: 4,
               children: [
                 TextButton(
                   onPressed: widget.onDismiss,
@@ -167,13 +211,18 @@ class _OnboardingOverlayState extends State<OnboardingOverlay> {
                 ),
                 ElevatedButton(
                   autofocus: true,
-                  onPressed: () {
-                    if (isLast) {
-                      widget.onDismiss();
-                    } else {
-                      setState(() => _index++);
-                    }
-                  },
+                  onPressed: step.answer != null && _choice != step.answer
+                      ? null
+                      : () {
+                          if (isLast) {
+                            widget.onDismiss();
+                          } else {
+                            setState(() {
+                              _index++;
+                              _choice = null;
+                            });
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: SpaceTheme.starYellow,
                     foregroundColor: Colors.black,

@@ -1,6 +1,9 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
+import '../widgets/game_learning_shell.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 
 import 'dart:math' as math;
@@ -33,7 +36,47 @@ class ArithmancerCrosswordsGame extends StatefulWidget {
 }
 
 class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, PuzzleSessionMixin<ArithmancerCrosswordsGame> {
+  bool _sessionReady = false;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_glowController, _pulseController], reduced);
+  }
+
+  @override String get sessionGameKey => 'arithmancer_crosswords';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      'puzzle': (puzzle?.toJson()),
+      'userSolution': userSolution.entries.map((v0) => [v0.key, v0.value]).toList(),
+      'numberPool': numberPool.map((v0) => v0).toList(),
+      'correctNumbers': correctNumbers.map((v0) => v0).toList(),
+      'decoyNumbers': decoyNumbers.map((v0) => v0).toList(),
+      '_movesRemaining': _movesRemaining,
+      '_maxMoves': _maxMoves,
+      '_optimalMoves': _optimalMoves
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    puzzle = (state["puzzle"] == null ? null : CrosswordPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
+    userSolution = Map<String, int>.fromEntries((state["userSolution"] as List).map((v0) => MapEntry(v0[0] as String, v0[1] as int)));
+    numberPool = (state["numberPool"] as List).map((v0) => v0 as int).toList();
+    correctNumbers = (state["correctNumbers"] as List).map((v0) => v0 as int).toSet();
+    decoyNumbers = (state["decoyNumbers"] as List).map((v0) => v0 as int).toSet();
+    _movesRemaining = state["_movesRemaining"] as int;
+    _maxMoves = state["_maxMoves"] as int;
+    _optimalMoves = state["_optimalMoves"] as int;
+    _isGenerating = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   
   late AnimationController _glowController;
   late Animation<double> _glowAnimation;
@@ -107,15 +150,16 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gameProvider = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level);
+        currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level, gradeOverride: widget.grade);
         if (kDebugMode) debugPrint("🔤 [ARITHMANCER CROSSWORDS] Difficulty initialized: ${currentDifficulty?.grade}");
-        _generatePuzzle();
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     if (kDebugMode) debugPrint("🔤 [ARITHMANCER CROSSWORDS] Disposing game and cleaning up resources");
     
     _glowController.dispose();
@@ -131,7 +175,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     super.dispose();
   }
 
-  void _generatePuzzle() async {
+  Future<void> _generatePuzzle() async {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
     
     if (kDebugMode) debugPrint("🎯 [ARITHMANCER CROSSWORDS] Starting puzzle generation process");
@@ -294,6 +339,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   void _updateNumberPool() {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     if (puzzle == null) return;
     
     // Count how many of each number is needed in the solution
@@ -407,7 +453,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
 
   void _handleSuccess(Map<String, int> userSolution) {
     if (kDebugMode) debugPrint("🎉 [ARITHMANCER CROSSWORDS] SUCCESS! Player solved the puzzle!");
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
 
     int baseScore = 250 * widget.grade;
     int complexityBonus = puzzle!.equations.length * 15 + puzzle!.emptyCells.length * 5;
@@ -423,12 +469,17 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     if (kDebugMode) debugPrint("🎉 [ARITHMANCER CROSSWORDS] Extracted ${mathProblems.length} math problems for tracking");
     
     // SINGLE CALL to unified progression system
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'arithmancer_crosswords',
       difficulty: widget.level,
       score: totalScore,
       mathProblems: mathProblems,
         performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
+
+      movesUsed: _maxMoves - _movesRemaining,
+      optimalMoves: _optimalMoves,
     ));
     
     _successController.forward(from: 0.0);
@@ -457,7 +508,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
 
   void _handleIncorrect() {
     if (kDebugMode) debugPrint("❌ [ARITHMANCER CROSSWORDS] Incorrect solution - showing error message");
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -489,7 +540,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   Widget _buildOutOfMovesDialog() {
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -499,6 +550,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'arithmancer_crosswords'),
             const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(
@@ -609,7 +661,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         : <MathProblem>[];
     
     // Record the failure
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'arithmancer_crosswords',
       difficulty: widget.level,
       mathProblems: mathProblems,
@@ -619,6 +673,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (puzzle == null || _isGenerating) {
       return Scaffold(
         body: SpaceBackground(
@@ -1205,7 +1260,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       builder: (context, child) {
         return Transform.scale(
           scale: _successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -1213,6 +1268,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'arithmancer_crosswords'),
                   const Icon(Icons.emoji_events, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(S.of(context)!.arithmancerCrosswordsWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),

@@ -1,6 +1,9 @@
+import '../services/galactic_market_logic.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
 
@@ -24,7 +27,44 @@ class GalacticMarketGame extends StatefulWidget {
 }
 
 class _GalacticMarketGameState extends State<GalacticMarketGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<GalacticMarketGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<GalacticMarketGame>, PuzzleSessionMixin<GalacticMarketGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'galactic_market';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      '_changeTotal': _changeTotal,
+      '_knownCoins': _knownCoins.map((v0) => v0).toList(),
+      '_unknownCount': _unknownCount,
+      '_correctDenomination': _correctDenomination,
+      '_attemptsUsed': _attemptsUsed,
+      '_constraintText': _constraintText,
+      '_denomOptions': _denomOptions.map((v0) => v0).toList(),
+      '_selectedDenom': (_selectedDenom),
+      '_mathProblems': _mathProblems.map((v0) => v0.toJson()).toList()
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _changeTotal = state["_changeTotal"] as int;
+    _knownCoins = (state["_knownCoins"] as List).map((v0) => v0 as int).toList();
+    _unknownCount = state["_unknownCount"] as int;
+    _correctDenomination = state["_correctDenomination"] as int;
+    _attemptsUsed = state["_attemptsUsed"] as int;
+    _constraintText = state["_constraintText"] as String;
+    _denomOptions = (state["_denomOptions"] as List).map((v0) => v0 as int).toList();
+    _selectedDenom = (state["_selectedDenom"] == null ? null : state["_selectedDenom"] as int);
+    _mathProblems..clear()..addAll((state["_mathProblems"] as List).map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map))).toList());
+    _isGenerating = false; _gameOver = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -60,7 +100,6 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
   final _random = math.Random();
 
   // Alien coin denominations
-  static const _allDenoms = [1, 2, 5, 10, 20, 50];
   static const _denomColors = {
     1: Color(0xFF8B7355),
     2: Color(0xFFCD853F),
@@ -81,19 +120,21 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
   void _generatePuzzle() {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     setState(() {
@@ -107,74 +148,15 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
 
     final grade = currentDifficulty!.grade;
 
-    final level = widget.level;
 
-    // Unknown coin count — grade sets base, level adds progression
-    //   Grade 1: 2 → 4 over 20 levels
-    //   Grade 2: 3 → 6 over 20 levels
-    //   Grade 3: 4 → 7 over 20 levels
-    //   Grade 4: 4 → 8 over 20 levels
-    final baseUnknown = [0, 2, 3, 4, 4][grade.clamp(0, 4)];
-    final maxUnknown = [0, 4, 6, 7, 8][grade.clamp(0, 4)];
-    _unknownCount = baseUnknown +
-        ((level - 1) * (maxUnknown - baseUnknown) / 19).round();
-
-    // Denomination pool — grade gates which values appear, level expands
-    final List<int> availDenoms;
-    if (grade <= 1) {
-      // Start with [1,2,5], add 10 at L6, add 20 at L14
-      availDenoms = [1, 2, 5];
-      if (level >= 6) availDenoms.add(10);
-      if (level >= 14) availDenoms.add(20);
-    } else if (grade <= 2) {
-      // Start with [1,2,5,10], add 20 at L4, add 50 at L12
-      availDenoms = [1, 2, 5, 10];
-      if (level >= 4) availDenoms.add(20);
-      if (level >= 12) availDenoms.add(50);
-    } else {
-      // Full pool from the start; higher denoms make arithmetic harder
-      availDenoms = List.of(_allDenoms);
-    }
-    _correctDenomination = availDenoms[_random.nextInt(availDenoms.length)];
-
-    final unknownTotal = _correctDenomination * _unknownCount;
-
-    // Known (distractor) coins — more at higher levels for harder sums
-    //   Grade 1: 1 → 3 over 20 levels
-    //   Grade 2: 2 → 4 over 20 levels
-    //   Grade 3+: 2 → 5 over 20 levels
-    final baseKnown = grade <= 1 ? 1 : 2;
-    final maxKnown = grade <= 1 ? 3 : (grade <= 2 ? 4 : 5);
-    final knownCount = baseKnown +
-        ((level - 1) * (maxKnown - baseKnown) / 19).round();
-    _knownCoins = [];
-    for (int i = 0; i < knownCount; i++) {
-      _knownCoins.add(availDenoms[_random.nextInt(availDenoms.length)]);
-    }
-
-    final knownTotal = _knownCoins.fold(0, (s, c) => s + c);
-    _changeTotal = knownTotal + unknownTotal;
-
-    _constraintText = _unknownCount == 1
-        ? S.of(context)!.galacticMarketOneCoin
-        : S.of(context)!.galacticMarketNCoins(_unknownCount);
-
-    // Generate denomination options (include correct + distractors)
-    final options = <int>{_correctDenomination};
-    for (final d in availDenoms) {
-      options.add(d);
-      if (options.length >= 5) break;
-    }
-    if (options.length < 5) {
-      final available = _allDenoms.where((d) => !options.contains(d)).toList()
-        ..shuffle(_random);
-      options.addAll(available.take(5 - options.length));
-    }
-    _denomOptions = options.toList()..sort();
-
-    // Create math problem for SRI
-    _mathProblems.add(MathProblem.division(unknownTotal, _unknownCount, difficulty: grade));
-
+    final generated=generateGalacticMarket(grade, widget.level, random: _random);
+_changeTotal=generated['_changeTotal'] as int;
+_correctDenomination=generated['_correctDenomination'] as int;
+_denomOptions=List<int>.from(generated['_denomOptions'] as List);
+_knownCoins=List<int>.from(generated['_knownCoins'] as List);
+_mathProblems.addAll((generated['_mathProblems'] as List).map((p)=>MathProblem.fromJson(Map<String,dynamic>.from(p as Map))));
+_unknownCount=generated['_unknownCount'] as int;
+_constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.of(context)!.galacticMarketNCoins(_unknownCount);
     setState(() => _isGenerating = false);
   }
 
@@ -195,7 +177,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
 
   void _handleWrongAnswer() {
     _attemptsUsed++;
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
 
     if (_attemptsUsed >= _maxAttempts) {
       _handleLose();
@@ -217,7 +199,9 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
 
   void _handleLose() {
     _gameOver = true;
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'galactic_market',
       difficulty: widget.level,
     ));
@@ -231,7 +215,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     _gameOver = true;
 
     int baseScore = 100 * widget.grade;
@@ -240,7 +224,10 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     int attemptBonus = (_maxAttempts - _attemptsUsed) * 50 * widget.grade;
     int totalScore = baseScore + levelBonus + attemptBonus;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'galactic_market',
       difficulty: widget.level,
       score: totalScore,
@@ -260,6 +247,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_isGenerating || currentDifficulty == null) {
@@ -506,7 +494,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
             return GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                HapticFeedback.selectionClick();
+                AppHaptics.selectionClick();
                 _selectDenom(denom);
               },
               child: AnimatedContainer(
@@ -564,7 +552,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     final s = S.of(context)!;
     final knownTotal = _knownCoins.fold(0, (a, c) => a + c);
     final hiddenTotal = _unknownCount * _correctDenomination;
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -572,6 +560,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'galactic_market'),
             const Icon(Icons.search_off, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(s.galacticMarketLoseTitle,
@@ -625,7 +614,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -633,6 +622,7 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'galactic_market'),
                   const Icon(Icons.storefront, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.galacticMarketWinTitle,

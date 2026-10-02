@@ -2,7 +2,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'profile_preferences.dart';
 import '../../features/games/models/math_problem.dart';
 import '../../features/games/constants/app_constants.dart';
 import '../../features/games/tuning.dart';
@@ -45,7 +45,7 @@ class SriProblemData {
 }
 
 // The main service class
-class SriService with ChangeNotifier {
+class SriService with ChangeNotifier implements ProblemReviewSource {
   Map<String, SriProblemData> _sriDatabase = {};
   static const _sriStorageKey = 'sri_database';
 
@@ -163,6 +163,7 @@ class SriService with ChangeNotifier {
     }
   }
   
+  @override
   bool isProblemMastered(String problemId) {
     final data = _sriDatabase[problemId];
     if (data == null) return false;
@@ -180,7 +181,7 @@ class SriService with ChangeNotifier {
   Future<void> loadSriData() async {
     _log('Loading SRI database from storage...');
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await ProfilePreferences.getInstance();
       final jsonString = prefs.getString(_sriStorageKey);
       if (jsonString != null) {
         final Map<String, dynamic> jsonMap = json.decode(jsonString);
@@ -189,6 +190,7 @@ class SriService with ChangeNotifier {
         );
         _log('✅ Successfully loaded ${_sriDatabase.length} SRI records.');
       } else {
+        _sriDatabase = {};
         _log('No SRI data found. Starting with a fresh database.');
       }
     } catch (e) {
@@ -203,11 +205,10 @@ class SriService with ChangeNotifier {
   Future<void> saveSriData() async {
     _log('Saving SRI database to storage...');
     try {
-      final prefs = await SharedPreferences.getInstance();
       final jsonString = json.encode(
         _sriDatabase.map((key, value) => MapEntry(key, value.toJson())),
       );
-      await prefs.setString(_sriStorageKey, jsonString);
+      await ProfilePreferences.writeString(_sriStorageKey, jsonString);
       _log('✅ Successfully saved ${_sriDatabase.length} SRI records.');
     } catch (e) {
       _log('❌ Error saving SRI data: $e');
@@ -260,6 +261,7 @@ class SriService with ChangeNotifier {
     saveSriData();
   }
 
+  @override
   List<String> getProblemsForReview({
     int limit = 5, 
     Set<String>? excludeIds,

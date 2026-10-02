@@ -7707,6 +7707,397 @@ abstract class S {
   /// In en, this message translates to:
   /// **'The hidden faces are opposite the visible ones, and a cube\'s faces add up to 21: 21 − {visible} = {answer}.'**
   String cubeScannerWhyHiddenSum(int visible, int answer);
+
+  /// No description provided for @guidedTry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try one move'**
+  String get guidedTry;
+
+  /// No description provided for @guidedRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'That does not fit the rule yet. Try another number.'**
+  String get guidedRetry;
+
+  /// No description provided for @guidedReady.
+  ///
+  /// In en, this message translates to:
+  /// **'You did it! Now try your own puzzle.'**
+  String get guidedReady;
+
+  /// No description provided for @guidedWallPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill the top brick. The two bricks below are added together.'**
+  String get guidedWallPrompt;
+
+  /// No description provided for @guidedWallReason.
+  ///
+  /// In en, this message translates to:
+  /// **'3 + 4 = 7. The top brick must be 7.'**
+  String get guidedWallReason;
+
+  /// No description provided for @guidedTowerPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera on the left sees only one tower. Fill the first space.'**
+  String get guidedTowerPrompt;
+
+  /// No description provided for @guidedTowerReason.
+  ///
+  /// In en, this message translates to:
+  /// **'A height of 3 hides both shorter towers behind it. The camera sees exactly one.'**
+  String get guidedTowerReason;
+
+  /// No description provided for @guidedStarPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish this arm of the star. Its four numbers must add up to 22.'**
+  String get guidedStarPrompt;
+
+  /// No description provided for @guidedStarReason.
+  ///
+  /// In en, this message translates to:
+  /// **'8 + 1 + 9 = 18. The missing number is 22 − 18 = 4.'**
+  String get guidedStarReason;
+
+  /// No description provided for @howToPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'How to play'**
+  String get howToPlay;
+
+  /// No description provided for @hintFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Look here'**
+  String get hintFocus;
+
+  /// No description provided for @hintStrategy.
+  ///
+  /// In en, this message translates to:
+  /// **'Think it through'**
+  String get hintStrategy;
+
+  /// No description provided for @hintWorkedMove.
+  ///
+  /// In en, this message translates to:
+  /// **'A worked move'**
+  String get hintWorkedMove;
+
+  /// No description provided for @hintTryMyself.
+  ///
+  /// In en, this message translates to:
+  /// **'I’ll try it'**
+  String get hintTryMyself;
+
+  /// No description provided for @hintPlaceMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Show this move'**
+  String get hintPlaceMove;
+
+  /// No description provided for @strategyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Strategy hint'**
+  String get strategyHint;
+
+  /// No description provided for @hintStarFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Look at the highlighted arm. What is missing from its total?'**
+  String get hintStarFocus;
+
+  /// No description provided for @hintStarStrategy.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the known values. Subtract that sum from the target when only one space is empty.'**
+  String get hintStarStrategy;
+
+  /// No description provided for @hintWallFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Look at the highlighted brick and the pair of bricks below it.'**
+  String get hintWallFocus;
+
+  /// No description provided for @hintWallStrategy.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the operation shown between the bricks. If a lower brick is missing, work backwards from the result.'**
+  String get hintWallStrategy;
+
+  /// No description provided for @hintTowerFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Look at row {row}, column {column}, and its edge clues.'**
+  String hintTowerFocus(Object column, Object row);
+
+  /// No description provided for @hintTowerStrategy.
+  ///
+  /// In en, this message translates to:
+  /// **'A height cannot repeat in a row or column. An edge clue of 1 puts the tallest tower first; a clue equal to the grid size means increasing heights.'**
+  String get hintTowerStrategy;
+
+  /// No description provided for @hintPossibleMove.
+  ///
+  /// In en, this message translates to:
+  /// **'One possible completion puts {value} in the highlighted space. This is an example, not necessarily the only solution.'**
+  String hintPossibleMove(Object value);
+
+  /// No description provided for @hintCheckPlacements.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your placed numbers against the rules first. This hint cannot yet demonstrate a move consistent with them.'**
+  String get hintCheckPlacements;
+
+  /// No description provided for @playersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Players'**
+  String get playersTitle;
+
+  /// No description provided for @playersDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Each player has their own progress, practice, missions and difficulty. Profiles stay on this device.'**
+  String get playersDescription;
+
+  /// No description provided for @addPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add player'**
+  String get addPlayer;
+
+  /// No description provided for @renamePlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename player'**
+  String get renamePlayer;
+
+  /// No description provided for @playerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name or nickname'**
+  String get playerName;
+
+  /// No description provided for @originalPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Explorer'**
+  String get originalPlayer;
+
+  /// No description provided for @currentPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing now'**
+  String get currentPlayer;
+
+  /// No description provided for @playerSwitchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not switch players. Please try again.'**
+  String get playerSwitchFailed;
+
+  /// No description provided for @learningThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning this week'**
+  String get learningThisWeek;
+
+  /// No description provided for @learningRounds.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} rounds completed in the last 7 days.'**
+  String learningRounds(Object count);
+
+  /// No description provided for @learningTrendNeedsData.
+  ///
+  /// In en, this message translates to:
+  /// **'Trends need at least 3 measured rounds in each week for the same game and difficulty. New history starts with this update.'**
+  String get learningTrendNeedsData;
+
+  /// No description provided for @learningImproved.
+  ///
+  /// In en, this message translates to:
+  /// **'{game}, level {level}: performance rose by {points} percentage points. Based on {recent} rounds this week and {previous} last week.'**
+  String learningImproved(
+      Object game, Object level, Object points, Object previous, Object recent);
+
+  /// No description provided for @learningNextPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'What to practise next'**
+  String get learningNextPractice;
+
+  /// No description provided for @learningReviewReason.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} arithmetic facts are due for review. A short review is a useful next step.'**
+  String learningReviewReason(Object count);
+
+  /// No description provided for @learningPracticeReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Try {game} again with time to think. Suggested from {count} recent rounds with room for improvement; this is a practice suggestion, not an ability assessment.'**
+  String learningPracticeReason(Object count, Object game);
+
+  /// No description provided for @learningStartPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Start practice'**
+  String get learningStartPractice;
+
+  /// No description provided for @learningExploreReason.
+  ///
+  /// In en, this message translates to:
+  /// **'There is not enough evidence to suggest a weak area. Explore a favourite game and come back after a few rounds.'**
+  String get learningExploreReason;
+
+  /// No description provided for @parentDashboardWrongPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect code'**
+  String get parentDashboardWrongPin;
+
+  /// No description provided for @resumePuzzleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue your puzzle?'**
+  String get resumePuzzleTitle;
+
+  /// No description provided for @resumePuzzleDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your board, placed numbers, moves and hints are saved. Continue where you left off or start a fresh puzzle.'**
+  String get resumePuzzleDescription;
+
+  /// No description provided for @resumePuzzle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get resumePuzzle;
+
+  /// No description provided for @startNewPuzzle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start new'**
+  String get startNewPuzzle;
+
+  /// No description provided for @resumePuzzleFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'This saved puzzle could not be restored. Starting a new one.'**
+  String get resumePuzzleFailed;
+
+  /// No description provided for @savedPuzzlesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfinished puzzles'**
+  String get savedPuzzlesTitle;
+
+  /// No description provided for @noSavedPuzzles.
+  ///
+  /// In en, this message translates to:
+  /// **'No unfinished puzzles yet. Supported puzzle games save your board automatically.'**
+  String get noSavedPuzzles;
+
+  /// No description provided for @savedPuzzleLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Skill level {grade} · Level {level}'**
+  String savedPuzzleLevel(Object grade, Object level);
+
+  /// No description provided for @skillSpatial2d.
+  ///
+  /// In en, this message translates to:
+  /// **'Spatial thinking (2D)'**
+  String get skillSpatial2d;
+
+  /// No description provided for @skillSpatial3d.
+  ///
+  /// In en, this message translates to:
+  /// **'Spatial thinking (3D)'**
+  String get skillSpatial3d;
+
+  /// No description provided for @skillLogicDeduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Logic'**
+  String get skillLogicDeduction;
+
+  /// No description provided for @skillPatternRecognition.
+  ///
+  /// In en, this message translates to:
+  /// **'Patterns'**
+  String get skillPatternRecognition;
+
+  /// No description provided for @roundCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Round completed'**
+  String get roundCompleted;
+
+  /// No description provided for @roundMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} moves used'**
+  String roundMoves(Object count);
+
+  /// No description provided for @roundMovesAndTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} moves · target: {target}'**
+  String roundMovesAndTarget(Object count, Object target);
+
+  /// No description provided for @roundHints.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} strategy hints used'**
+  String roundHints(Object count);
+
+  /// No description provided for @roundFactsPractised.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} arithmetic facts practised'**
+  String roundFactsPractised(Object count);
+
+  /// No description provided for @roundTryGentler.
+  ///
+  /// In en, this message translates to:
+  /// **'Next suggestion: try a gentler round with time to think.'**
+  String get roundTryGentler;
+
+  /// No description provided for @roundNextSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Next suggestion: continue practising this game at your current level.'**
+  String get roundNextSuggestion;
+
+  /// No description provided for @roundSuggestedChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'Try suggested round'**
+  String get roundSuggestedChallenge;
+
+  /// No description provided for @guidedPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice'**
+  String get guidedPractice;
+
+  /// No description provided for @reduceMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce motion'**
+  String get reduceMotion;
+
+  /// No description provided for @reduceMotionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep essential gameplay movement; reduce decorative motion and flashes.'**
+  String get reduceMotionDesc;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

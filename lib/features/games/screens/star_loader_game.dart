@@ -1,5 +1,9 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
+import '../widgets/game_learning_shell.dart';
 // ignore_for_file: constant_identifier_names
 import 'package:flutter/material.dart';
+import '../widgets/round_summary.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
@@ -22,6 +26,16 @@ import 'package:flutter/foundation.dart';
 enum CellType { floor, wall, target }
 
 class MoveHistory {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'playerPos': [playerPos.dx, playerPos.dy],
+    'pushedBoxOrigin': (pushedBoxOrigin == null ? null : [pushedBoxOrigin!.dx, pushedBoxOrigin!.dy])
+  };
+  factory MoveHistory.fromJson(Map<String, dynamic> json) => MoveHistory(
+    playerPos: Offset((json['playerPos'][0] as num).toDouble(), (json['playerPos'][1] as num).toDouble()),
+    pushedBoxOrigin: (json['pushedBoxOrigin'] == null ? null : Offset((json['pushedBoxOrigin'][0] as num).toDouble(), (json['pushedBoxOrigin'][1] as num).toDouble()))
+  );
+
   final Offset playerPos;
   final Offset? pushedBoxOrigin;
 
@@ -30,6 +44,18 @@ class MoveHistory {
 
 // --- Level Data Structure ---
 class LevelData {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'layout': layout.map((v0) => v0).toList(),
+    'optimalMoves': optimalMoves
+  };
+  factory LevelData.fromJson(Map<String, dynamic> json) => LevelData(
+    id: json['id'] as String,
+    layout: (json['layout'] as List).map((v0) => v0 as String).toList(),
+    optimalMoves: json['optimalMoves'] as int
+  );
+
   final String id;
   final List<String> layout;
   final int optimalMoves;
@@ -54,7 +80,50 @@ class StarLoaderGame extends StatefulWidget {
 }
 
 class _StarLoaderGameState extends State<StarLoaderGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, PuzzleSessionMixin<StarLoaderGame> {
+  @override void onPuzzleSessionPauseChanged(bool paused) {
+    if (paused) { _stopwatch.stop(); } else if (_sessionReady && !_hasWon) { _stopwatch.start(); }
+  }
+  bool _sessionReady = false;
+  int _elapsedBeforeResume = 0;
+  @override String get sessionGameKey => 'star_loader_game';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isLoading) return null;
+    return {
+      '_currentLevelData': _currentLevelData.toJson(),
+      '_grid': _grid.map((v0) => v0.map((v1) => v1.name).toList()).toList(),
+      '_playerPos': [_playerPos.dx, _playerPos.dy],
+      '_playerDirection': _playerDirection,
+      '_boxPositions': _boxPositions.map((v0) => [v0.dx, v0.dy]).toList(),
+      '_targetPositions': _targetPositions.map((v0) => [v0.dx, v0.dy]).toList(),
+      '_optimalMoves': _optimalMoves,
+      '_moveHistory': _moveHistory.map((v0) => v0.toJson()).toList(),
+      '_moveCount': _moveCount,
+      '_elapsed': _elapsedBeforeResume + _stopwatch.elapsedMilliseconds
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _currentLevelData = LevelData.fromJson(Map<String, dynamic>.from(state["_currentLevelData"] as Map));
+    _grid = (state["_grid"] as List).map((v0) => (v0 as List).map((v1) => CellType.values.byName(v1 as String)).toList()).toList();
+    _playerPos = Offset((state["_playerPos"][0] as num).toDouble(), (state["_playerPos"][1] as num).toDouble());
+    _playerDirection = state["_playerDirection"] as int;
+    _boxPositions = (state["_boxPositions"] as List).map((v0) => Offset((v0[0] as num).toDouble(), (v0[1] as num).toDouble())).toList();
+    _targetPositions = (state["_targetPositions"] as List).map((v0) => Offset((v0[0] as num).toDouble(), (v0[1] as num).toDouble())).toList();
+    _optimalMoves = state["_optimalMoves"] as int;
+    _moveHistory..clear()..addAll((state["_moveHistory"] as List).map((v0) => MoveHistory.fromJson(Map<String, dynamic>.from(v0 as Map))).toList());
+    _moveCount = state["_moveCount"] as int;
+    _elapsedBeforeResume = state['_elapsed'] as int;
+    _isLoading = false; _hasWon = false; _stopwatch.reset(); _stopwatch.start();
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_initGameFlow);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   
   // --- 1. Level & Grid State ---
   late LevelData _currentLevelData; 
@@ -76,6 +145,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   int _moveCount = 0;
   bool _hasWon = false;
   final Stopwatch _stopwatch = Stopwatch();
+  Timer? _tutorialHintTimer;
 
   // --- 4. Animation & Controls ---
   late AnimationController _winPulseController;
@@ -137,7 +207,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
     // Start Logic
     _generateStarfield();
-    _initGameFlow();
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
@@ -165,6 +235,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   }
 
   Future<void> _initGameFlow() async {
+    beginPuzzleSession();
     // 1. Initialize the manager
     await StarLoaderLevelManager().initialize();
     
@@ -174,6 +245,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     // 3. UI stuff after loading is done
     if (mounted) {
        WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         _focusNode.requestFocus();
         if (widget.level == 1) _showTutorialHint();
       });
@@ -195,19 +267,22 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   }
 
   void _updateParticles() {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     if (!mounted) return;
-    setState(() {
+    setVisualState(() {
       _trails.removeWhere((p) => p.update());
       _celebrationParticles.removeWhere((p) => p.update());
     });
   }
 
   void _showTutorialHint() {
+    if (!mounted) return;
     setState(() {
       _showingHint = true;
       _hintMessage = S.of(context)!.starLoaderHint; // Name will be updated
     });
-    Future.delayed(const Duration(seconds: 4), () {
+    _tutorialHintTimer?.cancel();
+    _tutorialHintTimer = Timer(const Duration(seconds: 4), () {
       if (mounted) {
         setState(() => _showingHint = false);
       }
@@ -217,6 +292,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
   // --- FIX: Renamed to _resetCurrentLevel ---
   // This method resets the state using the cached _currentLevelData.
   void _resetCurrentLevel() {
+    beginPuzzleSession();
+    _elapsedBeforeResume = 0;
     final levelData = _currentLevelData; // Use cached data
 
     setState(() {
@@ -300,6 +377,8 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
   @override
   void dispose() {
+    disposePuzzleSession();
+    _tutorialHintTimer?.cancel();
     _winPulseController.dispose();
     _particleController.dispose();
     _celebrationController.dispose();
@@ -358,7 +437,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     if (dx == -1) newDirection = 3; // Left
 
     if (_getCellTypeAt(newPlayerPos) == CellType.wall) {
-      HapticFeedback.lightImpact();
+      AppHaptics.lightImpact();
       return;
     }
 
@@ -368,7 +447,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
       if (_getCellTypeAt(newBoxPos) == CellType.wall ||
           _getBoxIndexAt(newBoxPos) != -1) {
-        HapticFeedback.lightImpact();
+        AppHaptics.lightImpact();
         return;
       }
 
@@ -386,7 +465,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
       });
 
       _pushController.forward(from: 0.0);
-      HapticFeedback.mediumImpact();
+      AppHaptics.mediumImpact();
     } else {
       final oldPlayerPos = _playerPos;
       _moveHistory.add(MoveHistory(playerPos: oldPlayerPos));
@@ -398,7 +477,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
         _createTrailParticle(_playerPos);
       });
 
-      HapticFeedback.lightImpact();
+      AppHaptics.lightImpact();
     }
 
     _checkWinCondition();
@@ -438,7 +517,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
       _moveCount--;
     });
 
-    HapticFeedback.selectionClick();
+    AppHaptics.selectionClick();
   }
 
   void _checkWinCondition() {
@@ -456,7 +535,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     _celebrationController.forward(from: 0.0);
     _createCelebrationParticles();
 
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     _handleSuccess();
   }
 
@@ -481,7 +560,9 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     if (_hasWon || _moveCount == 0) return; 
 
     _stopwatch.stop();
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'star_loader_game',
       difficulty: widget.level,
     ));
@@ -489,7 +570,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
   void _handleSuccess() {
     final s = S.of(context)!;
-    final timeTaken = _stopwatch.elapsed.inSeconds;
+    final timeTaken = (_elapsedBeforeResume + _stopwatch.elapsedMilliseconds) ~/ 1000;
 
     int baseScore = 200 * widget.grade;
     int timeBonus = math.max(0, 1000 - (timeTaken * 5));
@@ -505,11 +586,16 @@ class _StarLoaderGameState extends State<StarLoaderGame>
     int totalScore = baseScore + timeBonus + moveBonus + efficiencyBonus;
 
     // Use the correct framework method
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'star_loader_game',
       difficulty: widget.level,
       score: totalScore,
       performance: Perf.fromMoves(_moveCount, _optimalMoves),
+
+      movesUsed: _moveCount,
+      optimalMoves: _optimalMoves,
     ));
 
     showDialog(
@@ -535,6 +621,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_isLoading) {
@@ -727,7 +814,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
           StreamBuilder(
             stream: Stream.periodic(const Duration(seconds: 1)),
             builder: (context, snapshot) {
-              final time = _stopwatch.elapsed;
+              final time = Duration(milliseconds: _elapsedBeforeResume + _stopwatch.elapsedMilliseconds);
               final formattedTime =
                   '${time.inMinutes.toString().padLeft(2, '0')}:${(time.inSeconds % 60).toString().padLeft(2, '0')}';
               return _buildStatItem(Icons.timer, formattedTime, s.time);
@@ -1023,7 +1110,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
 
     return StatefulBuilder(
       builder: (context, setDialogState) {
-        return Dialog(
+        return ScrollableRoundDialog(
           backgroundColor: Colors.transparent,
           child: Container(
             padding: const EdgeInsets.all(24),
@@ -1050,6 +1137,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+              RoundSummary(gameKey: 'star_loader_game'),
                   // --- 1. Success Icon ---
                   ScaleTransition(
                     scale: _winPulseAnimation,
@@ -1124,7 +1212,7 @@ class _StarLoaderGameState extends State<StarLoaderGame>
                                   setDialogState(() {
                                     _currentRating = index + 1;
                                   });
-                                  HapticFeedback.selectionClick();
+                                  AppHaptics.selectionClick();
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 4.0),

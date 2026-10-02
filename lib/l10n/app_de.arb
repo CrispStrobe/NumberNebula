@@ -1582,14 +1582,22 @@
   "cubeScannerRollJoin": ", dann ",
   "cubeScannerQHiddenFace": "Welche Zahl steht auf der {face} Seite?",
   "@cubeScannerQHiddenFace": {
-    "placeholders": { "face": { "type": "String" } }
+    "placeholders": {
+      "face": {
+        "type": "String"
+      }
+    }
   },
   "cubeScannerQHiddenFaceSum": "Wie groß ist die Summe der drei Seiten, die du nicht sehen kannst?",
   "cubeScannerQRoll": "Kippe den Würfel {rolls}. Welche Zahl steht dann auf der {face} Seite?",
   "@cubeScannerQRoll": {
     "placeholders": {
-      "rolls": { "type": "String" },
-      "face": { "type": "String" }
+      "rolls": {
+        "type": "String"
+      },
+      "face": {
+        "type": "String"
+      }
     }
   },
   "cubeScannerQHiddenPipsStack": "Die Würfel sind gestapelt, und die Seiten, die sich berühren, tragen dieselbe Zahl. Wie viele Augen liegen auf allen Seiten, die du nicht sehen kannst?",
@@ -2176,13 +2184,21 @@
   "ionChainShapeTriangle": "Dreieck",
   "ionChainRuleNoSelfPair": "Zwei {shape} dürfen nicht nebeneinander stehen",
   "@ionChainRuleNoSelfPair": {
-    "placeholders": { "shape": { "type": "String" } }
+    "placeholders": {
+      "shape": {
+        "type": "String"
+      }
+    }
   },
   "ionChainRuleNoMixedPair": "{shapeA} darf nicht neben {shapeB} stehen",
   "@ionChainRuleNoMixedPair": {
     "placeholders": {
-      "shapeA": { "type": "String" },
-      "shapeB": { "type": "String" }
+      "shapeA": {
+        "type": "String"
+      },
+      "shapeB": {
+        "type": "String"
+      }
     }
   },
   "ionChainRuleNoRepeatAtAll": "Keine zwei gleichen Formen dürfen nebeneinander stehen",
@@ -2564,7 +2580,12 @@
   "voidCrossingSeats": "Plätze",
   "voidCrossingShuttleFull": "{seats, plural, =1{Das Shuttle hat nur einen Platz. Bringe dieses Wesen zuerst hinüber oder tippe es an, um es auszuladen.} other{Das Shuttle hat nur {seats} Plätze. Tippe ein eingestiegenes Wesen an, um es auszuladen.}}",
   "@voidCrossingShuttleFull": {
-    "placeholders": { "seats": { "type": "num", "format": "compact" } }
+    "placeholders": {
+      "seats": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
   },
   "gridFillerTitle": "Rasterfüller",
   "gridFillerDesc": "Fülle ein Raster mit quadratischen Teilen — keine Lücken erlaubt!",
@@ -2730,5 +2751,70 @@
   "cubeScannerCheck": "Antwort prüfen",
   "starForgeMovesLeft": "{count, plural, =1{Noch 1 Zug} other{Noch {count} Züge}}",
   "cubeScannerWhyHiddenFace": "Gegenüberliegende Seiten ergeben zusammen 7: 7 − {visible} = {answer}.",
-  "cubeScannerWhyHiddenSum": "Die verdeckten Seiten liegen den sichtbaren gegenüber, und alle Seiten eines Würfels ergeben zusammen 21: 21 − {visible} = {answer}."
+  "cubeScannerWhyHiddenSum": "Die verdeckten Seiten liegen den sichtbaren gegenüber, und alle Seiten eines Würfels ergeben zusammen 21: 21 − {visible} = {answer}.",
+  "guidedTry": "Probiere einen Zug",
+  "guidedRetry": "Das passt noch nicht zur Regel. Probiere eine andere Zahl.",
+  "guidedReady": "Geschafft! Jetzt kommt dein eigenes Rätsel.",
+  "guidedWallPrompt": "Fülle den oberen Stein. Die beiden Steine darunter werden addiert.",
+  "guidedWallReason": "3 + 4 = 7. Der obere Stein muss 7 sein.",
+  "guidedTowerPrompt": "Die Kamera links sieht nur einen Turm. Fülle das erste Feld.",
+  "guidedTowerReason": "Ein Turm der Höhe 3 verdeckt beide kleineren Türme dahinter. Die Kamera sieht genau einen.",
+  "guidedStarPrompt": "Vervollständige diesen Sternarm. Seine vier Zahlen müssen zusammen 22 ergeben.",
+  "guidedStarReason": "8 + 1 + 9 = 18. Die fehlende Zahl ist 22 − 18 = 4.",
+  "howToPlay": "So geht’s",
+  "hintFocus": "Schau hier",
+  "hintStrategy": "Denk es durch",
+  "hintWorkedMove": "Ein erklärter Zug",
+  "hintTryMyself": "Ich probiere es",
+  "hintPlaceMove": "Zeige diesen Zug",
+  "strategyHint": "Strategie-Tipp",
+  "hintStarFocus": "Schau auf den markierten Sternarm. Was fehlt bis zur Zielsumme?",
+  "hintStarStrategy": "Addiere die bekannten Zahlen. Wenn nur ein Feld leer ist, ziehe diese Summe von der Zielsumme ab.",
+  "hintWallFocus": "Schau auf den markierten Stein und die beiden Steine darunter.",
+  "hintWallStrategy": "Nutze das Rechenzeichen zwischen den Steinen. Wenn ein unterer Stein fehlt, rechne vom Ergebnis rückwärts.",
+  "hintTowerFocus": "Schau auf Zeile {row}, Spalte {column} und die Randhinweise.",
+  "hintTowerStrategy": "Keine Höhe darf in einer Zeile oder Spalte doppelt vorkommen. Beim Randhinweis 1 steht der höchste Turm vorn; ein Hinweis in Höhe der Gittergröße bedeutet aufsteigende Höhen.",
+  "hintPossibleMove": "Eine mögliche Lösung setzt {value} in das markierte Feld. Das ist ein Beispiel, nicht unbedingt die einzige Lösung.",
+  "hintCheckPlacements": "Prüfe zuerst deine gesetzten Zahlen anhand der Regeln. Dieser Tipp kann noch keinen Zug zeigen, der dazu passt.",
+  "playersTitle": "Spieler",
+  "playersDescription": "Jeder Spieler hat eigene Fortschritte, Übungen, Missionen und Schwierigkeit. Profile bleiben auf diesem Gerät.",
+  "addPlayer": "Spieler hinzufügen",
+  "renamePlayer": "Spieler umbenennen",
+  "playerName": "Name oder Spitzname",
+  "originalPlayer": "Entdecker",
+  "currentPlayer": "Spielt gerade",
+  "playerSwitchFailed": "Spielerwechsel fehlgeschlagen. Bitte versuche es erneut.",
+  "learningThisWeek": "Lernen diese Woche",
+  "learningRounds": "{count} Runden in den letzten 7 Tagen abgeschlossen.",
+  "learningTrendNeedsData": "Trends brauchen mindestens 3 bewertete Runden pro Woche im selben Spiel auf derselben Schwierigkeit. Der neue Verlauf beginnt mit diesem Update.",
+  "learningImproved": "{game}, Level {level}: Leistung um {points} Prozentpunkte gestiegen. Grundlage: {recent} Runden diese Woche und {previous} letzte Woche.",
+  "learningNextPractice": "Was als Nächstes üben?",
+  "learningReviewReason": "{count} Rechenaufgaben stehen zur Wiederholung an. Eine kurze Wiederholung ist ein guter nächster Schritt.",
+  "learningPracticeReason": "Probiere {game} mit Zeit zum Nachdenken noch einmal. Vorschlag aus {count} aktuellen Runden mit Übungspotenzial; das ist ein Übungstipp, keine Einschätzung der Begabung.",
+  "learningStartPractice": "Übung starten",
+  "learningExploreReason": "Es gibt noch nicht genug Daten für einen gezielten Übungstipp. Spiele ein Lieblingsspiel und schau nach ein paar Runden wieder vorbei.",
+  "parentDashboardWrongPin": "Falscher Code",
+  "resumePuzzleTitle": "Rätsel fortsetzen?",
+  "resumePuzzleDescription": "Dein Spielfeld, gesetzte Zahlen, Züge und Tipps sind gespeichert. Mache weiter oder starte ein neues Rätsel.",
+  "resumePuzzle": "Fortsetzen",
+  "startNewPuzzle": "Neu starten",
+  "resumePuzzleFailed": "Dieses gespeicherte Rätsel konnte nicht geladen werden. Ein neues wird gestartet.",
+  "savedPuzzlesTitle": "Unfertige Rätsel",
+  "noSavedPuzzles": "Noch keine unfertigen Rätsel. Unterstützte Rätselspiele speichern dein Spielfeld automatisch.",
+  "savedPuzzleLevel": "Schwierigkeitsstufe {grade} · Level {level}",
+  "skillSpatial2d": "Räumliches Denken (2D)",
+  "skillSpatial3d": "Räumliches Denken (3D)",
+  "skillLogicDeduction": "Logik",
+  "skillPatternRecognition": "Muster",
+  "roundCompleted": "Runde abgeschlossen",
+  "roundMoves": "{count} Züge gebraucht",
+  "roundMovesAndTarget": "{count} Züge · Ziel: {target}",
+  "roundHints": "{count} Strategie-Tipps genutzt",
+  "roundFactsPractised": "{count} Rechenaufgaben geübt",
+  "roundTryGentler": "Nächster Vorschlag: eine leichtere Runde mit Zeit zum Nachdenken.",
+  "roundNextSuggestion": "Nächster Vorschlag: übe dieses Spiel auf deinem aktuellen Level weiter.",
+  "roundSuggestedChallenge": "Vorgeschlagene Runde spielen",
+  "guidedPractice": "Üben",
+  "reduceMotion": "Bewegung reduzieren",
+  "reduceMotionDesc": "Spielbewegungen bleiben erhalten; dekorative Bewegungen und Blitze werden reduziert."
 }

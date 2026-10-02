@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:space_math_academy/core/services/cognitive_profile_service.dart';
 import 'package:space_math_academy/core/services/progress_service.dart';
+import 'package:space_math_academy/core/services/puzzle_session_store.dart';
 import 'package:space_math_academy/core/services/sri_service.dart';
 import 'package:space_math_academy/features/games/providers/game_provider.dart';
 import 'package:space_math_academy/features/games/screens/relic_assembly_game.dart';
@@ -47,21 +48,27 @@ List<double> _traySizes(WidgetTester tester) => tester
     .toList();
 
 void main() {
-  setUp(() => SharedPreferences.setMockInitialValues({}));
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
 
   for (final (name, size, minPiece) in [
     ('tablet landscape', const Size(1280, 800), 90.0),
     ('phone portrait', const Size(390, 844), 56.0),
   ]) {
-    testWidgets('$name: lays out without overflow, pieces at least $minPiece px',
+    testWidgets(
+        '$name: lays out without overflow, pieces at least $minPiece px',
         (tester) async {
+      PuzzleSessionStore.resetForTesting();
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
 
       await tester.pumpWidget(_harness());
       // Generation is async; pump frames, never settle (the board glows forever).
-      for (var i = 0; i < 20 && find.byType(Draggable<int>).evaluate().isEmpty; i++) {
+      for (var i = 0;
+          i < 20 && find.byType(Draggable<int>).evaluate().isEmpty;
+          i++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
       expect(tester.takeException(), isNull);

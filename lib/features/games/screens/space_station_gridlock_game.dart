@@ -1,6 +1,8 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 // space_station_gridlock_game.dart - Responsive UI Update
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
@@ -30,7 +32,45 @@ class SpaceStationGridlockGame extends StatefulWidget {
 }
 
 class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, PuzzleSessionMixin<SpaceStationGridlockGame> {
+  bool _sessionReady = false;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_pulseController, _glowController], reduced);
+  }
+
+  @override String get sessionGameKey => 'space_station_gridlock';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isLoading) return null;
+    return {
+      'ships': ships.map((v0) => v0.toJson()).toList(),
+      'playerShipIndex': playerShipIndex,
+      'exitRow': exitRow,
+      'minMoves': minMoves,
+      'moveCount': moveCount,
+      '_currentPuzzleId': (_currentPuzzleId),
+      '_currentComplexity': _currentComplexity
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    ships = (state["ships"] as List).map((v0) => SpaceShip.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+    playerShipIndex = state["playerShipIndex"] as int;
+    exitRow = state["exitRow"] as int;
+    minMoves = state["minMoves"] as int;
+    moveCount = state["moveCount"] as int;
+    _currentPuzzleId = (state["_currentPuzzleId"] == null ? null : state["_currentPuzzleId"] as String);
+    _currentComplexity = (state["_currentComplexity"] as num).toDouble();
+    _isLoading = false; gameActive = true; hasWon = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_loadPuzzleAsync);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   late AnimationController _pulseController;
   late AnimationController _glowController;
   late AnimationController _slideController;
@@ -76,7 +116,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     
     _setupAnimationControllers();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _loadPuzzleAsync();
+      if (mounted) _restoreOrGenerate();
     });
   }
 
@@ -141,6 +181,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
   }
 
   Future<void> _loadPuzzleAsync() async {
+    beginPuzzleSession();
     _log('📂 Starting puzzle load sequence');
     
     setState(() {
@@ -503,7 +544,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
   }
 
   void _moveShip(int shipIndex, int direction) {
-    HapticFeedback.selectionClick();
+    AppHaptics.selectionClick();
     _slideController.forward(from: 0.0);
     
     setState(() {
@@ -577,7 +618,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     
     _successController.forward();
     _exitController.forward();
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     
     final baseScore = 250 * widget.grade;
     final efficiencyBonus = moveCount <= minMoves ? 300 : 
@@ -592,11 +633,17 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       'total': totalScore,
     });
     
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'space_station_gridlock',
       difficulty: widget.grade + (widget.level ~/ 5),
       score: totalScore,
       performance: Perf.fromMoves(moveCount, minMoves),
+
+      movesUsed: moveCount,
+      optimalMoves: minMoves,
     ));
     
     for (int i = 0; i < 60; i++) {
@@ -618,6 +665,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
@@ -1187,7 +1235,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       builder: (context, child) {
         return Transform.scale(
           scale: _successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             insetPadding: EdgeInsets.symmetric(
               horizontal: isSmallScreen ? 16 : 40,
@@ -1205,6 +1253,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'space_station_gridlock'),
                   // Content section with scroll if needed
                   Flexible(
                     child: SingleChildScrollView(
@@ -1393,6 +1442,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _log('🗑️  Disposing game');
     _pulseController.dispose();
     _glowController.dispose();
@@ -1405,6 +1455,26 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
 
 // SpaceShip class with blocking support
 class SpaceShip {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'row': row,
+    'col': col,
+    'length': length,
+    'isHorizontal': isHorizontal,
+    'isPlayer': isPlayer,
+    'isBlocking': isBlocking,
+    'color': color.toARGB32()
+  };
+  factory SpaceShip.fromJson(Map<String, dynamic> json) => SpaceShip(
+    row: json['row'] as int,
+    col: json['col'] as int,
+    length: json['length'] as int,
+    isHorizontal: json['isHorizontal'] as bool,
+    isPlayer: json['isPlayer'] as bool,
+    isBlocking: json['isBlocking'] as bool,
+    color: Color(json['color'] as int)
+  );
+
   int row;
   int col;
   final int length;

@@ -14,19 +14,59 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:space_math_academy/features/games/services/starloader_solver.dart';
 
 void main() {
+  test('adjacent movable boxes must not be pruned as a permanent deadlock', () {
+    const board = [
+      '  ######',
+      ' ## #  #',
+      '##    .#',
+      r'# $$#  #',
+      '# #@ ###',
+      '#     ##',
+      '#  .   #',
+      '########',
+    ];
+    final structure = [
+      for (final row in board)
+        [
+          for (final ch in row.split(''))
+            ch == '#'
+                ? 0
+                : ch == '.'
+                    ? 2
+                    : 1,
+        ]
+    ];
+    final state = [
+      for (final row in board)
+        [
+          for (final ch in row.split(''))
+            ch == '#'
+                ? 0
+                : ch == r'$'
+                    ? 4
+                    : ch == '@'
+                        ? 5
+                        : ch == '.'
+                            ? 2
+                            : 1,
+        ]
+    ];
+    final result = StarloaderSolver.fromGrids(structure, state).solve();
+    expect(result.solved, isTrue);
+    expect(result.pushes, 8);
+  });
   group('shipped level pool (assets/data/starloader_levels.json)', () {
-    test('every baked level is solvable and stored optimalMoves is the true '
+    test(
+        'every baked level is solvable and stored optimalMoves is the true '
         'push-optimal count', () {
-      final levels = (jsonDecode(
-              File('assets/data/starloader_levels.json').readAsStringSync())
-          ['levels'] as List);
+      final levels = (jsonDecode(File('assets/data/starloader_levels.json')
+          .readAsStringSync())['levels'] as List);
       expect(levels, isNotEmpty);
 
       for (final l in levels) {
         final id = l['id'];
-        final structure = (l['roomStructure'] as List)
-            .map((r) => List<int>.from(r))
-            .toList();
+        final structure =
+            (l['roomStructure'] as List).map((r) => List<int>.from(r)).toList();
         final state =
             (l['roomState'] as List).map((r) => List<int>.from(r)).toList();
         final res = StarloaderSolver.fromGrids(structure, state)

@@ -255,6 +255,37 @@ Uses `shared_preferences` for:
   - `SriService` database (arithmetic fact mastery)
   - `CognitiveProfileService` database (spatial/logic skill mastery)
 
+## Guided play and local players
+
+The Home screen's player menu opens **Players** and **Unfinished puzzles**.
+Each local player has separate progress, achievements, missions, practice history,
+settings and saved puzzles. The original player keeps existing progress; language
+and purchases remain shared on the device. Nicknames are optional and stay local.
+
+- **Playable tutorials:** all 48 registered games have a small practice question
+  with feedback in English and German. First play starts after the tutorial is
+  completed or skipped; replay is available from the common **Practice** bar.
+- **Strategy hints:** all games use their current saved board for focus, strategy
+  and working. Some provide a verified move; others explain the next constraint.
+  Number Walls, Star Forge and Orbital Towers also retain their board-specific
+  hint solver and optional demonstrated move. Coaching pauses timed play.
+- **Parent dashboard:** weekly completed rounds, improvement supported by enough
+  comparable rounds, and a practice action based on recent performance or due
+  arithmetic review. History accumulates as players complete rounds.
+- **Resume:** every registered game saves gameplay state, including boards,
+  counters, guesses, pieces, remaining time or battle state as appropriate.
+  Reopening offers Continue or Start new. Arcade positions are preserved;
+  transient particles and animations are recreated. Robot programs resume at a
+  safe program-editing checkpoint, Pathfinder resumes unfinished flights at
+  route selection, and battles save between resolved turns.
+  Background time is excluded from timed play.
+- **Round feedback:** all 48 games show a shared summary in their result dialogs,
+  including measured performance and reported moves, hints or practiced facts,
+  with a suggested next challenge. Coaching hints are tracked per saved round.
+
+Automated testing and CLI calibration: [commands and coverage](docs/optimization-validation.md).
+Haptics and reduced motion can be set per player in Settings.
+
 ## 🔍 Troubleshooting
 
 ### Common Issues
