@@ -60,8 +60,8 @@ uniqueness or optimal solvability of every generated board in every game.
 `.flutter-version` pins the SDK used by GitHub Actions and `tool/build_web.sh`.
 The web workflow captures the six grade/level combinations on one runner and
 analyzes the combined fixtures for a cross-level report. Artifacts retain the report and
-boards for 14 days. These are configured checks, not evidence that a remote CI
-run has already passed.
+boards for 14 days. The merged-main checks recorded below passed on GitHub Actions; artifacts
+expire, so retain any fixtures needed for longer-term comparisons.
 
 Playwright's `performance.spec.mjs` records cold menu startup, warm first frame,
 static and moving-game storage writes, long tasks where supported, browser RAF
@@ -146,24 +146,51 @@ the 30% variant found one on 2,272/6,000. These are deliberately planted
 opportunities, not natural-game win rates or measured child difficulty. A later
 piece can change the board before a preview is played.
 
-The local Cargo WASM build was terminated (compiler exit -15); the local broader
-Cargo session run reported no tests ran. Neither is a passing check. Verification
-was moved to GitHub Actions on the isolated `ci/game-optimizations-20261002`
-branch, snapshot `6c13d48a8eb4a82a0ae5165106c4559a419950db`:
-[CI run 37026088883](https://github.com/CrispStrobe/NumberNebula/actions/runs/37026088883)
-passed analysis, all 48 reduced-motion session checks, and 1,133 Flutter tests
-(two existing skips).
-[Web run 37026085221](https://github.com/CrispStrobe/NumberNebula/actions/runs/37026085221)
-passed WASM/JavaScript compilation, browser generator timing, size reporting and
-build artifact upload; its browser job was still queued when this entry was
-written. The earlier Launch/Square browser evidence above predates Cargo.
-Future builds, full tests and large sweeps belong on GitHub Actions. The pure-calibration
-workflow includes Cargo regressions and A/B artifacts, combines routine sweeps
-on one runner, splits manual sweeps above 50 samples by grade with at most two
-concurrent jobs, and uses two generation workers per runner.
-The CI and web workflows cover Flutter tests, analysis, WASM and browsers; all
-three can be dispatched manually once the changes are available remotely.
-The two runs above were dispatched manually; no merge or deployment was performed.
+## Merged-main verification (2026-10-02)
+
+PR #20 was merged as `8d7f416b3f81d5e7fee98805cca3485f39e3f700`.
+All three main workflows completed successfully:
+
+- [Flutter CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/37035490659):
+  clean analysis, 48 reduced-motion session checks, and 1,133 Flutter tests
+  (two existing skips).
+- [Pure Dart calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/37035491075):
+  411 generator regression checks, 1,370 algorithm-path checks, 4,040 Cargo
+  assertions, 4,800 Cargo A/B cases and 60,400 fresh boards across all 48 games.
+  Generation and Cargo A/B validation reported zero failures.
+- [Web and deployment](https://github.com/CrispStrobe/NumberNebula/actions/runs/37035490985):
+  864 Flutter capture/replay cases, WASM/JavaScript release compilation,
+  browser generator timing, build size reporting, browser tests against the
+  artifact, Vercel production deployment and deployed-site browser tests.
+
+The pure report contains 67 structural review flags. These are workload or
+hidden-cell changes, not failing boards or measured child difficulty. The
+864-case capture is too sparse to clear every progression flag. Keep existing
+algorithms and A/B paths while inspecting flagged mechanics.
+
+Production browser samples (one ten-second window per game/browser) showed:
+
+| Browser | Cold menu | Warm first frame | Idle RAF p95 | Moving RAF p95 | Idle writes | Moving writes |
+| --- | --- | --- | --- | --- | --- | --- |
+| Chromium/WASM | 6,376 ms | 1,107 ms | 16.67 ms | 16.67 ms | 0 | 3 |
+| Firefox/JavaScript | 11,316 ms | 3,076 ms | 200.54 ms | 167.16 ms | 0 | 3 |
+
+Both browsers reported no application errors. Chromium recorded no long tasks
+in either sample; Firefox does not expose the Long Tasks API, so its empty
+arrays do not establish an absence of long tasks. Similar slow Firefox RAF
+intervals occurred against the CI artifact. This warrants comparison with a
+blank-page baseline on the same runner before attributing it to Flutter or
+changing rendering. Browser RAF is not native device raster performance.
+
+The browser performance probe now records a blank-page RAF baseline, visibility,
+frame sample counts and Long Tasks API availability. The baseline precedes the
+cold-start timer and does not warm application resources. Use the hosted
+performance workflow to remeasure an existing deployment without rebuilding.
+
+Earlier interrupted local WASM/session runs are superseded by the successful
+remote checks above. Future builds, full tests and large sweeps belong on GitHub
+Actions. Routine pure sweeps run on one runner; manual sweeps above 50 samples
+split by grade with at most two concurrent jobs and two workers per runner.
 
 ## Shared VPS resource policy
 
