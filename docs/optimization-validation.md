@@ -251,6 +251,16 @@ Toolbar suppression is explicitly enabled for PR deployments or the hosted
 workflow's `protected_preview` input; a public `.vercel.app` hostname alone
 does not enable routing or disable caching.
 
+Hosted validation on 2026-10-02 passed both browser specs on the previously
+failing preview twice with retries disabled (15 passed, one existing skip per
+run), then passed the rebuilt artifact and a fresh protected preview. Native
+CI passed 1,143 Flutter tests with two existing skips and the ten targeted
+legacy-rendering checks. Pure Dart calibration validated 60,400 boards across
+48 games with zero failures. These checks support generator correctness and
+the rendering/session contracts; they do not establish children's felt
+difficulty or physical-device frame rate. Both browser reports observed zero
+idle session writes and three moving-game checkpoints per ten-second sample.
+
 ## Shared VPS resource policy
 
 Check load averages, available RAM and free space before substantial local work.
