@@ -1,3 +1,4 @@
+import 'generator_random.dart';
 // lib/features/games/services/star_forge_logic.dart
 //
 // Magic Star puzzle generator.
@@ -8,6 +9,30 @@ import 'dart:math' as math;
 
 /// Describes a magic star puzzle.
 class StarForgePuzzle {
+  Map<String, dynamic> toJson() => {
+        'points': points,
+        'nodeCount': nodeCount,
+        'lines': lines,
+        'magicConstant': magicConstant,
+        'solution': solution.map((k, v) => MapEntry(k.toString(), v)),
+        'clues': clues.map((k, v) => MapEntry(k.toString(), v)),
+        'emptyNodes': emptyNodes.toList(),
+        'numberPool': numberPool,
+      };
+  factory StarForgePuzzle.fromJson(Map<String, dynamic> json) =>
+      StarForgePuzzle(
+        points: json['points'] as int,
+        nodeCount: json['nodeCount'] as int,
+        lines: (json['lines'] as List).map((v) => List<int>.from(v)).toList(),
+        magicConstant: json['magicConstant'] as int,
+        solution: Map<String, dynamic>.from(json['solution'] as Map)
+            .map((k, v) => MapEntry(int.parse(k), v as int)),
+        clues: Map<String, dynamic>.from(json['clues'] as Map)
+            .map((k, v) => MapEntry(int.parse(k), v as int)),
+        emptyNodes: Set<int>.from(json['emptyNodes'] as List),
+        numberPool: List<int>.from(json['numberPool'] as List),
+      );
+
   /// Number of points on the star (5, 6, or 7).
   final int points;
 
@@ -66,7 +91,7 @@ class StarForgePuzzle {
 }
 
 class StarForgeGenerator {
-  final math.Random _random = math.Random();
+  final math.Random _random = generatorRandom();
 
   /// Generate a magic star puzzle.
   /// [points] is the number of star points (5, 6, or 7).
@@ -108,7 +133,8 @@ class StarForgeGenerator {
 
     // Number pool: all values not already given as clues
     final clueValues = clues.values.toSet();
-    final numberPool = values.where((v) => !clueValues.contains(v)).toList()..sort();
+    final numberPool = values.where((v) => !clueValues.contains(v)).toList()
+      ..sort();
 
     return StarForgePuzzle(
       points: points,
@@ -167,13 +193,12 @@ class StarForgeGenerator {
     final lines = <List<int>>[];
     for (int i = 0; i < n; i++) {
       lines.add([
-        i,                // outer tip i
-        n + i,            // inner node i
-        n + (i + 1) % n,  // inner node (i+1)
-        (i + 1) % n,      // outer tip (i+1)
+        i, // outer tip i
+        n + i, // inner node i
+        n + (i + 1) % n, // inner node (i+1)
+        (i + 1) % n, // outer tip (i+1)
       ]);
     }
     return lines;
   }
-
 }

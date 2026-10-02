@@ -1,7 +1,7 @@
 // lib/core/services/cognitive_profile_service.dart
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'profile_preferences.dart';
 import '../../features/games/tuning.dart';
 import '../models/skill_category.dart';
 
@@ -86,12 +86,12 @@ class CognitiveProfileService extends ChangeNotifier {
   Future<void> saveProfile() async {
     _log('Saving cognitive profile...');
     try {
-      final prefs = await SharedPreferences.getInstance();
       final json = _skillData.map((skill, diffMap) => MapEntry(
         skill.toString(),
         diffMap.map((diff, stats) => MapEntry(diff.toString(), stats.toJson()))
       ));
-      await prefs.setString(_storageKey, jsonEncode(json));
+      final encoded = jsonEncode(json);
+      await ProfilePreferences.writeString(_storageKey, encoded);
       _log('✅ Cognitive profile saved successfully');
     } catch (e) {
       _log('❌ Error saving profile: $e');
@@ -101,7 +101,7 @@ class CognitiveProfileService extends ChangeNotifier {
   Future<void> loadProfile() async {
     _log('Loading cognitive profile...');
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await ProfilePreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
       if (jsonString != null) {
         final json = jsonDecode(jsonString) as Map<String, dynamic>;
@@ -119,6 +119,7 @@ class CognitiveProfileService extends ChangeNotifier {
         });
         _log('✅ Loaded ${_skillData.length} skill categories');
       } else {
+        _skillData = {};
         _log('No saved profile found. Starting fresh.');
       }
     } catch (e) {

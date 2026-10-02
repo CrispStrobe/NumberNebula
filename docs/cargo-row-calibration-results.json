@@ -1,0 +1,361 @@
+{
+  "schema": 1,
+  "kind": "planted-cargo-row-opportunities",
+  "cases": 24000,
+  "failures": 0,
+  "humanPlaytestData": false,
+  "samplesPerCell": 50,
+  "grades": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "scope": "Synthetic reachable row-completion opportunities, all seven shapes and four orientations. Forced assistance checks feasibility; 30% probes the live higher-grade chance. Grades 1\u20132 are stress-tested here but retain their legacy generator in the app. No whole-game win rate or child difficulty estimate.",
+  "groups": [
+    {
+      "grade": 1,
+      "algorithm": "legacy",
+      "assistanceChance": 1.0,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 0,
+      "reachableTargetBoards": 184,
+      "implementations": {
+        "legacy": 1000
+      },
+      "generationUsMedian": 4,
+      "generationUsP95": 7
+    },
+    {
+      "grade": 1,
+      "algorithm": "candidate",
+      "assistanceChance": 1.0,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 1000,
+      "reachableTargetBoards": 1000,
+      "implementations": {
+        "candidate-board-aware": 1000
+      },
+      "generationUsMedian": 172,
+      "generationUsP95": 418
+    },
+    {
+      "grade": 1,
+      "algorithm": "legacy",
+      "assistanceChance": 0.3,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 0,
+      "reachableTargetBoards": 184,
+      "implementations": {
+        "legacy": 1000
+      },
+      "generationUsMedian": 5,
+      "generationUsP95": 8
+    },
+    {
+      "grade": 1,
+      "algorithm": "candidate",
+      "assistanceChance": 0.3,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 287,
+      "reachableTargetBoards": 428,
+      "implementations": {
+        "candidate-unassisted": 713,
+        "candidate-board-aware": 287
+      },
+      "generationUsMedian": 5,
+      "generationUsP95": 242
+    },
+    {
+      "grade": 2,
+      "algorithm": "legacy",
+      "assistanceChance": 1.0,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 0,
+      "reachableTargetBoards": 144,
+      "implementations": {
+        "legacy": 1000
+      },
+      "generationUsMedian": 4,
+      "generationUsP95": 8
+    },
+    {
+      "grade": 2,
+      "algorithm": "candidate",
+      "assistanceChance": 1.0,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 1000,
+      "reachableTargetBoards": 1000,
+      "implementations": {
+        "candidate-board-aware": 1000
+      },
+      "generationUsMedian": 191,
+      "generationUsP95": 425
+    },
+    {
+      "grade": 2,
+      "algorithm": "legacy",
+      "assistanceChance": 0.3,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 0,
+      "reachableTargetBoards": 144,
+      "implementations": {
+        "legacy": 1000
+      },
+      "generationUsMedian": 5,
+      "generationUsP95": 9
+    },
+    {
+      "grade": 2,
+      "algorithm": "candidate",
+      "assistanceChance": 0.3,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 289,
+      "reachableTargetBoards": 381,
+      "implementations": {
+        "candidate-unassisted": 711,
+        "candidate-board-aware": 289
+      },
+      "generationUsMedian": 5,
+      "generationUsP95": 290
+    },
+    {
+      "grade": 3,
+      "algorithm": "legacy",
+      "assistanceChance": 1.0,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 0,
+      "reachableTargetBoards": 120,
+      "implementations": {
+        "legacy": 1000
+      },
+      "generationUsMedian": 4,
+      "generationUsP95": 8
+    },
+    {
+      "grade": 3,
+      "algorithm": "candidate",
+      "assistanceChance": 1.0,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 1000,
+      "reachableTargetBoards": 1000,
+      "implementations": {
+        "candidate-board-aware": 1000
+      },
+      "generationUsMedian": 197,
+      "generationUsP95": 437
+    },
+    {
+      "grade": 3,
+      "algorithm": "legacy",
+      "assistanceChance": 0.3,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 0,
+      "reachableTargetBoards": 120,
+      "implementations": {
+        "legacy": 1000
+      },
+      "generationUsMedian": 6,
+      "generationUsP95": 10
+    },
+    {
+      "grade": 3,
+      "algorithm": "candidate",
+      "assistanceChance": 0.3,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 294,
+      "reachableTargetBoards": 376,
+      "implementations": {
+        "candidate-unassisted": 706,
+        "candidate-board-aware": 294
+      },
+      "generationUsMedian": 5,
+      "generationUsP95": 299
+    },
+    {
+      "grade": 4,
+      "algorithm": "legacy",
+      "assistanceChance": 1.0,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 0,
+      "reachableTargetBoards": 95,
+      "implementations": {
+        "legacy": 1000
+      },
+      "generationUsMedian": 4,
+      "generationUsP95": 7
+    },
+    {
+      "grade": 4,
+      "algorithm": "candidate",
+      "assistanceChance": 1.0,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 1000,
+      "reachableTargetBoards": 1000,
+      "implementations": {
+        "candidate-board-aware": 1000
+      },
+      "generationUsMedian": 185,
+      "generationUsP95": 569
+    },
+    {
+      "grade": 4,
+      "algorithm": "legacy",
+      "assistanceChance": 0.3,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 0,
+      "reachableTargetBoards": 95,
+      "implementations": {
+        "legacy": 1000
+      },
+      "generationUsMedian": 5,
+      "generationUsP95": 9
+    },
+    {
+      "grade": 4,
+      "algorithm": "candidate",
+      "assistanceChance": 0.3,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 301,
+      "reachableTargetBoards": 371,
+      "implementations": {
+        "candidate-unassisted": 699,
+        "candidate-board-aware": 301
+      },
+      "generationUsMedian": 4,
+      "generationUsP95": 260
+    },
+    {
+      "grade": 5,
+      "algorithm": "legacy",
+      "assistanceChance": 1.0,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 0,
+      "reachableTargetBoards": 88,
+      "implementations": {
+        "legacy": 1000
+      },
+      "generationUsMedian": 4,
+      "generationUsP95": 8
+    },
+    {
+      "grade": 5,
+      "algorithm": "candidate",
+      "assistanceChance": 1.0,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 1000,
+      "reachableTargetBoards": 1000,
+      "implementations": {
+        "candidate-board-aware": 1000
+      },
+      "generationUsMedian": 189,
+      "generationUsP95": 405
+    },
+    {
+      "grade": 5,
+      "algorithm": "legacy",
+      "assistanceChance": 0.3,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 0,
+      "reachableTargetBoards": 88,
+      "implementations": {
+        "legacy": 1000
+      },
+      "generationUsMedian": 5,
+      "generationUsP95": 9
+    },
+    {
+      "grade": 5,
+      "algorithm": "candidate",
+      "assistanceChance": 0.3,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 278,
+      "reachableTargetBoards": 340,
+      "implementations": {
+        "candidate-unassisted": 722,
+        "candidate-board-aware": 278
+      },
+      "generationUsMedian": 5,
+      "generationUsP95": 265
+    },
+    {
+      "grade": 6,
+      "algorithm": "legacy",
+      "assistanceChance": 1.0,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 0,
+      "reachableTargetBoards": 85,
+      "implementations": {
+        "legacy": 1000
+      },
+      "generationUsMedian": 4,
+      "generationUsP95": 8
+    },
+    {
+      "grade": 6,
+      "algorithm": "candidate",
+      "assistanceChance": 1.0,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 1000,
+      "reachableTargetBoards": 1000,
+      "implementations": {
+        "candidate-board-aware": 1000
+      },
+      "generationUsMedian": 175,
+      "generationUsP95": 377
+    },
+    {
+      "grade": 6,
+      "algorithm": "legacy",
+      "assistanceChance": 0.3,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 0,
+      "reachableTargetBoards": 85,
+      "implementations": {
+        "legacy": 1000
+      },
+      "generationUsMedian": 5,
+      "generationUsP95": 11
+    },
+    {
+      "grade": 6,
+      "algorithm": "candidate",
+      "assistanceChance": 0.3,
+      "cases": 1000,
+      "failures": 0,
+      "assisted": 313,
+      "reachableTargetBoards": 376,
+      "implementations": {
+        "candidate-unassisted": 687,
+        "candidate-board-aware": 313
+      },
+      "generationUsMedian": 5,
+      "generationUsP95": 262
+    }
+  ]
+}

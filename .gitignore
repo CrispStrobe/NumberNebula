@@ -54,3 +54,8 @@ CLAUDE.md
 # App Store Connect API key & tooling
 .appstoreconnect/
 *.p8
+
+# SDK checkout and local calibration output created by the CLI tools
+/flutter/
+/calibration-report.json*
+/calibration-replay.json*

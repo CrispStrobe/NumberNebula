@@ -1,6 +1,8 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
 
@@ -25,7 +27,32 @@ class CubeScannerGame extends StatefulWidget {
 }
 
 class _CubeScannerGameState extends State<CubeScannerGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<CubeScannerGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<CubeScannerGame>, PuzzleSessionMixin<CubeScannerGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'cube_scanner';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      '_puzzle': (_puzzle?.toJson()),
+      '_selectedAnswer': (_selectedAnswer),
+      '_wrongAnswers': _wrongAnswers
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _puzzle = (state["_puzzle"] == null ? null : CubeScannerPuzzle.fromJson(Map<String, dynamic>.from(state["_puzzle"] as Map)));
+    _selectedAnswer = (state["_selectedAnswer"] == null ? null : state["_selectedAnswer"] as int);
+    _wrongAnswers = state["_wrongAnswers"] as int;
+    _isGenerating = false; _showResult = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   // ---------------------------------------------------------------------------
   // Animation controllers (per VISUAL_TEMPLATE.md)
   // ---------------------------------------------------------------------------
@@ -65,8 +92,8 @@ class _CubeScannerGameState extends State<CubeScannerGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
         _showOnboarding();
       }
     });
@@ -111,6 +138,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _feedbackController.dispose();
     disposeGameAnimations(usePulse: false);
     super.dispose();
@@ -120,6 +148,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   // Puzzle generation
   // ---------------------------------------------------------------------------
   void _generatePuzzle() {
+    beginPuzzleSession();
     setState(() {
       _isGenerating = true;
       _wrongAnswers = 0;
@@ -169,13 +198,16 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     final baseScore = 100 * widget.grade;
     final levelBonus = widget.level * 25;
     final diceBonus = _puzzle!.diceCount * 75;
     final totalScore = baseScore + levelBonus + diceBonus;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'cube_scanner',
       difficulty: widget.level,
       score: totalScore,
@@ -195,9 +227,11 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   }
 
   void _handleLoss() {
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     _wrongAnswers++;
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'cube_scanner',
       difficulty: widget.level,
     ));
@@ -208,6 +242,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_puzzle == null || _isGenerating) {
@@ -717,7 +752,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -725,6 +760,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'cube_scanner'),
                   const Icon(Icons.emoji_events,
                       size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),

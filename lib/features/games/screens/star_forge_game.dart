@@ -1,8 +1,11 @@
+import '../services/generation_configs.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../mixins/game_animations_mixin.dart';
+import '../mixins/puzzle_session_mixin.dart';
 
 import '../../../core/services/debug_provider.dart';
 import '../../../core/services/puzzle_evaluation_service.dart';
@@ -12,6 +15,8 @@ import '../models/game_outcome.dart';
 import '../models/performance.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
+import '../widgets/strategy_hint_dialog.dart';
+import '../services/hint_completion_solver.dart';
 import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../services/star_forge_logic.dart';
@@ -29,7 +34,7 @@ class StarForgeGame extends StatefulWidget {
 }
 
 class _StarForgeGameState extends State<StarForgeGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<StarForgeGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<StarForgeGame>, PuzzleSessionMixin<StarForgeGame> {
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
 
@@ -41,6 +46,8 @@ class _StarForgeGameState extends State<StarForgeGame>
 
   int _movesRemaining = 0;
   int _maxMoves = 0;
+  int _hintsUsed = 0;
+  bool _hintLoading = false;
 
   /// Arm whose four nodes are lit up, set by tapping its total. Nothing else
   /// on the board says which nodes an arm covers, and the arms overlap, so
@@ -50,6 +57,30 @@ class _StarForgeGameState extends State<StarForgeGame>
   /// Cells the player has to fill — a flawless solve places each exactly
   /// once, so it doubles as the optimal move count for the performance grade.
   int _optimalMoves = 0;
+
+  @override String get sessionGameKey => 'star_forge';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (puzzle == null || _isGenerating) return null;
+    return {'puzzle': puzzle!.toJson(), 'answers': userSolution.map((k, v) => MapEntry(k.toString(), v)),
+      'moves': _movesRemaining, 'maxMoves': _maxMoves, 'optimal': _optimalMoves,
+      'hints': _hintsUsed,
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    puzzle = StarForgePuzzle.fromJson(Map<String, dynamic>.from(state['puzzle'] as Map));
+    userSolution = Map<String, dynamic>.from(state['answers'] as Map).map((k, v) => MapEntry(int.parse(k), v as int));
+    _movesRemaining = state['moves'] as int;
+    _maxMoves = state['maxMoves'] as int;
+    _optimalMoves = state['optimal'] as int;
+    _hintsUsed = state['hints'] as int? ?? 0;
+
+    _isGenerating = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) _generatePuzzle();
+  }
 
   @override
   void initState() {
@@ -66,11 +97,12 @@ class _StarForgeGameState extends State<StarForgeGame>
       curve: Curves.elasticOut,
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        await _restoreOrGenerate();
+        if (!mounted) return;
         _showOnboarding(onlyIfUnseen: true);
       }
     });
@@ -107,12 +139,20 @@ class _StarForgeGameState extends State<StarForgeGame>
         icon: Icons.touch_app,
         body: s.starForgeOnboardPlace,
       ),
+      OnboardingStep(
+        icon: Icons.touch_app,
+        body: s.guidedStarPrompt,
+        practiceBoard: '8 + ? + 1 + 9 = 22',
+        choices: const [3, 4, 5],
+        answer: 4,
+        explanation: s.guidedStarReason,
+      ),
     ];
 
     if (onlyIfUnseen) {
       OnboardingOverlay.maybeShow(
         context,
-        gameKey: 'star_forge',
+        gameKey: 'star_forge_guided_v1',
         title: s.starForgeTitle,
         steps: steps,
       );
@@ -149,41 +189,21 @@ class _StarForgeGameState extends State<StarForgeGame>
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _dropController.dispose();
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
-  int _getStarPoints() {
-    final grade = currentDifficulty?.grade ?? widget.grade;
-    if (grade <= 2) return 5;
-    if (grade == 3) return 6;
-    return 7;
-  }
+  int _getStarPoints() => StarForgeGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getStarPoints();
 
-  int _getClueCount() {
-    final level = currentDifficulty?.level ?? widget.level;
-    final grade = currentDifficulty?.grade ?? widget.grade;
-    final points = _getStarPoints();
-    final nodeCount = points * 2;
-
-    // Grade 1, level 1: reveal 80% (only 2 empty nodes on a 10-node star)
-    // Progressively remove clues as grade and level increase
-    double clueRatio;
-    if (grade <= 1) {
-      clueRatio = 0.80 - (level - 1) * 0.03; // 80% -> 62% over 6 levels
-    } else if (grade <= 2) {
-      clueRatio = 0.70 - (level - 1) * 0.03; // 70% -> 52%
-    } else {
-      clueRatio = 0.60 - (level - 1) * 0.02; // 60% -> 42%
-    }
-    final count = (nodeCount * clueRatio).round();
-    return count.clamp(2, nodeCount - 2);
-  }
+  int _getClueCount() => StarForgeGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getClueCount();
 
   void _generatePuzzle() async {
+    beginPuzzleSession();
     setState(() {
       _isGenerating = true;
+      _hintsUsed = 0;
       userSolution.clear();
       _highlightedArm = null;
       successController.reset();
@@ -215,7 +235,40 @@ class _StarForgeGameState extends State<StarForgeGame>
     }
   }
 
+  Future<void> _showStrategyHint() async {
+    if (_hintLoading || puzzleSessionFinished) return;
+    final p = puzzle;
+    if (p == null) return;
+    final missing = p.emptyNodes.where((i) => !userSolution.containsKey(i)).toList();
+    if (missing.isEmpty) return;
+    final node = missing.first;
+    final arm = p.lines.indexWhere((line) => line.contains(node));
+    setState(() { _highlightedArm = arm; _hintsUsed++; });
+    final s = S.of(context)!;
+    final initial = Map<int, int>.from(userSolution);
+    _hintLoading = true;
+    final completion = await compute(findHintCompletion, {
+      'values': {...p.clues, ...initial}.map((k, v) => MapEntry(k.toString(), v)),
+      'domains': {for (final i in p.emptyNodes) i.toString(): p.numberPool},
+      'groups': [List.generate(p.nodeCount, (i) => i.toString())],
+      'equations': p.lines.map((line) => {'cells': line.map((i) => i.toString()).toList(),
+        'op': 'sum', 'target': p.magicConstant}).toList(), 'pool': p.numberPool,
+    });
+    _hintLoading = false;
+    if (mounted) setState(() {});
+    if (!mounted || !identical(p, puzzle) || !mapEquals(initial, userSolution)) return;
+    final compatible = completion != null;
+    final value = completion?[node.toString()];
+    final line = p.lines[arm];
+    final equation = '${line.map((i) => completion?[i.toString()]).join(' + ')} = ${p.magicConstant}';
+    StrategyHintDialog.show(context, focus: s.hintStarFocus,
+      strategy: s.hintStarStrategy,
+      working: compatible ? '$equation\n${s.hintPossibleMove(value!)}' : s.hintCheckPlacements,
+      demonstrate: compatible ? () { if (mounted) _placeNumber(value!, node); } : null);
+  }
+
   void _placeNumber(int number, int nodeIdx) {
+    if (puzzleSessionFinished) return;
     setState(() {
       // Remove number from any other node that has it
       userSolution.removeWhere((k, v) => v == number);
@@ -238,6 +291,7 @@ class _StarForgeGameState extends State<StarForgeGame>
   }
 
   void _removeNumber(int nodeIdx) {
+    if (puzzleSessionFinished) return;
     setState(() {
       userSolution.remove(nodeIdx);
     });
@@ -254,16 +308,21 @@ class _StarForgeGameState extends State<StarForgeGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    finishPuzzleSession();
+    AppHaptics.lightImpact();
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
     int totalScore = baseScore + levelBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'star_forge',
       difficulty: widget.level,
       score: totalScore,
-        performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
+        performance: Perf.penalize(Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves), hints: _hintsUsed),
+      hintsUsed: _hintsUsed,
+      movesUsed: _maxMoves - _movesRemaining,
+      optimalMoves: _optimalMoves,
     ));
 
     successController.forward(from: 0.0);
@@ -277,7 +336,7 @@ class _StarForgeGameState extends State<StarForgeGame>
   }
 
   void _handleIncorrect() {
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -296,6 +355,7 @@ class _StarForgeGameState extends State<StarForgeGame>
   void _handleFailure() {
     if (kDebugMode) debugPrint('[StarForge] FAILURE - recording loss');
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'star_forge',
       difficulty: widget.level,
         progress: _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
@@ -303,6 +363,7 @@ class _StarForgeGameState extends State<StarForgeGame>
   }
 
   void _handleOutOfMoves() {
+    finishPuzzleSession();
     if (kDebugMode) debugPrint('[StarForge] Out of moves! Game over.');
     _handleFailure();
 
@@ -317,7 +378,7 @@ class _StarForgeGameState extends State<StarForgeGame>
 
   Widget _buildOutOfMovesDialog() {
     final s = S.of(context)!;
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -327,6 +388,7 @@ class _StarForgeGameState extends State<StarForgeGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'star_forge'),
             const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(
@@ -448,22 +510,12 @@ class _StarForgeGameState extends State<StarForgeGame>
                 level: widget.level,
                 onBack: () => Navigator.of(context).pop(),
               ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: TextButton.icon(
-                    onPressed: _showOnboarding,
-                    icon: const Icon(Icons.help_outline,
-                        size: 18, color: SpaceTheme.starYellow),
-                    label: Text(
-                      s.starForgeHowToPlay,
-                      style: const TextStyle(
-                          color: SpaceTheme.starYellow, fontSize: 13),
-                    ),
-                  ),
-                ),
-              ),
+              Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                Flexible(child: TextButton.icon(onPressed: _hintLoading ? null : _showStrategyHint,
+                  icon: const Icon(Icons.lightbulb_outline), label: Text(s.strategyHint))),
+                Flexible(child: TextButton.icon(onPressed: _showOnboarding,
+                  icon: const Icon(Icons.help_outline), label: Text(s.howToPlay))),
+              ]),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Row(
@@ -670,7 +722,7 @@ class _StarForgeGameState extends State<StarForgeGame>
                   border: Border.all(
                       color: edge, width: isLit ? 2.5 : 1.5),
                 ),
-                child: Row(
+                child: FittedBox(fit: BoxFit.scaleDown, child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
@@ -698,7 +750,7 @@ class _StarForgeGameState extends State<StarForgeGame>
                         ),
                       ),
                   ],
-                ),
+                )),
               ),
             ),
           ),
@@ -861,7 +913,7 @@ class _StarForgeGameState extends State<StarForgeGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -869,6 +921,7 @@ class _StarForgeGameState extends State<StarForgeGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'star_forge'),
                   const Icon(Icons.auto_awesome, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.starForgeWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),

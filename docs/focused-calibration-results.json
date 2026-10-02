@@ -1,0 +1,5813 @@
+{
+  "schema": 1,
+  "kind": "focused-structural-calibration",
+  "humanPlaytestData": false,
+  "timingScope": "Native CLI on a shared host; includes generation and validation. Capture batches overlap and are not device benchmarks.",
+  "sweeps": {
+    "launchCandidate": {
+      "cases": 6000,
+      "failures": 0,
+      "generationMs": {
+        "median": 0.104,
+        "p95": 0.236,
+        "p99": 0.792,
+        "maximum": 10.26
+      },
+      "algorithmTraces": {
+        "candidate-exact-inversions": 6000
+      },
+      "reviewCandidates": [],
+      "groups": [
+        {
+          "grade": 1,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 5,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 5,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 5,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 5,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 5,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 5,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 5,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 6,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 6,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 6,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 6,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 6,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 6,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 5,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 5,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 5,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 5,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 5,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 5,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 3,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 13,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 13,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 13,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 12,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 17,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 16,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 16,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 18,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 18,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 18,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 19,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 18,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 17,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 19,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 17,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 18,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 13,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 13,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 15,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 9,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 25,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 27,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 27,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 29,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 31,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 41,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 41,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 43,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 43,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 47,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 44,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 44,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 45,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 47,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 47,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 47,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 36,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 36,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 38,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 32,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 45,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 45,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 45,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 43,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 45,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 46,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 49,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 49,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 47,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 49,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 47,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 34,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 33,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 28,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 26,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 46,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 43,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 44,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 43,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 41,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 46,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 49,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 49,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 45,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 47,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 47,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 42,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 24,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 18,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 21,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 18,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 40,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 34,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 37,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 36,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 24,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 47,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 46,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 46,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 45,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 41,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 43,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 32,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 37,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 31,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 31,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        }
+      ]
+    },
+    "launchLegacy": {
+      "cases": 6000,
+      "failures": 0,
+      "generationMs": {
+        "median": 0.103,
+        "p95": 0.254,
+        "p99": 0.877,
+        "maximum": 2.711
+      },
+      "algorithmTraces": {
+        "legacy-random-shuffle": 6000
+      },
+      "reviewCandidates": [
+        "launch_sequence grade 1 legacy launch_sequence neutral: referenceMoves drops from 4 to 3 between levels 19 and 20; inspect the generator."
+      ],
+      "groups": [
+        {
+          "grade": 1,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 18,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 17,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 18,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 17,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 18,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 19,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 20,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 20,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 18,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 19,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 19,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 19,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 20,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 18,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 19,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 16,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 18,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 17,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 20,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 20,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 41,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 36,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 41,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 37,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 38,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 39,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 38,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 41,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 42,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 40,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 40,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 41,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 41,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 38,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 40,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 41,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 45,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 44,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 39,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 42,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 49,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 49,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 49,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 47,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 49,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 49,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 48,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 49,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 49,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 49,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 47,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 47,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {},
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        }
+      ]
+    },
+    "squareConstructive": {
+      "cases": 6000,
+      "failures": 0,
+      "generationMs": {
+        "median": 12.408000000000001,
+        "p95": 72.18,
+        "p99": 184.494,
+        "maximum": 918.397
+      },
+      "algorithmTraces": {
+        "candidate-constructive": 6000
+      },
+      "reviewCandidates": [],
+      "groups": [
+        {
+          "grade": 1,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 162,
+            "+": 138
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 144,
+            "+": 156
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 143,
+            "\u2212": 157
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 156,
+            "+": 144
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 155,
+            "+": 145
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 138,
+            "+": 162
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 153,
+            "+": 147
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 158,
+            "\u2212": 142
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 159,
+            "+": 141
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 140,
+            "\u2212": 160
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 158,
+            "+": 142
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 166,
+            "+": 134
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 154,
+            "+": 146
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 151,
+            "\u2212": 149
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 156,
+            "\u2212": 144
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 159,
+            "\u2212": 141
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 153,
+            "\u2212": 147
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 150,
+            "+": 150
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 122,
+            "+": 178
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 145,
+            "\u2212": 155
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 136,
+            "\u00d7": 102,
+            "+": 62
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 133,
+            "\u00d7": 104,
+            "+": 63
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 128,
+            "\u00d7": 101,
+            "+": 71
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 137,
+            "\u00d7": 98,
+            "+": 65
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 138,
+            "\u00d7": 102,
+            "+": 60
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 147,
+            "\u00d7": 99,
+            "+": 54
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 135,
+            "\u00d7": 116,
+            "+": 49
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 126,
+            "\u00d7": 106,
+            "+": 68
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 111,
+            "\u2212": 132,
+            "+": 57
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 125,
+            "\u00d7": 105,
+            "+": 70
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 129,
+            "\u00d7": 98,
+            "+": 73
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 119,
+            "\u00d7": 98,
+            "+": 83
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 130,
+            "\u00d7": 102,
+            "+": 68
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 100,
+            "+": 74,
+            "\u2212": 126
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 132,
+            "\u00d7": 102,
+            "+": 66
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 140,
+            "\u00d7": 106,
+            "+": 54
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 124,
+            "\u00d7": 99,
+            "+": 77
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 74,
+            "\u00d7": 100,
+            "\u2212": 126
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 103,
+            "+": 54,
+            "\u2212": 143
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 140,
+            "\u00d7": 103,
+            "+": 57
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 43,
+            "\u2212": 145,
+            "+": 112
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 29,
+            "unanchored": 21
+          }
+        },
+        {
+          "grade": 4,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 155,
+            "\u00d7": 59,
+            "+": 86
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 36,
+            "unanchored": 14
+          }
+        },
+        {
+          "grade": 4,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 147,
+            "\u00d7": 96,
+            "+": 57
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 138,
+            "\u00d7": 87,
+            "+": 75
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 92,
+            "\u2212": 134,
+            "+": 74
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 101,
+            "\u00f7": 51,
+            "\u2212": 104,
+            "\u00d7": 44
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 25,
+            "\u00d7": 25
+          }
+        },
+        {
+          "grade": 4,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 99,
+            "\u00f7": 48,
+            "\u00d7": 43,
+            "\u2212": 110
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 27,
+            "\u00f7": 23
+          }
+        },
+        {
+          "grade": 4,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 49,
+            "+": 93,
+            "\u2212": 106,
+            "\u00f7": 52
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 21,
+            "\u00f7": 29
+          }
+        },
+        {
+          "grade": 4,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 83,
+            "\u00f7": 54,
+            "\u2212": 112,
+            "\u00d7": 51
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 25,
+            "\u00d7": 25
+          }
+        },
+        {
+          "grade": 4,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 85,
+            "\u00f7": 49,
+            "\u2212": 117,
+            "\u00d7": 49
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 25,
+            "\u00d7": 25
+          }
+        },
+        {
+          "grade": 4,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 104,
+            "\u00d7": 51,
+            "+": 99,
+            "\u00f7": 46
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 26,
+            "\u00f7": 24
+          }
+        },
+        {
+          "grade": 4,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 83,
+            "\u00f7": 51,
+            "\u2212": 110,
+            "\u00d7": 56
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 23,
+            "\u00d7": 27
+          }
+        },
+        {
+          "grade": 4,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 95,
+            "\u2212": 109,
+            "\u00f7": 46,
+            "\u00d7": 50
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 23,
+            "\u00d7": 27
+          }
+        },
+        {
+          "grade": 4,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 53,
+            "+": 94,
+            "\u2212": 104,
+            "\u00f7": 49
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 33,
+            "\u00f7": 17
+          }
+        },
+        {
+          "grade": 4,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 49,
+            "\u00f7": 61,
+            "\u2212": 104,
+            "+": 86
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 22,
+            "\u00f7": 28
+          }
+        },
+        {
+          "grade": 4,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00f7": 42,
+            "+": 85,
+            "\u2212": 118,
+            "\u00d7": 55
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 19,
+            "\u00d7": 31
+          }
+        },
+        {
+          "grade": 4,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 103,
+            "\u00d7": 54,
+            "+": 92,
+            "\u00f7": 51
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 29,
+            "\u00f7": 21
+          }
+        },
+        {
+          "grade": 4,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 90,
+            "\u2212": 112,
+            "\u00f7": 49,
+            "\u00d7": 49
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 26,
+            "\u00d7": 24
+          }
+        },
+        {
+          "grade": 4,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 121,
+            "\u00d7": 62,
+            "+": 77,
+            "\u00f7": 40
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 32,
+            "\u00f7": 18
+          }
+        },
+        {
+          "grade": 4,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 38,
+            "\u2212": 108,
+            "+": 100,
+            "\u00f7": 54
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 22,
+            "\u00f7": 28
+          }
+        },
+        {
+          "grade": 5,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 152,
+            "\u2212": 148
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 155,
+            "+": 145
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 140,
+            "\u2212": 160
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 143,
+            "+": 157
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 70,
+            "+": 79,
+            "\u2212": 151
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 34,
+            "unanchored": 16
+          }
+        },
+        {
+          "grade": 5,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00f7": 35,
+            "\u2212": 111,
+            "+": 119,
+            "\u00d7": 35
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 19,
+            "\u00d7": 16,
+            "unanchored": 15
+          }
+        },
+        {
+          "grade": 5,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 112,
+            "\u00f7": 34,
+            "\u00d7": 34,
+            "\u2212": 120
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 17,
+            "unanchored": 16,
+            "\u00d7": 17
+          }
+        },
+        {
+          "grade": 5,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00f7": 46,
+            "+": 136,
+            "\u00d7": 20,
+            "\u2212": 98
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 24,
+            "\u00d7": 9,
+            "unanchored": 17
+          }
+        },
+        {
+          "grade": 5,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00f7": 42,
+            "\u2212": 102,
+            "+": 128,
+            "\u00d7": 28
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 13,
+            "unanchored": 15,
+            "\u00f7": 22
+          }
+        },
+        {
+          "grade": 5,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 101,
+            "\u00d7": 56,
+            "\u00f7": 54,
+            "+": 89
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 22,
+            "\u00f7": 28
+          }
+        },
+        {
+          "grade": 5,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 101,
+            "\u00f7": 60,
+            "\u00d7": 50,
+            "\u2212": 89
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 24,
+            "\u00f7": 26
+          }
+        },
+        {
+          "grade": 5,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 55,
+            "+": 95,
+            "\u2212": 91,
+            "\u00f7": 59
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 27,
+            "\u00f7": 23
+          }
+        },
+        {
+          "grade": 5,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 56,
+            "+": 94,
+            "\u2212": 86,
+            "\u00f7": 64
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 19,
+            "\u00f7": 31
+          }
+        },
+        {
+          "grade": 5,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 83,
+            "+": 97,
+            "\u00d7": 55,
+            "\u00f7": 65
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 34,
+            "\u00d7": 16
+          }
+        },
+        {
+          "grade": 5,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 91,
+            "\u2212": 91,
+            "\u00d7": 54,
+            "\u00f7": 64
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 27,
+            "\u00f7": 23
+          }
+        },
+        {
+          "grade": 5,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 91,
+            "+": 91,
+            "\u00d7": 70,
+            "\u00f7": 48
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 23,
+            "\u00d7": 27
+          }
+        },
+        {
+          "grade": 5,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00f7": 51,
+            "\u2212": 92,
+            "+": 94,
+            "\u00d7": 63
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 32,
+            "\u00f7": 18
+          }
+        },
+        {
+          "grade": 5,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 89,
+            "\u00f7": 57,
+            "\u2212": 85,
+            "\u00d7": 69
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 18,
+            "\u00d7": 32
+          }
+        },
+        {
+          "grade": 5,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 58,
+            "+": 95,
+            "\u2212": 99,
+            "\u00f7": 48
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 27,
+            "\u00f7": 23
+          }
+        },
+        {
+          "grade": 5,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 93,
+            "\u00f7": 59,
+            "\u2212": 97,
+            "\u00d7": 51
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 28,
+            "\u00d7": 22
+          }
+        },
+        {
+          "grade": 6,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 151,
+            "+": 149
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 149,
+            "+": 151
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 148,
+            "+": 152
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 154,
+            "\u2212": 146
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 151,
+            "+": 149
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 138,
+            "+": 162
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 158,
+            "+": 142
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 154,
+            "\u2212": 146
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 138,
+            "\u2212": 162
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 157,
+            "\u2212": 143
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 151,
+            "\u2212": 149
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 153,
+            "\u2212": 147
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 121,
+            "+": 124,
+            "\u00d7": 28,
+            "\u00f7": 27
+          },
+          "advancedAnchorCounts": {
+            "\u00f7": 13,
+            "\u00d7": 17,
+            "unanchored": 20
+          }
+        },
+        {
+          "grade": 6,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 117,
+            "+": 128,
+            "\u00d7": 27,
+            "\u00f7": 28
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 16,
+            "unanchored": 18,
+            "\u00f7": 16
+          }
+        },
+        {
+          "grade": 6,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 117,
+            "+": 123,
+            "\u00d7": 30,
+            "\u00f7": 30
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 18,
+            "\u00d7": 17,
+            "\u00f7": 15
+          }
+        },
+        {
+          "grade": 6,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 116,
+            "+": 130,
+            "\u00d7": 31,
+            "\u00f7": 23
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 19,
+            "\u00d7": 16,
+            "\u00f7": 15
+          }
+        },
+        {
+          "grade": 6,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 113,
+            "\u2212": 130,
+            "\u00d7": 29,
+            "\u00f7": 28
+          },
+          "advancedAnchorCounts": {
+            "unanchored": 18,
+            "\u00d7": 14,
+            "\u00f7": 18
+          }
+        },
+        {
+          "grade": 6,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00f7": 32,
+            "\u2212": 114,
+            "+": 125,
+            "\u00d7": 29
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 15,
+            "unanchored": 14,
+            "\u00f7": 21
+          }
+        },
+        {
+          "grade": 6,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 123,
+            "\u00f7": 31,
+            "\u00d7": 29,
+            "\u2212": 117
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 15,
+            "\u00f7": 16,
+            "unanchored": 19
+          }
+        },
+        {
+          "grade": 6,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 121,
+            "\u00f7": 23,
+            "\u00d7": 34,
+            "\u2212": 122
+          },
+          "advancedAnchorCounts": {
+            "\u00d7": 22,
+            "unanchored": 17,
+            "\u00f7": 11
+          }
+        }
+      ]
+    },
+    "squarePruned": {
+      "cases": 6000,
+      "failures": 0,
+      "generationMs": {
+        "median": 16.180999999999997,
+        "p95": 197.062,
+        "p99": 1595.926,
+        "maximum": 75631.203
+      },
+      "algorithmTraces": {
+        "candidate": 5409,
+        "candidate-simple-operations-fallback": 591
+      },
+      "reviewCandidates": [],
+      "groups": [
+        {
+          "grade": 1,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 296,
+            "\u2212": 4
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 1,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 300
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 146,
+            "+": 154
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 141,
+            "+": 159
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 137,
+            "\u2212": 163
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 163,
+            "\u2212": 137
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 155,
+            "+": 145
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 150,
+            "+": 150
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 160,
+            "+": 140
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 144,
+            "+": 156
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 157,
+            "\u2212": 143
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 148,
+            "\u2212": 152
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 151,
+            "\u2212": 149
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 152,
+            "\u2212": 148
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 136,
+            "\u2212": 164
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 156,
+            "\u2212": 144
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 161,
+            "\u2212": 139
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 135,
+            "+": 165
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 146,
+            "+": 154
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 147,
+            "\u2212": 153
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 149,
+            "+": 151
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 2,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 148,
+            "+": 152
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 114,
+            "+": 130,
+            "\u00d7": 56
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 56,
+            "+": 118,
+            "\u2212": 126
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 105,
+            "\u00d7": 49,
+            "\u2212": 146
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 76,
+            "+": 110,
+            "\u2212": 114
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 124,
+            "\u2212": 119,
+            "\u00d7": 57
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 120,
+            "+": 107,
+            "\u00d7": 73
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 115,
+            "\u2212": 132,
+            "\u00d7": 53
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 67,
+            "\u2212": 127,
+            "+": 106
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 65,
+            "\u2212": 110,
+            "+": 125
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 123,
+            "\u00d7": 73,
+            "+": 104
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 68,
+            "+": 108,
+            "\u2212": 124
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 121,
+            "\u00d7": 63,
+            "\u2212": 116
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 65,
+            "+": 116,
+            "\u2212": 119
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 122,
+            "\u00d7": 68,
+            "\u2212": 110
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 68,
+            "+": 113,
+            "\u2212": 119
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 76,
+            "+": 107,
+            "\u2212": 117
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 117,
+            "\u00d7": 59,
+            "\u2212": 124
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 72,
+            "+": 100,
+            "\u2212": 128
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 112,
+            "\u2212": 113,
+            "\u00d7": 75
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 3,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 114,
+            "\u00d7": 59,
+            "\u2212": 127
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 133,
+            "\u2212": 144,
+            "\u00d7": 23
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 156,
+            "\u00d7": 24,
+            "+": 120
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 129,
+            "\u00d7": 45,
+            "+": 126
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 132,
+            "\u00d7": 34,
+            "+": 134
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 131,
+            "+": 118,
+            "\u00d7": 51
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 111,
+            "\u2212": 119,
+            "\u00d7": 34,
+            "\u00f7": 36
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 122,
+            "\u00d7": 33,
+            "+": 116,
+            "\u00f7": 29
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 114,
+            "\u00d7": 33,
+            "\u2212": 118,
+            "\u00f7": 35
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 106,
+            "\u00d7": 38,
+            "\u2212": 125,
+            "\u00f7": 31
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 118,
+            "\u2212": 110,
+            "\u00f7": 37,
+            "\u00d7": 35
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 105,
+            "\u00f7": 37,
+            "\u2212": 119,
+            "\u00d7": 39
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 113,
+            "\u00f7": 35,
+            "\u2212": 125,
+            "\u00d7": 27
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 114,
+            "\u00f7": 36,
+            "\u2212": 110,
+            "\u00d7": 40
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 119,
+            "\u00d7": 34,
+            "\u00f7": 39,
+            "\u2212": 108
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 126,
+            "+": 117,
+            "\u00f7": 31,
+            "\u00d7": 26
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 116,
+            "\u00d7": 28,
+            "+": 120,
+            "\u00f7": 36
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 121,
+            "\u00d7": 37,
+            "\u2212": 116,
+            "\u00f7": 26
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 107,
+            "\u2212": 127,
+            "\u00d7": 39,
+            "\u00f7": 27
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 108,
+            "\u00d7": 38,
+            "+": 126,
+            "\u00f7": 28
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 4,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 135,
+            "+": 114,
+            "\u00d7": 24,
+            "\u00f7": 27
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 148,
+            "+": 152
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 136,
+            "\u2212": 164
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 150,
+            "\u2212": 150
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 155,
+            "+": 145
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 140,
+            "\u2212": 150,
+            "\u00d7": 10
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 140,
+            "+": 144,
+            "\u00d7": 5,
+            "\u00f7": 11
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 140,
+            "\u2212": 142,
+            "\u00f7": 9,
+            "\u00d7": 9
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 152,
+            "+": 134,
+            "\u00f7": 7,
+            "\u00d7": 7
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 159,
+            "+": 129,
+            "\u00d7": 9,
+            "\u00f7": 3
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00f7": 44,
+            "\u00d7": 36,
+            "+": 112,
+            "\u2212": 108
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 124,
+            "\u2212": 112,
+            "\u00f7": 32,
+            "\u00d7": 32
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 97,
+            "+": 113,
+            "\u00f7": 51,
+            "\u00d7": 39
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 124,
+            "\u00d7": 30,
+            "\u00f7": 30,
+            "+": 116
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 98,
+            "\u00f7": 41,
+            "\u2212": 124,
+            "\u00d7": 37
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 124,
+            "\u00f7": 41,
+            "\u2212": 104,
+            "\u00d7": 31
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 118,
+            "\u2212": 128,
+            "\u00d7": 27,
+            "\u00f7": 27
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 99,
+            "+": 123,
+            "\u00f7": 39,
+            "\u00d7": 39
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 117,
+            "+": 119,
+            "\u00d7": 31,
+            "\u00f7": 33
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 113,
+            "+": 113,
+            "\u00f7": 38,
+            "\u00d7": 36
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 5,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 126,
+            "+": 108,
+            "\u00d7": 37,
+            "\u00f7": 29
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 1,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 149,
+            "+": 151
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 2,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 162,
+            "+": 138
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 3,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 142,
+            "+": 158
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 4,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 148,
+            "+": 152
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 5,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 147,
+            "+": 153
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 6,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 147,
+            "\u2212": 153
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 7,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 155,
+            "+": 145
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 8,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 176,
+            "\u2212": 124
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 9,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 163,
+            "\u2212": 137
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 10,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 158,
+            "\u2212": 142
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 11,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 146,
+            "+": 154
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 12,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 152,
+            "\u2212": 148
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 13,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 131,
+            "\u2212": 137,
+            "\u00d7": 14,
+            "\u00f7": 18
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 14,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 138,
+            "\u2212": 134,
+            "\u00d7": 12,
+            "\u00f7": 16
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 15,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 137,
+            "\u2212": 138,
+            "\u00d7": 15,
+            "\u00f7": 10
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 16,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u00d7": 18,
+            "\u2212": 133,
+            "+": 130,
+            "\u00f7": 19
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 17,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 133,
+            "\u2212": 136,
+            "\u00f7": 21,
+            "\u00d7": 10
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 18,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "+": 130,
+            "\u2212": 136,
+            "\u00d7": 20,
+            "\u00f7": 14
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 19,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 130,
+            "+": 117,
+            "\u00d7": 28,
+            "\u00f7": 25
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        },
+        {
+          "grade": 6,
+          "level": 20,
+          "samples": 50,
+          "distinctSnapshots": 50,
+          "operatorCounts": {
+            "\u2212": 126,
+            "+": 141,
+            "\u00d7": 15,
+            "\u00f7": 18
+          },
+          "advancedAnchorCounts": {
+            "not-applicable": 50
+          }
+        }
+      ]
+    }
+  }
+}

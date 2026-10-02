@@ -1,10 +1,13 @@
+import '../services/round_generation.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
 
 import '../models/game_outcome.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import '../models/performance.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -27,7 +30,7 @@ class SignalTriangulationGame extends StatefulWidget {
 }
 
 class _SignalTriangulationGameState extends State<SignalTriangulationGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, PuzzleSessionMixin<SignalTriangulationGame> {
   late AnimationController _pulseController;
   late AnimationController _scanController;
   late AnimationController _successController;
@@ -63,6 +66,34 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   late List<SignalGlyph> availableGlyphs;
 
   @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_pulseController], reduced);
+  }
+
+  @override String get sessionGameKey => 'signal_triangulation';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!gameActive) return null;
+    return {'secret': secretSequence.map((g) => g.name).toList(),
+      'guess': currentGuess.map((g) => g.name).toList(), 'position': currentPosition,
+      'history': previousGuesses.map((r) => {'guess': r.guess.map((g) => g.name).toList(),
+        'correct': r.correctPosition, 'present': r.correctGlyph}).toList(),
+      'length': sequenceLength, 'maxGuesses': maxGuesses,
+      'glyphs': availableGlyphs.map((g) => g.name).toList()};
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    SignalGlyph glyph(String name) => [SignalGlyph.empty, ...SignalGlyph.getAllGlyphs()].firstWhere((g) => g.name == name);
+    List<SignalGlyph> glyphs(dynamic raw) => (raw as List).map((v) => glyph(v as String)).toList();
+    secretSequence = glyphs(state['secret']); currentGuess = glyphs(state['guess']);
+    availableGlyphs = glyphs(state['glyphs']); sequenceLength = state['length']; maxGuesses = state['maxGuesses'];
+    currentPosition = state['position'];
+    previousGuesses = (state['history'] as List).map((r) => GuessResult(guess: glyphs(r['guess']),
+      correctPosition: r['correct'], correctGlyph: r['present'])).toList();
+    gameActive = true; hasWon = false;
+  }
+
+  @override
   void initState() {
     super.initState();
     if (kDebugMode) debugPrint("🎯 [SignalTriangulation] Initializing game - Grade: ${widget.grade}, Level: ${widget.level}");
@@ -72,9 +103,10 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     _generateSecretSequence();
     
     // Start header timer after a brief delay to ensure proper initialization
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
-        _startHeaderTimer();
+        await restorePuzzleSession();
+        if (mounted) _startHeaderTimer();
       }
     });
     
@@ -135,26 +167,9 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
 
   void _initializeGameParameters() {
     // Determine difficulty based on grade and level
-    final complexity = widget.grade + (widget.level / 5.0);
-    
-    if (complexity <= 2.0) {
-      sequenceLength = 4;
-      maxGuesses = 10;
-      availableGlyphs = SignalGlyph.getBasicGlyphs();
-    } else if (complexity <= 3.5) {
-      sequenceLength = 4;
-      maxGuesses = 8;
-      availableGlyphs = SignalGlyph.getIntermediateGlyphs();
-    } else if (complexity <= 5.0) {
-      sequenceLength = 5;
-      maxGuesses = 9;
-      availableGlyphs = SignalGlyph.getAdvancedGlyphs();
-    } else {
-      sequenceLength = 6;
-      maxGuesses = 10;
-      availableGlyphs = SignalGlyph.getAllGlyphs();
-    }
-    
+    final parameters=generateSignalRound(widget.grade,widget.level);
+ sequenceLength=parameters['length'] as int;maxGuesses=parameters['maxGuesses'] as int;
+ availableGlyphs=SignalGlyph.getAllGlyphs().where((g)=>(parameters['glyphs'] as List).contains(g.name)).toList();
     currentGuess = List.filled(sequenceLength, SignalGlyph.empty);
     previousGuesses = [];
     currentPosition = 0;
@@ -163,16 +178,14 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   }
 
   void _generateSecretSequence() {
-    final random = math.Random();
-    secretSequence = List.generate(sequenceLength, (_) {
-      return availableGlyphs[random.nextInt(availableGlyphs.length)];
-    });
+    final parameters=generateSignalRound(widget.grade,widget.level);
+ secretSequence=(parameters['secret'] as List).map((name)=>availableGlyphs.firstWhere((g)=>g.name==name)).toList();
   }
 
   void _selectGlyph(SignalGlyph glyph) {
     if (!gameActive || currentPosition >= sequenceLength) return;
     
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     _glyphController.forward(from: 0.0);
     
     setState(() {
@@ -198,7 +211,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   }
 
   void _submitGuess() async {
-    if (!gameActive || currentGuess.any((g) => g == SignalGlyph.empty)) return;
+    if (!mounted || !gameActive || currentGuess.any((g) => g == SignalGlyph.empty)) return;
     
     if (kDebugMode) debugPrint("🎯 [SignalTriangulation] Submitting guess: ${currentGuess.map((g) => g.name).join(', ')}");
     
@@ -296,6 +309,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   }
 
   void _handleSuccess() {
+    finishPuzzleSession();
     if (kDebugMode) debugPrint("🎉 [SignalTriangulation] Success! Signal triangulated successfully");
     
     setState(() {
@@ -304,7 +318,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     });
     
     _successController.forward();
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     
     // Calculate score based on performance
     final baseScore = 200 * widget.grade;
@@ -313,12 +327,16 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     final totalScore = baseScore + efficiencyBonus + difficultyBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'signal_triangulation',
       difficulty: widget.grade + (widget.level ~/ 5),
       score: totalScore,
       // Half the guess allowance is the par for real deduction.
       performance: Perf.fromMoves(
           previousGuesses.length, (maxGuesses / 2).ceil()),
+
+      movesUsed: previousGuesses.length,
+      optimalMoves: (maxGuesses / 2).ceil(),
     ));
     
     // Add celebration particles
@@ -340,6 +358,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   }
 
   void _handleFailure() {
+    finishPuzzleSession();
     if (kDebugMode) debugPrint("❌ [SignalTriangulation] Failed - Signal source remains hidden");
 
     setState(() {
@@ -348,11 +367,12 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     });
 
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'signal_triangulation',
       difficulty: widget.grade + (widget.level ~/ 5),
     ));
 
-    HapticFeedback.vibrate();
+    AppHaptics.vibrate();
     
     // Add failure particles
     for (int i = 0; i < 30; i++) {
@@ -885,7 +905,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       builder: (context, child) {
         return Transform.scale(
           scale: _successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               constraints: BoxConstraints(
@@ -900,6 +920,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                  RoundSummary(gameKey: 'signal_triangulation'),
                     const Icon(Icons.radio, size: 48, color: SpaceTheme.alienGreen),
                     const SizedBox(height: 12),
                     Text(
@@ -956,7 +977,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   }
 
   Widget _buildFailureDialog() {
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         constraints: BoxConstraints(
@@ -971,6 +992,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+                  RoundSummary(gameKey: 'signal_triangulation'),
               const Icon(Icons.signal_wifi_off, size: 48, color: SpaceTheme.rocketRed),
               const SizedBox(height: 12),
               Text(
@@ -1028,6 +1050,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   }
 
   void _resetGame() {
+    beginPuzzleSession();
     setState(() {
       gameActive = true;
       hasWon = false;

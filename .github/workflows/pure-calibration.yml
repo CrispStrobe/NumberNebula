@@ -1,0 +1,85 @@
+name: Pure Dart game calibration
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, 'perf/**']
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: Samples per game, grade and level (1..1000)
+        default: '10'
+        required: true
+        type: string
+      algorithm:
+        description: Algorithm path for A/B experiments
+        default: auto
+        type: choice
+        options: [auto, legacy, candidate]
+      square_path:
+        description: Arithmetic Square candidate for A/B experiments
+        default: constructive
+        type: choice
+        options: [constructive, pruned]
+permissions:
+  contents: read
+concurrency:
+  group: pure-calibration-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        # Routine sweeps share one SDK setup and one runner assignment. Large
+        # manual sweeps remain split by grade to bound fixtures and disk usage.
+        grade_group: ${{ fromJSON(fromJSON(inputs.samples || '10') > 50 && '["1","2","3","4","5","6"]' || '["all"]') }}
+    env:
+      CALIBRATION_GRADES: ${{ matrix.grade_group == 'all' && '1,2,3,4,5,6' || matrix.grade_group }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: '3.12.1'
+      - name: Resolve pure SDK dependencies (no Flutter)
+        run: dart pub get --directory tool/pure_dart
+      - name: Shared generator regressions
+        if: matrix.grade_group == 'all' || matrix.grade_group == '1'
+        run: dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/test_pure_generation.dart
+      - name: Candidate and baseline correctness regressions
+        if: matrix.grade_group == 'all' || matrix.grade_group == '1'
+        run: dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/test_algorithm_paths.dart
+      - name: Cargo reachable-row regressions
+        if: matrix.grade_group == 'all' || matrix.grade_group == '1'
+        run: dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/test_cargo_rows.dart
+      - name: Compile Cargo dynamic calibration CLI
+        run: dart compile exe --packages=tool/pure_dart/.dart_tool/package_config.json tool/calibrate_cargo_rows.dart -o cargo-row-calibration
+      - name: Cargo candidate and baseline row opportunities
+        env:
+          CALIBRATION_SAMPLES: ${{ inputs.samples || '10' }}
+        run: >-
+          ./cargo-row-calibration --grades "$CALIBRATION_GRADES"
+          --samples "$CALIBRATION_SAMPLES"
+          --output calibration-grade-${{ matrix.grade_group }}-cargo-rows.json
+      - name: Compile calibration CLI
+        run: dart compile exe --packages=tool/pure_dart/.dart_tool/package_config.json tool/calibrate_games.dart -o game-calibration
+      - name: Generate all games and estimate workload
+        env:
+          CALIBRATION_SAMPLES: ${{ inputs.samples || '10' }}
+          CALIBRATION_ALGORITHM: ${{ inputs.algorithm || 'auto' }}
+          CALIBRATION_SQUARE_PATH: ${{ inputs.square_path || 'constructive' }}
+        run: >-
+          ./game-calibration --algorithm "$CALIBRATION_ALGORITHM"
+          --square-path "$CALIBRATION_SQUARE_PATH"
+          --generate --require-all --grades "$CALIBRATION_GRADES" --levels 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+          --samples "$CALIBRATION_SAMPLES" --seed 20261002 --workers 2
+          --output calibration-grade-${{ matrix.grade_group }}.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pure-calibration-grade-${{ matrix.grade_group }}
+          path: calibration-grade-*
+          retention-days: 14

@@ -1,3 +1,4 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
 // lib/features/games/screens/karteikasten_screen.dart
 //
 // Karteikasten-style flashcard view of the SRI database. Five boxes
@@ -7,7 +8,6 @@
 // card onto a target box card.
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/sri_service.dart';
@@ -87,7 +87,7 @@ class _KarteikastenScreenState extends State<KarteikastenScreen> {
             child: DragTarget<String>(
               onWillAcceptWithDetails: (_) => true,
               onAcceptWithDetails: (d) async {
-                HapticFeedback.mediumImpact();
+                AppHaptics.mediumImpact();
                 await context
                     .read<SriService>()
                     .moveItemToBox(d.data, boxNum);

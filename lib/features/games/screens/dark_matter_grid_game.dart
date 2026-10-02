@@ -1,7 +1,9 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
+import '../mixins/puzzle_session_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -23,7 +25,7 @@ class DarkMatterGridGame extends StatefulWidget {
 }
 
 class _DarkMatterGridGameState extends State<DarkMatterGridGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<DarkMatterGridGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<DarkMatterGridGame>, PuzzleSessionMixin<DarkMatterGridGame> {
   late AnimationController _tapController;
 
   DifficultyConfig? currentDifficulty;
@@ -32,6 +34,22 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
   int moveCount = 0;
   bool _isGenerating = true;
   bool _won = false;
+
+  @override String get sessionGameKey => 'dark_matter_grid';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (puzzle == null || _isGenerating) return null;
+    return {'puzzle': puzzle!.toJson(), 'grid': grid, 'moves': moveCount};
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    puzzle = DarkMatterGridPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle']));
+    grid = (state['grid'] as List).map((v) => List<bool>.from(v)).toList(); moveCount = state['moves']; _won = false;
+    _isGenerating = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) _generatePuzzle();
+  }
 
   @override
   void initState() {
@@ -46,20 +64,22 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _tapController.dispose();
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
   void _generatePuzzle() {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     setState(() {
@@ -96,7 +116,7 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
   void _onCellTap(int row, int col) {
     if (_won) return;
 
-    HapticFeedback.selectionClick();
+    AppHaptics.selectionClick();
     _tapController.forward(from: 0.0);
 
     setState(() {
@@ -110,8 +130,9 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
   }
 
   void _handleWin() {
+    finishPuzzleSession();
     _won = true;
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
 
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
@@ -119,10 +140,14 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
     int totalScore = baseScore + levelBonus + moveBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'dark_matter_grid',
       difficulty: widget.level,
       score: totalScore,
       performance: Perf.fromMoves(moveCount, puzzle!.minMoves),
+
+      movesUsed: moveCount,
+      optimalMoves: puzzle!.minMoves,
     ));
 
     successController.forward(from: 0.0);
@@ -295,7 +320,7 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -303,6 +328,7 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'dark_matter_grid'),
                   const Icon(Icons.emoji_events, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.darkMatterGridWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),

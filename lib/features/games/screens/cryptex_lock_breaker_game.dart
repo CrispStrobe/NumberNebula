@@ -1,10 +1,14 @@
+import '../services/cryptex_logic.dart';
+export '../services/cryptex_logic.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
+import '../widgets/game_learning_shell.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../mixins/game_animations_mixin.dart';
 
-import '../constants/app_constants.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../models/game_outcome.dart';
@@ -30,7 +34,32 @@ class CryptexLockBreakerGame extends StatefulWidget {
 }
 
 class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<CryptexLockBreakerGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<CryptexLockBreakerGame>, PuzzleSessionMixin<CryptexLockBreakerGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'cryptex_lock_breaker';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady) return null;
+    return {
+      'currentPuzzle': currentPuzzle.toJson(),
+      'dialValues': dialValues.map((v0) => v0).toList(),
+      '_dialAdjustments': _dialAdjustments
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    currentPuzzle = CryptexPuzzle.fromJson(Map<String, dynamic>.from(state["currentPuzzle"] as Map));
+    dialValues = (state["dialValues"] as List).map((v0) => v0 as int).toList();
+    _dialAdjustments = state["_dialAdjustments"] as int;
+    gameActive = true; isUnlocked = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   late AnimationController _rotationController;
   late AnimationController _unlockController;
   late AnimationController _particleController;
@@ -70,7 +99,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     if (kDebugMode) debugPrint("🔐 [CryptexLockBreaker] Initializing game - Grade: ${widget.grade}, Level: ${widget.level}");
     
     _setupAnimationControllers();
-    _generatePuzzle();
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
   }
 
   void _setupAnimationControllers() {
@@ -111,6 +140,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   }
 
   void _generatePuzzle() {
+    beginPuzzleSession();
     if (kDebugMode) debugPrint("🔐 [CryptexLockBreaker] Generating new puzzle");
     
     setState(() {
@@ -150,7 +180,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     final newValue = (dragStartValue + steps) % 10;
     
     if (newValue != dialValues[dialIndex]) {
-      HapticFeedback.selectionClick();
+      AppHaptics.selectionClick();
       setState(() {
         dialValues[dialIndex] = newValue < 0 ? newValue + 10 : newValue;
       });
@@ -204,7 +234,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     });
 
     _unlockController.forward();
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
 
     // 1. Convert the solved puzzle equations into a list of trackable MathProblem objects.
     //    This uses a new helper method on the CryptexEquation class (defined below).
@@ -221,7 +251,9 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     // 3. Make a SINGLE, UNIFIED call to the GameProvider to record the win.
     //    This centralizes progress tracking and dispatches data to both the
     //    SRI and Cognitive Profile services automatically.
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'cryptex_lock_breaker',
       difficulty: widget.grade + (widget.level ~/ 5),
       score: totalScore,
@@ -229,6 +261,9 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       // Reading the equations and setting each wrong dial once is the perfect
       // crack; spinning dials until something clicks costs quality.
       performance: Perf.fromMoves(_dialAdjustments, _minimumAdjustments),
+
+      movesUsed: _dialAdjustments,
+      optimalMoves: _minimumAdjustments,
     ));
 
     // --- END: MODIFIED LOGIC ---
@@ -260,7 +295,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       gameActive = false;
     });
 
-    HapticFeedback.vibrate();
+    AppHaptics.vibrate();
 
     // Convert the puzzle equations into MathProblem objects to let the SRI
     // system know which concepts the player struggled with on this attempt.
@@ -268,7 +303,10 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
         .map((eq) => eq.toMathProblem(currentPuzzle.solution))
         .toList();
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'cryptex_lock_breaker',
       difficulty: widget.grade + (widget.level ~/ 5),
       mathProblems: attemptedProblems,
@@ -302,7 +340,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
 
   Widget _buildFailureDialog() {
     final s = S.of(context)!;
-    return AlertDialog(
+    return AlertDialog(scrollable: true,
       backgroundColor: SpaceTheme.deepSpace,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Row(
@@ -315,6 +353,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+                  RoundSummary(gameKey: 'cryptex_lock_breaker'),
           Text(
             'Solution: ${currentPuzzle.solution.join("  ")}',
             style: SpaceTheme.bodyStyle,
@@ -360,15 +399,17 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   }
 
   void _updateParticles() {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     if (!mounted) return;
     
-    setState(() {
+    setVisualState(() {
       particles.removeWhere((p) => p.update(0.016));
     });
   }
 
     @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
@@ -541,7 +582,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     return DragTarget<int>(
       onWillAcceptWithDetails: (_) => gameActive && !isUnlocked,
       onAcceptWithDetails: (details) {
-        HapticFeedback.selectionClick();
+        AppHaptics.selectionClick();
         if (dialValues[dialIndex] != details.data) _dialAdjustments++;
         setState(() {
           dialValues[dialIndex] = details.data;
@@ -795,7 +836,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       builder: (context, child) {
         return Transform.scale(
           scale: _unlockAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(20), // Slightly reduced padding
@@ -807,6 +848,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                  RoundSummary(gameKey: 'cryptex_lock_breaker'),
                     // Slightly smaller icon to save space
                     const Icon(Icons.lock_open, size: 56, color: SpaceTheme.alienGreen),
                     const SizedBox(height: 12), // Reduced spacing
@@ -876,6 +918,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _rotationController.dispose();
     _unlockController.dispose();
     _particleController.dispose();
@@ -887,214 +930,6 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
 }
 
 // Data Models
-class CryptexPuzzle {
-  final int dialCount;
-  final List<CryptexEquation> equations;
-  final List<int> solution;
-  final List<int> initialValues;
-
-  CryptexPuzzle({
-    required this.dialCount,
-    required this.equations,
-    required this.solution,
-    required this.initialValues,
-  });
-
-  static CryptexPuzzle generate(int grade, int level) {
-    final complexity = grade + (level / 5.0);
-    int dialCount;
-    List<String> operators;
-    
-    if (complexity <= 2.0) {
-      dialCount = 3;
-      operators = ['+', '-'];
-    } else if (complexity <= 3.5) {
-      dialCount = math.Random().nextBool() ? 3 : 4;
-      operators = ['+', '-', '*'];
-    } else if (complexity <= 5.0) {
-      dialCount = 4;
-      operators = ['+', '-', '*', '/'];
-    } else {
-      dialCount = math.Random().nextBool() ? 4 : 5;
-      operators = ['+', '-', '*', '/'];
-    }
-    
-    return _generateSolvablePuzzle(dialCount, operators, grade);
-  }
-
-  static CryptexPuzzle _generateSolvablePuzzle(int dialCount, List<String> operators, int grade) {
-    final random = math.Random();
-    
-    // Generate solution values (1-9 to avoid 0 complications)
-    final solution = List.generate(dialCount, (_) => random.nextInt(9) + 1);
-    
-    // Generate equations that work with the solution
-    final equations = <CryptexEquation>[];
-    
-    // Simple two-dial equations first
-    for (int i = 0; i < dialCount - 1; i++) {
-      final op = operators[random.nextInt(operators.length)];
-      int result;
-      
-      switch (op) {
-        case '+':
-          result = solution[i] + solution[i + 1];
-          break;
-        case '-':
-          result = (solution[i] - solution[i + 1]).abs();
-          break;
-        case '*':
-          result = solution[i] * solution[i + 1];
-          break;
-        case '/':
-          // Ensure clean division
-          if (solution[i + 1] != 0 && solution[i] % solution[i + 1] == 0) {
-            result = solution[i] ~/ solution[i + 1];
-          } else {
-            result = solution[i] + solution[i + 1]; // Fallback to addition
-          }
-          break;
-        default:
-          result = solution[i] + solution[i + 1];
-      }
-      
-      equations.add(CryptexEquation(
-        leftOperandIndices: [i, i + 1],
-        operator: op == '/' && (solution[i + 1] == 0 || solution[i] % solution[i + 1] != 0) ? '+' : op,
-        rightSide: result,
-        resultDialIndex: null,
-      ));
-    }
-    
-    // Add one more complex equation if we have enough dials
-    if (dialCount >= 4) {
-      final indices = [0, dialCount - 1];
-      final op = ['+', '*'][random.nextInt(2)]; // Simpler operations for complex equations
-      final result = op == '+' ? solution[0] + solution[dialCount - 1] : solution[0] * solution[dialCount - 1];
-      
-      equations.add(CryptexEquation(
-        leftOperandIndices: indices,
-        operator: op,
-        rightSide: result,
-        resultDialIndex: null,
-      ));
-    }
-    
-    // Generate initial values (different from solution)
-    final initialValues = List.generate(dialCount, (i) {
-      int value;
-      do {
-        value = random.nextInt(10);
-      } while (value == solution[i]);
-      return value;
-    });
-    
-    return CryptexPuzzle(
-      dialCount: dialCount,
-      equations: equations,
-      solution: solution,
-      initialValues: initialValues,
-    );
-  }
-}
-
-class CryptexEquation {
-  final List<int> leftOperandIndices;
-  final String operator;
-  final int rightSide;
-  final int? resultDialIndex; // null if right side is constant
-
-  CryptexEquation({
-    required this.leftOperandIndices,
-    required this.operator,
-    required this.rightSide,
-    this.resultDialIndex,
-  });
-
-  bool isSatisfied(List<int> dialValues) {
-    final leftResult = _calculateLeftSide(dialValues);
-    final rightResult = resultDialIndex != null ? dialValues[resultDialIndex!] : rightSide;
-    return leftResult == rightResult;
-  }
-
-  int getCurrentResult(List<int> dialValues) {
-    return _calculateLeftSide(dialValues);
-  }
-
-  /// Converts this equation into a standard MathProblem object using the puzzle's solution.
-  /// This allows the SRI service to track the underlying math fact mastery.
-  MathProblem toMathProblem(List<int> solutionValues) {
-    // Ensure we have enough operands to create a valid problem
-    if (leftOperandIndices.length < 2) {
-      // Return a dummy problem if the equation is malformed
-      return MathProblem(
-        operandA: 0, operandB: 0, operation: MathOperation.addition, answer: 0, expression: 'error', difficulty: 1
-      );
-    }
-
-    final opA = solutionValues[leftOperandIndices[0]];
-    final opB = solutionValues[leftOperandIndices[1]];
-
-    MathOperation op;
-    switch (operator) {
-      case '+': op = MathOperation.addition; break;
-      case '-': op = MathOperation.subtraction; break;
-      case '*': op = MathOperation.multiplication; break;
-      case '/': op = MathOperation.division; break;
-      default:  op = MathOperation.addition;
-    }
-
-    return MathProblem(
-      operandA: opA,
-      operandB: opB,
-      operation: op,
-      answer: rightSide, // The equation's result is the problem's answer
-      expression: '$opA $operator $opB',
-      // The difficulty can be based on the operator or number size
-      difficulty: (operator == '*' || operator == '/') ? 3 : 1,
-    );
-  }
-
-  int _calculateLeftSide(List<int> dialValues) {
-    if (leftOperandIndices.length < 2) return 0;
-    
-    final a = dialValues[leftOperandIndices[0]];
-    final b = dialValues[leftOperandIndices[1]];
-    
-    switch (operator) {
-      case '+':
-        return a + b;
-      case '-':
-        return (a - b).abs();
-      case '*':
-        return a * b;
-      case '/':
-        return b != 0 ? (a ~/ b) : 0;
-      default:
-        return a + b;
-    }
-  }
-
-  String getLeftSideDisplay() {
-    final dialLabels = leftOperandIndices.map((i) => String.fromCharCode(65 + i)).toList();
-    if (dialLabels.length >= 2) {
-      return '${dialLabels[0]} $operator ${dialLabels[1]}';
-    }
-    return dialLabels.isNotEmpty ? dialLabels[0] : '?';
-  }
-
-  String getRightSideDisplay() {
-    return resultDialIndex != null 
-        ? String.fromCharCode(65 + resultDialIndex!)
-        : rightSide.toString();
-  }
-
-  @override
-  String toString() {
-    return '${getLeftSideDisplay()} = ${getRightSideDisplay()}';
-  }
-}
-
 // Visual Effects
 class CryptexParticle {
   Offset position;

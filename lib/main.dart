@@ -1,3 +1,4 @@
+import 'core/services/puzzle_session_store.dart';
 // ignore_for_file: unused_element, unused_field
 // lib/main.dart
 import 'package:flutter/material.dart';
@@ -11,6 +12,8 @@ import 'core/services/crash_logger.dart';
 import 'core/services/debug_provider.dart';
 import 'core/services/streak_service.dart';
 import 'core/services/progress_service.dart';
+import 'core/services/player_profile_service.dart';
+import 'core/services/profile_preferences.dart';
 import 'core/services/purchase_service.dart';
 import 'core/services/puzzle_image_service.dart';
 
@@ -58,6 +61,7 @@ final GridlockPuzzleTracker gridlockPuzzleTracker = GridlockPuzzleTracker();
 final PurchaseService purchaseService = PurchaseService();
 final DebugProvider debugProvider = DebugProvider();
 final AudioService audioService = AudioService();
+final PlayerProfileService playerProfileService = PlayerProfileService();
 final StreakService streakService = StreakService();
 
 /// Locks landscape on phones and allows every orientation on tablets.
@@ -105,6 +109,7 @@ void main() async {
   await PuzzleImageService.instance.init();
   purchaseService.init(gameProvider);
   await debugProvider.init();
+  await playerProfileService.load();
   await streakService.load();
   // Mark today as played as soon as the app opens.
   await streakService.markPlayed();
@@ -117,6 +122,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: gameProvider),
+        ChangeNotifierProvider.value(value: playerProfileService),
         ChangeNotifierProvider.value(value: sriService),
         ChangeNotifierProvider.value(value: cognitiveProfileService),
         ChangeNotifierProvider.value(value: gridlockPuzzleTracker),
@@ -130,6 +136,12 @@ void main() async {
       child: const SpaceMathApp(),
     ),
   );
+}
+
+Future<void> _loadAccessibilitySettings() async {
+  final prefs = await ProfilePreferences.getInstance();
+  gameProvider.setHapticEnabled(prefs.getBool('haptic_enabled') ?? gameProvider.hapticEnabled);
+  gameProvider.setReduceMotion(prefs.getBool('reduce_motion') ?? gameProvider.reduceMotion);
 }
 
 class SpaceMathApp extends StatefulWidget {
@@ -152,6 +164,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
     // main() time (before the first frame) the physical size can still be zero,
     // which would misdetect an iPad as a phone and lock it to landscape.
     WidgetsBinding.instance.addPostFrameCallback((_) => _applyOrientationPolicy());
+    playerProfileService.onSwitch = _switchPlayer;
     _initializeApp();
   }
   
@@ -174,6 +187,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
     try {
       await _loadLanguagePreference();
       await progressService.loadProgress(gameProvider);
+      await _loadAccessibilitySettings();
       await sriService.loadSriData();
       await cognitiveProfileService.loadProfile();
       await gridlockPuzzleTracker.loadPlayedPuzzles(); 
@@ -187,6 +201,23 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
     }
   }
   
+  Future<void> _switchPlayer(String id) async {
+    await _saveAppState();
+    if (!mounted) return;
+    setState(() => _isInitialized = false);
+    ProfilePreferences.activeId = id;
+    await progressService.loadProgress(gameProvider);
+      await _loadAccessibilitySettings();
+    await sriService.loadSriData();
+    await cognitiveProfileService.loadProfile();
+    await gridlockPuzzleTracker.loadPlayedPuzzles();
+    if (!mounted) return;
+    await context.read<MissionProvider>().loadSaved();
+    await streakService.load();
+    await streakService.markPlayed();
+    if (mounted) setState(() => _isInitialized = true);
+  }
+
   Future<void> _loadLanguagePreference() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -208,10 +239,14 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
   }
   
   Future<void> _saveAppState() async {
-    await progressService.saveProgress(gameProvider);
-    await sriService.saveSriData();
-    await cognitiveProfileService.saveProfile();
-    await gridlockPuzzleTracker.loadPlayedPuzzles();
+    await PuzzleSessionStore.instance.flush();
+    // Start all player writes before the first await so they capture the
+    // same profile even if a lifecycle save overlaps a player switch.
+    await Future.wait([
+      progressService.saveProgress(gameProvider),
+      sriService.saveSriData(),
+      cognitiveProfileService.saveProfile(),
+    ]);
     try {
       final prefs = await SharedPreferences.getInstance();
       if (_locale != null) {
@@ -255,6 +290,7 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
     }
 
     return MaterialApp(
+      key: ValueKey('app_${ProfilePreferences.activeId}'),
       title: 'NumberNebula',
       navigatorKey: navigatorKey, 
       debugShowCheckedModeBanner: false,
@@ -284,14 +320,18 @@ class _SpaceMathAppState extends State<SpaceMathApp> with WidgetsBindingObserver
         // Global keyboard shortcut: Escape goes back / closes the current
         // screen or dialog (a11y — lets keyboard/switch users navigate back
         // without reaching for the on-screen back button).
-        return CallbackShortcuts(
+        final reduced = context.select<GameProvider, bool>((gp) => gp.reduceMotion);
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+              disableAnimations: MediaQuery.of(context).disableAnimations || reduced),
+          child: CallbackShortcuts(
           bindings: <ShortcutActivator, VoidCallback>{
             const SingleActivator(LogicalKeyboardKey.escape): () {
               navigatorKey.currentState?.maybePop();
             },
           },
           child: child ?? const SizedBox.shrink(),
-        );
+        ));
       },
     );
   }
@@ -514,6 +554,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         final progressService = context.read<ProgressService>();
         final gameProvider = context.read<GameProvider>();
         await progressService.loadProgress(gameProvider);
+      await _loadAccessibilitySettings();
       }
     } catch (e) {
       if (kDebugMode) debugPrint('Error loading progress: $e');

@@ -27,6 +27,7 @@ const Set<String> registeredProviders = {
   'AudioService',
   'StreakService',
   'MissionProvider',
+  'PlayerProfileService',
 };
 
 void main() {

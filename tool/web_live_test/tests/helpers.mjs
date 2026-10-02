@@ -6,6 +6,8 @@ import { test, expect } from '@playwright/test';
 // loads into CORS preflights that fail.
 if (process.env.VERCEL_BYPASS) {
   test.beforeEach(async ({ context, baseURL }) => {
+    const hostname = new URL(baseURL).hostname;
+    if (!hostname.endsWith('.vercel.app') && hostname !== process.env.VERCEL_BYPASS_HOST) return;
     const response = await context.request.get(baseURL, {
       headers: {
         'x-vercel-protection-bypass': process.env.VERCEL_BYPASS,
@@ -73,7 +75,7 @@ export const sameOrigin = (page, log) =>
 
 /** Loads the app and waits for Flutter's first frame (the splash is gone). */
 export async function openApp(page) {
-  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.goto('./', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#splash')).toHaveCount(0);
   await expect(page.locator('flutter-view')).toHaveCount(1);
 }

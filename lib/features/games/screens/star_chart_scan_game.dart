@@ -1,5 +1,7 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../mixins/game_animations_mixin.dart';
@@ -24,7 +26,36 @@ class StarChartScanGame extends StatefulWidget {
 }
 
 class _StarChartScanGameState extends State<StarChartScanGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<StarChartScanGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<StarChartScanGame>, PuzzleSessionMixin<StarChartScanGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'star_chart_scan';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      'puzzle': (puzzle?.toJson()),
+      '_foundEquations': _foundEquations.map((v0) => v0).toList(),
+      '_wrongSelections': _wrongSelections,
+      '_foundCells': _foundCells.map((v0) => v0).toList(),
+      '_cellEquationIndex': _cellEquationIndex.entries.map((v0) => [v0.key, v0.value]).toList()
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    puzzle = (state["puzzle"] == null ? null : StarChartScanPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
+    _foundEquations..clear()..addAll((state["_foundEquations"] as List).map((v0) => v0 as String).toSet());
+    _wrongSelections = state["_wrongSelections"] as int;
+    _foundCells..clear()..addAll((state["_foundCells"] as List).map((v0) => v0 as String).toSet());
+    _cellEquationIndex..clear()..addAll(Map<String, int>.fromEntries((state["_cellEquationIndex"] as List).map((v0) => MapEntry(v0[0] as String, v0[1] as int))));
+    _isGenerating = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
 
   StarChartScanPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
@@ -65,19 +96,21 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
   void _generatePuzzle() {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     setState(() {
@@ -199,7 +232,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     }
 
     if (matchedEquation != null) {
-      HapticFeedback.lightImpact();
+      AppHaptics.lightImpact();
       final eqIdx = _foundEquations.length;
       setState(() {
         _foundEquations.add(matchedEquation!);
@@ -243,14 +276,17 @@ class _StarChartScanGameState extends State<StarChartScanGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
 
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
     int eqBonus = puzzle!.equationsToFind.length * 30;
     int totalScore = baseScore + levelBonus + eqBonus;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'star_chart_scan',
       difficulty: widget.level,
       score: totalScore,
@@ -278,6 +314,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (puzzle == null || _isGenerating) {
@@ -597,7 +634,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -605,6 +642,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'star_chart_scan'),
                   const Icon(Icons.functions,
                       size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),

@@ -1,11 +1,18 @@
+import 'generator_random.dart';
 // lib/features/games/services/dark_matter_grid_logic.dart
 //
 // Lights Out puzzle generator. Starting from solved (all-lit) state,
 // applies random toggles backward to guarantee solvability.
 
-import 'dart:math' as math;
-
 class DarkMatterGridPuzzle {
+  Map<String, dynamic> toJson() =>
+      {'size': size, 'grid': grid, 'minMoves': minMoves};
+  factory DarkMatterGridPuzzle.fromJson(Map<String, dynamic> json) =>
+      DarkMatterGridPuzzle(
+          size: json['size'],
+          grid: (json['grid'] as List).map((v) => List<bool>.from(v)).toList(),
+          minMoves: json['minMoves']);
+
   final int size;
   final List<List<bool>> grid; // true = lit, false = dark
   final int minMoves; // approximate optimal solution length
@@ -54,7 +61,7 @@ class DarkMatterGridPuzzle {
     required int toggleCount,
     int? seed,
   }) {
-    final rng = math.Random(seed);
+    final rng = generatorRandom(seed);
 
     // Start with all lit
     var grid = List.generate(gridSize, (_) => List.filled(gridSize, true));

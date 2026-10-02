@@ -1,8 +1,10 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'dart:math' as math;
 import '../mixins/game_animations_mixin.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/space_theme.dart';
@@ -24,7 +26,36 @@ class CircuitRepairGame extends StatefulWidget {
 }
 
 class _CircuitRepairGameState extends State<CircuitRepairGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<CircuitRepairGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<CircuitRepairGame>, PuzzleSessionMixin<CircuitRepairGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'circuit_repair';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      '_puzzle': (_puzzle?.toJson()),
+      '_selectedFirst': (_selectedFirst),
+      '_selectedSecond': (_selectedSecond),
+      '_currentDigits': _currentDigits.map((v0) => v0).toList(),
+      '_attemptsUsed': _attemptsUsed
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _puzzle = (state["_puzzle"] == null ? null : CircuitRepairPuzzle.fromJson(Map<String, dynamic>.from(state["_puzzle"] as Map)));
+    _selectedFirst = (state["_selectedFirst"] == null ? null : state["_selectedFirst"] as int);
+    _selectedSecond = (state["_selectedSecond"] == null ? null : state["_selectedSecond"] as int);
+    _currentDigits = (state["_currentDigits"] as List).map((v0) => v0 as int).toList();
+    _attemptsUsed = state["_attemptsUsed"] as int;
+    _isGenerating = false; _solved = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   // -- Animation controllers --
   late AnimationController _swapController;
 
@@ -61,20 +92,22 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _swapController.dispose();
     disposeGameAnimations();
     super.dispose();
   }
 
   void _generatePuzzle() {
+    beginPuzzleSession();
     setState(() {
       _isGenerating = true;
       _selectedFirst = null;
@@ -152,7 +185,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     setState(() => _solved = true);
 
     final baseScore = 100 * widget.grade;
@@ -160,7 +193,10 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     final attemptBonus = (_puzzle!.maxAttempts - _attemptsUsed) * 30;
     final totalScore = baseScore + levelBonus + attemptBonus;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'circuit_repair',
       difficulty: widget.level,
       score: totalScore,
@@ -177,12 +213,14 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
   }
 
   void _handleWrongAnswer() {
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     _attemptsUsed++;
 
     if (_attemptsUsed >= _puzzle!.maxAttempts) {
       // Out of attempts
+      finishPuzzleSession();
       context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
         gameType: 'circuit_repair',
         difficulty: widget.level,
       ));
@@ -237,6 +275,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_puzzle == null || _isGenerating) {
@@ -684,7 +723,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -692,6 +731,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'circuit_repair'),
                   const Icon(Icons.emoji_events,
                       size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
@@ -744,7 +784,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
   }
 
   Widget _buildLoseDialog() {
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -752,6 +792,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'circuit_repair'),
             const Icon(Icons.warning_amber_rounded,
                 size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),

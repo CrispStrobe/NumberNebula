@@ -1,3 +1,4 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
 // lib/features/missions/screens/mission_streak_screen.dart
 //
 // Shows the task list for the active mission. Each task is a game to play.
@@ -8,7 +9,6 @@
 // tells the player where they are strong and what is worth replaying.
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/models/skill_category.dart';
@@ -470,7 +470,7 @@ class MissionStreakScreen extends StatelessWidget {
     if (outcome == null || outcome.gameType != task.gameType) return;
 
     if (outcome.wasSuccessful) {
-      HapticFeedback.lightImpact();
+      AppHaptics.lightImpact();
     }
     await provider.recordTaskAttempt(
       index,

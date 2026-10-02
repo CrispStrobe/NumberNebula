@@ -1,5 +1,9 @@
+import '../services/round_generation.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
+import '../widgets/game_learning_shell.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
@@ -33,7 +37,59 @@ class PathFinderGame extends StatefulWidget {
   State<PathFinderGame> createState() => _PathFinderGameState();
 }
 
-class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStateMixin {
+class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStateMixin, PuzzleSessionMixin<PathFinderGame> {
+  bool _sessionReady = false;
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_backgroundController], reduced);
+  }
+
+  @override String get sessionGameKey => 'pathfinder';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady) return null;
+    return {'challengeResolved': _challengeResolved, 'lives': lives, 'problemsSolved': problemsSolved, 'targetProblems': targetProblems, 'gameSpeed': gameSpeed, 'totalScore': totalScore, 'currentProblem': (currentProblem?.toJson()), 'availablePaths': availablePaths.map((v0) => v0.toJson()).toList(), 'shipPosition': [ship.position.dx, ship.position.dy], 'shipAngle': ship.angle};
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    lives = (state["lives"] as num).toDouble();
+problemsSolved = state["problemsSolved"] as int;
+targetProblems = state["targetProblems"] as int;
+gameSpeed = (state["gameSpeed"] as num).toDouble();
+totalScore = state["totalScore"] as int;
+currentProblem = (state["currentProblem"] == null ? null : MathProblem.fromJson(Map<String, dynamic>.from(state["currentProblem"] as Map)));
+availablePaths = (state["availablePaths"] as List).map((v0) => SpacePath.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+    ship.position = Offset((state['shipPosition'][0] as num).toDouble(), (state['shipPosition'][1] as num).toDouble()); ship.angle = (state['shipAngle'] as num).toDouble();
+    gameActive = true; choosingPath = true; followingPath = false; _initializeGamePositions();
+    _challengeResolved = state['challengeResolved'] as bool? ?? false;
+    if (_challengeResolved) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _advanceResolvedChallenge();
+      });
+    }
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) { await Future<void>.sync(() { _initializeGamePositions(); _startNewChallenge(); }); }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
+  @override
+  void onPuzzleSessionPauseChanged(bool paused) {
+    if (paused) {
+      _pathStartController?.stop();
+      if (followingPath) _shipController.stop();
+    } else {
+      if (_pathStartController != null && selectedPath != null) {
+        _pathStartController!.forward().whenComplete(() => _finishPathStart(selectedPath!));
+      }
+      if (followingPath && selectedPath != null) {
+        _shipController.forward().whenComplete(() => _finishPath(selectedPath!));
+      }
+    }
+  }
+
   // Core Animation Controllers
   late AnimationController _gameController;
   late AnimationController _backgroundController;
@@ -53,6 +109,8 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   MathProblem? currentProblem;
   List<SpacePath> availablePaths = [];
   bool choosingPath = true;
+  bool _challengeResolved = false;
+  AnimationController? _pathStartController;
 
   // Per-attempt SRI recording happens in _handleCorrectPath/_handleWrongPath,
   // so we deliberately do not bulk-pass mathProblems to reportOutcome
@@ -85,8 +143,8 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (ship.position == Offset.zero) {
-      _initializeGamePositions();
-      _startNewChallenge();
+      ship.position = const Offset(80, 80);
+      WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
     }
   }
 
@@ -140,6 +198,8 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     final gameProvider = context.read<GameProvider>();
 
     setState(() {
+      _challengeResolved = false;
+      choosingPath = true;
       currentProblem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
       availablePaths.clear();
       pathFollowProgress = 0.0;
@@ -157,18 +217,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     final numPaths = math.min(5, 2 + (widget.grade ~/ 2));
     final random = math.Random();
     
-    final pathAnswers = {currentProblem!.answer};
-    var outerGuard = 0;
-    while (pathAnswers.length < numPaths && outerGuard++ < 500) {
-      int wrongAnswer = 0;
-      for (var i = 0; i < 200; i++) {
-        wrongAnswer = currentProblem!.answer + (random.nextBool() ? 1 : -1) * (random.nextInt(10) + 1);
-        if (wrongAnswer > 0 && !pathAnswers.contains(wrongAnswer)) break;
-      }
-      if (wrongAnswer > 0) pathAnswers.add(wrongAnswer);
-    }
-    final shuffledAnswers = pathAnswers.toList()..shuffle();
-
+    final shuffledAnswers=generatePathAnswers(currentProblem!,numPaths);
     final newPaths = <SpacePath>[];
     for (int i = 0; i < numPaths; i++) {
       final pathY = (screenSize.height / (numPaths + 1)) * (i + 1);
@@ -261,7 +310,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     }
     if (kDebugMode) debugPrint("-> Path selection ACCEPTED. Processing...");
 
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
 
     setState(() {
       selectedPath = path;
@@ -275,7 +324,8 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     final startPos = ship.position;
     final endPos = path.getPointAt(0);
     
-    final moveController = AnimationController(
+    _pathStartController?.dispose();
+    final moveController = _pathStartController = AnimationController(
       duration: const Duration(milliseconds: 250),
       vsync: this,
     );
@@ -284,26 +334,29 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     );
 
     moveAnimation.addListener(() {
+      if (!mounted || GamePauseScope.isPaused(context)) return;
       setState(() {
         ship.position = moveAnimation.value;
         ship.angle = (endPos - startPos).direction;
       });
     });
 
-    moveController.forward().whenComplete(() {
-      moveController.dispose();
-      if (!mounted) return;
-      
-      setState(() {
-        followingPath = true;
-      });
-      _animateShipAlongPath(path);
-    });
+    moveController.forward().whenComplete(() => _finishPathStart(path));
+  }
+
+  void _finishPathStart(SpacePath path) {
+    if (!mounted) return;
+    _pathStartController?.dispose();
+    _pathStartController = null;
+    setState(() => followingPath = true);
+    _animateShipAlongPath(path);
   }
   
+
   void _updateShipOnPath() {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
       if (followingPath && selectedPath != null) {
-        setState(() {
+        setVisualState(() {
           pathFollowProgress = _shipCurveAnimation.value;
           final currentPos = selectedPath!.getPointAt(pathFollowProgress);
           final nextProgress = math.min(1.0, pathFollowProgress + 0.01);
@@ -318,16 +371,19 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   }
 
   void _animateShipAlongPath(SpacePath path) {
-    _shipController.forward(from: 0.0).whenComplete(() {
-      if (!mounted) return;
-      if (path.isCorrect) {
-        _handleCorrectPath();
-      } else {
-        _handleWrongPath(path);
-      }
-    });
+    _shipController.forward(from: 0.0).whenComplete(() => _finishPath(path));
   }
-  
+
+  void _finishPath(SpacePath path) {
+    if (!mounted) return;
+    followingPath = false;
+    if (path.isCorrect) {
+      _handleCorrectPath();
+    } else {
+      _handleWrongPath(path);
+    }
+  }
+
   void _triggerFeedback(bool isSuccess) {
     feedbackColor = isSuccess ? Colors.green.withValues(alpha: 0.5) : Colors.red.withValues(alpha: 0.6);
     _feedbackController.forward(from: 0.0).then((_) {
@@ -336,6 +392,8 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   }
 
   void _handleCorrectPath() {
+    if (_challengeResolved) return;
+    _challengeResolved = true;
     problemsSolved++;
     final scoreGained = (100 * widget.grade) + (lives.floor() * 50);
     totalScore += scoreGained;
@@ -350,21 +408,17 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     
     _addSuccessEffect();
     _triggerFeedback(true);
-    HapticFeedback.mediumImpact();
+    AppHaptics.mediumImpact();
     
     _showStatus("${S.of(context)!.correct} +$scoreGained");
     
     final delay = Duration(milliseconds: problemsSolved >= targetProblems ? 1000 : 400);
-    Future.delayed(delay, () {
-      if (problemsSolved >= targetProblems) {
-        _winGame();
-      } else {
-        _startNewChallenge();
-      }
-    });
+    _advanceAfterFeedback(delay);
   }
 
   void _handleWrongPath(SpacePath path) {
+    if (_challengeResolved) return;
+    _challengeResolved = true;
     lives -= path.pathType.damage;
 
     context.read<SriService>().recordResponse(currentProblem!, false);
@@ -372,19 +426,31 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     _addDamageEffect();
     _triggerFeedback(false);
     _screenShakeController.forward(from: 0.0);
-    HapticFeedback.vibrate();
+    AppHaptics.vibrate();
     
     final failureMessage = _getLocalizedFailureMessage(path.pathType);
     _showStatus("$failureMessage (-${path.pathType.damage.toStringAsFixed(2)} HP)");
     
     final delay = Duration(milliseconds: lives <= 0 ? 1000 : 400);
-    Future.delayed(delay, () {
-      if (lives <= 0) {
-        _gameOver();
-      } else {
-        _startNewChallenge();
-      }
-    });
+    _advanceAfterFeedback(delay);
+  }
+
+  Future<void> _advanceAfterFeedback(Duration delay) async {
+    await Future<void>.delayed(delay);
+    if (!mounted) return;
+    await GamePauseScope.of(context)?.waitUntilResumed();
+    if (!mounted) return;
+    _advanceResolvedChallenge();
+  }
+
+  void _advanceResolvedChallenge() {
+    if (problemsSolved >= targetProblems) {
+      _winGame();
+    } else if (lives <= 0) {
+      _gameOver();
+    } else {
+      _startNewChallenge();
+    }
   }
 
   String _getLocalizedFailureMessage(SpacePathType pathType) {
@@ -400,6 +466,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   }
 
   void _updateGame() {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     if (!mounted) return;
     
     const dt = 0.016;
@@ -421,9 +488,10 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   }
   
   void _updateScreenShake() {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
       final progress = _screenShakeController.value;
       final intensity = 15 * math.sin(progress * math.pi);
-      setState(() {
+      setVisualState(() {
         screenShakeOffset = Offset(
           (math.Random().nextDouble() - 0.5) * intensity,
           (math.Random().nextDouble() - 0.5) * intensity
@@ -448,7 +516,9 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
     gameActive = false;
     final completionBonus = 500 + (lives.toInt() * 100);
     totalScore += completionBonus;
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'pathfinder',
       difficulty: widget.level,
       score: completionBonus,
@@ -461,7 +531,9 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   void _gameOver() {
     if (!mounted) return;
     gameActive = false;
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'pathfinder',
       difficulty: widget.level,
     ));
@@ -469,6 +541,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   }
   
   void _resetGame() {
+    beginPuzzleSession();
     if (!mounted) return;
     Navigator.pop(context);
     
@@ -483,6 +556,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     // If paths aren't generated yet, show a loading screen.
     // Prevents race condition.
     if (availablePaths.isEmpty) {
@@ -709,7 +783,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
   }
   
   Widget _buildEndDialog(bool isWin) {
-    return AlertDialog(
+    return AlertDialog(scrollable: true,
       backgroundColor: const Color(0xFF1A1A3E).withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
@@ -720,10 +794,10 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
         const SizedBox(width: 10),
         Text(isWin ? S.of(context)!.pathFinderWinTitle : S.of(context)!.pathFinderLoseTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ]),
-      content: Text(
+      content: Column(mainAxisSize: MainAxisSize.min, children: [RoundSummary(gameKey: 'pathfinder'), Text(
         isWin ? S.of(context)!.pathFinderWinDesc(targetProblems, totalScore) : S.of(context)!.pathFinderLoseDesc,
         style: const TextStyle(color: Colors.white70),
-      ),
+      )]),
       actions: [
         TextButton(autofocus: true, onPressed: _resetGame, child: Text(S.of(context)!.playAgain, style: const TextStyle(color: Colors.cyanAccent))),
         TextButton(child: Text(S.of(context)!.backToMenu, style: const TextStyle(color: Colors.white)), onPressed: () {
@@ -736,6 +810,8 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
 
   @override
   void dispose() {
+    disposePuzzleSession();
+    _pathStartController?.dispose();
     _gameController.dispose();
     _backgroundController.dispose();
     _screenShakeController.dispose();
@@ -776,6 +852,26 @@ extension SpacePathTypeData on SpacePathType {
 }
 
 class SpacePath {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'startPoint': [startPoint.dx, startPoint.dy],
+    'endPoint': [endPoint.dx, endPoint.dy],
+    'controlPoint': [controlPoint.dx, controlPoint.dy],
+    'answer': answer,
+    'isCorrect': isCorrect,
+    'pathType': pathType.name,
+    'width': width
+  };
+  factory SpacePath.fromJson(Map<String, dynamic> json) => SpacePath(
+    startPoint: Offset((json['startPoint'][0] as num).toDouble(), (json['startPoint'][1] as num).toDouble()),
+    endPoint: Offset((json['endPoint'][0] as num).toDouble(), (json['endPoint'][1] as num).toDouble()),
+    controlPoint: Offset((json['controlPoint'][0] as num).toDouble(), (json['controlPoint'][1] as num).toDouble()),
+    answer: json['answer'] as int,
+    isCorrect: json['isCorrect'] as bool,
+    pathType: SpacePathType.values.byName(json['pathType'] as String),
+    width: (json['width'] as num).toDouble()
+  );
+
   final Offset startPoint;
   final Offset endPoint;
   final Offset controlPoint;

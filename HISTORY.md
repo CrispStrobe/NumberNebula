@@ -1,5 +1,33 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-10-02 — Cargo verified on GitHub Actions
+
+Published an isolated CI snapshot on `ci/game-optimizations-20261002`, without
+changing main or the working checkout. Remote CI run 37026088883 passed analysis,
+48 reduced-motion session checks and 1,133 Flutter tests (two existing skips).
+Web run 37026085221 passed WASM/JS compilation and generator timing and retained
+the build artifact. Browser checks were still queued when this entry was written.
+The remaining Cargo build/session verification item has been removed from PLAN.
+Manual web runs can skip the large capture matrix; matrix captures are capped at
+two concurrent jobs, and report replay now resolves its dependencies. No merge or
+deployment was performed, and no heavy local checks were restarted.
+
+## 2026-10-02 — Cargo candidate and shared VPS limits
+
+Added a four-variable board-aware Cargo row candidate with the legacy generator
+retained for A/B and fallback. Preview promotion and hold preserve advertised
+pieces; reset/restore invalidates asynchronous generation and row-clear work.
+Independent move replay passed 4,040 checks; 24,000 planted A/B cases had zero
+validation failures, 22 targeted Flutter tests passed, and analysis was clean.
+Results are in `docs/cargo-row-calibration-results.json`. These synthetic cases
+do not establish child difficulty or whole-game win rates.
+
+Recorded the user's shared-VPS resource constraint in `CLAUDE.md`. Large checks
+must run remotely. Cargo WASM and broader session verification remain pending
+after interruption; `PLAN.md` retains that follow-up. GitHub calibration includes
+Cargo checks and artifacts, with two matrix jobs at once; CI now also supports
+manual dispatch and cancels superseded runs. No remote run or deployment claimed.
+
 Archive of finished items, moved out of `PLAN.md` on 2026-08-01 so the plan
 only lists what is still open. Entries are kept verbatim as a record of what
 was done and why; sibling repo `../voc` is referenced where work was mirrored.
@@ -540,3 +568,241 @@ Picked off the well-scoped open items from `PLAN.md`.
   number stores reject reusing, plus a `version-bump` CI job that fails a PR
   touching `lib/`, `assets/` or `pubspec.yaml` without a version change, plus
   10 unit tests including a guard that the pubspec version stays parseable.
+
+
+---
+
+# 2026-10-02 — Guided play, sibling profiles and learning feedback
+
+Implemented improvement ideas 2–7 in order:
+
+- Playable tutorials and three-stage strategy hints in Number Walls, Star Forge
+  and Orbital Towers; compatible worked moves respect the player's placements.
+- Local sibling profiles preserve original progress and separate each player's
+  progress, practice data, settings, missions, achievements and saved puzzles.
+- The parent dashboard uses dated, comparable rounds for weekly trends and
+  offers a concrete practice action without inventing missing measurements.
+- Nine puzzle games preserve exact boards and counters across exits and restarts;
+  unfinished puzzles are reachable from the Home player menu.
+- Shared result summaries across all 48 games expose measured performance and
+  available move, hint and fact counts, plus a next-round action. Difficulty
+  overrides now honor the chosen practice grade.
+- Updated English/German text and privacy disclosures for local nicknames,
+  recent round history and unfinished boards. See README for feature coverage.
+
+Validation includes profile isolation and pending-write ordering, puzzle model
+round trips, alternate valid hint solutions, weekly trend sample thresholds,
+playable tutorials, small-screen German/English summaries, and a full restored
+puzzle playthrough that awards completion once and clears its saved board.
+
+Final checks: full Flutter suite **1,037 passed, 2 skipped**; the profile-screen
+create/rename/switch test also passed after the final screen correction.
+`dart analyze lib test` found no issues; `flutter build web --wasm` succeeded;
+`git diff --check` is clean. Prepared version **1.5.0+15** locally.
+
+## Extension to all games
+
+- All 48 registered games now have playable English/German rule practice and
+  three-stage strategy hints in a shared coaching bar. Coaching and app
+  backgrounding pause timed play; hint counts persist with the saved round and
+  contribute to its result summary and measured performance.
+- Every game can save and restore its gameplay state. New codecs cover puzzle
+  rules, guesses, remaining pieces, moving objects, timers and battle engines.
+  Robot programs restore an editing checkpoint, unfinished Pathfinder flights
+  restore route selection, and battles save between resolved turns.
+- Autosaving now throttles continuous animation updates and captures the final
+  snapshot before screens dispose their models. Completed sessions are cleared.
+- Fixed lifecycle issues exposed by reopening every game: duplicate timers,
+  a missing Grid Filler animation controller, deferred keyboard focus, and
+  narrow sidebar layouts.
+- Added coverage for all registered games' JSON round trips and actual reopen
+  flows, bilingual landscape practice, paused timers, persisted hint counts,
+  and usable restored solo/PvP battle state.
+
+Validation: the full suite and focused corrective reruns verified **1,092 tests**
+with **2 skipped**. All 48 actual save/reopen flows pass, including persisted
+coaching hints and a timer frozen during coaching. `dart analyze lib test` found
+no issues on the final source.
+The final `flutter build web --wasm` succeeded; `git diff --check` is clean.
+Version remains **1.5.0+15**, prepared locally without an App Store upload.
+
+
+## Further optimization and CLI calibration
+
+- Autosaves coalesce bursts, encode each captured board once, and write per-game
+  records. Existing saved collections remain readable. Backgrounding, pausing
+  and disposal flush pending records; continuous movement uses checkpoints.
+- All 48 games provide coaching from the current board. Compatible completions,
+  light-grid solutions and sequence inversions produce verified moves where
+  supported; other games explain a visible constraint without claiming an optimum.
+- All haptic calls respect the active player's setting. Reduced motion combines
+  the player's preference with the system setting and stops decorative motion
+  while preserving essential gameplay.
+- `.flutter-version` aligns local, GitHub and Vercel SDK builds. CI captures the
+  grade/level matrix and merges fixtures for a pure Dart report. Browser tests
+  record startup, storage writes, long tasks and RAF intervals; a manual hosted
+  workflow supports Vercel and GitHub Pages project URLs.
+- `tool/calibrate_games.dart` captures every registered game headlessly and
+  replays frozen boards with pure Dart. The actual run covers 864 unique boards:
+  grades 1, 3 and 6, levels 1 and 10, three samples each. Corrective reruns replace
+  affected samples. The final replay has no failures or structural review flags;
+  three samples per cell are a small structural check, not human calibration.
+- Fixed issues exposed by the broader run: Solar Panel's top addition hint,
+  Magic Triangles' decoy range and expensive search with an invalid sum ceiling,
+  Number Walls' undersized fallback boards, a deferred Star Loader callback,
+  and tall Orbital Towers visuals. The new triangle solver is Flutter-free.
+- Star Loader's two CLI/app Sokoban implementations now share one pure Dart
+  engine. Deadlines cover reverse and forward search, and native generation
+  runs outside the UI isolate. Normal play can select a verified bundled board
+  when bounded generation falls below its existing push target.
+- Fixed false deadlock pruning in the older Star Loader solver. A 100-seed
+  independent check passes. Re-scoring the bundled pool corrected two minimum
+  push counts and retired one board below its existing grade floor, leaving
+  432 verified boards. Cached metadata refreshes without losing IDs or ratings;
+  retired boards remain in history but are excluded from new selection.
+
+Validation: the full Flutter suite passed **1,131 tests, with 2 skipped**.
+The additional retirement migration test passed, as did all 48 games with
+reduced motion enabled and the 18 refreshed Star Loader grade/level samples.
+Static analysis is clean, and the final `flutter build web --wasm` succeeded.
+Browser smoke checks passed, followed by successful Chromium/WASM and
+Firefox/JS performance checks. The performance test allows 180 seconds for
+its three navigations while retaining the 30-second cold-start gate. Raw
+measurements are retained as JSON; idle gameplay produced no session writes.
+No iPhone/Mac devices or human playtest data are available; native profiling
+and child-facing grading calibration remain open in `PLAN.md`.
+See `docs/optimization-validation.md` for commands and coverage limitations.
+
+## 2026-10-02 — Pure Dart generation for all games and larger calibration samples
+
+- Extracted actual generation from Flutter screens and exposed the same logic
+  through a pure catalog of all 48 registered games. Flutter color/layout models
+  use adapters; bundled molecule, Gridlock and Star Loader selection is preserved.
+  Difficulty and spaced-review interfaces let the CLI operate without providers
+  or plugins. An isolated SDK package and compiled native executable both work
+  without Flutter dependencies.
+- Added per-case seeded streams, seeded CSP restarts, stable card identifiers,
+  generation timing, rule validation, exact frozen-fixture replay and CSV/JSON
+  summaries. Deadline-based searches retain bounded app behavior and can select
+  different valid fallbacks under different CPU loads.
+- Expanded to 11,520 boards across six requested grades, four levels and ten
+  samples. After fixes and reruns of affected games, all implemented checks pass.
+  The report contains 1,152 combination summaries and 40 progression candidates;
+  these are review flags, not automatic tuning decisions.
+- Fixed potentially unbounded division-wall factor enumeration, contradictory
+  crossword clue selection, rejection of valid alternative census assignments,
+  Crossing optima/allowances and an unsolvable six-entity chain that forced
+  high levels into easier fallbacks,
+  and incorrect mirror-clock
+  hour-hand positions when the minutes were nonzero.
+- Added 411 standalone regression checks, including repeated seeds, registry
+  coverage, deliberately corrupted boards, known failing seeds, 200 mirrored
+  clocks and Crossing optima. The pure-Dart GitHub workflow runs a six-grade
+  matrix and retains reports/fixtures; no remote execution is claimed.
+- Added explicit, untrained novice/fluent workload estimates covering arithmetic,
+  spatial reasoning, planning, reading, working memory and time pressure.
+  Estimates are marked low confidence. Grade 5–6 requests expose existing grade
+  caps instead of silently inventing harder content. Child completion times,
+  success rates and reward thresholds still need human playtests.
+
+Validation: all 48 games generate with the isolated Dart package and native
+CLI. The expanded report has zero failures; 411 pure regression checks pass.
+App and tool static analysis are clean. The full Flutter suite passed 1,132
+checks, with two skipped. The additional 192 all-game save/reopen checks
+passed at grades 2 and 6, levels 1 and 20; all four Crossing cases passed again
+after the final puzzle fix. The final release WASM build succeeded, and all
+four Chromium/WASM and Firefox/JS startup/deferred-game smoke checks passed.
+See `docs/pure-dart-calibration.md` for coverage,
+commands, sample summaries and research/measurement limits.
+
+## 2026-10-02 — Candidate solver paths with retained baselines
+
+- Kept the existing algorithms selectable through `legacy`, added `candidate`,
+  and made `auto` use verified candidates with bounded fallbacks. CLI paths are
+  zone-local; Flutter builds select `GAME_ALGORITHM_PATH`. Captures record
+  implementation/fallback traces; CI accepts an algorithm selection for A/B runs.
+- Robot Path now has a complete command-state BFS, including orientation, jumps,
+  destruction, push/pull and mutated goal/start tiles. Generated candidate boards
+  have independently checked command optima and allowances that cover them.
+  The original maze generator and original 40-command allowance remain available
+  in the baseline path. Candidate allowances reach 80 when required.
+- Arithmetic Square and Crossword candidates use dart_csp's linear constraints,
+  indexed arithmetic supports and generalized domain pruning. Existing predicates,
+  restarts and fallback algorithms remain available. Upstream edits were not
+  required. A wide-domain Crossword uniqueness cliff discovered in the larger
+  sweep was fixed by retaining the previous board-size guard and fallback range.
+- Candidate KenKen/Orbital hints propagate cage/visibility supports and verify
+  completed assignments with the baseline solver. Current placements remain
+  constraints; unsuccessful bounded searches produce observation hints.
+- Sampling now covers every level, with balanced supported Comm Relay ciphers
+  in both languages. Reports stratify by algorithm, mechanics and language,
+  identify small strata, and compare adequately sampled neighboring levels
+  within the same stratum. No reward thresholds were inferred from child data.
+- Candidate grades 5–6 have explicit shared arithmetic ranges and dedicated
+  Square/Crossword ranges, plus additional Nebula/Orbital clue reductions.
+  Existing timing/speed caps and bounded spatial/asset families are preserved.
+
+Paired native A/B comparison (36 cases per path/game, same boards for hints):
+Square median generation 159.5 → 6.7 ms; Crossword 63.8 → 15.8 ms.
+KenKen median hints 26.4 → 1.0 ms, verified completions 21/36 → 32/36.
+Orbital median hints 40.2 → 5.8 ms, verified completions 16/36 → 36/36.
+Four baseline Robot boards exceeded their command allowance; all 36 candidate
+boards passed. Candidate Robot proof added about 2.3 ms median after immutable grid-state hashing. These are
+measurements on the shared CLI host, not device or child solving times.
+
+The final 60,400-board every-level replay passed all implemented validators and
+localized hint/JSON checks: 48 games, six grades, all 20 levels; ten samples
+per cell and per supported Comm Relay cipher/language variant. There are 5,760
+combination summaries, 7,514 strata, 2,058 sparse operation-mixture strata and
+82 within-stratum progression review prompts. Candidate hints were verified
+for 1,004/1,200 KenKen and 1,200/1,200 Orbital boards. A traced 1,200-board Robot
+sweep needed no obstacle-clearing fallback. Square used the retained bounded
+simple-operation fallback in 104/1,200 boards, exposed in capture traces.
+Standalone regressions passed 411 generation and 238 algorithm-path checks.
+App/tool static analysis is clean. The full Flutter suite passed 1,132 tests
+with two skipped; 205 additional high-grade/session and targeted checks passed.
+The final Robot/board-hint integration checks and completion-solver checks also
+passed after the grid-hash and arithmetic-prefix optimizations.
+The final release WASM build passed (391.9 seconds), followed by all four
+Chromium/WASM and Firefox/JS startup/deferred-game smoke tests. No remote CI,
+deployment, native-device profiling or child playtest is claimed.
+
+## 2026-10-02 — Exact Launch workload, constructive Square, streamed calibration
+
+Launch Sequence now has an exact-inversion candidate with shared app/CLI
+configuration and nondecreasing grade/level swap targets. The original shuffle
+and its level floors remain selectable through the legacy algorithm path.
+Independent adjacent-swap executions prove all attainable targets for 2–8 items.
+
+Arithmetic Square retains its original generator and the previous pruned CSP
+candidate. A new dart_csp candidate solves the union of allowed arithmetic
+relations, tries a feasible advanced-operation anchor, and then selects compatible
+operators. Indexed union supports reduce repeated predicate work. Auto falls
+through constructive → pruned → original baseline; strict candidates expose
+failures. CLI, compile defines, Dart zones and GitHub CI expose both candidates.
+Captured traces and grouped/CSV exports distinguish them.
+
+Four 6,000-board focused sweeps passed without validation or localized-hint
+failures. Constructive Square used no simpler-operation fallback, versus 591
+uses in the pruned sample, and produced 5,997 multiplication/division equations
+versus 3,593. Shared-host generation medians were 12.4 versus 16.2 ms; host disk
+and memory pressure prevent treating these as controlled device benchmarks.
+
+The replay CLI now streams UTF-8 JSONL instead of retaining every decoded board.
+Reader regressions cover chunk boundaries, non-ASCII values, CRLF, empty/blank
+inputs and malformed-record context. The updated 60,400-board replay passes all
+48 games with zero failures, replacing 2,400 Launch/Square fixtures and retaining
+58,000 unchanged fixtures. All 1,200 primary Square boards use the constructive
+path. The remaining 67 progression prompts exclude Launch and Square; authored
+Molecule transitions remain for evidence-based review.
+
+Verification passes 411 pure generation checks, 1,370 algorithm-path/reader
+checks, clean app/tool analysis, and all 1,132 Flutter tests (two skipped).
+See `docs/focused-calibration-results.json` and `docs/pure-dart-calibration.md`
+for coverage, caveats and reproducible A/B controls.
+
+The final release WASM build and all eight Chromium/WASM and Firefox/JS browser
+checks passed, including usable Launch and Square boards. Full Flutter testing
+and the build used a source-identical local-volume snapshot after host disk and
+memory pressure interrupted earlier attempts; app source snapshots were checked
+against the workspace. No remote CI run or deployment was performed.

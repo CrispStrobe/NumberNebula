@@ -1,6 +1,10 @@
+import '../services/round_generation.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
+import '../widgets/game_learning_shell.dart';
 // lib/features/games/screens/planet_hopping_game.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
@@ -29,12 +33,52 @@ class PlanetHoppingGame extends StatefulWidget {
 }
 
 class _PlanetHoppingGameState extends State<PlanetHoppingGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, PuzzleSessionMixin<PlanetHoppingGame> {
+  bool _sessionReady = false;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_planetController], reduced);
+  }
+  @override String get sessionGameKey => 'planet_hopping';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady) return null;
+    return {
+      'planets': planets.map((v0) => v0.toJson()).toList(),
+      'targetSequence': targetSequence.map((v0) => v0).toList(),
+      'lives': lives,
+      'nextTargetIndex': nextTargetIndex,
+      '_attemptedProblems': _attemptedProblems.map((v0) => v0.toJson()).toList(),
+      '_gameWidth': _gameWidth,
+      '_gameHeight': _gameHeight,
+      '_hopper': {'position': [hopper.position.dx, hopper.position.dy], 'velocity': [hopper.velocity.dx, hopper.velocity.dy], 'landed': hopper.isLanded, 'planet': hopper.landedOnPlanetId}
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    planets = (state["planets"] as List).map((v0) => Planet.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+    targetSequence = (state["targetSequence"] as List).map((v0) => v0 as int).toList();
+    lives = state["lives"] as int;
+    nextTargetIndex = state["nextTargetIndex"] as int;
+    _attemptedProblems..clear()..addAll((state["_attemptedProblems"] as List).map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map))).toList());
+    _gameWidth = (state["_gameWidth"] as num).toDouble();
+    _gameHeight = (state["_gameHeight"] as num).toDouble();
+    final h = state['_hopper']; hopper.position = Offset((h['position'][0] as num).toDouble(), (h['position'][1] as num).toDouble()); hopper.velocity = Offset((h['velocity'][0] as num).toDouble(), (h['velocity'][1] as num).toDouble()); hopper.isLanded = h['landed'] as bool; hopper.landedOnPlanetId = h['planet'] as int?;
+    gameActive = true; _showInstructions = false; _startHintTimer();
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_initializeGame);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   // --- Animation & Timers ---
   late AnimationController _gameController;
   late AnimationController _gravityController; // For pulsing gravity effect
   late AnimationController _planetController;
   Timer? _hintTimer;
+  Timer? _instructionsTimer;
   Timer? _reLandingCooldown;
 
   // --- Game State ---
@@ -82,29 +126,32 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     // Defer initialization until the first frame is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        _initializeGame();
+        _restoreOrGenerate();
         _gameController.addListener(_updateGame);
       }
     });
 
     // Keep instructions visible for 15s so player can read the ordering rule
-    Timer(const Duration(seconds: 15), () {
+    _instructionsTimer = Timer(const Duration(seconds: 15), () {
       if (mounted) setState(() => _showInstructions = false);
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     if (kDebugMode) debugPrint("[Game Dispose] 🛑 Disposing all controllers and timers.");
     _gameController.dispose();
     _gravityController.dispose();
     _planetController.dispose();
     _hintTimer?.cancel();
+    _instructionsTimer?.cancel();
     _reLandingCooldown?.cancel();
     super.dispose();
   }
 
   void _initializeGame() {
+    beginPuzzleSession();
     if (kDebugMode) debugPrint("[Gameplay] ✨ Initializing new game board.");
     _generateBackgroundStars();
     _generatePlanets();
@@ -152,24 +199,13 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     final planetCount = (5 + (difficulty / 4)).clamp(5, 8).toInt();
     
     final problems = <MathProblem>[];
-    final usedAnswers = <int>{};
     if (kDebugMode) debugPrint("[Gameplay] Generating $planetCount unique planets...");
 
     final sriService = context.read<SriService>();
     final gameProvider = context.read<GameProvider>();
     final screenSize = MediaQuery.of(context).size;
 
-    int attempts = 0;
-    while (problems.length < planetCount && attempts < 100) {
-      attempts++;
-      final problem = MathProblem.generateProblem(gameProvider, widget.level, sriService);
-      
-      if (!usedAnswers.contains(problem.answer)) {
-        problems.add(problem);
-        usedAnswers.add(problem.answer);
-      }
-    }
-
+    problems.addAll(generatePlanetProblems(gameProvider,widget.level,sriService,planetCount));
     for (int i = 0; i < problems.length; i++) {
       final planetRadius = (32.0 + random.nextDouble() * 16).clamp(30.0, 45.0);
       
@@ -269,7 +305,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
     if (isCorrect) {
       debugPrint("[Gameplay] ✅ CORRECT landing!");
-      HapticFeedback.lightImpact();
+      AppHaptics.lightImpact();
       planet.visited = true;
       hopper.landOn(planet);
       nextTargetIndex++;
@@ -279,7 +315,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       if (nextTargetIndex >= targetSequence.length) _winGame();
     } else {
       if (kDebugMode) debugPrint("[Gameplay] ❌ WRONG landing!");
-      HapticFeedback.heavyImpact();
+      AppHaptics.heavyImpact();
       lives--;
       _addErrorParticles(planet);
       final bounceDirection = (hopper.position - planet.position).normalize();
@@ -290,6 +326,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   void _updateGame() {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
     if (!gameActive || !mounted) return;
     const dt = 0.016;
 
@@ -368,7 +405,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
       }
     }
 
-    setState(() {});
+    setVisualState(() {});
   }
   
   bool _checkPlanetLanding(Planet planet) {
@@ -387,6 +424,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -704,7 +742,9 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     final totalScore = bonus + (100 * widget.grade * targetSequence.length);
     
     // UNIFIED PROGRESSION: Report all attempted problems
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'planet_hopping',
       difficulty: widget.level,
       score: totalScore,
@@ -728,7 +768,9 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
     _hintTimer?.cancel();
     
     // UNIFIED PROGRESSION: Report failure with attempted problems for learning
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'planet_hopping',
       difficulty: widget.level,
       mathProblems: _attemptedProblems,
@@ -763,12 +805,13 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   Widget _buildWinDialog(int bonus) {
-    return Dialog(
+    return ScrollableRoundDialog(
         backgroundColor: Colors.transparent,
         child: Container(
             padding: const EdgeInsets.all(24),
             decoration: SpaceTheme.cardDecoration,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  RoundSummary(gameKey: 'planet_hopping'),
               const Icon(Icons.public, size: 64, color: SpaceTheme.starYellow),
               const SizedBox(height: 16),
               Text(S.of(context)!.planetHoppingWinTitle,
@@ -799,12 +842,13 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   }
 
   Widget _buildGameOverDialog() {
-    return Dialog(
+    return ScrollableRoundDialog(
         backgroundColor: Colors.transparent,
         child: Container(
             padding: const EdgeInsets.all(24),
             decoration: SpaceTheme.cardDecoration,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  RoundSummary(gameKey: 'planet_hopping'),
               const Icon(Icons.warning, size: 64, color: SpaceTheme.rocketRed),
               const SizedBox(height: 16),
               Text(S.of(context)!.planetHoppingLoseTitle,
@@ -871,6 +915,26 @@ class SpaceHopper {
 }
 
 class Planet {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'position': [position.dx, position.dy],
+    'radius': radius,
+    'mass': mass,
+    'problem': problem.toJson(),
+    'color': color.toARGB32(),
+    'visited': visited
+  };
+  factory Planet.fromJson(Map<String, dynamic> json) => Planet(
+    id: json['id'] as int,
+    position: Offset((json['position'][0] as num).toDouble(), (json['position'][1] as num).toDouble()),
+    radius: (json['radius'] as num).toDouble(),
+    mass: (json['mass'] as num).toDouble(),
+    problem: MathProblem.fromJson(Map<String, dynamic>.from(json['problem'] as Map)),
+    color: Color(json['color'] as int),
+    visited: json['visited'] as bool
+  );
+
   final int id;
   Offset position;
   double radius, mass;

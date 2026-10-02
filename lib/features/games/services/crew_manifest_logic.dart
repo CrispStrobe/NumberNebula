@@ -1,14 +1,28 @@
+import 'generator_random.dart';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
+import 'generator_diagnostics.dart';
 
-import '../constants/difficulty_manager.dart';
+import '../constants/difficulty_config.dart';
 
 /// Types of clues for i18n rendering
 enum ClueType { positive, negative }
 
 /// A structured clue that can be rendered with i18n
 class ManifestClue {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'type': type.name,
+        'crewName': crewName,
+        'itemName': itemName,
+        'style': style
+      };
+  factory ManifestClue.fromJson(Map<String, dynamic> json) => ManifestClue(
+      type: ClueType.values.byName(json['type'] as String),
+      crewName: json['crewName'] as String,
+      itemName: json['itemName'] as String,
+      style: json['style'] as int);
+
   final ClueType type;
   final String crewName;
   final String itemName;
@@ -24,6 +38,28 @@ class ManifestClue {
 
 /// A logic grid puzzle: match N people to N items using clues
 class CrewManifestPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'size': size,
+        'crewNames': crewNames.map((v0) => v0).toList(),
+        'itemNames': itemNames.map((v0) => v0).toList(),
+        'solution': solution.entries.map((v0) => [v0.key, v0.value]).toList(),
+        'structuredClues': structuredClues.map((v0) => v0.toJson()).toList()
+      };
+  factory CrewManifestPuzzle.fromJson(Map<String, dynamic> json) =>
+      CrewManifestPuzzle(
+          size: json['size'] as int,
+          crewNames:
+              (json['crewNames'] as List).map((v0) => v0 as String).toList(),
+          itemNames:
+              (json['itemNames'] as List).map((v0) => v0 as String).toList(),
+          solution: Map<String, String>.fromEntries((json['solution'] as List)
+              .map((v0) => MapEntry(v0[0] as String, v0[1] as String))),
+          structuredClues: (json['structuredClues'] as List)
+              .map((v0) =>
+                  ManifestClue.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toList());
+
   final int size; // number of crew members = number of items
   final List<String> crewNames;
   final List<String> itemNames;
@@ -49,22 +85,41 @@ class CrewManifestPuzzle {
 
 class CrewManifestLogic {
   static const _allCrewNames = [
-    'Zara', 'Kip', 'Nova', 'Rex', 'Luna',
-    'Orion', 'Vega', 'Cosmo', 'Stella', 'Astro',
+    'Zara',
+    'Kip',
+    'Nova',
+    'Rex',
+    'Luna',
+    'Orion',
+    'Vega',
+    'Cosmo',
+    'Stella',
+    'Astro',
   ];
 
   static const _allItemNames = [
-    'Helm', 'Map', 'Laser', 'Shield', 'Wrench',
-    'Beacon', 'Scope', 'Crystal', 'Badge', 'Compass',
+    'Helm',
+    'Map',
+    'Laser',
+    'Shield',
+    'Wrench',
+    'Beacon',
+    'Scope',
+    'Crystal',
+    'Badge',
+    'Compass',
   ];
 
   static CrewManifestPuzzle generate(Map<String, dynamic> args) {
     final grade = args['grade'] as int;
     final level = args['level'] as int;
     final difficulty = args['difficulty'] as DifficultyConfig;
-    final rng = math.Random();
+    final rng = generatorRandom();
 
-    if (kDebugMode) debugPrint('[CREW_MANIFEST] Generating puzzle for grade=$grade, level=$level');
+    if (kDebugMode) {
+      traceGenerator(
+          '[CREW_MANIFEST] Generating puzzle for grade=$grade, level=$level');
+    }
 
     // Difficulty scaling
     int size;
@@ -94,27 +149,40 @@ class CrewManifestLogic {
     for (int attempt = 0; attempt < 40; attempt++) {
       final result = _tryGenerate(size, directClueCount, rng, difficulty.grade);
       if (result != null) {
-        if (kDebugMode) debugPrint('[CREW_MANIFEST] Success on attempt $attempt');
+        if (kDebugMode) {
+          traceGenerator('[CREW_MANIFEST] Success on attempt $attempt');
+        }
         return result;
       }
     }
 
     // Fallback: guaranteed 3x3 puzzle
-    if (kDebugMode) debugPrint('[CREW_MANIFEST] Using fallback puzzle');
+    if (kDebugMode) traceGenerator('[CREW_MANIFEST] Using fallback puzzle');
     return const CrewManifestPuzzle(
       size: 3,
       crewNames: ['Zara', 'Kip', 'Nova'],
       itemNames: ['Helm', 'Map', 'Laser'],
       solution: {'Zara': 'Helm', 'Kip': 'Map', 'Nova': 'Laser'},
       structuredClues: [
-        ManifestClue(type: ClueType.positive, crewName: 'Zara', itemName: 'Helm', style: 0),
-        ManifestClue(type: ClueType.positive, crewName: 'Kip', itemName: 'Map', style: 1),
+        ManifestClue(
+            type: ClueType.positive,
+            crewName: 'Zara',
+            itemName: 'Helm',
+            style: 0),
+        ManifestClue(
+            type: ClueType.positive,
+            crewName: 'Kip',
+            itemName: 'Map',
+            style: 1),
       ],
     );
   }
 
   static CrewManifestPuzzle? _tryGenerate(
-    int size, int directClueCount, math.Random rng, int grade,
+    int size,
+    int directClueCount,
+    math.Random rng,
+    int grade,
   ) {
     // Pick random crew and items
     final availableCrew = List<String>.from(_allCrewNames)..shuffle(rng);
@@ -157,7 +225,8 @@ class CrewManifestLogic {
 
       // Give multiple negative clues: eliminate all but 1 wrong item
       // so the crew member can be deduced from the remaining positive clues
-      final wrongItems = itemNames.where((it) => it != correctItem).toList()..shuffle(rng);
+      final wrongItems = itemNames.where((it) => it != correctItem).toList()
+        ..shuffle(rng);
       // For grade >= 3 eliminate fewer (harder); for lower grades eliminate more
       final eliminateCount = grade >= 3
           ? math.max(1, wrongItems.length - 2)
@@ -189,8 +258,10 @@ class CrewManifestLogic {
 
   /// Count how many valid assignments satisfy all clues (stops at 2).
   static int _countSolutions(
-    List<String> crew, List<String> items,
-    List<ManifestClue> clues, int size,
+    List<String> crew,
+    List<String> items,
+    List<ManifestClue> clues,
+    int size,
   ) {
     // Build constraint sets: for each crew member, which items are possible?
     final possible = <String, Set<String>>{};

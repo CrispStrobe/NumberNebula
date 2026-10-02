@@ -1,6 +1,8 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
 
@@ -24,7 +26,32 @@ class IonChainGame extends StatefulWidget {
 }
 
 class _IonChainGameState extends State<IonChainGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<IonChainGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<IonChainGame>, PuzzleSessionMixin<IonChainGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'ion_chain';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      'puzzle': (puzzle?.toJson()),
+      '_playerChain': _playerChain.map((v0) => (v0?.name)).toList(),
+      '_ruleViolations': _ruleViolations
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    puzzle = (state["puzzle"] == null ? null : IonChainPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
+    _playerChain = (state["_playerChain"] as List).map((v0) => (v0 == null ? null : IonType.values.byName(v0 as String))).toList();
+    _ruleViolations = state["_ruleViolations"] as int;
+    _isGenerating = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
 
   IonChainPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
@@ -63,19 +90,21 @@ class _IonChainGameState extends State<IonChainGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     disposeGameAnimations();
     super.dispose();
   }
 
-  void _generatePuzzle() async {
+  Future<void> _generatePuzzle() async {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
     setState(() {
       _isGenerating = true;
@@ -158,7 +187,7 @@ class _IonChainGameState extends State<IonChainGame>
       return;
     }
 
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     setState(() { _playerChain[slotIndex] = bead; });
 
     if (!_playerChain.contains(null)) {
@@ -170,7 +199,7 @@ class _IonChainGameState extends State<IonChainGame>
 
   void _rejectPlacement(String message) {
     _ruleViolations++;
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
       backgroundColor: SpaceTheme.rocketRed,
@@ -181,15 +210,18 @@ class _IonChainGameState extends State<IonChainGame>
   void _removeBeadFromSlot(int slotIndex) {
     if (puzzle!.chain[slotIndex] != null) return;
     if (_playerChain[slotIndex] == null) return;
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     setState(() { _playerChain[slotIndex] = null; });
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     int totalScore = 100 * widget.grade + widget.level * 25;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'ion_chain', difficulty: widget.level, score: totalScore,
       performance: Perf.fromMistakes(_ruleViolations, per: 0.15),
     ));
@@ -203,6 +235,7 @@ class _IonChainGameState extends State<IonChainGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (puzzle == null || _isGenerating) {
@@ -572,12 +605,13 @@ class _IonChainGameState extends State<IonChainGame>
       animation: successAnimation,
       builder: (context, _) => Transform.scale(
         scale: successAnimation.value,
-        child: Dialog(
+        child: ScrollableRoundDialog(
           backgroundColor: Colors.transparent,
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: SpaceTheme.cardDecoration,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  RoundSummary(gameKey: 'ion_chain'),
               const Icon(Icons.link, size: 64, color: SpaceTheme.starYellow),
               const SizedBox(height: 16),
               Text(s.ionChainWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),

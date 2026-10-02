@@ -1,6 +1,8 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../mixins/game_animations_mixin.dart';
@@ -24,7 +26,39 @@ class SectorPainterGame extends StatefulWidget {
 }
 
 class _SectorPainterGameState extends State<SectorPainterGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<SectorPainterGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<SectorPainterGame>, PuzzleSessionMixin<SectorPainterGame> {
+  bool _sessionReady = false;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_pulseController], reduced);
+  }
+
+  @override String get sessionGameKey => 'sector_painter';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      '_puzzle': (_puzzle?.toJson()),
+      '_coloring': _coloring.entries.map((v0) => [v0.key, v0.value]).toList(),
+      '_selectedColor': _selectedColor,
+      '_conflictEvents': _conflictEvents
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _puzzle = (state["_puzzle"] == null ? null : SectorPainterPuzzle.fromJson(Map<String, dynamic>.from(state["_puzzle"] as Map)));
+    _coloring..clear()..addAll(Map<int, int>.fromEntries((state["_coloring"] as List).map((v0) => MapEntry(v0[0] as int, v0[1] as int))));
+    _selectedColor = state["_selectedColor"] as int;
+    _conflictEvents = state["_conflictEvents"] as int;
+    _isGenerating = false; _won = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
   late AnimationController _conflictController;
@@ -79,21 +113,23 @@ class _SectorPainterGameState extends State<SectorPainterGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _pulseController.dispose();
     _conflictController.dispose();
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
-  void _generatePuzzle() async {
+  Future<void> _generatePuzzle() async {
+    beginPuzzleSession();
     setState(() {
       _isGenerating = true;
       _conflictEvents = 0;
@@ -119,7 +155,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   }
 
   void _paintRegion(int region) {
-    HapticFeedback.selectionClick();
+    AppHaptics.selectionClick();
     setState(() {
       if (_coloring[region] == _selectedColor) {
         _coloring.remove(region);
@@ -154,7 +190,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       _conflictEvents++;
       setState(() => _conflictRegions = regions);
       _conflictController.forward(from: 0.0);
-      HapticFeedback.heavyImpact();
+      AppHaptics.heavyImpact();
       return true;
     }
     return false;
@@ -163,14 +199,17 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   void _handleWin() {
     if (_won) return;
     _won = true;
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     final colorsUsed = _puzzle!.countColors(_coloring);
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
     int colorBonus = colorsUsed <= _puzzle!.chromaticNumber ? 100 : 0;
     int totalScore = baseScore + levelBonus + colorBonus;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'sector_painter',
       difficulty: widget.level,
       score: totalScore,
@@ -192,6 +231,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_puzzle == null || _isGenerating) {
@@ -304,8 +344,11 @@ class _SectorPainterGameState extends State<SectorPainterGame>
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.5)),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 6,
+          runSpacing: 4,
           children: [
             const Icon(Icons.stars, color: SpaceTheme.starYellow, size: 16),
             const SizedBox(width: 6),
@@ -604,7 +647,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -612,6 +655,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'sector_painter'),
                   const Icon(Icons.emoji_events,
                       size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),

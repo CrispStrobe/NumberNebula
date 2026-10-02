@@ -1,6 +1,8 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
 
@@ -24,7 +26,36 @@ class HullPlatingGame extends StatefulWidget {
 }
 
 class _HullPlatingGameState extends State<HullPlatingGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<HullPlatingGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<HullPlatingGame>, PuzzleSessionMixin<HullPlatingGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'hull_plating';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      'puzzle': (puzzle?.toJson()),
+      '_placedPieces': _placedPieces.map((v0) => v0.toJson()).toList(),
+      '_selectedRotation': _selectedRotation,
+      '_usedPieceIds': _usedPieceIds.map((v0) => v0).toList(),
+      '_placements': _placements
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    puzzle = (state["puzzle"] == null ? null : HullPlatingPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
+    _placedPieces..clear()..addAll((state["_placedPieces"] as List).map((v0) => PlacedPiece.fromJson(Map<String, dynamic>.from(v0 as Map))).toList());
+    _selectedRotation = state["_selectedRotation"] as int;
+    _usedPieceIds..clear()..addAll((state["_usedPieceIds"] as List).map((v0) => v0 as int).toSet());
+    _placements = state["_placements"] as int;
+    _isGenerating = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
 
@@ -74,20 +105,22 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _dropController.dispose();
     disposeGameAnimations();
     super.dispose();
   }
 
   void _generatePuzzle() {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     setState(() {
@@ -164,7 +197,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     final piece = _getRotatedPiece(pieceIndex);
     final placement = _computePlacement(piece, row, col);
     if (placement == null) {
-      HapticFeedback.heavyImpact();
+      AppHaptics.heavyImpact();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -177,7 +210,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
       return;
     }
 
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     setState(() {
       _placedPieces.add(PlacedPiece(
         pieceId: puzzle!.pieces[pieceIndex].id,
@@ -204,7 +237,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   void _removePlacedPiece(int row, int col) {
     final existing = _getPlacedPieceAt(row, col);
     if (existing == null) return;
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     setState(() {
       _usedPieceIds.remove(existing.pieceId);
       _placedPieces.remove(existing);
@@ -223,20 +256,26 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
 
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
     int sizeBonus = puzzle!.pieces.length * 30;
     int totalScore = baseScore + levelBonus + sizeBonus;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'hull_plating',
       difficulty: widget.level,
       score: totalScore,
       // Fitting every plate on the first try is the perfect run; shuffling
       // pieces around costs quality.
       performance: Perf.fromMoves(_placements, puzzle!.pieces.length),
+
+      movesUsed: _placements,
+      optimalMoves: puzzle!.pieces.length,
     ));
 
     successController.forward(from: 0.0);
@@ -251,7 +290,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   }
 
   void _clearBoard() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     setState(() {
       _placedPieces.clear();
       _usedPieceIds.clear();
@@ -294,6 +333,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (puzzle == null || _isGenerating) {
@@ -762,7 +802,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -770,6 +810,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'hull_plating'),
                   const Icon(Icons.shield,
                       size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),

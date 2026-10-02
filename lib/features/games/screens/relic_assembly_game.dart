@@ -1,5 +1,8 @@
+import '../services/generation_configs.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../mixins/game_animations_mixin.dart';
@@ -25,7 +28,36 @@ class RelicAssemblyGame extends StatefulWidget {
 }
 
 class _RelicAssemblyGameState extends State<RelicAssemblyGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<RelicAssemblyGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<RelicAssemblyGame>, PuzzleSessionMixin<RelicAssemblyGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'relic_assembly';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      'puzzle': (puzzle?.toJson()),
+      'placement': placement.map((v0) => v0).toList(),
+      'rotations': rotations.map((v0) => v0).toList(),
+      '_placements': _placements,
+      'selectedTileIndex': (selectedTileIndex)
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    puzzle = (state["puzzle"] == null ? null : RelicAssemblyPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
+    placement = (state["placement"] as List).map((v0) => v0 as int).toList();
+    rotations = (state["rotations"] as List).map((v0) => v0 as int).toList();
+    _placements = state["_placements"] as int;
+    selectedTileIndex = (state["selectedTileIndex"] == null ? null : state["selectedTileIndex"] as int);
+    _isGenerating = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
 
   RelicAssemblyPuzzle? puzzle;
   bool _isGenerating = true;
@@ -63,41 +95,27 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
-  int _getRows() {
-    final grade = currentDifficulty?.grade ?? widget.grade;
-    if (grade <= 1) return 2;
-    if (grade <= 2) return 2;
-    return 3;
-  }
+  int _getRows() => RelicAssemblyGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getRows();
 
-  int _getCols() {
-    final grade = currentDifficulty?.grade ?? widget.grade;
-    if (grade <= 1) return 2;
-    if (grade <= 2) return 3;
-    return 3;
-  }
+  int _getCols() => RelicAssemblyGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getCols();
 
-  int _getEdgeValueCount() {
-    final level = currentDifficulty?.level ?? widget.level;
-    // More edge values = harder
-    const base = 3;
-    final bonus = (level / 5).floor();
-    return (base + bonus).clamp(3, 7);
-  }
+  int _getEdgeValueCount() => RelicAssemblyGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getEdgeValueCount();
 
-  void _generatePuzzle() async {
+  Future<void> _generatePuzzle() async {
+    beginPuzzleSession();
     setState(() {
       _isGenerating = true;
       _placements = 0;
@@ -140,7 +158,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
     setState(() {
       rotations[tileIdx] = (rotations[tileIdx] + 1) % 4;
     });
-    HapticFeedback.selectionClick();
+    AppHaptics.selectionClick();
   }
 
   void _placeTileAt(int gridPos) {
@@ -161,7 +179,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
       // If there was a tile here, don't auto-select it
     });
 
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     _checkSolution();
   }
 
@@ -181,16 +199,22 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
     int totalScore = baseScore + levelBonus;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'relic_assembly',
       difficulty: widget.level,
       score: totalScore,
       performance: Perf.fromMoves(_placements, placement.length),
+
+      movesUsed: _placements,
+      optimalMoves: placement.length,
     ));
 
     successController.forward(from: 0.0);
@@ -250,6 +274,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (puzzle == null || _isGenerating) {
@@ -648,7 +673,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -656,6 +681,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'relic_assembly'),
                   const Icon(Icons.dashboard_customize_outlined, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.relicAssemblyWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),

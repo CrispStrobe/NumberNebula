@@ -1,6 +1,5 @@
 // lib/features/games/models/starloader_level_model.dart:
 
-
 /// Represents a single level entry in the database.
 class LevelEntry {
   final String id;
@@ -45,13 +44,13 @@ class LevelEntry {
   String get contentHash {
     final buffer = StringBuffer();
     buffer.write('${dimX}x$dimY:');
-    
+
     // Encode Structure (Walls/Targets)
     for (var row in roomStructure) {
       buffer.write(row.join(''));
     }
     buffer.write('|');
-    
+
     // Encode State (Player/Boxes)
     for (var row in roomState) {
       buffer.write(row.join(''));
@@ -80,18 +79,25 @@ class LevelEntry {
 /// The container for all pre-generated levels.
 class LevelDatabase {
   final List<LevelEntry> levels;
+  final Set<String> retiredLevelIds;
 
-  LevelDatabase({required this.levels});
+  LevelDatabase({required this.levels, Set<String> retiredLevelIds = const {}})
+      : retiredLevelIds = Set.of(retiredLevelIds);
 
   factory LevelDatabase.fromJson(Map<String, dynamic> json) {
     var list = json['levels'] as List;
-    List<LevelEntry> levelsList = list.map((i) => LevelEntry.fromJson(i)).toList();
-    return LevelDatabase(levels: levelsList);
+    List<LevelEntry> levelsList =
+        list.map((i) => LevelEntry.fromJson(i)).toList();
+    return LevelDatabase(
+        levels: levelsList,
+        retiredLevelIds: Set<String>.from(json['retiredLevelIds'] ?? []));
   }
 
   Map<String, dynamic> toJson() => {
         'levels': levels.map((e) => e.toJson()).toList(),
+        if (retiredLevelIds.isNotEmpty)
+          'retiredLevelIds': retiredLevelIds.toList()..sort(),
       };
-      
+
   factory LevelDatabase.empty() => LevelDatabase(levels: []);
 }

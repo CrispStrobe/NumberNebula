@@ -1,3 +1,4 @@
+import 'generator_random.dart';
 // ignore_for_file: constant_identifier_names
 // ignore_for_file: non_constant_identifier_names
 // ignore_for_file: library_private_types_in_public_api
@@ -66,7 +67,8 @@ String _boxKey(Set<int> boxes) {
 /// Small wrapper over dart:math Random giving the Python-like helpers the
 /// generator relies on (choice / sample / randrange / random).
 class _Rng {
-  _Rng(int? seed) : _r = seed == null ? math.Random() : math.Random(seed);
+  _Rng(int? seed)
+      : _r = seed == null ? generatorRandom() : generatorRandom(seed);
   final math.Random _r;
 
   double random() => _r.nextDouble();
@@ -328,6 +330,8 @@ List<_Candidate> backwardScramble(
   int beamWidth,
   int maxDepth, {
   int keep = 8,
+  int minOff = 1,
+  bool Function()? shouldStop,
 }) {
   int spread(Set<int> boxes) {
     var s = 0;
@@ -354,11 +358,14 @@ List<_Candidate> backwardScramble(
   final visited = <String>{};
   // pool entry: (score, depth, off, boxes, player)
   final pool = <List<Object>>[];
+  _Candidate? earlyCandidate;
 
   for (var depth = 1; depth <= maxDepth; depth++) {
+    if (shouldStop?.call() ?? false) break;
     // next-state set, keyed to dedup on (boxes, player)
     final nxt = <String, MapEntry<Set<int>, int>>{};
     for (final fe in frontier) {
+      if (shouldStop?.call() ?? false) break;
       final boxes = fe.key;
       final pcell = fe.value;
       final reg = reachable(nbrs, boxes, pcell);
@@ -369,9 +376,7 @@ List<_Candidate> backwardScramble(
         for (final d in DIRS) {
           final p1 = b + d; // player stands here, box pulled here
           final p2 = p1 + d; // player steps back here
-          if (reg.contains(p1) &&
-              floors.contains(p2) &&
-              !boxes.contains(p2)) {
+          if (reg.contains(p1) && floors.contains(p2) && !boxes.contains(p2)) {
             final nb = Set<int>.of(boxes)
               ..remove(b)
               ..add(p1);
@@ -395,6 +400,17 @@ List<_Candidate> backwardScramble(
       scored.add([s, nb, p2, off]);
     }
     scored.sort((a, b) => (b[0] as double).compareTo(a[0] as double));
+    // Retain a cheaper solvable candidate before later beam pruning discards
+    // shallow states. Verify it first so the deadline has a real best effort.
+    if (earlyCandidate == null) {
+      for (final entry in scored) {
+        if ((entry[3] as int) >= minOff) {
+          earlyCandidate = _Candidate(
+              entry[1] as Set<int>, entry[2] as int, depth, entry[3] as int);
+          break;
+        }
+      }
+    }
 
     frontier = [
       for (final t in scored.take(beamWidth))
@@ -411,8 +427,10 @@ List<_Candidate> backwardScramble(
   }
 
   pool.sort((a, b) => (b[0] as double).compareTo(a[0] as double));
-  final out = <_Candidate>[];
-  final seenBoxes = <String>{};
+  final out = <_Candidate>[if (earlyCandidate != null) earlyCandidate];
+  final seenBoxes = <String>{
+    if (earlyCandidate != null) _boxKey(earlyCandidate.boxes)
+  };
   for (final entry in pool) {
     final boxes = entry[3] as Set<int>;
     final bk = _boxKey(boxes);
@@ -493,8 +511,9 @@ _SolveResult? solveForward(
   Map<int, int> dist,
   Set<int> boxes0,
   int player0,
-  int nodeCap,
-) {
+  int nodeCap, {
+  bool Function()? shouldStop,
+}) {
   var h0 = 0;
   for (final b in boxes0) {
     if (dist[b] == INF) return null;
@@ -513,6 +532,7 @@ _SolveResult? solveForward(
   var expanded = 0;
 
   while (pq.isNotEmpty) {
+    if (shouldStop?.call() ?? false) return null;
     final top = pq.pop();
     final h = top[1], g = top[2], idx = top[3];
     final boxes = sBoxes[idx];
@@ -746,26 +766,116 @@ class _Params {
 }
 
 const Map<int, _Params> PARAMS = {
-  1: _Params(bw: 2, bh: 2, boxes: 2, minPushes: 5, minChanges: 0, scoreLo: 20,
-      pushHi: 14, beam: 120, fwdCap: 60000, minOff: 1),
-  2: _Params(bw: 2, bh: 2, boxes: 2, minPushes: 8, minChanges: 0, scoreLo: 27,
-      pushHi: 20, beam: 150, fwdCap: 80000, minOff: 2),
-  3: _Params(bw: 3, bh: 2, boxes: 3, minPushes: 10, minChanges: 1, scoreLo: 36,
-      pushHi: 26, beam: 200, fwdCap: 90000, minOff: 2),
-  4: _Params(bw: 3, bh: 2, boxes: 3, minPushes: 14, minChanges: 2, scoreLo: 46,
-      pushHi: null, beam: 250, fwdCap: 110000, minOff: 3),
-  5: _Params(bw: 3, bh: 3, boxes: 4, minPushes: 16, minChanges: 3, scoreLo: 56,
-      pushHi: null, beam: 300, fwdCap: 130000, minOff: 3),
-  6: _Params(bw: 3, bh: 3, boxes: 4, minPushes: 20, minChanges: 4, scoreLo: 66,
-      pushHi: null, beam: 350, fwdCap: 150000, minOff: 4),
-  7: _Params(bw: 3, bh: 3, boxes: 5, minPushes: 24, minChanges: 5, scoreLo: 76,
-      pushHi: null, beam: 400, fwdCap: 170000, minOff: 4),
-  8: _Params(bw: 4, bh: 3, boxes: 5, minPushes: 28, minChanges: 6, scoreLo: 86,
-      pushHi: null, beam: 450, fwdCap: 190000, minOff: 5),
-  9: _Params(bw: 4, bh: 3, boxes: 6, minPushes: 26, minChanges: 7, scoreLo: 92,
-      pushHi: null, beam: 500, fwdCap: 210000, minOff: 5),
-  10: _Params(bw: 4, bh: 3, boxes: 6, minPushes: 30, minChanges: 8, scoreLo: 100,
-      pushHi: null, beam: 550, fwdCap: 240000, minOff: 6),
+  1: _Params(
+      bw: 2,
+      bh: 2,
+      boxes: 2,
+      minPushes: 5,
+      minChanges: 0,
+      scoreLo: 20,
+      pushHi: 14,
+      beam: 120,
+      fwdCap: 60000,
+      minOff: 1),
+  2: _Params(
+      bw: 2,
+      bh: 2,
+      boxes: 2,
+      minPushes: 8,
+      minChanges: 0,
+      scoreLo: 27,
+      pushHi: 20,
+      beam: 150,
+      fwdCap: 80000,
+      minOff: 2),
+  3: _Params(
+      bw: 3,
+      bh: 2,
+      boxes: 3,
+      minPushes: 10,
+      minChanges: 1,
+      scoreLo: 36,
+      pushHi: 26,
+      beam: 200,
+      fwdCap: 90000,
+      minOff: 2),
+  4: _Params(
+      bw: 3,
+      bh: 2,
+      boxes: 3,
+      minPushes: 14,
+      minChanges: 2,
+      scoreLo: 46,
+      pushHi: null,
+      beam: 250,
+      fwdCap: 110000,
+      minOff: 3),
+  5: _Params(
+      bw: 3,
+      bh: 3,
+      boxes: 4,
+      minPushes: 16,
+      minChanges: 3,
+      scoreLo: 56,
+      pushHi: null,
+      beam: 300,
+      fwdCap: 130000,
+      minOff: 3),
+  6: _Params(
+      bw: 3,
+      bh: 3,
+      boxes: 4,
+      minPushes: 20,
+      minChanges: 4,
+      scoreLo: 66,
+      pushHi: null,
+      beam: 350,
+      fwdCap: 150000,
+      minOff: 4),
+  7: _Params(
+      bw: 3,
+      bh: 3,
+      boxes: 5,
+      minPushes: 24,
+      minChanges: 5,
+      scoreLo: 76,
+      pushHi: null,
+      beam: 400,
+      fwdCap: 170000,
+      minOff: 4),
+  8: _Params(
+      bw: 4,
+      bh: 3,
+      boxes: 5,
+      minPushes: 28,
+      minChanges: 6,
+      scoreLo: 86,
+      pushHi: null,
+      beam: 450,
+      fwdCap: 190000,
+      minOff: 5),
+  9: _Params(
+      bw: 4,
+      bh: 3,
+      boxes: 6,
+      minPushes: 26,
+      minChanges: 7,
+      scoreLo: 92,
+      pushHi: null,
+      beam: 500,
+      fwdCap: 210000,
+      minOff: 5),
+  10: _Params(
+      bw: 4,
+      bh: 3,
+      boxes: 6,
+      minPushes: 30,
+      minChanges: 8,
+      scoreLo: 100,
+      pushHi: null,
+      beam: 550,
+      fwdCap: 240000,
+      minOff: 6),
 };
 
 // ---------------------------------------------------------------- generator
@@ -816,9 +926,11 @@ Level generate(
   final rng = _Rng(seed);
   Level? best;
   final sw = Stopwatch()..start();
+  final budgetMs = (timeBudget * 1000).round();
+  bool expired() => sw.elapsedMilliseconds >= budgetMs;
 
   for (var attempt = 1; attempt <= maxAttempts; attempt++) {
-    if (sw.elapsedMilliseconds / 1000.0 > timeBudget && best != null) break;
+    if (expired()) break;
     final room = buildRoom(rng, P.bw, P.bh);
     final floors = room.floors;
     if (!roomOk(floors, room.H, room.W, P.boxes * 5)) continue;
@@ -846,12 +958,19 @@ Level generate(
     }
     if (alive < P.boxes * 3) continue;
 
+    // Reserve time for forward verification even when reverse search is large.
+    final reverseDeadline = sw.elapsedMilliseconds +
+        ((budgetMs - sw.elapsedMilliseconds) * 0.4).round();
     final cands = backwardScramble(
-        rng, floors, nbrs, goals, dist, P.beam, 3 * P.minPushes);
+        rng, floors, nbrs, goals, dist, P.beam, 3 * P.minPushes,
+        minOff: P.minOff,
+        shouldStop: () => sw.elapsedMilliseconds >= reverseDeadline);
     for (final cnd in cands.take(3)) {
+      if (expired()) break;
       if (cnd.off < P.minOff) continue;
       final sol = solveForward(
-          floors, nbrs, goals, dist, cnd.boxes, cnd.player, P.fwdCap);
+          floors, nbrs, goals, dist, cnd.boxes, cnd.player, P.fwdCap,
+          shouldStop: expired);
       if (sol == null) continue;
       final m = solutionMetrics(dist, sol.actions, sol.expanded);
       final lurd = buildLurd(nbrs, cnd.boxes, cnd.player, sol.actions);
@@ -971,8 +1090,7 @@ StarLoaderEntry sokobanToStarLoaderEntry(Level lv) {
   final r0 = rMin - 1, c0 = cMin - 1;
   final rows = rMax - rMin + 3;
   final cols = cMax - cMin + 3;
-  final structure =
-      List.generate(rows, (_) => List<int>.filled(cols, slWall));
+  final structure = List.generate(rows, (_) => List<int>.filled(cols, slWall));
   final state = List.generate(rows, (_) => List<int>.filled(cols, slWall));
 
   for (final f in lv.floors) {

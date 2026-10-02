@@ -1,6 +1,9 @@
 // ignore_for_file: unused_element, unused_field
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../../core/services/player_profile_service.dart';
+import '../../profiles/screens/player_profiles_screen.dart';
+import '../../games/screens/saved_puzzles_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:space_math_academy/core/services/debug_provider.dart';
 import 'package:space_math_academy/core/services/sri_service.dart';
@@ -324,6 +327,24 @@ class _HomeScreenState extends State<HomeScreen>
               },
             ),
             const SizedBox(width: 8),
+            Consumer<PlayerProfileService>(builder: (context, players, _) {
+              final s = S.of(context)!;
+              final name = players.active.name.isEmpty ? s.originalPlayer : players.active.name;
+              return PopupMenuButton<String>(
+                tooltip: '${s.playersTitle}: $name',
+                onSelected: (value) => Navigator.of(context).push(MaterialPageRoute(builder: (_) =>
+                  value == 'players' ? const PlayerProfilesScreen() : const SavedPuzzlesScreen())),
+                itemBuilder: (_) => [
+                  PopupMenuItem(value: 'players', child: Text('${s.playersTitle}: $name')),
+                  PopupMenuItem(value: 'puzzles', child: Text(s.savedPuzzlesTitle)),
+                ],
+                child: SizedBox(width: 56, child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.people_alt_outlined, color: Colors.white),
+                  Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: SpaceTheme.bodyStyle.copyWith(fontSize: 10)),
+                ])),
+              );
+            }),
             // Cognitive profile shortcut
             IconButton(
               onPressed: () {

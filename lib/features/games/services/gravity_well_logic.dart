@@ -1,13 +1,27 @@
+import 'generator_random.dart';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
+import 'generator_diagnostics.dart';
 
-import '../constants/difficulty_manager.dart';
+import '../constants/difficulty_config.dart';
 
 /// A balance scale showing objects in equilibrium.
 /// Players see labeled objects and numeric weights on each side.
 /// The scale is always balanced: leftTotal == rightTotal.
 class BalanceScale {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'leftSide': leftSide.map((v0) => v0.toJson()).toList(),
+        'rightSide': rightSide.map((v0) => v0.toJson()).toList()
+      };
+  factory BalanceScale.fromJson(Map<String, dynamic> json) => BalanceScale(
+      leftSide: (json['leftSide'] as List)
+          .map((v0) => ScaleItem.fromJson(Map<String, dynamic>.from(v0 as Map)))
+          .toList(),
+      rightSide: (json['rightSide'] as List)
+          .map((v0) => ScaleItem.fromJson(Map<String, dynamic>.from(v0 as Map)))
+          .toList());
+
   final List<ScaleItem> leftSide;
   final List<ScaleItem> rightSide;
 
@@ -22,6 +36,14 @@ class BalanceScale {
 /// numeric weight block ("5 kg"). [isKnown] means the weight is
 /// directly visible to the player.
 class ScaleItem {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() =>
+      {'label': label, 'weight': weight, 'isKnown': isKnown};
+  factory ScaleItem.fromJson(Map<String, dynamic> json) => ScaleItem(
+      label: json['label'] as String,
+      weight: json['weight'] as int,
+      isKnown: json['isKnown'] as bool);
+
   final String label;
   final int weight;
   final bool isKnown;
@@ -34,9 +56,32 @@ class ScaleItem {
 }
 
 class GravityWellPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'scales': scales.map((v0) => v0.toJson()).toList(),
+        'unknownWeights':
+            unknownWeights.entries.map((v0) => [v0.key, v0.value]).toList(),
+        'knownWeights':
+            knownWeights.entries.map((v0) => [v0.key, v0.value]).toList(),
+        'objectCount': objectCount
+      };
+  factory GravityWellPuzzle.fromJson(Map<String, dynamic> json) =>
+      GravityWellPuzzle(
+          scales: (json['scales'] as List)
+              .map((v0) =>
+                  BalanceScale.fromJson(Map<String, dynamic>.from(v0 as Map)))
+              .toList(),
+          unknownWeights: Map<String, int>.fromEntries(
+              (json['unknownWeights'] as List)
+                  .map((v0) => MapEntry(v0[0] as String, v0[1] as int))),
+          knownWeights: Map<String, int>.fromEntries(
+              (json['knownWeights'] as List)
+                  .map((v0) => MapEntry(v0[0] as String, v0[1] as int))),
+          objectCount: json['objectCount'] as int);
+
   final List<BalanceScale> scales;
   final Map<String, int> unknownWeights; // label -> weight (answers)
-  final Map<String, int> knownWeights;   // label -> weight (given)
+  final Map<String, int> knownWeights; // label -> weight (given)
   final int objectCount;
 
   const GravityWellPuzzle({
@@ -59,15 +104,17 @@ class GravityWellLogic {
     final grade = args['grade'] as int;
     final level = args['level'] as int;
     final difficulty = args['difficulty'] as DifficultyConfig;
-    final rng = math.Random();
+    final rng = generatorRandom();
 
-    if (kDebugMode) debugPrint('[GRAVITY_WELL] Generating grade=$grade level=$level');
+    if (kDebugMode) {
+      traceGenerator('[GRAVITY_WELL] Generating grade=$grade level=$level');
+    }
 
     // Difficulty parameters
     int objectCount, scaleCount, maxWeight;
 
     if (difficulty.grade <= 1) {
-      objectCount = 3;   // A, B, C -- one unknown
+      objectCount = 3; // A, B, C -- one unknown
       scaleCount = 2;
       maxWeight = 10;
     } else if (difficulty.grade <= 2) {
@@ -85,21 +132,28 @@ class GravityWellLogic {
     }
 
     // How many unknowns to solve for
-    final unknownCount = (difficulty.grade <= 1) ? 1
-        : (difficulty.grade <= 2) ? (level <= 5 ? 1 : 2)
-        : (difficulty.grade <= 3) ? 2
-        : (level <= 5 ? 2 : 3);
+    final unknownCount = (difficulty.grade <= 1)
+        ? 1
+        : (difficulty.grade <= 2)
+            ? (level <= 5 ? 1 : 2)
+            : (difficulty.grade <= 3)
+                ? 2
+                : (level <= 5 ? 2 : 3);
 
     for (int attempt = 0; attempt < 30; attempt++) {
       final result = _tryGenerate(
-        objectCount, scaleCount, unknownCount, maxWeight, rng,
+        objectCount,
+        scaleCount,
+        unknownCount,
+        maxWeight,
+        rng,
       );
       if (result != null) return result;
     }
 
     // Fallback: A=3, B=5, C=8. Scale 1: A+B = C. Scale 2: C = A+B.
     // Unknown: C. Known: A=3, B=5.
-    if (kDebugMode) debugPrint('[GRAVITY_WELL] Using fallback puzzle');
+    if (kDebugMode) traceGenerator('[GRAVITY_WELL] Using fallback puzzle');
     return const GravityWellPuzzle(
       scales: [
         BalanceScale(leftSide: [
@@ -124,11 +178,15 @@ class GravityWellLogic {
   }
 
   static GravityWellPuzzle? _tryGenerate(
-    int objectCount, int scaleCount, int unknownCount,
-    int maxWeight, math.Random rng,
+    int objectCount,
+    int scaleCount,
+    int unknownCount,
+    int maxWeight,
+    math.Random rng,
   ) {
     // Generate distinct weights for each object
-    final labels = List.generate(objectCount, (i) => String.fromCharCode(65 + i));
+    final labels =
+        List.generate(objectCount, (i) => String.fromCharCode(65 + i));
     final weights = <String, int>{};
     final usedWeights = <int>{};
     for (final label in labels) {
@@ -188,10 +246,12 @@ class GravityWellLogic {
 
       final left = <ScaleItem>[
         ScaleItem(label: target, weight: targetW, isKnown: false),
-        ...sameLabels.map((l) => ScaleItem(label: l, weight: weights[l]!, isKnown: true)),
+        ...sameLabels.map(
+            (l) => ScaleItem(label: l, weight: weights[l]!, isKnown: true)),
       ];
       final right = <ScaleItem>[
-        ...otherLabels.map((l) => ScaleItem(label: l, weight: weights[l]!, isKnown: true)),
+        ...otherLabels.map(
+            (l) => ScaleItem(label: l, weight: weights[l]!, isKnown: true)),
       ];
 
       if (diff > 0) {
@@ -236,14 +296,16 @@ class GravityWellLogic {
       if (diff1 > 0) {
         right1.add(ScaleItem(label: '$diff1 kg', weight: diff1, isKnown: true));
       } else if (diff1 < 0) {
-        left1.add(ScaleItem(label: '${-diff1} kg', weight: -diff1, isKnown: true));
+        left1.add(
+            ScaleItem(label: '${-diff1} kg', weight: -diff1, isKnown: true));
       }
       scales.add(BalanceScale(leftSide: left1, rightSide: right1));
 
       // Second scale: one unknown + known objects = weight block
       // This makes that unknown individually solvable, then the first scale
       // lets the player compute the other unknown.
-      final knownForScale2 = knownList.length > 1 ? knownList[1] : knownForScale1;
+      final knownForScale2 =
+          knownList.length > 1 ? knownList[1] : knownForScale1;
       final kW2 = knownForScale2 != null ? weights[knownForScale2]! : 0;
 
       final leftW2 = wA;
@@ -260,7 +322,8 @@ class GravityWellLogic {
       if (diff2 > 0) {
         right2.add(ScaleItem(label: '$diff2 kg', weight: diff2, isKnown: true));
       } else if (diff2 < 0) {
-        left2.add(ScaleItem(label: '${-diff2} kg', weight: -diff2, isKnown: true));
+        left2.add(
+            ScaleItem(label: '${-diff2} kg', weight: -diff2, isKnown: true));
       }
       scales.add(BalanceScale(leftSide: left2, rightSide: right2));
 
@@ -277,9 +340,11 @@ class GravityWellLogic {
           ScaleItem(label: uC, weight: wC, isKnown: false),
         ];
         if (diff3 > 0) {
-          right3.add(ScaleItem(label: '$diff3 kg', weight: diff3, isKnown: true));
+          right3
+              .add(ScaleItem(label: '$diff3 kg', weight: diff3, isKnown: true));
         } else if (diff3 < 0) {
-          left3.add(ScaleItem(label: '${-diff3} kg', weight: -diff3, isKnown: true));
+          left3.add(
+              ScaleItem(label: '${-diff3} kg', weight: -diff3, isKnown: true));
         }
         scales.add(BalanceScale(leftSide: left3, rightSide: right3));
       }
@@ -305,19 +370,27 @@ class GravityWellLogic {
       final rightWeight = right.fold(0, (s, l) => s + weights[l]!);
       final diff = leftWeight - rightWeight;
 
-      final leftItems = left.map((l) => ScaleItem(
-        label: l, weight: weights[l]!,
-        isKnown: knownLabels.contains(l),
-      )).toList();
-      final rightItems = right.map((l) => ScaleItem(
-        label: l, weight: weights[l]!,
-        isKnown: knownLabels.contains(l),
-      )).toList();
+      final leftItems = left
+          .map((l) => ScaleItem(
+                label: l,
+                weight: weights[l]!,
+                isKnown: knownLabels.contains(l),
+              ))
+          .toList();
+      final rightItems = right
+          .map((l) => ScaleItem(
+                label: l,
+                weight: weights[l]!,
+                isKnown: knownLabels.contains(l),
+              ))
+          .toList();
 
       if (diff > 0) {
-        rightItems.add(ScaleItem(label: '$diff kg', weight: diff, isKnown: true));
+        rightItems
+            .add(ScaleItem(label: '$diff kg', weight: diff, isKnown: true));
       } else if (diff < 0) {
-        leftItems.add(ScaleItem(label: '${-diff} kg', weight: -diff, isKnown: true));
+        leftItems
+            .add(ScaleItem(label: '${-diff} kg', weight: -diff, isKnown: true));
       }
 
       scales.add(BalanceScale(leftSide: leftItems, rightSide: rightItems));

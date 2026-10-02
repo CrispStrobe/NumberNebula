@@ -1,6 +1,8 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../mixins/game_animations_mixin.dart';
@@ -30,7 +32,43 @@ class MagicTrianglesGame extends StatefulWidget {
 }
 
 class _MagicTrianglesGameState extends State<MagicTrianglesGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<MagicTrianglesGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<MagicTrianglesGame>, PuzzleSessionMixin<MagicTrianglesGame> {
+  bool _sessionReady = false;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_timeController, _warpController], reduced);
+  }
+
+  @override String get sessionGameKey => 'magic_triangles';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      'currentPuzzle': (currentPuzzle?.toJson()),
+      'userAnswers': userAnswers.map((v0) => (v0)).toList(),
+      'numberPool': numberPool.map((v0) => v0).toList(),
+      '_movesRemaining': _movesRemaining,
+      '_maxMoves': _maxMoves,
+      '_optimalMoves': _optimalMoves
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    currentPuzzle = (state["currentPuzzle"] == null ? null : MagicTrianglePuzzle.fromJson(Map<String, dynamic>.from(state["currentPuzzle"] as Map)));
+    userAnswers = (state["userAnswers"] as List).map((v0) => (v0 == null ? null : v0 as int)).toList();
+    numberPool = (state["numberPool"] as List).map((v0) => v0 as int).toList();
+    _movesRemaining = state["_movesRemaining"] as int;
+    _maxMoves = state["_maxMoves"] as int;
+    _optimalMoves = state["_optimalMoves"] as int;
+    _isGenerating = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   late AnimationController _timeController;
   late AnimationController _dropController;
   late AnimationController _warpController;
@@ -74,7 +112,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     );
     
     if (kDebugMode) debugPrint("🚀 [UI] Animation controllers initialized, calling _generatePuzzle()");
-    _generatePuzzle();
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -102,6 +140,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
   @override
   void dispose() {
+    disposePuzzleSession();
     if (kDebugMode) debugPrint("🚀 [UI] MagicTrianglesGame.dispose() - Cleaning up controllers");
     
     glowController.stop();
@@ -123,7 +162,8 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     super.dispose();
   }
 
-  void _generatePuzzle() async {
+  Future<void> _generatePuzzle() async {
+    beginPuzzleSession();
     if (kDebugMode) debugPrint("🚀 [UI] _generatePuzzle() - Starting puzzle generation");
     debugPrint("🚀 [UI] Current mounted state: $mounted");
     
@@ -235,7 +275,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
   void _handleSuccess() {
     if (kDebugMode) debugPrint("🎉 [UI] _handleSuccess() - Starting success animation");
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     _warpController.forward();
 
     void listener(AnimationStatus status) {
@@ -246,11 +286,16 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
         int baseScore = 150 * widget.grade;
         int bonusScore = (baseScore * (currentPuzzle!.circlesPerSide / 3.0)).round();
+        finishPuzzleSession();
         context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'magic_triangles',
       difficulty: widget.level,
       score: baseScore + bonusScore,
         performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
+
+      movesUsed: _maxMoves - _movesRemaining,
+      optimalMoves: _optimalMoves,
     ));
         successController.forward(from: 0.0);
         
@@ -269,7 +314,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
   void _handleIncorrect() {
     if (kDebugMode) debugPrint("❌ [UI] _handleIncorrect() - Showing failure message");
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -287,7 +332,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
   void _handleFailure() {
     if (kDebugMode) debugPrint("❌ [UI] FAILURE - recording loss");
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'magic_triangles',
       difficulty: widget.level,
       progress: _optimalMoves == 0
@@ -311,7 +358,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
   Widget _buildOutOfMovesDialog() {
     final s = S.of(context)!;
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -321,6 +368,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'magic_triangles'),
             const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(
@@ -402,6 +450,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (kDebugMode) debugPrint("🏗️ [UI] build() called - _isGenerating: $_isGenerating, currentPuzzle: ${currentPuzzle != null}");
     
     final screenSize = MediaQuery.of(context).size;
@@ -1089,7 +1138,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -1097,6 +1146,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'magic_triangles'),
                   const Icon(Icons.rocket_launch, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(S.of(context)!.magicTrianglesWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
@@ -1138,3 +1188,31 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   }
 }
 
+
+extension MagicTriangleLayout on MagicTrianglePuzzle {
+  List<Offset> getCirclePositions(Offset center, double radius) {
+    if (kDebugMode) debugPrint("🔺 [Puzzle] getCirclePositions - center: $center, radius: $radius");
+    final points = <Offset>[];
+    final n = circlesPerSide;
+
+    final cornerAngles = [ -math.pi / 2, math.pi / 6, 5 * math.pi / 6 ];
+    final cornerPoints = [
+      center + Offset(math.cos(cornerAngles[0]), math.sin(cornerAngles[0])) * radius,
+      center + Offset(math.cos(cornerAngles[1]), math.sin(cornerAngles[1])) * radius,
+      center + Offset(math.cos(cornerAngles[2]), math.sin(cornerAngles[2])) * radius,
+    ];
+
+    for (int i = 0; i < n; i++) {
+      points.add(Offset.lerp(cornerPoints[0], cornerPoints[1], i / (n - 1))!);
+    }
+    for (int i = 1; i < n; i++) {
+      points.add(Offset.lerp(cornerPoints[1], cornerPoints[2], i / (n - 1))!);
+    }
+    for (int i = 1; i < n - 1; i++) {
+      points.add(Offset.lerp(cornerPoints[2], cornerPoints[0], i / (n - 1))!);
+    }
+
+    if (kDebugMode) debugPrint("🔺 [Puzzle] Generated ${points.length} circle positions");
+    return points;
+  }
+}

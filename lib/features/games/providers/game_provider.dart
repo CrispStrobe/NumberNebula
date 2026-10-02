@@ -1,3 +1,5 @@
+import '../constants/difficulty_manager.dart';
+import '../../../core/services/app_haptics.dart';
 // lib/features/games/providers/game_provider.dart
 import 'package:flutter/foundation.dart';
 import '../../../core/services/progress_service.dart';
@@ -6,6 +8,7 @@ import '../../../core/models/skill_category.dart';
 import '../../../core/services/sri_service.dart';
 import '../../../core/services/cognitive_profile_service.dart';
 import '../models/game_outcome.dart';
+import '../models/learning_round.dart';
 import '../models/math_problem.dart';
 import '../models/performance.dart';
 import '../tuning.dart';
@@ -61,7 +64,7 @@ class Achievement {
 }
 
 // The GameProvider class. There should only be ONE declaration of this.
-class GameProvider extends ChangeNotifier {
+class GameProvider extends ChangeNotifier implements DifficultySource {
   final ProgressService _progressService;
   final SriService _sriService;
   final CognitiveProfileService _cognitiveProfileService;
@@ -73,6 +76,8 @@ class GameProvider extends ChangeNotifier {
   bool _soundEnabled = true;
   bool _musicEnabled = true;
   bool _puzzleTimerEnabled = true;
+  bool _hapticEnabled = true;
+  bool _reduceMotion = false;
   bool _useAdaptiveDifficulty = false;
   DifficultyMode _difficultyMode = DifficultyMode.normal;
   Map<String, int> _gameProgress = {};
@@ -111,8 +116,12 @@ class GameProvider extends ChangeNotifier {
   /// want to know what happened (missions, in particular) snapshot
   /// [outcomeCount] before pushing the game screen and compare afterwards:
   /// an unchanged counter means the player quit without finishing a round.
+  String? coachingGameKey;
+  int? coachingHintsUsed;
   GameOutcome? _lastOutcome;
   int _outcomeCount = 0;
+  List<LearningRound> _roundHistory = [];
+  List<LearningRound> get roundHistory => List.unmodifiable(_roundHistory);
 
   int get lastStars => _lastStars;
   GameOutcome? get lastOutcome => _lastOutcome;
@@ -163,6 +172,7 @@ class GameProvider extends ChangeNotifier {
   // Getters
   int get score => _score;
   int get level => _level;
+  @override
   int get grade => _grade; // Internally, we'll still call this 'grade'
   DifficultyMode get difficultyMode => _difficultyMode;
 
@@ -181,6 +191,10 @@ class GameProvider extends ChangeNotifier {
   int get lives => _lives;
   bool get soundEnabled => _soundEnabled;
   bool get musicEnabled => _musicEnabled;
+  bool get hapticEnabled => _hapticEnabled;
+  bool get reduceMotion => _reduceMotion;
+  void setHapticEnabled(bool value) { _hapticEnabled = value; AppHaptics.enabled = value; notifyListeners(); }
+  void setReduceMotion(bool value) { _reduceMotion = value; notifyListeners(); }
   bool get puzzleTimerEnabled => _puzzleTimerEnabled;
   
   bool get useAdaptiveDifficulty => _useAdaptiveDifficulty;
@@ -191,9 +205,13 @@ class GameProvider extends ChangeNotifier {
   String get multiplicationSymbol => _multiplicationSymbol;
   String get divisionSymbol => _divisionSymbol;
 
+  @override
   bool get useCustomProblemSettings => _useCustomProblemSettings;
+  @override
   Set<String> get customOperations => _customOperations;
+  @override
   int get customRangeMin => _customRangeMin;
+  @override
   int get customRangeMax => _customRangeMax;
 
   Future<void> _saveProgress() async {
@@ -207,6 +225,9 @@ class GameProvider extends ChangeNotifier {
   /// Returns true iff the player advanced to the next level as a result
   /// of this outcome.
   bool reportOutcome(GameOutcome outcome) {
+    if (coachingHintsUsed != null && coachingGameKey == outcome.gameType) {
+      outcome = outcome.withCoachingHints(coachingHintsUsed!);
+    }
     if (kDebugMode) {
       debugPrint(
         '[GAME_PROVIDER] 🎯 Recording ${outcome.gameType} result: '
@@ -216,6 +237,10 @@ class GameProvider extends ChangeNotifier {
     if (outcome.wasSuccessful) addScore(outcome.score);
 
     _lastOutcome = outcome;
+    final now = DateTime.now();
+    _roundHistory.add(LearningRound.fromOutcome(outcome, now, grade: outcome.skillLevel ?? effectiveGrade));
+    _roundHistory.removeWhere((r) => r.playedAt.isBefore(now.subtract(const Duration(days: 90))));
+    if (_roundHistory.length > 1000) _roundHistory = _roundHistory.sublist(_roundHistory.length - 1000);
     _outcomeCount++;
     if (kDebugMode) {
       debugPrint('[GAME_PROVIDER] 📊 Performance: '
@@ -275,6 +300,7 @@ class GameProvider extends ChangeNotifier {
     }
 
     _saveProgress();
+    notifyListeners();
     return didAdvance;
   }
 
@@ -588,12 +614,15 @@ class GameProvider extends ChangeNotifier {
   // Save/Load functionality
   Map<String, dynamic> toJson() {
     return {
+      'roundHistory': _roundHistory.map((r) => r.toJson()).toList(),
       'score': _score,
       'level': _level,
       'grade': _grade,
       'lives': _lives,
       'soundEnabled': _soundEnabled,
       'musicEnabled': _musicEnabled,
+      'puzzleTimerEnabled': _puzzleTimerEnabled,
+      'hapticEnabled': _hapticEnabled, 'reduceMotion': _reduceMotion,
       'gameProgress': _gameProgress,
       'bestStars': _bestStars,
       'achievements': _achievements.map((a) => a.toJson()).toList(),
@@ -612,6 +641,10 @@ class GameProvider extends ChangeNotifier {
   }
 
   void fromJson(Map<String, dynamic> json) {
+    _roundHistory = [];
+    for (final raw in (json['roundHistory'] as List? ?? [])) {
+      try { _roundHistory.add(LearningRound.fromJson(Map<String, dynamic>.from(raw))); } catch (_) { /* Skip damaged history entries. */ }
+    }
     _score = json['score'] ?? 0;
     _level = json['level'] ?? 1;
     _grade = json['grade'] ?? 1; // Default is 1
@@ -625,7 +658,7 @@ class GameProvider extends ChangeNotifier {
         DifficultyMode.normal.index;
     _difficultyMode = DifficultyMode.values[
         modeIndex.clamp(0, DifficultyMode.values.length - 1)];
-    _isFullVersionUnlocked = json['isFullVersionUnlocked'] ?? false;
+    _isFullVersionUnlocked = _isFullVersionUnlocked || (json['isFullVersionUnlocked'] ?? false);
 
     // overridhere to handle loading a saved state where the user hadn't purchased the app yet.
     if (!AppConfig.inappsActive) {
@@ -641,6 +674,14 @@ class GameProvider extends ChangeNotifier {
     _customRangeMin = json['customRangeMin'] ?? 1;
     _customRangeMax = json['customRangeMax'] ?? 20;
 
+    _achievements = [];
+    _lastOutcome = null;
+    _lastStars = 0;
+    _outcomeCount = 0;
+    _puzzleTimerEnabled = json['puzzleTimerEnabled'] ?? true;
+    _hapticEnabled = json['hapticEnabled'] ?? true;
+    AppHaptics.enabled = _hapticEnabled;
+    _reduceMotion = json['reduceMotion'] ?? false;
     if (json['achievements'] != null) {
       _achievements = (json['achievements'] as List)
           .map((a) => Achievement.fromJson(a))

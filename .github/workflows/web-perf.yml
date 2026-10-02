@@ -13,13 +13,15 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      calibration:
+        description: Also capture all games for calibration
+        type: boolean
+        default: false
 
 concurrency:
   group: web-perf-${{ github.ref }}
   cancel-in-progress: true
-
-env:
-  FLUTTER_VERSION: '3.47.5'
 
 jobs:
   build:
@@ -27,6 +29,9 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+
+      - name: Read Flutter SDK pin
+        run: echo "FLUTTER_VERSION=$(cat .flutter-version)" >> "$GITHUB_ENV"
 
       - uses: subosito/flutter-action@v2
         with:
@@ -43,6 +48,11 @@ jobs:
           # them) so a live-test failure can be traced to Dart source.
           flutter build web --wasm --release --source-maps \
             --dart-define=GIT_HASH="$(git rev-parse --short HEAD)"
+
+      - name: Browser generator timing
+        env:
+          CHROME_EXECUTABLE: /usr/bin/google-chrome
+        run: flutter test test/web/rechenquadrat_web_timing_test.dart --platform chrome
 
       - name: Size report
         run: |
@@ -85,6 +95,7 @@ jobs:
       - name: Live tests (Chromium/wasm, Firefox/js)
         env:
           CI: 'true'
+          PERFORMANCE_GATES: 'true'
         run: npx playwright test
 
       - uses: actions/upload-artifact@v4
@@ -171,3 +182,29 @@ jobs:
             tool/web_live_test/playwright-report
             tool/web_live_test/test-results
           retention-days: 7
+
+  calibration:
+    if: github.event_name != 'workflow_dispatch' || inputs.calibration
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read Flutter SDK pin
+        run: echo "FLUTTER_VERSION=$(cat .flutter-version)" >> "$GITHUB_ENV"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Capture and replay every game
+        run: >-
+          dart run tool/calibrate_games.dart --capture --require-all
+          --grades 1,3,6 --levels 1,10 --samples 3
+          --output calibration-summary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: calibration-summary
+          path: calibration-*.json*
+          retention-days: 14

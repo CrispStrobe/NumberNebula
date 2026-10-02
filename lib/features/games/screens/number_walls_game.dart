@@ -1,10 +1,14 @@
+import '../services/number_walls_logic.dart';
+export '../services/number_walls_logic.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
 import '../mixins/game_animations_mixin.dart';
+import '../mixins/puzzle_session_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -13,15 +17,9 @@ import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
-
-// DEVELOPMENT TWEAKING CONSTANTS
-const bool kTweakProblems = false;  // Set to true to override normal generation
-const String kTweakOps = 'subtraction'; // 'addition', 'subtraction', 'multiplication', 'division'
-const int kTweakRangeMin = 2;
-const int kTweakRangeMax = 8;
-const int kTweakWallHeight = 4; // Override wall height when tweaking
-
-enum WallOperation { addition, subtraction, multiplication, division }
+import '../widgets/strategy_hint_dialog.dart';
+import '../services/hint_completion_solver.dart';
+import '../../../shared/widgets/onboarding_overlay.dart';
 
 class NumberWallsGame extends StatefulWidget {
   final int grade;
@@ -38,7 +36,7 @@ class NumberWallsGame extends StatefulWidget {
 }
 
 class _NumberWallsGameState extends State<NumberWallsGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<NumberWallsGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<NumberWallsGame>, PuzzleSessionMixin<NumberWallsGame> {
   final GlobalKey _dragTargetKey = GlobalKey();
 
   late AnimationController _dropController;
@@ -52,11 +50,14 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   List<int> numberPool = [];
   
   bool _isGenerating = true;
+  int? _hintCell;
   int _lastPlacedCellIndex = -1;
   bool _isDraggingOver = false;
 
   int _movesRemaining = 0;
   int _maxMoves = 0;
+  int _hintsUsed = 0;
+  bool _hintLoading = false;
 
   /// Cells the player has to fill — a flawless solve places each exactly
   /// once, so it doubles as the optimal move count for the performance grade.
@@ -66,6 +67,37 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   late Animation<double> _fadeAnimation;
   Timer? _fadeTimer;
   bool _shouldShowOperationHint = true;
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_warpController], reduced);
+  }
+
+  @override String get sessionGameKey => 'number_walls';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (currentPuzzle == null || _isGenerating) return null;
+    return {'puzzle': currentPuzzle!.toJson(), 'answers': userAnswers,
+      'moves': _movesRemaining, 'maxMoves': _maxMoves, 'optimal': _optimalMoves,
+      'hints': _hintsUsed,
+      'pool': numberPool,
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    currentPuzzle = NumberWallPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle'] as Map));
+    userAnswers = List<int?>.from(state['answers'] as List);
+    _movesRemaining = state['moves'] as int;
+    _maxMoves = state['maxMoves'] as int;
+    _optimalMoves = state['optimal'] as int;
+    _hintsUsed = state['hints'] as int? ?? 0;
+
+      numberPool = List<int>.from(state['pool'] as List);
+    _isGenerating = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) _generatePuzzle();
+  }
 
   @override
   void initState() {
@@ -96,10 +128,31 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0)
         .animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOut));
     
-    _generatePuzzle();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _restoreOrGenerate();
+      if (mounted) _showTutorial(onlyIfUnseen: true);
+    });
     
     // Start the fade timer
     _startFadeTimer();
+  }
+
+  void _showTutorial({bool onlyIfUnseen = false}) {
+    final s = S.of(context)!;
+    final steps = [OnboardingStep(
+      icon: Icons.touch_app,
+      body: s.guidedWallPrompt,
+      practiceBoard: '     [ ? ]\n[ 3 ]  [ 4 ]',
+      choices: const [6, 7, 8],
+      answer: 7,
+      explanation: s.guidedWallReason,
+    )];
+    if (onlyIfUnseen) {
+      OnboardingOverlay.maybeShow(context, gameKey: 'number_walls_guided_v1', title: s.guidedTry, steps: steps);
+    } else {
+      showDialog(context: context, builder: (dialogContext) => OnboardingOverlay(
+        title: s.guidedTry, steps: steps, onDismiss: () => Navigator.of(dialogContext).pop()));
+    }
   }
 
   void _startFadeTimer() {
@@ -116,6 +169,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   @override
   void dispose() {
+    disposePuzzleSession();
+    _fadeTimer?.cancel();
+    _fadeController.dispose();
     _dropController.dispose();
     _warpController.dispose();
     _operationController.dispose();
@@ -124,10 +180,12 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _generatePuzzle() async {
+    beginPuzzleSession();
     if (kDebugMode) debugPrint("🧱 _generatePuzzle() - Starting puzzle generation");
     
     setState(() {
       _isGenerating = true;
+      _hintsUsed = 0;
       _shouldShowOperationHint = true;
       _warpController.reset();
       successController.reset();
@@ -171,7 +229,60 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     }
   }
   
+  Future<void> _showStrategyHint() async {
+    if (_hintLoading || puzzleSessionFinished) return;
+    final p = currentPuzzle;
+    if (p == null) return;
+    final hidden = p.hiddenCells.toList()..sort();
+    final answer = userAnswers.indexWhere((v) => v == null);
+    if (answer < 0) return;
+    final cell = hidden[answer];
+    setState(() { _hintCell = cell; _hintsUsed++; });
+    final s = S.of(context)!;
+    final initial = List<int?>.from(userAnswers);
+    final equations = <Map<String, dynamic>>[];
+    for (int row = 0; row < p.wallHeight - 1; row++) {
+      for (int col = 0; col <= row; col++) {
+        final parent = row * (row + 1) ~/ 2 + col;
+        final left = (row + 1) * (row + 2) ~/ 2 + col;
+        equations.add({'cells': ['$parent', '$left', '${left + 1}'], 'op': p.operation.name});
+      }
+    }
+    _hintLoading = true;
+    final completion = await compute(findHintCompletion, {
+      'values': {for (final e in p.visibleValues.entries) e.key.toString(): e.value,
+        for (int i = 0; i < hidden.length; i++) if (initial[i] != null) hidden[i].toString(): initial[i]!},
+      'domains': {for (final i in hidden) i.toString(): p.numberPool.toSet().toList()},
+      'pool': p.numberPool, 'equations': equations,
+    });
+    _hintLoading = false;
+    if (mounted) setState(() {});
+    if (!mounted || !identical(p, currentPuzzle) || !listEquals(initial, userAnswers)) return;
+    final compatible = completion != null;
+    final value = completion?[cell.toString()];
+    String equation = '';
+    for (int row = 0; row < p.wallHeight - 1; row++) {
+      for (int col = 0; col <= row; col++) {
+        final parent = row * (row + 1) ~/ 2 + col;
+        final left = (row + 1) * (row + 2) ~/ 2 + col;
+        final right = left + 1;
+        if (![parent, left, right].contains(cell)) continue;
+        final a = completion?[left.toString()] ?? 0, b = completion?[right.toString()] ?? 0;
+        final symbol = ['+', '−', '×', '÷'][p.operation.index];
+        equation = p.operation == WallOperation.subtraction || p.operation == WallOperation.division
+          ? '${math.max(a, b)} $symbol ${math.min(a, b)} = ${completion?[parent.toString()]}'
+          : '$a $symbol $b = ${completion?[parent.toString()]}';
+        break;
+      }
+      if (equation.isNotEmpty) break;
+    }
+    StrategyHintDialog.show(context, focus: s.hintWallFocus, strategy: s.hintWallStrategy,
+      working: compatible ? '$equation\n${s.hintPossibleMove(value!)}' : s.hintCheckPlacements,
+      demonstrate: compatible ? () { if (mounted) _placeNumber(value!, cell); } : null);
+  }
+
   void _placeNumber(int number, int hiddenCellIndex) {
+    if (puzzleSessionFinished) return;
     final answerIndex = currentPuzzle!.getAnswerIndexForCell(hiddenCellIndex);
     if (answerIndex == -1 || userAnswers[answerIndex] != null) {
       return;
@@ -198,6 +309,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _removeNumber(int answerIndex) {
+    if (puzzleSessionFinished) return;
     setState(() {
       final number = userAnswers[answerIndex];
       if (number != null) {
@@ -217,6 +329,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       
       // 2. Report the outcome to the central GameProvider.
       if (isValid) {
+        finishPuzzleSession();
         // On SUCCESS, calculate the score and report it.
         int baseScore = 120 * widget.grade;
         int bonusScore = (baseScore * (currentPuzzle!.wallHeight / 3.0)).round();
@@ -224,11 +337,15 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         int totalScore = baseScore + bonusScore + operationBonus;
 
         context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'number_walls',
       difficulty: widget.level,
       score: totalScore,
       mathProblems: attemptedProblems,
-      performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
+      performance: Perf.penalize(Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves), hints: _hintsUsed),
+      hintsUsed: _hintsUsed,
+      movesUsed: _maxMoves - _movesRemaining,
+      optimalMoves: _optimalMoves,
     ));
         
         // 3. Trigger the success UI/animation.
@@ -237,6 +354,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       } else {
         // On FAILURE, report a loss with zero score.
         context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'number_walls',
       difficulty: widget.level,
       mathProblems: attemptedProblems,
@@ -310,7 +428,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _handleSuccess(int totalScoreGained) {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     _warpController.forward();
 
     void listener(AnimationStatus status) {
@@ -345,7 +463,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _handleIncorrect() {
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -365,6 +483,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     if (kDebugMode) debugPrint("🧱 FAILURE - recording loss");
     final attemptedProblems = _getSolvedProblems();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'number_walls',
       difficulty: widget.level,
       mathProblems: attemptedProblems,
@@ -375,6 +494,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _handleOutOfMoves() {
+    finishPuzzleSession();
     if (kDebugMode) debugPrint("🧱 Out of moves! Game over.");
     _handleFailure();
 
@@ -389,7 +509,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   Widget _buildOutOfMovesDialog() {
     final s = S.of(context)!;
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -399,6 +519,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'number_walls'),
             const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(
@@ -491,6 +612,12 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               Column(
                 children: [
                   _buildCompactHeader(),
+                  Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                    Flexible(child: TextButton.icon(onPressed: _hintLoading ? null : _showStrategyHint,
+                      icon: const Icon(Icons.lightbulb_outline), label: Text(S.of(context)!.strategyHint))),
+                    Flexible(child: TextButton.icon(onPressed: _showTutorial,
+                      icon: const Icon(Icons.help_outline), label: Text(S.of(context)!.howToPlay))),
+                  ]),
                   Expanded(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
@@ -1028,7 +1155,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         onTap: value != null ? () => _removeNumber(answerIndex) : null,
         child: _buildBrickCell(
           value: value,
-          isSelected: _isDraggingOver && value == null,
+          isSelected: (_isDraggingOver && value == null) || (currentPuzzle != null && _hintCell != null && currentPuzzle!.getAnswerIndexForCell(_hintCell!) == answerIndex),
           isHidden: true,
           size: size,
         ),
@@ -1166,7 +1293,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -1174,6 +1301,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'number_walls'),
                   const Icon(Icons.emoji_events, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(S.of(context)!.numberWallsWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
@@ -1213,31 +1341,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 }
 
 // NumberWallPuzzle class with complete operation support
-class NumberWallPuzzle {
-  final int wallHeight;
-  final int totalCells;
-  final WallOperation operation;
-  final Set<int> hiddenCells;
-  final Map<int, int> visibleValues;
-  final List<int> fullSolution;
-  final List<int> numberPool;
-
-  NumberWallPuzzle({
-    required this.wallHeight,
-    required this.operation,
-    required this.hiddenCells,
-    required this.visibleValues,
-    required this.fullSolution,
-    required this.numberPool,
-  }) : totalCells = (wallHeight * (wallHeight + 1)) ~/ 2;
-
-  int getAnswerIndexForCell(int cellIndex) {
-    if (!hiddenCells.contains(cellIndex)) return -1;
-    final sortedHiddenCells = hiddenCells.toList()..sort();
-    return sortedHiddenCells.indexOf(cellIndex);
-  }
-
-  // MODIFIED: This method now inverts the wall's vertical layout for subtraction puzzles.
+extension NumberWallPuzzleLayout on NumberWallPuzzle {
   List<Offset> getCellPositions(double containerSize) {
     final positions = <Offset>[];
     final cellSpacing = containerSize / (wallHeight + 1);
@@ -1268,364 +1372,7 @@ class NumberWallPuzzle {
     
     return positions;
   }
-
-  static NumberWallPuzzle generate(Map<String, dynamic> args) {
-    final grade = args['grade'] as int;
-    final level = args['level'] as int;
-    final useCustomSettings = args['useCustomSettings'] as bool;
-    final customOps = (args['customOps'] as List<dynamic>).cast<String>().toSet();
-    final customMin = args['customMin'] as int;
-    final customMax = args['customMax'] as int;
-
-    final wallHeight = _determineWallHeight(grade, level);
-    final operation = _determineOperation(grade, level, useCustomSettings, customOps);
-
-    final generator = _NumberWallGenerator(
-      wallHeight, grade, level, operation,
-      useCustomSettings: useCustomSettings,
-      customOps: customOps,
-      customRangeMin: customMin,
-      customRangeMax: customMax,
-    );
-
-    return generator.generate();
-  }
-
-  static int _determineWallHeight(int grade, int level) {
-    if (kTweakProblems) return kTweakWallHeight;
-    if (grade >= 4) { if (level <= 4) return 4; if (level <= 8) return 5; return 6; }
-    if (grade >= 3) { if (level <= 6) return 3; return 4; }
-    return 3;
-  }
-
-  static WallOperation _determineOperation(int grade, int level, bool useCustom, Set<String> customOps) {
-    if (kTweakProblems) {
-      switch (kTweakOps.toLowerCase()) {
-        case 'addition': return WallOperation.addition;
-        case 'subtraction': return WallOperation.subtraction;
-        case 'multiplication': return WallOperation.multiplication;
-        case 'division': return WallOperation.division;
-      }
-    }
-
-    if (useCustom && customOps.isNotEmpty) {
-      final availableOps = customOps.map((op) {
-        switch(op) {
-          case 'addition': return WallOperation.addition;
-          case 'subtraction': return WallOperation.subtraction;
-          case 'multiplication': return WallOperation.multiplication;
-          case 'division': return WallOperation.division;
-          default: return null;
-        }
-      }).whereType<WallOperation>().toList();
-      
-      if (availableOps.isNotEmpty) {
-        return availableOps[math.Random().nextInt(availableOps.length)];
-      }
-    }
-
-    if (grade == 1) return WallOperation.addition;
-    if (grade == 2) {
-      if (level <= 6) return WallOperation.addition;
-      return math.Random().nextBool() ? WallOperation.addition : WallOperation.subtraction;
-    }
-    if (grade == 3) {
-      final operations = [WallOperation.addition, WallOperation.subtraction];
-      if (level >= 5) operations.add(WallOperation.multiplication);
-      return operations[math.Random().nextInt(operations.length)];
-    }
-    final operations = [WallOperation.addition, WallOperation.subtraction, WallOperation.multiplication];
-    if (level >= 6) operations.add(WallOperation.division);
-    return operations[math.Random().nextInt(operations.length)];
-  }
-
-  bool validateSolution(List<int> userSolution) {
-    final completeWall = List<int>.filled(totalCells, 0);
-    final sortedHiddenCells = hiddenCells.toList()..sort();
-    
-    for (int i = 0; i < totalCells; i++) {
-      if (!hiddenCells.contains(i)) {
-        completeWall[i] = visibleValues[i]!;
-      }
-    }
-    
-    for (int answerIndex = 0; answerIndex < userSolution.length; answerIndex++) {
-      if (answerIndex < sortedHiddenCells.length) {
-        final cellIndex = sortedHiddenCells[answerIndex];
-        completeWall[cellIndex] = userSolution[answerIndex];
-      }
-    }
-    
-    return _validateOperationConstraints(completeWall, wallHeight, operation);
-  }
-
-  static bool _validateOperationConstraints(List<int> wall, int height, WallOperation operation) {
-    for (int row = 0; row < height - 1; row++) {
-      final cellsInCurrentRow = row + 1;
-      final currentRowStart = row * (row + 1) ~/ 2;
-      final nextRowStart = (row + 1) * (row + 2) ~/ 2;
-      
-      for (int col = 0; col < cellsInCurrentRow; col++) {
-        final parentCell = currentRowStart + col;
-        final leftChild = nextRowStart + col;
-        final rightChild = nextRowStart + col + 1;
-        
-        if (rightChild < wall.length) {
-          final parentValue = wall[parentCell];
-          final leftValue = wall[leftChild];
-          final rightValue = wall[rightChild];
-          
-          bool isValid = false;
-          switch (operation) {
-            case WallOperation.addition: isValid = parentValue == leftValue + rightValue; break;
-            case WallOperation.subtraction: isValid = parentValue == (leftValue - rightValue).abs(); break;
-            case WallOperation.multiplication: isValid = parentValue == leftValue * rightValue; break;
-            case WallOperation.division:
-              if (leftValue != 0 && rightValue != 0) {
-                final div1 = leftValue / rightValue;
-                final div2 = rightValue / leftValue;
-                isValid = (div1 == parentValue && div1 == div1.roundToDouble()) || (div2 == parentValue && div2 == div2.roundToDouble());
-              }
-              break;
-          }
-          if (!isValid) return false;
-        }
-      }
-    }
-    return true;
-  }
 }
-
-// Generator class
-class _NumberWallGenerator {
-  final int wallHeight;
-  final int grade;
-  final int level;
-  final WallOperation operation;
-  final int totalCells;
-  final bool useCustomSettings;
-  final Set<String> customOps;
-  final int customRangeMin;
-  final int customRangeMax;
-  
-  _NumberWallGenerator(this.wallHeight, this.grade, this.level, this.operation, {
-    required this.useCustomSettings,
-    required this.customOps,
-    required this.customRangeMin,
-    required this.customRangeMax,
-  }) : totalCells = (wallHeight * (wallHeight + 1)) ~/ 2;
-
-  NumberWallPuzzle generate() {
-    List<int>? fullSolution;
-    int attempts = 0;
-    
-    while (fullSolution == null && attempts < 100) {
-      try {
-        final candidate = _generateValidWall();
-        if (candidate != null &&
-            _validateWallStructure(candidate) &&
-            NumberWallPuzzle._validateOperationConstraints(candidate, wallHeight, operation)) {
-          fullSolution = candidate;
-          break;
-        }
-      } catch (_) {
-        // Catches potential generation errors, e.g., division by zero
-      }
-      attempts++;
-    }
-    
-    fullSolution ??= _createFallbackWall();
-    
-    final hiddenCells = _selectHiddenCells();
-    
-    final visibleValues = <int, int>{};
-    for (int i = 0; i < totalCells; i++) {
-      if (!hiddenCells.contains(i)) {
-        visibleValues[i] = fullSolution[i];
-      }
-    }
-    
-    final hiddenNumbers = hiddenCells.map((i) => fullSolution![i]).toList();
-    final decoyNumbers = _generateDecoyNumbers(hiddenNumbers);
-    final numberPool = (hiddenNumbers + decoyNumbers)..shuffle();
-    
-    return NumberWallPuzzle(
-      wallHeight: wallHeight,
-      operation: operation,
-      hiddenCells: hiddenCells,
-      visibleValues: visibleValues,
-      fullSolution: fullSolution,
-      numberPool: numberPool,
-    );
-  }
-
-  List<int>? _generateValidWall() {
-    switch (operation) {
-      case WallOperation.addition: return _generateAdditionWall();
-      case WallOperation.subtraction: return _generateSubtractionWall();
-      case WallOperation.multiplication: return _generateMultiplicationWall();
-      case WallOperation.division: return _generateDivisionWall();
-    }
-  }
-
-  List<int> _generateAdditionWall() {
-    final bottomRow = List.generate(wallHeight, (_) => _getMinNumber() + math.Random().nextInt(_getMaxNumber() - _getMinNumber() + 1));
-    return _buildWallFromBottom(bottomRow, (a, b) => a + b);
-  }
-
-  List<int> _generateSubtractionWall() {
-    final bottomRow = List.generate(wallHeight, (_) => math.max(1, _getMinNumber()) + math.Random().nextInt(_getMaxNumber() - _getMinNumber() + 1));
-    return _buildWallFromBottom(bottomRow, (a, b) => (a - b).abs());
-  }
-
-  List<int> _generateMultiplicationWall() {
-    int minBase, maxBase;
-    if (useCustomSettings) {
-      // If the user sets max to 100, they want the top of the wall to be around 100.
-      // Top of wall for height H is roughly factor^(2^(H-1)).
-      // So factor = result^(1/2^(H-1)).
-      double exponent = math.pow(2.0, wallHeight - 1.0).toDouble();
-      double maxFactor = math.pow(customRangeMax.toDouble(), 1.0 / exponent).toDouble();
-      minBase = customRangeMin;
-      maxBase = maxFactor.floor().clamp(minBase, customRangeMax);
-      // Ensure we have at least some range if customRangeMax is small
-      if (maxBase == minBase && maxBase < customRangeMax && wallHeight > 2) {
-         maxBase = (maxBase + 1).clamp(minBase, customRangeMax);
-      }
-    } else {
-      minBase = math.max(1, (grade / 2).round());
-      maxBase = math.max(3, (level / 2).round() + 3);
-    }
-
-    final bottomRow = List.generate(wallHeight, (_) => minBase + math.Random().nextInt(maxBase - minBase + 1));
-    return _buildWallFromBottom(bottomRow, (a, b) => a * b);
-  }
-
-  List<int>? _generateDivisionWall() {
-    final wall = List<int>.filled(totalCells, 0);
-    final random = math.Random();
-    
-    int maxTopValue = useCustomSettings ? customRangeMax * 5 : 24 + grade * 12;
-    wall[0] = (12 + random.nextInt(maxTopValue)) * 2; // Start with a highly divisible number
-    
-    for (int row = 0; row < wallHeight - 1; row++) {
-      final cellsInCurrentRow = row + 1;
-      final currentRowStart = row * (row + 1) ~/ 2;
-      final nextRowStart = (row + 1) * (row + 2) ~/ 2;
-      
-      for (int col = 0; col < cellsInCurrentRow; col++) {
-        final parentCell = currentRowStart + col;
-        final leftChild = nextRowStart + col;
-        final rightChild = nextRowStart + col + 1;
-        
-        final parentValue = wall[parentCell];
-        if (parentValue == 0) return null; // Generation failed
-        
-        // Find divisors
-        final divisors = [ for (var i = 2; i <= parentValue / 2; i++) if (parentValue % i == 0) i ];
-        if (divisors.isEmpty) divisors.add(parentValue); // Is a prime or 1
-        
-        final rightValue = divisors[random.nextInt(divisors.length)];
-        final leftValue = (parentValue * rightValue);
-        
-        wall[leftChild] = leftValue;
-        wall[rightChild] = rightValue;
-      }
-    }
-    // Reverse build for division logic
-    return _buildWallFromBottom(wall.sublist(wall.length - wallHeight), (a, b) {
-      if (b != 0 && a % b == 0) return a ~/ b;
-      if (a != 0 && b % a == 0) return b ~/ a;
-      return 0; // Should not happen with this generation logic
-    });
-  }
-
-  List<int> _buildWallFromBottom(List<int> bottomRow, int Function(int, int) operation) {
-    final wall = List<int>.filled(totalCells, 0);
-    final bottomRowStart = (wallHeight - 1) * wallHeight ~/ 2;
-    for (int i = 0; i < wallHeight; i++) {
-      wall[bottomRowStart + i] = bottomRow[i];
-    }
-    
-    for (int row = wallHeight - 2; row >= 0; row--) {
-      final cellsInCurrentRow = row + 1;
-      final currentRowStart = row * (row + 1) ~/ 2;
-      final nextRowStart = (row + 1) * (row + 2) ~/ 2;
-      for (int col = 0; col < cellsInCurrentRow; col++) {
-        final currentCell = currentRowStart + col;
-        final leftChild = nextRowStart + col;
-        final rightChild = nextRowStart + col + 1;
-        if (rightChild < wall.length) {
-          wall[currentCell] = operation(wall[leftChild], wall[rightChild]);
-        }
-      }
-    }
-    return wall;
-  }
-
-  bool _validateWallStructure(List<int> wall) {
-    if (wall.any((n) => n > 5000)) return false; // Prevent excessively large numbers
-    return NumberWallPuzzle._validateOperationConstraints(wall, wallHeight, operation);
-  }
-
-  List<int> _createFallbackWall() {
-    switch (operation) {
-      case WallOperation.addition: return wallHeight == 3 ? [15, 7, 8, 3, 4, 4] : [30, 13, 17, 5, 8, 9, 2, 3, 5, 4];
-      case WallOperation.subtraction: return wallHeight == 3 ? [1, 3, 2, 5, 2, 4] : [2, 1, 3, 4, 3, 6, 8, 4, 1, 5];
-      case WallOperation.multiplication: return wallHeight == 3 ? [48, 6, 8, 2, 3, 4, 2] : [144, 12, 12, 3, 4, 3, 1, 3, 4, 1];
-      case WallOperation.division: return wallHeight == 3 ? [2, 8, 4, 16, 2, 8] : [2, 4, 2, 16, 4, 8, 2, 2, 4];
-    }
-  }
-
-  Set<int> _selectHiddenCells() {
-    final maxHidden = (2 + grade + (level / 5)).clamp(2, totalCells - 2).floor();
-    final candidates = List.generate(totalCells, (i) => i)..shuffle();
-    return candidates.take(maxHidden).toSet();
-  }
-
-  List<int> _generateDecoyNumbers(List<int> hiddenNumbers) {
-    final decoys = <int>{};
-    final decoyCount = (8 - hiddenNumbers.length).clamp(2, 4);
-    
-    for (final num in hiddenNumbers) {
-      if (decoys.length >= decoyCount) break;
-      final offset = 1 + math.Random().nextInt(5);
-      final variations = [num - offset, num + offset, num * 2, (num / 2).round()];
-      for (final v in variations) {
-        if (!hiddenNumbers.contains(v) && v > 0) {
-          decoys.add(v);
-          if (decoys.length >= decoyCount) break;
-        }
-      }
-    }
-    if (decoys.length < decoyCount) {
-      final available = [
-        for (var v = 1; v <= 20; v++)
-          if (!decoys.contains(v) && !hiddenNumbers.contains(v)) v
-      ]..shuffle();
-      decoys.addAll(available.take(decoyCount - decoys.length));
-    }
-
-    return decoys.toList();
-  }
-
-  int _getMinNumber() {
-    // Tweak/Custom settings take priority
-    if (kTweakProblems) return kTweakRangeMin;
-    if (useCustomSettings) return customRangeMin;
-    // Default dynamic calculation
-    return math.max(1, (grade - 1) * 3 + (level / 2).floor());
-  }
-
-  int _getMaxNumber() {
-    // Tweak/Custom settings take priority
-    if (kTweakProblems) return kTweakRangeMax;
-    if (useCustomSettings) return customRangeMax;
-    // Default dynamic calculation
-    return _getMinNumber() + 10 + grade * 2;
-  }
-}
-
 // Background painter for visual effects
 class NumberWallBackgroundPainter extends CustomPainter {
   final double glowIntensity;

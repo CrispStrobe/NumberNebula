@@ -4537,4 +4537,244 @@ class SEn extends S {
   String cubeScannerWhyHiddenSum(int visible, int answer) {
     return 'The hidden faces are opposite the visible ones, and a cube\'s faces add up to 21: 21 − $visible = $answer.';
   }
+
+  @override
+  String get guidedTry => 'Try one move';
+
+  @override
+  String get guidedRetry =>
+      'That does not fit the rule yet. Try another number.';
+
+  @override
+  String get guidedReady => 'You did it! Now try your own puzzle.';
+
+  @override
+  String get guidedWallPrompt =>
+      'Fill the top brick. The two bricks below are added together.';
+
+  @override
+  String get guidedWallReason => '3 + 4 = 7. The top brick must be 7.';
+
+  @override
+  String get guidedTowerPrompt =>
+      'The camera on the left sees only one tower. Fill the first space.';
+
+  @override
+  String get guidedTowerReason =>
+      'A height of 3 hides both shorter towers behind it. The camera sees exactly one.';
+
+  @override
+  String get guidedStarPrompt =>
+      'Finish this arm of the star. Its four numbers must add up to 22.';
+
+  @override
+  String get guidedStarReason =>
+      '8 + 1 + 9 = 18. The missing number is 22 − 18 = 4.';
+
+  @override
+  String get howToPlay => 'How to play';
+
+  @override
+  String get hintFocus => 'Look here';
+
+  @override
+  String get hintStrategy => 'Think it through';
+
+  @override
+  String get hintWorkedMove => 'A worked move';
+
+  @override
+  String get hintTryMyself => 'I’ll try it';
+
+  @override
+  String get hintPlaceMove => 'Show this move';
+
+  @override
+  String get strategyHint => 'Strategy hint';
+
+  @override
+  String get hintStarFocus =>
+      'Look at the highlighted arm. What is missing from its total?';
+
+  @override
+  String get hintStarStrategy =>
+      'Add the known values. Subtract that sum from the target when only one space is empty.';
+
+  @override
+  String get hintWallFocus =>
+      'Look at the highlighted brick and the pair of bricks below it.';
+
+  @override
+  String get hintWallStrategy =>
+      'Use the operation shown between the bricks. If a lower brick is missing, work backwards from the result.';
+
+  @override
+  String hintTowerFocus(Object column, Object row) {
+    return 'Look at row $row, column $column, and its edge clues.';
+  }
+
+  @override
+  String get hintTowerStrategy =>
+      'A height cannot repeat in a row or column. An edge clue of 1 puts the tallest tower first; a clue equal to the grid size means increasing heights.';
+
+  @override
+  String hintPossibleMove(Object value) {
+    return 'One possible completion puts $value in the highlighted space. This is an example, not necessarily the only solution.';
+  }
+
+  @override
+  String get hintCheckPlacements =>
+      'Check your placed numbers against the rules first. This hint cannot yet demonstrate a move consistent with them.';
+
+  @override
+  String get playersTitle => 'Players';
+
+  @override
+  String get playersDescription =>
+      'Each player has their own progress, practice, missions and difficulty. Profiles stay on this device.';
+
+  @override
+  String get addPlayer => 'Add player';
+
+  @override
+  String get renamePlayer => 'Rename player';
+
+  @override
+  String get playerName => 'Name or nickname';
+
+  @override
+  String get originalPlayer => 'Explorer';
+
+  @override
+  String get currentPlayer => 'Playing now';
+
+  @override
+  String get playerSwitchFailed =>
+      'Could not switch players. Please try again.';
+
+  @override
+  String get learningThisWeek => 'Learning this week';
+
+  @override
+  String learningRounds(Object count) {
+    return '$count rounds completed in the last 7 days.';
+  }
+
+  @override
+  String get learningTrendNeedsData =>
+      'Trends need at least 3 measured rounds in each week for the same game and difficulty. New history starts with this update.';
+
+  @override
+  String learningImproved(Object game, Object level, Object points,
+      Object previous, Object recent) {
+    return '$game, level $level: performance rose by $points percentage points. Based on $recent rounds this week and $previous last week.';
+  }
+
+  @override
+  String get learningNextPractice => 'What to practise next';
+
+  @override
+  String learningReviewReason(Object count) {
+    return '$count arithmetic facts are due for review. A short review is a useful next step.';
+  }
+
+  @override
+  String learningPracticeReason(Object count, Object game) {
+    return 'Try $game again with time to think. Suggested from $count recent rounds with room for improvement; this is a practice suggestion, not an ability assessment.';
+  }
+
+  @override
+  String get learningStartPractice => 'Start practice';
+
+  @override
+  String get learningExploreReason =>
+      'There is not enough evidence to suggest a weak area. Explore a favourite game and come back after a few rounds.';
+
+  @override
+  String get parentDashboardWrongPin => 'Incorrect code';
+
+  @override
+  String get resumePuzzleTitle => 'Continue your puzzle?';
+
+  @override
+  String get resumePuzzleDescription =>
+      'Your board, placed numbers, moves and hints are saved. Continue where you left off or start a fresh puzzle.';
+
+  @override
+  String get resumePuzzle => 'Continue';
+
+  @override
+  String get startNewPuzzle => 'Start new';
+
+  @override
+  String get resumePuzzleFailed =>
+      'This saved puzzle could not be restored. Starting a new one.';
+
+  @override
+  String get savedPuzzlesTitle => 'Unfinished puzzles';
+
+  @override
+  String get noSavedPuzzles =>
+      'No unfinished puzzles yet. Supported puzzle games save your board automatically.';
+
+  @override
+  String savedPuzzleLevel(Object grade, Object level) {
+    return 'Skill level $grade · Level $level';
+  }
+
+  @override
+  String get skillSpatial2d => 'Spatial thinking (2D)';
+
+  @override
+  String get skillSpatial3d => 'Spatial thinking (3D)';
+
+  @override
+  String get skillLogicDeduction => 'Logic';
+
+  @override
+  String get skillPatternRecognition => 'Patterns';
+
+  @override
+  String get roundCompleted => 'Round completed';
+
+  @override
+  String roundMoves(Object count) {
+    return '$count moves used';
+  }
+
+  @override
+  String roundMovesAndTarget(Object count, Object target) {
+    return '$count moves · target: $target';
+  }
+
+  @override
+  String roundHints(Object count) {
+    return '$count strategy hints used';
+  }
+
+  @override
+  String roundFactsPractised(Object count) {
+    return '$count arithmetic facts practised';
+  }
+
+  @override
+  String get roundTryGentler =>
+      'Next suggestion: try a gentler round with time to think.';
+
+  @override
+  String get roundNextSuggestion =>
+      'Next suggestion: continue practising this game at your current level.';
+
+  @override
+  String get roundSuggestedChallenge => 'Try suggested round';
+
+  @override
+  String get guidedPractice => 'Practice';
+
+  @override
+  String get reduceMotion => 'Reduce motion';
+
+  @override
+  String get reduceMotionDesc =>
+      'Keep essential gameplay movement; reduce decorative motion and flashes.';
 }

@@ -1,8 +1,12 @@
+import '../services/round_generation.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
+import '../widgets/game_learning_shell.dart';
 import 'dart:async';
 import 'dart:math' as math;
 // Import for debugPrint
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/puzzle_image_service.dart';
@@ -27,7 +31,41 @@ class PuzzleMathGame extends StatefulWidget {
   State<PuzzleMathGame> createState() => _PuzzleMathGameState();
 }
 
-class _PuzzleMathGameState extends State<PuzzleMathGame> {
+class _PuzzleMathGameState extends State<PuzzleMathGame> with PuzzleSessionMixin<PuzzleMathGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'puzzle_math';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady) return null;
+    return {
+      'pieces': pieces.map((v0) => v0.toJson()).toList(),
+      'placedPieces': placedPieces.entries.map((v0) => [v0.key, v0.value]).toList(),
+      'columns': columns,
+      'rows': rows,
+      'currentPuzzleImage': (currentPuzzleImage),
+      '_misplacements': _misplacements,
+      '_edgeShapes': _edgeShapes.entries.map((v0) => [v0.key, v0.value.name]).toList(),
+      '_time': _timeLeft.value
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    pieces = (state["pieces"] as List).map((v0) => PuzzlePieceData.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+    placedPieces = Map<int, int>.fromEntries((state["placedPieces"] as List).map((v0) => MapEntry(v0[0] as int, v0[1] as int)));
+    columns = state["columns"] as int;
+    rows = state["rows"] as int;
+    currentPuzzleImage = (state["currentPuzzleImage"] == null ? null : state["currentPuzzleImage"] as String);
+    _misplacements = state["_misplacements"] as int;
+    _edgeShapes..clear()..addAll(Map<String, JigsawSide>.fromEntries((state["_edgeShapes"] as List).map((v0) => MapEntry(v0[0] as String, JigsawSide.values.byName(v0[1] as String)))));
+    if (context.read<GameProvider>().puzzleTimerEnabled) { _startTimer(); } _timeLeft.value = state['_time'] as int;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_initializeGame);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   List<PuzzlePieceData> pieces = [];
   Map<int, int> placedPieces = {}; // Map slotId -> pieceId
   late int columns;
@@ -44,10 +82,11 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   @override
   void initState() {
     super.initState();
-    _initializeGame();
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
   }
 
   void _initializeGame() {
+    beginPuzzleSession();
     // REFACTORED: Using debugPrint for CLI output
     if (kDebugMode) debugPrint("--- INITIALIZING NEW GAME ---");
     _misplacements = 0;
@@ -67,6 +106,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     _timer?.cancel();
     if (kDebugMode) debugPrint("TIMER: Starting timer. Duration: ${_timeLeft.value} seconds.");
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context)) return;
       if (mounted && _timeLeft.value > 0) {
         _timeLeft.value--;
       } else {
@@ -102,7 +142,9 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
 
     // 3. Make the single, unified call to the GameProvider.
     if (wasSuccessful) {
+      finishPuzzleSession();
       context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
         gameType: 'puzzle_math',
         difficulty: widget.level,
         score: finalScore,
@@ -111,7 +153,9 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
         performance: Perf.fromMistakes(_misplacements, per: 0.1),
       ));
     } else {
+      finishPuzzleSession();
       context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
         gameType: 'puzzle_math',
         difficulty: widget.level,
         mathProblems: allProblems,
@@ -129,6 +173,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _timer?.cancel();
     _timeLeft.dispose();
     if (kDebugMode) debugPrint("Disposing PuzzleMathGame widget.");
@@ -153,12 +198,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     final pieceCount = columns * rows;
     _generateEdgeShapes(); 
 
-    final problems = <MathProblem>{};
-    while (problems.length < pieceCount) {
-      problems.add(MathProblem.generateProblem(gameProvider, widget.level, sriService));
-    }
-
-    final problemList = problems.toList();
+    final problemList=generateJigsawProblems(gameProvider,widget.level,sriService,pieceCount);
     final pieceData = <PuzzlePieceData>[];
     for (int i = 0; i < pieceCount; i++) {
       pieceData.add(PuzzlePieceData(
@@ -224,6 +264,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final gameProvider = context.watch<GameProvider>();
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 800 || screenSize.height < 500;
@@ -685,7 +726,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
   }
 
   void _showIncorrectPlacement() {
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -714,7 +755,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AlertDialog(scrollable: true,
         backgroundColor: const Color(0xFF1A1A3E).withValues(alpha: 0.95),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
@@ -725,10 +766,10 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
           const SizedBox(width: 10),
           Text(S.of(context)!.excellent, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ]),
-        content: Text(
+        content: Column(mainAxisSize: MainAxisSize.min, children: [RoundSummary(gameKey: 'puzzle_math'), Text(
           message, // Use the generated message
           style: const TextStyle(color: Colors.white70),
-        ),
+        )]),
         actions: [
           TextButton(
             autofocus: true,
@@ -763,6 +804,22 @@ class _PuzzleMathGameState extends State<PuzzleMathGame> {
 }
 
 class PuzzlePieceData {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'problem': problem.toJson(),
+    'row': row,
+    'col': col,
+    'rotation': rotation
+  };
+  factory PuzzlePieceData.fromJson(Map<String, dynamic> json) => PuzzlePieceData(
+    id: json['id'] as int,
+    problem: MathProblem.fromJson(Map<String, dynamic>.from(json['problem'] as Map)),
+    row: json['row'] as int,
+    col: json['col'] as int,
+    rotation: json['rotation'] as int
+  );
+
   final int id;
   final MathProblem problem;
   final int row;

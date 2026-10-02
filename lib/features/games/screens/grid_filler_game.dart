@@ -1,5 +1,8 @@
+import '../services/round_generation.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import '../mixins/game_animations_mixin.dart';
@@ -14,6 +17,20 @@ import '../../../generated/l10n.dart';
 
 // --- Game Piece Model ---
 class GridPiece {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'size': size,
+    'count': count,
+    'color': color.toARGB32(),
+    'remainingCount': remainingCount
+  };
+  factory GridPiece.fromJson(Map<String, dynamic> json) => GridPiece(
+    size: json['size'] as int,
+    count: json['count'] as int,
+    color: Color(json['color'] as int)
+  )
+      ..remainingCount = json['remainingCount'] as int;
+
   final int size;
   final int count;
   final Color color;
@@ -28,6 +45,18 @@ class GridPiece {
 
 // --- Placed Piece Instance ---
 class PlacedPiece {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'size': size,
+    'position': [position.dx, position.dy],
+    'color': color.toARGB32()
+  };
+  factory PlacedPiece.fromJson(Map<String, dynamic> json) => PlacedPiece(
+    size: json['size'] as int,
+    position: Offset((json['position'][0] as num).toDouble(), (json['position'][1] as num).toDouble()),
+    color: Color(json['color'] as int)
+  );
+
   final int size;
   Offset position;
   final Color color;
@@ -55,7 +84,36 @@ class GridFillerGame extends StatefulWidget {
 }
 
 class _GridFillerGameState extends State<GridFillerGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<GridFillerGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<GridFillerGame>, PuzzleSessionMixin<GridFillerGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'grid_filler_game';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady) return null;
+    return {
+      '_pieceTypes': _pieceTypes,
+      'gridSize': gridSize,
+      'availablePieces': availablePieces.map((v0) => v0.toJson()).toList(),
+      'placedPieces': placedPieces.map((v0) => v0.toJson()).toList(),
+      '_rejectedPlacements': _rejectedPlacements
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _pieceTypes = state["_pieceTypes"] as int;
+    gridSize = state["gridSize"] as int;
+    availablePieces = (state["availablePieces"] as List).map((v0) => GridPiece.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+    placedPieces = (state["placedPieces"] as List).map((v0) => PlacedPiece.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+    _rejectedPlacements = state["_rejectedPlacements"] as int;
+    _hasWon = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_initializeGame);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
 
   late int _pieceTypes; // N: pieces 1×1 through N×N
   late int gridSize;    // Derived: (N*(N+1)/2)
@@ -88,16 +146,18 @@ class _GridFillerGameState extends State<GridFillerGame>
     if (kDebugMode) debugPrint('🎮 GridFillerGame.initState() - Grade ${widget.grade}, Level ${widget.level}');
     
     
+    _placeController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
     _winController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
     
-    _initializeGame();
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
   }
   
   @override
   void dispose() {
+    disposePuzzleSession();
     if (kDebugMode) debugPrint('🎮 GridFillerGame.dispose()');
     _placeController.dispose();
     _winController.dispose();
@@ -106,24 +166,13 @@ class _GridFillerGameState extends State<GridFillerGame>
   }
   
   void _initializeGame() {
+    beginPuzzleSession();
     if (kDebugMode) debugPrint('🎮 Initializing game...');
 
     // Scale piece types (N) by grade + level
     // N=4 → 10×10, N=5 → 15×15, N=6 → 21×21, N=7 → 28×28, N=8 → 36×36, N=9 → 45×45
-    final complexity = widget.grade + (widget.level / 5.0);
-    if (complexity <= 2.0) {
-      _pieceTypes = 4;  // 10×10
-    } else if (complexity <= 3.0) {
-      _pieceTypes = 5;  // 15×15
-    } else if (complexity <= 4.0) {
-      _pieceTypes = 6;  // 21×21
-    } else if (complexity <= 5.5) {
-      _pieceTypes = 7;  // 28×28
-    } else if (complexity <= 7.0) {
-      _pieceTypes = 8;  // 36×36
-    } else {
-      _pieceTypes = 9;  // 45×45
-    }
+    final complexity=widget.grade+widget.level/5;
+    _pieceTypes=gridFillerPieceTypes(widget.grade,widget.level);
     gridSize = _pieceTypes * (_pieceTypes + 1) ~/ 2;
     if (kDebugMode) debugPrint('🎮 Difficulty: complexity=$complexity, pieceTypes=$_pieceTypes, gridSize=$gridSize');
 
@@ -258,7 +307,7 @@ class _GridFillerGameState extends State<GridFillerGame>
     
     if (allPlaced && !_hasWon) {
       _hasWon = true;
-      HapticFeedback.lightImpact();
+      AppHaptics.lightImpact();
       _winController.forward();
       
       final baseScore = 200 * widget.grade;
@@ -267,7 +316,10 @@ class _GridFillerGameState extends State<GridFillerGame>
       
       if (kDebugMode) debugPrint('🎉 WINNER! Score: $totalScore');
       
+      finishPuzzleSession();
+
       context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'grid_filler_game',
       difficulty: widget.level,
       score: totalScore,
@@ -302,7 +354,7 @@ class _GridFillerGameState extends State<GridFillerGame>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (context) => AlertDialog(scrollable: true,
         backgroundColor: const Color(0xFF1A1A2E),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
@@ -313,6 +365,7 @@ class _GridFillerGameState extends State<GridFillerGame>
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'grid_filler_game'),
             Text(
               S.of(context)!.gridFillerWinDesc,
               style: const TextStyle(color: Colors.white70, fontSize: 16),
@@ -352,6 +405,7 @@ class _GridFillerGameState extends State<GridFillerGame>
   
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return Scaffold(
       body: Stack(
         children: [

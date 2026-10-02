@@ -5,20 +5,28 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   analyze-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Read Flutter SDK pin
+        run: echo "FLUTTER_VERSION=$(cat .flutter-version)" >> "$GITHUB_ENV"
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.5'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
           cache: true
 
@@ -31,8 +39,11 @@ jobs:
       - name: Static analysis
         run: flutter analyze --fatal-infos
 
+      - name: Check all games with reduced motion
+        run: flutter test test/widgets/all_games_sessions_test.dart --dart-define=CALIBRATION_REDUCE_MOTION=true --concurrency=1 --reporter expanded
+
       - name: Run tests
-        run: flutter test --reporter expanded
+        run: flutter test --concurrency=2 --reporter expanded
 
   version-bump:
     # A PR that changes shipping code must also move the version, otherwise a

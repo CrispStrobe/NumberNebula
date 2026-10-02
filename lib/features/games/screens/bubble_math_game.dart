@@ -1,5 +1,8 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
+import '../widgets/game_learning_shell.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
@@ -30,7 +33,38 @@ class BubbleMathGame extends StatefulWidget {
 }
 
 class _BubbleMathGameState extends State<BubbleMathGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, PuzzleSessionMixin<BubbleMathGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'bubble_math';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady) return null;
+    return {
+      'bubbles': bubbles.map((v0) => v0.toJson()).toList(),
+      '_levelProblems': _levelProblems.map((v0) => v0.toJson()).toList(),
+      'targetOrder': targetOrder.map((v0) => v0).toList(),
+      'currentTargetIndex': currentTargetIndex,
+      '_wrongTaps': _wrongTaps,
+      'timeLeft': timeLeft
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    bubbles = (state["bubbles"] as List).map((v0) => Bubble.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+    _levelProblems = (state["_levelProblems"] as List).map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+    targetOrder = (state["targetOrder"] as List).map((v0) => v0 as int).toList();
+    currentTargetIndex = state["currentTargetIndex"] as int;
+    _wrongTaps = state["_wrongTaps"] as int;
+    timeLeft = state["timeLeft"] as int;
+    gameActive = true; _startGameTimer();
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generateBubbles);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   late AnimationController _animationController;
   Timer? _gameTimer;
 
@@ -55,7 +89,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
 
     // Generate bubbles after the first frame to have access to context/size
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _generateBubbles();
+      _restoreOrGenerate();
       _startGameTimer();
 
       _animationController.addListener(() {
@@ -68,12 +102,14 @@ class _BubbleMathGameState extends State<BubbleMathGame>
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _animationController.dispose();
     _gameTimer?.cancel();
     super.dispose();
   }
 
   void _generateBubbles() {
+    beginPuzzleSession();
     if (!mounted) return;
     bubbles.clear();
     targetOrder.clear();
@@ -156,7 +192,8 @@ class _BubbleMathGameState extends State<BubbleMathGame>
   }
 
   void _updateBubblePositions(Size screenSize) {
-    setState(() {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
+    setVisualState(() {
       for (var bubble in bubbles) {
         bubble.position += bubble.velocity * 0.016;
 
@@ -180,9 +217,11 @@ class _BubbleMathGameState extends State<BubbleMathGame>
   }
 
   void _startGameTimer() {
+    _gameTimer?.cancel();
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context)) return;
       if (mounted && gameActive && timeLeft > 0) {
-        setState(() => timeLeft--);
+        setVisualState(() => timeLeft--);
       } else if (mounted) {
         _endGame();
       }
@@ -195,7 +234,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
     final expectedAnswer = targetOrder[currentTargetIndex];
 
     if (bubble.answer == expectedAnswer) {
-      HapticFeedback.lightImpact();
+      AppHaptics.lightImpact();
       setState(() {
         bubbles.remove(bubble);
         currentTargetIndex++;
@@ -210,7 +249,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
   }
 
   void _showWrongBubbleFeedback() {
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -239,7 +278,10 @@ class _BubbleMathGameState extends State<BubbleMathGame>
 
     final int totalScore = 10 * currentTargetIndex + timeLeft * 5;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'bubble_math',
       difficulty: widget.level,
       score: totalScore,
@@ -260,7 +302,10 @@ class _BubbleMathGameState extends State<BubbleMathGame>
     setState(() => gameActive = false);
     _gameTimer?.cancel();
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'bubble_math',
       difficulty: widget.level,
       mathProblems: _levelProblems,
@@ -278,6 +323,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
@@ -341,7 +387,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
   }
 
   Widget _buildWinDialog() {
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -349,6 +395,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'bubble_math'),
             const Icon(
               Icons.rocket_launch,
               size: 64,
@@ -396,7 +443,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
   }
 
   Widget _buildGameOverDialog() {
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -404,6 +451,7 @@ class _BubbleMathGameState extends State<BubbleMathGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'bubble_math'),
             const Icon(
               Icons.access_time,
               size: 64,
@@ -462,6 +510,26 @@ class _BubbleMathGameState extends State<BubbleMathGame>
 }
 
 class Bubble {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'mathProblem': mathProblem,
+    'answer': answer,
+    'position': [position.dx, position.dy],
+    'velocity': [velocity.dx, velocity.dy],
+    'color': color.toARGB32(),
+    'size': size
+  };
+  factory Bubble.fromJson(Map<String, dynamic> json) => Bubble(
+    id: json['id'] as int,
+    mathProblem: json['mathProblem'] as String,
+    answer: json['answer'] as int,
+    position: Offset((json['position'][0] as num).toDouble(), (json['position'][1] as num).toDouble()),
+    velocity: Offset((json['velocity'][0] as num).toDouble(), (json['velocity'][1] as num).toDouble()),
+    color: Color(json['color'] as int),
+    size: (json['size'] as num).toDouble()
+  );
+
   final int id;
   String mathProblem;
   int answer;

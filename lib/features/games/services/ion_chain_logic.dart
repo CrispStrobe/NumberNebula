@@ -1,3 +1,4 @@
+import 'generator_random.dart';
 // lib/features/games/services/ion_chain_logic.dart
 //
 // Sequence builder with adjacency constraints (CSP-based).
@@ -27,6 +28,31 @@ enum IonRuleKind {
 }
 
 class IonRule {
+  Map<String, dynamic> toJson() =>
+      {'kind': kind.name, 'a': a?.name, 'b': b?.name};
+  factory IonRule.fromJson(Map<String, dynamic> json) {
+    final kind = IonRuleKind.values.byName(json['kind'] as String);
+    final a =
+        json['a'] == null ? null : IonType.values.byName(json['a'] as String);
+    final b =
+        json['b'] == null ? null : IonType.values.byName(json['b'] as String);
+    return IonRule(
+        kind: kind,
+        a: a,
+        b: b,
+        check: (left, right) {
+          if (left == null || right == null) return true;
+          switch (kind) {
+            case IonRuleKind.noSelfPair:
+              return !(left == a && right == a);
+            case IonRuleKind.noMixedPair:
+              return !((left == a && right == b) || (left == b && right == a));
+            case IonRuleKind.noRepeatAtAll:
+              return left != right;
+          }
+        });
+  }
+
   /// Which of the three forbidden-neighbour shapes this rule is.
   final IonRuleKind kind;
 
@@ -48,6 +74,34 @@ class IonRule {
 }
 
 class IonChainPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'chainLength': chainLength,
+        'chain': chain.map((v0) => (v0?.name)).toList(),
+        'solution': solution.map((v0) => v0.name).toList(),
+        'availableIons': availableIons.map((v0) => v0.name).toList(),
+        'rules': rules.map((v0) => v0.toJson()).toList(),
+        'ionTypes': ionTypes.map((v0) => v0.name).toList()
+      };
+  factory IonChainPuzzle.fromJson(Map<String, dynamic> json) => IonChainPuzzle(
+      chainLength: json['chainLength'] as int,
+      chain: (json['chain'] as List)
+          .map(
+              (v0) => (v0 == null ? null : IonType.values.byName(v0 as String)))
+          .toList(),
+      solution: (json['solution'] as List)
+          .map((v0) => IonType.values.byName(v0 as String))
+          .toList(),
+      availableIons: (json['availableIons'] as List)
+          .map((v0) => IonType.values.byName(v0 as String))
+          .toList(),
+      rules: (json['rules'] as List)
+          .map((v0) => IonRule.fromJson(Map<String, dynamic>.from(v0 as Map)))
+          .toList(),
+      ionTypes: (json['ionTypes'] as List)
+          .map((v0) => IonType.values.byName(v0 as String))
+          .toList());
+
   final int chainLength;
   final List<IonType?> chain; // null = empty slot for player
   final List<IonType> solution;
@@ -141,23 +195,23 @@ class IonChainPuzzle {
   static final List<IonRule Function(IonType, IonType)> _ruleFactories = [
     // Rule: no two of type A adjacent
     (IonType a, IonType _) => IonRule(
-      kind: IonRuleKind.noSelfPair,
-      a: a,
-      check: (left, right) {
-        if (left == null || right == null) return true;
-        return !(left == a && right == a);
-      },
-    ),
+          kind: IonRuleKind.noSelfPair,
+          a: a,
+          check: (left, right) {
+            if (left == null || right == null) return true;
+            return !(left == a && right == a);
+          },
+        ),
     // Rule: type A must not be next to type B
     (IonType a, IonType b) => IonRule(
-      kind: IonRuleKind.noMixedPair,
-      a: a,
-      b: b,
-      check: (left, right) {
-        if (left == null || right == null) return true;
-        return !((left == a && right == b) || (left == b && right == a));
-      },
-    ),
+          kind: IonRuleKind.noMixedPair,
+          a: a,
+          b: b,
+          check: (left, right) {
+            if (left == null || right == null) return true;
+            return !((left == a && right == b) || (left == b && right == a));
+          },
+        ),
   ];
 
   /// Whether [rules] actually constrain the player: every shape a rule
@@ -203,7 +257,7 @@ class IonChainPuzzle {
     required int blanksToRemove,
     int? seed,
   }) {
-    final rng = math.Random(seed);
+    final rng = generatorRandom(seed);
     final types = IonType.values.take(ionTypeCount).toList();
 
     for (int attempt = 0; attempt < 500; attempt++) {
@@ -228,7 +282,9 @@ class IonChainPuzzle {
             : '0:$ka';
 
         if (usedRuleKeys.contains(key)) continue;
-        if (factoryIdx == 1 && a == b) continue; // same type avoidance is rule 0
+        if (factoryIdx == 1 && a == b) {
+          continue; // same type avoidance is rule 0
+        }
 
         usedRuleKeys.add(key);
         rules.add(_ruleFactories[factoryIdx](a, b));
@@ -242,7 +298,8 @@ class IonChainPuzzle {
         // Remove some positions for the player to fill
         final chain = List<IonType?>.from(solution);
         final positions = List.generate(chainLength, (i) => i)..shuffle(rng);
-        final blanks = positions.take(blanksToRemove.clamp(1, chainLength - 1)).toList();
+        final blanks =
+            positions.take(blanksToRemove.clamp(1, chainLength - 1)).toList();
         final availableIons = <IonType>[];
 
         for (final pos in blanks) {
@@ -273,7 +330,9 @@ class IonChainPuzzle {
     // Build solution via backtracking (not a trivial repeating pattern).
     final typeA = types[rng.nextInt(types.length)];
     IonType typeB;
-    do { typeB = types[rng.nextInt(types.length)]; } while (typeB == typeA);
+    do {
+      typeB = types[rng.nextInt(types.length)];
+    } while (typeB == typeA);
 
     final noSameAdjacent = IonRule(
       kind: IonRuleKind.noRepeatAtAll,
@@ -288,7 +347,8 @@ class IonChainPuzzle {
       b: typeB,
       check: (left, right) {
         if (left == null || right == null) return true;
-        return !((left == typeA && right == typeB) || (left == typeB && right == typeA));
+        return !((left == typeA && right == typeB) ||
+            (left == typeB && right == typeA));
       },
     );
 
@@ -325,7 +385,8 @@ class IonChainPuzzle {
 
     final chain = List<IonType?>.from(fallbackSolution);
     final positions = List.generate(chainLength, (i) => i)..shuffle(rng);
-    final blanks = positions.take(blanksToRemove.clamp(1, chainLength - 1)).toList();
+    final blanks =
+        positions.take(blanksToRemove.clamp(1, chainLength - 1)).toList();
     final available = <IonType>[];
     for (final pos in blanks) {
       available.add(chain[pos]!);

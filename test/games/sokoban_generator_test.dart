@@ -24,6 +24,21 @@ int _count(List<List<int>> grid, int tile) {
 }
 
 void main() {
+  test('an exhausted generation budget stops even before a best level exists',
+      () {
+    expect(() => generate(10, seed: 3, timeBudget: 0), throwsStateError);
+  });
+  test('forward search honors cancellation within its node loop', () {
+    final floors = {cellId(1, 1), cellId(1, 2), cellId(1, 3)};
+    final goals = {cellId(1, 3)};
+    final neighbors = makeNbrs(floors);
+    final metric = pullMetric(floors, goals);
+    expect(
+        solveForward(floors, neighbors, goals, metric, {cellId(1, 2)},
+            cellId(1, 1), 1000,
+            shouldStop: () => true),
+        isNull);
+  });
   group('generate (lib copy) — solvable & self-consistent', () {
     for (final d in const [1, 2, 3, 4]) {
       test('difficulty $d level verifies via replay', () {
@@ -114,8 +129,10 @@ void main() {
 
   group('generateStarLoaderEntry — determinism & range', () {
     test('same seed reproduces identical grids', () {
-      final a = generateStarLoaderEntry(difficulty: 3, seed: 424242, timeBudget: 8);
-      final b = generateStarLoaderEntry(difficulty: 3, seed: 424242, timeBudget: 8);
+      final a =
+          generateStarLoaderEntry(difficulty: 3, seed: 424242, timeBudget: 8);
+      final b =
+          generateStarLoaderEntry(difficulty: 3, seed: 424242, timeBudget: 8);
       expect(a.roomStructure, b.roomStructure);
       expect(a.roomState, b.roomState);
       expect(a.optimalMoves, b.optimalMoves);

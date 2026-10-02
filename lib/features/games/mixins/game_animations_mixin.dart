@@ -16,6 +16,31 @@ import 'package:flutter/material.dart';
 /// instead of using this mixin.
 mixin GameAnimationsMixin<T extends StatefulWidget> on State<T>
     implements TickerProvider {
+  bool _usesGlow = false, _usesPulse = false, _usesSuccess = false;
+  bool? _reduced;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduced = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (_reduced == reduced) return;
+    _reduced = reduced;
+    for (final controller in [
+      if (_usesGlow) glowController,
+      if (_usesPulse) pulseController
+    ]) {
+      if (reduced) {
+        controller.stop();
+        controller.value = 0.5;
+      } else if (!controller.isAnimating) {
+        controller.repeat(reverse: true);
+      }
+    }
+    if (_usesSuccess) {
+      successController.duration =
+          reduced ? Duration.zero : const Duration(milliseconds: 600);
+    }
+  }
+
   // ── Glow ───────────────────────────────────────────────────────────────
   late AnimationController glowController;
   late Animation<double> glowAnimation;
@@ -37,6 +62,9 @@ mixin GameAnimationsMixin<T extends StatefulWidget> on State<T>
     bool usePulse = true,
     bool useSuccess = true,
   }) {
+    _usesGlow = useGlow;
+    _usesPulse = usePulse;
+    _usesSuccess = useSuccess;
     if (useGlow) {
       glowController = AnimationController(
         duration: const Duration(milliseconds: 2000),

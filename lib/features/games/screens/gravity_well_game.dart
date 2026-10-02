@@ -1,6 +1,8 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
 
@@ -25,7 +27,32 @@ class GravityWellGame extends StatefulWidget {
 }
 
 class _GravityWellGameState extends State<GravityWellGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<GravityWellGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<GravityWellGame>, PuzzleSessionMixin<GravityWellGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'gravity_well';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      'puzzle': (puzzle?.toJson()),
+      '_userAnswers': _userAnswers.entries.map((v0) => [v0.key, v0.value]).toList(),
+      '_wrongChecks': _wrongChecks
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    puzzle = (state["puzzle"] == null ? null : GravityWellPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
+    _userAnswers = Map<String, int>.fromEntries((state["_userAnswers"] as List).map((v0) => MapEntry(v0[0] as String, v0[1] as int)));
+    _wrongChecks = state["_wrongChecks"] as int;
+    _isGenerating = false; _gameOver = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
 
   GravityWellPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
@@ -50,14 +77,15 @@ class _GravityWellGameState extends State<GravityWellGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     glowController.stop();
     successController.stop();
     pulseController.stop();
@@ -66,6 +94,7 @@ class _GravityWellGameState extends State<GravityWellGame>
   }
 
   void _generatePuzzle() {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     setState(() {
@@ -203,7 +232,7 @@ class _GravityWellGameState extends State<GravityWellGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     _gameOver = true;
 
     int baseScore = 100 * widget.grade;
@@ -213,7 +242,10 @@ class _GravityWellGameState extends State<GravityWellGame>
 
     final mathProblems = _extractMathProblems();
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'gravity_well',
       difficulty: widget.level,
       score: totalScore,
@@ -233,10 +265,13 @@ class _GravityWellGameState extends State<GravityWellGame>
   }
 
   void _handleLoss() {
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     _wrongChecks++;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'gravity_well',
       difficulty: widget.level,
       mathProblems: _extractMathProblems(),
@@ -260,6 +295,7 @@ class _GravityWellGameState extends State<GravityWellGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (puzzle == null || _isGenerating) {
@@ -532,7 +568,7 @@ class _GravityWellGameState extends State<GravityWellGame>
             icon: const Icon(Icons.remove_circle_outline, color: SpaceTheme.starYellow),
             iconSize: 28,
             onPressed: _gameOver ? null : () {
-              HapticFeedback.selectionClick();
+              AppHaptics.selectionClick();
               setState(() {
                 _userAnswers[label] = (value - 1).clamp(1, maxWeight);
               });
@@ -561,7 +597,7 @@ class _GravityWellGameState extends State<GravityWellGame>
             icon: const Icon(Icons.add_circle_outline, color: SpaceTheme.starYellow),
             iconSize: 28,
             onPressed: _gameOver ? null : () {
-              HapticFeedback.selectionClick();
+              AppHaptics.selectionClick();
               setState(() {
                 _userAnswers[label] = (value + 1).clamp(1, maxWeight);
               });
@@ -581,7 +617,7 @@ class _GravityWellGameState extends State<GravityWellGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -589,6 +625,7 @@ class _GravityWellGameState extends State<GravityWellGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'gravity_well'),
                   const Icon(Icons.balance, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.gravityWellWinTitle,

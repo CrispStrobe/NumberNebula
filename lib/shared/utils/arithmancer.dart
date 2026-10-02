@@ -7,6 +7,7 @@
 // `tool/arithmancer_cli.dart` and drives this engine from outside.
 
 import 'dart:math';
+import '../../features/games/services/generator_random.dart';
 
 // === CORE MATHEMATICAL TYPES ===
 
@@ -14,11 +15,35 @@ class CardType {
   static const String number = "Number";
   static const String operator = "Operator";
   static const String parentheses = "Parentheses";
-  static const String sequencer = "Sequencer"; // For && chains, fibonacci seeds, etc
-  static const String conditional = "Conditional"; // For modular arithmetic, etc
+  static const String sequencer =
+      "Sequencer"; // For && chains, fibonacci seeds, etc
+  static const String conditional =
+      "Conditional"; // For modular arithmetic, etc
 }
 
 class MathCard {
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'type': type,
+        'cost': cost,
+        'value': value,
+        'operator': (operator),
+        'effect': (effect),
+        'properties':
+            properties.entries.map((v0) => [v0.key, v0.value]).toList()
+      };
+  factory MathCard.fromJson(Map<String, dynamic> json) => MathCard(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      type: json['type'] as String,
+      cost: json['cost'] as int,
+      value: json['value'] as int,
+      operator: (json['operator'] == null ? null : json['operator'] as String),
+      effect: (json['effect'] == null ? null : json['effect'] as String),
+      properties: Map<String, dynamic>.fromEntries((json['properties'] as List)
+          .map((v0) => MapEntry(v0[0] as String, v0[1]))));
+
   final String id;
   final String name;
   final String type;
@@ -41,8 +66,9 @@ class MathCard {
         properties = properties ?? {};
 
   static String _generateId() {
-    return DateTime.now().microsecondsSinceEpoch.toString() +
-        Random().nextInt(10000).toString();
+    return seededGeneratorIdentifier() ??
+        DateTime.now().microsecondsSinceEpoch.toString() +
+            Random().nextInt(10000).toString();
   }
 
   MathCard clone({bool newId = false}) {
@@ -108,25 +134,41 @@ class MathResult {
   }
 
   // Mathematical property detection (only for non-chained)
-  bool get isPrime => !isChained && _isPrime(value.round()) && value == value.round();
+  bool get isPrime =>
+      !isChained && _isPrime(value.round()) && value == value.round();
   bool get isPerfectSquare => !isChained && _isPerfectSquare(value);
-  bool get isFibonacci => !isChained && _isFibonacci(value.round()) && value == value.round();
-  bool get isEven => !isChained && value.round() % 2 == 0 && value == value.round();
-  bool get isOdd => !isChained && value.round() % 2 == 1 && value == value.round();
+  bool get isFibonacci =>
+      !isChained && _isFibonacci(value.round()) && value == value.round();
+  bool get isEven =>
+      !isChained && value.round() % 2 == 0 && value == value.round();
+  bool get isOdd =>
+      !isChained && value.round() % 2 == 1 && value == value.round();
   bool get isNegative => !isChained && value < 0;
-  bool get isFractional => !isChained && value != value.round() && value > 0 && value < 1;
+  bool get isFractional =>
+      !isChained && value != value.round() && value > 0 && value < 1;
   bool get isPerfectCube => !isChained && _isPerfectCube(value);
-  bool get isTriangular => !isChained && _isTriangular(value.round()) && value == value.round();
-  bool get isPowerOfTwo => !isChained && _isPowerOfTwo(value.round()) && value == value.round();
-  bool get isPalindromic => !isChained && _isPalindromic(value.round()) && value == value.round();
-  bool get isComposite => !isChained && _isComposite(value.round()) && value == value.round();
-  bool get isPentagonal => !isChained && _isPentagonal(value.round()) && value == value.round();
-  bool get isHexagonal => !isChained && _isHexagonal(value.round()) && value == value.round();
-  bool get isMersennePrime => !isChained && _isMersennePrime(value.round()) && value == value.round();
-  bool get isCatalan => !isChained && _isCatalan(value.round()) && value == value.round();
-  bool get isDivisibleBy3 => !isChained && value.round() % 3 == 0 && value == value.round();
-  bool get isDivisibleBy5 => !isChained && value.round() % 5 == 0 && value == value.round();
-  bool get isDivisibleBy7 => !isChained && value.round() % 7 == 0 && value == value.round();
+  bool get isTriangular =>
+      !isChained && _isTriangular(value.round()) && value == value.round();
+  bool get isPowerOfTwo =>
+      !isChained && _isPowerOfTwo(value.round()) && value == value.round();
+  bool get isPalindromic =>
+      !isChained && _isPalindromic(value.round()) && value == value.round();
+  bool get isComposite =>
+      !isChained && _isComposite(value.round()) && value == value.round();
+  bool get isPentagonal =>
+      !isChained && _isPentagonal(value.round()) && value == value.round();
+  bool get isHexagonal =>
+      !isChained && _isHexagonal(value.round()) && value == value.round();
+  bool get isMersennePrime =>
+      !isChained && _isMersennePrime(value.round()) && value == value.round();
+  bool get isCatalan =>
+      !isChained && _isCatalan(value.round()) && value == value.round();
+  bool get isDivisibleBy3 =>
+      !isChained && value.round() % 3 == 0 && value == value.round();
+  bool get isDivisibleBy5 =>
+      !isChained && value.round() % 5 == 0 && value == value.round();
+  bool get isDivisibleBy7 =>
+      !isChained && value.round() % 7 == 0 && value == value.round();
 
   // Damage/block only for non-chained (chained results calculate separately)
   int get damage {
@@ -149,6 +191,34 @@ class MathResult {
 }
 
 class MathematicalEnemy {
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'maxHealth': maxHealth,
+        'health': health,
+        'lore': lore,
+        'mathematicalShields': mathematicalShields.entries
+            .map((v0) => [v0.key, v0.value])
+            .toList(),
+        'behavior': behavior
+            .map((v0) => v0.entries.map((v1) => [v1.key, v1.value]).toList())
+            .toList(),
+        'turnCounter': turnCounter
+      };
+  factory MathematicalEnemy.fromJson(Map<String, dynamic> json) =>
+      MathematicalEnemy(
+          name: json['name'] as String,
+          maxHealth: json['maxHealth'] as int,
+          health: json['health'] as int,
+          lore: json['lore'] as String,
+          mathematicalShields: Map<String, dynamic>.fromEntries(
+              (json['mathematicalShields'] as List)
+                  .map((v0) => MapEntry(v0[0] as String, v0[1]))),
+          behavior: (json['behavior'] as List)
+              .map((v0) => Map<String, dynamic>.fromEntries(
+                  (v0 as List).map((v1) => MapEntry(v1[0] as String, v1[1]))))
+              .toList())
+        ..turnCounter = json['turnCounter'] as int;
+
   final String name;
   final int maxHealth;
   int health;
@@ -172,7 +242,7 @@ class MathematicalEnemy {
     print("🎯 [takeDamage] isChained: ${result.isChained}");
     print("🎯 [takeDamage] leftResult: ${result.leftResult?.expression}");
     print("🎯 [takeDamage] rightResult: ${result.rightResult?.expression}");
-    
+
     // FIXED: Handle chained results by processing each side separately
     if (result.isChained) {
       print("🎯 [takeDamage] Processing CHAINED result");
@@ -185,9 +255,9 @@ class MathematicalEnemy {
       // DON'T subtract health here - already done in recursive calls
       return totalDamage;
     }
-    
+
     print("🎯 [takeDamage] Processing SINGLE result: ${result.value}");
-    
+
     // Original single-result logic
     int baseDamage = result.damage;
     if (baseDamage <= 0) return 0;
@@ -197,7 +267,7 @@ class MathematicalEnemy {
     health -= finalDamage;
     return finalDamage;
   }
-  
+
   int _applyMathematicalShields(int damage, MathResult result) {
     // Start with a double for more precise calculations with multipliers
     double finalDamage = damage.toDouble();
@@ -206,108 +276,109 @@ class MathematicalEnemy {
 
     // Prime Shield - with corrected 3-tier logic
     if (mathematicalShields.containsKey('prime_shield')) {
-        int threshold = mathematicalShields['prime_shield'];
-        
-        // --- CORRECTED TIERED LOGIC FOR PRIME GUARDIAN ---
-        bool isPrimeResult = result.isPrime;
-        bool meetsThreshold = result.value >= threshold;
-        bool isSingleCardPlay = result.usedCards.length == 1;
+      int threshold = mathematicalShields['prime_shield'];
 
-        if (isPrimeResult && meetsThreshold && isSingleCardPlay) {
+      // --- CORRECTED TIERED LOGIC FOR PRIME GUARDIAN ---
+      bool isPrimeResult = result.isPrime;
+      bool meetsThreshold = result.value >= threshold;
+      bool isSingleCardPlay = result.usedCards.length == 1;
+
+      if (isPrimeResult && meetsThreshold && isSingleCardPlay) {
         // Tier 1: Mass bonus for playing a single prime card ≥ threshold.
-        finalDamage *= 3.0; 
-        } else if (isPrimeResult && meetsThreshold && !isSingleCardPlay) {
+        finalDamage *= 3.0;
+      } else if (isPrimeResult && meetsThreshold && !isSingleCardPlay) {
         // Tier 2: Bonus for CREATING a prime ≥ threshold with an equation.
-        finalDamage *= 2.0; 
-        } else if (isPrimeResult && !meetsThreshold) {
+        finalDamage *= 2.0;
+      } else if (isPrimeResult && !meetsThreshold) {
         // Tier 2.5: Small primes get normal damage (no penalty, no bonus)
         finalDamage *= 1.0; // Keep original damage
-        } else {
+      } else {
         // Tier 3: Heavy penalty for any non-prime result.
-        finalDamage *= 0.1; 
-        }
+        finalDamage *= 0.1;
+      }
     }
 
     // Parity Shields
     if (mathematicalShields.containsKey('even_absorb') && result.isEven) {
-        finalDamage *= 0.1; // 90% reduction
+      finalDamage *= 0.1; // 90% reduction
     }
 
     if (mathematicalShields.containsKey('odd_vulnerable') && result.isOdd) {
-        finalDamage *= 1.5; // 50% bonus
+      finalDamage *= 1.5; // 50% bonus
     }
 
     // Geometric Shields
     if (mathematicalShields.containsKey('square_immune')) {
-        if (result.isPerfectSquare) {
+      if (result.isPerfectSquare) {
         finalDamage *= 2.5; // Big bonus
-        } else {
+      } else {
         finalDamage *= 0.2; // 80% reduction
-        }
+      }
     }
 
     if (mathematicalShields.containsKey('cube_only')) {
-        if (result.isPerfectCube) {
+      if (result.isPerfectCube) {
         finalDamage *= 2.5; // Big bonus
-        } else {
+      } else {
         finalDamage *= 0.2; // 80% reduction
-        }
+      }
     }
 
     // Sequence Shields
     if (mathematicalShields.containsKey('fibonacci_only')) {
-        if (result.isFibonacci) {
+      if (result.isFibonacci) {
         finalDamage *= 1.7; // Good bonus
-        } else {
+      } else {
         finalDamage *= 0.2; // 80% reduction
-        }
+      }
     }
     if (mathematicalShields.containsKey('triangular_only')) {
-        if (result.isTriangular) {
+      if (result.isTriangular) {
         finalDamage *= 1.5;
-        } else {
+      } else {
         finalDamage *= 0.4; // 60% reduction
-        }
+      }
     }
     if (mathematicalShields.containsKey('pentagonal_only')) {
-        if (result.isPentagonal) {
+      if (result.isPentagonal) {
         finalDamage *= 1.8;
-        } else {
+      } else {
         finalDamage *= 0.3; // 70% reduction
-        }
+      }
     }
 
     // Power and Pattern Shields
     if (mathematicalShields.containsKey('power_of_two_only')) {
-        if (result.isPowerOfTwo) {
+      if (result.isPowerOfTwo) {
         finalDamage *= 1.6;
-        } else {
+      } else {
         finalDamage *= 0.4; // 60% reduction
-        }
+      }
     }
     if (mathematicalShields.containsKey('palindrome_only')) {
-        if (result.isPalindromic) {
+      if (result.isPalindromic) {
         finalDamage *= 1.5;
-        } else {
+      } else {
         finalDamage *= 0.4; // 60% reduction
-        }
+      }
     }
 
     // Modular Shields
     if (mathematicalShields.containsKey('mod7_only')) {
-        if (result.isDivisibleBy7) {
+      if (result.isDivisibleBy7) {
         finalDamage *= 1.4;
-        } else {
+      } else {
         finalDamage *= 0.5; // 50% reduction
-        }
+      }
     }
 
     // Additional Weaknesses (these should apply after all reductions)
-    if (mathematicalShields.containsKey('composite_weakness') && result.isComposite) {
-        finalDamage *= 1.2;
+    if (mathematicalShields.containsKey('composite_weakness') &&
+        result.isComposite) {
+      finalDamage *= 1.2;
     }
     if (mathematicalShields.containsKey('prime_weakness') && result.isPrime) {
-        finalDamage *= 1.3;
+      finalDamage *= 1.3;
     }
 
     // --- Intelligent Clamping at the End ---
@@ -316,12 +387,12 @@ class MathematicalEnemy {
 
     // If damage has been reduced to 0 or less, it should stay 0.
     if (roundedDamage <= 0) {
-        return 0;
+      return 0;
     }
-    
+
     // Otherwise, apply the minimum damage floor to ensure progress.
     return roundedDamage.clamp(3, 9999);
-    }
+  }
 
   Map<String, dynamic> getIntent() {
     return behavior[turnCounter % behavior.length];
@@ -403,9 +474,8 @@ class PrimeHunterAI extends AIPersonality {
     }
 
     // Look for any decent damage
-    List<MathResult> goodDamage = affordableResults
-        .where((r) => _estimateDamage(r, enemy) >= 5)
-        .toList();
+    List<MathResult> goodDamage =
+        affordableResults.where((r) => _estimateDamage(r, enemy) >= 5).toList();
     if (goodDamage.isNotEmpty) {
       goodDamage.sort((a, b) =>
           _estimateDamage(b, enemy).compareTo(_estimateDamage(a, enemy)));
@@ -468,8 +538,7 @@ class PrimeHunterAI extends AIPersonality {
           : (baseDamage * 0.7).round();
     }
 
-    if (enemy.mathematicalShields.containsKey('even_absorb') &&
-        result.isEven) {
+    if (enemy.mathematicalShields.containsKey('even_absorb') && result.isEven) {
       return (baseDamage * 0.8).round();
     }
     if (enemy.mathematicalShields.containsKey('odd_vulnerable') &&
@@ -596,9 +665,8 @@ class SequenceWeaverAI extends AIPersonality {
         .where((r) => r.usedCards.length >= 3 && r.damage >= 8)
         .toList();
     if (complexResults.isNotEmpty) {
-      complexResults.sort((a, b) =>
-          (b.damage + b.usedCards.length * 3)
-              .compareTo(a.damage + a.usedCards.length * 3));
+      complexResults.sort((a, b) => (b.damage + b.usedCards.length * 3)
+          .compareTo(a.damage + a.usedCards.length * 3));
       return [complexResults.first];
     }
 
@@ -768,9 +836,8 @@ class DefensiveMathAI extends AIPersonality {
     }
 
     // Any decent damage
-    List<MathResult> anyDamage = affordableResults
-        .where((r) => _estimateDamage(r, enemy) >= 6)
-        .toList();
+    List<MathResult> anyDamage =
+        affordableResults.where((r) => _estimateDamage(r, enemy) >= 6).toList();
     if (anyDamage.isNotEmpty) {
       anyDamage.sort((a, b) =>
           _estimateDamage(b, enemy).compareTo(_estimateDamage(a, enemy)));
@@ -884,16 +951,16 @@ class CardFactory {
   // Perfect Squares
   static MathCard sixteen() =>
       MathCard(name: "Sixteen", type: CardType.number, value: 16, cost: 3);
-  static MathCard twentyFive() => MathCard(
-      name: "Twenty-Five", type: CardType.number, value: 25, cost: 3);
+  static MathCard twentyFive() =>
+      MathCard(name: "Twenty-Five", type: CardType.number, value: 25, cost: 3);
   static MathCard thirtySix() =>
       MathCard(name: "Thirty-Six", type: CardType.number, value: 36, cost: 4);
   static MathCard oneHundredOne() => MathCard(
       name: "One Hundred One", type: CardType.number, value: 101, cost: 5);
 
   // Perfect Cubes
-  static MathCard twentySeven() => MathCard(
-      name: "Twenty-Seven", type: CardType.number, value: 27, cost: 3);
+  static MathCard twentySeven() =>
+      MathCard(name: "Twenty-Seven", type: CardType.number, value: 27, cost: 3);
   static MathCard sixtyFour() =>
       MathCard(name: "Sixty-Four", type: CardType.number, value: 64, cost: 4);
 
@@ -922,8 +989,8 @@ class CardFactory {
   // Special Numbers
   static MathCard zero() =>
       MathCard(name: "Zero", type: CardType.number, value: 0, cost: 0);
-  static MathCard negativeOne() => MathCard(
-      name: "Negative One", type: CardType.number, value: -1, cost: 1);
+  static MathCard negativeOne() =>
+      MathCard(name: "Negative One", type: CardType.number, value: -1, cost: 1);
 
   // Basic Operators
   static MathCard plus() =>
@@ -932,8 +999,8 @@ class CardFactory {
       MathCard(name: "Minus", type: CardType.operator, operator: '-', cost: 1);
   static MathCard multiply() => MathCard(
       name: "Multiply", type: CardType.operator, operator: '*', cost: 2);
-  static MathCard divide() => MathCard(
-      name: "Divide", type: CardType.operator, operator: '/', cost: 2);
+  static MathCard divide() =>
+      MathCard(name: "Divide", type: CardType.operator, operator: '/', cost: 2);
 
   // Grouping
   static MathCard parentheses() =>
@@ -1111,10 +1178,7 @@ class EnemyRoster {
             name: "Parity Daemon",
             maxHealth: 60, // Increased from 35
             lore: "Feeds on even numbers, vulnerable to odd attacks.",
-            mathematicalShields: {
-              'even_absorb': true,
-              'odd_vulnerable': true
-            },
+            mathematicalShields: {'even_absorb': true, 'odd_vulnerable': true},
             behavior: [
               {'attack': 6, 'desc': 'Even Drain'}, // Increased from 3
               {'attack': 10, 'desc': 'Binary Assault'}, // Increased from 5
@@ -1164,7 +1228,62 @@ class EnemyRoster {
 
 // === MAIN GAME CLASS ===
 
+AIPersonality _sessionAI(String name) => switch (name) {
+      'Prime Hunter' => PrimeHunterAI(),
+      'Sequence Weaver' => SequenceWeaverAI(),
+      'Defensive Calculator' => DefensiveMathAI(),
+      _ => throw FormatException('Unknown personality: $name'),
+    };
+
 class ArithmancerGame {
+  Map<String, dynamic> toJson() => {
+        'ai': aiPersonality.name,
+        'maxHealth': maxHealth,
+        'playerHealth': playerHealth,
+        'maxEnergy': maxEnergy,
+        'playerEnergy': playerEnergy,
+        'currentBlock': currentBlock,
+        'turn': turn,
+        'deck': deck.map((v0) => v0.toJson()).toList(),
+        'drawPile': drawPile.map((v0) => v0.toJson()).toList(),
+        'hand': hand.map((v0) => v0.toJson()).toList(),
+        'discardPile': discardPile.map((v0) => v0.toJson()).toList(),
+        'enemiesDefeated': enemiesDefeated,
+        'battleActive': battleActive,
+        'gameOver': gameOver,
+        'currentEnemy': (currentEnemy?.toJson())
+      };
+  factory ArithmancerGame.fromJson(Map<String, dynamic> json) {
+    final game = ArithmancerGame(_sessionAI(json['ai'] as String), Random(),
+        verbose: false);
+    game.maxHealth = json['maxHealth'] as int;
+    game.playerHealth = json['playerHealth'] as int;
+    game.maxEnergy = json['maxEnergy'] as int;
+    game.playerEnergy = json['playerEnergy'] as int;
+    game.currentBlock = json['currentBlock'] as int;
+    game.turn = json['turn'] as int;
+    game.deck = (json['deck'] as List)
+        .map((v0) => MathCard.fromJson(Map<String, dynamic>.from(v0 as Map)))
+        .toList();
+    game.drawPile = (json['drawPile'] as List)
+        .map((v0) => MathCard.fromJson(Map<String, dynamic>.from(v0 as Map)))
+        .toList();
+    game.hand = (json['hand'] as List)
+        .map((v0) => MathCard.fromJson(Map<String, dynamic>.from(v0 as Map)))
+        .toList();
+    game.discardPile = (json['discardPile'] as List)
+        .map((v0) => MathCard.fromJson(Map<String, dynamic>.from(v0 as Map)))
+        .toList();
+    game.enemiesDefeated = json['enemiesDefeated'] as int;
+    game.battleActive = json['battleActive'] as bool;
+    game.gameOver = json['gameOver'] as bool;
+    game.currentEnemy = (json['currentEnemy'] == null
+        ? null
+        : MathematicalEnemy.fromJson(
+            Map<String, dynamic>.from(json['currentEnemy'] as Map)));
+    return game;
+  }
+
   final AIPersonality aiPersonality;
   final Random rng;
   final bool verbose;
@@ -1237,8 +1356,8 @@ class ArithmancerGame {
     List<MathematicalEnemy Function()> enemyRoster =
         EnemyRoster.getMathematicalEnemies();
     if (enemiesDefeated >= enemyRoster.length) {
-        winGame();
-        return;
+      winGame();
+      return;
     }
 
     currentEnemy = enemyRoster[enemiesDefeated]();
@@ -1246,21 +1365,21 @@ class ArithmancerGame {
     log("📊 ${currentEnemy!.lore}");
 
     if (currentEnemy!.mathematicalShields.isNotEmpty) {
-        log("🛡️ Mathematical defenses detected: ${currentEnemy!.mathematicalShields}");
+      log("🛡️ Mathematical defenses detected: ${currentEnemy!.mathematicalShields}");
     }
 
     drawPile = List.from(deck);
     drawPile.shuffle(rng);
     hand.clear();
     discardPile.clear();
-    
+
     // --- FIX: Draw the initial hand for the battle ---
     _drawCards(7);
 
     turn = 0;
     battleActive = true;
     startTurn(); // This will now correctly start Turn 1 with a full hand
-    }
+  }
 
   void startTurn() {
     turn++;
@@ -1275,10 +1394,10 @@ class ArithmancerGame {
 
     MathematicalEnemy? enemy = currentEnemy;
     if (enemy != null) {
-        String intent = enemy.getIntent()['desc'] ?? '...';
-        log("Target: ${enemy.name} (${enemy.health} HP) | Intent: $intent");
+      String intent = enemy.getIntent()['desc'] ?? '...';
+      log("Target: ${enemy.name} (${enemy.health} HP) | Intent: $intent");
     }
-    }
+  }
 
   void _ensurePlayableHand() {
     // Check if hand has at least one number
@@ -1325,40 +1444,40 @@ class ArithmancerGame {
     List<MathResult> results = aiPersonality.decideTurn(this);
 
     if (results.isEmpty) {
-        log("${aiPersonality.name} maintains position.");
+      log("${aiPersonality.name} maintains position.");
     } else {
-        for (MathResult result in results) {
+      for (MathResult result in results) {
         // _executeResult correctly removes the used cards from the hand
         _executeResult(result);
-        }
+      }
     }
 
     if (currentEnemy!.health <= 0) {
-        log("🏆 ${currentEnemy!.name} defeated!");
-        enemiesDefeated++;
-        battleActive = false;
-        _addReward();
-        return;
+      log("🏆 ${currentEnemy!.name} defeated!");
+      enemiesDefeated++;
+      battleActive = false;
+      _addReward();
+      return;
     }
 
     // Enemy turn
     currentEnemy!.takeTurn(this);
     if (playerHealth <= 0) {
-        loseGame();
-        return;
+      loseGame();
+      return;
     }
 
     // --- FIX: Replace AI's "discard all" logic with "keep and refill" ---
     // The AI now keeps its unused cards, just like the human player.
     final cardsToDraw = 7 - hand.length;
     if (cardsToDraw > 0) {
-        _drawCards(cardsToDraw);
+      _drawCards(cardsToDraw);
     }
     // --- END FIX ---
 
     // Call the simplified startTurn to reset resources and log the new turn.
     startTurn();
-    }
+  }
 
   /// Plays [result] for the player: applies its damage/block and consumes the
   /// cards it used. Public so any front-end can execute a chosen move.
@@ -1388,11 +1507,11 @@ class ArithmancerGame {
     if (result.isChained) {
       log("  Left side: ${result.leftResult!.expression} = ${result.leftResult!.value}");
       log("  Right side: ${result.rightResult!.expression} = ${result.rightResult!.value}");
-      
+
       // Log properties for each side
       _logMathematicalProperties(result.leftResult!);
       _logMathematicalProperties(result.rightResult!);
-      
+
       // Calculate damage (enemy handles chaining internally)
       int inflicted = currentEnemy!.takeDamage(result, this);
       log("💥 Combined damage: $inflicted");
@@ -1514,8 +1633,7 @@ class ArithmancerGame {
     }
 
     // REDUCED HEALING: Less generous recovery to maintain challenge
-    int healing =
-        25 + (enemiesDefeated * 30); 
+    int healing = 25 + (enemiesDefeated * 30);
     playerHealth = min(maxHealth, playerHealth + healing);
     log("💚 Systems restored: +$healing HP! Current: $playerHealth/$maxHealth");
   }
@@ -1548,26 +1666,27 @@ class ExpressionEvaluator {
   }
 
   void _generateExpressions(List<MathCard> current, List<MathCard> available,
-    List<MathResult> results) {
+      List<MathResult> results) {
     // First, evaluate the expression as it currently stands.
     if (current.isNotEmpty) {
-        MathResult? result = _evaluateExpression(current);
-        if (result != null) {
+      MathResult? result = _evaluateExpression(current);
+      if (result != null) {
         results.add(result);
         // Also generate a negated version if possible
         if (result.value > 0) {
-            final hasMinusCardAvailable = available.any((card) => card.operator == '-');
-            if (hasMinusCardAvailable) {
-            final minusCard = available.firstWhere((card) => card.operator == '-');
+          final hasMinusCardAvailable =
+              available.any((card) => card.operator == '-');
+          if (hasMinusCardAvailable) {
+            final minusCard =
+                available.firstWhere((card) => card.operator == '-');
             final negatedCards = [...result.usedCards, minusCard];
             final negatedExpression = "-(${result.expression})";
             final negatedValue = -result.value;
-            results.add(
-                MathResult(negatedValue, negatedCards, negatedExpression, ["negative_block"])
-            );
-            }
+            results.add(MathResult(negatedValue, negatedCards,
+                negatedExpression, ["negative_block"]));
+          }
         }
-        }
+      }
     }
 
     // Set a reasonable limit to prevent infinitely long expressions.
@@ -1575,37 +1694,38 @@ class ExpressionEvaluator {
 
     // Try to add the next card to the sequence.
     for (int i = 0; i < available.length; i++) {
-        MathCard nextCard = available[i];
+      MathCard nextCard = available[i];
 
-        if (_canAddCard(current, nextCard)) {
+      if (_canAddCard(current, nextCard)) {
         List<MathCard> nextCurrent = [...current, nextCard];
         List<MathCard> newAvailable = List.from(available)..removeAt(i);
 
         // Count how many operators are in the expression we just formed.
-        int operatorCount = nextCurrent.where((c) => c.type == CardType.operator).length;
+        int operatorCount =
+            nextCurrent.where((c) => c.type == CardType.operator).length;
 
         // If this is a complex expression (more than one operator)...
         if (operatorCount > 1) {
-            // ...it requires a Parentheses card. Let's find one in the remaining hand.
-            final parenCardIndex = newAvailable.indexWhere((c) => c.type == CardType.parentheses);
-            
-            if (parenCardIndex == -1) {
+          // ...it requires a Parentheses card. Let's find one in the remaining hand.
+          final parenCardIndex =
+              newAvailable.indexWhere((c) => c.type == CardType.parentheses);
+
+          if (parenCardIndex == -1) {
             // No () card is available to pay for this complex expression. Abort this path.
-            continue; 
-            } else {
+            continue;
+          } else {
             // A () card is available. Consume it by removing it from the available
             // cards and adding it to the list of cards used in this expression.
             final parenCard = newAvailable.removeAt(parenCardIndex);
             nextCurrent.add(parenCard);
-            }
+          }
         }
 
         // Continue building the expression with the updated state.
         _generateExpressions(nextCurrent, newAvailable, results);
-        }
       }
     }
-
+  }
 
   /*
   MathResult? _evaluateNegativeExpression(List<MathCard> cards) {
@@ -1641,16 +1761,18 @@ class ExpressionEvaluator {
     switch (lastCard.type) {
       case CardType.number:
         return nextCard.type == CardType.operator ||
-              nextCard.type == CardType.parentheses ||
-              nextCard.type == CardType.sequencer; // Allow sequencer after numbers
+            nextCard.type == CardType.parentheses ||
+            nextCard.type ==
+                CardType.sequencer; // Allow sequencer after numbers
       case CardType.operator:
         // After any operator, you must have a number.
         return nextCard.type == CardType.number;
       case CardType.parentheses:
         // After parentheses, allow operators or more parentheses
-        return nextCard.type == CardType.operator || 
-              nextCard.type == CardType.parentheses ||
-              nextCard.type == CardType.sequencer; // Allow sequencer after parentheses
+        return nextCard.type == CardType.operator ||
+            nextCard.type == CardType.parentheses ||
+            nextCard.type ==
+                CardType.sequencer; // Allow sequencer after parentheses
       case CardType.sequencer:
         // After &&, start a new equation with a number or minus
         return nextCard.type == CardType.number || nextCard.operator == '-';
@@ -1664,21 +1786,22 @@ class ExpressionEvaluator {
     if (cards.length == 1 && cards.first.type == CardType.operator) return null;
 
     // Check if this contains a sequencer card
-    int sequencerIndex = cards.indexWhere((card) => card.type == CardType.sequencer);
-    
+    int sequencerIndex =
+        cards.indexWhere((card) => card.type == CardType.sequencer);
+
     if (sequencerIndex != -1) {
       // Split into two expressions at the sequencer
       List<MathCard> firstExpression = cards.sublist(0, sequencerIndex);
       List<MathCard> secondExpression = cards.sublist(sequencerIndex + 1);
-      
+
       if (firstExpression.isEmpty || secondExpression.isEmpty) return null;
-      
+
       // Evaluate both expressions
       MathResult? result1 = _evaluateExpression(firstExpression);
       MathResult? result2 = _evaluateExpression(secondExpression);
-      
+
       if (result1 == null || result2 == null) return null;
-      
+
       // FIXED: Return chained result that preserves both sides
       return MathResult.chained(result1, result2, List.from(cards));
     }
@@ -1710,15 +1833,21 @@ class ExpressionEvaluator {
     }
 
     final lastTokenStr = tokens.last.replaceAll(RegExp(r'[\(\)]'), '');
-    if (['+', '-', '*', '/'].contains(lastTokenStr) && tokens.length > 1) return null;
+    if (['+', '-', '*', '/'].contains(lastTokenStr) && tokens.length > 1) {
+      return null;
+    }
 
     double? value = _evaluatePostfixExpression(tokens);
     if (value == null || value.isInfinite || value.isNaN) return null;
 
     List<String> properties = [];
-    if (_isPrime(value.round()) && value == value.round()) properties.add("prime");
+    if (_isPrime(value.round()) && value == value.round()) {
+      properties.add("prime");
+    }
     if (_isPerfectSquare(value)) properties.add("perfect_square");
-    if (_isFibonacci(value.round()) && value == value.round()) properties.add("fibonacci");
+    if (_isFibonacci(value.round()) && value == value.round()) {
+      properties.add("fibonacci");
+    }
 
     return MathResult(value, List.from(cards), expression, properties);
   }
@@ -1810,6 +1939,21 @@ class ExpressionEvaluator {
 
 // === PvP GAME SYSTEM ===
 class PlayerState {
+  Map<String, dynamic> toJson() => {
+        'engine': gameInstance.toJson(),
+        'health': health,
+        'energy': energy,
+        'block': block,
+        'passed': passedLastTurn
+      };
+  factory PlayerState.fromJson(Map<String, dynamic> json) =>
+      PlayerState(ArithmancerGame.fromJson(
+          Map<String, dynamic>.from(json['engine'] as Map)))
+        ..health = json['health'] as int
+        ..energy = json['energy'] as int
+        ..block = json['block'] as int
+        ..passedLastTurn = json['passed'] as bool;
+
   final ArithmancerGame gameInstance;
   int health = 120;
   int energy = 6;
@@ -1817,7 +1961,7 @@ class PlayerState {
   bool passedLastTurn = false; // FIX: Add this new flag
 
   PlayerState(this.gameInstance);
-  
+
   void drawInitialHand() {
     gameInstance._drawCards(7);
     gameInstance._ensurePlayableHand();
@@ -1833,6 +1977,37 @@ class PlayerState {
 }
 
 class PvPGame {
+  Map<String, dynamic> toJson() => {
+        'ai1': player1AI.name,
+        'ai2': player2AI.name,
+        'human1': player1IsHuman,
+        'human2': player2IsHuman,
+        'player1State': player1State.toJson(),
+        'player2State': player2State.toJson(),
+        'turn': turn,
+        'gameOver': gameOver,
+        'winner': winner,
+        'maxTurns': maxTurns
+      };
+  factory PvPGame.fromJson(Map<String, dynamic> json) {
+    final game = PvPGame(
+        player1AI: _sessionAI(json['ai1'] as String),
+        player2AI: _sessionAI(json['ai2'] as String),
+        rng: Random(),
+        verbose: false,
+        player1IsHuman: json['human1'] as bool,
+        player2IsHuman: json['human2'] as bool);
+    game.player1State = PlayerState.fromJson(
+        Map<String, dynamic>.from(json['player1State'] as Map));
+    game.player2State = PlayerState.fromJson(
+        Map<String, dynamic>.from(json['player2State'] as Map));
+    game.turn = json['turn'] as int;
+    game.gameOver = json['gameOver'] as bool;
+    game.winner = json['winner'] as String;
+    game.maxTurns = json['maxTurns'] as int;
+    return game;
+  }
+
   final AIPersonality player1AI;
   final AIPersonality player2AI;
   final Random rng;
@@ -1861,9 +2036,13 @@ class PvPGame {
     this.player1IsHuman = false,
     this.player2IsHuman = false,
   }) {
-    player1State = PlayerState(ArithmancerGame(player1AI, Random(rng.nextInt(1000000)), verbose: false));
-    player2State = PlayerState(ArithmancerGame(player2AI, Random(rng.nextInt(1000000)), verbose: false));
-    
+    player1State = PlayerState(ArithmancerGame(
+        player1AI, Random(rng.nextInt(1000000)),
+        verbose: false));
+    player2State = PlayerState(ArithmancerGame(
+        player2AI, Random(rng.nextInt(1000000)),
+        verbose: false));
+
     player1State.drawInitialHand();
     player2State.drawInitialHand();
 
@@ -1889,7 +2068,7 @@ class PvPGame {
       // FIX: Replenish energy at the start of the round, adding to any preserved energy.
       player1State.energy += 6;
       player2State.energy += 6;
-      
+
       // Optional: Cap energy to prevent it from growing infinitely
       player1State.energy = min(player1State.energy, 12);
       player2State.energy = min(player2State.energy, 12);
@@ -1910,7 +2089,9 @@ class PvPGame {
         int escalationDamage = (turn - 15) * 4;
         player1State.health -= escalationDamage;
         player2State.health -= escalationDamage;
-        if (verbose) print("⚠️ Escalation! Both players take $escalationDamage damage!");
+        if (verbose) {
+          print("⚠️ Escalation! Both players take $escalationDamage damage!");
+        }
         _checkGameOver();
         if (gameOver) break;
       }
@@ -1932,7 +2113,7 @@ class PvPGame {
   }
 
   void _executePlayerTurn(
-    PlayerState currentPlayer, PlayerState opponentPlayer) {
+      PlayerState currentPlayer, PlayerState opponentPlayer) {
     String playerName = (currentPlayer == player1State
         ? (player1IsHuman ? "Human" : player1AI.name)
         : (player2IsHuman ? "Human" : player2AI.name));
@@ -1940,106 +2121,114 @@ class PvPGame {
         (currentPlayer == player1State) ? player1IsHuman : player2IsHuman;
 
     if (currentPlayer.passedLastTurn) {
-        currentPlayer.passedLastTurn = false; // Reset the flag
+      currentPlayer.passedLastTurn = false; // Reset the flag
     } else {
-        currentPlayer.energy = 6;
+      currentPlayer.energy = 6;
     }
-    
+
     ArithmancerGame currentTurnGame = currentPlayer.gameInstance;
     currentTurnGame.playerHealth = currentPlayer.health;
-    currentTurnGame.playerEnergy = currentPlayer.energy; 
+    currentTurnGame.playerEnergy = currentPlayer.energy;
     currentTurnGame.currentBlock = 0;
 
     MathematicalEnemy opponentMock = MathematicalEnemy(
-        name: (opponentPlayer == player1State ? player1AI.name : player2AI.name),
+        name:
+            (opponentPlayer == player1State ? player1AI.name : player2AI.name),
         maxHealth: 120,
         health: opponentPlayer.health,
         behavior: [
-            {'attack': 0, 'desc': 'Player'}
+          {'attack': 0, 'desc': 'Player'}
         ]);
     currentTurnGame.currentEnemy = opponentMock;
 
     if (verbose) {
-        print("\n$playerName's turn:");
-        print("Hand: ${currentTurnGame.hand.map((c) => c.toString()).join(', ')}");
-        print("Energy: ${currentTurnGame.playerEnergy}");
+      print("\n$playerName's turn:");
+      print(
+          "Hand: ${currentTurnGame.hand.map((c) => c.toString()).join(', ')}");
+      print("Energy: ${currentTurnGame.playerEnergy}");
     }
 
     List<MathResult> results;
     if (isHuman) {
-        // Whoever owns the human's input supplies this: the CLI prompts on
-        // stdin, a UI would surface a picker. With no handler the engine falls
-        // back to the AI so a headless run can't block forever.
-        results = humanTurnHandler?.call(currentTurnGame) ??
-            currentPlayer.gameInstance.aiPersonality.decideTurn(currentTurnGame);
+      // Whoever owns the human's input supplies this: the CLI prompts on
+      // stdin, a UI would surface a picker. With no handler the engine falls
+      // back to the AI so a headless run can't block forever.
+      results = humanTurnHandler?.call(currentTurnGame) ??
+          currentPlayer.gameInstance.aiPersonality.decideTurn(currentTurnGame);
     } else {
-        results =
-            currentPlayer.gameInstance.aiPersonality.decideTurn(currentTurnGame);
+      results =
+          currentPlayer.gameInstance.aiPersonality.decideTurn(currentTurnGame);
     }
 
     _processTurnResults(results, currentPlayer, opponentPlayer, opponentMock);
-    
+
     currentPlayer.replenishHand();
     _checkGameOver();
-    }
-  
+  }
+
   void _processTurnResults(List<MathResult> results, PlayerState currentPlayer,
-    PlayerState opponentPlayer, MathematicalEnemy opponentMock) {
+      PlayerState opponentPlayer, MathematicalEnemy opponentMock) {
     String playerName = (currentPlayer == player1State
         ? (player1IsHuman ? "Human" : player1AI.name)
         : (player2IsHuman ? "Human" : player2AI.name));
-    
+
     int totalBlockApplied = 0;
     int totalRawDamage = 0;
     int totalFinalDamage = 0;
 
     if (results.isEmpty) {
-        currentPlayer.passedLastTurn = true;
-        if (verbose) print("   $playerName passes, preserving ${currentPlayer.energy} energy.");
-        return;
+      currentPlayer.passedLastTurn = true;
+      if (verbose) {
+        print(
+            "   $playerName passes, preserving ${currentPlayer.energy} energy.");
+      }
+      return;
     }
 
     // First, calculate and apply all block from the results
     for (MathResult result in results) {
-        int cost = result.usedCards.fold(0, (sum, card) => sum + card.cost);
-        if (cost > currentPlayer.energy) continue;
-        
-        totalBlockApplied += result.block;
+      int cost = result.usedCards.fold(0, (sum, card) => sum + card.cost);
+      if (cost > currentPlayer.energy) continue;
+
+      totalBlockApplied += result.block;
     }
     currentPlayer.block += totalBlockApplied;
     if (totalBlockApplied > 0 && verbose) {
-        print("   🛡️ $playerName gains $totalBlockApplied block.");
+      print("   🛡️ $playerName gains $totalBlockApplied block.");
     }
 
     // Then, apply damage one result at a time to correctly calculate shield effects
     for (MathResult result in results) {
-        int cost = result.usedCards.fold(0, (sum, card) => sum + card.cost);
-        if (cost > currentPlayer.energy) continue;
+      int cost = result.usedCards.fold(0, (sum, card) => sum + card.cost);
+      if (cost > currentPlayer.energy) continue;
 
-        currentPlayer.energy -= cost;
+      currentPlayer.energy -= cost;
 
-        for (var card in result.usedCards) {
+      for (var card in result.usedCards) {
         currentPlayer.gameInstance.hand.removeWhere((c) => c.id == card.id);
         currentPlayer.gameInstance.discardPile.add(card);
-        }
-        
-        if (result.damage > 0) {
+      }
+
+      if (result.damage > 0) {
         totalRawDamage += result.damage;
         // Use the opponent mock's logic to calculate damage with shields
-        int damageDealt = opponentMock.takeDamage(result, currentPlayer.gameInstance);
+        int damageDealt =
+            opponentMock.takeDamage(result, currentPlayer.gameInstance);
         // We subtract the health from the real player state, not the mock
-        int damageAfterBlock = (damageDealt - opponentPlayer.block).clamp(0, damageDealt);
+        int damageAfterBlock =
+            (damageDealt - opponentPlayer.block).clamp(0, damageDealt);
         opponentPlayer.health -= damageAfterBlock;
-        opponentPlayer.block = (opponentPlayer.block - damageDealt).clamp(0, 999);
+        opponentPlayer.block =
+            (opponentPlayer.block - damageDealt).clamp(0, 999);
         totalFinalDamage += damageAfterBlock;
-        }
+      }
     }
 
     if (totalRawDamage > 0 && verbose) {
-        print(
-            "💥 $playerName deals $totalRawDamage raw damage = $totalFinalDamage final damage!");
+      print(
+          "💥 $playerName deals $totalRawDamage raw damage = $totalFinalDamage final damage!");
     }
-    }
+  }
 
   void _checkGameOver() {
     if (player1State.health <= 0) {
@@ -2082,7 +2271,7 @@ class ContinuousPlayGame extends ArithmancerGame {
         startNewBattle();
       } else {
         // FIX: This class uses the simpler endTurn() method from its parent.
-        endTurn(); 
+        endTurn();
         totalTurns++;
       }
     }
@@ -2124,8 +2313,7 @@ class GameSimulation {
 
       for (int i = 0; i < runs; i++) {
         Random runRng = Random(masterRng.nextInt(1000000));
-        ArithmancerGame game =
-            ArithmancerGame(ai, runRng, verbose: false);
+        ArithmancerGame game = ArithmancerGame(ai, runRng, verbose: false);
 
         int maxTurns = 50; // Prevent infinite games
         int turnCount = 0;
@@ -2144,8 +2332,7 @@ class GameSimulation {
         results[ai.name]!.add(victory);
       }
 
-      double winRate =
-          results[ai.name]!.where((w) => w).length / runs * 100;
+      double winRate = results[ai.name]!.where((w) => w).length / runs * 100;
       print("${ai.name}: ${winRate.toStringAsFixed(1)}% victory rate");
     }
 

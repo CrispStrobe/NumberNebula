@@ -1,6 +1,11 @@
+import '../services/robot_path_logic.dart';
+export '../services/robot_path_logic.dart';
+import '../mixins/puzzle_session_mixin.dart';
+import '../widgets/game_learning_shell.dart';
 // robot_path_game.dart (MODIFIED)
 
 import 'package:flutter/material.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
@@ -12,7 +17,6 @@ import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
-import '../services/robot_path_generator.dart' as gen;
 
 class RobotPathGame extends StatefulWidget {
   final int grade;
@@ -29,7 +33,39 @@ class RobotPathGame extends StatefulWidget {
 }
 
 class _RobotPathGameState extends State<RobotPathGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, PuzzleSessionMixin<RobotPathGame> {
+  bool _sessionReady = false;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_glowController, _pulseController], reduced);
+  }
+
+  @override String get sessionGameKey => 'robot_path_game';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || isExecuting) return null;
+    return {
+      'currentLevel': currentLevel.toJson(),
+      'pristineGrid': pristineGrid.map((v0) => v0.map((v1) => v1.name).toList()).toList(),
+      'commandSequence': commandSequence.map((v0) => v0.toJson()).toList(),
+      'maxCommands': maxCommands
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    currentLevel = PathLevel.fromJson(Map<String, dynamic>.from(state["currentLevel"] as Map));
+    pristineGrid = (state["pristineGrid"] as List).map((v0) => (v0 as List).map((v1) => CellType.values.byName(v1 as String)).toList()).toList();
+    commandSequence = (state["commandSequence"] as List).map((v0) => ProgramCommand.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+    maxCommands = state["maxCommands"] as int;
+    hasWon = false; isExecuting = false; currentLevel.grid = pristineGrid.map(List<CellType>.from).toList(); currentRobotRow = currentLevel.startRow; currentRobotCol = currentLevel.startCol; currentRobotDirection = currentLevel.startDirection;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generateLevel);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   late AnimationController _glowController;
   late AnimationController _successController;
   late AnimationController _robotMoveController;
@@ -108,7 +144,7 @@ class _RobotPathGameState extends State<RobotPathGame>
 
     _particleController.addListener(_updateParticles);
 
-    _generateLevel();
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
     _generateStarfield();
   }
 
@@ -132,17 +168,19 @@ class _RobotPathGameState extends State<RobotPathGame>
   }
 
   void _updateParticles() {
-    setState(() {
+    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
+    setVisualState(() {
       particles.removeWhere((p) => p.update());
       explosions.removeWhere((e) => e.update());
     });
   }
 
   void _generateLevel() {
+    beginPuzzleSession();
     setState(() {
       currentLevel = PathLevel.generate(widget.grade, widget.level);
       
-      maxCommands = (currentLevel.optimalMoves * 1.75).ceil().clamp(20, 40);
+      maxCommands = currentLevel.commandAllowance;
 
       // Save a copy of the original grid
       pristineGrid = currentLevel.grid.map(List<CellType>.from).toList();
@@ -234,9 +272,14 @@ class _RobotPathGameState extends State<RobotPathGame>
           }
         });
         await Future.delayed(const Duration(milliseconds: 1500));
+    if (!mounted) return ;
+    await GamePauseScope.of(context)?.waitUntilResumed();
+    if (!mounted) return ;
 
         if (mounted) {
+          finishPuzzleSession();
           context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'robot_path_game',
       difficulty: widget.level,
     ));
@@ -262,9 +305,14 @@ class _RobotPathGameState extends State<RobotPathGame>
       }
     });
     await Future.delayed(const Duration(milliseconds: 1500));
+    if (!mounted) return ;
+    await GamePauseScope.of(context)?.waitUntilResumed();
+    if (!mounted) return ;
 
     if (mounted) {
+      finishPuzzleSession();
       context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'robot_path_game',
       difficulty: widget.level,
     ));
@@ -275,6 +323,9 @@ class _RobotPathGameState extends State<RobotPathGame>
 
   Future<bool> _executeCommand(RobotCommand command) async {
     await Future.delayed(const Duration(milliseconds: 350));
+    if (!mounted) return false;
+    await GamePauseScope.of(context)?.waitUntilResumed();
+    if (!mounted) return false;
 
     switch (command) {
       case RobotCommand.forward:
@@ -285,6 +336,9 @@ class _RobotPathGameState extends State<RobotPathGame>
 
       case RobotCommand.turnLeft:
         await Future.delayed(const Duration(milliseconds: 150));
+    if (!mounted) return false;
+    await GamePauseScope.of(context)?.waitUntilResumed();
+    if (!mounted) return false;
         setState(() {
           currentRobotDirection = (currentRobotDirection - 1) % 4;
           if (currentRobotDirection < 0) currentRobotDirection = 3;
@@ -293,6 +347,9 @@ class _RobotPathGameState extends State<RobotPathGame>
 
       case RobotCommand.turnRight:
         await Future.delayed(const Duration(milliseconds: 150));
+    if (!mounted) return false;
+    await GamePauseScope.of(context)?.waitUntilResumed();
+    if (!mounted) return false;
         setState(() {
           currentRobotDirection = (currentRobotDirection + 1) % 4;
         });
@@ -303,6 +360,9 @@ class _RobotPathGameState extends State<RobotPathGame>
 
       case RobotCommand.wait:
         await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return false;
+    await GamePauseScope.of(context)?.waitUntilResumed();
+    if (!mounted) return false;
         return true;
 
       case RobotCommand.push:
@@ -462,6 +522,9 @@ class _RobotPathGameState extends State<RobotPathGame>
       });
       _createExplosion(targetCol.toDouble(), targetRow.toDouble(), small: true);
       await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return false;
+    await GamePauseScope.of(context)?.waitUntilResumed();
+    if (!mounted) return false;
       return true;
     }
 
@@ -528,6 +591,9 @@ class _RobotPathGameState extends State<RobotPathGame>
         _createDustParticles(currentRobotCol.toDouble(), currentRobotRow.toDouble());
       });
       await Future.delayed(const Duration(milliseconds: 100));
+    if (!mounted) return false;
+    await GamePauseScope.of(context)?.waitUntilResumed();
+    if (!mounted) return false;
       return true;
     }
     
@@ -605,6 +671,9 @@ class _RobotPathGameState extends State<RobotPathGame>
       _createDustParticles(currentRobotCol.toDouble(), currentRobotRow.toDouble());
     });
     await Future.delayed(const Duration(milliseconds: 100));
+    if (!mounted) return false;
+    await GamePauseScope.of(context)?.waitUntilResumed();
+    if (!mounted) return false;
     return true;
   }
 
@@ -705,12 +774,18 @@ class _RobotPathGameState extends State<RobotPathGame>
     final int bonusScore = (baseScore * (efficiency / 100.0)).round();
     final int totalScore = baseScore + bonusScore;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'robot_path_game',
       difficulty: widget.level,
       score: totalScore,
       performance:
           Perf.fromMoves(commandSequence.length, currentLevel.optimalMoves),
+
+      movesUsed: commandSequence.length,
+      optimalMoves: currentLevel.optimalMoves,
     ));
 
     Future.delayed(const Duration(milliseconds: 800), () {
@@ -726,7 +801,7 @@ class _RobotPathGameState extends State<RobotPathGame>
   }
 
   Widget _buildSuccessDialog(int baseScore, int bonusScore, int efficiency) {
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -752,6 +827,7 @@ class _RobotPathGameState extends State<RobotPathGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'robot_path_game'),
             ScaleTransition(
               scale: _successAnimation,
               child: Container(
@@ -945,6 +1021,7 @@ class _RobotPathGameState extends State<RobotPathGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     return Scaffold(
@@ -2139,6 +2216,7 @@ class _RobotPathGameState extends State<RobotPathGame>
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _glowController.dispose();
     _successController.dispose();
     _robotMoveController.dispose();
@@ -2151,6 +2229,16 @@ class _RobotPathGameState extends State<RobotPathGame>
 
 // Data Classes
 class ProgramCommand {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'command': command.name,
+    'id': id
+  };
+  factory ProgramCommand.fromJson(Map<String, dynamic> json) => ProgramCommand(
+    command: RobotCommand.values.byName(json['command'] as String),
+    id: json['id'] as String
+  );
+
   final RobotCommand command;
   final String id;
 
@@ -2172,164 +2260,7 @@ class CommandInfo {
   });
 }
 
-enum RobotCommand {
-  forward,
-  jump,
-  turnLeft,
-  turnRight,
-  destroy,
-  wait,
-  push,
-  pull
-}
 
-enum CellType {
-  empty,
-  wall,
-  start,
-  goal,
-  jumpableWall,
-  destructible,
-  movable
-}
-
-class PathLevel {
-  final int gridSize;
-  List<List<CellType>> grid;
-  final int startRow;
-  final int startCol;
-  final int startDirection;
-  final int goalRow;
-  final int goalCol;
-  final int optimalMoves;
-
-  PathLevel({
-    required this.gridSize,
-    required this.grid,
-    required this.startRow,
-    required this.startCol,
-    required this.startDirection,
-    required this.goalRow,
-    required this.goalCol,
-    required this.optimalMoves,
-  });
-  
-  static PathLevel generate(int grade, int level) {
-    final generator = gen.RobotPathGenerator();
-    
-    final complexity = (grade - 1) * 5 + level;
-    final int dim = (10 + (complexity * 0.5)).clamp(10, 17).toInt();
-    final int pathLen = (9 + complexity).clamp(10, 25).toInt();
-    final int obsCount = (1 + (complexity / 3)).clamp(1, 5).toInt();
-    
-    final double variety;
-    if (grade == 1) {
-      variety = 0.0;
-    } else if (grade == 2) {
-      variety = 0.3;
-    } else if (grade == 3) {
-      variety = 0.6;
-    } else {
-      variety = 0.9;
-    }
-    
-    final robotLevel = generator.generateLevel(
-      dimX: dim,
-      dimY: dim,
-      pathLength: pathLen,
-      obstacleCount: obsCount,
-      obstacleVariety: variety,
-    );
-    
-    final int gridSize = robotLevel.grid.length;
-    final grid = List.generate(
-      gridSize,
-      (r) => List.generate(gridSize, (c) => CellType.wall),
-    );
-
-    for (int r = 0; r < gridSize; r++) {
-      for (int c = 0; c < gridSize; c++) {
-        switch (robotLevel.grid[r][c]) {
-          case gen.RobotPathGenerator.PATH:
-            grid[r][c] = CellType.empty;
-            break;
-          case gen.RobotPathGenerator.START:
-            grid[r][c] = CellType.start;
-            break;
-          case gen.RobotPathGenerator.GOAL:
-            grid[r][c] = CellType.goal;
-            break;
-          case gen.RobotPathGenerator.JUMPABLE_WALL:
-            grid[r][c] = CellType.jumpableWall;
-            break;
-          case gen.RobotPathGenerator.DESTRUCTIBLE:
-            grid[r][c] = CellType.destructible;
-            break;
-          case gen.RobotPathGenerator.MOVABLE:
-            grid[r][c] = CellType.movable;
-            break;
-          case gen.RobotPathGenerator.WALL:
-          default:
-            grid[r][c] = CellType.wall;
-            break;
-        }
-      }
-    }
-    
-    for (int r = 0; r < gridSize; r++) {
-      for (int c = 0; c < gridSize; c++) {
-        final cell = grid[r][c];
-        
-        if (cell == CellType.jumpableWall && grade < 2) {
-          grid[r][c] = CellType.empty;
-        }
-        
-        if (cell == CellType.destructible && grade < 3) {
-          grid[r][c] = CellType.empty;
-        }
-        
-        if (cell == CellType.movable && grade < 4) {
-          grid[r][c] = CellType.empty;
-        }
-      }
-    }
-    
-    int optimalMoves = _calculateOptimalPath(robotLevel);
-    
-    int startDirection = 1;
-    final startPos = robotLevel.start;
-    if (_isValidGridPos(grid, startPos.x, startPos.y + 1)) {
-      startDirection = 1; // Right
-    } else if (_isValidGridPos(grid, startPos.x + 1, startPos.y)) {
-      startDirection = 2; // Down
-    } else if (_isValidGridPos(grid, startPos.x, startPos.y - 1)) {
-      startDirection = 3; // Left
-    } else if (_isValidGridPos(grid, startPos.x - 1, startPos.y)) {
-      startDirection = 0; // Up
-    }
-
-    return PathLevel(
-      gridSize: gridSize,
-      grid: grid,
-      startRow: robotLevel.start.x,
-      startCol: robotLevel.start.y,
-      startDirection: startDirection,
-      goalRow: robotLevel.goal.x,
-      goalCol: robotLevel.goal.y,
-      optimalMoves: optimalMoves,
-    );
-  }
-
-  static bool _isValidGridPos(List<List<CellType>> grid, int r, int c) {
-    if (r < 0 || r >= grid.length || c < 0 || c >= grid.length) return false;
-    final cell = grid[r][c];
-    return cell == CellType.empty || cell == CellType.goal;
-  }
-
-  static int _calculateOptimalPath(gen.RobotLevel robotLevel) {
-    return robotLevel.optimalMoves + robotLevel.obstacles.length;
-  }
-}
 
 // Visual Effects
 class SpaceParticle {

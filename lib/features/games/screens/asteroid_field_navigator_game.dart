@@ -1,6 +1,11 @@
+import '../services/round_generation.dart';
+export '../services/round_generation.dart' show AsteroidCell;
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
+import '../widgets/game_learning_shell.dart';
 // All imports remain the same...
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
@@ -29,7 +34,49 @@ class AsteroidFieldNavigatorGame extends StatefulWidget {
 }
 
 class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, PuzzleSessionMixin<AsteroidFieldNavigatorGame> {
+  bool _sessionReady = false;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_pulseController], reduced);
+  }
+
+  @override String get sessionGameKey => 'asteroid_field_navigator';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady) return null;
+    return {
+      'grid': grid.map((v0) => v0.map((v1) => v1.toJson()).toList()).toList(),
+      'gridRows': gridRows,
+      'gridCols': gridCols,
+      'mineCount': mineCount,
+      'flagsPlaced': flagsPlaced,
+      'cellsRevealed': cellsRevealed,
+      'isFlagMode': isFlagMode,
+      'isFirstClick': isFirstClick,
+      'elapsedSeconds': elapsedSeconds
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    grid = (state["grid"] as List).map((v0) => (v0 as List).map((v1) => AsteroidCell.fromJson(Map<String, dynamic>.from(v1 as Map))).toList()).toList();
+    gridRows = state["gridRows"] as int;
+    gridCols = state["gridCols"] as int;
+    mineCount = state["mineCount"] as int;
+    flagsPlaced = state["flagsPlaced"] as int;
+    cellsRevealed = state["cellsRevealed"] as int;
+    isFlagMode = state["isFlagMode"] as bool;
+    isFirstClick = state["isFirstClick"] as bool;
+    elapsedSeconds = state["elapsedSeconds"] as int;
+    gameActive = true; hasWon = false; hasLost = false; _startGameTimer();
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generateField);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   late AnimationController _pulseController;
   late AnimationController _scanController;
   late AnimationController _explosionController;
@@ -68,7 +115,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
     
     _setupAnimationControllers();
     _initializeGameParameters();
-    _generateField();
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
     _startGameTimer();
   }
 
@@ -128,34 +175,8 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
   }
 
   void _generateField() {
-    final random = math.Random();
-    
-    grid = List.generate(
-      gridRows,
-      (row) => List.generate(
-        gridCols,
-        (col) => AsteroidCell(row: row, col: col),
-      ),
-    );
-    
-    int minesPlaced = 0;
-    while (minesPlaced < mineCount) {
-      final row = random.nextInt(gridRows);
-      final col = random.nextInt(gridCols);
-      
-      if (!grid[row][col].isMine) {
-        grid[row][col].isMine = true;
-        minesPlaced++;
-      }
-    }
-    
-    for (int row = 0; row < gridRows; row++) {
-      for (int col = 0; col < gridCols; col++) {
-        if (!grid[row][col].isMine) {
-          grid[row][col].adjacentMines = _countAdjacentMines(row, col);
-        }
-      }
-    }
+    beginPuzzleSession();
+    grid=generateMineField(gridRows,gridCols,mineCount);
   }
 
   int _countAdjacentMines(int row, int col) {
@@ -177,9 +198,10 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
     startTime = DateTime.now();
     gameTimer?.cancel();
     gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || !_sessionReady || GamePauseScope.isPaused(context)) return;
       if (mounted && gameActive) {
         setState(() {
-          elapsedSeconds = DateTime.now().difference(startTime!).inSeconds;
+          elapsedSeconds++;
         });
       }
     });
@@ -205,7 +227,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
   void _toggleFlag(int row, int col) {
     if (grid[row][col].isRevealed) return;
     
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     
     setState(() {
       if (grid[row][col].isFlagged) {
@@ -236,7 +258,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
       return;
     }
 
-    HapticFeedback.selectionClick();
+    AppHaptics.selectionClick();
 
     final Set<AsteroidCell> cellsToReveal = {initialCell};
     
@@ -329,7 +351,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
     });
     
     _explosionController.forward();
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     
     // Particle effect logic remains the same
     
@@ -345,7 +367,10 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
       }
     });
     
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'asteroid_field_navigator',
       difficulty: widget.grade + (widget.level ~/ 5),
     ));
@@ -393,14 +418,17 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
     });
     
     _successController.forward();
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     
     final baseScore = 300 * widget.grade;
     final speedBonus = math.max(0, (180 - elapsedSeconds) * 2);
     final efficiencyBonus = (mineCount - flagsPlaced) == 0 ? 200 : 100;
     final totalScore = baseScore + speedBonus + efficiencyBonus;
     
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'asteroid_field_navigator',
       difficulty: widget.grade + (widget.level ~/ 5),
       score: totalScore,
@@ -433,6 +461,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final screenSize = MediaQuery.of(context).size;
     // Determine if we're in landscape or portrait based on aspect ratio
     final bool isLandscape = screenSize.width > screenSize.height;
@@ -591,7 +620,8 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
         children: [
           Icon(icon, color: color, size: 18),
           const SizedBox(width: 6),
-          Text(value, style: TextStyle(color: color, fontSize: 14, fontWeight: FontWeight.bold)),
+          Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft,
+            child: Text(value, style: TextStyle(color: color, fontSize: 14, fontWeight: FontWeight.bold)))),
         ],
       ),
     );
@@ -724,7 +754,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
     return ElevatedButton( // Changed from ElevatedButton.icon
       onPressed: () {
         setState(() => isFlagMode = !isFlagMode);
-        HapticFeedback.selectionClick();
+        AppHaptics.selectionClick();
       },
       style: (isFlagMode ? SpaceTheme.primaryButtonStyle : SpaceTheme.secondaryButtonStyle).copyWith(
         padding: WidgetStateProperty.all(
@@ -748,7 +778,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
       builder: (context, child) {
         return Transform.scale(
           scale: _successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -759,6 +789,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                  RoundSummary(gameKey: 'asteroid_field_navigator'),
                     const Icon(Icons.check_circle, size: 60, color: SpaceTheme.alienGreen),
                     const SizedBox(height: 16),
                     Text(
@@ -810,7 +841,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
   }
 
   Widget _buildFailureDialog(BuildContext dialogContext) {
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -821,6 +852,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+                  RoundSummary(gameKey: 'asteroid_field_navigator'),
               const Icon(Icons.warning, size: 60, color: SpaceTheme.rocketRed),
               const SizedBox(height: 16),
               Text(
@@ -891,6 +923,7 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
 
   @override
   void dispose() {
+    disposePuzzleSession();
     gameTimer?.cancel();
     _pulseController.dispose();
     _scanController.dispose();
@@ -899,37 +932,6 @@ class _AsteroidFieldNavigatorGameState extends State<AsteroidFieldNavigatorGame>
     _successController.dispose();
     super.dispose();
   }
-}
-
-class AsteroidCell {
-  final int row;
-  final int col;
-  bool isMine;
-  bool isRevealed;
-  bool isFlagged;
-  bool isExploded;
-  int adjacentMines;
-
-  AsteroidCell({
-    required this.row,
-    required this.col,
-    this.isMine = false,
-    this.isRevealed = false,
-    this.isFlagged = false,
-    this.isExploded = false,
-    this.adjacentMines = 0,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is AsteroidCell &&
-          runtimeType == other.runtimeType &&
-          row == other.row &&
-          col == other.col;
-
-  @override
-  int get hashCode => row.hashCode ^ col.hashCode;
 }
 
 class ExplosionParticle {

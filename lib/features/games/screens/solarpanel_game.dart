@@ -1,6 +1,9 @@
+import '../services/solarpanel_logic.dart';
+export '../services/solarpanel_logic.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 import 'dart:async';
@@ -13,11 +16,6 @@ import '../models/performance.dart';
 import '../models/math_problem.dart';
 import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
-
-// DEVELOPMENT TWEAKING CONSTANTS
-const bool kTweakProblems = false;
-const int kTweakRangeMin = 2;
-const int kTweakRangeMax = 8;
 
 class SolarPanelGame extends StatefulWidget {
   final int grade;
@@ -34,7 +32,39 @@ class SolarPanelGame extends StatefulWidget {
 }
 
 class _SolarPanelGameState extends State<SolarPanelGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<SolarPanelGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<SolarPanelGame>, PuzzleSessionMixin<SolarPanelGame> {
+  bool _sessionReady = false;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_warpController], reduced);
+  }
+
+  @override String get sessionGameKey => 'solarpanel_game';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      'currentPuzzle': (currentPuzzle?.toJson()),
+      'userAnswers': userAnswers.map((v0) => (v0)).toList(),
+      'numberPool': numberPool.map((v0) => v0).toList(),
+      '_wrongChecks': _wrongChecks
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    currentPuzzle = (state["currentPuzzle"] == null ? null : SolarPanelPuzzle.fromJson(Map<String, dynamic>.from(state["currentPuzzle"] as Map)));
+    userAnswers = (state["userAnswers"] as List).map((v0) => (v0 == null ? null : v0 as int)).toList();
+    numberPool = (state["numberPool"] as List).map((v0) => v0 as int).toList();
+    _wrongChecks = state["_wrongChecks"] as int;
+    _isGenerating = false; _showPanelExpansion = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   final GlobalKey _dragTargetKey = GlobalKey();
 
   late AnimationController _dropController;
@@ -91,7 +121,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0)
         .animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOut));
     
-    _generatePuzzle();
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
     _startFadeTimer();
   }
 
@@ -109,6 +139,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _dropController.dispose();
     _warpController.dispose();
     _panelExpandController.dispose();
@@ -118,7 +149,8 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     super.dispose();
   }
 
-  void _generatePuzzle() async {
+  Future<void> _generatePuzzle() async {
+    beginPuzzleSession();
     if (kDebugMode) debugPrint("☀️ _generatePuzzle() - Starting puzzle generation");
     
     setState(() {
@@ -198,7 +230,10 @@ class _SolarPanelGameState extends State<SolarPanelGame>
         int bonusScore = (baseScore * 0.5).round();
         int totalScore = baseScore + bonusScore;
 
+        finishPuzzleSession();
+
         context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'solarpanel_game',
       difficulty: widget.level,
       score: totalScore,
@@ -209,7 +244,9 @@ class _SolarPanelGameState extends State<SolarPanelGame>
         _handleSuccess(totalScore);
       } else {
         _wrongChecks++;
+        finishPuzzleSession();
         context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'solarpanel_game',
       difficulty: widget.level,
       mathProblems: attemptedProblems,
@@ -243,7 +280,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   }
 
   void _handleSuccess(int totalScoreGained) {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     // First show panel expansion animation
     setState(() => _showPanelExpansion = true);
     _panelExpandController.forward();
@@ -274,7 +311,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   }
 
   void _handleIncorrect() {
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -292,6 +329,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (currentPuzzle == null || _isGenerating) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -989,27 +1027,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
 }
 
 // SolarPanelPuzzle class
-class SolarPanelPuzzle {
-  final List<int> baseNumbers; // [A, B, C]
-  final Set<int> hiddenCells;
-  final Map<int, int> visibleValues;
-  final List<int> fullSolution; // [top, leftPanel, rightPanel, A, B, C]
-  final List<int> numberPool;
-
-  SolarPanelPuzzle({
-    required this.baseNumbers,
-    required this.hiddenCells,
-    required this.visibleValues,
-    required this.fullSolution,
-    required this.numberPool,
-  });
-
-  int getAnswerIndexForCell(int cellIndex) {
-    if (!hiddenCells.contains(cellIndex)) return -1;
-    final sortedHiddenCells = hiddenCells.toList()..sort();
-    return sortedHiddenCells.indexOf(cellIndex);
-  }
-
+extension SolarPanelPuzzleLayout on SolarPanelPuzzle {
   List<Offset> getCellPositions(double containerSize) {
     final positions = <Offset>[];
     final cellSpacing = containerSize / 4;
@@ -1028,203 +1046,7 @@ class SolarPanelPuzzle {
     
     return positions;
   }
-
-  static SolarPanelPuzzle generate(Map<String, dynamic> args) {
-    final grade = args['grade'] as int;
-    final level = args['level'] as int;
-    final useCustomSettings = args['useCustomSettings'] as bool;
-    final customMin = args['customMin'] as int;
-    final customMax = args['customMax'] as int;
-
-    final generator = _SolarPanelGenerator(
-      grade, level,
-      useCustomSettings: useCustomSettings,
-      customRangeMin: customMin,
-      customRangeMax: customMax,
-    );
-
-    return generator.generate();
-  }
-
-  bool validateSolution(List<int> userSolution) {
-    final completePanel = List<int>.filled(6, 0);
-    final sortedHiddenCells = hiddenCells.toList()..sort();
-    
-    for (int i = 0; i < 6; i++) {
-      if (!hiddenCells.contains(i)) {
-        completePanel[i] = visibleValues[i]!;
-      }
-    }
-    
-    for (int answerIndex = 0; answerIndex < userSolution.length; answerIndex++) {
-      if (answerIndex < sortedHiddenCells.length) {
-        final cellIndex = sortedHiddenCells[answerIndex];
-        completePanel[cellIndex] = userSolution[answerIndex];
-      }
-    }
-    
-    // Validate: top = leftPanel + rightPanel
-    // leftPanel = A * B, rightPanel = B * C
-    final a = completePanel[3];
-    final b = completePanel[4];
-    final c = completePanel[5];
-    final leftPanel = completePanel[1];
-    final rightPanel = completePanel[2];
-    final top = completePanel[0];
-    
-    return leftPanel == a * b && rightPanel == b * c && top == leftPanel + rightPanel;
-  }
 }
-
-// Generator class
-class _SolarPanelGenerator {
-  final int grade;
-  final int level;
-  final bool useCustomSettings;
-  final int customRangeMin;
-  final int customRangeMax;
-  
-  _SolarPanelGenerator(this.grade, this.level, {
-    required this.useCustomSettings,
-    required this.customRangeMin,
-    required this.customRangeMax,
-  });
-
-  SolarPanelPuzzle generate() {
-    List<int>? solution;
-    int attempts = 0;
-    
-    while (solution == null && attempts < 50) {
-      try {
-        solution = _generateValidPanel();
-        if (solution != null && _validatePanel(solution)) {
-          break;
-        } else {
-          solution = null;
-        }
-      } catch (e) {
-        // Generation error
-      }
-      attempts++;
-    }
-    
-    solution ??= _createFallbackPanel();
-    
-    final hiddenCells = _selectHiddenCells();
-    
-    final visibleValues = <int, int>{};
-    for (int i = 0; i < 6; i++) {
-      if (!hiddenCells.contains(i)) {
-        visibleValues[i] = solution[i];
-      }
-    }
-    
-    final hiddenNumbers = hiddenCells.map((i) => solution![i]).toList();
-    final decoyNumbers = _generateDecoyNumbers(hiddenNumbers);
-    final numberPool = (hiddenNumbers + decoyNumbers)..shuffle();
-    
-    return SolarPanelPuzzle(
-      baseNumbers: solution.sublist(3, 6),
-      hiddenCells: hiddenCells,
-      visibleValues: visibleValues,
-      fullSolution: solution,
-      numberPool: numberPool,
-    );
-  }
-
-  List<int>? _generateValidPanel() {
-    final random = math.Random();
-    
-    // Generate base numbers
-    final minVal = _getMinNumber();
-    final maxVal = _getMaxNumber();
-    
-    final a = minVal + random.nextInt(maxVal - minVal + 1);
-    final b = minVal + random.nextInt(maxVal - minVal + 1);
-    final c = minVal + random.nextInt(maxVal - minVal + 1);
-    
-    final leftPanel = a * b;
-    final rightPanel = b * c;
-    final top = leftPanel + rightPanel;
-    
-    return [top, leftPanel, rightPanel, a, b, c];
-  }
-
-  bool _validatePanel(List<int> solution) {
-    // Check no value is too large
-    if (solution.any((n) => n > 500)) return false;
-    
-    final a = solution[3];
-    final b = solution[4];
-    final c = solution[5];
-    final leftPanel = solution[1];
-    final rightPanel = solution[2];
-    final top = solution[0];
-    
-    return leftPanel == a * b && rightPanel == b * c && top == leftPanel + rightPanel;
-  }
-
-  List<int> _createFallbackPanel() {
-    return [14, 6, 8, 3, 2, 4]; // 3*2=6, 2*4=8, 6+8=14
-  }
-
-  Set<int> _selectHiddenCells() {
-    final hidden = <int>{};
-    final maxHidden = (2 + grade + (level / 5)).clamp(2, 5).floor();
-    final candidates = List.generate(6, (i) => i)..shuffle();
-    
-    // Ensure at least one base number is hidden
-    final baseIndices = [3, 4, 5];
-    hidden.add(baseIndices[math.Random().nextInt(3)]);
-    
-    // Add more random cells
-    for (final cell in candidates) {
-      if (hidden.length >= maxHidden) break;
-      hidden.add(cell);
-    }
-    
-    return hidden;
-  }
-
-  List<int> _generateDecoyNumbers(List<int> hiddenNumbers) {
-    final decoys = <int>{};
-    final decoyCount = (8 - hiddenNumbers.length).clamp(2, 4);
-    
-    for (final num in hiddenNumbers) {
-      if (decoys.length >= decoyCount) break;
-      final offset = 1 + math.Random().nextInt(5);
-      final variations = [num - offset, num + offset, num * 2, (num / 2).round()];
-      for (final v in variations) {
-        if (!hiddenNumbers.contains(v) && v > 0) {
-          decoys.add(v);
-          if (decoys.length >= decoyCount) break;
-        }
-      }
-    }
-    if (decoys.length < decoyCount) {
-      final available = [
-        for (var v = 1; v <= 20; v++)
-          if (!decoys.contains(v) && !hiddenNumbers.contains(v)) v
-      ]..shuffle();
-      decoys.addAll(available.take(decoyCount - decoys.length));
-    }
-
-    return decoys.toList();
-  }
-
-  int _getMinNumber() {
-    if (kTweakProblems) return kTweakRangeMin;
-    if (useCustomSettings) return customRangeMin;
-    return math.max(1, (grade - 1) * 2 + (level / 3).floor());
-  }
-
-  int _getMaxNumber() {
-    if (kTweakProblems) return kTweakRangeMax;
-    if (useCustomSettings) return customRangeMax;
-    return _getMinNumber() + 6 + grade * 2;
-  }
-}
-
 // Background painter (simple glow and warp only)
 class SolarPanelBackgroundPainter extends CustomPainter {
   final double glowIntensity;

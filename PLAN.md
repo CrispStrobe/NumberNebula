@@ -18,12 +18,6 @@ work — lives in **[HISTORY.md](HISTORY.md)**. Only open items are listed here.
 
 ## Open items
 
-### [ ] Cargo Bay Arranger — board-aware row generation
-The seeded 7-bag landed; what's left from the 2026-05-30 audit is the harder
-half: `dart_csp`-backed, board-aware "fill the open row to `targetSum`"
-generation for higher grades. Keep any CSP instance tiny — the solver is
-uninterruptible once started.
-
 ### [ ] Normalize the `arithmatic_square` typo key
 `skill_category.dart` and 12 other sites use `'arithmatic_square'` (matches the
 typo'd filename, so it is functionally fine). Renaming touches the game key,
@@ -43,14 +37,13 @@ judgement calls made from reading the code, not from playing:
 - atomix expects the molecule inside half the move limit
 - minesweeper's par is one second per cell
 - cryptex counts one committed dial setting per wrong-at-start dial as par
-Watch real sessions and retune; the constants are all at the `Perf.*` call
+Automated structural calibration is available through `tool/calibrate_games.dart`
+and the GitHub CI grade/level matrix. All 48 games also have pure Dart generation,
+every-level seeded sweeps, retained legacy/candidate A/B solver paths,
+and untrained workload estimates; see
+`docs/pure-dart-calibration.md` and `docs/optimization-validation.md`.
+No native devices or human playtest data are available yet. Watch real sessions and retune; the constants are all at the `Perf.*` call
 sites in `lib/features/games/screens/`.
-
-### [ ] Show the grade in the games themselves
-The performance grade is currently only visible on mission task tiles. The
-per-game success dialogs still show raw score (and stars, which now derive from
-performance). Surfacing `PerformanceBadge` in the end-of-round dialogs would
-make the feedback consistent everywhere — ~48 dialogs, so worth a shared helper.
 
 ### [ ] Regenerate the launcher icons from the compressed source
 `assets/images/app_icon.png` was re-encoded (1342 KB → 441 KB, same 1024×1024

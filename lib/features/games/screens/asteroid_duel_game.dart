@@ -1,6 +1,10 @@
+import '../services/asteroid_duel_logic.dart';
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
+import '../widgets/game_learning_shell.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
 
@@ -23,7 +27,42 @@ class AsteroidDuelGame extends StatefulWidget {
 }
 
 class _AsteroidDuelGameState extends State<AsteroidDuelGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<AsteroidDuelGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<AsteroidDuelGame>, PuzzleSessionMixin<AsteroidDuelGame> {
+  bool _sessionReady = false;
+  @override String get sessionGameKey => 'asteroid_duel';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      '_totalAsteroids': _totalAsteroids,
+      '_remaining': _remaining,
+      '_maxPerTurn': _maxPerTurn,
+      '_isPlayerTurn': _isPlayerTurn,
+      '_winningPositions': _winningPositions,
+      '_optimalMoves': _optimalMoves,
+      '_moveHistory': _moveHistory.map((v0) => v0.toJson()).toList(),
+      '_selectedAsteroids': _selectedAsteroids.map((v0) => v0).toList()
+    };
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _totalAsteroids = state["_totalAsteroids"] as int;
+    _remaining = state["_remaining"] as int;
+    _maxPerTurn = state["_maxPerTurn"] as int;
+    _isPlayerTurn = state["_isPlayerTurn"] as bool;
+    _winningPositions = state["_winningPositions"] as int;
+    _optimalMoves = state["_optimalMoves"] as int;
+    _moveHistory..clear()..addAll((state["_moveHistory"] as List).map((v0) => _MoveRecord.fromJson(Map<String, dynamic>.from(v0 as Map))).toList());
+    _selectedAsteroids..clear()..addAll((state["_selectedAsteroids"] as List).map((v0) => v0 as int).toSet());
+    _isGenerating = false; _gameOver = false; if (!_isPlayerTurn) _aiTurn();
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   late AnimationController _removeController;
 
   DifficultyConfig? currentDifficulty;
@@ -65,14 +104,15 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     glowController.stop();
     successController.stop();
     pulseController.stop();
@@ -83,6 +123,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
   }
 
   void _generatePuzzle() {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     setState(() {
@@ -100,21 +141,10 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
 
     final grade = currentDifficulty!.grade;
 
-    if (grade <= 1) {
-      _totalAsteroids = _random.nextInt(5) + 8; // 8-12
-      _maxPerTurn = 3;
-    } else if (grade == 2) {
-      _totalAsteroids = _random.nextInt(6) + 12; // 12-17
-      _maxPerTurn = 3;
-    } else if (grade == 3) {
-      _totalAsteroids = _random.nextInt(6) + 16; // 16-21
-      _maxPerTurn = 4;
-    } else {
-      _totalAsteroids = _random.nextInt(8) + 18; // 18-25
-      _maxPerTurn = 4;
-    }
-
-    _remaining = _totalAsteroids;
+    final generated=generateAsteroidDuel(grade, widget.level, random: _random);
+_maxPerTurn=generated['_maxPerTurn'] as int;
+_remaining=generated['_remaining'] as int;
+_totalAsteroids=generated['_totalAsteroids'] as int;
 
     if (mounted) {
       setState(() {
@@ -172,7 +202,10 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
 
     // AI turn after a short delay
     setState(() => _isAiThinking = true);
-    Future.delayed(const Duration(milliseconds: 700), () {
+    Future.delayed(const Duration(milliseconds: 700), () async {
+      if (!mounted) return;
+      await GamePauseScope.of(context)?.waitUntilResumed();
+      if (!mounted) return;
       if (mounted && !_gameOver) {
         _aiTurn();
       }
@@ -219,14 +252,17 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
     _gameOver = true;
 
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
     int totalScore = baseScore + levelBonus;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'asteroid_duel',
       difficulty: widget.level,
       score: totalScore,
@@ -245,10 +281,13 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
   }
 
   void _handleLoss() {
-    HapticFeedback.heavyImpact();
+    AppHaptics.heavyImpact();
     _gameOver = true;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'asteroid_duel',
       difficulty: widget.level,
     ));
@@ -264,6 +303,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_isGenerating || currentDifficulty == null) {
@@ -608,7 +648,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -616,6 +656,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'asteroid_duel'),
                   const Icon(Icons.sports_kabaddi, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.asteroidDuelWinTitle,
@@ -657,7 +698,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
 
   Widget _buildLoseDialog() {
     final s = S.of(context)!;
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -665,6 +706,7 @@ class _AsteroidDuelGameState extends State<AsteroidDuelGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'asteroid_duel'),
             const Icon(Icons.sports_kabaddi, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(s.asteroidDuelLoseTitle,
@@ -760,6 +802,18 @@ class _AsteroidPainter extends CustomPainter {
 }
 
 class _MoveRecord {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+    'isPlayer': isPlayer,
+    'count': count,
+    'remainingAfter': remainingAfter
+  };
+  factory _MoveRecord.fromJson(Map<String, dynamic> json) => _MoveRecord(
+    isPlayer: json['isPlayer'] as bool,
+    count: json['count'] as int,
+    remainingAfter: json['remainingAfter'] as int
+  );
+
   final bool isPlayer;
   final int count;
   final int remainingAfter;

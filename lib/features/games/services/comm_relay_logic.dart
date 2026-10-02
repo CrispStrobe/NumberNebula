@@ -1,16 +1,39 @@
+import 'generator_random.dart';
 // lib/features/games/services/comm_relay_logic.dart
-import 'dart:math' as math;
 
 /// Cipher types supported by the Comm Relay game.
 enum CipherType { caesar, atbash, keyword }
 
 class CommRelayPuzzle {
+  /// Exact local-session snapshot, including mutable model state.
+  Map<String, dynamic> toJson() => {
+        'plainText': plainText,
+        'cipherText': cipherText,
+        'cipherType': cipherType.name,
+        'shiftAmount': (shiftAmount),
+        'keyword': (keyword),
+        'hintLetters':
+            hintLetters.entries.map((v0) => [v0.key, v0.value]).toList()
+      };
+  factory CommRelayPuzzle.fromJson(Map<String, dynamic> json) =>
+      CommRelayPuzzle(
+          plainText: json['plainText'] as String,
+          cipherText: json['cipherText'] as String,
+          cipherType: CipherType.values.byName(json['cipherType'] as String),
+          shiftAmount:
+              (json['shiftAmount'] == null ? null : json['shiftAmount'] as int),
+          keyword: (json['keyword'] == null ? null : json['keyword'] as String),
+          hintLetters: Map<String, String>.fromEntries(
+              (json['hintLetters'] as List)
+                  .map((v0) => MapEntry(v0[0] as String, v0[1] as String))));
+
   final String plainText;
   final String cipherText;
   final CipherType cipherType;
   final int? shiftAmount; // For Caesar cipher
   final String? keyword; // For keyword cipher
-  final Map<String, String> hintLetters; // Revealed letter mappings (cipher -> plain)
+  final Map<String, String>
+      hintLetters; // Revealed letter mappings (cipher -> plain)
 
   CommRelayPuzzle({
     required this.plainText,
@@ -88,16 +111,41 @@ class CommRelayPuzzle {
     required int level,
     required bool isGerman,
     int? seed,
+    CipherType? cipherTypeOverride,
   }) {
-    final random = math.Random(seed);
+    final random = generatorRandom(seed);
 
     final enWords = [
-      'STAR', 'MOON', 'SUN', 'ORBIT', 'COMET', 'MARS', 'VENUS',
-      'NOVA', 'NEBULA', 'ROCKET', 'PLANET', 'SATURN', 'EARTH', 'SOLAR',
+      'STAR',
+      'MOON',
+      'SUN',
+      'ORBIT',
+      'COMET',
+      'MARS',
+      'VENUS',
+      'NOVA',
+      'NEBULA',
+      'ROCKET',
+      'PLANET',
+      'SATURN',
+      'EARTH',
+      'SOLAR',
     ];
     final deWords = [
-      'STERN', 'MOND', 'SONNE', 'ORBIT', 'KOMET', 'MARS', 'VENUS',
-      'NOVA', 'NEBEL', 'RAKETE', 'PLANET', 'SATURN', 'ERDE', 'SOLAR',
+      'STERN',
+      'MOND',
+      'SONNE',
+      'ORBIT',
+      'KOMET',
+      'MARS',
+      'VENUS',
+      'NOVA',
+      'NEBEL',
+      'RAKETE',
+      'PLANET',
+      'SATURN',
+      'ERDE',
+      'SOLAR',
     ];
 
     final enSentences = [
@@ -156,7 +204,9 @@ class CommRelayPuzzle {
       );
     } else {
       // Grade 3-4: Atbash or keyword cipher with hint letters
-      final useAtbash = random.nextBool();
+      final useAtbash = cipherTypeOverride == null
+          ? random.nextBool()
+          : cipherTypeOverride == CipherType.atbash;
       final sentence = sentences[random.nextInt(sentences.length)];
 
       if (useAtbash) {
@@ -164,7 +214,8 @@ class CommRelayPuzzle {
 
         // Reveal some hint letters
         final hints = <String, String>{};
-        final uniqueLetters = sentence.replaceAll(' ', '').split('').toSet().toList();
+        final uniqueLetters =
+            sentence.replaceAll(' ', '').split('').toSet().toList();
         uniqueLetters.shuffle(random);
         final hintCount = (uniqueLetters.length * 0.3).ceil();
         for (int i = 0; i < hintCount && i < uniqueLetters.length; i++) {
@@ -186,7 +237,8 @@ class CommRelayPuzzle {
         final cipher = _encryptKeyword(sentence, kw);
 
         final hints = <String, String>{};
-        final uniqueLetters = sentence.replaceAll(' ', '').split('').toSet().toList();
+        final uniqueLetters =
+            sentence.replaceAll(' ', '').split('').toSet().toList();
         uniqueLetters.shuffle(random);
         final hintCount = (uniqueLetters.length * 0.3).ceil();
         for (int i = 0; i < hintCount && i < uniqueLetters.length; i++) {

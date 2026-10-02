@@ -2,18 +2,20 @@
 // lib/features/games/services/starloader_level_manager.dart:
 
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show compute;
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/services/profile_preferences.dart';
 import '../models/starloader_level_model.dart';
 import 'starloader_level_generator.dart';
 import 'sokoban_generator.dart' as sokoban;
 import '../screens/star_loader_game.dart';
 
 class StarLoaderLevelManager {
-  static final StarLoaderLevelManager _instance = StarLoaderLevelManager._internal();
+  static final StarLoaderLevelManager _instance =
+      StarLoaderLevelManager._internal();
   factory StarLoaderLevelManager() => _instance;
   StarLoaderLevelManager._internal();
 
@@ -34,15 +36,18 @@ class StarLoaderLevelManager {
 
   final Set<String> _playedLevelIds = {};
   bool _initialized = false;
+  String? _historyPlayer;
   File? _localFile;
 
   /// 1. INITIALIZE: ONLY Load Local File. Ignore Assets.
   Future<void> initialize() async {
-    if (_initialized) return;
+    if (_initialized && _historyPlayer == ProfilePreferences.activeId) return;
+    if (_historyPlayer != ProfilePreferences.activeId) _playedLevelIds.clear();
+    _historyPlayer = ProfilePreferences.activeId;
 
     // A. Load Played History (so we don't repeat levels in this session)
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await ProfilePreferences.getInstance();
       final history = prefs.getStringList('starloader_played_ids');
       if (history != null) _playedLevelIds.addAll(history);
     } catch (e) {
@@ -60,7 +65,8 @@ class StarLoaderLevelManager {
         if (content.isNotEmpty) {
           final jsonMap = jsonDecode(content);
           _database = LevelDatabase.fromJson(jsonMap);
-          print('✅ [Manager] Loaded Local DB: ${_database.levels.length} levels.');
+          print(
+              '✅ [Manager] Loaded Local DB: ${_database.levels.length} levels.');
         } else {
           print('🆕 [Manager] Local DB file exists but is empty.');
         }
@@ -87,14 +93,27 @@ class StarLoaderLevelManager {
   /// asset is missing or unreadable.
   Future<void> _mergeBundledLevels() async {
     try {
-      final raw = await rootBundle.loadString('assets/data/starloader_levels.json');
+      final raw =
+          await rootBundle.loadString('assets/data/starloader_levels.json');
       final bundled = LevelDatabase.fromJson(jsonDecode(raw));
-      final existing = _database.levels.map((l) => l.contentHash).toSet();
+      _database.retiredLevelIds.addAll(bundled.retiredLevelIds);
+      final existing = {
+        for (int i = 0; i < _database.levels.length; i++)
+          _database.levels[i].contentHash: i,
+      };
       var added = 0;
       for (final lvl in bundled.levels) {
-        if (existing.add(lvl.contentHash)) {
+        final index = existing[lvl.contentHash];
+        if (index == null) {
+          existing[lvl.contentHash] = _database.levels.length;
           _database.levels.add(lvl);
           added++;
+        } else if (_database.levels[index].optimalMoves != lvl.optimalMoves) {
+          // Refresh corrected solver metadata while keeping IDs and ratings.
+          _database.levels[index] = LevelEntry.fromJson({
+            ..._database.levels[index].toJson(),
+            'optimalMoves': lvl.optimalMoves,
+          });
         }
       }
       print('📦 [Manager] Merged $added bundled levels '
@@ -109,7 +128,7 @@ class StarLoaderLevelManager {
   /// debug settings apply to the very next level.
   Future<void> _refreshGeneratorSettings() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await ProfilePreferences.getInstance();
       _useSokobanGenerator = prefs.getBool(prefUseSokobanGen) ?? true;
       _preferPregenerated = prefs.getBool(prefPreferPregenerated) ?? true;
     } catch (e) {
@@ -134,11 +153,13 @@ class StarLoaderLevelManager {
     // 3. Must NOT have been rated (Rating = user is done with it)
     final candidates = !_preferPregenerated
         ? <LevelEntry>[]
-        : _database.levels.where((l) =>
-            l.difficulty == difficultyKey &&
-            !_playedLevelIds.contains(l.id) &&
-            l.ratingCount == 0
-          ).toList();
+        : _database.levels
+            .where((l) =>
+                l.difficulty == difficultyKey &&
+                !_database.retiredLevelIds.contains(l.id) &&
+                !_playedLevelIds.contains(l.id) &&
+                l.ratingCount == 0)
+            .toList();
 
     if (candidates.isNotEmpty) {
       // Sort by Rating (High to Low)
@@ -148,15 +169,20 @@ class StarLoaderLevelManager {
       // If we have few levels, force variety (random).
       // If we have a clear 5-star winner, pick it.
       bool pickBest = candidates.first.avgRating > 0;
-      if (candidates.length < 3) pickBest = false; // Force random if pool is tiny
+      if (candidates.length < 3) {
+        pickBest = false; // Force random if pool is tiny
+      }
 
       if (pickBest) {
-         selectedEntry = candidates.first;
-         print('⭐ [Manager] Selected highest rated level (${selectedEntry.avgRating} stars).');
+        selectedEntry = candidates.first;
+        print(
+            '⭐ [Manager] Selected highest rated level (${selectedEntry.avgRating} stars).');
       } else {
-         int poolSize = (candidates.length / 2).ceil().clamp(1, candidates.length);
-         selectedEntry = candidates[Random().nextInt(poolSize)];
-         print('🎲 [Manager] Selected random level from top $poolSize candidates.');
+        int poolSize =
+            (candidates.length / 2).ceil().clamp(1, candidates.length);
+        selectedEntry = candidates[Random().nextInt(poolSize)];
+        print(
+            '🎲 [Manager] Selected random level from top $poolSize candidates.');
       }
     }
 
@@ -167,11 +193,37 @@ class StarLoaderLevelManager {
       print('🔧 [Manager] $why. Generating new level '
           '(Grade $grade, $gen generator)...');
 
-      selectedEntry = _generateRealTimeEntry(grade, difficultyLevel);
-      
-      // SAVE TO DB IMMEDIATELY
-      _database.levels.add(selectedEntry);
-      await _saveDatabase();
+      final generated = await compute<Map<String, dynamic>, LevelEntry>(
+          _generateStarLoaderEntry, {
+        'grade': grade,
+        'level': difficultyLevel,
+        'sokoban': _useSokobanGenerator,
+      });
+      final minimum = sokoban
+          .PARAMS[_gradeToSokobanDifficulty(grade, difficultyLevel)]!.minPushes;
+      final fallbackPool = _database.levels
+          .where((entry) =>
+              entry.difficulty == 'grade_${grade.clamp(1, 4)}' &&
+              !_database.retiredLevelIds.contains(entry.id) &&
+              entry.optimalMoves >= minimum &&
+              !_playedLevelIds.contains(entry.id))
+          .toList()
+        ..sort((a, b) => a.optimalMoves.compareTo(b.optimalMoves));
+      if (_preferPregenerated &&
+          _useSokobanGenerator &&
+          generated.optimalMoves < minimum &&
+          fallbackPool.isNotEmpty) {
+        // A bounded search may return a weaker best effort. Preserve the
+        // existing push target using a verified board from the bundled pool.
+        selectedEntry =
+            fallbackPool[Random().nextInt(min(3, fallbackPool.length))];
+        print('📦 [Manager] Search below target; selected verified fallback '
+            'with ${selectedEntry.optimalMoves} pushes (minimum $minimum).');
+      } else {
+        selectedEntry = generated;
+        _database.levels.add(selectedEntry);
+        await _saveDatabase();
+      }
       print('💾 [Manager] New level generated and written to JSON file.');
     }
 
@@ -184,10 +236,10 @@ class StarLoaderLevelManager {
   /// 3. RATE LEVEL: Update Memory -> Write to File
   Future<void> rateLevel(String levelId, int stars) async {
     final index = _database.levels.indexWhere((l) => l.id == levelId);
-    
+
     if (index != -1) {
       final level = _database.levels[index];
-      
+
       // Update stats
       final newCount = level.ratingCount + 1;
       final totalScore = (level.avgRating * level.ratingCount) + stars;
@@ -202,13 +254,14 @@ class StarLoaderLevelManager {
         roomStructure: level.roomStructure,
         roomState: level.roomState,
         optimalMoves: level.optimalMoves,
-        avgRating: newAvg,      // Updated
-        ratingCount: newCount,  // Updated
+        avgRating: newAvg, // Updated
+        ratingCount: newCount, // Updated
       );
 
       // WRITE TO FILE
       await _saveDatabase();
-      print('⭐ [Manager] Rating saved to file. Level $levelId is now ${newAvg.toStringAsFixed(1)} stars.');
+      print(
+          '⭐ [Manager] Rating saved to file. Level $levelId is now ${newAvg.toStringAsFixed(1)} stars.');
     } else {
       print('⚠️ [Manager] Level $levelId not found in DB to rate.');
     }
@@ -219,7 +272,8 @@ class StarLoaderLevelManager {
     if (_localFile == null) return;
     try {
       // Pretty print for readability if you open the file manually
-      final jsonStr = const JsonEncoder.withIndent('  ').convert(_database.toJson());
+      final jsonStr =
+          const JsonEncoder.withIndent('  ').convert(_database.toJson());
       await _localFile!.writeAsString(jsonStr);
     } catch (e) {
       print('❌ [Manager] Failed to save JSON file: $e');
@@ -229,9 +283,11 @@ class StarLoaderLevelManager {
   /// 5. DEV TOOL: Export for Production
   /// Call this when you are happy with your levels and want to ship them.
   void printDatabaseForExport() {
-    print('\n📋 [Manager] --- COPY CONTENT BELOW TO assets/data/starloader_levels.json ---');
+    print(
+        '\n📋 [Manager] --- COPY CONTENT BELOW TO assets/data/starloader_levels.json ---');
     print(jsonEncode(_database.toJson()));
-    print('📋 [Manager] ----------------------------------------------------------------\n');
+    print(
+        '📋 [Manager] ----------------------------------------------------------------\n');
   }
 
   // --- Internal Helpers ---
@@ -239,7 +295,7 @@ class StarLoaderLevelManager {
   void _printDiagnostics() {
     int totalLevels = _database.levels.length;
     int ratedLevels = _database.levels.where((l) => l.ratingCount > 0).length;
-    
+
     Map<String, int> levelsPerGrade = {};
     for (var l in _database.levels) {
       levelsPerGrade[l.difficulty] = (levelsPerGrade[l.difficulty] ?? 0) + 1;
@@ -309,10 +365,27 @@ class StarLoaderLevelManager {
   /// LEGACY generator (kept for A/B comparison via the debug toggle).
   LevelEntry _generateLegacyEntry(int grade, int level) {
     int dimX, dimY, numBoxes, minPushes;
-    if (grade == 1) { dimX = 7; dimY = 7; numBoxes = 2; minPushes = 6; }
-    else if (grade == 2) { dimX = 8; dimY = 8; numBoxes = 3; minPushes = 9; }
-    else if (grade == 3) { dimX = 10; dimY = 10; numBoxes = 3; minPushes = 13; }
-    else { dimX = 12; dimY = 11; numBoxes = 4; minPushes = 17; }
+    if (grade == 1) {
+      dimX = 7;
+      dimY = 7;
+      numBoxes = 2;
+      minPushes = 6;
+    } else if (grade == 2) {
+      dimX = 8;
+      dimY = 8;
+      numBoxes = 3;
+      minPushes = 9;
+    } else if (grade == 3) {
+      dimX = 10;
+      dimY = 10;
+      numBoxes = 3;
+      minPushes = 13;
+    } else {
+      dimX = 12;
+      dimY = 11;
+      numBoxes = 4;
+      minPushes = 17;
+    }
     // Scale box interaction with level progression (capped so generation stays
     // feasible). More boxes => more forced ordering => harder puzzles.
     numBoxes += (level ~/ 4).clamp(0, 2);
@@ -328,7 +401,8 @@ class StarLoaderLevelManager {
     return LevelEntry(
       id: 'gen_${DateTime.now().millisecondsSinceEpoch}',
       difficulty: 'grade_$grade',
-      dimX: dimX, dimY: dimY,
+      dimX: dimX,
+      dimY: dimY,
       roomStructure: genResult.roomStructure,
       roomState: genResult.roomState,
       optimalMoves: genResult.optimalMoves,
@@ -337,7 +411,7 @@ class StarLoaderLevelManager {
 
   Future<void> _markAsPlayed(String id) async {
     _playedLevelIds.add(id);
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await ProfilePreferences.getInstance();
     prefs.setStringList('starloader_played_ids', _playedLevelIds.toList());
   }
 
@@ -371,21 +445,26 @@ class StarLoaderLevelManager {
       layout.add(line);
     }
     return LevelData(
-      id: entry.id,
-      layout: layout, 
-      optimalMoves: entry.optimalMoves
-    );
+        id: entry.id, layout: layout, optimalMoves: entry.optimalMoves);
   }
-  
+
   // Reset method if you want to clear local data during dev
   Future<void> clearLocalDatabase() async {
     if (_localFile != null && await _localFile!.exists()) {
       await _localFile!.delete();
       _database = LevelDatabase.empty();
       _playedLevelIds.clear();
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await ProfilePreferences.getInstance();
       await prefs.remove('starloader_played_ids');
       print('🧹 [Manager] Local Database and History Cleared.');
     }
   }
+}
+
+// Keep native generation off the UI isolate; send only settings and level data.
+LevelEntry _generateStarLoaderEntry(Map<String, dynamic> args) {
+  final generator = StarLoaderLevelManager();
+  generator._useSokobanGenerator = args['sokoban'] as bool;
+  return generator._generateRealTimeEntry(
+      args['grade'] as int, args['level'] as int);
 }

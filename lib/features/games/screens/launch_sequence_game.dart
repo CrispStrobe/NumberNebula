@@ -1,5 +1,7 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
+import '../mixins/puzzle_session_mixin.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
 
@@ -16,14 +18,58 @@ import '../services/launch_sequence_logic.dart';
 class LaunchSequenceGame extends StatefulWidget {
   final int grade;
   final int level;
-  const LaunchSequenceGame({super.key, required this.grade, required this.level});
+  const LaunchSequenceGame(
+      {super.key, required this.grade, required this.level});
 
   @override
   State<LaunchSequenceGame> createState() => _LaunchSequenceGameState();
 }
 
 class _LaunchSequenceGameState extends State<LaunchSequenceGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<LaunchSequenceGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<LaunchSequenceGame>,
+        PuzzleSessionMixin<LaunchSequenceGame> {
+  bool _sessionReady = false;
+  @override
+  String get sessionGameKey => 'launch_sequence';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating) return null;
+    return {
+      'puzzle': (puzzle?.toJson()),
+      'sequence': sequence.map((v0) => v0).toList(),
+      'swapCount': swapCount,
+      '_selectedIndex': (_selectedIndex)
+    };
+  }
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    puzzle = (state["puzzle"] == null
+        ? null
+        : LaunchSequencePuzzle.fromJson(
+            Map<String, dynamic>.from(state["puzzle"] as Map)));
+    sequence = (state["sequence"] as List).map((v0) => v0 as int).toList();
+    swapCount = state["swapCount"] as int;
+    _selectedIndex = (state["_selectedIndex"] == null
+        ? null
+        : state["_selectedIndex"] as int);
+    _isGenerating = false;
+    _won = false;
+  }
+
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) {
+      await Future<void>.sync(_generatePuzzle);
+    }
+    if (mounted) setState(() => _sessionReady = true);
+  }
+
   late AnimationController _launchController;
   late Animation<double> _launchAnimation;
 
@@ -55,25 +101,29 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    _launchAnimation = CurvedAnimation(parent: _launchController, curve: Curves.easeInExpo);
+    _launchAnimation =
+        CurvedAnimation(parent: _launchController, curve: Curves.easeInExpo);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     _launchController.dispose();
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
   void _generatePuzzle() {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     setState(() {
@@ -85,24 +135,11 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
       _launchController.reset();
     });
 
-    final grade = currentDifficulty!.grade;
-    int itemCount;
-    int minInversions;
-
-    if (grade <= 1) {
-      itemCount = 4;
-      minInversions = 2;
-    } else if (grade <= 2) {
-      itemCount = 5;
-      minInversions = 3;
-    } else {
-      itemCount = (6 + currentDifficulty!.level ~/ 5).clamp(6, 8);
-      minInversions = (4 + currentDifficulty!.level ~/ 3).clamp(4, 15);
-    }
-
+    final config = LaunchSequenceGenerationConfig(
+        currentDifficulty!.grade, currentDifficulty!.level);
     puzzle = LaunchSequencePuzzle.generate(
-      itemCount: itemCount,
-      minInversions: minInversions,
+      itemCount: config.itemCount,
+      minInversions: config.inversions,
     );
 
     setState(() {
@@ -115,7 +152,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
     if (_won) return;
     if (oldIndex == newIndex) return;
 
-    HapticFeedback.selectionClick();
+    AppHaptics.selectionClick();
 
     setState(() {
       final item = sequence.removeAt(oldIndex);
@@ -132,7 +169,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
   void _onItemTap(int index) {
     if (_won) return;
 
-    HapticFeedback.selectionClick();
+    AppHaptics.selectionClick();
 
     if (_selectedIndex == null) {
       setState(() {
@@ -167,7 +204,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
 
   void _handleWin() {
     _won = true;
-    HapticFeedback.lightImpact();
+    AppHaptics.lightImpact();
 
     // Start launch animation
     _launchController.forward(from: 0.0);
@@ -175,17 +212,21 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
     final optimal = puzzle!.optimalSwaps;
-    int efficiencyBonus = optimal > 0
-        ? ((optimal / swapCount.clamp(1, 999)) * 100).round()
-        : 50;
+    int efficiencyBonus =
+        optimal > 0 ? ((optimal / swapCount.clamp(1, 999)) * 100).round() : 50;
     int totalScore = baseScore + levelBonus + efficiencyBonus;
 
+    finishPuzzleSession();
+
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      gameType: 'launch_sequence',
-      difficulty: widget.level,
-      score: totalScore,
-      performance: Perf.fromMoves(swapCount, optimal),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'launch_sequence',
+          difficulty: widget.level,
+          score: totalScore,
+          performance: Perf.fromMoves(swapCount, optimal),
+          movesUsed: swapCount,
+          optimalMoves: optimal,
+        ));
 
     successController.forward(from: 0.0);
 
@@ -203,6 +244,9 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
 
   @override
   Widget build(BuildContext context) {
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
 
     if (_isGenerating || puzzle == null) {
@@ -233,7 +277,8 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
                 onBack: () => Navigator.of(context).pop(),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
                   s.launchSequenceInstructions,
                   style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
@@ -272,8 +317,10 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
               borderRadius: BorderRadius.circular(30),
               border: Border.all(
                 color: isOptimal
-                    ? SpaceTheme.alienGreen.withValues(alpha: glowAnimation.value)
-                    : SpaceTheme.starYellow.withValues(alpha: glowAnimation.value),
+                    ? SpaceTheme.alienGreen
+                        .withValues(alpha: glowAnimation.value)
+                    : SpaceTheme.starYellow
+                        .withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -312,19 +359,21 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(S.of(context)!.launchSequenceTarget, style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+          Text(S.of(context)!.launchSequenceTarget,
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
           ...puzzle!.target.map((v) => Container(
-            margin: const EdgeInsets.symmetric(horizontal: 2),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              '$v',
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white70),
-            ),
-          )),
+                margin: const EdgeInsets.symmetric(horizontal: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '$v',
+                  style: SpaceTheme.bodyStyle
+                      .copyWith(fontSize: 12, color: Colors.white70),
+                ),
+              )),
         ],
       ),
     );
@@ -343,10 +392,12 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF253A5E), // brighter to contrast with SpaceBackground
+              color: const Color(
+                  0xFF253A5E), // brighter to contrast with SpaceBackground
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.starYellow.withValues(alpha: 0.4 + glowAnimation.value * 0.3),
+                color: SpaceTheme.starYellow
+                    .withValues(alpha: 0.4 + glowAnimation.value * 0.3),
                 width: 2,
               ),
               boxShadow: [
@@ -369,7 +420,8 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
                           .animate(CurvedAnimation(
                             parent: animation,
                             curve: Curves.easeInOut,
-                          )).value;
+                          ))
+                          .value;
                       return Transform.scale(
                         scale: scale,
                         child: child,
@@ -484,7 +536,8 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
         builder: (context, child) {
           // Stagger launch per ship index
           final delay = index / sequence.length;
-          final progress = ((_launchAnimation.value - delay) / (1.0 - delay)).clamp(0.0, 1.0);
+          final progress = ((_launchAnimation.value - delay) / (1.0 - delay))
+              .clamp(0.0, 1.0);
           return Transform.translate(
             offset: Offset(0, -progress * 300),
             child: Opacity(
@@ -507,7 +560,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -515,18 +568,29 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.rocket_launch, size: 64, color: SpaceTheme.starYellow),
+                  RoundSummary(gameKey: 'launch_sequence'),
+                  const Icon(Icons.rocket_launch,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  Text(s.launchSequenceWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(s.launchSequenceWinTitle,
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
-                  Text(s.launchSequenceWinDesc(swapCount, puzzle!.optimalSwaps, bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  Text(
+                      s.launchSequenceWinDesc(
+                          swapCount, puzzle!.optimalSwaps, bonusScore),
+                      style: SpaceTheme.bodyStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
                         autofocus: true,
-                        onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _generatePuzzle();
+                        },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(s.playAgain),
                       ),

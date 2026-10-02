@@ -1,7 +1,9 @@
+import 'package:space_math_academy/core/services/app_haptics.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import '../mixins/game_animations_mixin.dart';
+import '../mixins/puzzle_session_mixin.dart';
 
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
@@ -23,7 +25,7 @@ class VaultCrackerGame extends StatefulWidget {
 }
 
 class _VaultCrackerGameState extends State<VaultCrackerGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<VaultCrackerGame> {
+    with TickerProviderStateMixin, GameAnimationsMixin<VaultCrackerGame>, PuzzleSessionMixin<VaultCrackerGame> {
 
   VaultCrackerPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
@@ -37,6 +39,22 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   List<List<int>> _guessHistory = [];
   static const int _maxGuesses = 6;
 
+  @override String get sessionGameKey => 'vault_cracker';
+  @override int get sessionGrade => widget.grade;
+  @override int get sessionLevel => widget.level;
+  @override Map<String, dynamic>? capturePuzzleSession() {
+    if (puzzle == null || _isGenerating) return null;
+    return {'puzzle': puzzle!.toJson(), 'answer': _answer, 'guesses': _guessHistory};
+  }
+  @override void applyPuzzleSession(Map<String, dynamic> state) {
+    puzzle = VaultCrackerPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle']));
+    _answer = List<int?>.from(state['answer']); _guessHistory = (state['guesses'] as List).map((v) => List<int>.from(v)).toList(); _gameOver = false;
+    _isGenerating = false;
+  }
+  Future<void> _restoreOrGenerate() async {
+    if (!await restorePuzzleSession() && mounted) _generatePuzzle();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -48,14 +66,15 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level);
-        _generatePuzzle();
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        _restoreOrGenerate();
       }
     });
   }
 
   @override
   void dispose() {
+    disposePuzzleSession();
     glowController.stop();
     successController.stop();
     disposeGameAnimations(usePulse: false);
@@ -63,6 +82,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   }
 
   void _generatePuzzle() {
+    beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     setState(() {
@@ -117,7 +137,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
       _handleLoss();
     } else {
       // Reset input for next attempt
-      HapticFeedback.mediumImpact();
+      AppHaptics.mediumImpact();
       setState(() {
         _answer = List.filled(puzzle!.codeLength, null);
       });
@@ -140,7 +160,8 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   }
 
   void _handleWin() {
-    HapticFeedback.lightImpact();
+    finishPuzzleSession();
+    AppHaptics.lightImpact();
     _gameOver = true;
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
@@ -149,6 +170,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
     int totalScore = baseScore + levelBonus + guessBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
+      skillLevel: widget.grade,
       gameType: 'vault_cracker',
       difficulty: widget.level,
       score: totalScore,
@@ -156,6 +178,9 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
       // player was guessing rather than reasoning.
       performance: Perf.fromMoves(
           _guessHistory.length, (_maxGuesses / 2).ceil()),
+
+      movesUsed: _guessHistory.length,
+      optimalMoves: (_maxGuesses / 2).ceil(),
     ));
 
     successController.forward(from: 0.0);
@@ -170,10 +195,12 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   }
 
   void _handleLoss() {
-    HapticFeedback.heavyImpact();
+    finishPuzzleSession();
+    AppHaptics.heavyImpact();
     _gameOver = true;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+      skillLevel: widget.grade,
       gameType: 'vault_cracker',
       difficulty: widget.level,
       progress: _bestGuessFraction(),
@@ -535,7 +562,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
       builder: (context, child) {
         return Transform.scale(
           scale: successAnimation.value,
-          child: Dialog(
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -543,6 +570,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  RoundSummary(gameKey: 'vault_cracker'),
                   const Icon(Icons.lock_open,
                       size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
@@ -587,7 +615,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
 
   Widget _buildLoseDialog() {
     final s = S.of(context)!;
-    return Dialog(
+    return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -595,6 +623,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+                  RoundSummary(gameKey: 'vault_cracker'),
             const Icon(Icons.lock, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(s.vaultCrackerLoseTitle,

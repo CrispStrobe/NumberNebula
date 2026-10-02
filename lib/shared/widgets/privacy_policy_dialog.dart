@@ -88,15 +88,20 @@ class PrivacyPolicyDialog extends StatelessWidget {
                             'sound on/off, custom problem ranges)\n'
                             '• A rolling 50-entry crash log, written only '
                             'when the app actually crashes\n\n'
-                            'None of this data identifies your child. No '
-                            'name, no email, no birthdate, no device ID, '
-                            'no IP address is collected or stored.',
+                            '• Player names or nicknames you choose, stored '
+                            'only on this device with separate learning progress\n'
+                            '• Recent round history and unfinished puzzle '
+                            'boards, including moves and hints\n\n'
+                            'Player names are optional; a nickname works. '
+                            'No email, birthdate, device ID or IP address '
+                            'is requested or stored. This data is not '
+                            'transmitted to us.',
                       ),
                       _PolicySection(
                         title: 'Network',
                         body:
                             'This app makes no automatic network calls. '
-                            'It does not phone home. The vocabulary content '
+                            'It does not phone home. The puzzle content '
                             'is bundled inside the app at install time, not '
                             'fetched.\n\n'
                             'The only outbound network requests happen if '

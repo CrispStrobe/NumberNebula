@@ -16,6 +16,10 @@ import '../../../core/services/sri_service.dart';
 import '../../../core/theme/space_theme.dart';
 import '../../../generated/l10n.dart';
 import '../providers/game_provider.dart';
+import '../models/learning_round.dart';
+import '../game_registry.dart';
+import '../../missions/data/game_pool.dart';
+import 'karteikasten_screen.dart';
 
 const _kParentPinKey = 'parent_pin';
 const _kDefaultParentPin = '1234'; // Documented default; parents can change.
@@ -54,7 +58,7 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
       });
     } else {
       setState(() {
-        _pinError = 'Falscher Code';
+        _pinError = S.of(context)!.parentDashboardWrongPin;
       });
     }
   }
@@ -173,6 +177,8 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        _buildLearningAdvice(gp, sri),
+        const SizedBox(height: 16),
         _Section(
           title: S.of(context)!.parentDashboardMathMastery,
           children: [
@@ -236,6 +242,52 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
         ),
       ],
     );
+  }
+
+  Widget _buildLearningAdvice(GameProvider gp, SriService sri) {
+    final s = S.of(context)!;
+    final now = DateTime.now();
+    final recent = gp.roundHistory.where((r) => !r.playedAt.isBefore(now.subtract(const Duration(days: 7)))).toList();
+    final trends = weeklyTrends(gp.roundHistory, now);
+    final improvement = trends.where((t) => t.change >= 0.05).firstOrNull;
+    // Suggest a recently difficult game only after repeated measured rounds.
+    final groups = <String, List<LearningRound>>{};
+    for (final round in recent) {
+      if (round.performance != null && round.grade == gp.effectiveGrade && missionGameKeys.contains(round.gameKey)) {
+        (groups[round.gameKey] ??= []).add(round);
+      }
+    }
+    String? practiceGame;
+    double lowest = 0.70;
+    for (final entry in groups.entries) {
+      if (entry.value.length < 3) continue;
+      final mean = entry.value.fold<double>(0, (sum, r) => sum + r.performance!) / entry.value.length;
+      if (mean < lowest) { lowest = mean; practiceGame = entry.key; }
+    }
+    final selected = practiceGame;
+    return _Section(title: s.learningThisWeek, children: [
+      Text(s.learningRounds(recent.length), style: SpaceTheme.bodyStyle),
+      const SizedBox(height: 8),
+      Text(improvement == null ? s.learningTrendNeedsData :
+        s.learningImproved(gameTitleFor(s, improvement.gameKey), improvement.difficulty,
+          (improvement.change * 100).round(), improvement.recentAttempts, improvement.previousAttempts),
+        style: SpaceTheme.bodyStyle),
+      const SizedBox(height: 16),
+      Text(s.learningNextPractice, style: SpaceTheme.titleStyle),
+      if (sri.getAvailableReviewCount() > 0) ...[
+        Text(s.learningReviewReason(sri.getAvailableReviewCount()), style: SpaceTheme.bodyStyle),
+        TextButton.icon(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const KarteikastenScreen())),
+          icon: const Icon(Icons.menu_book), label: Text(s.learningStartPractice)),
+      ] else if (selected != null) ...[
+        Text(s.learningPracticeReason(gameTitleFor(s, selected), groups[selected]!.length), style: SpaceTheme.bodyStyle),
+        TextButton.icon(onPressed: () {
+          final builder = gameBuilderFor(selected);
+          if (builder == null) return;
+          Navigator.of(context).push(MaterialPageRoute(builder: (_) => builder(gp.effectiveGrade,
+            gp.gameProgress[selected] ?? 1)));
+        }, icon: const Icon(Icons.play_arrow), label: Text(s.learningStartPractice)),
+      ] else Text(s.learningExploreReason, style: SpaceTheme.bodyStyle),
+    ]);
   }
 
   Future<void> _changePin() async {
@@ -311,28 +363,20 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
   String _skillLabel(SkillCategory s) {
     switch (s) {
       case SkillCategory.arithmetic:
-        return 'Arithmetik';
+        return S.of(context)!.skillArithmetic;
       case SkillCategory.spatial2d:
-        return 'Räumlich (2D)';
+        return S.of(context)!.skillSpatial2d;
       case SkillCategory.spatial3d:
-        return 'Räumlich (3D)';
+        return S.of(context)!.skillSpatial3d;
       case SkillCategory.logicDeduction:
-        return 'Logik';
+        return S.of(context)!.skillLogicDeduction;
       case SkillCategory.patternRecognition:
-        return 'Mustererkennung';
+        return S.of(context)!.skillPatternRecognition;
     }
   }
 
-  String _gameLabel(String key) {
-    // Best-effort humanization. If you want full localized names,
-    // pull them from S.of(context).
-    return key
-        .replaceAll('_', ' ')
-        .split(' ')
-        .map((w) =>
-            w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
-        .join(' ');
-  }
+  String _gameLabel(String key) => gameTitleFor(S.of(context)!, key);
+
 }
 
 class _Section extends StatelessWidget {
