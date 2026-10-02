@@ -11,6 +11,14 @@ on:
         description: 'Measure with the existing Reduce motion setting enabled'
         default: false
         type: boolean
+      full_suite:
+        description: 'Run both smoke and performance specs without retries (preview diagnostics)'
+        default: false
+        type: boolean
+      protected_preview:
+        description: 'Suppress the preview toolbar (disables HTTP cache; leave off for production measurements)'
+        default: false
+        type: boolean
 permissions:
   contents: read
 jobs:
@@ -36,7 +44,14 @@ jobs:
           PERF_REDUCE_MOTION: ${{ inputs.reduce_motion }}
           VERCEL_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           VERCEL_BYPASS_HOST: ${{ vars.VERCEL_BYPASS_HOST }}
-        run: npx playwright test tests/performance.spec.mjs
+          VERCEL_PREVIEW: ${{ inputs.protected_preview }}
+          FULL_SUITE: ${{ inputs.full_suite }}
+        run: |
+          if [ "$FULL_SUITE" = true ]; then
+            npx playwright test --retries=0
+          else
+            npx playwright test tests/performance.spec.mjs --retries=0
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
