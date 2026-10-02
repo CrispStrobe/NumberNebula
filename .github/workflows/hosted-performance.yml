@@ -1,0 +1,42 @@
+name: Hosted browser performance
+on:
+  workflow_dispatch:
+    inputs:
+      site_url:
+        description: 'Public Vercel or GitHub Pages URL (including its project path)'
+        required: true
+        default: 'https://numbernebula.vercel.app/'
+        type: string
+permissions:
+  contents: read
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: tool/web_live_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tool/web_live_test/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox
+      - name: Measure the hosted app
+        env:
+          CI: 'true'
+          BASE_URL: ${{ inputs.site_url }}
+          VERCEL_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          VERCEL_BYPASS_HOST: ${{ vars.VERCEL_BYPASS_HOST }}
+        run: npx playwright test tests/performance.spec.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hosted-browser-performance
+          path: |
+            tool/web_live_test/playwright-report
+            tool/web_live_test/test-results
+          retention-days: 14

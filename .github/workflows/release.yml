@@ -46,7 +46,6 @@ env:
   BUNDLE_ID: com.crispstrobe.numbernebula
   PROFILE_NAME: NumberNebula AppStore CI
   MAC_PROFILE_NAME: NumberNebula MacAppStore CI
-  FLUTTER_VERSION: '3.47.5'
 
 jobs:
   build-upload:
@@ -54,6 +53,9 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+
+      - name: Read Flutter SDK pin
+        run: echo "FLUTTER_VERSION=$(cat .flutter-version)" >> "$GITHUB_ENV"
 
       - uses: subosito/flutter-action@v2
         with:
@@ -199,6 +201,9 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+
+      - name: Read Flutter SDK pin
+        run: echo "FLUTTER_VERSION=$(cat .flutter-version)" >> "$GITHUB_ENV"
 
       - uses: subosito/flutter-action@v2
         with:
