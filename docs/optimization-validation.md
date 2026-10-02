@@ -247,6 +247,9 @@ opaque sandbox iframe regression checks that child frames receive no probe and
 produce no storage errors. App storage failures and renderer errors remain
 fatal. The hosted workflow's `full_suite` input runs both specs without retries
 to catch preview setup failures on their first attempt.
+Toolbar suppression is explicitly enabled for PR deployments or the hosted
+workflow's `protected_preview` input; a public `.vercel.app` hostname alone
+does not enable routing or disable caching.
 
 ## Shared VPS resource policy
 

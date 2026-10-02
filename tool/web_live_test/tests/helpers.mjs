@@ -13,6 +13,7 @@ export const test = base.extend({
     const hostname = new URL(baseURL).hostname;
     const protectedPreview = Boolean(process.env.VERCEL_BYPASS &&
       (hostname.endsWith('.vercel.app') || hostname === process.env.VERCEL_BYPASS_HOST));
+    const suppressToolbar = protectedPreview && process.env.VERCEL_PREVIEW === 'true';
     if (protectedPreview) {
       const response = await context.request.get(baseURL, {
         headers: {
@@ -26,7 +27,7 @@ export const test = base.extend({
       // Playwright routing disables HTTP cache in protected preview contexts;
       // production/local measurements keep normal browser caching.
       const appOrigin = new URL(baseURL).origin;
-      await context.route(`${appOrigin}/**`, async (route) => {
+      if (suppressToolbar) await context.route(`${appOrigin}/**`, async (route) => {
         const request = route.request();
         if (request.isNavigationRequest() && request.resourceType() === 'document') {
           await route.continue({ headers: {
@@ -37,7 +38,7 @@ export const test = base.extend({
         }
       });
     }
-    await use(protectedPreview);
+    await use(suppressToolbar);
   }, { auto: true }],
 });
 
