@@ -79,6 +79,27 @@ Future<void> _expectSamePixels(
 }
 
 void main() {
+  testWidgets('font changes invalidate labels after round cache resets',
+      (tester) async {
+    final cache = AsteroidRenderCache();
+    final asteroid = _asteroid(AsteroidType.rocky, MathProblem.addition(3, 4));
+    try {
+      for (var round = 0; round < 2; round++) {
+        final previous = cache.label(asteroid, asteroid.mathProblem)!;
+        await tester.binding.handleSystemMessage({'type': 'fontsChange'});
+        final current = cache.label(asteroid, asteroid.mathProblem)!;
+        expect(current, isNot(same(previous)),
+            reason: 'A font change must remeasure previously cached text');
+        await tester.runAsync(() => _expectSamePixels(asteroid, cache));
+        cache.clear();
+      }
+    } finally {
+      cache.dispose();
+    }
+    // Closing a screen must remove its font listener as well as paragraphs.
+    await tester.binding.handleSystemMessage({'type': 'fontsChange'});
+  });
+
   for (final type in AsteroidType.values) {
     testWidgets('cached ${type.name} matches legacy across moving frames',
         (tester) async {

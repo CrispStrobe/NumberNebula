@@ -116,7 +116,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
     return {'asteroids': asteroids.map((v0) => v0.toJson()).toList(), 'targetOrder': targetOrder.map((v0) => v0).toList(), 'currentTargetIndex': currentTargetIndex, 'timeLeft': timeLeft, 'wrongShots': wrongShots, 'levelProblems': levelProblems.map((v0) => v0.toJson()).toList()};
   }
   @override void applyPuzzleSession(Map<String, dynamic> state) {
-    _renderCache.dispose();
+    _renderCache.clear();
     asteroids = (state["asteroids"] as List).map((v0) => Asteroid.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
 targetOrder = (state["targetOrder"] as List).map((v0) => v0 as int).toList();
 currentTargetIndex = state["currentTargetIndex"] as int;
@@ -210,7 +210,7 @@ levelProblems = (state["levelProblems"] as List).map((v0) => MathProblem.fromJso
   }
 
   void _resetGame() {
-    _renderCache.dispose();
+    _renderCache.clear();
     beginPuzzleSession();
     setState(() {
       gameActive = true;
@@ -1172,6 +1172,10 @@ TextPainter _asteroidLabel(String text, double size) {
 class AsteroidRenderCache {
   final _entries = <Asteroid, _AsteroidRenderEntry>{};
 
+  AsteroidRenderCache() {
+    PaintingBinding.instance.systemFonts.addListener(clear);
+  }
+
   TextPainter? label(Asteroid asteroid, String text) {
     final entry = _entries.putIfAbsent(asteroid, _AsteroidRenderEntry.new);
     if (entry.painter == null || entry.labelSize != asteroid.size || entry.labelText != text) {
@@ -1207,11 +1211,16 @@ class AsteroidRenderCache {
     });
   }
 
-  void dispose() {
+  void clear() {
     for (final entry in _entries.values) {
       entry.painter?.dispose();
     }
     _entries.clear();
+  }
+
+  void dispose() {
+    PaintingBinding.instance.systemFonts.removeListener(clear);
+    clear();
   }
 }
 

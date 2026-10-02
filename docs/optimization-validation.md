@@ -219,7 +219,9 @@ pause behavior and session checkpoint cadence share the existing implementation.
 
 Round-local text paragraphs are cached by asteroid identity, size and displayed
 expression; crystal paths are cached by size. Removed objects, reset, restore
-and screen disposal release retained paragraphs. Failed candidate label layout
+and screen disposal release retained paragraphs. System-font changes also clear
+retained labels, including after round reset; screen disposal removes that font
+listener. Failed candidate label layout
 uses the original layout path. No render resources enter saved snapshots.
 
 Regression tests compare 30 legacy/candidate images and exercise moving hit
