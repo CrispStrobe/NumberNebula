@@ -7,6 +7,10 @@ on:
         required: true
         default: 'https://numbernebula.vercel.app/'
         type: string
+      reduce_motion:
+        description: 'Measure with the existing Reduce motion setting enabled'
+        default: false
+        type: boolean
 permissions:
   contents: read
 jobs:
@@ -29,6 +33,7 @@ jobs:
         env:
           CI: 'true'
           BASE_URL: ${{ inputs.site_url }}
+          PERF_REDUCE_MOTION: ${{ inputs.reduce_motion }}
           VERCEL_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           VERCEL_BYPASS_HOST: ${{ vars.VERCEL_BYPASS_HOST }}
         run: npx playwright test tests/performance.spec.mjs

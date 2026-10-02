@@ -6,11 +6,40 @@ import { openGameMenu, watch } from './helpers.mjs';
 // Browser measurements, not a substitute for native device frame/battery tests.
 // CI artifacts retain raw values; shared runners use generous startup gates.
 test('startup, idle rendering and autosave overhead', async ({ page, browserName }, testInfo) => {
+  const reducedMotion = process.env.PERF_REDUCE_MOTION === 'true';
   // Three navigations plus two sampling windows need more than a smoke test.
   // The separate cold-start budget below remains 30 seconds.
   test.setTimeout(180_000);
-  await page.addInitScript(() => {
-    window.__appPerf = { writes: [], longTasks: [], frames: [] };
+  // Measure this runner without Flutter before attributing slow RAF to the app.
+  // A wall-clock timeout also completes when a background tab receives no RAF.
+  await page.goto('about:blank');
+  const browserBaseline = await page.evaluate(() => new Promise((resolve) => {
+    const frames = [];
+    let previous;
+    let frameId;
+    function frame(now) {
+      if (previous !== undefined) frames.push(now - previous);
+      previous = now;
+      frameId = requestAnimationFrame(frame);
+    }
+    frameId = requestAnimationFrame(frame);
+    setTimeout(() => {
+      cancelAnimationFrame(frameId);
+      frames.sort((a, b) => a - b);
+      resolve({
+        sampleMs: 1500,
+        frameCount: frames.length,
+        browserRafP95Ms: frames.length ? frames[Math.floor((frames.length - 1) * 0.95)] : null,
+        browserRafMaxMs: frames.length ? frames.at(-1) : null,
+        visibilityState: document.visibilityState,
+        hardwareConcurrency: navigator.hardwareConcurrency,
+      });
+    }, 1500);
+  }));
+  await page.addInitScript((reduceMotion) => {
+    window.__appPerf = { writes: [], longTasks: [], frames: [],
+      longTasksSupported: typeof PerformanceObserver !== 'undefined' &&
+        (PerformanceObserver.supportedEntryTypes ?? []).includes('longtask') };
     const original = Storage.prototype.setItem;
     Storage.prototype.setItem = function (key, value) {
       const start = performance.now();
@@ -40,7 +69,8 @@ test('startup, idle rendering and autosave overhead', async ({ page, browserName
       localStorage.setItem(`flutter.onboarding_seen_${key}_all_games_guided_v1`, 'true');
       localStorage.setItem(`flutter.onboarding_seen_${key}`, 'true');
     }
-  });
+    localStorage.setItem('flutter.reduce_motion', JSON.stringify(reduceMotion));
+  }, reducedMotion);
   const log = watch(page);
   const start = Date.now();
   await openGameMenu(page);
@@ -59,6 +89,9 @@ test('startup, idle rendering and autosave overhead', async ({ page, browserName
     return {
       idleSessionWrites: p.writes.filter((v) => v.at >= from),
       idleLongTasks: tasks,
+      longTasksSupported: p.longTasksSupported,
+      visibilityState: document.visibilityState,
+      browserRafSamples: frames.length,
       browserRafP95Ms: frames.length ? frames[Math.floor((frames.length-1)*0.95)] : null,
       browserRafMaxMs: frames.length ? frames.at(-1) : null,
       resourceBytes: performance.getEntriesByType('resource').reduce((n,r) => n+r.transferSize,0),
@@ -79,6 +112,8 @@ test('startup, idle rendering and autosave overhead', async ({ page, browserName
     return {
       sessionWrites: p.writes.filter((v) => v.at >= from),
       longTasks: p.longTasks.filter((v) => v.start >= from),
+      visibilityState: document.visibilityState,
+      browserRafSamples: frames.length,
       browserRafP95Ms: frames.length ? frames[Math.floor((frames.length-1)*0.95)] : null,
     };
   }, movingStart);
@@ -86,7 +121,8 @@ test('startup, idle rendering and autosave overhead', async ({ page, browserName
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#splash')).toHaveCount(0);
   const warmFrameMs = Date.now() - warmStart;
-  const report = { browserName, site: page.url(), coldMenuReadyMs: coldReadyMs,
+  const report = { browserName, browserBaseline, reducedMotion,
+    cpuOnlyRendering: log.cpuOnly, site: page.url(), coldMenuReadyMs: coldReadyMs,
     warmFirstFrameMs: warmFrameMs, sampleMs, ...metrics, movingGame: moving,
     notes: ['RAF measures browser scheduling, not Flutter raster frame time.',
       'Resource transfer size may be zero for cache hits or cross-origin resources without Timing-Allow-Origin.',
