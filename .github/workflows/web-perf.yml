@@ -18,6 +18,11 @@ on:
         description: Also capture all games for calibration
         type: boolean
         default: false
+      asteroid_render_path:
+        description: Asteroid rendering path for A/B comparison
+        type: choice
+        default: cached
+        options: [cached, legacy]
 
 concurrency:
   group: web-perf-${{ github.ref }}
@@ -43,10 +48,13 @@ jobs:
         run: flutter pub get
 
       - name: Build web (wasm + js fallback)
+        env:
+          ASTEROID_RENDER_PATH: ${{ inputs.asteroid_render_path || 'cached' }}
         run: |
           # Source maps only go into the CI artifact (Vercel builds without
           # them) so a live-test failure can be traced to Dart source.
           flutter build web --wasm --release --source-maps \
+            --dart-define=ASTEROID_RENDER_PATH="$ASTEROID_RENDER_PATH" \
             --dart-define=GIT_HASH="$(git rev-parse --short HEAD)"
 
       - name: Browser generator timing

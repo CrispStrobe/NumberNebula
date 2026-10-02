@@ -208,6 +208,27 @@ remote checks above. Future builds, full tests and large sweeps belong on GitHub
 Actions. Routine pure sweeps run on one runner; manual sweeps above 50 samples
 split by grade with at most two concurrent jobs and two workers per runner.
 
+## Asteroid rendering candidate
+
+Asteroid Hunter retains its original screen-wide frame rebuild and uncached
+painting via `--dart-define=ASTEROID_RENDER_PATH=legacy`. The default `cached`
+path rebuilds the playable stack and its moving hit targets on physics frames,
+with a repaint boundary around that region. Screen shake and ship thrusters
+have their own animation builders. Physics, fixed timestep, scoring, countdown,
+pause behavior and session checkpoint cadence share the existing implementation.
+
+Round-local text paragraphs are cached by asteroid identity, size and displayed
+expression; crystal paths are cached by size. Removed objects, reset, restore
+and screen disposal release retained paragraphs. Failed candidate label layout
+uses the original layout path. No render resources enter saved snapshots.
+
+Regression tests compare 30 legacy/candidate images and exercise moving hit
+targets, correct-target taps, frame isolation, pause and reduced-motion gameplay.
+CI additionally runs the targeted regressions with the legacy compile define.
+The manual web workflow exposes `asteroid_render_path` for A/B builds. These
+checks must pass remotely before promoting this change; per-frame CPU work is
+reduced, but raster-time improvement still needs browser measurements.
+
 ## Shared VPS resource policy
 
 Check load averages, available RAM and free space before substantial local work.
