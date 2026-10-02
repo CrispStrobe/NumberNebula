@@ -1,5 +1,17 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-10-02 — Cargo verified on GitHub Actions
+
+Published an isolated CI snapshot on `ci/game-optimizations-20261002`, without
+changing main or the working checkout. Remote CI run 37026088883 passed analysis,
+48 reduced-motion session checks and 1,133 Flutter tests (two existing skips).
+Web run 37026085221 passed WASM/JS compilation and generator timing and retained
+the build artifact. Browser checks were still queued when this entry was written.
+The remaining Cargo build/session verification item has been removed from PLAN.
+Manual web runs can skip the large capture matrix; matrix captures are capped at
+two concurrent jobs, and report replay now resolves its dependencies. No merge or
+deployment was performed, and no heavy local checks were restarted.
+
 ## 2026-10-02 — Cargo candidate and shared VPS limits
 
 Added a four-variable board-aware Cargo row candidate with the legacy generator

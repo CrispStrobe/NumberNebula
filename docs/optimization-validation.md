@@ -146,15 +146,23 @@ the 30% variant found one on 2,272/6,000. These are deliberately planted
 opportunities, not natural-game win rates or measured child difficulty. A later
 piece can change the board before a preview is played.
 
-The latest Cargo WASM build was terminated (compiler exit -15); the broader
-Cargo session run reported no tests ran. Neither is a passing check. The earlier
-Launch/Square build and browser evidence above predates Cargo. Remaining builds,
-full tests and large sweeps belong on GitHub Actions. The pure-calibration
+The local Cargo WASM build was terminated (compiler exit -15); the local broader
+Cargo session run reported no tests ran. Neither is a passing check. Verification
+was moved to GitHub Actions on the isolated `ci/game-optimizations-20261002`
+branch, snapshot `6c13d48a8eb4a82a0ae5165106c4559a419950db`:
+[CI run 37026088883](https://github.com/CrispStrobe/NumberNebula/actions/runs/37026088883)
+passed analysis, all 48 reduced-motion session checks, and 1,133 Flutter tests
+(two existing skips).
+[Web run 37026085221](https://github.com/CrispStrobe/NumberNebula/actions/runs/37026085221)
+passed WASM/JavaScript compilation, browser generator timing, size reporting and
+build artifact upload; its browser job was still queued when this entry was
+written. The earlier Launch/Square browser evidence above predates Cargo.
+Future builds, full tests and large sweeps belong on GitHub Actions. The pure-calibration
 workflow includes Cargo regressions and per-grade A/B artifacts, limits its
 matrix to two concurrent jobs, and uses two generation workers per runner.
 The CI and web workflows cover Flutter tests, analysis, WASM and browsers; all
 three can be dispatched manually once the changes are available remotely.
-No new remote run or deployment has been performed.
+The two runs above were dispatched manually; no merge or deployment was performed.
 
 ## Shared VPS resource policy
 

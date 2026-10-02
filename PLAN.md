@@ -18,14 +18,6 @@ work — lives in **[HISTORY.md](HISTORY.md)**. Only open items are listed here.
 
 ## Open items
 
-### [/] Cargo Bay Arranger — finish remote verification
-The tiny four-variable `dart_csp` candidate now fills reachable open rows for
-higher grades, retaining the original generator for A/B and fallback. Pure
-regressions, 24,000 synthetic cases, targeted Flutter tests and analysis passed.
-The latest full WASM build and broader session checks were interrupted to
-protect the shared VPS. Complete them on GitHub Actions; see
-`docs/optimization-validation.md` for the evidence and limitations.
-
 ### [ ] Normalize the `arithmatic_square` typo key
 `skill_category.dart` and 12 other sites use `'arithmatic_square'` (matches the
 typo'd filename, so it is functionally fine). Renaming touches the game key,
