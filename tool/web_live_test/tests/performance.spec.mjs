@@ -1,11 +1,10 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { test, expect } from '@playwright/test';
-import { openGameMenu, watch } from './helpers.mjs';
+import { test, expect, openGameMenu, watch } from './helpers.mjs';
 
 // Browser measurements, not a substitute for native device frame/battery tests.
 // CI artifacts retain raw values; shared runners use generous startup gates.
-test('startup, idle rendering and autosave overhead', async ({ page, browserName }, testInfo) => {
+test('startup, idle rendering and autosave overhead', async ({ page, browserName, baseURL, vercelProtection }, testInfo) => {
   const reducedMotion = process.env.PERF_REDUCE_MOTION === 'true';
   // Three navigations plus two sampling windows need more than a smoke test.
   // The separate cold-start budget below remains 30 seconds.
@@ -36,7 +35,10 @@ test('startup, idle rendering and autosave overhead', async ({ page, browserName
       });
     }, 1500);
   }));
-  await page.addInitScript((reduceMotion) => {
+  await page.addInitScript(({ reduceMotion, appOrigin }) => {
+    // Preview toolbars create sandboxed frames without storage access.
+    // Instrument only the app document; app storage failures remain fatal.
+    if (window !== window.top || location.origin !== appOrigin) return;
     window.__appPerf = { writes: [], longTasks: [], frames: [],
       longTasksSupported: typeof PerformanceObserver !== 'undefined' &&
         (PerformanceObserver.supportedEntryTypes ?? []).includes('longtask') };
@@ -70,11 +72,26 @@ test('startup, idle rendering and autosave overhead', async ({ page, browserName
       localStorage.setItem(`flutter.onboarding_seen_${key}`, 'true');
     }
     localStorage.setItem('flutter.reduce_motion', JSON.stringify(reduceMotion));
-  }, reducedMotion);
+  }, { reduceMotion: reducedMotion, appOrigin: new URL(baseURL).origin });
   const log = watch(page);
   const start = Date.now();
   await openGameMenu(page);
   const coldReadyMs = Date.now() - start;
+  // A sandboxed preview frame must not receive app storage/RAF instrumentation.
+  // Keep this regression outside the timed gameplay sampling windows.
+  await page.evaluate(() => {
+    const frame = document.createElement('iframe');
+    frame.id = 'instrumentation-sandbox-probe';
+    frame.sandbox = 'allow-scripts';
+    frame.srcdoc = '<body>instrumentation sandbox probe</body>';
+    document.body.appendChild(frame);
+  });
+  const sandbox = await page.locator('#instrumentation-sandbox-probe').elementHandle();
+  const sandboxFrame = await sandbox.contentFrame();
+  await expect(sandboxFrame.locator('body')).toHaveText('instrumentation sandbox probe');
+  expect(await sandboxFrame.evaluate(() => typeof window.__appPerf)).toBe('undefined');
+  expect(await page.evaluate(() => typeof window.__appPerf)).toBe('object');
+  await page.locator('#instrumentation-sandbox-probe').evaluate((frame) => frame.remove());
   const sampleMs = Number(process.env.PERF_SAMPLE_MS ?? 10000);
   await page.getByText(/Wormhole Activator/).first().click();
   await expect(page.getByRole('button', { name: /Practice/i }).first()).toBeVisible();
@@ -122,6 +139,7 @@ test('startup, idle rendering and autosave overhead', async ({ page, browserName
   await expect(page.locator('#splash')).toHaveCount(0);
   const warmFrameMs = Date.now() - warmStart;
   const report = { browserName, browserBaseline, reducedMotion,
+    previewToolbarSuppressed: vercelProtection, httpCacheDisabled: vercelProtection,
     cpuOnlyRendering: log.cpuOnly, site: page.url(), coldMenuReadyMs: coldReadyMs,
     warmFirstFrameMs: warmFrameMs, sampleMs, ...metrics, movingGame: moving,
     notes: ['RAF measures browser scheduling, not Flutter raster frame time.',

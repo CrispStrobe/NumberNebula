@@ -1,6 +1,5 @@
-import { test, expect } from '@playwright/test';
 import {
-  enableSemantics, isDeferredPart, openApp, openGameMenu, sameOrigin, watch,
+  test, expect, enableSemantics, isDeferredPart, openApp, openGameMenu, sameOrigin, watch,
 } from './helpers.mjs';
 
 test.describe('first visit', () => {

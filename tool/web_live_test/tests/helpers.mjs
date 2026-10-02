@@ -1,22 +1,45 @@
-import { test, expect } from '@playwright/test';
+import { test as base, expect } from '@playwright/test';
+
+export { expect };
 
 // A protected Vercel preview needs the automation bypass. It is exchanged for
 // a cookie once per context rather than sent as a header on every request:
 // a custom header would also go to gstatic, turning CanvasKit's cross-origin
 // loads into CORS preflights that fail.
-if (process.env.VERCEL_BYPASS) {
-  test.beforeEach(async ({ context, baseURL }) => {
+// A hook registered while importing this shared module belongs only to the
+// first spec that imports it. An automatic fixture runs for every spec instead.
+export const test = base.extend({
+  vercelProtection: [async ({ context, baseURL }, use) => {
     const hostname = new URL(baseURL).hostname;
-    if (!hostname.endsWith('.vercel.app') && hostname !== process.env.VERCEL_BYPASS_HOST) return;
-    const response = await context.request.get(baseURL, {
-      headers: {
-        'x-vercel-protection-bypass': process.env.VERCEL_BYPASS,
-        'x-vercel-set-bypass-cookie': 'true',
-      },
-    });
-    expect(response.ok(), 'the bypass secret was accepted').toBe(true);
-  });
-}
+    const protectedPreview = Boolean(process.env.VERCEL_BYPASS &&
+      (hostname.endsWith('.vercel.app') || hostname === process.env.VERCEL_BYPASS_HOST));
+    if (protectedPreview) {
+      const response = await context.request.get(baseURL, {
+        headers: {
+          'x-vercel-protection-bypass': process.env.VERCEL_BYPASS,
+          'x-vercel-set-bypass-cookie': 'true',
+        },
+      });
+      expect(response.ok(), 'the bypass secret was accepted').toBe(true);
+      // Vercel documents this header for automated preview tests. Scope it to
+      // same-origin documents so CanvasKit's cross-origin loads stay untouched.
+      // Playwright routing disables HTTP cache in protected preview contexts;
+      // production/local measurements keep normal browser caching.
+      const appOrigin = new URL(baseURL).origin;
+      await context.route(`${appOrigin}/**`, async (route) => {
+        const request = route.request();
+        if (request.isNavigationRequest() && request.resourceType() === 'document') {
+          await route.continue({ headers: {
+            ...request.headers(), 'x-vercel-skip-toolbar': '1',
+          } });
+        } else {
+          await route.continue();
+        }
+      });
+    }
+    await use(protectedPreview);
+  }, { auto: true }],
+});
 
 /** A deferred part: dart2js `main.dart.js_N.part.js`, or any same-origin
  * wasm module other than the main one (dart2wasm writes extra modules). */

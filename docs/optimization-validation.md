@@ -224,12 +224,29 @@ retained labels, including after round reset; screen disposal removes that font
 listener. Failed candidate label layout
 uses the original layout path. No render resources enter saved snapshots.
 
-Regression tests compare 30 legacy/candidate images and exercise moving hit
+Regression tests compare 32 legacy/candidate images and exercise moving hit
 targets, correct-target taps, frame isolation, pause and reduced-motion gameplay.
 CI additionally runs the targeted regressions with the legacy compile define.
 The manual web workflow exposes `asteroid_render_path` for A/B builds. These
 checks must pass remotely before promoting this change; per-frame CPU work is
 reduced, but raster-time improvement still needs browser measurements.
+
+## Protected preview browser checks
+
+All browser specs import the shared extended Playwright test. Its automatic
+fixture exchanges the Vercel automation bypass for a context cookie for every
+test; an import-time hook would belong only to the first importing spec.
+Protected previews suppress Vercel's toolbar through its documented
+`x-vercel-skip-toolbar` header on same-origin document requests. No headers
+are added to cross-origin CanvasKit loads. Preview routing disables the browser
+HTTP cache; performance reports explicitly record this, and local/public-site
+measurements retain ordinary caching.
+
+Performance instrumentation runs only in the top app-origin document. A real
+opaque sandbox iframe regression checks that child frames receive no probe and
+produce no storage errors. App storage failures and renderer errors remain
+fatal. The hosted workflow's `full_suite` input runs both specs without retries
+to catch preview setup failures on their first attempt.
 
 ## Shared VPS resource policy
 
