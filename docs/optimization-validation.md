@@ -178,14 +178,30 @@ Production browser samples (one ten-second window per game/browser) showed:
 Both browsers reported no application errors. Chromium recorded no long tasks
 in either sample; Firefox does not expose the Long Tasks API, so its empty
 arrays do not establish an absence of long tasks. Similar slow Firefox RAF
-intervals occurred against the CI artifact. This warrants comparison with a
-blank-page baseline on the same runner before attributing it to Flutter or
-changing rendering. Browser RAF is not native device raster performance.
+intervals occurred against the CI artifact. A follow-up
+[baseline run](https://github.com/CrispStrobe/NumberNebula/actions/runs/37044883267)
+measured approximately 17 ms blank-page RAF in both browsers, versus 167 ms
+idle and 150 ms moving-game RAF in Firefox with normal motion. Both tabs were
+visible. This isolates an app-rendering cost on this runner, rather than a
+universally slow browser timer. Browser RAF is not native device raster performance.
 
 The browser performance probe now records a blank-page RAF baseline, visibility,
 frame sample counts and Long Tasks API availability. The baseline precedes the
 cold-start timer and does not warm application resources. Use the hosted
 performance workflow to remeasure an existing deployment without rebuilding.
+It also accepts `reduce_motion` and records Flutter's CPU-only rendering fallback.
+
+The [reduced-motion comparison](https://github.com/CrispStrobe/NumberNebula/actions/runs/37045798617)
+passed both browsers against production. Firefox reported CPU-only rendering:
+blank-page RAF p95 was 17.16 ms and idle puzzle RAF p95 improved to 17.16 ms,
+while the moving game remained at 150.22 ms. Chromium reported no CPU-only
+fallback and stayed at approximately 16.67 ms in both games. Both browsers had
+zero idle writes, three moving checkpoints in ten seconds, and no app errors.
+The normal-motion and reduced-motion measurements ran on separate hosted jobs,
+so these are diagnostic samples, not a controlled device benchmark. The evidence
+supports investigating decorative animation cost on CPU-rendered browsers and
+moving-game repaint cost separately; no automatic setting changes or generator
+algorithm removals follow from these measurements.
 
 Earlier interrupted local WASM/session runs are superseded by the successful
 remote checks above. Future builds, full tests and large sweeps belong on GitHub
