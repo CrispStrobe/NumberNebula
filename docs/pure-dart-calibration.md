@@ -67,9 +67,11 @@ validates both repeated boards for deadline-based generators. It also checks
 registry coverage, known failing seeds, valid alternative census assignments,
 clock reflections, BFS crossing optima and deliberately corrupted boards.
 
-`.github/workflows/pure-calibration.yml` runs six grade jobs with the Dart SDK,
-defaults to 10 samples per level, accepts larger manual samples, and retains
-reports and fixtures for 14 days. Configuring this workflow does not mean a
+`.github/workflows/pure-calibration.yml` defaults to 10 samples per level and
+combines all six grades on one Dart SDK runner for routine sweeps. Manual sweeps
+above 50 samples split into six grade jobs, with at most two running at once to
+bound fixture disk usage. Each runner uses two generation workers; reports and
+fixtures are retained for 14 days. Configuring this workflow does not mean a
 remote GitHub run has passed.
 
 ## What the checks establish

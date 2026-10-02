@@ -58,8 +58,8 @@ uniqueness or optimal solvability of every generated board in every game.
 ## CI and web measurements
 
 `.flutter-version` pins the SDK used by GitHub Actions and `tool/build_web.sh`.
-The web workflow captures the six grade/level combinations separately, then
-merges their fixtures for a cross-level report. Artifacts retain the report and
+The web workflow captures the six grade/level combinations on one runner and
+analyzes the combined fixtures for a cross-level report. Artifacts retain the report and
 boards for 14 days. These are configured checks, not evidence that a remote CI
 run has already passed.
 
@@ -158,8 +158,9 @@ passed WASM/JavaScript compilation, browser generator timing, size reporting and
 build artifact upload; its browser job was still queued when this entry was
 written. The earlier Launch/Square browser evidence above predates Cargo.
 Future builds, full tests and large sweeps belong on GitHub Actions. The pure-calibration
-workflow includes Cargo regressions and per-grade A/B artifacts, limits its
-matrix to two concurrent jobs, and uses two generation workers per runner.
+workflow includes Cargo regressions and A/B artifacts, combines routine sweeps
+on one runner, splits manual sweeps above 50 samples by grade with at most two
+concurrent jobs, and uses two generation workers per runner.
 The CI and web workflows cover Flutter tests, analysis, WASM and browsers; all
 three can be dispatched manually once the changes are available remotely.
 The two runs above were dispatched manually; no merge or deployment was performed.

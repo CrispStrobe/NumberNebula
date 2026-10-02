@@ -187,12 +187,6 @@ jobs:
     if: github.event_name != 'workflow_dispatch' || inputs.calibration
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    strategy:
-      fail-fast: false
-      max-parallel: 2
-      matrix:
-        grade: [1, 3, 6]
-        level: [1, 10]
     steps:
       - uses: actions/checkout@v4
       - name: Read Flutter SDK pin
@@ -206,48 +200,11 @@ jobs:
       - name: Capture and replay every game
         run: >-
           dart run tool/calibrate_games.dart --capture --require-all
-          --grades ${{ matrix.grade }} --levels ${{ matrix.level }} --samples 3
-          --output calibration-${{ matrix.grade }}-${{ matrix.level }}.json
+          --grades 1,3,6 --levels 1,10 --samples 3
+          --output calibration-summary.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: calibration-${{ matrix.grade }}-${{ matrix.level }}
-          path: calibration-*.json*
-          retention-days: 14
-
-  calibration-report:
-    needs: calibration
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - name: Read Flutter SDK pin
-        run: echo "FLUTTER_VERSION=$(cat .flutter-version)" >> "$GITHUB_ENV"
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: calibration-*
-          path: calibration-inputs
-      - name: Merge captured boards
-        run: |
-          python3 - <<'PYTHON'
-          from pathlib import Path
-          with Path('calibration-all.jsonl').open('w') as output:
-              for source in sorted(Path('calibration-inputs').rglob('*.fixtures.jsonl')):
-                  output.write(source.read_text())
-          PYTHON
-      - name: Pure Dart replay and cross-level review
-        run: |
-          flutter pub get
-          dart run tool/calibrate_games.dart --input calibration-all.jsonl --require-all --output calibration-summary.json
-      - uses: actions/upload-artifact@v4
-        with:
           name: calibration-summary
-          path: |
-            calibration-summary.json
-            calibration-all.jsonl
+          path: calibration-*.json*
           retention-days: 14
