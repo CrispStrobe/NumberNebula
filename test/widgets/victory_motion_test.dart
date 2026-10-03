@@ -402,16 +402,16 @@ void main() {
             await tester.pump();
           }
         }
-        // Coarse normal-motion pumps also need frames to start the next ticker
-        // and build the dialog route after each deferred stage completes.
-        for (var frame = 0; frame < (scenario == 'normal' ? 10 : 12); frame++) {
-          await tester.pump(scenario == 'normal'
-              ? const Duration(milliseconds: 500)
-              : const Duration(milliseconds: 16));
+        // Advance normal frames through the chained tickers and dialog route.
+        for (var frame = 0;
+            frame < (scenario == 'normal' ? 300 : 12);
+            frame++) {
+          await tester.pump(const Duration(milliseconds: 16));
         }
         expect(app.gp.outcomeCount, 1);
         expect(dialog, findsOneWidget,
-            reason: 'A win must reach its completion dialog');
+            reason: 'A win must reach its completion dialog. Animations: '
+                '${tester.widgetList<AnimatedBuilder>(find.byType(AnimatedBuilder)).map((widget) => widget.animation.toString()).join(', ')}');
         final score = app.gp.score;
         app.motion.value = false;
         await tester.pump();

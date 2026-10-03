@@ -39,6 +39,9 @@ jobs:
       - name: Static analysis
         run: flutter analyze --fatal-infos
 
+      - name: Check victory completion and motion settings
+        run: flutter test test/widgets/victory_motion_test.dart --concurrency=1 --reporter expanded
+
       - name: Check all games with reduced motion
         run: flutter test test/widgets/all_games_sessions_test.dart --dart-define=CALIBRATION_REDUCE_MOTION=true --concurrency=1 --reporter expanded
 
