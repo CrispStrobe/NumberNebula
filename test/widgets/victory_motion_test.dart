@@ -323,8 +323,10 @@ void main() {
         };
         final app = _TestApp(home, initiallyReduced: scenario == 'initial');
         final screen = find.byType(home.runtimeType);
-        final dialog = find.byWidgetPredicate((widget) => widget is Dialog);
         await tester.pumpWidget(app.build());
+        final dialog = game == 'solarpanel_game'
+            ? find.text(S.of(tester.element(screen))!.solarPanelWinTitle)
+            : find.byWidgetPredicate((widget) => widget is Dialog);
         dynamic session = tester.state(screen);
         for (var attempt = 0; attempt < 150; attempt++) {
           await tester.pump(const Duration(milliseconds: 20));
