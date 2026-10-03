@@ -900,7 +900,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
               shrinkWrap: true,
               physics: const BouncingScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: math.min(5, numberPool.length), 
+                crossAxisCount: math.max(1, math.min(5, numberPool.length)),
                 crossAxisSpacing: 6, 
                 mainAxisSpacing: 6,
                 childAspectRatio: 1.0,

@@ -205,8 +205,11 @@ Map<String, dynamic> _winningBoard(String game) {
 }
 
 void main() {
-  setUp(() {
+  setUp(() async {
+    await PuzzleSessionStore.instance.flush();
+    await ProfilePreferences.flushWrites();
     SharedPreferences.setMockInitialValues({
+      'onboarding_seen_number_walls_guided_v1': true,
       for (final key in ['magic_triangles', 'number_walls', 'solarpanel_game'])
         'onboarding_seen_$key': true,
     });

@@ -1215,7 +1215,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               shrinkWrap: true,
               physics: const BouncingScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: math.min(5, numberPool.length), 
+                crossAxisCount: math.max(1, math.min(5, numberPool.length)),
                 crossAxisSpacing: 6, 
                 mainAxisSpacing: 6,
                 // MODIFIED: Changed aspect ratio from 1.5 back to 1.0 (square)

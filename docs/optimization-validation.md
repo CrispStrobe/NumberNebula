@@ -121,6 +121,8 @@ Forward-only decoration in Magic Triangles, Path Finder, Planet Hopping and
 Asteroid Math resumes forward-only after Reduce motion is disabled. Number
 Walls also suspends its repeating operation decoration while motion is reduced.
 This changes animation handling, not puzzle generation or difficulty calibration.
+The real final-placement checks also cover an empty number pool: Number Walls
+and Solarpanel keep a valid grid column count after the last number is used.
 
 
 ## Launch and Square candidate comparisons
