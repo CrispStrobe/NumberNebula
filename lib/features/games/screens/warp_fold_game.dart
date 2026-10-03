@@ -287,8 +287,9 @@ class _WarpFoldGameState extends State<WarpFoldGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady)
+    if (!_sessionReady) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
 
     if (_puzzle == null || _isGenerating) {
