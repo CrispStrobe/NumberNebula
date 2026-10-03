@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter_cube/flutter_cube.dart' as cube;
 import 'package:collection/collection.dart';
@@ -316,23 +317,30 @@ class PerspectivePuzzleGame extends StatefulWidget {
 
 class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with TickerProviderStateMixin, PuzzleSessionMixin<PerspectivePuzzleGame> {
   bool _sessionReady = false;
+  Timer? _roundTimer;
+  int _roundEpoch = 0;
+  bool _roundCompleted = false;
   @override String get sessionGameKey => 'perspective_puzzle';
   @override int get sessionGrade => widget.grade;
   @override int get sessionLevel => widget.level;
   @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+    if (!_sessionReady || _isGenerating || _roundCompleted) return null;
     return {
       'currentPuzzle': (currentPuzzle?.toJson()),
       '_perspectivesToSolve': _perspectivesToSolve.map((v0) => v0).toList(),
       '_currentTurnIndex': _currentTurnIndex,
       '_answerChoices': _answerChoices.map((v0) => v0.map((v1) => v1.map((v2) => (v2 == null ? null : {'x': v2.x, 'y': v2.y, 'z': v2.z, 'color': v2.color.toARGB32()})).toList()).toList()).toList(),
       '_correctAnswerIndex': _correctAnswerIndex,
+      '_selectedAnswerIndex': _selectedAnswerIndex,
+      '_answerState': _answerState.name,
       '_correctAttempts': _correctAttempts,
       '_totalAttempts': _totalAttempts,
       '_lives': _lives
     };
   }
   @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _invalidateRoundCallbacks();
+    _roundCompleted = false;
     currentPuzzle = (state["currentPuzzle"] == null ? null : PerspectivePuzzle.fromJson(Map<String, dynamic>.from(state["currentPuzzle"] as Map)));
     _perspectivesToSolve = (state["_perspectivesToSolve"] as List).map((v0) => v0 as String).toList();
     _currentTurnIndex = state["_currentTurnIndex"] as int;
@@ -341,7 +349,23 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     _correctAttempts = state["_correctAttempts"] as int;
     _totalAttempts = state["_totalAttempts"] as int;
     _lives = state["_lives"] as int;
-    _isGenerating = false; _selectedAnswerIndex = -1; _answerState = AnswerState.unanswered; _createSceneObject(currentPuzzle!.structure);
+    _isGenerating = false;
+    final savedAnswerState = state['_answerState'];
+    _answerState = AnswerState.values.firstWhere(
+        (value) => value.name == savedAnswerState,
+        orElse: () => AnswerState.unanswered);
+    if (savedAnswerState == null) {
+      // Older snapshots recorded counters but omitted an answer awaiting feedback.
+      if (_correctAttempts == _currentTurnIndex + 1) {
+        _answerState = AnswerState.correct;
+      } else if (_lives <= 0) {
+        _answerState = AnswerState.incorrect;
+      }
+    }
+    _selectedAnswerIndex = state['_selectedAnswerIndex'] as int? ??
+        (_answerState == AnswerState.correct ? _correctAnswerIndex : -1);
+    _createSceneObject(currentPuzzle!.structure);
+    _resumeAnswerFeedback();
   }
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
@@ -380,20 +404,24 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
 
   @override
   void dispose() {
+    _invalidateRoundCallbacks();
     disposePuzzleSession();
     _successController.dispose();
     super.dispose();
   }
 
   Future<void> _generatePuzzle() async {
-    beginPuzzleSession();
     if (!mounted) return; // Check before starting
+    _invalidateRoundCallbacks();
+    final epoch = _roundEpoch;
+    _roundCompleted = false;
+    beginPuzzleSession();
     setState(() => _isGenerating = true);
     
     final puzzle = await compute(PerspectivePuzzle.generate, {'grade': widget.grade, 'level': widget.level});
     
     // Safety check before calling setState
-    if (mounted) {
+    if (mounted && epoch == _roundEpoch) {
         setState(() {
         currentPuzzle = puzzle;
         _perspectivesToSolve = ['Front', 'Right', 'Back', 'Left']..shuffle();
@@ -509,7 +537,11 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   }
 
   void _selectAnswer(int index) {
-    if (_answerState != AnswerState.unanswered) return;
+    if (_roundCompleted || _isGenerating ||
+        _answerState != AnswerState.unanswered ||
+        index < 0 || index >= _answerChoices.length) {
+      return;
+    }
 
     setState(() {
       _selectedAnswerIndex = index;
@@ -523,7 +555,7 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
         _answerState = AnswerState.correct;
       });
       // Move to the next turn or win the game.
-      Future.delayed(const Duration(milliseconds: 1000), _nextTurn);
+      _resumeAnswerFeedback();
     } else {
       AppHaptics.heavyImpact();
       // On incorrect guess, lose a life.
@@ -532,25 +564,45 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
         _answerState = AnswerState.incorrect;
       });
 
-      // Check if the game is over.
-      if (_lives <= 0) {
-        Future.delayed(const Duration(milliseconds: 1500), _handleFailure);
-      } else {
-        // If not over, reset for another try on the same turn.
-        Future.delayed(const Duration(milliseconds: 1500), () {
-          if (mounted) {
-            setState(() {
-              _selectedAnswerIndex = -1;
-              _answerState = AnswerState.unanswered;
-            });
-          }
-        });
-      }
+      _resumeAnswerFeedback();
+    }
+  }
+
+  void _invalidateRoundCallbacks() {
+    _roundEpoch++;
+    _roundTimer?.cancel();
+    _roundTimer = null;
+  }
+
+  void _scheduleRoundCallback(Duration delay, VoidCallback action) {
+    _roundTimer?.cancel();
+    final epoch = _roundEpoch;
+    _roundTimer = Timer(delay, () {
+      if (!mounted || epoch != _roundEpoch || _roundCompleted || _isGenerating) return;
+      _roundTimer = null;
+      action();
+    });
+  }
+
+  void _resumeAnswerFeedback() {
+    if (_answerState == AnswerState.correct) {
+      _scheduleRoundCallback(const Duration(milliseconds: 1000), _nextTurn);
+    } else if (_answerState == AnswerState.incorrect) {
+      _scheduleRoundCallback(const Duration(milliseconds: 1500), () {
+        if (_lives <= 0) {
+          _handleFailure();
+        } else {
+          setState(() {
+            _selectedAnswerIndex = -1;
+            _answerState = AnswerState.unanswered;
+          });
+        }
+      });
     }
   }
   
   void _nextTurn() {
-    if (!mounted) return; // safety check
+    if (!mounted || _roundCompleted || _answerState != AnswerState.correct) return;
 
     if (_currentTurnIndex < _perspectivesToSolve.length - 1) {
         setState(() => _currentTurnIndex++);
@@ -561,7 +613,9 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
     }
 
   void _handleSuccess() {
-    if (!mounted) return;
+    if (!mounted || _roundCompleted) return;
+    _roundCompleted = true;
+    _invalidateRoundCallbacks();
 
     // 1. Calculate a performance-based score.
     int baseScore = 250 * widget.grade;
@@ -592,7 +646,9 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   }
 
   void _handleFailure() {
-    if (!mounted) return;
+    if (!mounted || _roundCompleted) return;
+    _roundCompleted = true;
+    _invalidateRoundCallbacks();
 
     if (kDebugMode) debugPrint("Perspective Puzzle Failed: Ran out of lives.");
 
