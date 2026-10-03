@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
+import 'dart:async';
 
 import '../mixins/game_animations_mixin.dart';
 import '../models/game_outcome.dart';
@@ -42,11 +43,17 @@ class VoidCrossingGame extends StatefulWidget {
 class _VoidCrossingGameState extends State<VoidCrossingGame>
     with TickerProviderStateMixin, GameAnimationsMixin<VoidCrossingGame>, PuzzleSessionMixin<VoidCrossingGame> {
   bool _sessionReady = false;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([_starFieldController], reduced, reverse: false);
+    updateOneShotMotion(_shuttleController, reduced,
+        duration: const Duration(milliseconds: 1200));
+  }
   @override String get sessionGameKey => 'void_crossing';
   @override int get sessionGrade => widget.grade;
   @override int get sessionLevel => widget.level;
   @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isAnimating) return null;
+    if (!_sessionReady || _isAnimating || _gameOver) return null;
     return {
       '_currentLevel': _currentLevel,
       '_puzzle': (_puzzle?.toJson()),
@@ -54,9 +61,13 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     };
   }
   @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _cancelRoundEffects();
     _currentLevel = state["_currentLevel"] as int;
     _puzzle = (state["_puzzle"] == null ? null : VoidCrossingPuzzle.fromJson(Map<String, dynamic>.from(state["_puzzle"] as Map)));
     _gameState = (state["_gameState"] == null ? null : VoidCrossingGameState.fromJson(Map<String, dynamic>.from(state["_gameState"] as Map)));
+    _optimalMoves = _puzzle == null ? 0 : VoidCrossingLogic.solve(_puzzle!);
+    _clearRoundWarnings();
+    successController.reset();
     _gameOver = false; _isAnimating = false;
   }
   Future<void> _restoreOrGenerate() async {
@@ -83,6 +94,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
   /// a full shuttle read as a broken one.
   bool _showShuttleFull = false;
   int _shuttleFullToken = 0;
+  Timer? _shuttleFullTimer;
 
   @override
   void initState() {
@@ -146,6 +158,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _cancelRoundEffects();
     _shuttleController.dispose();
     _starFieldController.dispose();
     disposeGameAnimations();
@@ -156,18 +169,32 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
   /// the player's run is graded against.
   int _optimalMoves = 0;
 
+  void _cancelRoundEffects() {
+    _shuttleFullToken++;
+    _shuttleFullTimer?.cancel();
+    _shuttleFullTimer = null;
+    cancelOneShotMotion(_shuttleController);
+    _shuttleController.reset();
+  }
+
+  void _clearRoundWarnings() {
+    _activeConflict = null;
+    _showConflictWarning = false;
+    _showShuttleFull = false;
+    _liveConflictIds = {};
+  }
+
   void _generatePuzzle() {
+    _cancelRoundEffects();
     beginPuzzleSession();
     final puzzle = VoidCrossingLogic.generatePuzzle(widget.grade, _currentLevel);
     _optimalMoves = VoidCrossingLogic.solve(puzzle);
     setState(() {
       _puzzle = puzzle;
       _gameState = VoidCrossingLogic.createInitialState(puzzle);
+      _clearRoundWarnings();
       _isAnimating = false;
-      _activeConflict = null;
-      _showConflictWarning = false;
       _gameOver = false;
-      _liveConflictIds = {};
     });
     if (kDebugMode) {
       debugPrint('🚀 [VoidCrossing] Puzzle: ${puzzle.entities.length} entities, '
@@ -215,8 +242,10 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     AppHaptics.selectionClick();
     _showShuttleFull = true;
     final token = ++_shuttleFullToken;
-    Future.delayed(const Duration(seconds: 3), () {
+    _shuttleFullTimer?.cancel();
+    _shuttleFullTimer = Timer(const Duration(seconds: 3), () {
       if (!mounted || token != _shuttleFullToken) return;
+      _shuttleFullTimer = null;
       setState(() => _showShuttleFull = false);
     });
   }
@@ -260,11 +289,12 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
     }
 
     // Valid move — animate shuttle crossing
-    _isAnimating = true;
+    setState(() => _isAnimating = true);
     AppHaptics.mediumImpact();
 
-    _shuttleController.forward(from: 0.0).then((_) {
-      if (!mounted) return;
+    _shuttleController.reset();
+    playOneShotMotion(_shuttleController, () {
+      if (_gameOver || !identical(_gameState, state)) return;
       setState(() {
         // Move entities from shuttle to destination bank
         state.farBank.addAll(state.onShuttle);
@@ -288,6 +318,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
   }
 
   void _handleWin() {
+    if (_gameOver) return;
     _gameOver = true;
     AppHaptics.lightImpact();
     final baseScore = 100 * widget.grade;
@@ -321,6 +352,7 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
   }
 
   void _handleOutOfMoves() {
+    if (_gameOver) return;
     _gameOver = true;
     AppHaptics.heavyImpact();
     finishPuzzleSession();
@@ -343,13 +375,13 @@ class _VoidCrossingGameState extends State<VoidCrossingGame>
   }
 
   void _resetPuzzle() {
+    _cancelRoundEffects();
+    beginPuzzleSession();
     setState(() {
       _gameState = VoidCrossingLogic.createInitialState(_puzzle!);
+      _clearRoundWarnings();
       _isAnimating = false;
-      _activeConflict = null;
-      _showConflictWarning = false;
       _gameOver = false;
-      _liveConflictIds = {};
     });
   }
 

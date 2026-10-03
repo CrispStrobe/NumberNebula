@@ -166,6 +166,25 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Void Crossing restoration and motion
+
+Restoring Void Crossing recalculates the same BFS minimum-move reference used
+when generating a round. Previously restoration left that reference at zero,
+which could grade an over-par solution as perfect. The scoring policy and
+generator remain unchanged; restored boards now use their real reference.
+
+Shuttle completion is scoped to the current round, including zero-duration
+reduced-motion effects. Restore, reset and disposal cancel pending completions
+and full-shuttle warning timers. Old conflict/capacity highlights do not carry
+into a replaced board. An out-of-moves retry begins a fresh saveable session.
+
+Reduce motion suspends the forward star loop and shortens the crossing effect;
+the crossing still transfers cargo and commits exactly one move. Normal motion
+retains the original 1.2-second animation. Focused widget regressions cover
+restored performance, normal/nonterminal crossings, zero-duration completion,
+mid-animation toggles, stale effects, retry and disposal. Tests/builds run on
+GitHub CI; existing algorithm and renderer A/B paths remain available.
+
 ## Launch and Square candidate comparisons
 
 `--algorithm legacy` keeps the working baselines. Arithmetic Square additionally
