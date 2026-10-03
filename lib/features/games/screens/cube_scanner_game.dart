@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:space_math_academy/core/services/app_haptics.dart';
 import '../mixins/puzzle_session_mixin.dart';
 import 'dart:math' as math;
@@ -27,25 +28,61 @@ class CubeScannerGame extends StatefulWidget {
 }
 
 class _CubeScannerGameState extends State<CubeScannerGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<CubeScannerGame>, PuzzleSessionMixin<CubeScannerGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<CubeScannerGame>,
+        PuzzleSessionMixin<CubeScannerGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'cube_scanner';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  Timer? _winTimer;
+  int _roundEpoch = 0;
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(_feedbackController, reduced,
+        duration: const Duration(milliseconds: 500));
+  }
+
+  void _cancelRoundEffects() {
+    _roundEpoch++;
+    _winTimer?.cancel();
+    _winTimer = null;
+    cancelOneShotMotion(_feedbackController);
+    _feedbackController.reset();
+  }
+
+  @override
+  String get sessionGameKey => 'cube_scanner';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _showResult) return null;
     return {
       '_puzzle': (_puzzle?.toJson()),
       '_selectedAnswer': (_selectedAnswer),
       '_wrongAnswers': _wrongAnswers
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    _puzzle = (state["_puzzle"] == null ? null : CubeScannerPuzzle.fromJson(Map<String, dynamic>.from(state["_puzzle"] as Map)));
-    _selectedAnswer = (state["_selectedAnswer"] == null ? null : state["_selectedAnswer"] as int);
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _cancelRoundEffects();
+    successController.reset();
+    _resultCorrect = false;
+    _puzzle = (state["_puzzle"] == null
+        ? null
+        : CubeScannerPuzzle.fromJson(
+            Map<String, dynamic>.from(state["_puzzle"] as Map)));
+    _selectedAnswer = (state["_selectedAnswer"] == null
+        ? null
+        : state["_selectedAnswer"] as int);
     _wrongAnswers = state["_wrongAnswers"] as int;
-    _isGenerating = false; _showResult = false;
+    _isGenerating = false;
+    _showResult = false;
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
@@ -92,7 +129,8 @@ class _CubeScannerGameState extends State<CubeScannerGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
         _showOnboarding();
       }
@@ -139,6 +177,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _cancelRoundEffects();
     _feedbackController.dispose();
     disposeGameAnimations(usePulse: false);
     super.dispose();
@@ -148,6 +187,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   // Puzzle generation
   // ---------------------------------------------------------------------------
   void _generatePuzzle() {
+    _cancelRoundEffects();
     beginPuzzleSession();
     setState(() {
       _isGenerating = true;
@@ -173,7 +213,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   // Interaction
   // ---------------------------------------------------------------------------
   void _selectAnswer(int value) {
-    if (_showResult) return;
+    if (_showResult || _isGenerating || _puzzle == null) return;
     setState(() {
       // Toggle: tap again to deselect
       _selectedAnswer = (_selectedAnswer == value) ? null : value;
@@ -188,7 +228,8 @@ class _CubeScannerGameState extends State<CubeScannerGame>
       _showResult = true;
       _resultCorrect = correct;
     });
-    _feedbackController.forward(from: 0.0);
+    _feedbackController.reset();
+    playOneShotMotion(_feedbackController, () {});
 
     if (correct) {
       _handleWin();
@@ -207,16 +248,21 @@ class _CubeScannerGameState extends State<CubeScannerGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'cube_scanner',
-      difficulty: widget.level,
-      score: totalScore,
-      performance: Perf.fromMistakes(_wrongAnswers, per: 0.25),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'cube_scanner',
+          difficulty: widget.level,
+          score: totalScore,
+          performance: Perf.fromMistakes(_wrongAnswers, per: 0.25),
+        ));
 
     // Delay to let the green flash show, then show dialog
-    Future.delayed(const Duration(milliseconds: 700), () {
-      if (!mounted) return;
+    _winTimer?.cancel();
+    final epoch = _roundEpoch;
+    _winTimer = Timer(const Duration(milliseconds: 700), () {
+      if (!mounted || epoch != _roundEpoch || !_showResult || !_resultCorrect) {
+        return;
+      }
+      _winTimer = null;
       successController.forward(from: 0.0);
       showDialog(
         context: context,
@@ -231,10 +277,10 @@ class _CubeScannerGameState extends State<CubeScannerGame>
     _wrongAnswers++;
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'cube_scanner',
-      difficulty: widget.level,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'cube_scanner',
+          difficulty: widget.level,
+        ));
   }
 
   // ---------------------------------------------------------------------------
@@ -242,7 +288,9 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
 
     if (_puzzle == null || _isGenerating) {
@@ -343,10 +391,12 @@ class _CubeScannerGameState extends State<CubeScannerGame>
   }
 
   Widget _buildSingleDie(BoxConstraints constraints) {
-    final cubeSize = math.min(
-      constraints.maxWidth * 0.7,
-      constraints.maxHeight * 0.8,
-    ).clamp(200.0, 400.0);
+    final cubeSize = math
+        .min(
+          constraints.maxWidth * 0.7,
+          constraints.maxHeight * 0.8,
+        )
+        .clamp(200.0, 400.0);
 
     return AnimatedBuilder(
       animation: glowAnimation,
@@ -369,10 +419,12 @@ class _CubeScannerGameState extends State<CubeScannerGame>
 
   Widget _buildStackedDice(BoxConstraints constraints) {
     // Two dice stacked vertically
-    final cubeSize = math.min(
-      constraints.maxWidth * 0.5,
-      constraints.maxHeight * 0.38,
-    ).clamp(120.0, 250.0);
+    final cubeSize = math
+        .min(
+          constraints.maxWidth * 0.5,
+          constraints.maxHeight * 0.38,
+        )
+        .clamp(120.0, 250.0);
 
     return AnimatedBuilder(
       animation: glowAnimation,
@@ -398,7 +450,8 @@ class _CubeScannerGameState extends State<CubeScannerGame>
               width: 3,
               height: 8,
               decoration: BoxDecoration(
-                color: SpaceTheme.starYellow.withValues(alpha: glowAnimation.value),
+                color: SpaceTheme.starYellow
+                    .withValues(alpha: glowAnimation.value),
                 boxShadow: [
                   BoxShadow(
                     color: SpaceTheme.starYellow.withValues(alpha: 0.4),
@@ -428,10 +481,12 @@ class _CubeScannerGameState extends State<CubeScannerGame>
 
   Widget _buildRowDice(BoxConstraints constraints) {
     final diceCount = _puzzle!.diceCount;
-    final cubeSize = math.min(
-      (constraints.maxWidth - 40) / diceCount,
-      constraints.maxHeight * 0.7,
-    ).clamp(100.0, 200.0);
+    final cubeSize = math
+        .min(
+          (constraints.maxWidth - 40) / diceCount,
+          constraints.maxHeight * 0.7,
+        )
+        .clamp(100.0, 200.0);
 
     return AnimatedBuilder(
       animation: glowAnimation,
@@ -544,7 +599,8 @@ class _CubeScannerGameState extends State<CubeScannerGame>
               child: Text(
                 _whyText(puzzle)!,
                 textAlign: TextAlign.center,
-                style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.alienGreen),
+                style:
+                    SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.alienGreen),
               ),
             ),
           // Submit button
@@ -597,13 +653,15 @@ class _CubeScannerGameState extends State<CubeScannerGame>
               if (value == puzzle.correctAnswer) {
                 // Correct answer: green
                 final flash = _feedbackAnimation.value;
-                bgColor = SpaceTheme.alienGreen.withValues(alpha: 0.3 + flash * 0.5);
+                bgColor =
+                    SpaceTheme.alienGreen.withValues(alpha: 0.3 + flash * 0.5);
                 borderColor = SpaceTheme.alienGreen;
                 textColor = SpaceTheme.alienGreen;
               } else if (isSelected && !_resultCorrect) {
                 // Wrong selection: red
                 final flash = _feedbackAnimation.value;
-                bgColor = SpaceTheme.rocketRed.withValues(alpha: 0.3 + flash * 0.3);
+                bgColor =
+                    SpaceTheme.rocketRed.withValues(alpha: 0.3 + flash * 0.3);
                 borderColor = SpaceTheme.rocketRed;
                 textColor = SpaceTheme.rocketRed;
               } else {
@@ -705,8 +763,7 @@ class _CubeScannerGameState extends State<CubeScannerGame>
       case CubeQuestionKind.hiddenFaceSum:
         return s.cubeScannerQHiddenFaceSum;
       case CubeQuestionKind.rollToFace:
-        final rolls =
-            q.rolls.map(_rollName).join(s.cubeScannerRollJoin);
+        final rolls = q.rolls.map(_rollName).join(s.cubeScannerRollJoin);
         return s.cubeScannerQRoll(rolls, _faceName(q.face!));
       case CubeQuestionKind.hiddenPips:
         return _puzzle!.arrangement == DiceArrangement.verticalStack
@@ -733,7 +790,8 @@ class _CubeScannerGameState extends State<CubeScannerGame>
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: _selectedAnswer != null ? _submitAnswer : null,
+        onPressed:
+            _selectedAnswer != null && !_showResult ? _submitAnswer : null,
         icon: const Icon(Icons.check_circle_outline),
         // This used to read the win headline ("Cubes Decoded!") before the
         // child had answered anything.
@@ -927,8 +985,7 @@ class _IsometricDiePainter extends CustomPainter {
 
     // Draw face values (only visible ones)
     if (visible.top != null) {
-      _drawFaceValue(
-          canvas, topCenterPt, visible.top!, fontSize, Colors.white);
+      _drawFaceValue(canvas, topCenterPt, visible.top!, fontSize, Colors.white);
     } else {
       _drawQuestionMark(canvas, topCenterPt, fontSize * 0.8);
     }
@@ -963,7 +1020,8 @@ class _IsometricDiePainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       labelPainter.layout();
-      labelPainter.paint(canvas, Offset(4, size.height - labelPainter.height - 4));
+      labelPainter.paint(
+          canvas, Offset(4, size.height - labelPainter.height - 4));
     }
   }
 
@@ -989,8 +1047,8 @@ class _IsometricDiePainter extends CustomPainter {
     textPainter.layout();
     textPainter.paint(
       canvas,
-      Offset(
-          center.dx - textPainter.width / 2, center.dy - textPainter.height / 2),
+      Offset(center.dx - textPainter.width / 2,
+          center.dy - textPainter.height / 2),
     );
   }
 
@@ -1009,8 +1067,8 @@ class _IsometricDiePainter extends CustomPainter {
     textPainter.layout();
     textPainter.paint(
       canvas,
-      Offset(
-          center.dx - textPainter.width / 2, center.dy - textPainter.height / 2),
+      Offset(center.dx - textPainter.width / 2,
+          center.dy - textPainter.height / 2),
     );
   }
 
