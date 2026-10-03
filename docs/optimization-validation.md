@@ -126,6 +126,22 @@ and Solarpanel keep a valid grid column count after the last number is used.
 Solarpanel's victory actions wrap when their labels exceed the popup width.
 
 
+## Signal Triangulation round callbacks
+
+Auto-submit now owns a cancellable timer. Clearing or transmitting a guess,
+restoring a board, resetting the round and disposing the screen invalidate the
+old deadline. Each new complete guess retains the original 500ms delay.
+Victory/failure dialogs retain their one-second delay, but cannot appear over a
+restored or reset round. Header timers and in-progress collapse completion are
+also scoped to the round; restored boards restart the header's original window.
+Generation, deduction feedback, scoring and guess allowances are unchanged.
+
+Reduce motion suspends both decorative pulse and radar scan; disabling it
+resumes their original ping-pong and forward-only directions respectively.
+Targeted widget regressions exercise real glyph/button input, delayed results,
+restoration, disposal, header collapse and decorative frame updates. Heavy
+checks run on GitHub CI.
+
 ## Launch and Square candidate comparisons
 
 `--algorithm legacy` keeps the working baselines. Arithmetic Square additionally
