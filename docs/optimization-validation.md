@@ -166,6 +166,25 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Grid Filler round effects
+
+Grid Filler scopes its original 500 ms victory dialog to the current round.
+Restoration, reset and disposal cancel it and clear selection, hover, drag
+previews and one-shot effects. Completed rounds reject playable snapshots and
+further piece actions. Source and target callbacks verify the round and current
+piece identity, so depleted or stale inventory and removed placed pieces cannot
+change a replacement board or count additional rejected placements.
+
+Placement and victory controllers use the shared cancellable one-shot helpers,
+retaining normal 300 ms and two-second durations and completing with reduced
+motion. The grid painter also repaints when grid geometry or preview color
+changes. Generation, collision rules, score and mistake grading remain unchanged.
+Thirteen regressions cover actual grid taps and panel/placed-piece drags,
+movement/removal, grading, terminal guards, stale/depleted models, restoration,
+reset, disposal, reduced motion, invalid drop coordinates and painter changes.
+They precede the full suite on GitHub CI; calibration, builds and
+browser/deployment verification also run remotely.
+
 ## Cryptex round effects
 
 Cryptex commits each dial gesture before checking for victory, so the final

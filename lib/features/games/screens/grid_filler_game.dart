@@ -1,6 +1,7 @@
 import '../services/round_generation.dart';
 import 'package:space_math_academy/core/services/app_haptics.dart';
 import '../mixins/puzzle_session_mixin.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
@@ -19,17 +20,16 @@ import '../../../generated/l10n.dart';
 class GridPiece {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-    'size': size,
-    'count': count,
-    'color': color.toARGB32(),
-    'remainingCount': remainingCount
-  };
+        'size': size,
+        'count': count,
+        'color': color.toARGB32(),
+        'remainingCount': remainingCount
+      };
   factory GridPiece.fromJson(Map<String, dynamic> json) => GridPiece(
-    size: json['size'] as int,
-    count: json['count'] as int,
-    color: Color(json['color'] as int)
-  )
-      ..remainingCount = json['remainingCount'] as int;
+      size: json['size'] as int,
+      count: json['count'] as int,
+      color: Color(json['color'] as int))
+    ..remainingCount = json['remainingCount'] as int;
 
   final int size;
   final int count;
@@ -47,15 +47,15 @@ class GridPiece {
 class PlacedPiece {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-    'size': size,
-    'position': [position.dx, position.dy],
-    'color': color.toARGB32()
-  };
+        'size': size,
+        'position': [position.dx, position.dy],
+        'color': color.toARGB32()
+      };
   factory PlacedPiece.fromJson(Map<String, dynamic> json) => PlacedPiece(
-    size: json['size'] as int,
-    position: Offset((json['position'][0] as num).toDouble(), (json['position'][1] as num).toDouble()),
-    color: Color(json['color'] as int)
-  );
+      size: json['size'] as int,
+      position: Offset((json['position'][0] as num).toDouble(),
+          (json['position'][1] as num).toDouble()),
+      color: Color(json['color'] as int));
 
   final int size;
   Offset position;
@@ -84,13 +84,30 @@ class GridFillerGame extends StatefulWidget {
 }
 
 class _GridFillerGameState extends State<GridFillerGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<GridFillerGame>, PuzzleSessionMixin<GridFillerGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<GridFillerGame>,
+        PuzzleSessionMixin<GridFillerGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'grid_filler_game';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady) return null;
+  Timer? _winTimer;
+  int _roundEpoch = 0;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(_placeController, reduced,
+        duration: const Duration(milliseconds: 300));
+    updateOneShotMotion(_winController, reduced,
+        duration: const Duration(milliseconds: 2000));
+  }
+
+  @override
+  String get sessionGameKey => 'grid_filler_game';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _hasWon) return null;
     return {
       '_pieceTypes': _pieceTypes,
       'gridSize': gridSize,
@@ -99,14 +116,23 @@ class _GridFillerGameState extends State<GridFillerGame>
       '_rejectedPlacements': _rejectedPlacements
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _invalidateRoundEffects();
+    _clearRoundVisuals();
     _pieceTypes = state["_pieceTypes"] as int;
     gridSize = state["gridSize"] as int;
-    availablePieces = (state["availablePieces"] as List).map((v0) => GridPiece.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
-    placedPieces = (state["placedPieces"] as List).map((v0) => PlacedPiece.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
+    availablePieces = (state["availablePieces"] as List)
+        .map((v0) => GridPiece.fromJson(Map<String, dynamic>.from(v0 as Map)))
+        .toList();
+    placedPieces = (state["placedPieces"] as List)
+        .map((v0) => PlacedPiece.fromJson(Map<String, dynamic>.from(v0 as Map)))
+        .toList();
     _rejectedPlacements = state["_rejectedPlacements"] as int;
     _hasWon = false;
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_initializeGame);
@@ -114,49 +140,54 @@ class _GridFillerGameState extends State<GridFillerGame>
     if (mounted) setState(() => _sessionReady = true);
   }
 
-
   late int _pieceTypes; // N: pieces 1×1 through N×N
-  late int gridSize;    // Derived: (N*(N+1)/2)
+  late int gridSize; // Derived: (N*(N+1)/2)
 
   late List<GridPiece> availablePieces;
   List<PlacedPiece> placedPieces = [];
-  
+
   GridPiece? selectedPiece;
   Offset? hoverGridPosition;
-  
+
   PlacedPiece? draggedPlacedPiece;
   Offset? dragPreviewPosition;
-  
+
   bool _hasWon = false;
 
   /// Drops that did not fit — the quality signal for grading.
   int _rejectedPlacements = 0;
-  
+
   final GlobalKey _gridKey = GlobalKey();
-  
+
   late AnimationController _placeController;
   late AnimationController _winController;
   double _currentCellSize = 10.0;
-  
+
   @override
   void initState() {
     super.initState();
     initGameAnimations(usePulse: false, useSuccess: false);
-    
-    if (kDebugMode) debugPrint('🎮 GridFillerGame.initState() - Grade ${widget.grade}, Level ${widget.level}');
-    
-    
-    _placeController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
+
+    if (kDebugMode) {
+      debugPrint(
+          '🎮 GridFillerGame.initState() - Grade ${widget.grade}, Level ${widget.level}');
+    }
+
+    _placeController = AnimationController(
+        duration: const Duration(milliseconds: 300), vsync: this);
     _winController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _restoreOrGenerate();
+    });
   }
-  
+
   @override
   void dispose() {
+    _invalidateRoundEffects();
     disposePuzzleSession();
     if (kDebugMode) debugPrint('🎮 GridFillerGame.dispose()');
     _placeController.dispose();
@@ -164,17 +195,22 @@ class _GridFillerGameState extends State<GridFillerGame>
     disposeGameAnimations(usePulse: false, useSuccess: false);
     super.dispose();
   }
-  
+
   void _initializeGame() {
+    _invalidateRoundEffects();
+    _clearRoundVisuals();
     beginPuzzleSession();
     if (kDebugMode) debugPrint('🎮 Initializing game...');
 
     // Scale piece types (N) by grade + level
     // N=4 → 10×10, N=5 → 15×15, N=6 → 21×21, N=7 → 28×28, N=8 → 36×36, N=9 → 45×45
-    final complexity=widget.grade+widget.level/5;
-    _pieceTypes=gridFillerPieceTypes(widget.grade,widget.level);
+    final complexity = widget.grade + widget.level / 5;
+    _pieceTypes = gridFillerPieceTypes(widget.grade, widget.level);
     gridSize = _pieceTypes * (_pieceTypes + 1) ~/ 2;
-    if (kDebugMode) debugPrint('🎮 Difficulty: complexity=$complexity, pieceTypes=$_pieceTypes, gridSize=$gridSize');
+    if (kDebugMode) {
+      debugPrint(
+          '🎮 Difficulty: complexity=$complexity, pieceTypes=$_pieceTypes, gridSize=$gridSize');
+    }
 
     final colors = [
       SpaceTheme.starYellow,
@@ -196,7 +232,7 @@ class _GridFillerGameState extends State<GridFillerGame>
         color: colors[i],
       );
     });
-    
+
     placedPieces = [];
     selectedPiece = null;
     hoverGridPosition = null;
@@ -204,157 +240,264 @@ class _GridFillerGameState extends State<GridFillerGame>
     dragPreviewPosition = null;
     _hasWon = false;
     _rejectedPlacements = 0;
-    
-    if (kDebugMode) debugPrint('✅ Game initialized with ${availablePieces.length} piece types');
+
+    if (kDebugMode) {
+      debugPrint(
+          '✅ Game initialized with ${availablePieces.length} piece types');
+    }
     setState(() {});
   }
-  
+
+  void _invalidateRoundEffects() {
+    _roundEpoch++;
+    _winTimer?.cancel();
+    _winTimer = null;
+    cancelOneShotMotion(_placeController);
+    cancelOneShotMotion(_winController);
+  }
+
+  void _clearRoundVisuals() {
+    selectedPiece = null;
+    hoverGridPosition = null;
+    draggedPlacedPiece = null;
+    dragPreviewPosition = null;
+    _placeController.reset();
+    _winController.reset();
+  }
+
+  bool _canInteract(int epoch) =>
+      mounted && _sessionReady && epoch == _roundEpoch && !_hasWon;
+  bool _ownsPanelPiece(GridPiece piece) =>
+      availablePieces.any((current) => identical(current, piece));
+  bool _ownsPlacedPiece(PlacedPiece piece) =>
+      placedPieces.any((current) => identical(current, piece));
+  bool _canUsePanelPiece(GridPiece piece, int epoch) =>
+      _canInteract(epoch) && _ownsPanelPiece(piece) && piece.remainingCount > 0;
+  bool _canUseDragData(Object? data, int epoch) =>
+      _canInteract(epoch) &&
+      (data is GridPiece && _canUsePanelPiece(data, epoch) ||
+          data is PlacedPiece && _ownsPlacedPiece(data));
+
   bool _canPlacePiece(int pieceSize, Offset position, {PlacedPiece? exclude}) {
-    final x = position.dx.toInt();
-    final y = position.dy.toInt();
-    
-    if (kDebugMode) debugPrint('🔍 Checking if ${pieceSize}x$pieceSize can be placed at ($x, $y)');
-    
-    if (x < 0 || y < 0 || x + pieceSize > gridSize || y + pieceSize > gridSize) {
-      debugPrint('❌ Out of bounds! Grid size: $gridSize, Piece would end at (${x + pieceSize}, ${y + pieceSize})');
+    if (pieceSize <= 0 ||
+        !position.dx.isFinite ||
+        !position.dy.isFinite ||
+        position.dx != position.dx.floorToDouble() ||
+        position.dy != position.dy.floorToDouble()) {
       return false;
     }
-    
+    final x = position.dx.toInt();
+    final y = position.dy.toInt();
+
+    if (kDebugMode) {
+      debugPrint(
+          '🔍 Checking if ${pieceSize}x$pieceSize can be placed at ($x, $y)');
+    }
+
+    if (x < 0 ||
+        y < 0 ||
+        x + pieceSize > gridSize ||
+        y + pieceSize > gridSize) {
+      debugPrint(
+          '❌ Out of bounds! Grid size: $gridSize, Piece would end at (${x + pieceSize}, ${y + pieceSize})');
+      return false;
+    }
+
     for (int dy = 0; dy < pieceSize; dy++) {
       for (int dx = 0; dx < pieceSize; dx++) {
         final checkX = x + dx;
         final checkY = y + dy;
-        
+
         for (final piece in placedPieces) {
           if (piece == exclude) continue;
-          
+
           final px = piece.position.dx.toInt();
           final py = piece.position.dy.toInt();
-          
-          if (checkX >= px && checkX < px + piece.size &&
-              checkY >= py && checkY < py + piece.size) {
-            if (kDebugMode) debugPrint('❌ Collision with ${piece.size}x${piece.size} piece at ($px, $py)');
+
+          if (checkX >= px &&
+              checkX < px + piece.size &&
+              checkY >= py &&
+              checkY < py + piece.size) {
+            if (kDebugMode) {
+              debugPrint(
+                  '❌ Collision with ${piece.size}x${piece.size} piece at ($px, $py)');
+            }
             return false;
           }
         }
       }
     }
-    
+
     if (kDebugMode) debugPrint('✅ Position is valid!');
     return true;
   }
-  
-  void _placePieceFromPanel(GridPiece piece, Offset position) {
-    if (kDebugMode) debugPrint('📍 Placing new ${piece.size}x${piece.size} piece at $position');
-    
+
+  void _placePieceFromPanel(GridPiece piece, Offset position, int epoch) {
+    if (!_canUsePanelPiece(piece, epoch)) return;
+    if (kDebugMode) {
+      debugPrint(
+          '📍 Placing new ${piece.size}x${piece.size} piece at $position');
+    }
+
     if (!_canPlacePiece(piece.size, position)) {
       _rejectedPlacements++;
       if (kDebugMode) debugPrint('❌ Cannot place piece - invalid position');
       return;
     }
-    
+
     final newPiece = PlacedPiece(
       size: piece.size,
       position: position,
       color: piece.color,
     );
     placedPieces.add(newPiece);
-    
-    final pieceIndex = availablePieces.indexWhere((p) => p.size == piece.size);
-    availablePieces[pieceIndex].remainingCount--;
-    
-    if (kDebugMode) debugPrint('✅ Piece placed! Remaining ${piece.size}x${piece.size}: ${availablePieces[pieceIndex].remainingCount}');
-    
+
+    final pieceIndex = availablePieces.indexOf(piece);
+    piece.remainingCount--;
+
+    if (kDebugMode) {
+      debugPrint(
+          '✅ Piece placed! Remaining ${piece.size}x${piece.size}: ${availablePieces[pieceIndex].remainingCount}');
+    }
+
     selectedPiece = null;
-    _placeController.forward(from: 0.0);
-    
+    _placeController.reset();
+    playOneShotMotion(_placeController, () {});
+
     _checkWin();
     setState(() {});
   }
-  
-  void _movePlacedPiece(PlacedPiece piece, Offset newPosition) {
-    if (kDebugMode) debugPrint('🔄 Moving ${piece.size}x${piece.size} from ${piece.position} to $newPosition');
-    
+
+  void _movePlacedPiece(PlacedPiece piece, Offset newPosition, int epoch) {
+    if (!_canInteract(epoch) || !_ownsPlacedPiece(piece)) return;
+    if (kDebugMode) {
+      debugPrint(
+          '🔄 Moving ${piece.size}x${piece.size} from ${piece.position} to $newPosition');
+    }
+
     if (!_canPlacePiece(piece.size, newPosition, exclude: piece)) {
       _rejectedPlacements++;
       if (kDebugMode) debugPrint('❌ Cannot move piece - invalid position');
       return;
     }
-    
+
     piece.position = newPosition;
     if (kDebugMode) debugPrint('✅ Piece moved successfully!');
-    
+
     setState(() {});
   }
-  
-  void _removePlacedPiece(PlacedPiece piece) {
-    if (kDebugMode) debugPrint('🗑️ Removing ${piece.size}x${piece.size} piece from ${piece.position}');
-    
-    placedPieces.remove(piece);
-    
+
+  void _removePlacedPiece(PlacedPiece piece, int epoch) {
+    if (!_canInteract(epoch) || !_ownsPlacedPiece(piece)) return;
     final pieceIndex = availablePieces.indexWhere((p) => p.size == piece.size);
+    if (pieceIndex < 0 ||
+        availablePieces[pieceIndex].remainingCount >=
+            availablePieces[pieceIndex].count) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint(
+          '🗑️ Removing ${piece.size}x${piece.size} piece from ${piece.position}');
+    }
+
+    placedPieces.remove(piece);
+    if (identical(draggedPlacedPiece, piece)) {
+      draggedPlacedPiece = null;
+      dragPreviewPosition = null;
+    }
+
     availablePieces[pieceIndex].remainingCount++;
-    
-    if (kDebugMode) debugPrint('✅ Piece removed! Remaining ${piece.size}x${piece.size}: ${availablePieces[pieceIndex].remainingCount}');
-    
+
+    if (kDebugMode) {
+      debugPrint(
+          '✅ Piece removed! Remaining ${piece.size}x${piece.size}: ${availablePieces[pieceIndex].remainingCount}');
+    }
+
     setState(() {});
   }
-  
+
   void _checkWin() {
+    if (!mounted || _hasWon) return;
     final allPlaced = availablePieces.every((p) => p.remainingCount == 0);
-    
-    if (kDebugMode) debugPrint('🏆 Checking win condition: All placed? $allPlaced');
-    
+
+    if (kDebugMode) {
+      debugPrint('🏆 Checking win condition: All placed? $allPlaced');
+    }
+
     if (allPlaced && !_hasWon) {
       _hasWon = true;
+      _invalidateRoundEffects();
+      selectedPiece = null;
+      hoverGridPosition = null;
+      draggedPlacedPiece = null;
+      dragPreviewPosition = null;
       AppHaptics.lightImpact();
-      _winController.forward();
-      
+      playOneShotMotion(_winController, () {});
+
       final baseScore = 200 * widget.grade;
       final complexityBonus = _pieceTypes * 30;
       final totalScore = baseScore + complexityBonus;
-      
+
       if (kDebugMode) debugPrint('🎉 WINNER! Score: $totalScore');
-      
+
       finishPuzzleSession();
 
       context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'grid_filler_game',
-      difficulty: widget.level,
-      score: totalScore,
-      mathProblems: [],
-      // Every piece dropped where it actually fits = flawless tiling.
-      performance: Perf.fromMistakes(_rejectedPlacements, per: 0.1),
-    ));
-      
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) _showWinDialog(totalScore);
+            skillLevel: widget.grade,
+            gameType: 'grid_filler_game',
+            difficulty: widget.level,
+            score: totalScore,
+            mathProblems: [],
+            // Every piece dropped where it actually fits = flawless tiling.
+            performance: Perf.fromMistakes(_rejectedPlacements, per: 0.1),
+          ));
+
+      final epoch = _roundEpoch;
+      _winTimer = Timer(const Duration(milliseconds: 500), () {
+        if (mounted && epoch == _roundEpoch && _hasWon) {
+          _winTimer = null;
+          _showWinDialog(totalScore);
+        }
       });
     }
   }
-  
+
   Offset _getGridPosition(Offset globalPosition, double cellSize) {
-    final RenderBox? box = _gridKey.currentContext?.findRenderObject() as RenderBox?;
+    if (!globalPosition.dx.isFinite ||
+        !globalPosition.dy.isFinite ||
+        !cellSize.isFinite ||
+        cellSize <= 0) {
+      return const Offset(-1, -1);
+    }
+    final RenderBox? box =
+        _gridKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) {
       if (kDebugMode) debugPrint('⚠️ Grid RenderBox not found');
       return Offset.zero;
     }
-    
+
     final localPos = box.globalToLocal(globalPosition);
+    if (!localPos.dx.isFinite || !localPos.dy.isFinite) {
+      return const Offset(-1, -1);
+    }
     final gridX = (localPos.dx / cellSize).floor().clamp(0, gridSize - 1);
     final gridY = (localPos.dy / cellSize).floor().clamp(0, gridSize - 1);
-    
-    if (kDebugMode) debugPrint('📐 Global: $globalPosition -> Local: $localPos -> Grid: ($gridX, $gridY)');
-    
+
+    if (kDebugMode) {
+      debugPrint(
+          '📐 Global: $globalPosition -> Local: $localPos -> Grid: ($gridX, $gridY)');
+    }
+
     return Offset(gridX.toDouble(), gridY.toDouble());
   }
-  
+
   void _showWinDialog(int score) {
+    final epoch = _roundEpoch;
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(scrollable: true,
+      builder: (context) => AlertDialog(
+        scrollable: true,
         backgroundColor: const Color(0xFF1A1A2E),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
@@ -365,7 +508,7 @@ class _GridFillerGameState extends State<GridFillerGame>
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                  RoundSummary(gameKey: 'grid_filler_game'),
+            RoundSummary(gameKey: 'grid_filler_game'),
             Text(
               S.of(context)!.gridFillerWinDesc,
               style: const TextStyle(color: Colors.white70, fontSize: 16),
@@ -386,31 +529,37 @@ class _GridFillerGameState extends State<GridFillerGame>
           TextButton(
             autofocus: true,
             onPressed: () {
+              if (!mounted || epoch != _roundEpoch || !_hasWon) return;
               Navigator.pop(context);
               _initializeGame();
             },
-            child: Text(S.of(context)!.gridFillerPlayAgain, style: const TextStyle(color: SpaceTheme.alienGreen)),
+            child: Text(S.of(context)!.gridFillerPlayAgain,
+                style: const TextStyle(color: SpaceTheme.alienGreen)),
           ),
           TextButton(
             onPressed: () {
+              if (!mounted || epoch != _roundEpoch || !_hasWon) return;
               Navigator.pop(context);
               Navigator.pop(context);
             },
-            child: Text(S.of(context)!.gridFillerExit, style: const TextStyle(color: Colors.white70)),
+            child: Text(S.of(context)!.gridFillerExit,
+                style: const TextStyle(color: Colors.white70)),
           ),
         ],
       ),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    final epoch = _roundEpoch;
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       body: Stack(
         children: [
           SpaceBackground(child: Container()),
-          
           SafeArea(
             child: Column(
               children: [
@@ -431,7 +580,13 @@ class _GridFillerGameState extends State<GridFillerGame>
                     children: [
                       IconButton(
                         icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          if (mounted &&
+                              _sessionReady &&
+                              epoch == _roundEpoch) {
+                            Navigator.pop(context);
+                          }
+                        },
                       ),
                       const SizedBox(width: 8),
                       Column(
@@ -448,7 +603,9 @@ class _GridFillerGameState extends State<GridFillerGame>
                           Text(
                             S.of(context)!.gridFillerFillGrid(
                                 gridSize,
-                                context.read<GameProvider>().multiplicationSymbol),
+                                context
+                                    .read<GameProvider>()
+                                    .multiplicationSymbol),
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.7),
                               fontSize: 14,
@@ -458,7 +615,8 @@ class _GridFillerGameState extends State<GridFillerGame>
                       ),
                       const Spacer(),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(20),
@@ -469,7 +627,8 @@ class _GridFillerGameState extends State<GridFillerGame>
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.grid_on, color: SpaceTheme.alienGreen, size: 20),
+                            const Icon(Icons.grid_on,
+                                color: SpaceTheme.alienGreen, size: 20),
                             const SizedBox(width: 8),
                             Text(
                               '${placedPieces.length}/${_pieceTypes * (_pieceTypes + 1) ~/ 2}',
@@ -485,20 +644,25 @@ class _GridFillerGameState extends State<GridFillerGame>
                       if (selectedPiece != null) ...[
                         const SizedBox(width: 16),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
                             color: selectedPiece!.color.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: selectedPiece!.color, width: 2),
+                            border: Border.all(
+                                color: selectedPiece!.color, width: 2),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.touch_app, color: selectedPiece!.color, size: 20),
+                              Icon(Icons.touch_app,
+                                  color: selectedPiece!.color, size: 20),
                               const SizedBox(width: 8),
                               Text(
                                 S.of(context)!.gridFillerClickToPlace(
                                     selectedPiece!.size,
-                                    context.read<GameProvider>().multiplicationSymbol),
+                                    context
+                                        .read<GameProvider>()
+                                        .multiplicationSymbol),
                                 style: TextStyle(
                                   color: selectedPiece!.color,
                                   fontSize: 14,
@@ -512,7 +676,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                     ],
                   ),
                 ),
-                
+
                 // Game area
                 Expanded(
                   child: Row(
@@ -554,7 +718,13 @@ class _GridFillerGameState extends State<GridFillerGame>
                             Padding(
                               padding: const EdgeInsets.all(12),
                               child: ElevatedButton(
-                                onPressed: _initializeGame,
+                                onPressed: () {
+                                  if (mounted &&
+                                      _sessionReady &&
+                                      epoch == _roundEpoch) {
+                                    _initializeGame();
+                                  }
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: SpaceTheme.planetOrange,
                                   minimumSize: const Size(double.infinity, 44),
@@ -568,7 +738,7 @@ class _GridFillerGameState extends State<GridFillerGame>
                           ],
                         ),
                       ),
-                      
+
                       // Grid area
                       Expanded(
                         child: LayoutBuilder(
@@ -578,9 +748,10 @@ class _GridFillerGameState extends State<GridFillerGame>
                               constraints.maxHeight / gridSize,
                             );
                             _currentCellSize = cellSize;
-                            
+
                             return InteractiveViewer(
-                              boundaryMargin: const EdgeInsets.all(double.infinity),
+                              boundaryMargin:
+                                  const EdgeInsets.all(double.infinity),
                               minScale: 0.5,
                               maxScale: 3.0,
                               constrained: false,
@@ -588,30 +759,51 @@ class _GridFillerGameState extends State<GridFillerGame>
                                 child: DragTarget<Object>(
                                   key: _gridKey,
                                   onWillAcceptWithDetails: (details) {
-                                    if (kDebugMode) debugPrint('🎯 Grid DragTarget: data=${details.data.runtimeType}');
-                                    return details.data is GridPiece || details.data is PlacedPiece;
+                                    if (kDebugMode) {
+                                      debugPrint(
+                                          '🎯 Grid DragTarget: data=${details.data.runtimeType}');
+                                    }
+                                    return _canUseDragData(details.data, epoch);
                                   },
                                   onAcceptWithDetails: (details) {
-                                    if (kDebugMode) debugPrint('✅ Grid DragTarget: Accepting drop at ${details.offset}');
-                                    
-                                    final gridPos = _getGridPosition(details.offset, cellSize);
-                                    
+                                    if (!_canUseDragData(details.data, epoch)) {
+                                      return;
+                                    }
+                                    if (kDebugMode) {
+                                      debugPrint(
+                                          '✅ Grid DragTarget: Accepting drop at ${details.offset}');
+                                    }
+
+                                    final gridPos = _getGridPosition(
+                                        details.offset, cellSize);
+
                                     if (details.data is GridPiece) {
                                       final piece = details.data as GridPiece;
-                                      if (kDebugMode) debugPrint('📦 Dropped GridPiece ${piece.size}x${piece.size} at $gridPos');
+                                      if (kDebugMode) {
+                                        debugPrint(
+                                            '📦 Dropped GridPiece ${piece.size}x${piece.size} at $gridPos');
+                                      }
                                       if (piece.remainingCount > 0) {
-                                        _placePieceFromPanel(piece, gridPos);
+                                        _placePieceFromPanel(
+                                            piece, gridPos, epoch);
                                       }
                                     } else if (details.data is PlacedPiece) {
                                       final piece = details.data as PlacedPiece;
-                                      if (kDebugMode) debugPrint('🔄 Dropped PlacedPiece ${piece.size}x${piece.size} at $gridPos');
-                                      _movePlacedPiece(piece, gridPos);
+                                      if (kDebugMode) {
+                                        debugPrint(
+                                            '🔄 Dropped PlacedPiece ${piece.size}x${piece.size} at $gridPos');
+                                      }
+                                      _movePlacedPiece(piece, gridPos, epoch);
                                       draggedPlacedPiece = null;
                                       dragPreviewPosition = null;
                                     }
                                   },
                                   onMove: (details) {
-                                    final gridPos = _getGridPosition(details.offset, cellSize);
+                                    if (!_canUseDragData(details.data, epoch)) {
+                                      return;
+                                    }
+                                    final gridPos = _getGridPosition(
+                                        details.offset, cellSize);
                                     setState(() {
                                       if (details.data is GridPiece) {
                                         hoverGridPosition = gridPos;
@@ -621,17 +813,25 @@ class _GridFillerGameState extends State<GridFillerGame>
                                     });
                                   },
                                   onLeave: (data) {
-                                    if (kDebugMode) debugPrint('👋 Drag left grid area');
+                                    if (!_canUseDragData(data, epoch)) return;
+                                    if (kDebugMode) {
+                                      debugPrint('👋 Drag left grid area');
+                                    }
                                     setState(() {
                                       hoverGridPosition = null;
                                       dragPreviewPosition = null;
                                     });
                                   },
-                                  builder: (context, candidateData, rejectedData) {
+                                  builder:
+                                      (context, candidateData, rejectedData) {
                                     return MouseRegion(
                                       onHover: (event) {
-                                        if (selectedPiece != null) {
-                                          final gridPos = _getGridPosition(event.position, cellSize);
+                                        if (!_canInteract(epoch)) return;
+                                        if (selectedPiece != null &&
+                                            _canUsePanelPiece(
+                                                selectedPiece!, epoch)) {
+                                          final gridPos = _getGridPosition(
+                                              event.position, cellSize);
                                           setState(() {
                                             hoverGridPosition = gridPos;
                                           });
@@ -639,12 +839,22 @@ class _GridFillerGameState extends State<GridFillerGame>
                                       },
                                       child: GestureDetector(
                                         onTapUp: (details) {
-                                          if (kDebugMode) debugPrint('👆 Tap detected on grid');
-                                          
+                                          if (!_canInteract(epoch)) return;
+                                          if (kDebugMode) {
+                                            debugPrint(
+                                                '👆 Tap detected on grid');
+                                          }
+
                                           if (selectedPiece != null) {
-                                            final gridPos = _getGridPosition(details.globalPosition, cellSize);
-                                            if (kDebugMode) debugPrint('🎯 Click-to-place mode: placing at $gridPos');
-                                            _placePieceFromPanel(selectedPiece!, gridPos);
+                                            final gridPos = _getGridPosition(
+                                                details.globalPosition,
+                                                cellSize);
+                                            if (kDebugMode) {
+                                              debugPrint(
+                                                  '🎯 Click-to-place mode: placing at $gridPos');
+                                            }
+                                            _placePieceFromPanel(
+                                                selectedPiece!, gridPos, epoch);
                                           }
                                         },
                                         child: Container(
@@ -662,42 +872,87 @@ class _GridFillerGameState extends State<GridFillerGame>
                                                 painter: GridFillerPainter(
                                                   gridSize: gridSize,
                                                   cellSize: cellSize,
-                                                  hoverPosition: selectedPiece != null ? hoverGridPosition : dragPreviewPosition,
-                                                  previewSize: selectedPiece?.size ?? draggedPlacedPiece?.size,
-                                                  previewColor: selectedPiece?.color ?? draggedPlacedPiece?.color,
-                                                  canPlace: (selectedPiece != null && hoverGridPosition != null && _canPlacePiece(selectedPiece!.size, hoverGridPosition!)) ||
-                                                            (draggedPlacedPiece != null && dragPreviewPosition != null && _canPlacePiece(draggedPlacedPiece!.size, dragPreviewPosition!, exclude: draggedPlacedPiece)),
+                                                  hoverPosition:
+                                                      selectedPiece != null
+                                                          ? hoverGridPosition
+                                                          : dragPreviewPosition,
+                                                  previewSize: selectedPiece
+                                                          ?.size ??
+                                                      draggedPlacedPiece?.size,
+                                                  previewColor: selectedPiece
+                                                          ?.color ??
+                                                      draggedPlacedPiece?.color,
+                                                  canPlace: (selectedPiece !=
+                                                              null &&
+                                                          hoverGridPosition !=
+                                                              null &&
+                                                          _canPlacePiece(
+                                                              selectedPiece!
+                                                                  .size,
+                                                              hoverGridPosition!)) ||
+                                                      (draggedPlacedPiece !=
+                                                              null &&
+                                                          dragPreviewPosition !=
+                                                              null &&
+                                                          _canPlacePiece(
+                                                              draggedPlacedPiece!
+                                                                  .size,
+                                                              dragPreviewPosition!,
+                                                              exclude:
+                                                                  draggedPlacedPiece)),
                                                 ),
                                               ),
-                                              
+
                                               // Placed pieces
-                                              ...placedPieces.where((p) => p != draggedPlacedPiece).map((piece) {
+                                              ...placedPieces
+                                                  .where((p) =>
+                                                      p != draggedPlacedPiece)
+                                                  .map((piece) {
                                                 return Positioned(
-                                                  left: piece.position.dx * cellSize,
-                                                  top: piece.position.dy * cellSize,
-                                                  child: _buildPlacedPiece(piece, cellSize),
+                                                  left: piece.position.dx *
+                                                      cellSize,
+                                                  top: piece.position.dy *
+                                                      cellSize,
+                                                  child: _buildPlacedPiece(
+                                                      piece, cellSize),
                                                 );
                                               }),
-                                              
+
                                               // Coordinate display
-                                              if ((selectedPiece != null && hoverGridPosition != null) || 
-                                                  (draggedPlacedPiece != null && dragPreviewPosition != null))
+                                              if ((selectedPiece != null &&
+                                                      hoverGridPosition !=
+                                                          null) ||
+                                                  (draggedPlacedPiece != null &&
+                                                      dragPreviewPosition !=
+                                                          null))
                                                 Positioned(
                                                   left: 8,
                                                   top: 8,
                                                   child: Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 8),
                                                     decoration: BoxDecoration(
-                                                      color: Colors.black.withValues(alpha: 0.8),
-                                                      borderRadius: BorderRadius.circular(8),
-                                                      border: Border.all(color: SpaceTheme.starYellow, width: 2),
+                                                      color: Colors.black
+                                                          .withValues(
+                                                              alpha: 0.8),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      border: Border.all(
+                                                          color: SpaceTheme
+                                                              .starYellow,
+                                                          width: 2),
                                                     ),
                                                     child: Text(
                                                       'Position: (${(selectedPiece != null ? hoverGridPosition : dragPreviewPosition)?.dx.toInt()}, ${(selectedPiece != null ? hoverGridPosition : dragPreviewPosition)?.dy.toInt()})',
                                                       style: const TextStyle(
-                                                        color: SpaceTheme.starYellow,
+                                                        color: SpaceTheme
+                                                            .starYellow,
                                                         fontSize: 16,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                       ),
                                                     ),
                                                   ),
@@ -724,12 +979,14 @@ class _GridFillerGameState extends State<GridFillerGame>
       ),
     );
   }
-  
+
   Widget _buildPieceCard(GridPiece piece) {
+    final epoch = _roundEpoch;
     final isSelected = selectedPiece?.size == piece.size;
-    final canUse = piece.remainingCount > 0;
-    
+    final canUse = _canUsePanelPiece(piece, epoch);
+
     return LongPressDraggable<GridPiece>(
+      maxSimultaneousDrags: canUse ? 1 : 0,
       data: piece,
       delay: const Duration(milliseconds: 100),
       feedback: Material(
@@ -755,10 +1012,16 @@ class _GridFillerGameState extends State<GridFillerGame>
         ),
       ),
       onDragStarted: () {
-        if (kDebugMode) debugPrint('🎨 Started dragging ${piece.size}x${piece.size} from panel');
+        if (!_canUsePanelPiece(piece, epoch)) return;
+        if (kDebugMode) {
+          debugPrint(
+              '🎨 Started dragging ${piece.size}x${piece.size} from panel');
+        }
       },
       onDragEnd: (details) {
-        debugPrint('🎨 Ended dragging ${piece.size}x${piece.size} - wasAccepted: ${details.wasAccepted}');
+        if (!_canInteract(epoch) || !_ownsPanelPiece(piece)) return;
+        debugPrint(
+            '🎨 Ended dragging ${piece.size}x${piece.size} - wasAccepted: ${details.wasAccepted}');
         setState(() {
           hoverGridPosition = null;
         });
@@ -768,26 +1031,33 @@ class _GridFillerGameState extends State<GridFillerGame>
         child: _buildPieceCardContent(piece, isSelected, canUse),
       ),
       child: Semantics(
-        label: S.of(context)!.a11yPiece(piece.size, piece.size, piece.remainingCount, piece.count),
+        label: S.of(context)!.a11yPiece(
+            piece.size, piece.size, piece.remainingCount, piece.count),
         button: true,
         selected: isSelected,
         enabled: canUse,
         child: GestureDetector(
-          onTap: canUse ? () {
-            if (kDebugMode) debugPrint('🖱️ Clicked piece ${piece.size}x${piece.size} in panel');
-            setState(() {
-              selectedPiece = isSelected ? null : piece;
-              debugPrint(selectedPiece != null
-                  ? '✅ Selected ${piece.size}x${piece.size} - click grid to place'
-                  : '❌ Deselected piece');
-            });
-          } : null,
+          onTap: canUse
+              ? () {
+                  if (!_canUsePanelPiece(piece, epoch)) return;
+                  if (kDebugMode) {
+                    debugPrint(
+                        '🖱️ Clicked piece ${piece.size}x${piece.size} in panel');
+                  }
+                  setState(() {
+                    selectedPiece = isSelected ? null : piece;
+                    debugPrint(selectedPiece != null
+                        ? '✅ Selected ${piece.size}x${piece.size} - click grid to place'
+                        : '❌ Deselected piece');
+                  });
+                }
+              : null,
           child: _buildPieceCardContent(piece, isSelected, canUse),
         ),
       ),
     );
   }
-  
+
   Widget _buildPieceCardContent(GridPiece piece, bool isSelected, bool canUse) {
     return AnimatedBuilder(
       animation: glowAnimation,
@@ -842,8 +1112,8 @@ class _GridFillerGameState extends State<GridFillerGame>
                     ),
                   ),
                   Text(
-                    S.of(context)!
-                        .gridFillerPiecesLeft(piece.remainingCount, piece.count),
+                    S.of(context)!.gridFillerPiecesLeft(
+                        piece.remainingCount, piece.count),
                     style: TextStyle(
                       color: canUse ? SpaceTheme.alienGreen : Colors.grey,
                       fontSize: 11,
@@ -857,9 +1127,12 @@ class _GridFillerGameState extends State<GridFillerGame>
       },
     );
   }
-  
+
   Widget _buildPlacedPiece(PlacedPiece piece, double cellSize) {
+    final epoch = _roundEpoch;
     return LongPressDraggable<PlacedPiece>(
+      maxSimultaneousDrags:
+          _canInteract(epoch) && _ownsPlacedPiece(piece) ? 1 : 0,
       data: piece,
       delay: const Duration(milliseconds: 100),
       feedback: Material(
@@ -885,17 +1158,27 @@ class _GridFillerGameState extends State<GridFillerGame>
         ),
       ),
       onDragStarted: () {
-        if (kDebugMode) debugPrint('🔄 Started dragging placed ${piece.size}x${piece.size} from ${piece.position}');
+        if (!_canInteract(epoch) || !_ownsPlacedPiece(piece)) return;
+        if (kDebugMode) {
+          debugPrint(
+              '🔄 Started dragging placed ${piece.size}x${piece.size} from ${piece.position}');
+        }
         setState(() {
           draggedPlacedPiece = piece;
         });
       },
       onDragEnd: (details) {
-        if (kDebugMode) debugPrint('🔄 Drag ended for ${piece.size}x${piece.size} - wasAccepted: ${details.wasAccepted}');
-        setState(() {
-          draggedPlacedPiece = null;
-          dragPreviewPosition = null;
-        });
+        if (!_canInteract(epoch) || !_ownsPlacedPiece(piece)) return;
+        if (kDebugMode) {
+          debugPrint(
+              '🔄 Drag ended for ${piece.size}x${piece.size} - wasAccepted: ${details.wasAccepted}');
+        }
+        if (identical(draggedPlacedPiece, piece)) {
+          setState(() {
+            draggedPlacedPiece = null;
+            dragPreviewPosition = null;
+          });
+        }
       },
       childWhenDragging: Container(),
       child: Semantics(
@@ -903,38 +1186,40 @@ class _GridFillerGameState extends State<GridFillerGame>
         hint: 'Tap to remove or long-press to drag',
         button: true,
         child: GestureDetector(
-        onTap: () {
-          if (kDebugMode) debugPrint('👆 Single tap to remove ${piece.size}x${piece.size}');
-          _removePlacedPiece(piece);
-        },
-        child: Container(
-          width: piece.size * cellSize,
-          height: piece.size * cellSize,
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: const Alignment(-0.3, -0.3),
-              radius: 1.0,
-              colors: [
-                Color.lerp(piece.color, Colors.white, 0.3)!,
-                piece.color,
-                Color.lerp(piece.color, Colors.black, 0.2)!,
-              ],
+          onTap: () {
+            if (kDebugMode) {
+              debugPrint('👆 Single tap to remove ${piece.size}x${piece.size}');
+            }
+            _removePlacedPiece(piece, epoch);
+          },
+          child: Container(
+            width: piece.size * cellSize,
+            height: piece.size * cellSize,
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: const Alignment(-0.3, -0.3),
+                radius: 1.0,
+                colors: [
+                  Color.lerp(piece.color, Colors.white, 0.3)!,
+                  piece.color,
+                  Color.lerp(piece.color, Colors.black, 0.2)!,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: piece.color, width: 2),
             ),
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: piece.color, width: 2),
-          ),
-          child: Center(
-            child: Text(
-              '${piece.size}${context.read<GameProvider>().multiplicationSymbol}${piece.size}',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: math.max(10, piece.size * 2).toDouble(),
-                fontWeight: FontWeight.bold,
+            child: Center(
+              child: Text(
+                '${piece.size}${context.read<GameProvider>().multiplicationSymbol}${piece.size}',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: math.max(10, piece.size * 2).toDouble(),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -948,7 +1233,7 @@ class GridFillerPainter extends CustomPainter {
   final int? previewSize;
   final Color? previewColor;
   final bool canPlace;
-  
+
   GridFillerPainter({
     required this.gridSize,
     required this.cellSize,
@@ -957,28 +1242,28 @@ class GridFillerPainter extends CustomPainter {
     this.previewColor,
     required this.canPlace,
   });
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final gridPaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.5;
-    
+
     for (int i = 0; i <= gridSize; i++) {
       canvas.drawLine(
         Offset(i * cellSize, 0),
         Offset(i * cellSize, gridSize * cellSize),
         gridPaint,
       );
-      
+
       canvas.drawLine(
         Offset(0, i * cellSize),
         Offset(gridSize * cellSize, i * cellSize),
         gridPaint,
       );
     }
-    
+
     if (hoverPosition != null && previewSize != null && previewColor != null) {
       final rect = Rect.fromLTWH(
         hoverPosition!.dx * cellSize,
@@ -986,32 +1271,35 @@ class GridFillerPainter extends CustomPainter {
         previewSize! * cellSize,
         previewSize! * cellSize,
       );
-      
+
       final previewPaint = Paint()
         ..color = canPlace
             ? previewColor!.withValues(alpha: 0.4)
             : Colors.red.withValues(alpha: 0.3);
-      
+
       final borderPaint = Paint()
         ..color = canPlace ? previewColor! : Colors.red
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3;
-      
+
       canvas.drawRRect(
         RRect.fromRectAndRadius(rect, const Radius.circular(4)),
         previewPaint,
       );
-      
+
       canvas.drawRRect(
         RRect.fromRectAndRadius(rect, const Radius.circular(4)),
         borderPaint,
       );
     }
   }
-  
+
   @override
   bool shouldRepaint(GridFillerPainter oldDelegate) {
-    return oldDelegate.hoverPosition != hoverPosition ||
+    return oldDelegate.gridSize != gridSize ||
+        oldDelegate.cellSize != cellSize ||
+        oldDelegate.previewColor != previewColor ||
+        oldDelegate.hoverPosition != hoverPosition ||
         oldDelegate.previewSize != previewSize ||
         oldDelegate.canPlace != canPlace;
   }
