@@ -166,6 +166,30 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Launch Sequence move grading and round effects
+
+Launch Sequence counts a drag relocation as the number of positions crossed,
+matching the adjacent-swap units used by the inversion-count optimum. Adjacent
+tap swaps still cost one, unchanged reorders cost zero, and saved move counts
+remain intact. The generator's legacy/candidate paths and score formula remain
+unchanged; a three-position drag now contributes three moves before grading.
+
+The original 1.3-second victory dialog belongs to the current round. Restoration,
+regeneration and disposal cancel it and reset launch/success effects. Completed
+rounds reject playable snapshots and duplicate outcomes; callbacks verify the
+round and index bounds before editing a sequence. Each round gets a fresh reorder
+list so an old in-progress drag cannot invoke the replacement board's callback.
+Restoration retains valid selection and move counts and clears an out-of-range
+saved selection.
+
+Launch and success effects use cancellable one-shot helpers, retaining their
+normal 1.2-second/600 ms durations and completing with reduced motion. Selection
+and drag-proxy decoration also respect reduced motion. Thirteen regressions cover
+real drag/cancel/tap controls, adjacent move grading, stale callbacks, active-drag
+restoration, selection recovery, dialog timing, retry, disposal and motion changes.
+They run before the full suite on GitHub CI, with calibration, builds and
+browser/deployment checks also running remotely.
+
 ## Grid Filler round effects
 
 Grid Filler scopes its original 500 ms victory dialog to the current round.
