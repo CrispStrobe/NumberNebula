@@ -13,12 +13,10 @@ import 'package:space_math_academy/features/games/screens/magic_triangles_game.d
 import 'package:space_math_academy/features/games/screens/number_walls_game.dart';
 import 'package:space_math_academy/features/games/screens/solarpanel_game.dart';
 import 'package:space_math_academy/features/games/services/magic_triangle_puzzle.dart';
-import 'package:space_math_academy/features/games/services/number_walls_logic.dart';
-import 'package:space_math_academy/features/games/services/solarpanel_logic.dart';
 import 'package:space_math_academy/generated/l10n.dart';
 
 class _VictoryHarness extends StatefulWidget {
-  const _VictoryHarness({super.key});
+  const _VictoryHarness();
 
   @override
   State<_VictoryHarness> createState() => _VictoryHarnessState();
