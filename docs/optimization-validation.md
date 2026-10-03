@@ -107,6 +107,24 @@ profiling and age-appropriate difficulty calibration remain open. Automated
 results can identify bugs, expensive hints, weak structural progression, and
 suspicious allowances; human sessions are needed to set fair child-facing pars.
 
+## Victory completion and reduced motion
+
+Magic Triangles, Number Walls and Solarpanel use one-shot victory animations.
+These must complete when Reduce motion is enabled, including a setting change
+mid-animation. They use separate completion handling from repeating decoration:
+completion runs after the frame, once per animation, and reset or disposal
+invalidates a pending callback. Solarpanel chains its panel expansion and warp
+through completion rather than an independent two-second timer. Full-motion
+durations and scoring formulas stay the same.
+
+Forward-only decoration in Magic Triangles, Path Finder, Planet Hopping and
+Asteroid Math resumes forward-only after Reduce motion is disabled. Number
+Walls also suspends its repeating operation decoration while motion is reduced.
+This changes animation handling, not puzzle generation or difficulty calibration.
+The real final-placement checks also cover an empty number pool: Number Walls
+and Solarpanel keep a valid grid column count after the last number is used.
+Solarpanel's victory actions wrap when their labels exceed the popup width.
+
 
 ## Launch and Square candidate comparisons
 

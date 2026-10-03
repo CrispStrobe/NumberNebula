@@ -37,7 +37,7 @@ class _PlanetHoppingGameState extends State<PlanetHoppingGame>
   bool _sessionReady = false;
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
-    updateDecorativeMotion([_planetController], reduced);
+    updateDecorativeMotion([_planetController], reduced, reverse: false);
   }
   @override String get sessionGameKey => 'planet_hopping';
   @override int get sessionGrade => widget.grade;

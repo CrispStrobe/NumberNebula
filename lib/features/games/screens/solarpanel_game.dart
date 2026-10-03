@@ -34,9 +34,13 @@ class SolarPanelGame extends StatefulWidget {
 class _SolarPanelGameState extends State<SolarPanelGame>
     with TickerProviderStateMixin, GameAnimationsMixin<SolarPanelGame>, PuzzleSessionMixin<SolarPanelGame> {
   bool _sessionReady = false;
+  bool _victoryPending = false;
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
-    updateDecorativeMotion([_warpController], reduced);
+    updateOneShotMotion(_warpController, reduced,
+        duration: const Duration(milliseconds: 1500));
+    updateOneShotMotion(_panelExpandController, reduced,
+        duration: const Duration(milliseconds: 2000));
   }
 
   @override String get sessionGameKey => 'solarpanel_game';
@@ -52,6 +56,9 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     };
   }
   @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _cancelVictory();
+    _warpController.reset();
+    _panelExpandController.reset();
     currentPuzzle = (state["currentPuzzle"] == null ? null : SolarPanelPuzzle.fromJson(Map<String, dynamic>.from(state["currentPuzzle"] as Map)));
     userAnswers = (state["userAnswers"] as List).map((v0) => (v0 == null ? null : v0 as int)).toList();
     numberPool = (state["numberPool"] as List).map((v0) => v0 as int).toList();
@@ -139,6 +146,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
 
   @override
   void dispose() {
+    _cancelVictory();
     disposePuzzleSession();
     _dropController.dispose();
     _warpController.dispose();
@@ -150,6 +158,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   }
 
   Future<void> _generatePuzzle() async {
+    _cancelVictory();
     beginPuzzleSession();
     if (kDebugMode) debugPrint("☀️ _generatePuzzle() - Starting puzzle generation");
     
@@ -193,6 +202,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   }
   
   void _placeNumber(int number, int hiddenCellIndex) {
+    if (_victoryPending) return;
     final answerIndex = currentPuzzle!.getAnswerIndexForCell(hiddenCellIndex);
     if (answerIndex == -1 || userAnswers[answerIndex] != null) {
       return;
@@ -209,6 +219,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   }
 
   void _removeNumber(int answerIndex) {
+    if (_victoryPending) return;
     setState(() {
       final number = userAnswers[answerIndex];
       if (number != null) {
@@ -220,12 +231,14 @@ class _SolarPanelGameState extends State<SolarPanelGame>
   }
 
   void _checkIfComplete() {
+    if (_victoryPending) return;
     if (userAnswers.every((answer) => answer != null)) {
       final isValid = currentPuzzle!.validateSolution(userAnswers.cast<int>());
       
       final List<MathProblem> attemptedProblems = _getSolvedProblems();
       
       if (isValid) {
+        _victoryPending = true;
         int baseScore = 120 * widget.grade;
         int bonusScore = (baseScore * 0.5).round();
         int totalScore = baseScore + bonusScore;
@@ -279,34 +292,25 @@ class _SolarPanelGameState extends State<SolarPanelGame>
     return problemsToLog;
   }
 
+  void _cancelVictory() {
+    _victoryPending = false;
+    cancelOneShotMotion(_warpController);
+    cancelOneShotMotion(_panelExpandController);
+  }
+
   void _handleSuccess(int totalScoreGained) {
     AppHaptics.lightImpact();
-    // First show panel expansion animation
     setState(() => _showPanelExpansion = true);
-    _panelExpandController.forward();
-
-    // Wait for panel expansion to complete before showing warp
-    Future.delayed(const Duration(milliseconds: 2000), () {
-      if (!mounted) return;
-      
-      _warpController.forward();
-
-      void listener(AnimationStatus status) {
-        if (status == AnimationStatus.completed) {
-          _warpController.removeStatusListener(listener);
-          successController.forward(from: 0.0);
-          
-          if (mounted) {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) => _buildSuccessDialog(totalScoreGained - (120 * widget.grade)),
-            );
-          }
-        }
-      }
-
-      _warpController.addStatusListener(listener);
+    playOneShotMotion(_panelExpandController, () {
+      playOneShotMotion(_warpController, () {
+        successController.forward(from: 0.0);
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) =>
+              _buildSuccessDialog(totalScoreGained - (120 * widget.grade)),
+        );
+      });
     });
   }
 
@@ -896,7 +900,7 @@ class _SolarPanelGameState extends State<SolarPanelGame>
               shrinkWrap: true,
               physics: const BouncingScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: math.min(5, numberPool.length), 
+                crossAxisCount: math.max(1, math.min(5, numberPool.length)),
                 crossAxisSpacing: 6, 
                 mainAxisSpacing: 6,
                 childAspectRatio: 1.0,
@@ -993,8 +997,10 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                         textAlign: TextAlign.center
                     ),
                     const SizedBox(height: 16),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    Wrap(
+                        alignment: WrapAlignment.spaceEvenly,
+                        spacing: 12,
+                        runSpacing: 8,
                         children: [
                         ElevatedButton(
                             autofocus: true,

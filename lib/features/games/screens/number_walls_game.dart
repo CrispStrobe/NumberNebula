@@ -50,6 +50,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   List<int> numberPool = [];
   
   bool _isGenerating = true;
+  bool _victoryPending = false;
   int? _hintCell;
   int _lastPlacedCellIndex = -1;
   bool _isDraggingOver = false;
@@ -70,7 +71,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
-    updateDecorativeMotion([_warpController], reduced);
+    updateDecorativeMotion([_operationController], reduced);
+    updateOneShotMotion(_warpController, reduced,
+        duration: const Duration(milliseconds: 1500));
   }
 
   @override String get sessionGameKey => 'number_walls';
@@ -85,6 +88,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     };
   }
   @override void applyPuzzleSession(Map<String, dynamic> state) {
+    cancelOneShotMotion(_warpController);
+    _victoryPending = false;
+    _warpController.reset();
     currentPuzzle = NumberWallPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle'] as Map));
     userAnswers = List<int?>.from(state['answers'] as List);
     _movesRemaining = state['moves'] as int;
@@ -180,6 +186,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _generatePuzzle() async {
+    cancelOneShotMotion(_warpController);
+    _victoryPending = false;
     beginPuzzleSession();
     if (kDebugMode) debugPrint("🧱 _generatePuzzle() - Starting puzzle generation");
     
@@ -282,7 +290,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _placeNumber(int number, int hiddenCellIndex) {
-    if (puzzleSessionFinished) return;
+    if (_victoryPending || puzzleSessionFinished) return;
     final answerIndex = currentPuzzle!.getAnswerIndexForCell(hiddenCellIndex);
     if (answerIndex == -1 || userAnswers[answerIndex] != null) {
       return;
@@ -309,7 +317,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _removeNumber(int answerIndex) {
-    if (puzzleSessionFinished) return;
+    if (_victoryPending || puzzleSessionFinished) return;
     setState(() {
       final number = userAnswers[answerIndex];
       if (number != null) {
@@ -321,6 +329,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _checkIfComplete() {
+    if (_victoryPending || puzzleSessionFinished) return;
     if (userAnswers.every((answer) => answer != null)) {
       final isValid = currentPuzzle!.validateSolution(userAnswers.cast<int>());
       
@@ -329,6 +338,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       
       // 2. Report the outcome to the central GameProvider.
       if (isValid) {
+        _victoryPending = true;
         finishPuzzleSession();
         // On SUCCESS, calculate the score and report it.
         int baseScore = 120 * widget.grade;
@@ -429,28 +439,15 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   void _handleSuccess(int totalScoreGained) {
     AppHaptics.lightImpact();
-    _warpController.forward();
-
-    void listener(AnimationStatus status) {
-      if (status == AnimationStatus.completed) {
-        _warpController.removeStatusListener(listener);
-        
-        // REMOVED: All scoring logic and provider calls. They are now in _checkIfComplete.
-        
-        successController.forward(from: 0.0);
-        
-        if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            // CHANGED: We pass the score bonus to the dialog for display.
-            builder: (context) => _buildSuccessDialog(totalScoreGained - (120 * widget.grade)),
-          );
-        }
-      }
-    }
-
-    _warpController.addStatusListener(listener);
+    playOneShotMotion(_warpController, () {
+      successController.forward(from: 0.0);
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) =>
+            _buildSuccessDialog(totalScoreGained - (120 * widget.grade)),
+      );
+    });
   }
 
   int _getOperationBonus(WallOperation operation) {
@@ -1218,7 +1215,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               shrinkWrap: true,
               physics: const BouncingScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: math.min(5, numberPool.length), 
+                crossAxisCount: math.max(1, math.min(5, numberPool.length)),
                 crossAxisSpacing: 6, 
                 mainAxisSpacing: 6,
                 // MODIFIED: Changed aspect ratio from 1.5 back to 1.0 (square)

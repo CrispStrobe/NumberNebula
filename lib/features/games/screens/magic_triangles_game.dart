@@ -34,9 +34,12 @@ class MagicTrianglesGame extends StatefulWidget {
 class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     with TickerProviderStateMixin, GameAnimationsMixin<MagicTrianglesGame>, PuzzleSessionMixin<MagicTrianglesGame> {
   bool _sessionReady = false;
+  bool _victoryPending = false;
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
-    updateDecorativeMotion([_timeController, _warpController], reduced);
+    updateDecorativeMotion([_timeController], reduced, reverse: false);
+    updateOneShotMotion(_warpController, reduced,
+        duration: const Duration(milliseconds: 1500));
   }
 
   @override String get sessionGameKey => 'magic_triangles';
@@ -54,6 +57,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     };
   }
   @override void applyPuzzleSession(Map<String, dynamic> state) {
+    cancelOneShotMotion(_warpController);
+    _warpController.reset();
+    _victoryPending = false;
     currentPuzzle = (state["currentPuzzle"] == null ? null : MagicTrianglePuzzle.fromJson(Map<String, dynamic>.from(state["currentPuzzle"] as Map)));
     userAnswers = (state["userAnswers"] as List).map((v0) => (v0 == null ? null : v0 as int)).toList();
     numberPool = (state["numberPool"] as List).map((v0) => v0 as int).toList();
@@ -163,6 +169,8 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   }
 
   Future<void> _generatePuzzle() async {
+    cancelOneShotMotion(_warpController);
+    _victoryPending = false;
     beginPuzzleSession();
     if (kDebugMode) debugPrint("🚀 [UI] _generatePuzzle() - Starting puzzle generation");
     debugPrint("🚀 [UI] Current mounted state: $mounted");
@@ -217,6 +225,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   }
   
   void _placeNumber(int number, int answerIndex, int globalNodeIndex) {
+    if (_victoryPending) return;
     if (kDebugMode) debugPrint("🎯 [UI] _placeNumber($number, $answerIndex, $globalNodeIndex)");
     if (userAnswers[answerIndex] != null) {
       debugPrint("🎯 [UI] Position already filled, ignoring");
@@ -245,6 +254,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   }
 
   void _removeNumber(int answerIndex) {
+    if (_victoryPending) return;
     if (kDebugMode) debugPrint("🗑️ [UI] _removeNumber($answerIndex)");
     setState(() {
       final number = userAnswers[answerIndex];
@@ -258,6 +268,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   }
 
   void _checkIfComplete() {
+    if (_victoryPending) return;
     if (kDebugMode) debugPrint("✅ [UI] _checkIfComplete() - userAnswers: $userAnswers");
     if (userAnswers.every((answer) => answer != null)) {
       debugPrint("✅ [UI] All answers filled, checking solution");
@@ -274,42 +285,29 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   }
 
   void _handleSuccess() {
-    if (kDebugMode) debugPrint("🎉 [UI] _handleSuccess() - Starting success animation");
+    if (_victoryPending) return;
+    _victoryPending = true;
     AppHaptics.lightImpact();
-    _warpController.forward();
-
-    void listener(AnimationStatus status) {
-      if (status == AnimationStatus.completed) {
-        if (kDebugMode) debugPrint("🎉 [UI] Warp animation completed, calculating score");
-        
-        _warpController.removeStatusListener(listener);
-
-        int baseScore = 150 * widget.grade;
-        int bonusScore = (baseScore * (currentPuzzle!.circlesPerSide / 3.0)).round();
-        finishPuzzleSession();
-        context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'magic_triangles',
-      difficulty: widget.level,
-      score: baseScore + bonusScore,
+    playOneShotMotion(_warpController, () {
+      int baseScore = 150 * widget.grade;
+      int bonusScore = (baseScore * (currentPuzzle!.circlesPerSide / 3.0)).round();
+      finishPuzzleSession();
+      context.read<GameProvider>().reportOutcome(GameOutcome.win(
+        skillLevel: widget.grade,
+        gameType: 'magic_triangles',
+        difficulty: widget.level,
+        score: baseScore + bonusScore,
         performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
-
-      movesUsed: _maxMoves - _movesRemaining,
-      optimalMoves: _optimalMoves,
-    ));
-        successController.forward(from: 0.0);
-        
-        if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => _buildSuccessDialog(bonusScore),
-          );
-        }
-      }
-    }
-
-    _warpController.addStatusListener(listener);
+        movesUsed: _maxMoves - _movesRemaining,
+        optimalMoves: _optimalMoves,
+      ));
+      successController.forward(from: 0.0);
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => _buildSuccessDialog(bonusScore),
+      );
+    });
   }
 
   void _handleIncorrect() {
