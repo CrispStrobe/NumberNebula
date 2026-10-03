@@ -997,8 +997,10 @@ class _SolarPanelGameState extends State<SolarPanelGame>
                         textAlign: TextAlign.center
                     ),
                     const SizedBox(height: 16),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    Wrap(
+                        alignment: WrapAlignment.spaceEvenly,
+                        spacing: 12,
+                        runSpacing: 8,
                         children: [
                         ElevatedButton(
                             autofocus: true,

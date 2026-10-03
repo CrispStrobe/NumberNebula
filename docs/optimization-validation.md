@@ -123,6 +123,7 @@ Walls also suspends its repeating operation decoration while motion is reduced.
 This changes animation handling, not puzzle generation or difficulty calibration.
 The real final-placement checks also cover an empty number pool: Number Walls
 and Solarpanel keep a valid grid column count after the last number is used.
+Solarpanel's victory actions wrap when their labels exceed the popup width.
 
 
 ## Launch and Square candidate comparisons

@@ -402,10 +402,10 @@ void main() {
             await tester.pump();
           }
         }
-        for (var frame = 0; frame < (scenario == 'normal' ? 8 : 4); frame++) {
+        for (var frame = 0; frame < (scenario == 'normal' ? 8 : 12); frame++) {
           await tester.pump(scenario == 'normal'
               ? const Duration(milliseconds: 500)
-              : Duration.zero);
+              : const Duration(milliseconds: 16));
         }
         expect(app.gp.outcomeCount, 1);
         expect(dialog, findsOneWidget,
