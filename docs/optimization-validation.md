@@ -272,6 +272,25 @@ legacy compile define as well. The web workflow exposes
 framework/shader allocation; large gradient rasterization remains and no
 physical-device FPS improvement is inferred.
 
+## Magic Triangles wormhole candidate
+
+`WORMHOLE_RENDER_PATH=cached` retains the size-dependent radial shader, triangle
+geometry, star distances and paints. Animation listeners repaint directly
+without replacing the CustomPaint widget on each tick. Puzzle controls were
+already outside the old AnimatedBuilder; their update behavior is unchanged.
+The circular radial gradient is rotationally symmetric, so its shader can be
+retained while the original star, glow and warp formulas continue to animate.
+Resize replaces cached resources and screen disposal releases the shader.
+
+`--dart-define=WORMHOLE_RENDER_PATH=legacy` keeps the original drawing path;
+unknown values also select legacy. The manual web workflow exposes
+`wormhole_render_path` for hosted A/B builds. Image regressions cover animation
+phases, glow and warp states, square and rectangular canvases, 1x/2x density,
+and resize/recreation using the same cache. CI also runs the real game selector
+with the legacy define. Disk, stars, energy glow, yellow frame and warp strokes
+retain their drawing order and blur. This reduces allocation and widget rebuild
+work; blur rasterization remains, and device FPS gains are not established.
+
 ## Protected preview browser checks
 
 All browser specs import the shared extended Playwright test. Its automatic

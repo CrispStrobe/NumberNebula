@@ -20,11 +20,13 @@ import '../../../shared/widgets/onboarding_overlay.dart';
 class MagicTrianglesGame extends StatefulWidget {
   final int grade;
   final int level;
+  final WormholeRenderPath? renderingPath;
 
   const MagicTrianglesGame({
     super.key,
     required this.grade,
     required this.level,
+    this.renderingPath,
   });
 
   @override
@@ -35,6 +37,15 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     with TickerProviderStateMixin, GameAnimationsMixin<MagicTrianglesGame>, PuzzleSessionMixin<MagicTrianglesGame> {
   bool _sessionReady = false;
   bool _victoryPending = false;
+  final _wormholeCache = WormholeRenderCache();
+  bool get _cachedWormhole =>
+      (widget.renderingPath ??
+          (const String.fromEnvironment('WORMHOLE_RENDER_PATH',
+                      defaultValue: 'cached') ==
+                  'cached'
+              ? WormholeRenderPath.cached
+              : WormholeRenderPath.legacy)) ==
+      WormholeRenderPath.cached;
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
     updateDecorativeMotion([_timeController], reduced, reverse: false);
@@ -158,6 +169,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     _timeController.dispose();
     _dropController.dispose();
     _warpController.dispose();
+    _wormholeCache.dispose();
     
     currentPuzzle = null;
     userAnswers.clear();
@@ -802,18 +814,31 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: AnimatedBuilder(
-                        animation: Listenable.merge([glowController, _timeController, _warpController]),
-                        builder: (context, child) {
-                          return CustomPaint(
-                            painter: WormholePainter(
-                              glowIntensity: glowAnimation.value,
-                              time: _timeController.value,
-                              warpActivation: _warpController.value,
+                      child: _cachedWormhole
+                          ? CustomPaint(
+                              painter: AnimatedWormholePainter(
+                                glowIntensity: glowAnimation,
+                                time: _timeController,
+                                warpActivation: _warpController,
+                                renderCache: _wormholeCache,
+                              ),
+                            )
+                          : AnimatedBuilder(
+                              animation: Listenable.merge([
+                                glowController,
+                                _timeController,
+                                _warpController,
+                              ]),
+                              builder: (context, child) {
+                                return CustomPaint(
+                                  painter: WormholePainter(
+                                    glowIntensity: glowAnimation.value,
+                                    time: _timeController.value,
+                                    warpActivation: _warpController.value,
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      ),
                     ),
                     ..._buildTriangleNodes(size, nodePoints),
                   ],
