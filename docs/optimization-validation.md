@@ -166,6 +166,30 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Circuit Repair and Warp Fold round effects
+
+Circuit Repair cancels a pending swap when selection changes, the player resets
+or submits, a board is restored/generated, or the screen is disposed. Snapshots
+store the selected pair's settled preview so reopening a game cannot display
+pre-swap digits for a selected swap. Both win and exhausted-attempt states block
+further submissions and duplicate outcomes. The existing generator, attempt
+scoring and normal 400 ms swap duration remain in use; reduced motion completes
+the preview through the shared cancellable one-shot helper.
+
+Warp Fold uses the same cancellable completion path for its introductory fold
+and replay. Previously replay never restored the answer options. Restoring or
+replacing a round invalidates both fold completion and the two-second wrong-answer
+retry timer. Retry starts a saveable session again while retaining mistakes and
+the existing outcome policy. Optional pending-retry snapshots resume the original
+feedback delay without recounting a mistake. Won rounds block further input and
+playable snapshots. Normal folding retains its 1.5-second duration; reduced motion
+returns the options after a deferred completion.
+
+Focused widget regressions exercise real digit/option selections, preview timing,
+retry, replay, restoration, stale effects, terminal results, disposal and motion
+changes. CI runs these before the full suite; builds, calibration and browser
+checks run on GitHub rather than the resource-constrained VPS.
+
 ## Void Crossing restoration and motion
 
 Restoring Void Crossing recalculates the same BFS minimum-move reference used

@@ -51,6 +51,9 @@ jobs:
       - name: Check Void Crossing restoration and motion
         run: flutter test test/widgets/void_crossing_round_test.dart --concurrency=1 --reporter expanded
 
+      - name: Check Circuit Repair and Warp Fold round effects
+        run: flutter test test/widgets/circuit_repair_round_test.dart test/widgets/warp_fold_round_test.dart --concurrency=1 --reporter expanded
+
       - name: Check cached wormhole rendering
         run: flutter test test/widgets/wormhole_rendering_test.dart --concurrency=1 --reporter expanded
 

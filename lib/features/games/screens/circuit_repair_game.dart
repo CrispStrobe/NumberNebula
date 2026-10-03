@@ -20,35 +20,65 @@ import '../services/circuit_repair_logic.dart';
 class CircuitRepairGame extends StatefulWidget {
   final int grade;
   final int level;
-  const CircuitRepairGame({super.key, required this.grade, required this.level});
+  const CircuitRepairGame(
+      {super.key, required this.grade, required this.level});
   @override
   State<CircuitRepairGame> createState() => _CircuitRepairGameState();
 }
 
 class _CircuitRepairGameState extends State<CircuitRepairGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<CircuitRepairGame>, PuzzleSessionMixin<CircuitRepairGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<CircuitRepairGame>,
+        PuzzleSessionMixin<CircuitRepairGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'circuit_repair';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  @override
+  String get sessionGameKey => 'circuit_repair';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _roundFinished) return null;
     return {
       '_puzzle': (_puzzle?.toJson()),
       '_selectedFirst': (_selectedFirst),
       '_selectedSecond': (_selectedSecond),
-      '_currentDigits': _currentDigits.map((v0) => v0).toList(),
+      '_currentDigits': _selectedFirst != null && _selectedSecond != null
+          ? _puzzle!.previewSwap(_selectedFirst!, _selectedSecond!)
+          : List<int>.from(_currentDigits),
       '_attemptsUsed': _attemptsUsed
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    _puzzle = (state["_puzzle"] == null ? null : CircuitRepairPuzzle.fromJson(Map<String, dynamic>.from(state["_puzzle"] as Map)));
-    _selectedFirst = (state["_selectedFirst"] == null ? null : state["_selectedFirst"] as int);
-    _selectedSecond = (state["_selectedSecond"] == null ? null : state["_selectedSecond"] as int);
-    _currentDigits = (state["_currentDigits"] as List).map((v0) => v0 as int).toList();
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _cancelSwap();
+    successController.reset();
+    _puzzle = (state["_puzzle"] == null
+        ? null
+        : CircuitRepairPuzzle.fromJson(
+            Map<String, dynamic>.from(state["_puzzle"] as Map)));
+    _selectedFirst = (state["_selectedFirst"] == null
+        ? null
+        : state["_selectedFirst"] as int);
+    _selectedSecond = (state["_selectedSecond"] == null
+        ? null
+        : state["_selectedSecond"] as int);
+    _currentDigits =
+        (state["_currentDigits"] as List).map((v0) => v0 as int).toList();
     _attemptsUsed = state["_attemptsUsed"] as int;
-    _isGenerating = false; _solved = false;
+    if (_puzzle != null && _selectedFirst != null && _selectedSecond != null) {
+      _currentDigits = _puzzle!.previewSwap(_selectedFirst!, _selectedSecond!);
+    } else if (_puzzle != null) {
+      _currentDigits = List<int>.from(_puzzle!.displayedDigits);
+    }
+    _isGenerating = false;
+    _solved = false;
+    _roundFinished = false;
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
@@ -73,6 +103,19 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
   bool _isGenerating = true;
   int _attemptsUsed = 0;
   bool _solved = false;
+  bool _roundFinished = false;
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(_swapController, reduced,
+        duration: const Duration(milliseconds: 400));
+  }
+
+  void _cancelSwap() {
+    cancelOneShotMotion(_swapController);
+    _swapController.reset();
+  }
+
   DifficultyConfig? currentDifficulty;
 
   @override
@@ -83,7 +126,6 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     successAnimation =
         CurvedAnimation(parent: successController, curve: Curves.elasticOut);
 
-
     _swapController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
@@ -92,7 +134,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -107,6 +150,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
   }
 
   void _generatePuzzle() {
+    _cancelSwap();
     beginPuzzleSession();
     setState(() {
       _isGenerating = true;
@@ -114,6 +158,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
       _selectedSecond = null;
       _attemptsUsed = 0;
       _solved = false;
+      _roundFinished = false;
       successController.reset();
     });
 
@@ -129,12 +174,15 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
   }
 
   void _onDigitTapped(int position) {
-    if (_solved || _puzzle == null) return;
+    if (_roundFinished || _puzzle == null) return;
+    _cancelSwap();
 
     setState(() {
+      _currentDigits = List<int>.from(_puzzle!.displayedDigits);
       if (_selectedFirst == position) {
         // Deselect
-        _selectedFirst = null;
+        _selectedFirst = _selectedSecond;
+        _selectedSecond = null;
       } else if (_selectedSecond == position) {
         _selectedSecond = null;
       } else if (_selectedFirst == null) {
@@ -154,18 +202,27 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
   }
 
   void _performSwap() {
-    if (_selectedFirst == null || _selectedSecond == null || _puzzle == null) return;
-    final swapped = _puzzle!.previewSwap(_selectedFirst!, _selectedSecond!);
-    _swapController.forward(from: 0.0).then((_) {
-      if (mounted) {
-        setState(() {
-          _currentDigits = swapped;
-        });
+    if (_selectedFirst == null || _selectedSecond == null || _puzzle == null) {
+      return;
+    }
+    final puzzle = _puzzle!;
+    final first = _selectedFirst!;
+    final second = _selectedSecond!;
+    final swapped = puzzle.previewSwap(first, second);
+    _swapController.reset();
+    playOneShotMotion(_swapController, () {
+      if (_roundFinished ||
+          !identical(_puzzle, puzzle) ||
+          _selectedFirst != first ||
+          _selectedSecond != second) {
+        return;
       }
+      setState(() => _currentDigits = swapped);
     });
   }
 
   void _submitAnswer() {
+    if (_roundFinished) return;
     if (_puzzle == null || _selectedFirst == null || _selectedSecond == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -185,8 +242,14 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
   }
 
   void _handleWin() {
+    if (_roundFinished) return;
+    _cancelSwap();
     AppHaptics.lightImpact();
-    setState(() => _solved = true);
+    setState(() {
+      _solved = true;
+      _roundFinished = true;
+      _currentDigits = _puzzle!.previewSwap(_selectedFirst!, _selectedSecond!);
+    });
 
     final baseScore = 100 * widget.grade;
     final levelBonus = widget.level * 25;
@@ -196,13 +259,13 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'circuit_repair',
-      difficulty: widget.level,
-      score: totalScore,
-      performance:
-          Perf.fromAttempts(_attemptsUsed + 1, _puzzle!.maxAttempts),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'circuit_repair',
+          difficulty: widget.level,
+          score: totalScore,
+          performance:
+              Perf.fromAttempts(_attemptsUsed + 1, _puzzle!.maxAttempts),
+        ));
 
     successController.forward(from: 0.0);
     showDialog(
@@ -213,17 +276,20 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
   }
 
   void _handleWrongAnswer() {
+    if (_roundFinished) return;
+    _cancelSwap();
     AppHaptics.heavyImpact();
     _attemptsUsed++;
 
     if (_attemptsUsed >= _puzzle!.maxAttempts) {
       // Out of attempts
+      setState(() => _roundFinished = true);
       finishPuzzleSession();
       context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-        gameType: 'circuit_repair',
-        difficulty: widget.level,
-      ));
+            skillLevel: widget.grade,
+            gameType: 'circuit_repair',
+            difficulty: widget.level,
+          ));
 
       showDialog(
         context: context,
@@ -248,7 +314,9 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                S.of(context)!.circuitInvalidTime(_puzzle!.maxAttempts - _attemptsUsed),
+                S
+                    .of(context)!
+                    .circuitInvalidTime(_puzzle!.maxAttempts - _attemptsUsed),
                 style: const TextStyle(color: Colors.white),
               ),
             ),
@@ -261,7 +329,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
   }
 
   void _resetSelection() {
-    if (_solved || _puzzle == null) return;
+    if (_roundFinished || _puzzle == null) return;
+    _cancelSwap();
     setState(() {
       _selectedFirst = null;
       _selectedSecond = null;
@@ -275,7 +344,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_puzzle == null || _isGenerating) {
@@ -306,7 +376,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                 onBack: () => Navigator.of(context).pop(),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
                   S.of(context)!.circuitSwapInstruction,
                   style: SpaceTheme.bodyStyle.copyWith(fontSize: 13),
@@ -390,12 +461,14 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     // 4 digits + 1 colon = ~4.8 widths. 6 digits + 2 colons = ~7.5 widths.
     final is6Digit = _currentDigits.length == 6;
     final totalWidths = is6Digit ? 7.5 : 4.8;
-    final digitWidth = ((displayWidth - 64) / totalWidths).clamp(40.0, is6Digit ? 80.0 : 120.0);
+    final digitWidth = ((displayWidth - 64) / totalWidths)
+        .clamp(40.0, is6Digit ? 80.0 : 120.0);
     final digitHeight = (digitWidth * 1.6).clamp(65.0, 200.0);
     final colonWidth = digitWidth * 0.35;
 
     final isPreview = _selectedFirst != null && _selectedSecond != null;
-    final previewValid = isPreview && CircuitRepairPuzzle.isValidTime(_currentDigits);
+    final previewValid =
+        isPreview && CircuitRepairPuzzle.isValidTime(_currentDigits);
 
     return AnimatedBuilder(
       animation: glowAnimation,
@@ -411,11 +484,12 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: _solved
-                    ? SpaceTheme.alienGreen.withValues(alpha: glowAnimation.value)
+                    ? SpaceTheme.alienGreen
+                        .withValues(alpha: glowAnimation.value)
                     : isPreview
                         ? (previewValid
-                            ? SpaceTheme.alienGreen
-                            : SpaceTheme.rocketRed)
+                                ? SpaceTheme.alienGreen
+                                : SpaceTheme.rocketRed)
                             .withValues(alpha: glowAnimation.value)
                         : SpaceTheme.starYellow
                             .withValues(alpha: glowAnimation.value * 0.6),
@@ -474,8 +548,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                       height: digitHeight,
                       child: CustomPaint(
                         painter: _ColonPainter(
-                          color: SpaceTheme.starYellow
-                              .withValues(alpha: 0.6 + 0.4 * glowAnimation.value),
+                          color: SpaceTheme.starYellow.withValues(
+                              alpha: 0.6 + 0.4 * glowAnimation.value),
                         ),
                       ),
                     ),
@@ -489,8 +563,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                         height: digitHeight,
                         child: CustomPaint(
                           painter: _ColonPainter(
-                            color: SpaceTheme.starYellow
-                                .withValues(alpha: 0.6 + 0.4 * glowAnimation.value),
+                            color: SpaceTheme.starYellow.withValues(
+                                alpha: 0.6 + 0.4 * glowAnimation.value),
                           ),
                         ),
                       ),
@@ -508,7 +582,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     );
   }
 
-  Widget _buildTappableDigit(int position, double digitWidth, double digitHeight) {
+  Widget _buildTappableDigit(
+      int position, double digitWidth, double digitHeight) {
     final isFirstSelected = _selectedFirst == position;
     final isSecondSelected = _selectedSecond == position;
     final isSelected = isFirstSelected || isSecondSelected;
@@ -520,8 +595,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
     final secondsVal = _currentDigits.length == 6
         ? _currentDigits[4] * 10 + _currentDigits[5]
         : 0;
-    final isInvalidPart =
-        (position < 2 && hoursVal > 23) ||
+    final isInvalidPart = (position < 2 && hoursVal > 23) ||
         (position >= 2 && position < 4 && minutesVal > 59) ||
         (position >= 4 && secondsVal > 59);
 
@@ -608,7 +682,9 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                 S.of(context)!.circuitAttempts(remaining, _puzzle!.maxAttempts),
                 style: SpaceTheme.bodyStyle.copyWith(
                   fontSize: 14,
-                  color: remaining <= 1 ? SpaceTheme.rocketRed : SpaceTheme.moonSilver,
+                  color: remaining <= 1
+                      ? SpaceTheme.rocketRed
+                      : SpaceTheme.moonSilver,
                 ),
               ),
             ],
@@ -637,7 +713,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                 return Column(
                   children: [
                     Text(
-                      S.of(context)!.circuitSwapPositions(_selectedFirst! + 1, _selectedSecond! + 1),
+                      S.of(context)!.circuitSwapPositions(
+                          _selectedFirst! + 1, _selectedSecond! + 1),
                       style: SpaceTheme.bodyStyle.copyWith(
                         color: SpaceTheme.cosmicPink,
                         fontSize: 14,
@@ -645,9 +722,13 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      valid ? S.of(context)!.circuitResultValid(timeStr) : S.of(context)!.circuitResultInvalid(timeStr),
+                      valid
+                          ? S.of(context)!.circuitResultValid(timeStr)
+                          : S.of(context)!.circuitResultInvalid(timeStr),
                       style: SpaceTheme.bodyStyle.copyWith(
-                        color: valid ? SpaceTheme.alienGreen : SpaceTheme.rocketRed,
+                        color: valid
+                            ? SpaceTheme.alienGreen
+                            : SpaceTheme.rocketRed,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -683,7 +764,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
           // Reset button
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: _resetSelection,
+              onPressed: _roundFinished ? null : _resetSelection,
               icon: const Icon(Icons.refresh, size: 18),
               label: Text(S.of(context)!.reset),
               style: SpaceTheme.secondaryButtonStyle,
@@ -699,7 +780,8 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                 return Transform.scale(
                   scale: hasSwap ? pulseAnimation.value : 1.0,
                   child: ElevatedButton.icon(
-                    onPressed: hasSwap ? _submitAnswer : null,
+                    onPressed:
+                        hasSwap && !_roundFinished ? _submitAnswer : null,
                     icon: const Icon(Icons.check_circle_outline),
                     label: Text(S.of(context)!.circuitRepairWinTitle),
                     style: SpaceTheme.primaryButtonStyle,
@@ -740,7 +822,9 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                       textAlign: TextAlign.center),
                   const SizedBox(height: 8),
                   Text(
-                    S.of(context)!.circuitClockNowReads(_puzzle!.correctTimeString),
+                    S
+                        .of(context)!
+                        .circuitClockNowReads(_puzzle!.correctTimeString),
                     style: SpaceTheme.bodyStyle.copyWith(
                       color: SpaceTheme.alienGreen,
                       fontSize: 18,
@@ -749,8 +833,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
                   ),
                   const SizedBox(height: 8),
                   Text(S.of(context)!.circuitRepairWinDesc(score),
-                      style: SpaceTheme.bodyStyle,
-                      textAlign: TextAlign.center),
+                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -792,13 +875,12 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                  RoundSummary(gameKey: 'circuit_repair'),
+            RoundSummary(gameKey: 'circuit_repair'),
             const Icon(Icons.warning_amber_rounded,
                 size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(S.of(context)!.circuitRepairLoseTitle,
-                style: SpaceTheme.headlineStyle,
-                textAlign: TextAlign.center),
+                style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
               S.of(context)!.circuitCorrectTimeWas(_puzzle!.correctTimeString),
@@ -810,8 +892,7 @@ class _CircuitRepairGameState extends State<CircuitRepairGame>
             ),
             const SizedBox(height: 8),
             Text(S.of(context)!.circuitRepairLoseDesc,
-                style: SpaceTheme.bodyStyle,
-                textAlign: TextAlign.center),
+                style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
