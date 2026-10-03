@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:space_math_academy/core/services/app_haptics.dart';
 import '../mixins/puzzle_session_mixin.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +33,36 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
         GameAnimationsMixin<LaunchSequenceGame>,
         PuzzleSessionMixin<LaunchSequenceGame> {
   bool _sessionReady = false;
+  Timer? _winTimer;
+  int _roundEpoch = 0;
+  bool _reducedMotion = false;
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    _reducedMotion = reduced;
+    updateOneShotMotion(_launchController, reduced,
+        duration: const Duration(milliseconds: 1200));
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
+  }
+
+  void _cancelRoundEffects() {
+    _roundEpoch++;
+    _winTimer?.cancel();
+    _winTimer = null;
+    cancelOneShotMotion(_launchController);
+    cancelOneShotMotion(successController);
+  }
+
+  bool _canInteract(int epoch) =>
+      mounted &&
+      _sessionReady &&
+      epoch == _roundEpoch &&
+      !_isGenerating &&
+      !_won;
+
+  bool _validIndex(int index) => index >= 0 && index < sequence.length;
+
   @override
   String get sessionGameKey => 'launch_sequence';
   @override
@@ -39,7 +71,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
   int get sessionLevel => widget.level;
   @override
   Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+    if (!_sessionReady || _isGenerating || _won) return null;
     return {
       'puzzle': (puzzle?.toJson()),
       'sequence': sequence.map((v0) => v0).toList(),
@@ -50,15 +82,17 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
 
   @override
   void applyPuzzleSession(Map<String, dynamic> state) {
+    _cancelRoundEffects();
+    _launchController.reset();
+    successController.reset();
     puzzle = (state["puzzle"] == null
         ? null
         : LaunchSequencePuzzle.fromJson(
             Map<String, dynamic>.from(state["puzzle"] as Map)));
     sequence = (state["sequence"] as List).map((v0) => v0 as int).toList();
     swapCount = state["swapCount"] as int;
-    _selectedIndex = (state["_selectedIndex"] == null
-        ? null
-        : state["_selectedIndex"] as int);
+    final selected = state["_selectedIndex"];
+    _selectedIndex = selected is int && _validIndex(selected) ? selected : null;
     _isGenerating = false;
     _won = false;
   }
@@ -116,6 +150,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
 
   @override
   void dispose() {
+    _cancelRoundEffects();
     disposePuzzleSession();
     _launchController.dispose();
     disposeGameAnimations(usePulse: false);
@@ -123,6 +158,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
   }
 
   void _generatePuzzle() {
+    _cancelRoundEffects();
     beginPuzzleSession();
     if (currentDifficulty == null) return;
 
@@ -148,8 +184,12 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
     });
   }
 
-  void _onReorder(int oldIndex, int newIndex) {
-    if (_won) return;
+  void _onReorder(int oldIndex, int newIndex, int epoch) {
+    if (!_canInteract(epoch) ||
+        !_validIndex(oldIndex) ||
+        !_validIndex(newIndex)) {
+      return;
+    }
     if (oldIndex == newIndex) return;
 
     AppHaptics.selectionClick();
@@ -157,7 +197,8 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
     setState(() {
       final item = sequence.removeAt(oldIndex);
       sequence.insert(newIndex, item);
-      swapCount++;
+      // Inversions measure adjacent swaps, including each step of a long drag.
+      swapCount += (newIndex - oldIndex).abs();
       _selectedIndex = null;
     });
 
@@ -166,8 +207,8 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
     }
   }
 
-  void _onItemTap(int index) {
-    if (_won) return;
+  void _onItemTap(int index, int epoch) {
+    if (!_canInteract(epoch) || !_validIndex(index)) return;
 
     AppHaptics.selectionClick();
 
@@ -203,11 +244,15 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
   }
 
   void _handleWin() {
+    if (!_canInteract(_roundEpoch) || puzzle == null) return;
     _won = true;
+    // Reject callbacks retained by pre-victory widgets.
+    _cancelRoundEffects();
     AppHaptics.lightImpact();
 
     // Start launch animation
-    _launchController.forward(from: 0.0);
+    _launchController.reset();
+    playOneShotMotion(_launchController, () {});
 
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
@@ -228,15 +273,18 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
           optimalMoves: optimal,
         ));
 
-    successController.forward(from: 0.0);
+    successController.reset();
+    playOneShotMotion(successController, () {});
 
-    // Show dialog after launch animation
-    Future.delayed(const Duration(milliseconds: 1300), () {
-      if (mounted) {
+    // Keep the normal dialog delay independent of decorative motion settings.
+    final epoch = _roundEpoch;
+    _winTimer = Timer(const Duration(milliseconds: 1300), () {
+      if (mounted && epoch == _roundEpoch && _won) {
+        _winTimer = null;
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (_) => _buildWinDialog(totalScore),
+          builder: (_) => _buildWinDialog(totalScore, epoch),
         );
       }
     });
@@ -248,6 +296,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final s = S.of(context)!;
+    final epoch = _roundEpoch;
 
     if (_isGenerating || puzzle == null) {
       return Scaffold(
@@ -274,7 +323,11 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
               GameUI(
                 title: s.launchSequenceTitle,
                 level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: () {
+                  if (mounted && _sessionReady && epoch == _roundEpoch) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
               Padding(
                 padding:
@@ -380,6 +433,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
   }
 
   Widget _buildSequenceArea(BoxConstraints constraints) {
+    final epoch = _roundEpoch;
     final availWidth = constraints.maxWidth;
     final cardWidth = ((availWidth - 48) / sequence.length).clamp(55.0, 80.0);
     final cardHeight = (cardWidth * 1.5).clamp(80.0, 120.0);
@@ -410,9 +464,11 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
             child: SizedBox(
               height: cardHeight + 24,
               child: ReorderableListView.builder(
+                key: ValueKey(epoch),
                 scrollDirection: Axis.horizontal,
                 buildDefaultDragHandles: !_won,
                 proxyDecorator: (child, index, animation) {
+                  if (_reducedMotion) return child;
                   return AnimatedBuilder(
                     animation: animation,
                     builder: (context, child) {
@@ -431,7 +487,8 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
                   );
                 },
                 itemCount: sequence.length,
-                onReorderItem: _onReorder,
+                onReorderItem: (oldIndex, newIndex) =>
+                    _onReorder(oldIndex, newIndex, epoch),
                 itemBuilder: (context, index) {
                   return _buildShipCard(
                     key: ValueKey(sequence[index]),
@@ -454,15 +511,17 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
     required double cardWidth,
     required double cardHeight,
   }) {
+    final epoch = _roundEpoch;
     final value = sequence[index];
     final isSelected = _selectedIndex == index;
     final isInCorrectPosition = sequence[index] == puzzle!.target[index];
     final color = _shipColors[(value - 1) % _shipColors.length];
 
     Widget card = GestureDetector(
-      onTap: () => _onItemTap(index),
+      onTap: () => _onItemTap(index, epoch),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration:
+            _reducedMotion ? Duration.zero : const Duration(milliseconds: 200),
         width: cardWidth,
         height: cardHeight,
         margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -553,7 +612,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
     return KeyedSubtree(key: key, child: card);
   }
 
-  Widget _buildWinDialog(int bonusScore) {
+  Widget _buildWinDialog(int bonusScore, int epoch) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -588,6 +647,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
+                          if (!mounted || epoch != _roundEpoch || !_won) return;
                           Navigator.of(context).pop();
                           _generatePuzzle();
                         },
@@ -596,6 +656,7 @@ class _LaunchSequenceGameState extends State<LaunchSequenceGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
+                          if (!mounted || epoch != _roundEpoch || !_won) return;
                           Navigator.of(context).pop();
                           Navigator.of(context).pop();
                         },
