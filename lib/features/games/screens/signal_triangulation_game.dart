@@ -57,6 +57,9 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   // UI State
   bool showHeader = true;
   Timer? _headerTimer;
+  Timer? _autoSubmitTimer;
+  Timer? _resultTimer;
+  int _roundEpoch = 0;
   
   // Visual Effects
   List<SignalParticle> particles = [];
@@ -68,6 +71,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
     updateDecorativeMotion([_pulseController], reduced);
+    updateDecorativeMotion([_scanController], reduced, reverse: false);
   }
 
   @override String get sessionGameKey => 'signal_triangulation';
@@ -83,6 +87,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       'glyphs': availableGlyphs.map((g) => g.name).toList()};
   }
   @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _cancelRoundCallbacks();
     SignalGlyph glyph(String name) => [SignalGlyph.empty, ...SignalGlyph.getAllGlyphs()].firstWhere((g) => g.name == name);
     List<SignalGlyph> glyphs(dynamic raw) => (raw as List).map((v) => glyph(v as String)).toList();
     secretSequence = glyphs(state['secret']); currentGuess = glyphs(state['guess']);
@@ -91,6 +96,13 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     previousGuesses = (state['history'] as List).map((r) => GuessResult(guess: glyphs(r['guess']),
       correctPosition: r['correct'], correctGlyph: r['present'])).toList();
     gameActive = true; hasWon = false;
+    particles.clear();
+    _successController.reset();
+    _feedbackController.reset();
+    _glyphController.reset();
+    showHeader = true;
+    _headerController.reset();
+    _startHeaderTimer();
   }
 
   @override
@@ -154,12 +166,27 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
         parent: _headerController, curve: Curves.easeInOut);
   }
 
+  void _cancelRoundCallbacks() {
+    _roundEpoch++;
+    _autoSubmitTimer?.cancel();
+    _autoSubmitTimer = null;
+    _resultTimer?.cancel();
+    _resultTimer = null;
+    _headerTimer?.cancel();
+    _headerTimer = null;
+    _headerController.stop();
+  }
+
   void _startHeaderTimer() {
+    _headerTimer?.cancel();
+    final epoch = _roundEpoch;
     _headerController.forward();
     _headerTimer = Timer(const Duration(seconds: 12), () {
-      if (mounted && gameActive) {
+      if (mounted && gameActive && epoch == _roundEpoch) {
         _headerController.reverse().then((_) {
-          setState(() => showHeader = false);
+          if (mounted && gameActive && epoch == _roundEpoch) {
+            setState(() => showHeader = false);
+          }
         });
       }
     });
@@ -197,12 +224,18 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
     
     // Auto-submit when sequence is complete
     if (currentPosition >= sequenceLength) {
-      Future.delayed(const Duration(milliseconds: 500), _submitGuess);
+      _autoSubmitTimer?.cancel();
+      final epoch = _roundEpoch;
+      _autoSubmitTimer = Timer(const Duration(milliseconds: 500), () {
+        if (mounted && epoch == _roundEpoch) _submitGuess();
+      });
     }
   }
 
   void _clearGuess() {
     if (!gameActive) return;
+    _autoSubmitTimer?.cancel();
+    _autoSubmitTimer = null;
     
     setState(() {
       currentGuess = List.filled(sequenceLength, SignalGlyph.empty);
@@ -212,6 +245,8 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
 
   void _submitGuess() async {
     if (!mounted || !gameActive || currentGuess.any((g) => g == SignalGlyph.empty)) return;
+    _autoSubmitTimer?.cancel();
+    _autoSubmitTimer = null;
     
     if (kDebugMode) debugPrint("🎯 [SignalTriangulation] Submitting guess: ${currentGuess.map((g) => g.name).join(', ')}");
     
@@ -346,8 +381,10 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       ));
     }
     
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      if (mounted) {
+    _resultTimer?.cancel();
+    final epoch = _roundEpoch;
+    _resultTimer = Timer(const Duration(milliseconds: 1000), () {
+      if (mounted && epoch == _roundEpoch && !gameActive && hasWon) {
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -381,8 +418,10 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
       ));
     }
     
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      if (mounted) {
+    _resultTimer?.cancel();
+    final epoch = _roundEpoch;
+    _resultTimer = Timer(const Duration(milliseconds: 1000), () {
+      if (mounted && epoch == _roundEpoch && !gameActive && !hasWon) {
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -1050,6 +1089,7 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
   }
 
   void _resetGame() {
+    _cancelRoundCallbacks();
     beginPuzzleSession();
     setState(() {
       gameActive = true;
@@ -1070,7 +1110,8 @@ class _SignalTriangulationGameState extends State<SignalTriangulationGame>
 
   @override
   void dispose() {
-    _headerTimer?.cancel();
+    disposePuzzleSession();
+    _cancelRoundCallbacks();
     _pulseController.dispose();
     _scanController.dispose();
     _successController.dispose();
