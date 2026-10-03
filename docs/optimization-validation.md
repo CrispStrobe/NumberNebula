@@ -179,7 +179,8 @@ the preview through the shared cancellable one-shot helper.
 Warp Fold uses the same cancellable completion path for its introductory fold
 and replay. Previously replay never restored the answer options. Restoring or
 replacing a round invalidates both fold completion and the two-second wrong-answer
-retry timer. Retry starts a saveable session again while retaining mistakes and
+retry timer and clears the old error snackbar. Retry removes its feedback at the
+end of the two-second lock and starts a saveable session again while retaining mistakes and
 the existing outcome policy. Optional pending-retry snapshots resume the original
 feedback delay without recounting a mistake. Won rounds block further input and
 playable snapshots. Normal folding retains its 1.5-second duration; reduced motion

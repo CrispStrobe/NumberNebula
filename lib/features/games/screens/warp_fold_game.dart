@@ -61,6 +61,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
   @override
   void applyPuzzleSession(Map<String, dynamic> state) {
     _invalidateRoundEffects();
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
     _roundWon = false;
     _foldController.reset();
     successController.reset();
@@ -139,6 +140,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
 
   void _generatePuzzle() {
     _invalidateRoundEffects();
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
     _roundWon = false;
     _retryPending = false;
     beginPuzzleSession();
@@ -191,6 +193,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
         return;
       }
       _retryTimer = null;
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
       beginPuzzleSession();
       setState(() {
         _retryPending = false;
