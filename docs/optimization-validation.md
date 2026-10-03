@@ -142,6 +142,30 @@ Targeted widget regressions exercise real glyph/button input, delayed results,
 restoration, disposal, header collapse and decorative frame updates. Heavy
 checks run on GitHub CI.
 
+## Spatial game round callbacks
+
+Perspective Puzzle owns one cancellable feedback timer. Restore, regeneration,
+disposal and completion invalidate its callbacks and pending generation results.
+Correct feedback retains its one-second delay; retries and final failure retain
+1.5 seconds. Completed rounds reject further answers and report one outcome.
+
+Snapshots additionally retain the answer state and selected option. Restoring
+pending feedback resumes its original delay while preserving attempts and lives;
+it does not count the answer again. Older snapshots infer a pending correct
+answer when correct attempts equal the turn index plus one, or pending failure
+when lives are exhausted. Stable older snapshots still open for input.
+
+Block Counter also invalidates its one-second wrong-answer reset and stale
+generation results when replacing a board. A restored wrong highlight unlocks
+retry while retaining the mistake count. A previous feedback timer cannot clear
+the next round's answer. Generators, scoring formulas, 3D camera behavior and
+existing algorithm/rendering A/B paths remain unchanged.
+
+Focused regressions use real answer controls and JSON snapshots, covering normal
+timing, pending-feedback restoration, older snapshots, terminal results,
+disposal and generation superseded by restoration. GitHub CI runs these checks
+before the full suite.
+
 ## Launch and Square candidate comparisons
 
 `--algorithm legacy` keeps the working baselines. Arithmetic Square additionally

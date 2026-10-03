@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
+import 'dart:async';
 import 'package:flutter_cube/flutter_cube.dart' as cube;
 import '../mixins/game_animations_mixin.dart';
 
@@ -211,11 +212,18 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
     };
   }
   @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _cancelRoundCallbacks();
     currentPuzzle = (state["currentPuzzle"] == null ? null : BlockCountingPuzzle.fromJson(Map<String, dynamic>.from(state["currentPuzzle"] as Map)));
     userAnswer = (state["userAnswer"] == null ? null : state["userAnswer"] as int);
     answerChoices = (state["answerChoices"] as List).map((v0) => v0 as int).toList();
     _selectedAnswerIndex = state["_selectedAnswerIndex"] as int;
     _wrongAnswers = state["_wrongAnswers"] as int;
+    // A saved wrong-answer highlight must not permanently lock the retry.
+    if (userAnswer != null && userAnswer != currentPuzzle!.correctAnswer) {
+      userAnswer = null;
+      _selectedAnswerIndex = -1;
+    }
+    successController.reset();
     _isGenerating = false; _cubeKey = UniqueKey(); _createSceneObject(currentPuzzle!.blockStructure);
   }
   Future<void> _restoreOrGenerate() async {
@@ -237,6 +245,8 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
 
   /// Wrong counts submitted before the right one.
   int _wrongAnswers = 0;
+  Timer? _answerResetTimer;
+  int _roundEpoch = 0;
   cube.Object? _sceneObject;
   cube.Scene? _scene; 
   Key _cubeKey = UniqueKey();
@@ -270,12 +280,21 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
   @override
   void dispose() {
     disposePuzzleSession();
+    _cancelRoundCallbacks();
     _rotationController.dispose();
     disposeGameAnimations(useGlow: false, usePulse: false);
     super.dispose();
   }
 
+  void _cancelRoundCallbacks() {
+    _roundEpoch++;
+    _answerResetTimer?.cancel();
+    _answerResetTimer = null;
+  }
+
   Future<void> _generatePuzzle() async {
+    _cancelRoundCallbacks();
+    final epoch = _roundEpoch;
     beginPuzzleSession();
     if (currentDifficulty == null) {
       if (kDebugMode) debugPrint("⚠️ [BLOCK_COUNTER] Difficulty not yet initialized, waiting...");
@@ -298,7 +317,7 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
         {'grade': widget.grade, 'level': widget.level},
       );
       
-      if (mounted) {
+      if (mounted && epoch == _roundEpoch) {
         _createSceneObject(puzzle.blockStructure);
         
         setState(() {
@@ -309,7 +328,9 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
       }
     } catch (e, stackTrace) {
       if (kDebugMode) debugPrint("❌ Error generating puzzle: $e\n$stackTrace");
-      if (mounted) setState(() => _isGenerating = false);
+      if (mounted && epoch == _roundEpoch) {
+        setState(() => _isGenerating = false);
+      }
     }
   }
   
@@ -435,8 +456,10 @@ class _BlockCounterGameState extends State<BlockCounterGame> with TickerProvider
       ),
     );
     
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      if (mounted) {
+    _answerResetTimer?.cancel();
+    final epoch = _roundEpoch;
+    _answerResetTimer = Timer(const Duration(milliseconds: 1000), () {
+      if (mounted && epoch == _roundEpoch) {
         setState(() {
           _selectedAnswerIndex = -1;
           userAnswer = null;
