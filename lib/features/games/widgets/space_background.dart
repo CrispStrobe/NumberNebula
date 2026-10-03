@@ -46,6 +46,8 @@ class GameBackgroundTheme {
   static GameBackgroundTheme forGame(String? key) => _byGame[key] ?? cosmic;
 }
 
+enum SpaceBackgroundRenderPath { legacy, cached }
+
 /// Animated deep-space backdrop shared by (almost) every game screen.
 ///
 /// Renders a vivid base gradient with two slowly drifting nebula glows and a
@@ -57,12 +59,14 @@ class SpaceBackground extends StatefulWidget {
   final Widget child;
   final String? gameKey;
   final bool animate;
+  final SpaceBackgroundRenderPath? renderingPath;
 
   const SpaceBackground({
     super.key,
     required this.child,
     this.gameKey,
     this.animate = true,
+    this.renderingPath,
   });
 
   @override
@@ -73,6 +77,15 @@ class _SpaceBackgroundState extends State<SpaceBackground>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final List<_Star> _stars;
+  final _renderResources = _SpaceRenderResources();
+
+  SpaceBackgroundRenderPath get _renderingPath =>
+      widget.renderingPath ??
+      (const String.fromEnvironment('SPACE_BACKGROUND_RENDER_PATH',
+                  defaultValue: 'cached') ==
+              'cached'
+          ? SpaceBackgroundRenderPath.cached
+          : SpaceBackgroundRenderPath.legacy);
 
   @override
   void initState() {
@@ -100,13 +113,15 @@ class _SpaceBackgroundState extends State<SpaceBackground>
   @override
   void dispose() {
     _controller.dispose();
+    _renderResources.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = GameBackgroundTheme.forGame(widget.gameKey);
-    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     final animate = widget.animate && !reduceMotion;
 
     if (animate && !_controller.isAnimating) {
@@ -117,18 +132,29 @@ class _SpaceBackgroundState extends State<SpaceBackground>
 
     final Widget backdrop = IgnorePointer(
       child: RepaintBoundary(
-        child: animate
-            ? AnimatedBuilder(
-                animation: _controller,
-                builder: (_, __) => CustomPaint(
-                  painter: _SpacePainter(_controller.value, _stars, theme),
-                  size: Size.infinite,
+        child: _renderingPath == SpaceBackgroundRenderPath.cached
+            ? CustomPaint(
+                painter: _CachedSpacePainter(
+                  _controller,
+                  _stars,
+                  theme,
+                  _renderResources,
+                  animate: animate,
                 ),
-              )
-            : CustomPaint(
-                painter: _SpacePainter(0.0, _stars, theme),
                 size: Size.infinite,
-              ),
+              )
+            : animate
+                ? AnimatedBuilder(
+                    animation: _controller,
+                    builder: (_, __) => CustomPaint(
+                      painter: _SpacePainter(_controller.value, _stars, theme),
+                      size: Size.infinite,
+                    ),
+                  )
+                : CustomPaint(
+                    painter: _SpacePainter(0.0, _stars, theme),
+                    size: Size.infinite,
+                  ),
       ),
     );
 
@@ -178,7 +204,8 @@ class _SpacePainter extends CustomPainter {
     void glow(Color color, double baseX, double baseY, double driftX,
         double driftY, double radiusFactor, double phase) {
       final cx = size.width * (baseX + driftX * math.sin(_twoPi * (t + phase)));
-      final cy = size.height * (baseY + driftY * math.cos(_twoPi * (t + phase)));
+      final cy =
+          size.height * (baseY + driftY * math.cos(_twoPi * (t + phase)));
       final r = size.shortestSide * radiusFactor;
       final paint = Paint()
         ..shader = RadialGradient(
@@ -197,8 +224,8 @@ class _SpacePainter extends CustomPainter {
     // Twinkling star field.
     final starPaint = Paint();
     for (final s in stars) {
-      final twinkle =
-          0.35 + 0.65 * (0.5 + 0.5 * math.sin(_twoPi * (t * s.speed + s.phase)));
+      final twinkle = 0.35 +
+          0.65 * (0.5 + 0.5 * math.sin(_twoPi * (t * s.speed + s.phase)));
       starPaint.color = theme.starColor.withValues(alpha: twinkle * 0.9);
       canvas.drawCircle(
           Offset(s.dx * size.width, s.dy * size.height), s.radius, starPaint);
@@ -207,4 +234,107 @@ class _SpacePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_SpacePainter old) => old.t != t || old.theme != theme;
+}
+
+/// Resources are scoped to one background and replaced on resize or theme change.
+class _SpaceRenderResources {
+  Size? _size;
+  GameBackgroundTheme? _theme;
+  Paint? _nebulaA;
+  Paint? _nebulaB;
+  List<Offset> _starPositions = const [];
+  final _starPaint = Paint();
+
+  void prepare(Size size, GameBackgroundTheme theme, List<_Star> stars) {
+    if (_size == size && _theme == theme) return;
+    dispose();
+    try {
+      _nebulaA = _glowPaint(theme.nebulaA, size.shortestSide * 0.60);
+      _nebulaB = _glowPaint(theme.nebulaB, size.shortestSide * 0.52);
+      _starPositions = [
+        for (final star in stars)
+          Offset(star.dx * size.width, star.dy * size.height),
+      ];
+      _size = size;
+      _theme = theme;
+    } catch (_) {
+      dispose();
+      rethrow;
+    }
+  }
+
+  Paint _glowPaint(Color color, double radius) => Paint()
+    ..shader = RadialGradient(
+      colors: [
+        color.withValues(alpha: 0.30),
+        color.withValues(alpha: 0.0),
+      ],
+    ).createShader(Rect.fromCircle(center: Offset.zero, radius: radius));
+
+  void dispose() {
+    _nebulaA?.shader?.dispose();
+    _nebulaB?.shader?.dispose();
+    _nebulaA = null;
+    _nebulaB = null;
+    _starPositions = const [];
+    _size = null;
+    _theme = null;
+  }
+}
+
+/// Animation ticks repaint the canvas directly while geometry and shaders persist.
+class _CachedSpacePainter extends CustomPainter {
+  final Animation<double> animation;
+  final List<_Star> stars;
+  final GameBackgroundTheme theme;
+  final _SpaceRenderResources resources;
+  final bool animate;
+
+  _CachedSpacePainter(
+    this.animation,
+    this.stars,
+    this.theme,
+    this.resources, {
+    required this.animate,
+  }) : super(repaint: animate ? animation : null);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    resources.prepare(size, theme, stars);
+    final t = animate ? animation.value : 0.0;
+    const twoPi = math.pi * 2;
+
+    void glow(Paint paint, double baseX, double baseY, double driftX,
+        double driftY, double radiusFactor, double phase) {
+      final cx = size.width * (baseX + driftX * math.sin(twoPi * (t + phase)));
+      final cy = size.height * (baseY + driftY * math.cos(twoPi * (t + phase)));
+      final radius = size.shortestSide * radiusFactor;
+      canvas.save();
+      canvas.translate(cx, cy);
+      canvas.drawCircle(Offset.zero, radius, paint);
+      canvas.restore();
+    }
+
+    glow(resources._nebulaA!, 0.25, 0.30, 0.06, 0.05, 0.60, 0.0);
+    glow(resources._nebulaB!, 0.78, 0.72, 0.05, 0.06, 0.52, 0.4);
+
+    for (var i = 0; i < stars.length; i++) {
+      final star = stars[i];
+      final twinkle = 0.35 +
+          0.65 * (0.5 + 0.5 * math.sin(twoPi * (t * star.speed + star.phase)));
+      resources._starPaint.color =
+          theme.starColor.withValues(alpha: twinkle * 0.9);
+      canvas.drawCircle(
+          resources._starPositions[i], star.radius, resources._starPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_CachedSpacePainter old) =>
+      old.animate != animate ||
+      old.animation != animation ||
+      old.stars != stars ||
+      old.theme != theme ||
+      old.resources != resources;
 }

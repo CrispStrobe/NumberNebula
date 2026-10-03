@@ -231,6 +231,27 @@ The manual web workflow exposes `asteroid_render_path` for A/B builds. These
 checks must pass remotely before promoting this change; per-frame CPU work is
 reduced, but raster-time improvement still needs browser measurements.
 
+## Shared space background candidate
+
+The shared `SpaceBackground` retains its original AnimatedBuilder and uncached
+painting via `--dart-define=SPACE_BACKGROUND_RENDER_PATH=legacy`. The `cached`
+candidate repaints directly from the animation controller, retaining two
+nebula shaders and the seeded star positions for each mounted background.
+Resize or palette changes replace those resources; disposal releases retained
+shaders. Only the shader coordinate system changes: canvas translation follows
+the same drifting centers, while radii, colors, star twinkle and the 24-second
+animation cycle use the original formulas.
+
+Reduced motion and `animate: false` still render phase zero and stop decorative
+scheduling. The foreground remains an independent interactive child. Widget
+regressions compare candidate/legacy pixels across palettes, phases and sizes,
+exercise resize and motion toggles, and check that candidate animation ticks
+repaint without replacing the CustomPaint widget. CI runs these checks with the
+legacy compile define as well. The web workflow exposes
+`space_background_render_path` for hosted A/B builds. This removes repeated
+framework/shader allocation; large gradient rasterization remains and no
+physical-device FPS improvement is inferred.
+
 ## Protected preview browser checks
 
 All browser specs import the shared extended Playwright test. Its automatic
