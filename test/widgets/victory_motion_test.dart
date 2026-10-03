@@ -207,6 +207,8 @@ Map<String, dynamic> _winningBoard(String game) {
 void main() {
   var profileNumber = 0;
   setUp(() {
+    // Isolate pending fire-and-forget saves without waiting across fake clocks.
+    // Disk round trips are covered by all_games_sessions_test.dart.
     ProfilePreferences.activeId = 'victory_${profileNumber++}';
     final prefix = 'player_${ProfilePreferences.activeId}_';
     SharedPreferences.setMockInitialValues({
@@ -377,8 +379,6 @@ void main() {
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox.shrink());
           await tester.pump();
-          await PuzzleSessionStore.instance.flush();
-          await ProfilePreferences.flushWrites();
           app.motion.dispose();
           return;
         }
@@ -419,8 +419,6 @@ void main() {
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump();
-        await PuzzleSessionStore.instance.flush();
-        await ProfilePreferences.flushWrites();
         app.motion.dispose();
       });
     }
