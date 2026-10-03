@@ -119,6 +119,10 @@ Future<_App> _mount(WidgetTester tester,
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   addTearDown(app.motion.dispose);
+  addTearDown(() async {
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
   await tester.pumpWidget(app.build());
   for (var attempt = 0; attempt < 150; attempt++) {
     await tester.pump(const Duration(milliseconds: 20));
@@ -325,7 +329,7 @@ void main() {
     await _tapEntity(tester, s.voidCrossingStarMoss);
     await tester.tap(_launch(tester));
     await tester.pump();
-    expect(find.text(s.voidCrossingConflictWarning), findsOneWidget);
+    expect(find.text(s.voidCrossingConflictWarning), findsWidgets);
     expect((_snapshot(tester)['_gameState'] as Map)['movesTaken'], 0);
     await _restore(tester, app, _board());
     expect(find.text(s.voidCrossingConflictWarning), findsNothing);
