@@ -1,5 +1,6 @@
 import 'package:space_math_academy/core/services/app_haptics.dart';
 import '../mixins/puzzle_session_mixin.dart';
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../widgets/round_summary.dart';
@@ -25,25 +26,63 @@ class WarpFoldGame extends StatefulWidget {
 }
 
 class _WarpFoldGameState extends State<WarpFoldGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<WarpFoldGame>, PuzzleSessionMixin<WarpFoldGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<WarpFoldGame>,
+        PuzzleSessionMixin<WarpFoldGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'warp_fold';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  Timer? _retryTimer;
+  int _roundEpoch = 0;
+  bool _roundWon = false;
+  bool _retryPending = false;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(_foldController, reduced,
+        duration: const Duration(milliseconds: 1500));
+  }
+
+  @override
+  String get sessionGameKey => 'warp_fold';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _roundWon) return null;
     return {
       '_puzzle': (_puzzle?.toJson()),
       '_selectedOption': (_selectedOption),
-      '_wrongAnswers': _wrongAnswers
+      '_wrongAnswers': _wrongAnswers,
+      '_retryPending': _retryPending,
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    _puzzle = (state["_puzzle"] == null ? null : WarpFoldPuzzle.fromJson(Map<String, dynamic>.from(state["_puzzle"] as Map)));
-    _selectedOption = (state["_selectedOption"] == null ? null : state["_selectedOption"] as int);
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _invalidateRoundEffects();
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    _roundWon = false;
+    _foldController.reset();
+    successController.reset();
+    _puzzle = (state["_puzzle"] == null
+        ? null
+        : WarpFoldPuzzle.fromJson(
+            Map<String, dynamic>.from(state["_puzzle"] as Map)));
+    _selectedOption = (state["_selectedOption"] == null
+        ? null
+        : state["_selectedOption"] as int);
     _wrongAnswers = state["_wrongAnswers"] as int;
-    _isGenerating = false; _answered = false; _showingFoldAnimation = false;
+    _isGenerating = false;
+    _answered = false;
+    _showingFoldAnimation = false;
+    _retryPending = state['_retryPending'] as bool? ?? false;
+    if (_retryPending) {
+      _answered = true;
+      _scheduleRetry();
+    }
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
@@ -83,7 +122,8 @@ class _WarpFoldGameState extends State<WarpFoldGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -91,6 +131,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
 
   @override
   void dispose() {
+    _invalidateRoundEffects();
     disposePuzzleSession();
     _foldController.dispose();
     disposeGameAnimations(usePulse: false);
@@ -98,6 +139,10 @@ class _WarpFoldGameState extends State<WarpFoldGame>
   }
 
   void _generatePuzzle() {
+    _invalidateRoundEffects();
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    _roundWon = false;
+    _retryPending = false;
     beginPuzzleSession();
     setState(() {
       _isGenerating = true;
@@ -120,24 +165,65 @@ class _WarpFoldGameState extends State<WarpFoldGame>
     });
 
     // Play fold animation, then show the puzzle
-    _foldController.forward().then((_) {
-      if (mounted) {
-        setState(() {
-          _showingFoldAnimation = false;
-        });
+    _playFoldAnimation();
+  }
+
+  void _invalidateRoundEffects() {
+    _roundEpoch++;
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    cancelOneShotMotion(_foldController);
+  }
+
+  void _playFoldAnimation() {
+    if (_answered || _roundWon || _isGenerating) return;
+    _foldController.reset();
+    setState(() => _showingFoldAnimation = true);
+    playOneShotMotion(_foldController, () {
+      if (_roundWon) return;
+      setState(() => _showingFoldAnimation = false);
+    });
+  }
+
+  void _scheduleRetry() {
+    _retryTimer?.cancel();
+    final epoch = _roundEpoch;
+    _retryTimer = Timer(const Duration(seconds: 2), () {
+      if (!mounted || epoch != _roundEpoch || _roundWon || _isGenerating) {
+        return;
       }
+      _retryTimer = null;
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+      beginPuzzleSession();
+      setState(() {
+        _retryPending = false;
+        _answered = false;
+      });
     });
   }
 
   void _selectOption(int index) {
-    if (_answered || _showingFoldAnimation) return;
+    if (_answered ||
+        _roundWon ||
+        _isGenerating ||
+        _showingFoldAnimation ||
+        index < 0 ||
+        index >= _puzzle!.options.length) {
+      return;
+    }
     setState(() {
       _selectedOption = index;
     });
   }
 
   void _submitAnswer() {
-    if (_selectedOption == null || _answered) return;
+    if (_selectedOption == null ||
+        _answered ||
+        _roundWon ||
+        _isGenerating ||
+        _showingFoldAnimation) {
+      return;
+    }
     setState(() => _answered = true);
 
     if (_selectedOption == _puzzle!.correctIndex) {
@@ -148,6 +234,10 @@ class _WarpFoldGameState extends State<WarpFoldGame>
   }
 
   void _handleWin() {
+    if (_roundWon) return;
+    _roundWon = true;
+    _retryPending = false;
+    _invalidateRoundEffects();
     AppHaptics.lightImpact();
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
@@ -157,12 +247,12 @@ class _WarpFoldGameState extends State<WarpFoldGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'warp_fold',
-      difficulty: widget.level,
-      score: totalScore,
-      performance: Perf.fromMistakes(_wrongAnswers, per: 0.25),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'warp_fold',
+          difficulty: widget.level,
+          score: totalScore,
+          performance: Perf.fromMistakes(_wrongAnswers, per: 0.25),
+        ));
 
     successController.forward(from: 0.0);
     showDialog(
@@ -175,12 +265,13 @@ class _WarpFoldGameState extends State<WarpFoldGame>
   void _handleLoss() {
     AppHaptics.heavyImpact();
     _wrongAnswers++;
+    _retryPending = true;
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'warp_fold',
-      difficulty: widget.level,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'warp_fold',
+          difficulty: widget.level,
+        ));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -194,16 +285,14 @@ class _WarpFoldGameState extends State<WarpFoldGame>
         duration: const Duration(seconds: 2),
       ),
     );
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() => _answered = false);
-      }
-    });
+    _scheduleRetry();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
 
     if (_puzzle == null || _isGenerating) {
@@ -234,19 +323,24 @@ class _WarpFoldGameState extends State<WarpFoldGame>
                 onBack: () => Navigator.of(context).pop(),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+                    border: Border.all(
+                        color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
                   ),
                   child: Row(children: [
-                    const Icon(Icons.info_outline, color: SpaceTheme.starYellow, size: 16),
+                    const Icon(Icons.info_outline,
+                        color: SpaceTheme.starYellow, size: 16),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(s.warpFoldInstructions,
-                      style: SpaceTheme.bodyStyle.copyWith(fontSize: 11))),
+                    Expanded(
+                        child: Text(s.warpFoldInstructions,
+                            style:
+                                SpaceTheme.bodyStyle.copyWith(fontSize: 11))),
                   ]),
                 ),
               ),
@@ -272,7 +366,8 @@ class _WarpFoldGameState extends State<WarpFoldGame>
   }
 
   Widget _buildFoldAnimationView(BoxConstraints constraints) {
-    final paperSize = math.min(constraints.maxWidth * 0.6, constraints.maxHeight * 0.5);
+    final paperSize =
+        math.min(constraints.maxWidth * 0.6, constraints.maxHeight * 0.5);
 
     return Center(
       child: AnimatedBuilder(
@@ -292,7 +387,8 @@ class _WarpFoldGameState extends State<WarpFoldGame>
               // Step label
               Text(
                 currentStep < foldCount
-                    ? S.of(context)!.warpFoldStep(currentStep + 1, _foldDirLabel(_puzzle!.folds[currentStep].direction))
+                    ? S.of(context)!.warpFoldStep(currentStep + 1,
+                        _foldDirLabel(_puzzle!.folds[currentStep].direction))
                     : S.of(context)!.warpCutHoles(cutCount),
                 style: SpaceTheme.titleStyle.copyWith(fontSize: 18),
               ),
@@ -315,7 +411,8 @@ class _WarpFoldGameState extends State<WarpFoldGame>
               const SizedBox(height: 16),
               Text(
                 S.of(context)!.warpWhichPattern,
-                style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow),
+                style:
+                    SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow),
               ),
             ],
           );
@@ -350,10 +447,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
               Expanded(child: _buildFoldInfo()),
               const SizedBox(width: 8),
               IconButton(
-                onPressed: _answered ? null : () {
-                  setState(() => _showingFoldAnimation = true);
-                  _foldController.forward(from: 0.0);
-                },
+                onPressed: _answered || _roundWon ? null : _playFoldAnimation,
                 icon: const Icon(Icons.replay, color: SpaceTheme.starYellow),
                 tooltip: S.of(context)!.warpFoldReplay,
                 style: IconButton.styleFrom(
@@ -403,8 +497,11 @@ class _WarpFoldGameState extends State<WarpFoldGame>
           const Icon(Icons.content_cut, color: SpaceTheme.cosmicPink, size: 18),
           const SizedBox(width: 8),
           Text(
-            S.of(context)!.warpFoldsAndCuts(foldNames.join(" "), _puzzle!.cuts.length),
-            style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 13),
+            S
+                .of(context)!
+                .warpFoldsAndCuts(foldNames.join(" "), _puzzle!.cuts.length),
+            style: SpaceTheme.bodyStyle
+                .copyWith(color: SpaceTheme.starYellow, fontSize: 13),
           ),
         ],
       ),
@@ -454,7 +551,8 @@ class _WarpFoldGameState extends State<WarpFoldGame>
     } else if (isSelected) {
       borderColor = SpaceTheme.starYellow;
     } else {
-      borderColor = SpaceTheme.nebulaPurple.withValues(alpha: glowAnimation.value);
+      borderColor =
+          SpaceTheme.nebulaPurple.withValues(alpha: glowAnimation.value);
     }
 
     return GestureDetector(
@@ -468,10 +566,12 @@ class _WarpFoldGameState extends State<WarpFoldGame>
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: borderColor, width: isSelected ? 3 : 1),
               boxShadow: isSelected
-                  ? [BoxShadow(
-                      color: borderColor.withValues(alpha: 0.4),
-                      blurRadius: 12,
-                    )]
+                  ? [
+                      BoxShadow(
+                        color: borderColor.withValues(alpha: 0.4),
+                        blurRadius: 12,
+                      )
+                    ]
                   : null,
             ),
             child: Stack(
@@ -500,7 +600,8 @@ class _WarpFoldGameState extends State<WarpFoldGame>
                     child: Center(
                       child: Text(
                         '${index + 1}',
-                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 12),
                       ),
                     ),
                   ),
@@ -552,8 +653,7 @@ class _WarpFoldGameState extends State<WarpFoldGame>
                       textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(S.of(context)!.warpFoldWinDesc(score),
-                      style: SpaceTheme.bodyStyle,
-                      textAlign: TextAlign.center),
+                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -620,7 +720,10 @@ class _FoldAnimationPainter extends CustomPainter {
     // Border
     canvas.drawRRect(
       RRect.fromRectAndRadius(paperRect, const Radius.circular(8)),
-      Paint()..color = Colors.white30..style = PaintingStyle.stroke..strokeWidth = 2,
+      Paint()
+        ..color = Colors.white30
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
     );
 
     // Draw fold lines for completed folds
@@ -633,7 +736,8 @@ class _FoldAnimationPainter extends CustomPainter {
     const dashLength = 6.0;
 
     for (int i = 0; i < math.min(currentStep, foldCount); i++) {
-      _drawFoldLine(canvas, folds[i].direction, w, h, foldLinePaint, dashLength);
+      _drawFoldLine(
+          canvas, folds[i].direction, w, h, foldLinePaint, dashLength);
     }
 
     // Current fold animation
@@ -641,27 +745,37 @@ class _FoldAnimationPainter extends CustomPainter {
       final dir = folds[currentStep].direction;
       // Draw the fold line being created
       final activeFoldPaint = Paint()
-        ..color = SpaceTheme.starYellow.withValues(alpha: 0.6 + stepProgress * 0.4)
+        ..color =
+            SpaceTheme.starYellow.withValues(alpha: 0.6 + stepProgress * 0.4)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
       _drawFoldLine(canvas, dir, w, h, activeFoldPaint, dashLength);
 
       // Animate folding: draw a darker overlay for the folded portion
       final foldOverlay = Paint()
-        ..color = const Color(0xFF2A2A44).withValues(alpha: 0.3 + stepProgress * 0.5);
+        ..color =
+            const Color(0xFF2A2A44).withValues(alpha: 0.3 + stepProgress * 0.5);
 
       switch (dir) {
         case FoldDirection.left:
-          canvas.drawRect(Rect.fromLTWH(0, 0, w / 2 * (1 - stepProgress), h), foldOverlay);
+          canvas.drawRect(
+              Rect.fromLTWH(0, 0, w / 2 * (1 - stepProgress), h), foldOverlay);
           break;
         case FoldDirection.right:
-          canvas.drawRect(Rect.fromLTWH(w / 2 + w / 2 * stepProgress, 0, w / 2 * (1 - stepProgress), h), foldOverlay);
+          canvas.drawRect(
+              Rect.fromLTWH(w / 2 + w / 2 * stepProgress, 0,
+                  w / 2 * (1 - stepProgress), h),
+              foldOverlay);
           break;
         case FoldDirection.top:
-          canvas.drawRect(Rect.fromLTWH(0, 0, w, h / 2 * (1 - stepProgress)), foldOverlay);
+          canvas.drawRect(
+              Rect.fromLTWH(0, 0, w, h / 2 * (1 - stepProgress)), foldOverlay);
           break;
         case FoldDirection.bottom:
-          canvas.drawRect(Rect.fromLTWH(0, h / 2 + h / 2 * stepProgress, w, h / 2 * (1 - stepProgress)), foldOverlay);
+          canvas.drawRect(
+              Rect.fromLTWH(0, h / 2 + h / 2 * stepProgress, w,
+                  h / 2 * (1 - stepProgress)),
+              foldOverlay);
           break;
       }
     }
@@ -673,11 +787,15 @@ class _FoldAnimationPainter extends CustomPainter {
         final cy = cut.y * h;
         final radius = cut.size * w * 0.5 * (0.3 + stepProgress * 0.7);
         // Cut-out hole: dark with bright border
-        canvas.drawCircle(Offset(cx, cy), radius,
-          Paint()..color = SpaceTheme.deepSpace);
-        canvas.drawCircle(Offset(cx, cy), radius,
-          Paint()..color = SpaceTheme.starYellow.withValues(alpha: stepProgress)
-            ..style = PaintingStyle.stroke..strokeWidth = 2);
+        canvas.drawCircle(
+            Offset(cx, cy), radius, Paint()..color = SpaceTheme.deepSpace);
+        canvas.drawCircle(
+            Offset(cx, cy),
+            radius,
+            Paint()
+              ..color = SpaceTheme.starYellow.withValues(alpha: stepProgress)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 2);
       }
     }
 
@@ -694,22 +812,26 @@ class _FoldAnimationPainter extends CustomPainter {
     }
   }
 
-  void _drawFoldLine(Canvas canvas, FoldDirection dir, double w, double h, Paint paint, double dashLen) {
+  void _drawFoldLine(Canvas canvas, FoldDirection dir, double w, double h,
+      Paint paint, double dashLen) {
     switch (dir) {
       case FoldDirection.left:
       case FoldDirection.right:
         // Vertical center line
-        _drawDashedLine(canvas, Offset(w / 2, 0), Offset(w / 2, h), paint, dashLen);
+        _drawDashedLine(
+            canvas, Offset(w / 2, 0), Offset(w / 2, h), paint, dashLen);
         break;
       case FoldDirection.top:
       case FoldDirection.bottom:
         // Horizontal center line
-        _drawDashedLine(canvas, Offset(0, h / 2), Offset(w, h / 2), paint, dashLen);
+        _drawDashedLine(
+            canvas, Offset(0, h / 2), Offset(w, h / 2), paint, dashLen);
         break;
     }
   }
 
-  void _drawDashedLine(Canvas canvas, Offset start, Offset end, Paint paint, double dashLen) {
+  void _drawDashedLine(
+      Canvas canvas, Offset start, Offset end, Paint paint, double dashLen) {
     final dx = end.dx - start.dx;
     final dy = end.dy - start.dy;
     final distance = math.sqrt(dx * dx + dy * dy);
