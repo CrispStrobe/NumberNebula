@@ -205,15 +205,15 @@ Map<String, dynamic> _winningBoard(String game) {
 }
 
 void main() {
-  setUp(() async {
-    await PuzzleSessionStore.instance.flush();
-    await ProfilePreferences.flushWrites();
+  var profileNumber = 0;
+  setUp(() {
+    ProfilePreferences.activeId = 'victory_${profileNumber++}';
+    final prefix = 'player_${ProfilePreferences.activeId}_';
     SharedPreferences.setMockInitialValues({
-      'onboarding_seen_number_walls_guided_v1': true,
+      '${prefix}onboarding_seen_number_walls_guided_v1': true,
       for (final key in ['magic_triangles', 'number_walls', 'solarpanel_game'])
-        'onboarding_seen_$key': true,
+        '${prefix}onboarding_seen_$key': true,
     });
-    ProfilePreferences.activeId = 'default';
     PuzzleSessionStore.resetForTesting();
   });
 
@@ -377,6 +377,8 @@ void main() {
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox.shrink());
           await tester.pump();
+          await PuzzleSessionStore.instance.flush();
+          await ProfilePreferences.flushWrites();
           app.motion.dispose();
           return;
         }
@@ -417,6 +419,8 @@ void main() {
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump();
+        await PuzzleSessionStore.instance.flush();
+        await ProfilePreferences.flushWrites();
         app.motion.dispose();
       });
     }
