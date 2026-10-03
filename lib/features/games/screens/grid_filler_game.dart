@@ -298,8 +298,10 @@ class _GridFillerGameState extends State<GridFillerGame>
         y < 0 ||
         x + pieceSize > gridSize ||
         y + pieceSize > gridSize) {
-      debugPrint(
-          '❌ Out of bounds! Grid size: $gridSize, Piece would end at (${x + pieceSize}, ${y + pieceSize})');
+      if (kDebugMode) {
+        debugPrint(
+            '❌ Out of bounds! Grid size: $gridSize, Piece would end at (${x + pieceSize}, ${y + pieceSize})');
+      }
       return false;
     }
 
@@ -1020,8 +1022,10 @@ class _GridFillerGameState extends State<GridFillerGame>
       },
       onDragEnd: (details) {
         if (!_canInteract(epoch) || !_ownsPanelPiece(piece)) return;
-        debugPrint(
-            '🎨 Ended dragging ${piece.size}x${piece.size} - wasAccepted: ${details.wasAccepted}');
+        if (kDebugMode) {
+          debugPrint(
+              '🎨 Ended dragging ${piece.size}x${piece.size} - wasAccepted: ${details.wasAccepted}');
+        }
         setState(() {
           hoverGridPosition = null;
         });
@@ -1046,9 +1050,11 @@ class _GridFillerGameState extends State<GridFillerGame>
                   }
                   setState(() {
                     selectedPiece = isSelected ? null : piece;
-                    debugPrint(selectedPiece != null
-                        ? '✅ Selected ${piece.size}x${piece.size} - click grid to place'
-                        : '❌ Deselected piece');
+                    if (kDebugMode) {
+                      debugPrint(selectedPiece != null
+                          ? '✅ Selected ${piece.size}x${piece.size} - click grid to place'
+                          : '❌ Deselected piece');
+                    }
                   });
                 }
               : null,
