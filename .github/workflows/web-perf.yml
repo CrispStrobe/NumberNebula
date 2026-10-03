@@ -72,9 +72,11 @@ jobs:
             --dart-define=GIT_HASH="$(git rev-parse --short HEAD)"
 
       - name: Browser generator timing
+        # Case timeouts do not cover compilation or Chrome startup.
+        timeout-minutes: 5
         env:
           CHROME_EXECUTABLE: /usr/bin/google-chrome
-        run: flutter test test/web/rechenquadrat_web_timing_test.dart --platform chrome
+        run: flutter test test/web/rechenquadrat_web_timing_test.dart --platform chrome --reporter expanded
 
       - name: Size report
         run: |
