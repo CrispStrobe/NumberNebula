@@ -6,10 +6,11 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:space_math_academy/features/games/widgets/space_background.dart';
 
-Future<Uint8List> _pixels(WidgetTester tester, Key key) async {
+Future<Uint8List> _pixels(WidgetTester tester, Key key,
+    {double pixelRatio = 1}) async {
   final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(key));
   final result = await tester.runAsync(() async {
-    final image = await boundary.toImage(pixelRatio: 1);
+    final image = await boundary.toImage(pixelRatio: pixelRatio);
     try {
       final data = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
       return Uint8List.fromList(
@@ -85,43 +86,54 @@ void main() {
   testWidgets(
       'cached background preserves legacy pixels across themes and resize',
       (tester) async {
-    tester.view.physicalSize = const Size(800, 600);
-    tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     const legacyKey = ValueKey('legacy-background-pixels');
     const cachedKey = ValueKey('cached-background-pixels');
     const sizes = [Size(150, 210), Size(270, 150)];
 
-    for (final theme in [null, 'solarpanel', 'comm_relay']) {
-      for (final size in sizes) {
-        await tester.pumpWidget(_host(Center(
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            for (final path in SpaceBackgroundRenderPath.values)
-              SizedBox(
-                width: size.width,
-                height: size.height,
-                child: RepaintBoundary(
-                  key: path == SpaceBackgroundRenderPath.legacy
-                      ? legacyKey
-                      : cachedKey,
-                  child: SpaceBackground(
-                    gameKey: theme,
-                    renderingPath: path,
-                    child: const SizedBox.expand(),
+    for (final dpr in [1.0, 2.0]) {
+      tester.view.physicalSize = Size(800 * dpr, 600 * dpr);
+      tester.view.devicePixelRatio = dpr;
+      for (final theme in [null, 'solarpanel', 'comm_relay']) {
+        for (final size in sizes) {
+          await tester.pumpWidget(_host(Center(
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              for (final path in SpaceBackgroundRenderPath.values)
+                SizedBox(
+                  width: size.width,
+                  height: size.height,
+                  child: RepaintBoundary(
+                    key: path == SpaceBackgroundRenderPath.legacy
+                        ? legacyKey
+                        : cachedKey,
+                    child: SpaceBackground(
+                      gameKey: theme,
+                      renderingPath: path,
+                      child: const SizedBox.expand(),
+                    ),
                   ),
                 ),
-              ),
-          ]),
-        )));
-        // Both sibling controllers share the same clock, including after
-        // changing palette and constraints on their existing states.
-        for (final elapsed in [
-          Duration.zero,
-          const Duration(milliseconds: 700)
-        ]) {
-          await tester.pump(elapsed);
-          _expectEquivalentPixels(await _pixels(tester, legacyKey),
-              await _pixels(tester, cachedKey), '$theme $size $elapsed');
+            ]),
+          )));
+          // Both sibling controllers share the same clock. Compare phases
+          // 0, .25, .5 and .9, preserving state across resize/theme changes.
+          var elapsedCycleMs = 0;
+          for (final elapsed in [
+            Duration.zero,
+            const Duration(seconds: 6),
+            const Duration(seconds: 6),
+            const Duration(milliseconds: 9600),
+          ]) {
+            elapsedCycleMs += elapsed.inMilliseconds;
+            await tester.pump(elapsed);
+            _expectEquivalentPixels(
+                await _pixels(tester, legacyKey, pixelRatio: dpr),
+                await _pixels(tester, cachedKey, pixelRatio: dpr),
+                '$theme $size DPR$dpr phase${elapsedCycleMs / 24000}');
+          }
+          // Complete the cycle before changing palette/size/DPR so every
+          // existing state starts the next comparison at phase zero.
+          await tester.pump(const Duration(milliseconds: 2400));
         }
       }
     }

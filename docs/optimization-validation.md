@@ -244,7 +244,9 @@ animation cycle use the original formulas.
 
 Reduced motion and `animate: false` still render phase zero and stop decorative
 scheduling. The foreground remains an independent interactive child. Widget
-regressions compare candidate/legacy pixels across palettes, phases and sizes,
+regressions compare 48 candidate/legacy image pairs across three palettes,
+four cycle phases, two sizes and 1x/2x pixel density (maximum channel delta
+2/255 for coordinate rounding),
 exercise resize and motion toggles, and check that candidate animation ticks
 repaint without replacing the CustomPaint widget. CI runs these checks with the
 legacy compile define as well. The web workflow exposes
