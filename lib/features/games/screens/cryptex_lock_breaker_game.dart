@@ -2,6 +2,7 @@ import '../services/cryptex_logic.dart';
 export '../services/cryptex_logic.dart';
 import 'package:space_math_academy/core/services/app_haptics.dart';
 import '../mixins/puzzle_session_mixin.dart';
+import 'dart:async';
 import '../widgets/game_learning_shell.dart';
 import 'package:flutter/material.dart';
 import '../widgets/round_summary.dart';
@@ -34,25 +35,56 @@ class CryptexLockBreakerGame extends StatefulWidget {
 }
 
 class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<CryptexLockBreakerGame>, PuzzleSessionMixin<CryptexLockBreakerGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<CryptexLockBreakerGame>,
+        PuzzleSessionMixin<CryptexLockBreakerGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'cryptex_lock_breaker';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady) return null;
+  Timer? _successTimer;
+  int _roundEpoch = 0;
+  bool _reducedMotion = false;
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    _reducedMotion = reduced;
+    updateDecorativeMotion([_rotationController, _particleController], reduced,
+        reverse: false);
+    updateOneShotMotion(_unlockController, reduced,
+        duration: const Duration(milliseconds: 800));
+    updateOneShotMotion(_dialController, reduced,
+        duration: const Duration(milliseconds: 300));
+    updateOneShotMotion(_equationController, reduced,
+        duration: const Duration(milliseconds: 500));
+    if (reduced) particles.clear();
+  }
+
+  @override
+  String get sessionGameKey => 'cryptex_lock_breaker';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || !gameActive || isUnlocked || isDragging) return null;
     return {
       'currentPuzzle': currentPuzzle.toJson(),
       'dialValues': dialValues.map((v0) => v0).toList(),
       '_dialAdjustments': _dialAdjustments
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    currentPuzzle = CryptexPuzzle.fromJson(Map<String, dynamic>.from(state["currentPuzzle"] as Map));
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _invalidateRoundEffects();
+    _resetRoundVisuals();
+    currentPuzzle = CryptexPuzzle.fromJson(
+        Map<String, dynamic>.from(state["currentPuzzle"] as Map));
     dialValues = (state["dialValues"] as List).map((v0) => v0 as int).toList();
     _dialAdjustments = state["_dialAdjustments"] as int;
-    gameActive = true; isUnlocked = false;
+    gameActive = true;
+    isUnlocked = false;
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
@@ -65,7 +97,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   late AnimationController _particleController;
   late AnimationController _dialController;
   late AnimationController _equationController;
-  
+
   late Animation<double> _rotationAnimation;
   late Animation<double> _unlockAnimation;
   late Animation<double> _dialAnimation;
@@ -82,11 +114,11 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   /// this round.
   int _dialAdjustments = 0;
   int selectedDial = -1;
-  
+
   // Visual Effects
   List<CryptexParticle> particles = [];
   double unlockProgress = 0.0;
-  
+
   // Interaction
   bool isDragging = false;
   double dragStartY = 0.0;
@@ -96,10 +128,15 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   void initState() {
     super.initState();
     initGameAnimations(usePulse: false, useSuccess: false);
-    if (kDebugMode) debugPrint("🔐 [CryptexLockBreaker] Initializing game - Grade: ${widget.grade}, Level: ${widget.level}");
-    
+    if (kDebugMode) {
+      debugPrint(
+          "🔐 [CryptexLockBreaker] Initializing game - Grade: ${widget.grade}, Level: ${widget.level}");
+    }
+
     _setupAnimationControllers();
-    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _restoreOrGenerate(); });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _restoreOrGenerate();
+    });
   }
 
   void _setupAnimationControllers() {
@@ -107,15 +144,15 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       duration: const Duration(milliseconds: 8000),
       vsync: this,
     )..repeat();
-    _rotationAnimation = Tween<double>(begin: 0.0, end: 2 * math.pi)
-        .animate(CurvedAnimation(parent: _rotationController, curve: Curves.linear));
+    _rotationAnimation = Tween<double>(begin: 0.0, end: 2 * math.pi).animate(
+        CurvedAnimation(parent: _rotationController, curve: Curves.linear));
 
     _unlockController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _unlockAnimation = CurvedAnimation(
-        parent: _unlockController, curve: Curves.easeOut);
+    _unlockAnimation =
+        CurvedAnimation(parent: _unlockController, curve: Curves.easeOut);
 
     _particleController = AnimationController(
       duration: const Duration(milliseconds: 16),
@@ -128,21 +165,23 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _dialAnimation = CurvedAnimation(
-        parent: _dialController, curve: Curves.elasticOut);
+    _dialAnimation =
+        CurvedAnimation(parent: _dialController, curve: Curves.elasticOut);
 
     _equationController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _equationAnimation = CurvedAnimation(
-        parent: _equationController, curve: Curves.easeOut);
+    _equationAnimation =
+        CurvedAnimation(parent: _equationController, curve: Curves.easeOut);
   }
 
   void _generatePuzzle() {
+    _invalidateRoundEffects();
+    _resetRoundVisuals();
     beginPuzzleSession();
     if (kDebugMode) debugPrint("🔐 [CryptexLockBreaker] Generating new puzzle");
-    
+
     setState(() {
       currentPuzzle = CryptexPuzzle.generate(widget.grade, widget.level);
       dialValues = List.from(currentPuzzle.initialValues);
@@ -151,18 +190,51 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       selectedDial = -1;
       _dialAdjustments = 0;
     });
-    
+
     if (kDebugMode) debugPrint("🔐 [CryptexLockBreaker] Puzzle generated:");
     debugPrint("🔐 [CryptexLockBreaker] Solution: ${currentPuzzle.solution}");
-    debugPrint("🔐 [CryptexLockBreaker] Initial: ${currentPuzzle.initialValues}");
+    debugPrint(
+        "🔐 [CryptexLockBreaker] Initial: ${currentPuzzle.initialValues}");
     for (final eq in currentPuzzle.equations) {
-      if (kDebugMode) debugPrint("🔐 [CryptexLockBreaker] Equation: ${eq.toString()}");
+      if (kDebugMode) {
+        debugPrint("🔐 [CryptexLockBreaker] Equation: ${eq.toString()}");
+      }
     }
   }
 
-  void _onPanStart(DragStartDetails details, int dialIndex) {
-    if (!gameActive || isUnlocked) return;
-    
+  void _invalidateRoundEffects() {
+    _roundEpoch++;
+    _successTimer?.cancel();
+    _successTimer = null;
+    cancelOneShotMotion(_unlockController);
+    cancelOneShotMotion(_dialController);
+    cancelOneShotMotion(_equationController);
+  }
+
+  void _resetRoundVisuals() {
+    isDragging = false;
+    selectedDial = -1;
+    dragStartY = 0;
+    dragStartValue = 0;
+    particles.clear();
+    unlockProgress = 0;
+    _unlockController.reset();
+    _dialController.reset();
+    _equationController.reset();
+  }
+
+  bool _canInteract(int dialIndex, int epoch) =>
+      mounted &&
+      epoch == _roundEpoch &&
+      _sessionReady &&
+      gameActive &&
+      !isUnlocked &&
+      dialIndex >= 0 &&
+      dialIndex < dialValues.length;
+
+  void _onPanStart(DragStartDetails details, int dialIndex, int epoch) {
+    if (!_canInteract(dialIndex, epoch) || isDragging) return;
+
     setState(() {
       isDragging = true;
       selectedDial = dialIndex;
@@ -171,29 +243,51 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     });
   }
 
-  void _onPanUpdate(DragUpdateDetails details, int dialIndex) {
-    if (!isDragging || !gameActive || isUnlocked) return;
-    
+  void _onPanUpdate(DragUpdateDetails details, int dialIndex, int epoch) {
+    if (!_canInteract(dialIndex, epoch) ||
+        !isDragging ||
+        selectedDial != dialIndex) {
+      return;
+    }
+
     final deltaY = details.globalPosition.dy - dragStartY;
     final steps = (-deltaY / 20).round(); // 20 pixels per step
-    
+
     final newValue = (dragStartValue + steps) % 10;
-    
+
     if (newValue != dialValues[dialIndex]) {
       AppHaptics.selectionClick();
       setState(() {
         dialValues[dialIndex] = newValue < 0 ? newValue + 10 : newValue;
       });
-      _checkSolution();
+      // A drag previews values; its final setting is committed at gesture end.
+      _checkSolution(allowUnlock: false);
     }
   }
 
-  void _onPanEnd(DragEndDetails details) {
+  void _onPanEnd(DragEndDetails details, int dialIndex, int epoch) {
+    if (!_canInteract(dialIndex, epoch) ||
+        !isDragging ||
+        selectedDial != dialIndex) {
+      return;
+    }
     // One gesture = one adjustment, however many values it scrolled past.
-    if (selectedDial >= 0 && dialValues[selectedDial] != dragStartValue) {
-      _dialAdjustments++;
+    setState(() {
+      if (dialValues[dialIndex] != dragStartValue) _dialAdjustments++;
+      isDragging = false;
+      selectedDial = -1;
+    });
+    _checkSolution();
+  }
+
+  void _onPanCancel(int dialIndex, int epoch) {
+    if (!_canInteract(dialIndex, epoch) ||
+        !isDragging ||
+        selectedDial != dialIndex) {
+      return;
     }
     setState(() {
+      dialValues[dialIndex] = dragStartValue;
       isDragging = false;
       selectedDial = -1;
     });
@@ -209,31 +303,41 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     return needed;
   }
 
-  void _checkSolution() {
-    final allSatisfied = currentPuzzle.equations.every((eq) => eq.isSatisfied(dialValues));
-    
-    if (allSatisfied && !isUnlocked) {
-      if (kDebugMode) debugPrint("🎉 [CryptexLockBreaker] All equations satisfied! Unlocking...");
+  void _checkSolution({bool allowUnlock = true}) {
+    if (!mounted || !gameActive || isUnlocked) return;
+    final allSatisfied =
+        currentPuzzle.equations.every((eq) => eq.isSatisfied(dialValues));
+
+    if (allSatisfied && allowUnlock) {
+      if (kDebugMode) {
+        debugPrint(
+            "🎉 [CryptexLockBreaker] All equations satisfied! Unlocking...");
+      }
       _handleSuccess();
     } else {
       // Add feedback particles for partially correct solutions
-      final satisfiedCount = currentPuzzle.equations.where((eq) => eq.isSatisfied(dialValues)).length;
+      final satisfiedCount = currentPuzzle.equations
+          .where((eq) => eq.isSatisfied(dialValues))
+          .length;
       if (satisfiedCount > 0) {
         _addProgressParticles(satisfiedCount);
       }
     }
-    
+
     // Trigger equation highlight animation
-    _equationController.forward(from: 0.0);
+    _equationController.reset();
+    playOneShotMotion(_equationController, () {});
   }
 
   void _handleSuccess() {
+    if (!mounted || !gameActive || isUnlocked) return;
+    _invalidateRoundEffects();
     setState(() {
       isUnlocked = true;
       gameActive = false;
     });
 
-    _unlockController.forward();
+    playOneShotMotion(_unlockController, () {});
     AppHaptics.heavyImpact();
 
     // 1. Convert the solved puzzle equations into a list of trackable MathProblem objects.
@@ -253,34 +357,37 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     //    SRI and Cognitive Profile services automatically.
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'cryptex_lock_breaker',
-      difficulty: widget.grade + (widget.level ~/ 5),
-      score: totalScore,
-      mathProblems: solvedProblems,
-      // Reading the equations and setting each wrong dial once is the perfect
-      // crack; spinning dials until something clicks costs quality.
-      performance: Perf.fromMoves(_dialAdjustments, _minimumAdjustments),
+          skillLevel: widget.grade,
+          gameType: 'cryptex_lock_breaker',
+          difficulty: widget.grade + (widget.level ~/ 5),
+          score: totalScore,
+          mathProblems: solvedProblems,
+          // Reading the equations and setting each wrong dial once is the perfect
+          // crack; spinning dials until something clicks costs quality.
+          performance: Perf.fromMoves(_dialAdjustments, _minimumAdjustments),
 
-      movesUsed: _dialAdjustments,
-      optimalMoves: _minimumAdjustments,
-    ));
+          movesUsed: _dialAdjustments,
+          optimalMoves: _minimumAdjustments,
+        ));
 
     // --- END: MODIFIED LOGIC ---
 
     // Add celebration particles
-    for (int i = 0; i < 80; i++) {
+    for (int i = 0; !_reducedMotion && i < 80; i++) {
       particles.add(CryptexParticle.celebration(
         MediaQuery.of(context).size.center(Offset.zero),
       ));
     }
 
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted) {
+    final epoch = _roundEpoch;
+    _successTimer = Timer(const Duration(milliseconds: 1500), () {
+      if (mounted && epoch == _roundEpoch && isUnlocked && !gameActive) {
+        _successTimer = null;
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => _buildSuccessDialog(totalScore, complexityBonus, equationBonus),
+          builder: (context) =>
+              _buildSuccessDialog(totalScore, complexityBonus, equationBonus),
         );
       }
     });
@@ -290,6 +397,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   /// user is navigating away (back-press) so we don't block their exit.
   void _handleFailure({bool showDialogOnFail = true}) {
     if (!gameActive) return; // Prevent multiple calls
+    _invalidateRoundEffects();
 
     setState(() {
       gameActive = false;
@@ -306,17 +414,17 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'cryptex_lock_breaker',
-      difficulty: widget.grade + (widget.level ~/ 5),
-      mathProblems: attemptedProblems,
-      progress: currentPuzzle.equations.isEmpty
-          ? 0.0
-          : currentPuzzle.equations
-                  .where((eq) => eq.isSatisfied(dialValues))
-                  .length /
-              currentPuzzle.equations.length,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'cryptex_lock_breaker',
+          difficulty: widget.grade + (widget.level ~/ 5),
+          mathProblems: attemptedProblems,
+          progress: currentPuzzle.equations.isEmpty
+              ? 0.0
+              : currentPuzzle.equations
+                      .where((eq) => eq.isSatisfied(dialValues))
+                      .length /
+                  currentPuzzle.equations.length,
+        ));
 
     if (showDialogOnFail && mounted) {
       showDialog(
@@ -340,7 +448,8 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
 
   Widget _buildFailureDialog() {
     final s = S.of(context)!;
-    return AlertDialog(scrollable: true,
+    return AlertDialog(
+      scrollable: true,
       backgroundColor: SpaceTheme.deepSpace,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Row(
@@ -353,7 +462,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-                  RoundSummary(gameKey: 'cryptex_lock_breaker'),
+          RoundSummary(gameKey: 'cryptex_lock_breaker'),
           Text(
             'Solution: ${currentPuzzle.solution.join("  ")}',
             style: SpaceTheme.bodyStyle,
@@ -384,36 +493,46 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   }
 
   void _addProgressParticles(int satisfiedCount) {
+    if (_reducedMotion) return;
     final random = math.Random();
     final screenSize = MediaQuery.of(context).size;
     final center = screenSize.center(Offset.zero);
-    
+
     for (int i = 0; i < satisfiedCount * 3; i++) {
       particles.add(CryptexParticle.progress(
-        center + Offset(
-          (random.nextDouble() - 0.5) * 150,
-          (random.nextDouble() - 0.5) * 150,
-        ),
+        center +
+            Offset(
+              (random.nextDouble() - 0.5) * 150,
+              (random.nextDouble() - 0.5) * 150,
+            ),
       ));
     }
   }
 
   void _updateParticles() {
-    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
+    if (!_sessionReady ||
+        _reducedMotion ||
+        particles.isEmpty ||
+        GamePauseScope.isPaused(context)) {
+      return;
+    }
     if (!mounted) return;
-    
+
     setVisualState(() {
       particles.removeWhere((p) => p.update(0.016));
     });
   }
 
-    @override
+  @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
-          child: LayoutBuilder( // Use LayoutBuilder to get screen constraints
+          child: LayoutBuilder(
+            // Use LayoutBuilder to get screen constraints
             builder: (context, constraints) {
               final isCompact = constraints.maxHeight < 450;
 
@@ -422,7 +541,11 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                   // ... (The existing Positioned.fill and particles code remains the same)
                   Positioned.fill(
                     child: AnimatedBuilder(
-                      animation: Listenable.merge([_rotationController, glowController, _unlockController]),
+                      animation: Listenable.merge([
+                        _rotationController,
+                        glowController,
+                        _unlockController
+                      ]),
                       builder: (context, child) {
                         return CustomPaint(
                           painter: CryptexBackgroundPainter(
@@ -436,29 +559,30 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                     ),
                   ),
                   ...particles.map((p) => p.build()),
-                  
+
                   // Main game UI column
                   Column(
                     children: [
                       // The new adaptive header handles instructions on small screens
                       _buildAdaptiveHeader(isCompact: isCompact),
-                      
+
                       // The Cryptex visual now expands to fill available space
                       Expanded(
                         flex: 5, // Give the most space to the cryptex
                         child: _buildCryptexVisual(),
                       ),
-                      
+
                       const SizedBox(height: 12),
-                      
+
                       // Equations display
                       _buildEquationsDisplay(),
 
                       // Draggable digit palette
                       _buildNumberPalette(),
 
-                      const Spacer(flex: 1), // Use a Spacer for flexible padding
-                      
+                      const Spacer(
+                          flex: 1), // Use a Spacer for flexible padding
+
                       // Controls hint
                       if (gameActive && !isUnlocked)
                         Padding(
@@ -503,7 +627,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
         ],
       );
     }
-    
+
     // For compact screens, build a condensed header with instructions inside.
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -528,7 +652,9 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                     ),
                   ),
                   Text(
-                    S.of(context)!.cryptexLockBreakerInstructions, // Use the now-shortened text
+                    S
+                        .of(context)!
+                        .cryptexLockBreakerInstructions, // Use the now-shortened text
                     style: SpaceTheme.bodyStyle.copyWith(color: Colors.white70),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -541,7 +667,6 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       ),
     );
   }
-
 
   Widget _buildCryptexVisual() {
     return Container(
@@ -563,7 +688,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
               );
             },
           ),
-          
+
           // Dials
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -575,13 +700,21 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
   }
 
   Widget _buildDial(int dialIndex) {
+    final epoch = _roundEpoch;
     final isSelected = selectedDial == dialIndex;
     final dialValue = dialValues[dialIndex];
     final dialLabel = String.fromCharCode(65 + dialIndex);
 
     return DragTarget<int>(
-      onWillAcceptWithDetails: (_) => gameActive && !isUnlocked,
+      onWillAcceptWithDetails: (_) =>
+          _canInteract(dialIndex, epoch) && !isDragging,
       onAcceptWithDetails: (details) {
+        if (!_canInteract(dialIndex, epoch) ||
+            isDragging ||
+            details.data < 0 ||
+            details.data > 9) {
+          return;
+        }
         AppHaptics.selectionClick();
         if (dialValues[dialIndex] != details.data) _dialAdjustments++;
         setState(() {
@@ -593,89 +726,115 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       builder: (context, candidateData, rejectedData) {
         final isDropTarget = candidateData.isNotEmpty;
         return Semantics(
-      label: S.of(context)!.a11yDial(dialLabel, dialValue),
-      hint: S.of(context)!.a11yDialHint,
-      value: dialValue.toString(),
-      button: true,
-      selected: isSelected || isDropTarget,
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onPanStart: (details) => _onPanStart(details, dialIndex),
-        onPanUpdate: (details) => _onPanUpdate(details, dialIndex),
-        onPanEnd: _onPanEnd,
-        onTap: () => setState(() => selectedDial = dialIndex),
-        child: AnimatedBuilder(
-          animation: _dialAnimation,
-          builder: (context, child) {
-            final scale = isSelected ? (1.0 + _dialAnimation.value * 0.15) : 1.0;
+          label: S.of(context)!.a11yDial(dialLabel, dialValue),
+          hint: S.of(context)!.a11yDialHint,
+          value: dialValue.toString(),
+          button: true,
+          selected: isSelected || isDropTarget,
+          child: Listener(
+            onPointerCancel: (_) => _onPanCancel(dialIndex, epoch),
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onPanStart: (details) => _onPanStart(details, dialIndex, epoch),
+              onPanUpdate: (details) => _onPanUpdate(details, dialIndex, epoch),
+              onPanEnd: (details) => _onPanEnd(details, dialIndex, epoch),
+              onPanCancel: () => _onPanCancel(dialIndex, epoch),
+              onTap: () {
+                if (_canInteract(dialIndex, epoch) && !isDragging) {
+                  setState(() => selectedDial = dialIndex);
+                }
+              },
+              child: AnimatedBuilder(
+                animation: _dialAnimation,
+                builder: (context, child) {
+                  final scale =
+                      isSelected ? (1.0 + _dialAnimation.value * 0.15) : 1.0;
 
-            return Transform.scale(
-              scale: scale,
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 12),
-                width: 120,
-                height: 180,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Dial background
-                    Container(
+                  return Transform.scale(
+                    scale: scale,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 12),
                       width: 120,
                       height: 180,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(60),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: isSelected
-                              ? [SpaceTheme.starYellow.withValues(alpha: 0.3), SpaceTheme.planetOrange.withValues(alpha: 0.3)]
-                              : [SpaceTheme.nebulaPurple.withValues(alpha: 0.3), SpaceTheme.deepSpace.withValues(alpha: 0.5)],
-                        ),
-                        border: Border.all(
-                          color: isSelected ? SpaceTheme.starYellow : SpaceTheme.alienGreen,
-                          width: 3,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: (isSelected ? SpaceTheme.starYellow : SpaceTheme.alienGreen).withValues(alpha: 0.5),
-                            blurRadius: 15,
-                            spreadRadius: 3,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Dial background
+                          Container(
+                            width: 120,
+                            height: 180,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(60),
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: isSelected
+                                    ? [
+                                        SpaceTheme.starYellow
+                                            .withValues(alpha: 0.3),
+                                        SpaceTheme.planetOrange
+                                            .withValues(alpha: 0.3)
+                                      ]
+                                    : [
+                                        SpaceTheme.nebulaPurple
+                                            .withValues(alpha: 0.3),
+                                        SpaceTheme.deepSpace
+                                            .withValues(alpha: 0.5)
+                                      ],
+                              ),
+                              border: Border.all(
+                                color: isSelected
+                                    ? SpaceTheme.starYellow
+                                    : SpaceTheme.alienGreen,
+                                width: 3,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (isSelected
+                                          ? SpaceTheme.starYellow
+                                          : SpaceTheme.alienGreen)
+                                      .withValues(alpha: 0.5),
+                                  blurRadius: 15,
+                                  spreadRadius: 3,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Dial markings and numbers
+                          CustomPaint(
+                            size: const Size(120, 180),
+                            painter: DialPainter(
+                              currentValue: dialValue,
+                              isSelected: isSelected,
+                              dialIndex: dialIndex,
+                            ),
+                          ),
+
+                          // Dial label
+                          Positioned(
+                            bottom: 12,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                dialLabel, // A, B, C, etc.
+                                style: SpaceTheme.titleStyle.copyWith(
+                                  color: isSelected
+                                      ? SpaceTheme.starYellow
+                                      : SpaceTheme.alienGreen,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-
-                    // Dial markings and numbers
-                    CustomPaint(
-                      size: const Size(120, 180),
-                      painter: DialPainter(
-                        currentValue: dialValue,
-                        isSelected: isSelected,
-                        dialIndex: dialIndex,
-                      ),
-                    ),
-
-                    // Dial label
-                    Positioned(
-                      bottom: 12,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          dialLabel, // A, B, C, etc.
-                          style: SpaceTheme.titleStyle.copyWith(
-                            color: isSelected ? SpaceTheme.starYellow : SpaceTheme.alienGreen,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
-        ),
-      ),
-    );
+            ),
+          ),
+        );
       },
     );
   }
@@ -723,7 +882,8 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
               decoration: BoxDecoration(
                 color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: SpaceTheme.alienGreen.withValues(alpha: 0.5)),
+                border: Border.all(
+                    color: SpaceTheme.alienGreen.withValues(alpha: 0.5)),
               ),
               child: Text(
                 '$digit',
@@ -741,7 +901,7 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
 
   Widget _buildEquationsDisplay() {
     final equations = currentPuzzle.equations;
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -780,18 +940,19 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
 
   Widget _buildEquationRow(CryptexEquation equation) {
     final isSatisfied = equation.isSatisfied(dialValues);
-    
+
     return AnimatedBuilder(
       animation: _equationAnimation,
       builder: (context, child) {
         final highlightIntensity = isSatisfied ? _equationAnimation.value : 0.0;
-        
+
         return Container(
           margin: const EdgeInsets.symmetric(vertical: 2),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: BoxDecoration(
-            color: isSatisfied 
-                ? SpaceTheme.alienGreen.withValues(alpha: 0.2 * highlightIntensity)
+            color: isSatisfied
+                ? SpaceTheme.alienGreen
+                    .withValues(alpha: 0.2 * highlightIntensity)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
@@ -811,12 +972,13 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                     '${equation.getLeftSideDisplay().replaceAll('/', context.read<GameProvider>().divisionSymbol).replaceAll('*', context.read<GameProvider>().multiplicationSymbol)} = ${equation.getRightSideDisplay()}',
                     style: SpaceTheme.bodyStyle.copyWith(
                       color: isSatisfied ? SpaceTheme.alienGreen : Colors.white,
-                      fontWeight: isSatisfied ? FontWeight.bold : FontWeight.normal,
+                      fontWeight:
+                          isSatisfied ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
                 ),
               ),
-              
+
               // Status indicator
               Icon(
                 isSatisfied ? Icons.check_circle : Icons.radio_button_unchecked,
@@ -830,7 +992,8 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
     );
   }
 
-  Widget _buildSuccessDialog(int totalScore, int complexityBonus, int equationBonus) {
+  Widget _buildSuccessDialog(
+      int totalScore, int complexityBonus, int equationBonus) {
     return AnimatedBuilder(
       animation: _unlockAnimation,
       builder: (context, child) {
@@ -848,9 +1011,10 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                  RoundSummary(gameKey: 'cryptex_lock_breaker'),
+                    RoundSummary(gameKey: 'cryptex_lock_breaker'),
                     // Slightly smaller icon to save space
-                    const Icon(Icons.lock_open, size: 56, color: SpaceTheme.alienGreen),
+                    const Icon(Icons.lock_open,
+                        size: 56, color: SpaceTheme.alienGreen),
                     const SizedBox(height: 12), // Reduced spacing
                     Text(
                       S.of(context)!.cryptexLockBreakerWinTitle,
@@ -860,10 +1024,10 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                     const SizedBox(height: 12), // Reduced spacing
                     Text(
                       S.of(context)!.cryptexLockBreakerWinDesc(
-                        totalScore,
-                        complexityBonus,
-                        equationBonus,
-                      ),
+                            totalScore,
+                            complexityBonus,
+                            equationBonus,
+                          ),
                       style: SpaceTheme.bodyStyle,
                       textAlign: TextAlign.center,
                     ),
@@ -880,7 +1044,8 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                               _resetGame();
                             },
                             style: SpaceTheme.secondaryButtonStyle,
-                            child: Text(S.of(context)!.nextCryptex, textAlign: TextAlign.center),
+                            child: Text(S.of(context)!.nextCryptex,
+                                textAlign: TextAlign.center),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -891,7 +1056,8 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
                               Navigator.of(context).pop();
                             },
                             style: SpaceTheme.primaryButtonStyle,
-                            child: Text(S.of(context)!.toTheBridge, textAlign: TextAlign.center),
+                            child: Text(S.of(context)!.toTheBridge,
+                                textAlign: TextAlign.center),
                           ),
                         ),
                       ],
@@ -911,13 +1077,14 @@ class _CryptexLockBreakerGameState extends State<CryptexLockBreakerGame>
       particles.clear();
       isUnlocked = false;
     });
-    
+
     _unlockController.reset();
     _generatePuzzle();
   }
 
   @override
   void dispose() {
+    _invalidateRoundEffects();
     disposePuzzleSession();
     _rotationController.dispose();
     _unlockController.dispose();
@@ -1024,19 +1191,20 @@ class CryptexBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    
+
     // Draw rotating mystical symbols
     final symbolPaint = Paint()
-      ..color = (isUnlocked ? Colors.green : Colors.cyan).withValues(alpha: 0.1 * glowIntensity)
+      ..color = (isUnlocked ? Colors.green : Colors.cyan)
+          .withValues(alpha: 0.1 * glowIntensity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
-    
+
     // Concentric circles with ancient script effect
     for (double r = 100; r < size.width * 0.8; r += 120) {
       canvas.save();
       canvas.translate(center.dx, center.dy);
       canvas.rotate(rotationAngle + r * 0.01);
-      
+
       // Draw symbolic markings around circles
       for (int i = 0; i < 8; i++) {
         final angle = i * math.pi / 4;
@@ -1044,19 +1212,22 @@ class CryptexBackgroundPainter extends CustomPainter {
         final endPos = Offset.fromDirection(angle, r + 15);
         canvas.drawLine(pos, endPos, symbolPaint);
       }
-      
+
       canvas.restore();
     }
-    
+
     // Central energy vortex
     final vortexPaint = Paint()
       ..shader = RadialGradient(
-        colors: isUnlocked 
+        colors: isUnlocked
             ? [Colors.green.withValues(alpha: 0.5), Colors.transparent]
-            : [Colors.cyan.withValues(alpha: 0.3 * glowIntensity), Colors.transparent],
+            : [
+                Colors.cyan.withValues(alpha: 0.3 * glowIntensity),
+                Colors.transparent
+              ],
         stops: const [0.0, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: 150));
-    
+
     canvas.drawCircle(center, 150 * (1.0 + unlockProgress * 0.5), vortexPaint);
   }
 
@@ -1079,14 +1250,14 @@ class CryptexBodyPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final bodyWidth = size.width * 0.8;
     final bodyHeight = size.height * 0.4;
-    
+
     // Main cryptex body
     final bodyRect = Rect.fromCenter(
       center: center,
       width: bodyWidth,
       height: bodyHeight,
     );
-    
+
     final bodyPaint = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
@@ -1098,21 +1269,21 @@ class CryptexBodyPainter extends CustomPainter {
         ],
         stops: const [0.0, 0.5, 1.0],
       ).createShader(bodyRect);
-    
+
     canvas.drawRRect(
       RRect.fromRectAndRadius(bodyRect, const Radius.circular(20)),
       bodyPaint,
     );
-    
+
     // Decorative bands
     final bandPaint = Paint()
       ..color = Colors.amber.withValues(alpha: 0.7)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
-    
+
     final topBand = bodyRect.top + bodyHeight * 0.2;
     final bottomBand = bodyRect.bottom - bodyHeight * 0.2;
-    
+
     canvas.drawLine(
       Offset(bodyRect.left, topBand),
       Offset(bodyRect.right, topBand),
@@ -1123,13 +1294,13 @@ class CryptexBodyPainter extends CustomPainter {
       Offset(bodyRect.right, bottomBand),
       bandPaint,
     );
-    
+
     // Unlock glow effect
     if (isUnlocked) {
       final glowPaint = Paint()
         ..color = Colors.green.withValues(alpha: 0.5 * unlockProgress)
         ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 10);
-      
+
       canvas.drawRRect(
         RRect.fromRectAndRadius(bodyRect, const Radius.circular(20)),
         glowPaint,
@@ -1158,14 +1329,14 @@ class DialPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 10;
-    
+
     // Draw number markings around the dial
     final textPainter = TextPainter(textDirection: TextDirection.ltr);
-    
+
     for (int i = 0; i < 10; i++) {
       final angle = (i * 36 - 90) * math.pi / 180; // 36 degrees per number
       final position = center + Offset.fromDirection(angle, radius - 15);
-      
+
       textPainter.text = TextSpan(
         text: i.toString(),
         style: TextStyle(
@@ -1175,25 +1346,25 @@ class DialPainter extends CustomPainter {
         ),
       );
       textPainter.layout();
-      
+
       textPainter.paint(
         canvas,
         position - Offset(textPainter.width / 2, textPainter.height / 2),
       );
     }
-    
+
     // Draw pointer/indicator for current value
     final pointerAngle = (currentValue * 36 - 90) * math.pi / 180;
     final pointerStart = center;
     final pointerEnd = center + Offset.fromDirection(pointerAngle, radius - 25);
-    
+
     final pointerPaint = Paint()
       ..color = isSelected ? Colors.yellow : Colors.cyan
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
-    
+
     canvas.drawLine(pointerStart, pointerEnd, pointerPaint);
-    
+
     // Draw center dot
     canvas.drawCircle(
       center,

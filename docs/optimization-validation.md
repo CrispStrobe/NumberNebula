@@ -166,6 +166,28 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Cryptex round effects
+
+Cryptex commits each dial gesture before checking for victory, so the final
+changed gesture contributes to moves and performance. Intermediate dial values
+remain previews; unchanged gestures and drops do not add moves. Cancelled gestures
+restore the starting value. Active gestures and completed rounds do not expose
+playable snapshots.
+
+Dial callbacks and the original 1.5-second victory delay belong to a round epoch.
+Restoring, regenerating or disposing invalidates old input and dialog callbacks;
+restoring also clears drag selection, particles and one-shot effects. Reduced
+motion stops forward decorative loops and skips particles while completing
+feedback through the shared one-shot helper. Empty particle updates skip visual
+state writes. Puzzle generation, scoring formulas, particle physics and normal
+animation durations remain unchanged.
+
+Thirteen widget regressions cover real drags/drops, final-move grading, unchanged
+and cancelled gestures, stale callbacks after five-to-three-dial restoration,
+terminal guards, retry, dialog cancellation, reduced motion, idle rebuilds/saves
+and concurrent input. They run before the full suite on GitHub CI. Calibration,
+builds and browser checks also run remotely, keeping heavy work off the VPS.
+
 ## Cube Scanner round effects
 
 Cube Scanner owns its 700 ms victory-dialog timer and invalidates it on restore,
