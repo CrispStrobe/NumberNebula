@@ -536,21 +536,26 @@ class _StarChartScanGameState extends State<StarChartScanGame>
                     ],
                   ),
                 ),
-                child: GestureDetector(
-                  onPanStart: (d) => _onPanStart(d, cellSize, Offset.zero),
-                  onPanUpdate: (d) => _onPanUpdate(d, cellSize, Offset.zero),
-                  onPanEnd: _onPanEnd,
-                  onPanCancel: _onPanCancel,
-                  child: CustomPaint(
-                    size: Size(gridSide, gridSide),
-                    painter: _GridPainter(
-                      puzzle: puzzle!,
-                      cellSize: cellSize,
-                      foundCells: _foundCells,
-                      cellEquationIndex: _cellEquationIndex,
-                      highlightColors: _highlightColors,
-                      currentSelection: _currentSelection,
-                      glowValue: glowAnimation.value,
+                child: Listener(
+                  // Accepted pan cancellation is delivered as onPanEnd by Flutter.
+                  // Clear the sweep before that recognizer callback can submit it.
+                  onPointerCancel: (_) => _onPanCancel(),
+                  child: GestureDetector(
+                    onPanStart: (d) => _onPanStart(d, cellSize, Offset.zero),
+                    onPanUpdate: (d) => _onPanUpdate(d, cellSize, Offset.zero),
+                    onPanEnd: _onPanEnd,
+                    onPanCancel: _onPanCancel,
+                    child: CustomPaint(
+                      size: Size(gridSide, gridSide),
+                      painter: _GridPainter(
+                        puzzle: puzzle!,
+                        cellSize: cellSize,
+                        foundCells: _foundCells,
+                        cellEquationIndex: _cellEquationIndex,
+                        highlightColors: _highlightColors,
+                        currentSelection: _currentSelection,
+                        glowValue: glowAnimation.value,
+                      ),
                     ),
                   ),
                 ),

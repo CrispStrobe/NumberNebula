@@ -255,23 +255,25 @@ void main() {
     await _unmount(tester);
   });
 
-  testWidgets(
-      'cancelled gesture clears the highlight without counting a mistake',
-      (tester) async {
-    final app = await _mount(tester);
-    final gesture = await _startSweep(tester, 0, 0);
-    await gesture.moveTo(_cell(tester, 0, 4));
-    await tester.pump();
-    expect(_painter(tester).currentSelection, hasLength(5));
-    await gesture.cancel();
-    await tester.pump();
-    expect(_painter(tester).currentSelection, isEmpty);
-    expect(_snapshot(tester)['_wrongSelections'], 0);
-    expect(app.gp.outcomeCount, 0);
-    await _sweep(tester);
-    expect(app.gp.outcomeCount, 1);
-    await _unmount(tester);
-  });
+  for (final row in [0, 2]) {
+    testWidgets(
+        'cancelled gesture clears the highlight without submitting (row:$row)',
+        (tester) async {
+      final app = await _mount(tester);
+      final gesture = await _startSweep(tester, row, 0);
+      await gesture.moveTo(_cell(tester, row, 4));
+      await tester.pump();
+      expect(_painter(tester).currentSelection, hasLength(5));
+      await gesture.cancel();
+      await tester.pump();
+      expect(_painter(tester).currentSelection, isEmpty);
+      expect(_snapshot(tester)['_wrongSelections'], 0);
+      expect(app.gp.outcomeCount, 0);
+      await _sweep(tester);
+      expect(app.gp.outcomeCount, 1);
+      await _unmount(tester);
+    });
+  }
 
   testWidgets('play again begins a fresh saveable round', (tester) async {
     final app = await _mount(tester);

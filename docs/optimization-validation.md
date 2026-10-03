@@ -175,7 +175,7 @@ animation, so late pointer events cannot find equations or count mistakes on a
 replacement board. A cancelled pointer gesture clears its highlight without
 counting a mistake.
 
-Twelve widget regressions use actual pointer gestures for forward/reverse sweeps,
+Thirteen widget regressions use actual pointer gestures for forward/reverse sweeps,
 normal/reduced-motion wins, dialog timing, terminal input, restoration, disposal,
 partial progress and retained mistake grading, active-drag cancellation, and
 play-again sessions. The generator, endpoint-based selection algorithm, scoring
