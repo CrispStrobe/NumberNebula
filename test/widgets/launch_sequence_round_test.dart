@@ -13,7 +13,6 @@ import 'package:space_math_academy/features/games/models/performance.dart';
 import 'package:space_math_academy/features/games/providers/game_provider.dart';
 import 'package:space_math_academy/features/games/screens/launch_sequence_game.dart';
 import 'package:space_math_academy/features/games/services/launch_sequence_logic.dart';
-import 'package:flutter/foundation.dart';
 import 'package:space_math_academy/generated/l10n.dart';
 
 class _App {
@@ -33,6 +32,7 @@ class _App {
           ChangeNotifierProvider.value(value: cognitive),
         ],
         child: MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.android),
           localizationsDelegates: S.localizationsDelegates,
           supportedLocales: S.supportedLocales,
           builder: (context, child) => ValueListenableBuilder<bool>(
@@ -191,11 +191,9 @@ void main() {
   testWidgets(
       'actual long-press drag accounts for final relocation before grading',
       (tester) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final app = await _mount(tester, reduced: true);
     final origin = tester.getCenter(_ship(4));
-    final destination = tester.getCenter(_ship(3)) + const Offset(70, 0);
+    final destination = Offset(tester.getRect(_list).right - 24, origin.dy);
     final gesture = await tester.startGesture(origin);
     await tester.pump(const Duration(milliseconds: 600));
     await gesture.moveTo(destination);
@@ -212,11 +210,9 @@ void main() {
 
   testWidgets('active drag cannot commit into same-length restored round',
       (tester) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final app = await _mount(tester, reduced: true);
     final origin = tester.getCenter(_ship(4));
-    final destination = tester.getCenter(_ship(3)) + const Offset(70, 0);
+    final destination = Offset(tester.getRect(_list).right - 24, origin.dy);
     final gesture = await tester.startGesture(origin);
     await tester.pump(const Duration(milliseconds: 600));
     await gesture.moveTo(destination);
@@ -238,12 +234,10 @@ void main() {
   testWidgets(
       'accepted reorder cancellation leaves sequence and moves unchanged',
       (tester) async {
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final app = await _mount(tester, reduced: true);
     final before = _snapshot(tester);
     final origin = tester.getCenter(_ship(4));
-    final destination = tester.getCenter(_ship(3)) + const Offset(70, 0);
+    final destination = Offset(tester.getRect(_list).right - 24, origin.dy);
     final gesture = await tester.startGesture(origin);
     await tester.pump(const Duration(milliseconds: 600));
     await gesture.moveTo(destination);
