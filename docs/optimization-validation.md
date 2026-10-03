@@ -166,6 +166,23 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Star Chart Scan round effects
+
+Star Chart Scan scopes its 600 ms victory-dialog timer to the round. Restoring,
+regenerating or disposing cancels it; completed boards reject further sweeps and
+playable snapshots. Restoring also clears the old drag/highlight and success
+animation, so late pointer events cannot find equations or count mistakes on a
+replacement board. A cancelled pointer gesture clears its highlight without
+counting a mistake.
+
+Twelve widget regressions use actual pointer gestures for forward/reverse sweeps,
+normal/reduced-motion wins, dialog timing, terminal input, restoration, disposal,
+partial progress and retained mistake grading, active-drag cancellation, and
+play-again sessions. The generator, endpoint-based selection algorithm, scoring
+formula and normal feedback delay remain unchanged. GitHub CI runs these checks
+before the full suite, with calibration, builds and browser verification also
+running remotely.
+
 ## Circuit Repair and Warp Fold round effects
 
 Circuit Repair cancels a pending swap when selection changes, the player resets

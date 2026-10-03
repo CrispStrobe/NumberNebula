@@ -54,6 +54,9 @@ jobs:
       - name: Check Circuit Repair and Warp Fold round effects
         run: flutter test test/widgets/circuit_repair_round_test.dart test/widgets/warp_fold_round_test.dart --concurrency=1 --reporter expanded
 
+      - name: Check Star Chart Scan round effects
+        run: flutter test test/widgets/star_chart_round_test.dart --concurrency=1 --reporter expanded
+
       - name: Check cached wormhole rendering
         run: flutter test test/widgets/wormhole_rendering_test.dart --concurrency=1 --reporter expanded
 

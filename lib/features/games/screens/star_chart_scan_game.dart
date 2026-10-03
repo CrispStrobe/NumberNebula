@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:space_math_academy/core/services/app_haptics.dart';
 import '../mixins/puzzle_session_mixin.dart';
 import 'package:flutter/material.dart';
@@ -19,43 +20,73 @@ import '../services/star_chart_scan_logic.dart';
 class StarChartScanGame extends StatefulWidget {
   final int grade;
   final int level;
-  const StarChartScanGame({super.key, required this.grade, required this.level});
+  const StarChartScanGame(
+      {super.key, required this.grade, required this.level});
 
   @override
   State<StarChartScanGame> createState() => _StarChartScanGameState();
 }
 
 class _StarChartScanGameState extends State<StarChartScanGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<StarChartScanGame>, PuzzleSessionMixin<StarChartScanGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<StarChartScanGame>,
+        PuzzleSessionMixin<StarChartScanGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'star_chart_scan';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  Timer? _winTimer;
+  int _roundEpoch = 0;
+  bool _roundCompleted = false;
+  @override
+  String get sessionGameKey => 'star_chart_scan';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _roundCompleted) return null;
     return {
       'puzzle': (puzzle?.toJson()),
       '_foundEquations': _foundEquations.map((v0) => v0).toList(),
       '_wrongSelections': _wrongSelections,
       '_foundCells': _foundCells.map((v0) => v0).toList(),
-      '_cellEquationIndex': _cellEquationIndex.entries.map((v0) => [v0.key, v0.value]).toList()
+      '_cellEquationIndex':
+          _cellEquationIndex.entries.map((v0) => [v0.key, v0.value]).toList()
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    puzzle = (state["puzzle"] == null ? null : StarChartScanPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
-    _foundEquations..clear()..addAll((state["_foundEquations"] as List).map((v0) => v0 as String).toSet());
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _cancelRoundEffects();
+    _roundCompleted = false;
+    successController.reset();
+    puzzle = (state["puzzle"] == null
+        ? null
+        : StarChartScanPuzzle.fromJson(
+            Map<String, dynamic>.from(state["puzzle"] as Map)));
+    _foundEquations
+      ..clear()
+      ..addAll(
+          (state["_foundEquations"] as List).map((v0) => v0 as String).toSet());
     _wrongSelections = state["_wrongSelections"] as int;
-    _foundCells..clear()..addAll((state["_foundCells"] as List).map((v0) => v0 as String).toSet());
-    _cellEquationIndex..clear()..addAll(Map<String, int>.fromEntries((state["_cellEquationIndex"] as List).map((v0) => MapEntry(v0[0] as String, v0[1] as int))));
+    _foundCells
+      ..clear()
+      ..addAll(
+          (state["_foundCells"] as List).map((v0) => v0 as String).toSet());
+    _cellEquationIndex
+      ..clear()
+      ..addAll(Map<String, int>.fromEntries(
+          (state["_cellEquationIndex"] as List)
+              .map((v0) => MapEntry(v0[0] as String, v0[1] as int))));
     _isGenerating = false;
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
     if (mounted) setState(() => _sessionReady = true);
   }
-
 
   StarChartScanPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
@@ -96,7 +127,8 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -105,11 +137,22 @@ class _StarChartScanGameState extends State<StarChartScanGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _cancelRoundEffects();
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
+  void _cancelRoundEffects() {
+    _roundEpoch++;
+    _winTimer?.cancel();
+    _winTimer = null;
+    _currentSelection.clear();
+    _isDragging = false;
+  }
+
   void _generatePuzzle() {
+    _cancelRoundEffects();
+    _roundCompleted = false;
     beginPuzzleSession();
     if (currentDifficulty == null) return;
 
@@ -168,6 +211,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
 
   void _onPanStart(
       DragStartDetails details, double cellSize, Offset gridOrigin) {
+    if (!_sessionReady || _isGenerating || _roundCompleted) return;
     final pos =
         _getCellFromPosition(details.localPosition, cellSize, gridOrigin);
     if (pos != null) {
@@ -180,7 +224,12 @@ class _StarChartScanGameState extends State<StarChartScanGame>
 
   void _onPanUpdate(
       DragUpdateDetails details, double cellSize, Offset gridOrigin) {
-    if (!_isDragging || _currentSelection.isEmpty) return;
+    if (_isGenerating ||
+        _roundCompleted ||
+        !_isDragging ||
+        _currentSelection.isEmpty) {
+      return;
+    }
     final pos =
         _getCellFromPosition(details.localPosition, cellSize, gridOrigin);
     if (pos == null) return;
@@ -191,8 +240,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     // the selection -- the player swept over a correct equation and nothing
     // matched. Deriving the run from both ends also lets them drag back to
     // shorten a selection.
-    final line =
-        StarChartScanPuzzle.lineBetween(_currentSelection.first, pos);
+    final line = StarChartScanPuzzle.lineBetween(_currentSelection.first, pos);
     if (line == null || _sameCells(line, _currentSelection)) return;
     setState(() {
       _currentSelection = line;
@@ -207,7 +255,16 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     return true;
   }
 
+  void _onPanCancel() {
+    if (!_isDragging) return;
+    setState(() {
+      _isDragging = false;
+      _currentSelection.clear();
+    });
+  }
+
   void _onPanEnd(DragEndDetails details) {
+    if (_isGenerating || _roundCompleted) return;
     if (!_isDragging || _currentSelection.isEmpty) {
       setState(() {
         _isDragging = false;
@@ -216,9 +273,8 @@ class _StarChartScanGameState extends State<StarChartScanGame>
       return;
     }
 
-    final selectedStr = _currentSelection
-        .map((pos) => puzzle!.grid[pos.$1][pos.$2])
-        .join();
+    final selectedStr =
+        _currentSelection.map((pos) => puzzle!.grid[pos.$1][pos.$2]).join();
 
     final reverseStr = selectedStr.split('').reversed.join();
     String? matchedEquation;
@@ -276,6 +332,8 @@ class _StarChartScanGameState extends State<StarChartScanGame>
   }
 
   void _handleWin() {
+    if (_roundCompleted) return;
+    _roundCompleted = true;
     AppHaptics.lightImpact();
 
     int baseScore = 100 * widget.grade;
@@ -286,35 +344,37 @@ class _StarChartScanGameState extends State<StarChartScanGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'star_chart_scan',
-      difficulty: widget.level,
-      score: totalScore,
-      // Scanning is exploratory, so one fruitless sweep per equation is free;
-      // beyond that the player is dragging at random.
-      performance: Perf.fromMistakes(
-          _wrongSelections - puzzle!.equationsToFind.length,
-          per: 0.08),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'star_chart_scan',
+          difficulty: widget.level,
+          score: totalScore,
+          // Scanning is exploratory, so one fruitless sweep per equation is free;
+          // beyond that the player is dragging at random.
+          performance: Perf.fromMistakes(
+              _wrongSelections - puzzle!.equationsToFind.length,
+              per: 0.08),
+        ));
 
     successController.forward(from: 0.0);
 
-    if (mounted) {
-      Future.delayed(const Duration(milliseconds: 600), () {
-        if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => _buildWinDialog(totalScore),
-          );
-        }
-      });
-    }
+    _winTimer?.cancel();
+    final epoch = _roundEpoch;
+    _winTimer = Timer(const Duration(milliseconds: 600), () {
+      if (!mounted || epoch != _roundEpoch || !_roundCompleted) return;
+      _winTimer = null;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _buildWinDialog(totalScore),
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
 
     if (puzzle == null || _isGenerating) {
@@ -346,9 +406,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
                 children: [
                   _buildHeader(s, isCompact),
                   Expanded(
-                    child: isWide
-                        ? _buildWideLayout()
-                        : _buildCompactLayout(),
+                    child: isWide ? _buildWideLayout() : _buildCompactLayout(),
                   ),
                 ],
               );
@@ -482,6 +540,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
                   onPanStart: (d) => _onPanStart(d, cellSize, Offset.zero),
                   onPanUpdate: (d) => _onPanUpdate(d, cellSize, Offset.zero),
                   onPanEnd: _onPanEnd,
+                  onPanCancel: _onPanCancel,
                   child: CustomPaint(
                     size: Size(gridSide, gridSide),
                     painter: _GridPainter(
@@ -520,8 +579,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
           Flexible(
             child: ListView(
               shrinkWrap: true,
-              children:
-                  puzzle!.equationsToFind.asMap().entries.map((entry) {
+              children: puzzle!.equationsToFind.asMap().entries.map((entry) {
                 final eq = entry.value;
                 final found = _foundEquations.contains(eq);
                 final color = found
@@ -533,9 +591,7 @@ class _StarChartScanGameState extends State<StarChartScanGame>
                   child: Row(
                     children: [
                       Icon(
-                        found
-                            ? Icons.check_circle
-                            : Icons.circle_outlined,
+                        found ? Icons.check_circle : Icons.circle_outlined,
                         color: color,
                         size: 18,
                       ),
@@ -593,13 +649,11 @@ class _StarChartScanGameState extends State<StarChartScanGame>
         spacing: 8,
         runSpacing: 4,
         alignment: WrapAlignment.center,
-        children:
-            puzzle!.equationsToFind.asMap().entries.map((entry) {
+        children: puzzle!.equationsToFind.asMap().entries.map((entry) {
           final eq = entry.value;
           final found = _foundEquations.contains(eq);
           final color = found
-              ? _highlightColors[
-                  _getEqColorIndex(eq) % _highlightColors.length]
+              ? _highlightColors[_getEqColorIndex(eq) % _highlightColors.length]
               : null;
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -754,8 +808,10 @@ class _GridPainter extends CustomPainter {
         // Determine character color
         Color charColor;
         final cellChar = puzzle.grid[r][c];
-        final isOperator =
-            cellChar == '+' || cellChar == '-' || cellChar == 'x' || cellChar == '=';
+        final isOperator = cellChar == '+' ||
+            cellChar == '-' ||
+            cellChar == 'x' ||
+            cellChar == '=';
 
         if (isFound && eqIdx != null) {
           charColor = highlightColors[eqIdx % highlightColors.length];
