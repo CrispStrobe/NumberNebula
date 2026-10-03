@@ -539,7 +539,9 @@ class _PerspectivePuzzleGameState extends State<PerspectivePuzzleGame> with Tick
   void _selectAnswer(int index) {
     if (_roundCompleted || _isGenerating ||
         _answerState != AnswerState.unanswered ||
-        index < 0 || index >= _answerChoices.length) return;
+        index < 0 || index >= _answerChoices.length) {
+      return;
+    }
 
     setState(() {
       _selectedAnswerIndex = index;
