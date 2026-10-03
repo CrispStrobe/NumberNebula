@@ -166,6 +166,25 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Cube Scanner round effects
+
+Cube Scanner owns its 700 ms victory-dialog timer and invalidates it on restore,
+regeneration and disposal. Restoring clears success/feedback animations and the
+old result flag while preserving the selected answer and mistake count. Terminal
+win/loss states reject playable snapshots and duplicate submissions; the original
+wrong-answer action generates a new saveable round.
+
+Feedback uses the shared cancellable one-shot helper, retaining its normal 500 ms
+flash and completing it with reduced motion, including when the setting changes
+mid-flash. The 700 ms answer-feedback delay, generator, scoring formulas and
+existing algorithm/rendering paths remain unchanged.
+
+Twelve widget regressions cover actual answer/retry taps, normal/reduced wins,
+dialog timing, terminal guards, restoration/disposal, legacy selected snapshots,
+retained mistake grading, feedback cancellation and motion toggles. GitHub CI runs
+the focused checks before the full suite. All heavy calibration, builds and browser
+checks run remotely.
+
 ## Star Chart Scan round effects
 
 Star Chart Scan scopes its 600 ms victory-dialog timer to the round. Restoring,
