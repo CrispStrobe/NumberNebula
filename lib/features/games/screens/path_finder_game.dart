@@ -42,7 +42,7 @@ class _PathFinderGameState extends State<PathFinderGame> with TickerProviderStat
 
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
-    updateDecorativeMotion([_backgroundController], reduced);
+    updateDecorativeMotion([_backgroundController], reduced, reverse: false);
   }
 
   @override String get sessionGameKey => 'pathfinder';

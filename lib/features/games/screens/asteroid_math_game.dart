@@ -104,7 +104,7 @@ class _AsteroidMathGameState extends State<AsteroidMathGame>
   bool _sessionReady = false;
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
-    updateDecorativeMotion([_spaceshipController], reduced);
+    updateDecorativeMotion([_spaceshipController], reduced, reverse: false);
   }
   bool _sessionStarting = false;
 

@@ -21,6 +21,8 @@ mixin PuzzleSessionMixin<T extends StatefulWidget> on State<T> {
   GamePauseController? _pauseController;
   bool? _reducedMotion;
   final _decorativeRunning = <AnimationController>{};
+  final _oneShotEpochs = <AnimationController, Object>{};
+  final _oneShotListeners = <AnimationController, AnimationStatusListener>{};
   bool get puzzleSessionFinished => _finished;
   String? _lastSaved;
   Timer? _saveTimer;
@@ -81,15 +83,74 @@ mixin PuzzleSessionMixin<T extends StatefulWidget> on State<T> {
 
   void onPuzzleSessionMotionChanged(bool reduced) {}
   void updateDecorativeMotion(
-      List<AnimationController> controllers, bool reduced) {
+      List<AnimationController> controllers, bool reduced,
+      {bool reverse = true}) {
     for (final controller in controllers) {
       if (reduced) {
         if (controller.isAnimating) _decorativeRunning.add(controller);
         controller.stop();
       } else if (_decorativeRunning.remove(controller)) {
-        controller.repeat(reverse: true);
+        controller.repeat(reverse: reverse);
       }
     }
+  }
+
+  /// One-shot completion must remain reachable when decorative motion is disabled.
+  void updateOneShotMotion(AnimationController controller, bool reduced,
+      {required Duration duration}) {
+    controller.duration = reduced ? Duration.zero : duration;
+    if (reduced && controller.isAnimating) {
+      controller.stop();
+      final epoch = _oneShotEpochs[controller];
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted ||
+            _disposing ||
+            epoch == null ||
+            _oneShotEpochs[controller] != epoch) {
+          return;
+        }
+        controller.value = controller.upperBound;
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
+  }
+
+  /// Completion is deferred past build and invalidated by reset or disposal.
+  void playOneShotMotion(
+      AnimationController controller, VoidCallback onCompleted) {
+    cancelOneShotMotion(controller);
+    final epoch = Object();
+    _oneShotEpochs[controller] = epoch;
+    late AnimationStatusListener listener;
+    void complete() {
+      if (_oneShotListeners[controller] != listener) return;
+      controller.removeStatusListener(listener);
+      _oneShotListeners.remove(controller);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _disposing || _oneShotEpochs[controller] != epoch) {
+          return;
+        }
+        _oneShotEpochs.remove(controller);
+        onCompleted();
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
+
+    listener = (status) {
+      if (status == AnimationStatus.completed) complete();
+    };
+    _oneShotListeners[controller] = listener;
+    controller.addStatusListener(listener);
+    controller.forward();
+    // A previously completed controller need not emit another status change.
+    if (controller.isCompleted) complete();
+  }
+
+  void cancelOneShotMotion(AnimationController controller) {
+    _oneShotEpochs.remove(controller);
+    final listener = _oneShotListeners.remove(controller);
+    if (listener != null) controller.removeStatusListener(listener);
+    controller.stop();
   }
 
   void onPuzzleSessionPauseChanged(bool paused) {}
@@ -204,6 +265,10 @@ mixin PuzzleSessionMixin<T extends StatefulWidget> on State<T> {
     unawaited(PuzzleSessionStore.instance.flush());
     _checkpointTimer?.cancel();
     _disposing = true;
+    for (final controller in _oneShotEpochs.keys.toList()) {
+      cancelOneShotMotion(controller);
+    }
+    _decorativeRunning.clear();
     _saveTimer?.cancel();
   }
 
