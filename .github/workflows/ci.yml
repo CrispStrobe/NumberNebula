@@ -48,6 +48,9 @@ jobs:
       - name: Check spatial game round callbacks
         run: flutter test test/widgets/block_counter_round_callbacks_test.dart test/widgets/perspective_round_callbacks_test.dart --concurrency=1 --reporter expanded
 
+      - name: Check Void Crossing restoration and motion
+        run: flutter test test/widgets/void_crossing_round_test.dart --concurrency=1 --reporter expanded
+
       - name: Check cached wormhole rendering
         run: flutter test test/widgets/wormhole_rendering_test.dart --concurrency=1 --reporter expanded
 
