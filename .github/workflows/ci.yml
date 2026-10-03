@@ -42,6 +42,12 @@ jobs:
       - name: Check victory completion and motion settings
         run: flutter test test/widgets/victory_motion_test.dart --concurrency=1 --reporter expanded
 
+      - name: Check cached wormhole rendering
+        run: flutter test test/widgets/wormhole_rendering_test.dart --concurrency=1 --reporter expanded
+
+      - name: Check legacy wormhole rendering fallback
+        run: flutter test test/widgets/wormhole_rendering_test.dart --dart-define=WORMHOLE_RENDER_PATH=legacy --concurrency=1 --reporter expanded
+
       - name: Check all games with reduced motion
         run: flutter test test/widgets/all_games_sessions_test.dart --dart-define=CALIBRATION_REDUCE_MOTION=true --concurrency=1 --reporter expanded
 
