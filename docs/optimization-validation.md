@@ -166,6 +166,29 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Galactic Market round effects
+
+Galactic Market scopes coin selection, submit and navigation callbacks to the
+current round and gives controls round-specific identities. A touch started on
+an old board cannot commit after restoration. Selection checks the current
+denomination options; completed rounds reject input, playable snapshots and
+duplicate outcomes. Unfinished saves retain their selected coin and wrong scans.
+
+Restore and regeneration clear queued rejection feedback and cancel success
+effects. Older exhausted saves offer retry without reporting another loss; a
+saved correct selection remains unsubmitted. Success keeps its 600 ms timing,
+while reduced motion completes it and removes the 200 ms selection transition.
+Result-dialog callbacks verify their current route before navigating.
+
+Successful and failed rounds report their division problem to spaced repetition;
+exhausted rounds previously omitted it. Reported math problems are copied so
+retry or restoration cannot change the previous outcome's arithmetic data.
+The coin table wraps on narrow screens,
+preserving coin order and size even at the maximum coin count. The generator,
+two-attempt allowance, arithmetic reveal, scoring and performance formulas remain
+unchanged. Nineteen focused regressions, larger calibration, web builds and browser/
+deployment validation run on GitHub CI to limit VPS resource usage.
+
 ## Vault Cracker round effects
 
 Vault Cracker scopes keypad, answer-slot, clear, submit and navigation callbacks
