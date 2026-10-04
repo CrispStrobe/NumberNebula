@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:space_math_academy/core/services/app_haptics.dart';
 import '../mixins/puzzle_session_mixin.dart';
 import 'package:flutter/foundation.dart';
@@ -20,24 +22,75 @@ import '../services/sector_painter_logic.dart';
 class SectorPainterGame extends StatefulWidget {
   final int grade;
   final int level;
-  const SectorPainterGame({super.key, required this.grade, required this.level});
+  const SectorPainterGame(
+      {super.key, required this.grade, required this.level});
   @override
   State<SectorPainterGame> createState() => _SectorPainterGameState();
 }
 
 class _SectorPainterGameState extends State<SectorPainterGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<SectorPainterGame>, PuzzleSessionMixin<SectorPainterGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<SectorPainterGame>,
+        PuzzleSessionMixin<SectorPainterGame> {
   bool _sessionReady = false;
-  @override
-  void onPuzzleSessionMotionChanged(bool reduced) {
-    updateDecorativeMotion([_pulseController], reduced);
+  bool _reducedMotion = false;
+  Timer? _winTimer;
+  int _roundEpoch = 0;
+
+  void _cancelWinCheck() {
+    _winTimer?.cancel();
+    _winTimer = null;
   }
 
-  @override String get sessionGameKey => 'sector_painter';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  void _cancelRoundEffects() {
+    _roundEpoch++;
+    _cancelWinCheck();
+    cancelOneShotMotion(_conflictController);
+    cancelOneShotMotion(successController);
+    _conflictRegions = {};
+  }
+
+  bool _canInteract(int epoch) =>
+      mounted &&
+      _sessionReady &&
+      epoch == _roundEpoch &&
+      !_isGenerating &&
+      !_won &&
+      _puzzle != null;
+
+  bool _validColor(int color) =>
+      color >= 0 && color < (_puzzle?.availableColors ?? 0);
+
+  bool _isSolved() =>
+      _puzzle != null &&
+      _coloring.length == _puzzle!.regions.length &&
+      _puzzle!.validateColoring(_coloring);
+
+  void _selectColor(int color, int epoch) {
+    if (!_canInteract(epoch) || !_validColor(color)) return;
+    setState(() => _selectedColor = color);
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    _reducedMotion = reduced;
+    updateDecorativeMotion([_pulseController], reduced);
+    updateOneShotMotion(_conflictController, reduced,
+        duration: const Duration(milliseconds: 600));
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
+  }
+
+  @override
+  String get sessionGameKey => 'sector_painter';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _won) return null;
     return {
       '_puzzle': (_puzzle?.toJson()),
       '_coloring': _coloring.entries.map((v0) => [v0.key, v0.value]).toList(),
@@ -45,13 +98,27 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       '_conflictEvents': _conflictEvents
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    _puzzle = (state["_puzzle"] == null ? null : SectorPainterPuzzle.fromJson(Map<String, dynamic>.from(state["_puzzle"] as Map)));
-    _coloring..clear()..addAll(Map<int, int>.fromEntries((state["_coloring"] as List).map((v0) => MapEntry(v0[0] as int, v0[1] as int))));
-    _selectedColor = state["_selectedColor"] as int;
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _cancelRoundEffects();
+    _conflictController.reset();
+    successController.reset();
+    _puzzle = (state["_puzzle"] == null
+        ? null
+        : SectorPainterPuzzle.fromJson(
+            Map<String, dynamic>.from(state["_puzzle"] as Map)));
+    _coloring
+      ..clear()
+      ..addAll(Map<int, int>.fromEntries((state["_coloring"] as List)
+          .map((v0) => MapEntry(v0[0] as int, v0[1] as int))));
+    final selected = state["_selectedColor"];
+    _selectedColor = selected is int && _validColor(selected) ? selected : 0;
     _conflictEvents = state["_conflictEvents"] as int;
-    _isGenerating = false; _won = false;
+    _isGenerating = false;
+    _won = false;
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
@@ -94,26 +161,21 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.85, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+    _pulseAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
+        CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
     _conflictController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    _conflictAnimation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _conflictController, curve: Curves.easeOut));
-    _conflictController.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        setState(() => _conflictRegions = {});
-        _conflictController.reset();
-      }
-    });
+    _conflictAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _conflictController, curve: Curves.easeOut));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -121,6 +183,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
 
   @override
   void dispose() {
+    _cancelRoundEffects();
     disposePuzzleSession();
     _pulseController.dispose();
     _conflictController.dispose();
@@ -129,6 +192,8 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   }
 
   Future<void> _generatePuzzle() async {
+    _cancelRoundEffects();
+    final epoch = _roundEpoch;
     beginPuzzleSession();
     setState(() {
       _isGenerating = true;
@@ -136,6 +201,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       _won = false;
       _coloring.clear();
       _conflictRegions = {};
+      _conflictController.reset();
       successController.reset();
     });
 
@@ -145,7 +211,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       'seed': DateTime.now().millisecondsSinceEpoch,
     });
 
-    if (mounted) {
+    if (mounted && epoch == _roundEpoch) {
       setState(() {
         _puzzle = puzzle;
         _selectedColor = 0;
@@ -154,7 +220,14 @@ class _SectorPainterGameState extends State<SectorPainterGame>
     }
   }
 
-  void _paintRegion(int region) {
+  void _paintRegion(int region, int epoch) {
+    if (!_canInteract(epoch) ||
+        !_puzzle!.regions.contains(region) ||
+        !_validColor(_selectedColor)) {
+      return;
+    }
+    // Every repaint invalidates the earlier solved-board delay.
+    _cancelWinCheck();
     AppHaptics.selectionClick();
     setState(() {
       if (_coloring[region] == _selectedColor) {
@@ -164,17 +237,13 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       }
     });
 
-    // Check for adjacent same-color conflicts and flash
     final hasConflicts = _checkConflicts();
-
-    // Auto-check win when all regions colored with no conflicts
-    if (!hasConflicts && _coloring.length == _puzzle!.regions.length) {
-      if (_puzzle!.validateColoring(_coloring)) {
-        // Small delay so the last color is visible before win dialog
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (mounted && !_won) _handleWin();
-        });
-      }
+    if (!hasConflicts && _isSolved()) {
+      // Leave the last color visible, then validate the current board again.
+      _winTimer = Timer(const Duration(milliseconds: 300), () {
+        _winTimer = null;
+        if (_canInteract(epoch) && _isSolved()) _handleWin();
+      });
     }
   }
 
@@ -189,7 +258,13 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       }
       _conflictEvents++;
       setState(() => _conflictRegions = regions);
-      _conflictController.forward(from: 0.0);
+      _conflictController.reset();
+      final epoch = _roundEpoch;
+      playOneShotMotion(_conflictController, () {
+        if (!mounted || epoch != _roundEpoch) return;
+        setVisualState(() => _conflictRegions = {});
+        _conflictController.reset();
+      });
       AppHaptics.heavyImpact();
       return true;
     }
@@ -197,8 +272,10 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   }
 
   void _handleWin() {
-    if (_won) return;
+    if (!_canInteract(_roundEpoch) || !_isSolved()) return;
     _won = true;
+    _cancelRoundEffects();
+    final epoch = _roundEpoch;
     AppHaptics.lightImpact();
     final colorsUsed = _puzzle!.countColors(_coloring);
     int baseScore = 100 * widget.grade;
@@ -209,29 +286,35 @@ class _SectorPainterGameState extends State<SectorPainterGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'sector_painter',
-      difficulty: widget.level,
-      score: totalScore,
-      // Using no more colours than the chromatic number is the actual goal;
-      // every adjacency clash along the way costs a little.
-      performance: Perf.combine([
-        colorsUsed <= _puzzle!.chromaticNumber ? 1.0 : 0.6,
-        Perf.fromMistakes(_conflictEvents, per: 0.1),
-      ], weights: [2, 1]),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'sector_painter',
+          difficulty: widget.level,
+          score: totalScore,
+          // Using no more colours than the chromatic number is the actual goal;
+          // every adjacency clash along the way costs a little.
+          performance: Perf.combine([
+            colorsUsed <= _puzzle!.chromaticNumber ? 1.0 : 0.6,
+            Perf.fromMistakes(_conflictEvents, per: 0.1),
+          ], weights: [
+            2,
+            1
+          ]),
+        ));
 
-    successController.forward(from: 0.0);
+    successController.reset();
+    playOneShotMotion(successController, () {});
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => _buildWinDialog(totalScore, colorsUsed),
+      builder: (ctx) => _buildWinDialog(totalScore, colorsUsed, epoch),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
 
     if (_puzzle == null || _isGenerating) {
@@ -275,12 +358,17 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   }
 
   Widget _buildHeader(S s) {
+    final epoch = _roundEpoch;
     return Column(
       children: [
         GameUI(
           title: s.sectorPainterTitle,
           level: widget.level,
-          onBack: () => Navigator.of(context).pop(),
+          onBack: () {
+            if (mounted && _sessionReady && epoch == _roundEpoch) {
+              Navigator.of(context).pop();
+            }
+          },
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -342,7 +430,8 @@ class _SectorPainterGameState extends State<SectorPainterGame>
         decoration: BoxDecoration(
           color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.5)),
+          border:
+              Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.5)),
         ),
         child: Wrap(
           alignment: WrapAlignment.center,
@@ -361,7 +450,9 @@ class _SectorPainterGameState extends State<SectorPainterGame>
             ),
             const SizedBox(width: 12),
             Text(
-              S.of(context)!.sectorPainted(_coloring.length, _puzzle!.regions.length),
+              S
+                  .of(context)!
+                  .sectorPainted(_coloring.length, _puzzle!.regions.length),
               style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
             ),
           ],
@@ -371,6 +462,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   }
 
   Widget _buildColorPalette() {
+    final epoch = _roundEpoch;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Row(
@@ -379,9 +471,11 @@ class _SectorPainterGameState extends State<SectorPainterGame>
           final isSelected = _selectedColor == index;
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => setState(() => _selectedColor = index),
+            onTap: () => _selectColor(index, epoch),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: _reducedMotion
+                  ? Duration.zero
+                  : const Duration(milliseconds: 200),
               width: isSelected ? 52 : 44,
               height: isSelected ? 52 : 44,
               margin: const EdgeInsets.symmetric(horizontal: 6),
@@ -393,12 +487,14 @@ class _SectorPainterGameState extends State<SectorPainterGame>
                   width: isSelected ? 3 : 1,
                 ),
                 boxShadow: isSelected
-                    ? [BoxShadow(
-                        color: _paletteColors[index % _paletteColors.length]
-                            .withValues(alpha: 0.6),
-                        blurRadius: 12,
-                        spreadRadius: 2,
-                      )]
+                    ? [
+                        BoxShadow(
+                          color: _paletteColors[index % _paletteColors.length]
+                              .withValues(alpha: 0.6),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                        )
+                      ]
                     : null,
               ),
               child: isSelected
@@ -412,6 +508,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   }
 
   Widget _buildColorPaletteVertical() {
+    final epoch = _roundEpoch;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: SpaceTheme.cardDecoration.copyWith(
@@ -420,7 +517,8 @@ class _SectorPainterGameState extends State<SectorPainterGame>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(S.of(context)!.sectorColors, style: SpaceTheme.titleStyle.copyWith(fontSize: 14)),
+          Text(S.of(context)!.sectorColors,
+              style: SpaceTheme.titleStyle.copyWith(fontSize: 14)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -429,9 +527,11 @@ class _SectorPainterGameState extends State<SectorPainterGame>
             children: List.generate(_puzzle!.availableColors, (index) {
               final isSelected = _selectedColor == index;
               return GestureDetector(
-                onTap: () => setState(() => _selectedColor = index),
+                onTap: () => _selectColor(index, epoch),
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                  duration: _reducedMotion
+                      ? Duration.zero
+                      : const Duration(milliseconds: 200),
                   width: isSelected ? 52 : 44,
                   height: isSelected ? 52 : 44,
                   decoration: BoxDecoration(
@@ -442,12 +542,15 @@ class _SectorPainterGameState extends State<SectorPainterGame>
                       width: isSelected ? 3 : 1,
                     ),
                     boxShadow: isSelected
-                        ? [BoxShadow(
-                            color: _paletteColors[index % _paletteColors.length]
-                                .withValues(alpha: 0.6),
-                            blurRadius: 12,
-                            spreadRadius: 2,
-                          )]
+                        ? [
+                            BoxShadow(
+                              color:
+                                  _paletteColors[index % _paletteColors.length]
+                                      .withValues(alpha: 0.6),
+                              blurRadius: 12,
+                              spreadRadius: 2,
+                            )
+                          ]
                         : null,
                   ),
                   child: isSelected
@@ -463,14 +566,17 @@ class _SectorPainterGameState extends State<SectorPainterGame>
   }
 
   Widget _buildMapArea() {
+    final epoch = _roundEpoch;
     return LayoutBuilder(
       builder: (context, constraints) {
         final availW = constraints.maxWidth - 32;
         final availH = constraints.maxHeight - 32;
+        final nodeRadius = _computeNodeRadius(availW, availH);
 
         return Center(
           child: AnimatedBuilder(
-            animation: Listenable.merge([glowAnimation, _pulseAnimation, _conflictAnimation]),
+            animation: Listenable.merge(
+                [glowAnimation, _pulseAnimation, _conflictAnimation]),
             builder: (context, child) {
               return Container(
                 width: availW + 16,
@@ -508,16 +614,18 @@ class _SectorPainterGameState extends State<SectorPainterGame>
                       final y = pos.y * availH;
                       final isColored = _coloring.containsKey(region);
                       final isConflict = _conflictRegions.contains(region);
-                      final nodeRadius = _computeNodeRadius(availW, availH);
 
                       return Positioned(
                         left: x - nodeRadius,
                         top: y - nodeRadius,
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onTap: () => _paintRegion(region),
+                          onTap: () => _paintRegion(region, epoch),
                           child: _buildRegionNode(
-                            region, nodeRadius * 2, isColored, isConflict,
+                            region,
+                            nodeRadius * 2,
+                            isColored,
+                            isConflict,
                           ),
                         ),
                       );
@@ -567,7 +675,8 @@ class _SectorPainterGameState extends State<SectorPainterGame>
     return Transform.scale(
       scale: scale,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration:
+            _reducedMotion ? Duration.zero : const Duration(milliseconds: 200),
         width: size,
         height: size,
         decoration: BoxDecoration(
@@ -605,7 +714,8 @@ class _SectorPainterGameState extends State<SectorPainterGame>
               ),
             if (isConflict)
               BoxShadow(
-                color: SpaceTheme.rocketRed.withValues(alpha: conflictFlash * 0.8),
+                color:
+                    SpaceTheme.rocketRed.withValues(alpha: conflictFlash * 0.8),
                 blurRadius: 16,
                 spreadRadius: 4,
               ),
@@ -641,7 +751,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
     );
   }
 
-  Widget _buildWinDialog(int score, int colorsUsed) {
+  Widget _buildWinDialog(int score, int colorsUsed, int epoch) {
     return AnimatedBuilder(
       animation: successAnimation,
       builder: (context, child) {
@@ -695,6 +805,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
+                          if (!mounted || epoch != _roundEpoch || !_won) return;
                           Navigator.of(context).pop();
                           _generatePuzzle();
                         },
@@ -703,6 +814,7 @@ class _SectorPainterGameState extends State<SectorPainterGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
+                          if (!mounted || epoch != _roundEpoch || !_won) return;
                           Navigator.of(context).pop();
                           Navigator.of(context).pop();
                         },
@@ -734,14 +846,15 @@ class _GraphMapPainter extends CustomPainter {
 
   _GraphMapPainter({
     required this.puzzle,
-    required this.coloring,
+    required Map<int, int> coloring,
     required this.paletteColors,
     required this.glowValue,
-    required this.conflictRegions,
+    required Set<int> conflictRegions,
     required this.conflictValue,
     required this.width,
     required this.height,
-  });
+  })  : coloring = Map<int, int>.of(coloring),
+        conflictRegions = Set<int>.of(conflictRegions);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -764,7 +877,8 @@ class _GraphMapPainter extends CustomPainter {
       final fromCenter = Offset(fromPos.x * width, fromPos.y * height);
 
       for (final neighbor in puzzle.adjacency[region] ?? <int>{}) {
-        final key = '${math.min(region, neighbor)}-${math.max(region, neighbor)}';
+        final key =
+            '${math.min(region, neighbor)}-${math.max(region, neighbor)}';
         if (drawn.contains(key)) continue;
         drawn.add(key);
 
@@ -789,8 +903,12 @@ class _GraphMapPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _GraphMapPainter oldDelegate) =>
+      oldDelegate.puzzle != puzzle ||
+      oldDelegate.width != width ||
+      oldDelegate.height != height ||
+      !listEquals(oldDelegate.paletteColors, paletteColors) ||
       oldDelegate.glowValue != glowValue ||
-      oldDelegate.coloring != coloring ||
+      !mapEquals(oldDelegate.coloring, coloring) ||
       oldDelegate.conflictValue != conflictValue ||
-      oldDelegate.conflictRegions != conflictRegions;
+      !setEquals(oldDelegate.conflictRegions, conflictRegions);
 }

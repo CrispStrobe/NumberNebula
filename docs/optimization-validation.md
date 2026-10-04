@@ -166,6 +166,30 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Sector Painter round effects
+
+Sector Painter owns its original 300 ms victory delay and checks that the current
+board is still fully colored without adjacency conflicts before reporting a win.
+Every paint cancels the previous pending result. Restoration, regeneration and
+disposal invalidate delayed callbacks and in-flight generation, reset visual
+effects, and reject callbacks retained from a previous round. Completed rounds
+reject playable snapshots and additional painting. Restoration preserves colors,
+valid palette selection and the existing conflict count.
+
+Conflict and success effects use cancellable one-shot helpers, retaining their
+normal 600 ms durations and completing with reduced motion. Palette and node
+transitions also respect reduced motion. The adjacency painter compares copied
+color state and board geometry so painting and restoration repaint when decorative
+animation is stopped. Node geometry is computed once per layout instead of once
+per node on every animation frame. Generators, coloring rules, scoring and
+conflict grading remain unchanged.
+
+Sixteen focused widget regressions cover real painting, edits before the win
+deadline, preserved mistake grading, stale callbacks, restoration during
+generation, retry, disposal, motion changes and painter invalidation. They run
+before the full suite on GitHub CI; larger calibration, builds and
+browser/deployment checks also run remotely.
+
 ## Launch Sequence move grading and round effects
 
 Launch Sequence counts a drag relocation as the number of positions crossed,
