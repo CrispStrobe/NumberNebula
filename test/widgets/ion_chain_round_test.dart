@@ -182,6 +182,8 @@ void main() {
       _grade(app, mistakes: 2);
       await tester
           .tap(find.widgetWithText(ElevatedButton, _strings(tester).playAgain));
+      await tester.pump();
+      expect(_session(tester).capturePuzzleSession(), isNotNull);
       await tester.pump(const Duration(milliseconds: 300));
       expect(_dialog, findsNothing);
       final state = _snapshot(tester);

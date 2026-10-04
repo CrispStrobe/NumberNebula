@@ -62,7 +62,9 @@ class _IonChainGameState extends State<IonChainGame>
     cancelOneShotMotion(successController);
     successController.reset();
     _won = false;
-    ScaffoldMessenger.maybeOf(context)?.removeCurrentSnackBar();
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.clearSnackBars();
+    messenger?.removeCurrentSnackBar();
   }
 
   @override
