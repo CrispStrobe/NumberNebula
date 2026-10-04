@@ -183,8 +183,9 @@ Result-dialog callbacks verify their current route before navigating.
 Successful and failed rounds report their division problem to spaced repetition;
 exhausted rounds previously omitted it. Reported math problems are copied so
 retry or restoration cannot change the previous outcome's arithmetic data.
-The coin table wraps on narrow screens,
-preserving coin order and size even at the maximum coin count. The generator,
+The coin table wraps on narrow screens, preserving coin order and size even at
+the maximum coin count. The question and attempts badge stack when narrow or
+large-text layouts cannot fit them side by side. The generator,
 two-attempt allowance, arithmetic reveal, scoring and performance formulas remain
 unchanged. Nineteen focused regressions, larger calibration, web builds and browser/
 deployment validation run on GitHub CI to limit VPS resource usage.

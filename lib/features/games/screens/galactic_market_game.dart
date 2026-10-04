@@ -533,6 +533,41 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
   }
 
   Widget _buildConstraintBanner() {
+    final question = Row(
+      children: [
+        const Icon(Icons.help_outline,
+            color: SpaceTheme.nebulaPurple, size: 18),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(_constraintText,
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 13)),
+        ),
+      ],
+    );
+    // Keep the scan budget visible before committing, including at large text.
+    final attempts = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: (_attemptsUsed == 0
+                  ? SpaceTheme.alienGreen
+                  : SpaceTheme.rocketRed)
+              .withValues(alpha: 0.8),
+        ),
+      ),
+      child: Text(
+        S
+            .of(context)!
+            .galacticMarketAttempts(_maxAttempts - _attemptsUsed, _maxAttempts),
+        softWrap: true,
+        style: SpaceTheme.bodyStyle.copyWith(
+          fontSize: 11,
+          color:
+              _attemptsUsed == 0 ? SpaceTheme.alienGreen : SpaceTheme.rocketRed,
+        ),
+      ),
+    );
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -541,46 +576,24 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
         border:
             Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.4)),
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.help_outline,
-              color: SpaceTheme.nebulaPurple, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              _constraintText,
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 13),
-            ),
-          ),
-          // The cost of being wrong, shown before the player commits. Kept
-          // next to the question rather than tucked in a corner: a counter
-          // noticed only after a wrong answer changes nothing about how the
-          // answer was chosen.
-          Container(
-            margin: const EdgeInsets.only(left: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: (_attemptsUsed == 0
-                        ? SpaceTheme.alienGreen
-                        : SpaceTheme.rocketRed)
-                    .withValues(alpha: 0.8),
-              ),
-            ),
-            child: Text(
-              S.of(context)!.galacticMarketAttempts(
-                  _maxAttempts - _attemptsUsed, _maxAttempts),
-              style: SpaceTheme.bodyStyle.copyWith(
-                fontSize: 11,
-                color: _attemptsUsed == 0
-                    ? SpaceTheme.alienGreen
-                    : SpaceTheme.rocketRed,
-              ),
-            ),
-          ),
-        ],
-      ),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final badgeScale = MediaQuery.textScalerOf(context).scale(11) / 11;
+        if (constraints.maxWidth >= 480 * badgeScale) {
+          return Row(children: [
+            Expanded(child: question),
+            const SizedBox(width: 8),
+            attempts,
+          ]);
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            question,
+            const SizedBox(height: 8),
+            Align(alignment: Alignment.centerRight, child: attempts),
+          ],
+        );
+      }),
     );
   }
 
