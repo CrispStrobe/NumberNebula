@@ -435,7 +435,16 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     app.motion.value = true;
     await tester.pump();
+    await tester.pump();
+    // Prove the game one-shot completes immediately after reducing motion.
+    final AnimationController success = _session(tester).successController;
+    expect(success.isAnimating, isFalse);
+    expect(success.value, 1);
     await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
+    // Android Material3's real button tap uses a 617ms InkSparkle. Allow
+    // its finite framework feedback to finish (650ms total since the tap).
+    await tester.pump(const Duration(milliseconds: 250));
     await tester.pump();
     expect(tester.binding.transientCallbackCount, 0);
     expect(_dialog, findsOneWidget);
