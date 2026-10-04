@@ -303,7 +303,9 @@ class _IonChainGameState extends State<IonChainGame>
   void _handleWin() {
     if (!_canInteract(_round) ||
         _playerChain.contains(null) ||
-        !IonChainPuzzle.validateChain(_playerChain, puzzle!.rules)) return;
+        !IonChainPuzzle.validateChain(_playerChain, puzzle!.rules)) {
+      return;
+    }
     _won = true;
     final round = _round;
     AppHaptics.lightImpact();
