@@ -503,6 +503,8 @@ void main() {
       (tester) async {
     final app = await _mount(tester,
         reduced: true, textScale: 2, board: _board(size: 5));
+    expect(tester.takeException(), isNull,
+        reason: 'The initial wide layout must also fit doubled text');
     tester.view.physicalSize = const Size(390, 844);
     await tester.pump();
     expect(tester.takeException(), isNull);

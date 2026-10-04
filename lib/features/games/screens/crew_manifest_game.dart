@@ -476,7 +476,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
           const SizedBox(width: 24),
           Expanded(
             flex: 2,
-            child: _buildCluesAndSubmit(),
+            child: SingleChildScrollView(child: _buildCluesAndSubmit()),
           ),
         ],
       ),

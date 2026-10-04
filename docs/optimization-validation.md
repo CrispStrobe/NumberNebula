@@ -187,7 +187,8 @@ Ambient glow reuses the grid widget subtree rather than rebuilding every cell
 on each animation tick. Gameplay updates still rebuild the marks and highlights;
 empty-cell pulse animations retain their existing behavior. Clue headings and
 legend labels wrap, submit controls grow with text, and result buttons stack
-when needed on narrow screens.
+when needed on narrow screens. The wide-layout clue panel also scrolls when
+larger text or more clues exceed the available height.
 
 Focused widget regressions exercise actual controls, storage, stale callbacks and
 touches, generation superseded by restoration, retry, disposal, motion settings,
