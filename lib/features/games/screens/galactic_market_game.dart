@@ -717,8 +717,11 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
             Text(s.galacticMarketReveal(_correctDenomination),
                 style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            OverflowBar(
+              alignment: MainAxisAlignment.spaceEvenly,
+              spacing: 12,
+              overflowSpacing: 12,
+              overflowAlignment: OverflowBarAlignment.center,
               children: [
                 ElevatedButton(
                   autofocus: true,
@@ -780,8 +783,11 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
                   Text(s.galacticMarketWinDesc(_unknownCount, score),
                       style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    spacing: 12,
+                    overflowSpacing: 12,
+                    overflowAlignment: OverflowBarAlignment.center,
                     children: [
                       ElevatedButton(
                         autofocus: true,

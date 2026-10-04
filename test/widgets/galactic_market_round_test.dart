@@ -482,7 +482,7 @@ void main() {
   });
 
   testWidgets(
-      'maximum coin table fits390px phone with doubled text and still accepts selection',
+      'maximum coin table fits390px phone with doubled text through win and retry',
       (tester) async {
     final board = _board(known: [1, 2, 5, 10, 20], unknown: 8);
     final app = await _mount(tester, reduced: true, textScale: 2, board: board);
@@ -503,6 +503,61 @@ void main() {
     expect(_snapshot(tester)['_selectedDenom'], 5);
     expect(_snapshot(tester)['_mathProblems'], board['_mathProblems']);
     expect(app.gp.outcomeCount, 0);
+    await tester.ensureVisible(_submitButton);
+    await tester.pump();
+    await _submit(tester);
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(tester.takeException(), isNull);
+    expect(_dialog, findsOneWidget);
+    _grade(app);
+    final retry =
+        find.widgetWithText(ElevatedButton, _strings(tester).playAgain);
+    await tester.ensureVisible(retry);
+    await tester.pump();
+    await tester.tap(retry);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_dialog, findsNothing);
+    expect(_session(tester).capturePuzzleSession(), isNotNull);
+    expect(_snapshot(tester)['_attemptsUsed'], 0);
+    _grade(app);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'maximum phone board with doubled text supports loss arithmetic and retry',
+      (tester) async {
+    final board =
+        _board(known: [1, 2, 5, 10, 20], unknown: 8, mistakes: 1, selected: 2);
+    final app = await _mount(tester, reduced: true, textScale: 2, board: board);
+    tester.view.physicalSize = const Size(390, 844);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    await tester.ensureVisible(_submitButton);
+    await tester.pump();
+    await _submit(tester);
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(tester.takeException(), isNull);
+    expect(_dialog, findsOneWidget);
+    expect(find.text('78 − 38 = 40\n40 ÷ 8 = 5'), findsOneWidget);
+    expect(app.gp.outcomeCount, 1);
+    expect(app.gp.lastOutcome!.wasSuccessful, isFalse);
+    expect(app.sri.responses, hasLength(1));
+    expect(app.sri.responses.single.$2, isFalse);
+    expect(app.sri.responses.single.$1.toJson(),
+        (board['_mathProblems'] as List).single);
+    final retry =
+        find.widgetWithText(ElevatedButton, _strings(tester).playAgain);
+    await tester.ensureVisible(retry);
+    await tester.pump();
+    await tester.tap(retry);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_dialog, findsNothing);
+    expect(_session(tester).capturePuzzleSession(), isNotNull);
+    expect(_snapshot(tester)['_attemptsUsed'], 0);
+    expect(app.gp.outcomeCount, 1);
+    expect(app.sri.responses, hasLength(1));
     expect(tester.takeException(), isNull);
   });
 }
