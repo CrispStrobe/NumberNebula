@@ -166,6 +166,26 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Ion Chain round effects
+
+Ion Chain gives every drag payload a round identity, validates slot bounds and
+remaining tray supply, and rejects input after a completed round. Restoration
+and regeneration replace drag sources and targets, reset success effects and
+clear stale rejection feedback. Old drags, removal callbacks and dialog buttons
+cannot edit a replacement board. Removal also verifies the current bead so a
+retained callback cannot remove a different bead placed in the same slot.
+
+Rejected rule and dead-end placements trigger session saving while retaining the
+existing mistake grading. The success effect uses the cancellable one-shot helper
+with its original 600 ms timing and reduced-motion completion. The ring painter
+repaints after radius or slot-count changes when decorative animation is stopped.
+Generation, adjacency rules, completion search and scoring remain unchanged.
+
+Twelve focused widget regressions exercise real drops and removal, active-drag
+restoration, cancellation, inventory, saved mistake grading, retry, stale dialog
+callbacks, disposal, motion changes and ring geometry. They run before the full
+suite on GitHub CI; builds and larger calibration also run remotely.
+
 ## Sector Painter round effects
 
 Sector Painter owns its original 300 ms victory delay and checks that the current

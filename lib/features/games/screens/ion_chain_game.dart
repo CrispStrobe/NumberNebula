@@ -16,6 +16,12 @@ import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../services/ion_chain_logic.dart';
 
+class _IonDrag {
+  final IonType bead;
+  final Object round;
+  const _IonDrag(this.bead, this.round);
+}
+
 class IonChainGame extends StatefulWidget {
   final int grade;
   final int level;
@@ -26,32 +32,83 @@ class IonChainGame extends StatefulWidget {
 }
 
 class _IonChainGameState extends State<IonChainGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<IonChainGame>, PuzzleSessionMixin<IonChainGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<IonChainGame>,
+        PuzzleSessionMixin<IonChainGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'ion_chain';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  bool _won = false;
+  Object _round = Object();
+
+  bool _canInteract(Object round) =>
+      mounted &&
+      _sessionReady &&
+      identical(round, _round) &&
+      !_isGenerating &&
+      !_won &&
+      puzzle != null;
+
+  bool _canPlace(int slot, _IonDrag drag) =>
+      _canInteract(drag.round) &&
+      slot >= 0 &&
+      slot < _playerChain.length &&
+      slot < puzzle!.chain.length &&
+      puzzle!.chain[slot] == null &&
+      _playerChain[slot] == null &&
+      _beadsLeftInTray().contains(drag.bead);
+
+  void _resetRound() {
+    _round = Object();
+    cancelOneShotMotion(successController);
+    successController.reset();
+    _won = false;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.clearSnackBars();
+    messenger?.removeCurrentSnackBar();
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
+  }
+
+  @override
+  String get sessionGameKey => 'ion_chain';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _won) return null;
     return {
       'puzzle': (puzzle?.toJson()),
       '_playerChain': _playerChain.map((v0) => (v0?.name)).toList(),
       '_ruleViolations': _ruleViolations
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    puzzle = (state["puzzle"] == null ? null : IonChainPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
-    _playerChain = (state["_playerChain"] as List).map((v0) => (v0 == null ? null : IonType.values.byName(v0 as String))).toList();
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRound();
+    puzzle = (state["puzzle"] == null
+        ? null
+        : IonChainPuzzle.fromJson(
+            Map<String, dynamic>.from(state["puzzle"] as Map)));
+    _playerChain = (state["_playerChain"] as List)
+        .map((v0) => (v0 == null ? null : IonType.values.byName(v0 as String)))
+        .toList();
     _ruleViolations = state["_ruleViolations"] as int;
     _isGenerating = false;
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
     if (mounted) setState(() => _sessionReady = true);
   }
-
 
   IonChainPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
@@ -86,11 +143,11 @@ class _IonChainGameState extends State<IonChainGame>
     successAnimation =
         CurvedAnimation(parent: successController, curve: Curves.elasticOut);
 
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -99,13 +156,15 @@ class _IonChainGameState extends State<IonChainGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _round = Object();
     disposeGameAnimations();
     super.dispose();
   }
 
   Future<void> _generatePuzzle() async {
-    beginPuzzleSession();
     if (currentDifficulty == null) return;
+    _resetRound();
+    beginPuzzleSession();
     setState(() {
       _isGenerating = true;
       _playerChain = [];
@@ -119,11 +178,20 @@ class _IonChainGameState extends State<IonChainGame>
     // Map grade/level to puzzle parameters
     int chainLength, ionTypeCount, ruleCount, blanksToRemove;
     if (grade <= 1) {
-      chainLength = 5; ionTypeCount = 3; ruleCount = 1; blanksToRemove = 2;
+      chainLength = 5;
+      ionTypeCount = 3;
+      ruleCount = 1;
+      blanksToRemove = 2;
     } else if (grade <= 2) {
-      chainLength = 6 + (level > 5 ? 1 : 0); ionTypeCount = 3; ruleCount = 1 + (level > 5 ? 1 : 0); blanksToRemove = 3;
+      chainLength = 6 + (level > 5 ? 1 : 0);
+      ionTypeCount = 3;
+      ruleCount = 1 + (level > 5 ? 1 : 0);
+      blanksToRemove = 3;
     } else {
-      chainLength = 7 + (level > 5 ? 2 : 0); ionTypeCount = 4; ruleCount = 2 + (level > 8 ? 1 : 0); blanksToRemove = 3 + (level > 5 ? 1 : 0);
+      chainLength = 7 + (level > 5 ? 2 : 0);
+      ionTypeCount = 4;
+      ruleCount = 2 + (level > 8 ? 1 : 0);
+      blanksToRemove = 3 + (level > 5 ? 1 : 0);
     }
 
     final p = IonChainPuzzle.generate(
@@ -134,7 +202,11 @@ class _IonChainGameState extends State<IonChainGame>
     );
 
     if (mounted) {
-      setState(() { puzzle = p; _playerChain = List<IonType?>.from(p.chain); _isGenerating = false; });
+      setState(() {
+        puzzle = p;
+        _playerChain = List<IonType?>.from(p.chain);
+        _isGenerating = false;
+      });
     }
   }
 
@@ -149,9 +221,9 @@ class _IonChainGameState extends State<IonChainGame>
     return left;
   }
 
-  void _placeBeadInSlot(int slotIndex, IonType bead) {
-    if (_playerChain[slotIndex] != null) return;
-    if (puzzle!.chain[slotIndex] != null) return;
+  void _placeBeadInSlot(int slotIndex, _IonDrag drag, Object round) {
+    if (!_canInteract(round) || !_canPlace(slotIndex, drag)) return;
+    final bead = drag.bead;
 
     final testChain = List<IonType?>.from(_playerChain);
     testChain[slotIndex] = bead;
@@ -163,12 +235,18 @@ class _IonChainGameState extends State<IonChainGame>
 
     if (testChain[prevIdx] != null) {
       for (final rule in puzzle!.rules) {
-        if (!rule.check(testChain[prevIdx], bead)) { valid = false; break; }
+        if (!rule.check(testChain[prevIdx], bead)) {
+          valid = false;
+          break;
+        }
       }
     }
     if (valid && testChain[nextIdx] != null) {
       for (final rule in puzzle!.rules) {
-        if (!rule.check(bead, testChain[nextIdx])) { valid = false; break; }
+        if (!rule.check(bead, testChain[nextIdx])) {
+          valid = false;
+          break;
+        }
       }
     }
 
@@ -188,7 +266,9 @@ class _IonChainGameState extends State<IonChainGame>
     }
 
     AppHaptics.lightImpact();
-    setState(() { _playerChain[slotIndex] = bead; });
+    setState(() {
+      _playerChain[slotIndex] = bead;
+    });
 
     if (!_playerChain.contains(null)) {
       if (IonChainPuzzle.validateChain(_playerChain, puzzle!.rules)) {
@@ -198,7 +278,7 @@ class _IonChainGameState extends State<IonChainGame>
   }
 
   void _rejectPlacement(String message) {
-    _ruleViolations++;
+    setState(() => _ruleViolations++);
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
@@ -207,42 +287,71 @@ class _IonChainGameState extends State<IonChainGame>
     ));
   }
 
-  void _removeBeadFromSlot(int slotIndex) {
+  void _removeBeadFromSlot(int slotIndex, Object round, IonType bead) {
+    if (!_canInteract(round) ||
+        slotIndex < 0 ||
+        slotIndex >= _playerChain.length ||
+        slotIndex >= puzzle!.chain.length) {
+      return;
+    }
     if (puzzle!.chain[slotIndex] != null) return;
-    if (_playerChain[slotIndex] == null) return;
+    if (_playerChain[slotIndex] != bead) return;
     AppHaptics.lightImpact();
-    setState(() { _playerChain[slotIndex] = null; });
+    setState(() {
+      _playerChain[slotIndex] = null;
+    });
   }
 
   void _handleWin() {
+    if (!_canInteract(_round) ||
+        _playerChain.contains(null) ||
+        !IonChainPuzzle.validateChain(_playerChain, puzzle!.rules)) {
+      return;
+    }
+    _won = true;
+    final round = _round;
     AppHaptics.lightImpact();
     int totalScore = 100 * widget.grade + widget.level * 25;
 
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'ion_chain', difficulty: widget.level, score: totalScore,
-      performance: Perf.fromMistakes(_ruleViolations, per: 0.15),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'ion_chain',
+          difficulty: widget.level,
+          score: totalScore,
+          performance: Perf.fromMistakes(_ruleViolations, per: 0.15),
+        ));
 
-    successController.forward(from: 0.0);
+    successController.reset();
+    playOneShotMotion(successController, () {});
     if (mounted) {
-      showDialog(context: context, barrierDismissible: false,
-        builder: (_) => _buildWinDialog(totalScore));
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => _buildWinDialog(totalScore, round));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    final round = _round;
     final s = S.of(context)!;
 
     if (puzzle == null || _isGenerating) {
-      return Scaffold(body: SpaceBackground(child: Center(child: Column(
+      return Scaffold(
+          body: SpaceBackground(
+              child: Center(
+                  child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [const CircularProgressIndicator(), const SizedBox(height: 16),
-          Text(s.loadingAdventure, style: SpaceTheme.bodyStyle)],
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(s.loadingAdventure, style: SpaceTheme.bodyStyle)
+        ],
       ))));
     }
 
@@ -251,8 +360,14 @@ class _IonChainGameState extends State<IonChainGame>
         child: SafeArea(
           child: Column(
             children: [
-              GameUI(title: s.ionChainTitle, level: widget.level,
-                onBack: () => Navigator.of(context).pop()),
+              GameUI(
+                  title: s.ionChainTitle,
+                  level: widget.level,
+                  onBack: () {
+                    if (mounted && identical(round, _round)) {
+                      Navigator.of(context).pop();
+                    }
+                  }),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
@@ -283,13 +398,15 @@ class _IonChainGameState extends State<IonChainGame>
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+        border:
+            Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
       ),
       child: Row(children: [
         const Icon(Icons.info_outline, color: SpaceTheme.starYellow, size: 18),
         const SizedBox(width: 8),
-        Expanded(child: Text(s.ionChainInstructions,
-          style: SpaceTheme.bodyStyle.copyWith(fontSize: 14))),
+        Expanded(
+            child: Text(s.ionChainInstructions,
+                style: SpaceTheme.bodyStyle.copyWith(fontSize: 14))),
       ]),
     );
   }
@@ -411,25 +528,28 @@ class _IonChainGameState extends State<IonChainGame>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(S.of(context)!.ionChainRules, style: SpaceTheme.bodyStyle.copyWith(
-            fontSize: 14, color: SpaceTheme.rocketRed, letterSpacing: 1.5)),
+          Text(S.of(context)!.ionChainRules,
+              style: SpaceTheme.bodyStyle.copyWith(
+                  fontSize: 14,
+                  color: SpaceTheme.rocketRed,
+                  letterSpacing: 1.5)),
           const SizedBox(height: 6),
           ...puzzle!.rules.map((rule) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 3),
-            child: Semantics(
-              label: _ruleText(rule),
-              child: Row(children: [
-                ExcludeSemantics(child: _ruleDiagram(rule)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ExcludeSemantics(
-                    child: Text(_ruleText(rule),
-                        style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
-                  ),
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Semantics(
+                  label: _ruleText(rule),
+                  child: Row(children: [
+                    ExcludeSemantics(child: _ruleDiagram(rule)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ExcludeSemantics(
+                        child: Text(_ruleText(rule),
+                            style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
+                      ),
+                    ),
+                  ]),
                 ),
-              ]),
-            ),
-          )),
+              )),
         ],
       ),
     );
@@ -441,14 +561,18 @@ class _IonChainGameState extends State<IonChainGame>
       // Circular layout: compute radius and bead size from available space
       final availSize = math.min(constraints.maxWidth - 24, 320.0);
       final ringRadius = availSize * 0.35;
-      final slotSize = (2 * math.pi * ringRadius / slotCount * 0.65).clamp(36.0, 56.0);
+      final slotSize =
+          (2 * math.pi * ringRadius / slotCount * 0.65).clamp(36.0, 56.0);
 
       return AnimatedBuilder(
         animation: glowAnimation,
         builder: (context, _) {
           return Column(children: [
-            Text(S.of(context)!.ionChainRing, style: SpaceTheme.bodyStyle.copyWith(
-              fontSize: 14, color: SpaceTheme.starYellow, letterSpacing: 2)),
+            Text(S.of(context)!.ionChainRing,
+                style: SpaceTheme.bodyStyle.copyWith(
+                    fontSize: 14,
+                    color: SpaceTheme.starYellow,
+                    letterSpacing: 2)),
             const SizedBox(height: 6),
             SizedBox(
               width: ringRadius * 2 + slotSize + 16,
@@ -462,8 +586,16 @@ class _IonChainGameState extends State<IonChainGame>
                 child: Stack(
                   children: List.generate(slotCount, (i) {
                     final angle = (2 * math.pi * i / slotCount) - math.pi / 2;
-                    final cx = ringRadius + slotSize / 2 + 8 + ringRadius * math.cos(angle) - slotSize / 2;
-                    final cy = ringRadius + slotSize / 2 + 8 + ringRadius * math.sin(angle) - slotSize / 2;
+                    final cx = ringRadius +
+                        slotSize / 2 +
+                        8 +
+                        ringRadius * math.cos(angle) -
+                        slotSize / 2;
+                    final cy = ringRadius +
+                        slotSize / 2 +
+                        8 +
+                        ringRadius * math.sin(angle) -
+                        slotSize / 2;
                     return Positioned(
                       left: cx,
                       top: cy,
@@ -480,35 +612,43 @@ class _IonChainGameState extends State<IonChainGame>
   }
 
   Widget _buildSlot(int index, double size) {
+    final round = _round;
     final isClue = puzzle!.chain[index] != null;
     final value = _playerChain[index];
 
     if (value == null) {
-      return DragTarget<IonType>(
+      return DragTarget<_IonDrag>(
+        key: ValueKey((round, index)),
         builder: (context, candidates, _) {
           final hover = candidates.isNotEmpty;
           return AnimatedBuilder(
             animation: pulseAnimation,
             builder: (context, _) => Container(
-              width: size, height: size,
+              width: size,
+              height: size,
               margin: const EdgeInsets.symmetric(horizontal: 2),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: hover ? SpaceTheme.starYellow.withValues(alpha: 0.3)
+                color: hover
+                    ? SpaceTheme.starYellow.withValues(alpha: 0.3)
                     : SpaceTheme.deepSpace.withValues(alpha: 0.4),
                 border: Border.all(
-                  color: hover ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
-                  width: hover ? 2.5 : 1.5),
+                    color: hover
+                        ? SpaceTheme.starYellow
+                        : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
+                    width: hover ? 2.5 : 1.5),
               ),
               child: Transform.scale(
                 scale: pulseAnimation.value,
-                child: Icon(Icons.add, color: SpaceTheme.nebulaPurple, size: size * 0.35),
+                child: Icon(Icons.add,
+                    color: SpaceTheme.nebulaPurple, size: size * 0.35),
               ),
             ),
           );
         },
-        onWillAcceptWithDetails: (_) => true,
-        onAcceptWithDetails: (d) => _placeBeadInSlot(index, d.data),
+        onWillAcceptWithDetails: (d) =>
+            _canInteract(round) && _canPlace(index, d.data),
+        onAcceptWithDetails: (d) => _placeBeadInSlot(index, d.data, round),
       );
     }
 
@@ -516,30 +656,41 @@ class _IonChainGameState extends State<IonChainGame>
     final icon = _beadShapes[value] ?? Icons.circle;
 
     Widget bead = Container(
-      width: size, height: size,
+      width: size,
+      height: size,
       margin: const EdgeInsets.symmetric(horizontal: 2),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: color.withValues(alpha: 0.35),
         border: Border.all(color: color, width: 2),
-        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 6)],
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 6)
+        ],
       ),
       child: Icon(icon, color: color, size: size * 0.45),
     );
 
     if (!isClue) {
-      bead = GestureDetector(onTap: () => _removeBeadFromSlot(index), child: bead);
+      bead = GestureDetector(
+          onTap: () => _removeBeadFromSlot(index, round, value), child: bead);
     } else {
-      bead = Stack(children: [bead,
-        Positioned(bottom: 0, right: 0,
-          child: Icon(Icons.lock, color: Colors.white30, size: size * 0.22))]);
+      bead = Stack(children: [
+        bead,
+        Positioned(
+            bottom: 0,
+            right: 0,
+            child: Icon(Icons.lock, color: Colors.white30, size: size * 0.22))
+      ]);
     }
     return bead;
   }
 
   Widget _buildBeadTray() {
+    final round = _round;
     final available = <IonType, int>{};
-    for (final b in puzzle!.availableIons) { available[b] = (available[b] ?? 0) + 1; }
+    for (final b in puzzle!.availableIons) {
+      available[b] = (available[b] ?? 0) + 1;
+    }
     for (int i = 0; i < _playerChain.length; i++) {
       if (puzzle!.chain[i] == null && _playerChain[i] != null) {
         final t = _playerChain[i]!;
@@ -552,30 +703,47 @@ class _IonChainGameState extends State<IonChainGame>
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
+        border:
+            Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
       ),
       child: Column(children: [
-        Text(S.of(context)!.ionChainAvailableBeads, style: SpaceTheme.bodyStyle.copyWith(
-          fontSize: 14, color: SpaceTheme.starYellow, letterSpacing: 1.5)),
+        Text(S.of(context)!.ionChainAvailableBeads,
+            style: SpaceTheme.bodyStyle.copyWith(
+                fontSize: 14,
+                color: SpaceTheme.starYellow,
+                letterSpacing: 1.5)),
         const SizedBox(height: 8),
         Wrap(
-          spacing: 10, runSpacing: 8, alignment: WrapAlignment.center,
+          spacing: 10,
+          runSpacing: 8,
+          alignment: WrapAlignment.center,
           children: puzzle!.ionTypes.map((type) {
             final count = available[type] ?? 0;
             final color = _beadColors[type] ?? SpaceTheme.starYellow;
             final icon = _beadShapes[type] ?? Icons.circle;
 
-            return Draggable<IonType>(
-              data: count > 0 ? type : null,
-              maxSimultaneousDrags: count > 0 ? 1 : 0,
-              feedback: Material(color: Colors.transparent, child: Container(
-                width: 50, height: 50,
-                decoration: BoxDecoration(shape: BoxShape.circle,
-                  color: color.withValues(alpha: 0.5),
-                  boxShadow: [BoxShadow(color: color.withValues(alpha: 0.7), blurRadius: 15, spreadRadius: 3)]),
-                child: Icon(icon, color: Colors.white, size: 28),
-              )),
-              childWhenDragging: Opacity(opacity: 0.3, child: _beadChip(type, color, icon, count)),
+            return Draggable<_IonDrag>(
+              key: ValueKey((round, type)),
+              data: count > 0 ? _IonDrag(type, round) : null,
+              maxSimultaneousDrags: count > 0 && _canInteract(round) ? 1 : 0,
+              feedback: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: color.withValues(alpha: 0.5),
+                        boxShadow: [
+                          BoxShadow(
+                              color: color.withValues(alpha: 0.7),
+                              blurRadius: 15,
+                              spreadRadius: 3)
+                        ]),
+                    child: Icon(icon, color: Colors.white, size: 28),
+                  )),
+              childWhenDragging: Opacity(
+                  opacity: 0.3, child: _beadChip(type, color, icon, count)),
               child: _beadChip(type, color, icon, count),
             );
           }).toList(),
@@ -587,19 +755,23 @@ class _IonChainGameState extends State<IonChainGame>
   Widget _beadChip(IonType type, Color color, IconData icon, int count) {
     return Column(mainAxisSize: MainAxisSize.min, children: [
       Container(
-        width: 52, height: 52,
-        decoration: BoxDecoration(shape: BoxShape.circle,
-          color: count > 0 ? color.withValues(alpha: 0.25) : Colors.white10,
-          border: Border.all(color: count > 0 ? color : Colors.white24, width: 2)),
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: count > 0 ? color.withValues(alpha: 0.25) : Colors.white10,
+            border: Border.all(
+                color: count > 0 ? color : Colors.white24, width: 2)),
         child: Icon(icon, color: count > 0 ? color : Colors.white24, size: 26),
       ),
       const SizedBox(height: 4),
-      Text('×$count', style: SpaceTheme.bodyStyle.copyWith(
-        fontSize: 14, color: count > 0 ? color : Colors.white24)),
+      Text('×$count',
+          style: SpaceTheme.bodyStyle.copyWith(
+              fontSize: 14, color: count > 0 ? color : Colors.white24)),
     ]);
   }
 
-  Widget _buildWinDialog(int score) {
+  Widget _buildWinDialog(int score, Object round) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -611,18 +783,37 @@ class _IonChainGameState extends State<IonChainGame>
             padding: const EdgeInsets.all(24),
             decoration: SpaceTheme.cardDecoration,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  RoundSummary(gameKey: 'ion_chain'),
+              RoundSummary(gameKey: 'ion_chain'),
               const Icon(Icons.link, size: 64, color: SpaceTheme.starYellow),
               const SizedBox(height: 16),
-              Text(s.ionChainWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+              Text(s.ionChainWinTitle,
+                  style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
               const SizedBox(height: 12),
-              Text(s.ionChainWinDesc(score), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+              Text(s.ionChainWinDesc(score),
+                  style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
               const SizedBox(height: 24),
               Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                ElevatedButton(autofocus: true, onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
-                  style: SpaceTheme.secondaryButtonStyle, child: Text(s.playAgain)),
-                ElevatedButton(onPressed: () { Navigator.of(context).pop(); Navigator.of(context).pop(); },
-                  style: SpaceTheme.primaryButtonStyle, child: Text(s.backToMenu)),
+                ElevatedButton(
+                    autofocus: true,
+                    onPressed: () {
+                      if (!mounted || !identical(round, _round) || !_won) {
+                        return;
+                      }
+                      Navigator.of(context).pop();
+                      _generatePuzzle();
+                    },
+                    style: SpaceTheme.secondaryButtonStyle,
+                    child: Text(s.playAgain)),
+                ElevatedButton(
+                    onPressed: () {
+                      if (!mounted || !identical(round, _round) || !_won) {
+                        return;
+                      }
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    },
+                    style: SpaceTheme.primaryButtonStyle,
+                    child: Text(s.backToMenu)),
               ]),
             ]),
           ),
@@ -638,7 +829,10 @@ class _RingPainter extends CustomPainter {
   final double ringRadius;
   final double glowValue;
 
-  _RingPainter({required this.slotCount, required this.ringRadius, required this.glowValue});
+  _RingPainter(
+      {required this.slotCount,
+      required this.ringRadius,
+      required this.glowValue});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -661,5 +855,8 @@ class _RingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _RingPainter old) => old.glowValue != glowValue;
+  bool shouldRepaint(covariant _RingPainter old) =>
+      old.glowValue != glowValue ||
+      old.slotCount != slotCount ||
+      old.ringRadius != ringRadius;
 }
