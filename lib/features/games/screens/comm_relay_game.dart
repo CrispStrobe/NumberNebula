@@ -25,13 +25,59 @@ class CommRelayGame extends StatefulWidget {
 }
 
 class _CommRelayGameState extends State<CommRelayGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<CommRelayGame>, PuzzleSessionMixin<CommRelayGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<CommRelayGame>,
+        PuzzleSessionMixin<CommRelayGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'comm_relay';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  int _roundEpoch = 0;
+  bool _roundFinished = false;
+  final Set<TextEditingController> _retiredAnswerControllers = {};
+
+  bool _canInteract(int epoch) =>
+      mounted &&
+      _sessionReady &&
+      epoch == _roundEpoch &&
+      !_isGenerating &&
+      !_roundFinished &&
+      puzzle != null &&
+      _attempts < _maxAttempts;
+
+  void _resetRoundEffects() {
+    _roundEpoch++;
+    cancelOneShotMotion(successController);
+    successController.reset();
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.clearSnackBars();
+    messenger?.removeCurrentSnackBar();
+  }
+
+  void _replaceAnswerController(String text) {
+    final old = _answerController;
+    _answerController = TextEditingController(text: text);
+    _retiredAnswerControllers.add(old);
+    // Let the previous EditableText detach before disposing its controller.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_retiredAnswerControllers.remove(old)) old.dispose();
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
+  }
+
+  @override
+  String get sessionGameKey => 'comm_relay';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _roundFinished) return null;
     return {
       'puzzle': (puzzle?.toJson()),
       '_currentShift': _currentShift,
@@ -40,21 +86,36 @@ class _CommRelayGameState extends State<CommRelayGame>
       '_text': _answerController.text
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    puzzle = (state["puzzle"] == null ? null : CommRelayPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
-    _currentShift = state["_currentShift"] as int;
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
+    puzzle = (state["puzzle"] == null
+        ? null
+        : CommRelayPuzzle.fromJson(
+            Map<String, dynamic>.from(state["puzzle"] as Map)));
+    _currentShift = (state["_currentShift"] as int).clamp(-13, 13);
     _attempts = state["_attempts"] as int;
     _maxAttempts = state["_maxAttempts"] as int;
-    _answerController.text = state['_text'] as String;
+    _replaceAnswerController(state['_text'] as String);
     _isGenerating = false;
+    // Legacy snapshots may include the final spent attempt; never reopen it.
+    _roundFinished = _attempts >= _maxAttempts;
+    if (_roundFinished) {
+      finishPuzzleSession();
+      final epoch = _roundEpoch;
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _showLossDialog(epoch));
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
     if (mounted) setState(() => _sessionReady = true);
   }
-
 
   CommRelayPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
@@ -63,7 +124,7 @@ class _CommRelayGameState extends State<CommRelayGame>
   // For Caesar cipher: player adjusts shift with a slider
   int _currentShift = 0;
   // For Atbash/keyword: player types the decoded message
-  final TextEditingController _answerController = TextEditingController();
+  TextEditingController _answerController = TextEditingController();
   int _attempts = 0;
   int _maxAttempts = 5;
 
@@ -80,7 +141,8 @@ class _CommRelayGameState extends State<CommRelayGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -89,12 +151,19 @@ class _CommRelayGameState extends State<CommRelayGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _roundEpoch++;
+    cancelOneShotMotion(successController);
     _answerController.dispose();
+    for (final controller in _retiredAnswerControllers) {
+      controller.dispose();
+    }
+    _retiredAnswerControllers.clear();
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
   void _generatePuzzle() {
+    _resetRoundEffects();
     beginPuzzleSession();
     if (currentDifficulty == null) return;
 
@@ -106,8 +175,9 @@ class _CommRelayGameState extends State<CommRelayGame>
     setState(() {
       _isGenerating = true;
       _currentShift = 0;
-      _answerController.clear();
+      _replaceAnswerController('');
       _attempts = 0;
+      _roundFinished = false;
       successController.reset();
     });
 
@@ -132,7 +202,8 @@ class _CommRelayGameState extends State<CommRelayGame>
   /// Always keeps at least 1-2 letters hidden so the slider alone never
   /// fully solves the puzzle — the player must still think.
   String _partialDecode() {
-    final decoded = CommRelayPuzzle.decryptCaesar(puzzle!.cipherText, _currentShift);
+    final decoded =
+        CommRelayPuzzle.decryptCaesar(puzzle!.cipherText, _currentShift);
     final grade = currentDifficulty?.grade ?? 1;
     final level = currentDifficulty?.level ?? 1;
 
@@ -171,11 +242,9 @@ class _CommRelayGameState extends State<CommRelayGame>
     return buf.toString();
   }
 
-  void _checkCaesarAnswer() {
-    if (puzzle == null) return;
-    _attempts++;
-
-    setState(() {});
+  void _checkCaesarAnswer(int epoch) {
+    if (!_canInteract(epoch) || puzzle!.cipherType != CipherType.caesar) return;
+    setState(() => _attempts++);
 
     if (puzzle!.checkShift(_currentShift)) {
       _handleWin();
@@ -203,9 +272,9 @@ class _CommRelayGameState extends State<CommRelayGame>
     }
   }
 
-  void _checkTextAnswer() {
-    if (puzzle == null) return;
-    _attempts++;
+  void _checkTextAnswer(int epoch) {
+    if (!_canInteract(epoch) || puzzle!.cipherType == CipherType.caesar) return;
+    setState(() => _attempts++);
 
     if (puzzle!.checkAnswer(_answerController.text)) {
       _handleWin();
@@ -230,6 +299,16 @@ class _CommRelayGameState extends State<CommRelayGame>
   }
 
   void _handleWin() {
+    if (!mounted ||
+        !_sessionReady ||
+        _isGenerating ||
+        _roundFinished ||
+        puzzle == null) {
+      return;
+    }
+    _resetRoundEffects();
+    setState(() => _roundFinished = true);
+    final epoch = _roundEpoch;
     AppHaptics.lightImpact();
 
     int baseScore = 100 * widget.grade;
@@ -240,46 +319,76 @@ class _CommRelayGameState extends State<CommRelayGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'comm_relay',
-      difficulty: widget.level,
-      score: totalScore,
-      performance: Perf.fromAttempts(_attempts, _maxAttempts),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'comm_relay',
+          difficulty: widget.level,
+          score: totalScore,
+          performance: Perf.fromAttempts(_attempts, _maxAttempts),
+        ));
 
-    successController.forward(from: 0.0);
+    playOneShotMotion(successController, () {});
 
     if (mounted) {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (_) => _buildWinDialog(totalScore),
+        builder: (dialogContext) =>
+            _buildWinDialog(totalScore, epoch, dialogContext),
       );
     }
   }
 
   void _handleLoss() {
+    if (!mounted ||
+        !_sessionReady ||
+        _isGenerating ||
+        _roundFinished ||
+        puzzle == null) {
+      return;
+    }
+    _resetRoundEffects();
+    setState(() => _roundFinished = true);
+    final epoch = _roundEpoch;
     AppHaptics.heavyImpact();
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'comm_relay',
-      difficulty: widget.level,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'comm_relay',
+          difficulty: widget.level,
+        ));
 
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _buildLoseDialog(),
-      );
-    }
+    _showLossDialog(epoch);
   }
+
+  void _showLossDialog(int epoch) {
+    if (!mounted ||
+        !_sessionReady ||
+        epoch != _roundEpoch ||
+        !_roundFinished ||
+        puzzle == null) {
+      return;
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildLoseDialog(epoch, dialogContext),
+    );
+  }
+
+  bool _canUseResultDialog(int epoch, BuildContext dialogContext) =>
+      mounted &&
+      epoch == _roundEpoch &&
+      _roundFinished &&
+      dialogContext.mounted &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
+    final epoch = _roundEpoch;
 
     if (puzzle == null || _isGenerating) {
       return Scaffold(
@@ -308,7 +417,14 @@ class _CommRelayGameState extends State<CommRelayGame>
               GameUI(
                 title: s.commRelayTitle,
                 level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: () {
+                  if (mounted &&
+                      _sessionReady &&
+                      epoch == _roundEpoch &&
+                      !_isGenerating) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
               Padding(
                 padding:
@@ -430,7 +546,8 @@ class _CommRelayGameState extends State<CommRelayGame>
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+        border:
+            Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
       ),
       child: Column(
         children: [
@@ -482,23 +599,27 @@ class _CommRelayGameState extends State<CommRelayGame>
   }
 
   Widget _buildCaesarControls() {
+    final epoch = _roundEpoch;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+        border:
+            Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
       ),
       child: Column(
         children: [
           Text(
-            S.of(context)!.commRelayShift('${_currentShift > 0 ? '+' : ''}$_currentShift'),
+            S.of(context)!.commRelayShift(
+                '${_currentShift > 0 ? '+' : ''}$_currentShift'),
             style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
           ),
           const SizedBox(height: 8),
           _buildCipherWheel(),
           const SizedBox(height: 8),
           Slider(
+            key: ValueKey('comm-relay-shift-$epoch'),
             value: _currentShift.toDouble(),
             min: -13,
             max: 13,
@@ -506,17 +627,26 @@ class _CommRelayGameState extends State<CommRelayGame>
             activeColor: SpaceTheme.starYellow,
             inactiveColor: SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
             label: _currentShift.toString(),
-            onChanged: (value) {
-              setState(() {
-                _currentShift = value.round();
-              });
-            },
+            onChanged: !_canInteract(epoch)
+                ? null
+                : (value) {
+                    if (!_canInteract(epoch) ||
+                        puzzle!.cipherType != CipherType.caesar ||
+                        !value.isFinite ||
+                        value < -13 ||
+                        value > 13) {
+                      return;
+                    }
+                    setState(() => _currentShift = value.round());
+                  },
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: _checkCaesarAnswer,
+            onPressed:
+                _canInteract(epoch) ? () => _checkCaesarAnswer(epoch) : null,
             style: SpaceTheme.primaryButtonStyle,
-            child: Text(S.of(context)!.commRelayDecodeBtn(_maxAttempts - _attempts)),
+            child: Text(
+                S.of(context)!.commRelayDecodeBtn(_maxAttempts - _attempts)),
           ),
         ],
       ),
@@ -606,7 +736,8 @@ class _CommRelayGameState extends State<CommRelayGame>
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                rowLabel(S.of(context)!.commRelayDecoded, SpaceTheme.starYellow),
+                rowLabel(
+                    S.of(context)!.commRelayDecoded, SpaceTheme.starYellow),
                 const SizedBox(width: 4),
                 decoderRow,
               ],
@@ -618,16 +749,28 @@ class _CommRelayGameState extends State<CommRelayGame>
   }
 
   Widget _buildTextInput() {
+    final epoch = _roundEpoch;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+        border:
+            Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
       ),
       child: Column(
         children: [
           TextField(
+            key: ValueKey('comm-relay-answer-$epoch'),
+            enabled: _canInteract(epoch),
+            onChanged: (_) {
+              if (!_canInteract(epoch) ||
+                  puzzle!.cipherType == CipherType.caesar) {
+                return;
+              }
+              // The controller already holds the edit; schedule its checkpoint.
+              setState(() {});
+            },
             controller: _answerController,
             style: SpaceTheme.headlineStyle.copyWith(
               fontSize: 18,
@@ -660,7 +803,8 @@ class _CommRelayGameState extends State<CommRelayGame>
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: _checkTextAnswer,
+            onPressed:
+                _canInteract(epoch) ? () => _checkTextAnswer(epoch) : null,
             style: SpaceTheme.primaryButtonStyle,
             child: Text(S.of(context)!.commRelayDecode),
           ),
@@ -677,9 +821,7 @@ class _CommRelayGameState extends State<CommRelayGame>
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Icon(
             i < _attempts ? Icons.signal_wifi_off : Icons.signal_wifi_4_bar,
-            color: i < _attempts
-                ? SpaceTheme.rocketRed
-                : SpaceTheme.alienGreen,
+            color: i < _attempts ? SpaceTheme.rocketRed : SpaceTheme.alienGreen,
             size: 24,
           ),
         );
@@ -687,7 +829,8 @@ class _CommRelayGameState extends State<CommRelayGame>
     );
   }
 
-  Widget _buildWinDialog(int bonusScore) {
+  Widget _buildWinDialog(
+      int bonusScore, int epoch, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -711,8 +854,7 @@ class _CommRelayGameState extends State<CommRelayGame>
                       textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(s.commRelayWinDesc(bonusScore),
-                      style: SpaceTheme.bodyStyle,
-                      textAlign: TextAlign.center),
+                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -720,7 +862,10 @@ class _CommRelayGameState extends State<CommRelayGame>
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseResultDialog(epoch, dialogContext)) {
+                            return;
+                          }
+                          Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
                         style: SpaceTheme.secondaryButtonStyle,
@@ -728,7 +873,10 @@ class _CommRelayGameState extends State<CommRelayGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseResultDialog(epoch, dialogContext)) {
+                            return;
+                          }
+                          Navigator.of(dialogContext).pop();
                           Navigator.of(context).pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,
@@ -745,7 +893,7 @@ class _CommRelayGameState extends State<CommRelayGame>
     );
   }
 
-  Widget _buildLoseDialog() {
+  Widget _buildLoseDialog(int epoch, BuildContext dialogContext) {
     final s = S.of(context)!;
     return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
@@ -755,17 +903,15 @@ class _CommRelayGameState extends State<CommRelayGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                  RoundSummary(gameKey: 'comm_relay'),
+            RoundSummary(gameKey: 'comm_relay'),
             const Icon(Icons.signal_wifi_off,
                 size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(s.commRelayLoseTitle,
-                style: SpaceTheme.headlineStyle,
-                textAlign: TextAlign.center),
+                style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             Text(s.commRelayLoseDesc,
-                style: SpaceTheme.bodyStyle,
-                textAlign: TextAlign.center),
+                style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
               S.of(context)!.commRelayAnswer(puzzle!.plainText),
@@ -782,7 +928,8 @@ class _CommRelayGameState extends State<CommRelayGame>
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseResultDialog(epoch, dialogContext)) return;
+                    Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
@@ -790,7 +937,8 @@ class _CommRelayGameState extends State<CommRelayGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseResultDialog(epoch, dialogContext)) return;
+                    Navigator.of(dialogContext).pop();
                     Navigator.of(context).pop();
                   },
                   style: SpaceTheme.primaryButtonStyle,

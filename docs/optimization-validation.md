@@ -166,6 +166,26 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Comm Relay round effects
+
+Comm Relay saves typed answers and every nonterminal wrong attempt, retaining
+the shift, answer text and attempt budget when a board is reopened. Winning or
+exhausting the budget closes the round to input, playable snapshots and duplicate
+outcomes. Restoring an older exhausted snapshot clears its stale save and offers
+retry through the loss dialog without reporting another loss.
+
+Each round owns its text controller and control identity. Restoration and
+regeneration invalidate retained slider, text, submit and result-dialog callbacks,
+clear queued rejection feedback and cancel success effects. The success effect
+retains its 600 ms duration and completes with reduced motion enabled, including
+when the setting changes during the animation. Cipher generation, decoding aids,
+attempt allowances, score formulas and performance grading remain unchanged.
+
+Nineteen widget regressions exercise real slider and text input, stored recovery,
+terminal results, retry, stale controls and dialogs, disposal and motion changes.
+GitHub CI runs these before the full suite; calibration, builds and browser checks
+also run remotely to keep VPS usage low.
+
 ## Gravity Well round effects
 
 Gravity Well keeps its editable board resumable after a wrong check while
