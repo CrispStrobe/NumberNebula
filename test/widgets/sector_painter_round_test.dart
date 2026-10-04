@@ -401,6 +401,29 @@ void main() {
   });
 
   testWidgets(
+      'phone-size nodes fit empty and conflicting labels with large text',
+      (tester) async {
+    final app = await _mount(tester,
+        reduced: true,
+        board: _board(count: 6, coloring: const {}, selected: 0));
+    tester.view.physicalSize = const Size(390, 844);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    await _paint(tester, 0);
+    await _paint(tester, 1);
+    await tester.pump();
+    expect(_snapshot(tester)['_conflictEvents'], 1);
+    expect(_snapshot(tester)['_coloring'], [
+      [0, 0],
+      [1, 0]
+    ]);
+    expect(app.gp.outcomeCount, 0);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
       'retained terminal dialog callbacks cannot affect replacement round',
       (tester) async {
     final app = await _mount(tester, reduced: true);

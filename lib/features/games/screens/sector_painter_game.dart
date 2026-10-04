@@ -722,29 +722,32 @@ class _SectorPainterGameState extends State<SectorPainterGame>
           ],
         ),
         child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '${region + 1}',
-                style: SpaceTheme.headlineStyle.copyWith(
-                  fontSize: size * 0.3,
-                  color: Colors.white,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      blurRadius: 4,
-                    ),
-                  ],
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${region + 1}',
+                  style: SpaceTheme.headlineStyle.copyWith(
+                    fontSize: size * 0.3,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              if (!isColored)
-                Icon(
-                  Icons.touch_app,
-                  color: Colors.white38,
-                  size: size * 0.2,
-                ),
-            ],
+                if (!isColored)
+                  Icon(
+                    Icons.touch_app,
+                    color: Colors.white38,
+                    size: size * 0.2,
+                  ),
+              ],
+            ),
           ),
         ),
       ),

@@ -181,10 +181,11 @@ normal 600 ms durations and completing with reduced motion. Palette and node
 transitions also respect reduced motion. The adjacency painter compares copied
 color state and board geometry so painting and restoration repaint when decorative
 animation is stopped. Node geometry is computed once per layout instead of once
-per node on every animation frame. Generators, coloring rules, scoring and
-conflict grading remain unchanged.
+per node on every animation frame. Node labels and touch icons scale down within
+their existing bounds on small layouts and with enlarged text. Generators,
+coloring rules, scoring and conflict grading remain unchanged.
 
-Sixteen focused widget regressions cover real painting, edits before the win
+Seventeen focused widget regressions cover real painting, edits before the win
 deadline, preserved mistake grading, stale callbacks, restoration during
 generation, retry, disposal, motion changes and painter invalidation. They run
 before the full suite on GitHub CI; larger calibration, builds and
