@@ -141,6 +141,23 @@ void _grade(_App app, {int mistakes = 0, int outcomes = 1}) {
   expect(app.gp.lastOutcome!.performance, Perf.fromMistakes(mistakes));
 }
 
+Future<Map<String, dynamic>?> _stored(WidgetTester tester) async {
+  var complete = false;
+  Map<String, dynamic>? saved;
+  PuzzleSessionStore.instance.load('gravity_well', 1, 1).then((value) {
+    saved = value;
+    complete = true;
+  });
+  // Storage callbacks share the widget test's fake clock. Keep advancing it
+  // instead of awaiting a fake-zone future inside runAsync's real zone.
+  for (var frame = 0; frame < 100 && !complete; frame++) {
+    await tester.pump(const Duration(milliseconds: 20));
+  }
+  expect(complete, isTrue,
+      reason: 'Session read must finish within 100 frames');
+  return saved;
+}
+
 void main() {
   var profile = 0;
   setUp(() {
@@ -194,18 +211,13 @@ void main() {
     expect(app.gp.outcomeCount, 1);
     expect(app.gp.lastOutcome!.wasSuccessful, isFalse);
     expect(_snapshot(tester)['_wrongChecks'], 3);
-    Map<String, dynamic>? saved;
-    await tester.runAsync(() async {
-      saved = await PuzzleSessionStore.instance.load('gravity_well', 1, 1);
-    });
+    var saved = await _stored(tester);
     expect(saved, isNotNull);
     expect(saved!['_wrongChecks'], 3);
     await tester.tap(_plus);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 1000));
-    await tester.runAsync(() async {
-      saved = await PuzzleSessionStore.instance.load('gravity_well', 1, 1);
-    });
+    saved = await _stored(tester);
     expect(saved!['_userAnswers'], [
       ['A', 2]
     ]);
