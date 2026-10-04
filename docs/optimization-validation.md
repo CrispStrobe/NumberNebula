@@ -186,7 +186,9 @@ retry or restoration cannot change the previous outcome's arithmetic data.
 The coin table wraps on narrow screens, preserving coin order and size even at
 the maximum coin count. The question and attempts badge stack when narrow or
 large-text layouts cannot fit them side by side. Result buttons also stack when
-needed, with phone regressions covering win/loss and retry. The generator,
+needed, with phone regressions covering win/loss and retry. The shared performance
+badge wraps its label within the available width while retaining its percentage
+and accessibility label. The generator,
 two-attempt allowance, arithmetic reveal, scoring and performance formulas remain
 unchanged. Twenty focused regressions, larger calibration, web builds and browser/
 deployment validation run on GitHub CI to limit VPS resource usage.

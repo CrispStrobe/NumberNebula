@@ -95,12 +95,15 @@ class PerformanceBadge extends StatelessWidget {
             ),
             if (showLabel) ...[
               const SizedBox(width: 6),
-              Text(
-                performanceLabel(s, grade),
-                style: TextStyle(
-                  color: color,
-                  fontSize: fontSize - 1,
-                  fontWeight: FontWeight.w600,
+              Flexible(
+                child: Text(
+                  performanceLabel(s, grade),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: fontSize - 1,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
