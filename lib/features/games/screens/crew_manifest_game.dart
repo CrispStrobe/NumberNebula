@@ -29,25 +29,78 @@ class CrewManifestGame extends StatefulWidget {
 }
 
 class _CrewManifestGameState extends State<CrewManifestGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<CrewManifestGame>, PuzzleSessionMixin<CrewManifestGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<CrewManifestGame>,
+        PuzzleSessionMixin<CrewManifestGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'crew_manifest';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  int _roundEpoch = 0;
+  bool _reducedMotion = false;
+
+  bool _canInteract(int epoch) =>
+      mounted &&
+      _sessionReady &&
+      epoch == _roundEpoch &&
+      !_isGenerating &&
+      !_gameOver &&
+      puzzle != null;
+
+  void _invalidateRoundEffects() {
+    _roundEpoch++;
+    cancelOneShotMotion(successController);
+  }
+
+  void _resetRoundEffects() {
+    _invalidateRoundEffects();
+    successController.reset();
+    _highlightedRow = null;
+    _highlightedCol = null;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.clearSnackBars();
+    messenger?.removeCurrentSnackBar();
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    _reducedMotion = reduced;
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
+  }
+
+  @override
+  String get sessionGameKey => 'crew_manifest';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _gameOver) return null;
     return {
       'puzzle': (puzzle?.toJson()),
-      '_gridState': _gridState.entries.map((v0) => [v0.key, v0.value.name]).toList(),
+      '_gridState':
+          _gridState.entries.map((v0) => [v0.key, v0.value.name]).toList(),
       '_wrongChecks': _wrongChecks
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    puzzle = (state["puzzle"] == null ? null : CrewManifestPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
-    _gridState..clear()..addAll(Map<String, CellMark>.fromEntries((state["_gridState"] as List).map((v0) => MapEntry(v0[0] as String, CellMark.values.byName(v0[1] as String)))));
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
+    puzzle = (state["puzzle"] == null
+        ? null
+        : CrewManifestPuzzle.fromJson(
+            Map<String, dynamic>.from(state["puzzle"] as Map)));
+    _gridState
+      ..clear()
+      ..addAll(Map<String, CellMark>.fromEntries((state["_gridState"] as List)
+          .map((v0) => MapEntry(
+              v0[0] as String, CellMark.values.byName(v0[1] as String)))));
     _wrongChecks = state["_wrongChecks"] as int;
-    _isGenerating = false; _gameOver = false;
+    _isGenerating = false;
+    _gameOver = false;
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
@@ -55,15 +108,14 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     if (mounted) setState(() => _sessionReady = true);
   }
 
-
   CrewManifestPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
   bool _gameOver = false;
+
   /// Wrong solutions submitted before the correct one — the quality signal
   /// behind this round's performance grade.
   int _wrongChecks = 0;
-
 
   // Logic grid: Map<'crewIndex_itemIndex', CellMark>
   final Map<String, CellMark> _gridState = {};
@@ -80,11 +132,11 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     successAnimation =
         CurvedAnimation(parent: successController, curve: Curves.elasticOut);
 
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -93,6 +145,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _invalidateRoundEffects();
     disposeGameAnimations();
     super.dispose();
   }
@@ -103,6 +156,8 @@ class _CrewManifestGameState extends State<CrewManifestGame>
       _gridState[_cellKey(row, col)] ?? CellMark.empty;
 
   Future<void> _generatePuzzle() async {
+    _resetRoundEffects();
+    final epoch = _roundEpoch;
     beginPuzzleSession();
     if (currentDifficulty == null) return;
 
@@ -122,7 +177,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
       'difficulty': currentDifficulty!,
     });
 
-    if (mounted) {
+    if (mounted && epoch == _roundEpoch) {
       setState(() {
         puzzle = generated;
         // Initialize all cells to empty
@@ -136,8 +191,14 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     }
   }
 
-  void _toggleCell(int row, int col) {
-    if (_gameOver) return;
+  void _toggleCell(int row, int col, int epoch) {
+    if (!_canInteract(epoch) ||
+        row < 0 ||
+        col < 0 ||
+        row >= puzzle!.size ||
+        col >= puzzle!.size) {
+      return;
+    }
 
     setState(() {
       _highlightedRow = row;
@@ -222,20 +283,25 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     final s = S.of(context)!;
     if (clue.type == ClueType.positive) {
       switch (clue.style) {
-        case 0: return s.crewManifestHas1(clue.crewName, clue.itemName);
-        case 1: return s.crewManifestHas2(clue.crewName, clue.itemName);
-        default: return s.crewManifestHas3(clue.crewName, clue.itemName);
+        case 0:
+          return s.crewManifestHas1(clue.crewName, clue.itemName);
+        case 1:
+          return s.crewManifestHas2(clue.crewName, clue.itemName);
+        default:
+          return s.crewManifestHas3(clue.crewName, clue.itemName);
       }
     } else {
       switch (clue.style) {
-        case 0: return s.crewManifestNot1(clue.crewName, clue.itemName);
-        default: return s.crewManifestNot2(clue.crewName, clue.itemName);
+        case 0:
+          return s.crewManifestNot1(clue.crewName, clue.itemName);
+        default:
+          return s.crewManifestNot2(clue.crewName, clue.itemName);
       }
     }
   }
 
-  void _checkSolution() {
-    if (puzzle == null || _gameOver) return;
+  void _checkSolution(int epoch) {
+    if (!_canInteract(epoch)) return;
 
     // Build user assignment from check marks
     final userMap = <String, String>{};
@@ -268,8 +334,14 @@ class _CrewManifestGameState extends State<CrewManifestGame>
   }
 
   void _handleWin() {
+    if (!_canInteract(_roundEpoch)) return;
+    _invalidateRoundEffects();
+    setState(() => _gameOver = true);
+    final epoch = _roundEpoch;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.clearSnackBars();
+    messenger?.removeCurrentSnackBar();
     AppHaptics.lightImpact();
-    _gameOver = true;
 
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
@@ -279,35 +351,42 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'crew_manifest',
-      difficulty: widget.level,
-      score: totalScore,
-      performance: Perf.fromMistakes(_wrongChecks),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'crew_manifest',
+          difficulty: widget.level,
+          score: totalScore,
+          performance: Perf.fromMistakes(_wrongChecks),
+        ));
 
-    successController.forward(from: 0.0);
+    successController.reset();
+    playOneShotMotion(successController, () {});
 
     if (mounted) {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => _buildWinDialog(totalScore),
+        builder: (dialogContext) =>
+            _buildWinDialog(totalScore, epoch, dialogContext),
       );
     }
   }
 
   void _handleLoss() {
+    if (!_canInteract(_roundEpoch)) return;
     AppHaptics.heavyImpact();
-    _wrongChecks++;
+    setState(() => _wrongChecks++);
 
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'crew_manifest',
-      difficulty: widget.level,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'crew_manifest',
+          difficulty: widget.level,
+        ));
+
+    // A wrong check is reported, but this same board remains editable.
+    beginPuzzleSession();
+    savePuzzleSession();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -326,8 +405,11 @@ class _CrewManifestGameState extends State<CrewManifestGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
+    final epoch = _roundEpoch;
 
     if (puzzle == null || _isGenerating) {
       return Scaffold(
@@ -352,9 +434,17 @@ class _CrewManifestGameState extends State<CrewManifestGame>
           child: Column(
             children: [
               GameUI(
+                key: ValueKey('crew-header-$epoch'),
                 title: s.crewManifestTitle,
                 level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: () {
+                  if (mounted &&
+                      _sessionReady &&
+                      epoch == _roundEpoch &&
+                      !_isGenerating) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
               Expanded(
                 child: LayoutBuilder(
@@ -386,7 +476,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
           const SizedBox(width: 24),
           Expanded(
             flex: 2,
-            child: _buildCluesAndSubmit(),
+            child: SingleChildScrollView(child: _buildCluesAndSubmit()),
           ),
         ],
       ),
@@ -421,23 +511,26 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     return Center(
       child: AnimatedBuilder(
         animation: glowAnimation,
+        child: _buildLogicGrid(),
         builder: (context, child) {
           return Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.nebulaPurple.withValues(alpha: 0.1 * glowAnimation.value),
+                  SpaceTheme.nebulaPurple
+                      .withValues(alpha: 0.1 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.nebulaPurple.withValues(alpha: glowAnimation.value),
+                color: SpaceTheme.nebulaPurple
+                    .withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
-            child: _buildLogicGrid(),
+            child: child,
           );
         },
       ),
@@ -452,7 +545,8 @@ class _CrewManifestGameState extends State<CrewManifestGame>
         // +1 for header column/row. Fill available space.
         final maxCellW = (constraints.maxWidth - 16) / (size + 1.3);
         final maxCellH = (constraints.maxHeight - 16) / (size + 1.3);
-        final cellSize = (maxCellW < maxCellH ? maxCellW : maxCellH).clamp(38.0, 72.0);
+        final cellSize =
+            (maxCellW < maxCellH ? maxCellW : maxCellH).clamp(38.0, 72.0);
         final headerW = cellSize * 1.3;
 
         return Column(
@@ -496,7 +590,9 @@ class _CrewManifestGameState extends State<CrewManifestGame>
                 children: [
                   // Crew name header
                   AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
+                    duration: _reducedMotion
+                        ? Duration.zero
+                        : const Duration(milliseconds: 200),
                     width: headerW,
                     height: cellSize,
                     padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -536,6 +632,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
   }
 
   Widget _buildGridCell(int row, int col, double cellSize) {
+    final epoch = _roundEpoch;
     final mark = _getMark(row, col);
     final isHighlightedRow = _highlightedRow == row;
     final isHighlightedCol = _highlightedCol == col;
@@ -547,11 +644,14 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     switch (mark) {
       case CellMark.check:
         bgColor = SpaceTheme.alienGreen.withValues(alpha: 0.25);
-        content = Icon(Icons.check_circle, color: SpaceTheme.alienGreen, size: cellSize * 0.6);
+        content = Icon(Icons.check_circle,
+            color: SpaceTheme.alienGreen, size: cellSize * 0.6);
         break;
       case CellMark.cross:
         bgColor = SpaceTheme.rocketRed.withValues(alpha: 0.15);
-        content = Icon(Icons.close, color: SpaceTheme.rocketRed.withValues(alpha: 0.7), size: cellSize * 0.5);
+        content = Icon(Icons.close,
+            color: SpaceTheme.rocketRed.withValues(alpha: 0.7),
+            size: cellSize * 0.5);
         break;
       case CellMark.empty:
         bgColor = isHighlighted
@@ -574,10 +674,12 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     }
 
     return GestureDetector(
+      key: ValueKey('crew-cell-$epoch-$row-$col'),
       behavior: HitTestBehavior.opaque,
-      onTap: () => _toggleCell(row, col),
+      onTap: () => _toggleCell(row, col, epoch),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration:
+            _reducedMotion ? Duration.zero : const Duration(milliseconds: 200),
         width: cellSize,
         height: cellSize,
         decoration: BoxDecoration(
@@ -595,6 +697,7 @@ class _CrewManifestGameState extends State<CrewManifestGame>
   }
 
   Widget _buildCluesAndSubmit() {
+    final epoch = _roundEpoch;
     final s = S.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -618,9 +721,13 @@ class _CrewManifestGameState extends State<CrewManifestGame>
             children: [
               Row(
                 children: [
-                  const Icon(Icons.lightbulb, color: SpaceTheme.starYellow, size: 18),
+                  const Icon(Icons.lightbulb,
+                      color: SpaceTheme.starYellow, size: 18),
                   const SizedBox(width: 8),
-                  Text(S.of(context)!.crewManifestClues, style: SpaceTheme.titleStyle.copyWith(fontSize: 14)),
+                  Expanded(
+                    child: Text(S.of(context)!.crewManifestClues,
+                        style: SpaceTheme.titleStyle.copyWith(fontSize: 14)),
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -631,7 +738,8 @@ class _CrewManifestGameState extends State<CrewManifestGame>
                       children: [
                         const Padding(
                           padding: EdgeInsets.only(top: 2),
-                          child: Icon(Icons.arrow_right, color: SpaceTheme.starYellow, size: 16),
+                          child: Icon(Icons.arrow_right,
+                              color: SpaceTheme.starYellow, size: 16),
                         ),
                         const SizedBox(width: 4),
                         Expanded(
@@ -647,17 +755,16 @@ class _CrewManifestGameState extends State<CrewManifestGame>
           ),
         ),
         const SizedBox(height: 16),
-        // Legend
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        // Keep each symbol with its explanation when large text wraps.
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 16,
+          runSpacing: 8,
           children: [
-            const Icon(Icons.check_circle, color: SpaceTheme.alienGreen, size: 18),
-            const SizedBox(width: 4),
-            Text(S.of(context)!.crewManifestMatch, style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
-            const SizedBox(width: 16),
-            const Icon(Icons.close, color: SpaceTheme.rocketRed, size: 18),
-            const SizedBox(width: 4),
-            Text(S.of(context)!.crewManifestEliminate, style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
+            _buildLegendItem(Icons.check_circle, SpaceTheme.alienGreen,
+                S.of(context)!.crewManifestMatch),
+            _buildLegendItem(Icons.close, SpaceTheme.rocketRed,
+                S.of(context)!.crewManifestEliminate),
           ],
         ),
         const SizedBox(height: 12),
@@ -665,11 +772,12 @@ class _CrewManifestGameState extends State<CrewManifestGame>
         if (!_gameOver)
           SizedBox(
             width: double.infinity,
-            height: 48,
             child: ElevatedButton.icon(
-              onPressed: _checkSolution,
+              key: ValueKey('crew-submit-$epoch'),
+              onPressed: () => _checkSolution(epoch),
               icon: const Icon(Icons.assignment_turned_in, size: 22),
-              label: Text(S.of(context)!.crewManifestSubmit, style: const TextStyle(fontSize: 16)),
+              label: Text(S.of(context)!.crewManifestSubmit,
+                  style: const TextStyle(fontSize: 16)),
               style: SpaceTheme.primaryButtonStyle,
             ),
           ),
@@ -677,7 +785,22 @@ class _CrewManifestGameState extends State<CrewManifestGame>
     );
   }
 
-  Widget _buildWinDialog(int totalScore) {
+  Widget _buildLegendItem(IconData icon, Color color, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: color, size: 18),
+        const SizedBox(width: 4),
+        Flexible(
+          child:
+              Text(label, style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWinDialog(
+      int totalScore, int epoch, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -693,21 +816,33 @@ class _CrewManifestGameState extends State<CrewManifestGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'crew_manifest'),
-                  const Icon(Icons.assignment_turned_in, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.assignment_turned_in,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.crewManifestWinTitle,
-                      style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(s.crewManifestWinDesc(totalScore),
                       style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!mounted ||
+                              epoch != _roundEpoch ||
+                              !_gameOver ||
+                              !dialogContext.mounted ||
+                              ModalRoute.of(dialogContext)?.isCurrent != true) {
+                            return;
+                          }
+                          Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
                         style: SpaceTheme.secondaryButtonStyle,
@@ -715,7 +850,14 @@ class _CrewManifestGameState extends State<CrewManifestGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!mounted ||
+                              epoch != _roundEpoch ||
+                              !_gameOver ||
+                              !dialogContext.mounted ||
+                              ModalRoute.of(dialogContext)?.isCurrent != true) {
+                            return;
+                          }
+                          Navigator.of(dialogContext).pop();
                           Navigator.of(context).pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,

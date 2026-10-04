@@ -166,6 +166,37 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Crew Manifest round effects
+
+Crew Manifest scopes cell, submit and navigation callbacks to the current round.
+Round-specific control identities prevent touches started on an old grid from
+committing after restoration. Background generation also checks the round before
+installing its result, so a restored board cannot be overwritten by older work.
+Completed rounds reject further input and playable snapshots.
+
+A wrong complete assignment still reports the existing loss and increments the
+mistake count, but reopens saving for the editable board. Later cell edits and
+the mistake count therefore survive reopening. A saved correct assignment remains
+unsubmitted until the player checks it. Restore and regeneration clear queued
+feedback, reset highlights and cancel success effects. Success retains its
+600 ms duration and completes immediately with reduced motion, including when
+the setting changes during playback. Result controls check their dialog route
+before navigating.
+
+Ambient glow reuses the grid widget subtree rather than rebuilding every cell
+on each animation tick. Gameplay updates still rebuild the marks and highlights;
+empty-cell pulse animations retain their existing behavior. Clue headings and
+legend labels wrap, submit controls grow with text, and result buttons stack
+when needed on narrow screens. The wide-layout clue panel also scrolls when
+larger text or more clues exceed the available height.
+
+Focused widget regressions exercise actual controls, storage, stale callbacks and
+touches, generation superseded by restoration, retry, disposal, motion settings,
+and a maximum-size phone grid with doubled text. The generator, clues, automatic
+elimination rules, cell cycling, score formula and mistake-based performance are
+preserved. Validation, larger calibration and browser/deployment checks run on
+GitHub CI rather than the VPS.
+
 ## Galactic Market round effects
 
 Galactic Market scopes coin selection, submit and navigation callbacks to the
