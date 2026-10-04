@@ -75,6 +75,9 @@ jobs:
       - name: Check Ion Chain round effects
         run: flutter test test/widgets/ion_chain_round_test.dart --concurrency=1 --reporter expanded
 
+      - name: Check Gravity Well round effects
+        run: flutter test test/widgets/gravity_well_round_test.dart --concurrency=1 --reporter expanded
+
       - name: Check cached wormhole rendering
         run: flutter test test/widgets/wormhole_rendering_test.dart --concurrency=1 --reporter expanded
 
