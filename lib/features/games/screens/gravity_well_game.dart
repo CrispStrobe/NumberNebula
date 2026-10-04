@@ -1,6 +1,7 @@
 import 'package:space_math_academy/core/services/app_haptics.dart';
 import '../mixins/puzzle_session_mixin.dart';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../widgets/round_summary.dart';
 import 'package:provider/provider.dart';
@@ -27,25 +28,66 @@ class GravityWellGame extends StatefulWidget {
 }
 
 class _GravityWellGameState extends State<GravityWellGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<GravityWellGame>, PuzzleSessionMixin<GravityWellGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<GravityWellGame>,
+        PuzzleSessionMixin<GravityWellGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'gravity_well';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  Object _round = Object();
+  bool _canInteract(Object round) =>
+      mounted &&
+      _sessionReady &&
+      identical(round, _round) &&
+      !_isGenerating &&
+      !_gameOver &&
+      puzzle != null;
+
+  void _resetRound() {
+    _round = Object();
+    cancelOneShotMotion(successController);
+    successController.reset();
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.clearSnackBars();
+    messenger?.removeCurrentSnackBar();
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
+  }
+
+  @override
+  String get sessionGameKey => 'gravity_well';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _gameOver) return null;
     return {
       'puzzle': (puzzle?.toJson()),
-      '_userAnswers': _userAnswers.entries.map((v0) => [v0.key, v0.value]).toList(),
+      '_userAnswers':
+          _userAnswers.entries.map((v0) => [v0.key, v0.value]).toList(),
       '_wrongChecks': _wrongChecks
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    puzzle = (state["puzzle"] == null ? null : GravityWellPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
-    _userAnswers = Map<String, int>.fromEntries((state["_userAnswers"] as List).map((v0) => MapEntry(v0[0] as String, v0[1] as int)));
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRound();
+    puzzle = (state["puzzle"] == null
+        ? null
+        : GravityWellPuzzle.fromJson(
+            Map<String, dynamic>.from(state["puzzle"] as Map)));
+    _userAnswers = Map<String, int>.fromEntries((state["_userAnswers"] as List)
+        .map((v0) => MapEntry(v0[0] as String, v0[1] as int)));
     _wrongChecks = state["_wrongChecks"] as int;
-    _isGenerating = false; _gameOver = false;
+    _isGenerating = false;
+    _gameOver = false;
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
@@ -53,17 +95,16 @@ class _GravityWellGameState extends State<GravityWellGame>
     if (mounted) setState(() => _sessionReady = true);
   }
 
-
   GravityWellPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
 
   Map<String, int> _userAnswers = {};
   bool _gameOver = false;
+
   /// Wrong solutions submitted before the correct one — the quality signal
   /// behind this round's performance grade.
   int _wrongChecks = 0;
-
 
   @override
   void initState() {
@@ -73,11 +114,11 @@ class _GravityWellGameState extends State<GravityWellGame>
     successAnimation =
         CurvedAnimation(parent: successController, curve: Curves.elasticOut);
 
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -86,6 +127,7 @@ class _GravityWellGameState extends State<GravityWellGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _round = Object();
     glowController.stop();
     successController.stop();
     pulseController.stop();
@@ -94,8 +136,9 @@ class _GravityWellGameState extends State<GravityWellGame>
   }
 
   void _generatePuzzle() {
-    beginPuzzleSession();
     if (currentDifficulty == null) return;
+    _resetRound();
+    beginPuzzleSession();
 
     setState(() {
       _isGenerating = true;
@@ -113,55 +156,41 @@ class _GravityWellGameState extends State<GravityWellGame>
     if (mounted) {
       setState(() {
         puzzle = generated;
-        _userAnswers = {for (final label in generated.unknownWeights.keys) label: 1};
+        _userAnswers = {
+          for (final label in generated.unknownWeights.keys) label: 1
+        };
         _isGenerating = false;
       });
     }
   }
 
-  void _showNumberInput(String label, int currentValue) {
-    final controller = TextEditingController(text: '$currentValue');
+  void _setAnswer(String label, int value, Object round) {
+    if (!_canInteract(round) || !puzzle!.unknownWeights.containsKey(label)) {
+      return;
+    }
+    setState(() => _userAnswers[label] = value.clamp(1, 30));
+  }
+
+  void _adjustAnswer(String label, int change, Object round) {
+    if (!_canInteract(round) || !puzzle!.unknownWeights.containsKey(label)) {
+      return;
+    }
+    AppHaptics.selectionClick();
+    _setAnswer(label, (_userAnswers[label] ?? 1) + change, round);
+  }
+
+  void _showNumberInput(String label, Object round) {
+    if (!_canInteract(round) || !puzzle!.unknownWeights.containsKey(label)) {
+      return;
+    }
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: SpaceTheme.deepSpace,
-        title: Text('$label = ?', style: SpaceTheme.titleStyle),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
-          decoration: InputDecoration(
-            suffix: Text(S.of(context)!.gravityWellKg,
-                style: const TextStyle(color: Colors.white54)),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          onSubmitted: (v) {
-            final parsed = int.tryParse(v);
-            if (parsed != null) {
-              setState(() {
-                _userAnswers[label] = parsed.clamp(1, 30);
-              });
-            }
-            Navigator.of(ctx).pop();
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              final parsed = int.tryParse(controller.text);
-              if (parsed != null) {
-                setState(() {
-                  _userAnswers[label] = parsed.clamp(1, 30);
-                });
-              }
-              Navigator.of(ctx).pop();
-            },
-            child: Text(S.of(context)!.ok),
-          ),
-        ],
+      builder: (ctx) => _WeightInputDialog(
+        label: label,
+        value: _userAnswers[label] ?? 1,
+        onConfirm: (value) {
+          if (value != null) _setAnswer(label, value, round);
+        },
       ),
     );
   }
@@ -177,8 +206,8 @@ class _GravityWellGameState extends State<GravityWellGame>
     return correct / p.unknownWeights.length;
   }
 
-  void _checkSolution() {
-    if (puzzle == null || _gameOver) return;
+  void _checkSolution(Object round) {
+    if (!_canInteract(round)) return;
 
     if (puzzle!.checkSolution(_userAnswers)) {
       _handleWin();
@@ -232,12 +261,15 @@ class _GravityWellGameState extends State<GravityWellGame>
   }
 
   void _handleWin() {
+    if (!_canInteract(_round) || !puzzle!.checkSolution(_userAnswers)) return;
     AppHaptics.lightImpact();
     _gameOver = true;
+    final round = _round;
 
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
-    int complexityBonus = puzzle!.scales.length * 30 + puzzle!.unknownWeights.length * 40;
+    int complexityBonus =
+        puzzle!.scales.length * 30 + puzzle!.unknownWeights.length * 40;
     int totalScore = baseScore + levelBonus + complexityBonus;
 
     final mathProblems = _extractMathProblems();
@@ -245,21 +277,25 @@ class _GravityWellGameState extends State<GravityWellGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'gravity_well',
-      difficulty: widget.level,
-      score: totalScore,
-      mathProblems: mathProblems,
-      performance: Perf.fromMistakes(_wrongChecks),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'gravity_well',
+          difficulty: widget.level,
+          score: totalScore,
+          mathProblems: mathProblems,
+          performance: Perf.fromMistakes(_wrongChecks),
+        ));
 
-    successController.forward(from: 0.0);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.removeCurrentSnackBar();
+    successController.reset();
+    playOneShotMotion(successController, () {});
 
     if (mounted) {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => _buildWinDialog(totalScore),
+        builder: (ctx) => _buildWinDialog(totalScore, round),
       );
     }
   }
@@ -271,12 +307,16 @@ class _GravityWellGameState extends State<GravityWellGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'gravity_well',
-      difficulty: widget.level,
-      mathProblems: _extractMathProblems(),
-      progress: _solvedFraction(),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'gravity_well',
+          difficulty: widget.level,
+          mathProblems: _extractMathProblems(),
+          progress: _solvedFraction(),
+        ));
+
+    // A wrong check finishes an attempt; the editable board remains resumable.
+    beginPuzzleSession();
+    savePuzzleSession();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -295,7 +335,10 @@ class _GravityWellGameState extends State<GravityWellGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    final round = _round;
     final s = S.of(context)!;
 
     if (puzzle == null || _isGenerating) {
@@ -323,7 +366,11 @@ class _GravityWellGameState extends State<GravityWellGame>
               GameUI(
                 title: s.gravityWellTitle,
                 level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: () {
+                  if (mounted && identical(round, _round)) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
               Expanded(
                 child: LayoutBuilder(
@@ -420,12 +467,17 @@ class _GravityWellGameState extends State<GravityWellGame>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.info_outline, color: SpaceTheme.alienGreen, size: 16),
+          const Icon(Icons.info_outline,
+              color: SpaceTheme.alienGreen, size: 16),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              S.of(context)!.gravityWellKnown(puzzle!.knownWeights.entries.map((e) => '${e.key} = ${e.value} ${S.of(context)!.gravityWellKg}').join(', ')),
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 13, color: SpaceTheme.alienGreen),
+              S.of(context)!.gravityWellKnown(puzzle!.knownWeights.entries
+                  .map((e) =>
+                      '${e.key} = ${e.value} ${S.of(context)!.gravityWellKg}')
+                  .join(', ')),
+              style: SpaceTheme.bodyStyle
+                  .copyWith(fontSize: 13, color: SpaceTheme.alienGreen),
             ),
           ),
         ],
@@ -439,7 +491,8 @@ class _GravityWellGameState extends State<GravityWellGame>
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final scaleWidth = math.max(200.0, math.min(constraints.maxWidth, maxWidth));
+            final scaleWidth =
+                math.max(200.0, math.min(constraints.maxWidth, maxWidth));
             final scaleHeight = (scaleWidth * 0.55).clamp(120.0, 220.0);
             return _buildScaleVisual(i, scaleWidth, scaleHeight);
           },
@@ -461,7 +514,8 @@ class _GravityWellGameState extends State<GravityWellGame>
             color: SpaceTheme.deepSpace.withValues(alpha: 0.85),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: SpaceTheme.nebulaPurple.withValues(alpha: glowAnimation.value),
+              color: SpaceTheme.nebulaPurple
+                  .withValues(alpha: glowAnimation.value),
               width: 1.5,
             ),
           ),
@@ -497,6 +551,7 @@ class _GravityWellGameState extends State<GravityWellGame>
   }
 
   Widget _buildAnswerPanel() {
+    final round = _round;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: SpaceTheme.cardDecoration.copyWith(
@@ -519,7 +574,7 @@ class _GravityWellGameState extends State<GravityWellGame>
                 return Transform.scale(
                   scale: pulseAnimation.value,
                   child: ElevatedButton.icon(
-                    onPressed: _checkSolution,
+                    onPressed: () => _checkSolution(round),
                     icon: const Icon(Icons.balance),
                     label: Text(S.of(context)!.gravityWellCheckBalance),
                     style: SpaceTheme.primaryButtonStyle,
@@ -533,8 +588,8 @@ class _GravityWellGameState extends State<GravityWellGame>
   }
 
   Widget _buildAnswerInput(String label) {
+    final round = _round;
     final value = _userAnswers[label] ?? 1;
-    const maxWeight = 30; // reasonable upper bound
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -565,20 +620,17 @@ class _GravityWellGameState extends State<GravityWellGame>
           const Text('= ', style: TextStyle(color: Colors.white, fontSize: 18)),
           // Minus button
           IconButton(
-            icon: const Icon(Icons.remove_circle_outline, color: SpaceTheme.starYellow),
+            icon: const Icon(Icons.remove_circle_outline,
+                color: SpaceTheme.starYellow),
             iconSize: 28,
-            onPressed: _gameOver ? null : () {
-              AppHaptics.selectionClick();
-              setState(() {
-                _userAnswers[label] = (value - 1).clamp(1, maxWeight);
-              });
-            },
+            onPressed: _gameOver ? null : () => _adjustAnswer(label, -1, round),
           ),
           // Value display — tappable for keyboard input
           GestureDetector(
-            onTap: _gameOver ? null : () => _showNumberInput(label, value),
+            onTap: _gameOver ? null : () => _showNumberInput(label, round),
             child: Container(
-              width: 56, height: 42,
+              width: 56,
+              height: 42,
               decoration: BoxDecoration(
                 color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(8),
@@ -594,23 +646,20 @@ class _GravityWellGameState extends State<GravityWellGame>
           ),
           // Plus button
           IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: SpaceTheme.starYellow),
+            icon: const Icon(Icons.add_circle_outline,
+                color: SpaceTheme.starYellow),
             iconSize: 28,
-            onPressed: _gameOver ? null : () {
-              AppHaptics.selectionClick();
-              setState(() {
-                _userAnswers[label] = (value + 1).clamp(1, maxWeight);
-              });
-            },
+            onPressed: _gameOver ? null : () => _adjustAnswer(label, 1, round),
           ),
           const SizedBox(width: 4),
-          Text(S.of(context)!.gravityWellKg, style: const TextStyle(color: Colors.white54, fontSize: 14)),
+          Text(S.of(context)!.gravityWellKg,
+              style: const TextStyle(color: Colors.white54, fontSize: 14)),
         ],
       ),
     );
   }
 
-  Widget _buildWinDialog(int totalScore) {
+  Widget _buildWinDialog(int totalScore, Object round) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -626,10 +675,12 @@ class _GravityWellGameState extends State<GravityWellGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'gravity_well'),
-                  const Icon(Icons.balance, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.balance,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.gravityWellWinTitle,
-                      style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(s.gravityWellWinDesc(totalScore),
                       style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
@@ -640,6 +691,11 @@ class _GravityWellGameState extends State<GravityWellGame>
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
+                          if (!mounted ||
+                              !identical(round, _round) ||
+                              !_gameOver) {
+                            return;
+                          }
                           Navigator.of(context).pop();
                           _generatePuzzle();
                         },
@@ -648,6 +704,11 @@ class _GravityWellGameState extends State<GravityWellGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
+                          if (!mounted ||
+                              !identical(round, _round) ||
+                              !_gameOver) {
+                            return;
+                          }
                           Navigator.of(context).pop();
                           Navigator.of(context).pop();
                         },
@@ -666,9 +727,58 @@ class _GravityWellGameState extends State<GravityWellGame>
   }
 }
 
-/// CustomPainter that draws a balance scale with fulcrum, beam, and pans.
-/// Wireframe style with bright lines on dark background. Beam is LEVEL
-/// because all scales are in equilibrium.
+class _WeightInputDialog extends StatefulWidget {
+  final String label;
+  final int value;
+  final ValueChanged<int?> onConfirm;
+  const _WeightInputDialog(
+      {required this.label, required this.value, required this.onConfirm});
+  @override
+  State<_WeightInputDialog> createState() => _WeightInputDialogState();
+}
+
+class _WeightInputDialogState extends State<_WeightInputDialog> {
+  late final TextEditingController _controller =
+      TextEditingController(text: '${widget.value}');
+  void _confirm(String text) {
+    if (!mounted || ModalRoute.of(context)?.isCurrent != true) return;
+    widget.onConfirm(int.tryParse(text));
+    Navigator.of(context).pop();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        backgroundColor: SpaceTheme.deepSpace,
+        title: Text('${widget.label} = ?', style: SpaceTheme.titleStyle),
+        content: TextField(
+          controller: _controller,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          style: SpaceTheme.headlineStyle.copyWith(fontSize: 24),
+          decoration: InputDecoration(
+            suffix: Text(S.of(context)!.gravityWellKg,
+                style: const TextStyle(color: Colors.white54)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+          onSubmitted: _confirm,
+        ),
+        actions: [
+          TextButton(
+              onPressed: () {
+                if (mounted) _confirm(_controller.text);
+              },
+              child: Text(S.of(context)!.ok))
+        ],
+      );
+}
+
+/// Draws a level balance scale because both sides are in equilibrium.
 class _BalanceScalePainter extends CustomPainter {
   final BalanceScale scale;
   final Set<String> unknownLabels;
@@ -772,7 +882,8 @@ class _BalanceScalePainter extends CustomPainter {
     _drawItems(canvas, scale.rightSide, rightPanCenter, panHalfW);
   }
 
-  void _drawPanStrings(Canvas canvas, Offset top, double depth, double panHalfW, Paint paint) {
+  void _drawPanStrings(
+      Canvas canvas, Offset top, double depth, double panHalfW, Paint paint) {
     canvas.drawLine(top, Offset(top.dx - panHalfW, top.dy + depth), paint);
     canvas.drawLine(top, Offset(top.dx + panHalfW, top.dy + depth), paint);
   }
@@ -793,14 +904,16 @@ class _BalanceScalePainter extends CustomPainter {
 
     final panPath = Path()
       ..moveTo(center.dx - halfW, center.dy)
-      ..quadraticBezierTo(center.dx, center.dy + halfW * 0.4, center.dx + halfW, center.dy);
+      ..quadraticBezierTo(
+          center.dx, center.dy + halfW * 0.4, center.dx + halfW, center.dy);
 
     canvas.drawPath(panPath, panGlow);
     canvas.drawPath(panPath, panPaint);
     canvas.drawPath(panPath, panEdge);
   }
 
-  void _drawItems(Canvas canvas, List<ScaleItem> items, Offset panCenter, double panHalfW) {
+  void _drawItems(
+      Canvas canvas, List<ScaleItem> items, Offset panCenter, double panHalfW) {
     if (items.isEmpty) return;
 
     final itemCount = items.length;
@@ -817,7 +930,8 @@ class _BalanceScalePainter extends CustomPainter {
       final labelText = _getItemLabel(item, isUnknown, isWeightBlock);
       final boxW = math.max(32.0, labelText.length * 9.0 + 10);
       const boxH = 30.0;
-      final boxRect = Rect.fromCenter(center: Offset(x, y), width: boxW, height: boxH);
+      final boxRect =
+          Rect.fromCenter(center: Offset(x, y), width: boxW, height: boxH);
 
       // Box fill & edge color based on type
       Color edgeColor;
@@ -900,5 +1014,8 @@ class _BalanceScalePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _BalanceScalePainter oldDelegate) =>
-      oldDelegate.glowValue != glowValue;
+      oldDelegate.glowValue != glowValue ||
+      oldDelegate.scale != scale ||
+      !setEquals(oldDelegate.unknownLabels, unknownLabels) ||
+      !mapEquals(oldDelegate.knownWeights, knownWeights);
 }

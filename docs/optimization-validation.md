@@ -166,6 +166,27 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Gravity Well round effects
+
+Gravity Well keeps its editable board resumable after a wrong check while
+preserving the loss outcome and cumulative mistake grading. Subsequent edits
+continue saving. Restoration retains answers and mistakes, clears queued
+feedback and success effects, and invalidates callbacks from the previous round.
+Completed rounds reject playable snapshots, edits and duplicate outcomes.
+
+Number-entry dialogs own and dispose their text controllers. Keyboard submission
+and confirmation verify the current round and unknown label; retained callbacks
+cannot edit a replacement board or close another dialog. Plus/minus controls use
+the current value rather than a value captured before later edits. The existing
+1–30 input range, solver, generator, scores and attempt reporting remain intact.
+
+Success uses the shared cancellable 600 ms effect and respects reduced motion.
+The scale painter checks restored model and label changes with decorative motion
+stopped. Twelve widget regressions cover real controls, stored recovery after
+wrong checks, keyboard input, bounds, stale callbacks/dialogs, retry, disposal,
+motion changes and painter invalidation. GitHub CI runs these before the full
+suite, with larger calibration and builds also running remotely.
+
 ## Ion Chain round effects
 
 Ion Chain gives every drag payload a round identity, validates slot bounds and
