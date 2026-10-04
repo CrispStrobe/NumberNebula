@@ -166,6 +166,32 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Nebula Matrix round effects
+
+Nebula Matrix scopes drag data, targets, filled-cell removal and navigation to
+the current round. Old gestures and retained callbacks cannot place or remove
+numbers on a replacement board. Placement validates the current number pool,
+editable cell and remaining move budget; removal keeps its existing free cost.
+Background generation checks the round before installing its result.
+
+Each valid placement still costs one move. A correct final placement wins;
+an incorrect full grid at zero moves now loses once rather than bypassing the
+budget. Nonterminal incorrect grids remain editable. Completed rounds reject
+input and playable snapshots. Older winning or exhausted saves offer retry
+without recording the result again. Restore and regeneration clear queued
+feedback and cancel drop and success effects.
+
+The 500 ms drop and 600 ms success effects retain their normal timing and
+complete with reduced motion, including when the setting changes during
+playback. Result controls verify the current dialog route before navigating.
+Ambient glow reuses the grid subtree while gameplay updates still rebuild it.
+Focused widget checks use actual controls, storage, stale gestures, terminal
+results, restoration during generation, motion settings and large-text phone
+flows. Generator paths, clues, Latin-square/zone validation, scoring, performance
+and the two-placements-per-empty-cell budget remain unchanged. Larger
+calibration, native tests, web builds and hosted browser validation run on GitHub
+CI to limit VPS resource use.
+
 ## Crew Manifest round effects
 
 Crew Manifest scopes cell, submit and navigation callbacks to the current round.
