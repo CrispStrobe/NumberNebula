@@ -166,6 +166,33 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Dark Matter Grid round effects
+
+Dark Matter Grid scopes cell and navigation callbacks to the current round.
+Round-specific control identities prevent a touch started on an old board from
+committing after restoration. Completed rounds reject input, playable snapshots
+and duplicate outcomes. Unfinished saves retain the grid and move count; older
+already-solved saves offer retry without recording the win again.
+
+Restore and regeneration cancel success effects. The 600 ms success animation
+retains its normal timing and completes with reduced motion, including when
+the setting changes during playback. Cell transitions keep their normal
+200 ms duration and become immediate with reduced motion. An unused tap
+controller, which had no visual consumer, no longer schedules animation ticks.
+Ambient glow reuses the cell subtree; gameplay changes still update the grid.
+Result controls verify their current dialog route and stack on narrow screens.
+The move counter uses existing localized text.
+Grid sizing accounts for padding, borders and cell margins. Short or narrow
+viewports scroll while retaining the original 40-pixel minimum cell size.
+
+Focused widget regressions use actual corner, edge and center taps, storage,
+stale callbacks and touches, restored terminal rounds, retry, disposal, motion
+settings and large-text phone flows. The generator, orthogonal toggle rules,
+score formula and performance reference remain unchanged. The generator's
+minimum-move field remains an approximate reference, not a newly established
+optimal solution. Native tests, larger calibration, web builds and browser/
+deployment validation run on GitHub CI to limit VPS resource usage.
+
 ## Nebula Matrix round effects
 
 Nebula Matrix scopes drag data, targets, filled-cell removal and navigation to
