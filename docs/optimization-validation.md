@@ -166,6 +166,25 @@ timing, pending-feedback restoration, older snapshots, terminal results,
 disposal and generation superseded by restoration. GitHub CI runs these checks
 before the full suite.
 
+## Vault Cracker round effects
+
+Vault Cracker scopes keypad, answer-slot, clear, submit and navigation callbacks
+to the current round. Digit entry checks the current range and first empty slot;
+retained slot callbacks cannot clear a different replacement digit. Completed
+rounds reject input, playable snapshots and duplicate outcomes. Unfinished
+snapshots retain partial answers and the full guess history.
+
+Restoring an older winning or exhausted snapshot clears its stale save and
+offers retry without reporting the result again. Restoration and regeneration
+cancel success effects; result-dialog callbacks verify their current route before
+navigating. Success retains its 600 ms duration and completes immediately with
+reduced motion, including when the setting changes during playback.
+
+The generator, clues, repeated-digit match feedback, six-guess allowance, score
+formula, three-guess performance reference and partial loss progress are unchanged.
+Twenty widget regressions run before the full suite on GitHub CI. Larger
+calibration, web builds and browser/deployment checks also run remotely.
+
 ## Comm Relay round effects
 
 Comm Relay saves typed answers and every nonterminal wrong attempt, retaining

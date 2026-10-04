@@ -25,7 +25,35 @@ class VaultCrackerGame extends StatefulWidget {
 }
 
 class _VaultCrackerGameState extends State<VaultCrackerGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<VaultCrackerGame>, PuzzleSessionMixin<VaultCrackerGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<VaultCrackerGame>,
+        PuzzleSessionMixin<VaultCrackerGame> {
+  int _roundEpoch = 0;
+
+  bool _canInteract(int epoch) =>
+      mounted &&
+      epoch == _roundEpoch &&
+      !_isGenerating &&
+      !_gameOver &&
+      puzzle != null &&
+      _answer.length == puzzle!.codeLength &&
+      _guessHistory.length < _maxGuesses;
+
+  bool _validDigit(int digit) =>
+      digit >= 1 && digit <= (puzzle?.digitRange ?? 0);
+
+  void _resetRoundEffects() {
+    _roundEpoch++;
+    cancelOneShotMotion(successController);
+    successController.reset();
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
+  }
 
   VaultCrackerPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
@@ -39,18 +67,54 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   List<List<int>> _guessHistory = [];
   static const int _maxGuesses = 6;
 
-  @override String get sessionGameKey => 'vault_cracker';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (puzzle == null || _isGenerating) return null;
-    return {'puzzle': puzzle!.toJson(), 'answer': _answer, 'guesses': _guessHistory};
+  @override
+  String get sessionGameKey => 'vault_cracker';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (puzzle == null || _isGenerating || _gameOver) return null;
+    return {
+      'puzzle': puzzle!.toJson(),
+      'answer': _answer,
+      'guesses': _guessHistory
+    };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    puzzle = VaultCrackerPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle']));
-    _answer = List<int?>.from(state['answer']); _guessHistory = (state['guesses'] as List).map((v) => List<int>.from(v)).toList(); _gameOver = false;
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
+    puzzle =
+        VaultCrackerPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle']));
+    final answer = List<int?>.from(state['answer']);
+    _answer = List<int?>.generate(puzzle!.codeLength, (index) {
+      final digit = index < answer.length ? answer[index] : null;
+      return digit != null && _validDigit(digit) ? digit : null;
+    });
+    _guessHistory =
+        (state['guesses'] as List).map((v) => List<int>.from(v)).toList();
     _isGenerating = false;
+    final won = _guessHistory.any(puzzle!.isCorrect);
+    _gameOver = won || _guessHistory.length >= _maxGuesses;
+    if (_gameOver) {
+      finishPuzzleSession();
+      final epoch = _roundEpoch;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || epoch != _roundEpoch || !_gameOver || _isGenerating) {
+          return;
+        }
+        if (won) {
+          _showWinDialog(_winScore(), epoch);
+        } else {
+          _showLoseDialog(epoch);
+        }
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) _generatePuzzle();
   }
@@ -66,7 +130,8 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -75,6 +140,8 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _roundEpoch++;
+    cancelOneShotMotion(successController);
     glowController.stop();
     successController.stop();
     disposeGameAnimations(usePulse: false);
@@ -82,6 +149,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   }
 
   void _generatePuzzle() {
+    _resetRoundEffects();
     beginPuzzleSession();
     if (currentDifficulty == null) return;
 
@@ -107,23 +175,30 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
     }
   }
 
-  void _setDigit(int position, int digit) {
-    if (_gameOver) return;
+  void _setDigit(int position, int digit, int epoch) {
+    if (!_canInteract(epoch) ||
+        position < 0 ||
+        position >= _answer.length ||
+        !_validDigit(digit)) {
+      return;
+    }
     setState(() {
       _answer[position] = digit;
     });
   }
 
-  void _clearAnswer() {
-    if (_gameOver) return;
+  void _clearAnswer(int epoch) {
+    if (!_canInteract(epoch)) return;
     setState(() {
       _answer = List.filled(puzzle?.codeLength ?? 3, null);
     });
   }
 
-  void _submitAnswer() {
-    if (_gameOver || puzzle == null) return;
-    if (_answer.any((d) => d == null)) return;
+  void _submitAnswer(int epoch) {
+    if (!_canInteract(epoch) ||
+        _answer.any((d) => d == null || !_validDigit(d))) {
+      return;
+    }
 
     final guess = _answer.map((d) => d!).toList();
 
@@ -159,65 +234,93 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
     return best / p.codeLength;
   }
 
-  void _handleWin() {
-    finishPuzzleSession();
-    AppHaptics.lightImpact();
-    _gameOver = true;
+  int _winScore() {
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
     // Bonus for fewer guesses
     int guessBonus = (_maxGuesses - _guessHistory.length) * 15;
-    int totalScore = baseScore + levelBonus + guessBonus;
+    return baseScore + levelBonus + guessBonus;
+  }
+
+  void _handleWin() {
+    if (!mounted || _gameOver || _isGenerating || puzzle == null) return;
+    _resetRoundEffects();
+    setState(() => _gameOver = true);
+    final epoch = _roundEpoch;
+    finishPuzzleSession();
+    AppHaptics.lightImpact();
+    final totalScore = _winScore();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'vault_cracker',
-      difficulty: widget.level,
-      score: totalScore,
-      // Half the allowance is the par a good deducer needs; beyond that the
-      // player was guessing rather than reasoning.
-      performance: Perf.fromMoves(
-          _guessHistory.length, (_maxGuesses / 2).ceil()),
+          skillLevel: widget.grade,
+          gameType: 'vault_cracker',
+          difficulty: widget.level,
+          score: totalScore,
+          // Half the allowance is the par a good deducer needs; beyond that the
+          // player was guessing rather than reasoning.
+          performance:
+              Perf.fromMoves(_guessHistory.length, (_maxGuesses / 2).ceil()),
 
-      movesUsed: _guessHistory.length,
-      optimalMoves: (_maxGuesses / 2).ceil(),
-    ));
+          movesUsed: _guessHistory.length,
+          optimalMoves: (_maxGuesses / 2).ceil(),
+        ));
 
-    successController.forward(from: 0.0);
+    _showWinDialog(totalScore, epoch);
+  }
 
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => _buildWinDialog(_guessHistory.length, totalScore),
-      );
+  void _showWinDialog(int score, int epoch) {
+    if (!mounted || epoch != _roundEpoch || !_gameOver || puzzle == null) {
+      return;
     }
+    playOneShotMotion(successController, () {});
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) =>
+          _buildWinDialog(_guessHistory.length, score, epoch, dialogContext),
+    );
   }
 
   void _handleLoss() {
+    if (!mounted || _gameOver || _isGenerating || puzzle == null) return;
+    _resetRoundEffects();
+    setState(() => _gameOver = true);
+    final epoch = _roundEpoch;
     finishPuzzleSession();
     AppHaptics.heavyImpact();
-    _gameOver = true;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'vault_cracker',
-      difficulty: widget.level,
-      progress: _bestGuessFraction(),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'vault_cracker',
+          difficulty: widget.level,
+          progress: _bestGuessFraction(),
+        ));
 
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => _buildLoseDialog(),
-      );
-    }
+    _showLoseDialog(epoch);
   }
+
+  void _showLoseDialog(int epoch) {
+    if (!mounted || epoch != _roundEpoch || !_gameOver || puzzle == null) {
+      return;
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildLoseDialog(epoch, dialogContext),
+    );
+  }
+
+  bool _canUseDialog(int epoch, BuildContext dialogContext) =>
+      mounted &&
+      epoch == _roundEpoch &&
+      _gameOver &&
+      dialogContext.mounted &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
 
   @override
   Widget build(BuildContext context) {
     final s = S.of(context)!;
+    final epoch = _roundEpoch;
 
     if (puzzle == null || _isGenerating) {
       return Scaffold(
@@ -242,12 +345,18 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
           child: Column(
             children: [
               GameUI(
+                key: ValueKey('vault-header-$epoch'),
                 title: s.vaultCrackerTitle,
                 level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: () {
+                  if (mounted && epoch == _roundEpoch && !_isGenerating) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
                   s.vaultCrackerInstructions,
                   style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
@@ -263,6 +372,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   }
 
   Widget _buildGameArea() {
+    final epoch = _roundEpoch;
     final locale = Localizations.localeOf(context);
     final isGerman = locale.languageCode == 'de';
 
@@ -276,7 +386,8 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
               children: [
                 ...List.generate(
                   puzzle!.clues.length,
-                  (index) => _buildClueRow(puzzle!.clues[index], index, isGerman),
+                  (index) =>
+                      _buildClueRow(puzzle!.clues[index], index, isGerman),
                 ),
                 const SizedBox(height: 8),
                 _buildGuessHistory(),
@@ -294,15 +405,18 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
-                  onPressed: _clearAnswer,
+                  key: ValueKey('vault-clear-$epoch'),
+                  onPressed: () => _clearAnswer(epoch),
                   icon: const Icon(Icons.refresh, size: 18),
                   label: Text(S.of(context)!.clearButton),
                   style: SpaceTheme.secondaryButtonStyle,
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
-                  onPressed:
-                      _answer.any((d) => d == null) ? null : _submitAnswer,
+                  key: ValueKey('vault-submit-$epoch'),
+                  onPressed: _answer.any((d) => d == null)
+                      ? null
+                      : () => _submitAnswer(epoch),
                   style: SpaceTheme.primaryButtonStyle,
                   child: const Icon(Icons.check),
                 ),
@@ -332,17 +446,21 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
           children: [
             // Clue number badge
             Container(
-              width: 28, height: 28,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: SpaceTheme.starYellow.withValues(alpha: 0.2),
-                border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.5)),
+                border: Border.all(
+                    color: SpaceTheme.starYellow.withValues(alpha: 0.5)),
               ),
               child: Center(
                 child: Text(
                   '${index + 1}',
                   style: SpaceTheme.bodyStyle.copyWith(
-                    fontSize: 13, color: SpaceTheme.starYellow, fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: SpaceTheme.starYellow,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -365,17 +483,24 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   }
 
   Widget _buildAnswerRow() {
+    final epoch = _roundEpoch;
     return AnimatedBuilder(
       animation: glowAnimation,
       builder: (context, child) {
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(puzzle!.codeLength, (i) {
-            final hasDigit = _answer[i] != null;
+            final expectedDigit = _answer[i];
+            final hasDigit = expectedDigit != null;
             return GestureDetector(
+              key: ValueKey('vault-slot-$epoch-$i'),
               onTap: () {
                 // Tapping a filled slot clears it
-                if (hasDigit) {
+                if (_canInteract(epoch) &&
+                    i >= 0 &&
+                    i < _answer.length &&
+                    expectedDigit != null &&
+                    _answer[i] == expectedDigit) {
                   setState(() {
                     _answer[i] = null;
                   });
@@ -422,6 +547,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
   }
 
   Widget _buildDigitPad() {
+    final epoch = _roundEpoch;
     final digitRange = puzzle!.digitRange;
     return Wrap(
       alignment: WrapAlignment.center,
@@ -430,11 +556,13 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
       children: List.generate(digitRange, (index) {
         final digit = index + 1; // 1-based digits
         return GestureDetector(
+          key: ValueKey('vault-digit-$epoch-$digit'),
           onTap: () {
+            if (!_canInteract(epoch) || !_validDigit(digit)) return;
             // Place in first empty slot
             for (int i = 0; i < puzzle!.codeLength; i++) {
               if (_answer[i] == null) {
-                _setDigit(i, digit);
+                _setDigit(i, digit, epoch);
                 break;
               }
             }
@@ -555,7 +683,8 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
     );
   }
 
-  Widget _buildWinDialog(int attempts, int totalScore) {
+  Widget _buildWinDialog(
+      int attempts, int totalScore, int epoch, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -579,8 +708,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
                       textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(s.vaultCrackerWinDesc(attempts, totalScore),
-                      style: SpaceTheme.bodyStyle,
-                      textAlign: TextAlign.center),
+                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -588,7 +716,8 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(epoch, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
                         style: SpaceTheme.secondaryButtonStyle,
@@ -596,7 +725,8 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(epoch, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
                           Navigator.of(context).pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,
@@ -613,7 +743,7 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
     );
   }
 
-  Widget _buildLoseDialog() {
+  Widget _buildLoseDialog(int epoch, BuildContext dialogContext) {
     final s = S.of(context)!;
     return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
@@ -623,12 +753,11 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                  RoundSummary(gameKey: 'vault_cracker'),
+            RoundSummary(gameKey: 'vault_cracker'),
             const Icon(Icons.lock, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(s.vaultCrackerLoseTitle,
-                style: SpaceTheme.headlineStyle,
-                textAlign: TextAlign.center),
+                style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             Text(s.vaultCrackerLoseDesc,
                 style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
@@ -646,7 +775,8 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(epoch, dialogContext)) return;
+                    Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
@@ -654,7 +784,8 @@ class _VaultCrackerGameState extends State<VaultCrackerGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(epoch, dialogContext)) return;
+                    Navigator.of(dialogContext).pop();
                     Navigator.of(context).pop();
                   },
                   style: SpaceTheme.primaryButtonStyle,
