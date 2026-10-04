@@ -233,7 +233,9 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
         }
       }
     } catch (e) {
-      debugPrint('[NebulaMatrix] Error generating puzzle: $e');
+      if (kDebugMode) {
+        debugPrint('[NebulaMatrix] Error generating puzzle: $e');
+      }
     }
   }
 
