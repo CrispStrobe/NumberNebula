@@ -18,15 +18,42 @@ import '../services/dark_matter_grid_logic.dart';
 class DarkMatterGridGame extends StatefulWidget {
   final int grade;
   final int level;
-  const DarkMatterGridGame({super.key, required this.grade, required this.level});
+  const DarkMatterGridGame(
+      {super.key, required this.grade, required this.level});
 
   @override
   State<DarkMatterGridGame> createState() => _DarkMatterGridGameState();
 }
 
 class _DarkMatterGridGameState extends State<DarkMatterGridGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<DarkMatterGridGame>, PuzzleSessionMixin<DarkMatterGridGame> {
-  late AnimationController _tapController;
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<DarkMatterGridGame>,
+        PuzzleSessionMixin<DarkMatterGridGame> {
+  Object _round = Object();
+  bool _reducedMotion = false;
+
+  bool _canInteract(Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      !_isGenerating &&
+      !_won &&
+      puzzle != null &&
+      grid.length == puzzle!.size &&
+      grid.every((row) => row.length == puzzle!.size);
+
+  void _resetRoundEffects() {
+    _round = Object();
+    cancelOneShotMotion(successController);
+    successController.reset();
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    _reducedMotion = reduced;
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
+  }
 
   DifficultyConfig? currentDifficulty;
   DarkMatterGridPuzzle? puzzle;
@@ -35,18 +62,40 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
   bool _isGenerating = true;
   bool _won = false;
 
-  @override String get sessionGameKey => 'dark_matter_grid';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (puzzle == null || _isGenerating) return null;
+  @override
+  String get sessionGameKey => 'dark_matter_grid';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (puzzle == null || _isGenerating || _won) return null;
     return {'puzzle': puzzle!.toJson(), 'grid': grid, 'moves': moveCount};
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    puzzle = DarkMatterGridPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle']));
-    grid = (state['grid'] as List).map((v) => List<bool>.from(v)).toList(); moveCount = state['moves']; _won = false;
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
+    puzzle = DarkMatterGridPuzzle.fromJson(
+        Map<String, dynamic>.from(state['puzzle']));
+    grid = (state['grid'] as List).map((v) => List<bool>.from(v)).toList();
+    moveCount = state['moves'];
     _isGenerating = false;
+    _won = DarkMatterGridPuzzle.isSolved(grid);
+    if (_won) {
+      finishPuzzleSession();
+      final round = _round;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !identical(round, _round) || !_won || _isGenerating) {
+          return;
+        }
+        _showWinDialog(_winScore(), round);
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) _generatePuzzle();
   }
@@ -56,15 +105,11 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
     super.initState();
     initGameAnimations(usePulse: false);
 
-    _tapController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -73,12 +118,14 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
   @override
   void dispose() {
     disposePuzzleSession();
-    _tapController.dispose();
+    _round = Object();
+    cancelOneShotMotion(successController);
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
   void _generatePuzzle() {
+    _resetRoundEffects();
     beginPuzzleSession();
     if (currentDifficulty == null) return;
 
@@ -100,7 +147,8 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
     }
 
     // More toggles at higher levels = harder
-    final toggleCount = (gridSize + currentDifficulty!.level).clamp(3, gridSize * gridSize - 1);
+    final toggleCount =
+        (gridSize + currentDifficulty!.level).clamp(3, gridSize * gridSize - 1);
 
     puzzle = DarkMatterGridPuzzle.generate(
       gridSize: gridSize,
@@ -113,11 +161,16 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
     });
   }
 
-  void _onCellTap(int row, int col) {
-    if (_won) return;
+  void _onCellTap(int row, int col, Object round) {
+    if (!_canInteract(round) ||
+        row < 0 ||
+        col < 0 ||
+        row >= grid.length ||
+        col >= grid[row].length) {
+      return;
+    }
 
     AppHaptics.selectionClick();
-    _tapController.forward(from: 0.0);
 
     setState(() {
       grid = DarkMatterGridPuzzle.toggle(grid, row, col);
@@ -129,41 +182,58 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
     }
   }
 
-  void _handleWin() {
-    finishPuzzleSession();
-    _won = true;
-    AppHaptics.lightImpact();
-
+  int _winScore() {
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
     int moveBonus = (puzzle!.minMoves * 50) ~/ (moveCount.clamp(1, 999));
-    int totalScore = baseScore + levelBonus + moveBonus;
+    return baseScore + levelBonus + moveBonus;
+  }
+
+  void _handleWin() {
+    if (!_canInteract(_round) || !DarkMatterGridPuzzle.isSolved(grid)) return;
+    _resetRoundEffects();
+    setState(() => _won = true);
+    final round = _round;
+    finishPuzzleSession();
+    AppHaptics.lightImpact();
+    final totalScore = _winScore();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'dark_matter_grid',
-      difficulty: widget.level,
-      score: totalScore,
-      performance: Perf.fromMoves(moveCount, puzzle!.minMoves),
+          skillLevel: widget.grade,
+          gameType: 'dark_matter_grid',
+          difficulty: widget.level,
+          score: totalScore,
+          performance: Perf.fromMoves(moveCount, puzzle!.minMoves),
+          movesUsed: moveCount,
+          optimalMoves: puzzle!.minMoves,
+        ));
 
-      movesUsed: moveCount,
-      optimalMoves: puzzle!.minMoves,
-    ));
-
-    successController.forward(from: 0.0);
-
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _buildWinDialog(totalScore),
-      );
-    }
+    _showWinDialog(totalScore, round);
   }
+
+  void _showWinDialog(int score, Object round) {
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
+      return;
+    }
+    playOneShotMotion(successController, () {});
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildWinDialog(score, round, dialogContext),
+    );
+  }
+
+  bool _canUseDialog(Object round, BuildContext dialogContext) =>
+      mounted &&
+      identical(round, _round) &&
+      _won &&
+      dialogContext.mounted &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
 
   @override
   Widget build(BuildContext context) {
     final s = S.of(context)!;
+    final round = _round;
 
     if (_isGenerating || puzzle == null) {
       return Scaffold(
@@ -188,26 +258,60 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
           child: Column(
             children: [
               GameUI(
+                key: ValueKey(('dark-header', round)),
                 title: s.darkMatterGridTitle,
                 level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: () {
+                  if (mounted && identical(round, _round) && !_isGenerating) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  s.darkMatterGridInstructions,
-                  style: SpaceTheme.bodyStyle,
-                  textAlign: TextAlign.center,
-                ),
+              Expanded(
+                child: LayoutBuilder(builder: (context, constraints) {
+                  final gridSize = puzzle!.size;
+                  final cellSize = ((constraints.maxWidth - 28) / gridSize - 6)
+                      .clamp(40.0, 80.0);
+                  final gridExtent = (cellSize + 6) * gridSize + 28;
+                  return SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 4),
+                          child: Text(
+                            s.darkMatterGridInstructions,
+                            style: SpaceTheme.bodyStyle,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 16,
+                            runSpacing: 4,
+                            children: [
+                              Text('${s.level}: ${widget.level}',
+                                  style: SpaceTheme.titleStyle
+                                      .copyWith(fontSize: 14)),
+                              Text(s.roundMoves(moveCount),
+                                  style: SpaceTheme.titleStyle
+                                      .copyWith(fontSize: 14)),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          width: constraints.maxWidth,
+                          height: gridExtent,
+                          child: _buildGrid(),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  '${s.level}: ${widget.level}  |  Moves: $moveCount',
-                  style: SpaceTheme.titleStyle.copyWith(fontSize: 14),
-                ),
-              ),
-              Expanded(child: _buildGrid()),
             ],
           ),
         ),
@@ -220,56 +324,74 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
     return Center(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final maxCellW = (constraints.maxWidth - 56) / gridSize;
-          final maxCellH = (constraints.maxHeight - 56) / gridSize;
+          // Include 24px padding, the 4px border, and each cell's 6px margin.
+          final maxCellW = (constraints.maxWidth - 28) / gridSize - 6;
+          final maxCellH = (constraints.maxHeight - 28) / gridSize - 6;
           final cellSize = maxCellW < maxCellH ? maxCellW : maxCellH;
           final clampedSize = cellSize.clamp(40.0, 80.0);
+          final boardExtent = (clampedSize + 6) * gridSize + 28;
 
-          return AnimatedBuilder(
+          final board = AnimatedBuilder(
             animation: glowAnimation,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(gridSize, (row) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(gridSize, (col) {
+                    return _buildCell(row, col, clampedSize);
+                  }),
+                );
+              }),
+            ),
             builder: (context, child) {
               return Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF6B48FF).withValues(alpha: 0.1 * glowAnimation.value),
+                      const Color(0xFF6B48FF)
+                          .withValues(alpha: 0.1 * glowAnimation.value),
                       SpaceTheme.deepSpace.withValues(alpha: 0.05),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: const Color(0xFF6B48FF).withValues(alpha: glowAnimation.value),
+                    color: const Color(0xFF6B48FF)
+                        .withValues(alpha: glowAnimation.value),
                     width: 2,
                   ),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: List.generate(gridSize, (row) {
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(gridSize, (col) {
-                        return _buildCell(row, col, clampedSize);
-                      }),
-                    );
-                  }),
-                ),
+                child: child,
               );
             },
           );
+          if (boardExtent > constraints.maxWidth ||
+              boardExtent > constraints.maxHeight) {
+            // Keep the original touch target size in short or narrow viewports.
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SingleChildScrollView(child: board),
+            );
+          }
+          return board;
         },
       ),
     );
   }
 
   Widget _buildCell(int row, int col, double clampedSize) {
+    final round = _round;
     final isLit = grid[row][col];
 
     return GestureDetector(
+      key: ValueKey(('dark-cell', round, row, col)),
       behavior: HitTestBehavior.opaque,
-      onTap: () => _onCellTap(row, col),
+      onTap: () => _onCellTap(row, col, round),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        key: ValueKey(_reducedMotion),
+        duration:
+            _reducedMotion ? Duration.zero : const Duration(milliseconds: 200),
         width: clampedSize,
         height: clampedSize,
         margin: const EdgeInsets.all(3),
@@ -313,7 +435,8 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
     );
   }
 
-  Widget _buildWinDialog(int bonusScore) {
+  Widget _buildWinDialog(
+      int bonusScore, Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -329,24 +452,36 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'dark_matter_grid'),
-                  const Icon(Icons.emoji_events, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.emoji_events,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  Text(s.darkMatterGridWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(s.darkMatterGridWinTitle,
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
-                  Text(s.darkMatterGridWinDesc(moveCount, bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  Text(s.darkMatterGridWinDesc(moveCount, bonusScore),
+                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
-                        onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                        onPressed: () {
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
+                          _generatePuzzle();
+                        },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(s.playAgain),
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
                           Navigator.of(context).pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,
