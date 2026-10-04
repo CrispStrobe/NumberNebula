@@ -184,6 +184,8 @@ Result controls verify their current dialog route and stack on narrow screens.
 The move counter uses existing localized text.
 Grid sizing accounts for padding, borders and cell margins. Short or narrow
 viewports scroll while retaining the original 40-pixel minimum cell size.
+Instructions, statistics and the grid scroll together beneath the pinned header
+so full translated text cannot overflow before the grid receives its space.
 
 Focused widget regressions use actual corner, edge and center taps, storage,
 stale callbacks and touches, restored terminal rounds, retry, disposal, motion

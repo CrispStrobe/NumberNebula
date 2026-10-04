@@ -402,6 +402,8 @@ void main() {
       tester.view.physicalSize = const Size(390, 844);
       await tester.pump();
       expect(tester.takeException(), isNull);
+      await tester.ensureVisible(_cell(tester, 2, 2));
+      await tester.pump();
       await _tapCell(tester, 2, 2);
       await tester.pump(const Duration(milliseconds: 700));
       expect(tester.takeException(), isNull);

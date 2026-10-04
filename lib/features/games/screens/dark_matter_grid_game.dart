@@ -267,31 +267,51 @@ class _DarkMatterGridGameState extends State<DarkMatterGridGame>
                   }
                 },
               ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  s.darkMatterGridInstructions,
-                  style: SpaceTheme.bodyStyle,
-                  textAlign: TextAlign.center,
-                ),
+              Expanded(
+                child: LayoutBuilder(builder: (context, constraints) {
+                  final gridSize = puzzle!.size;
+                  final cellSize = ((constraints.maxWidth - 28) / gridSize - 6)
+                      .clamp(40.0, 80.0);
+                  final gridExtent = (cellSize + 6) * gridSize + 28;
+                  return SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 4),
+                          child: Text(
+                            s.darkMatterGridInstructions,
+                            style: SpaceTheme.bodyStyle,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 16,
+                            runSpacing: 4,
+                            children: [
+                              Text('${s.level}: ${widget.level}',
+                                  style: SpaceTheme.titleStyle
+                                      .copyWith(fontSize: 14)),
+                              Text(s.roundMoves(moveCount),
+                                  style: SpaceTheme.titleStyle
+                                      .copyWith(fontSize: 14)),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          width: constraints.maxWidth,
+                          height: gridExtent,
+                          child: _buildGrid(),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
               ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 16,
-                  runSpacing: 4,
-                  children: [
-                    Text('${s.level}: ${widget.level}',
-                        style: SpaceTheme.titleStyle.copyWith(fontSize: 14)),
-                    Text(s.roundMoves(moveCount),
-                        style: SpaceTheme.titleStyle.copyWith(fontSize: 14)),
-                  ],
-                ),
-              ),
-              Expanded(child: _buildGrid()),
             ],
           ),
         ),
