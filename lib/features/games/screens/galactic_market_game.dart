@@ -20,20 +20,57 @@ import '../constants/difficulty_manager.dart';
 class GalacticMarketGame extends StatefulWidget {
   final int grade;
   final int level;
-  const GalacticMarketGame({super.key, required this.grade, required this.level});
+  const GalacticMarketGame(
+      {super.key, required this.grade, required this.level});
 
   @override
   State<GalacticMarketGame> createState() => _GalacticMarketGameState();
 }
 
 class _GalacticMarketGameState extends State<GalacticMarketGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<GalacticMarketGame>, PuzzleSessionMixin<GalacticMarketGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<GalacticMarketGame>,
+        PuzzleSessionMixin<GalacticMarketGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'galactic_market';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  int _roundEpoch = 0;
+  bool _reducedMotion = false;
+
+  bool _canInteract(int epoch) =>
+      mounted &&
+      _sessionReady &&
+      epoch == _roundEpoch &&
+      !_isGenerating &&
+      !_gameOver &&
+      _attemptsUsed < _maxAttempts;
+
+  bool _validDenom(int denom) => denom > 0 && _denomOptions.contains(denom);
+
+  void _resetRoundEffects() {
+    _roundEpoch++;
+    cancelOneShotMotion(successController);
+    successController.reset();
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.clearSnackBars();
+    messenger?.removeCurrentSnackBar();
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    _reducedMotion = reduced;
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
+  }
+
+  @override
+  String get sessionGameKey => 'galactic_market';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _gameOver) return null;
     return {
       '_changeTotal': _changeTotal,
       '_knownCoins': _knownCoins.map((v0) => v0).toList(),
@@ -46,25 +83,45 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
       '_mathProblems': _mathProblems.map((v0) => v0.toJson()).toList()
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
     _changeTotal = state["_changeTotal"] as int;
-    _knownCoins = (state["_knownCoins"] as List).map((v0) => v0 as int).toList();
+    _knownCoins =
+        (state["_knownCoins"] as List).map((v0) => v0 as int).toList();
     _unknownCount = state["_unknownCount"] as int;
     _correctDenomination = state["_correctDenomination"] as int;
     _attemptsUsed = state["_attemptsUsed"] as int;
     _constraintText = state["_constraintText"] as String;
-    _denomOptions = (state["_denomOptions"] as List).map((v0) => v0 as int).toList();
-    _selectedDenom = (state["_selectedDenom"] == null ? null : state["_selectedDenom"] as int);
-    _mathProblems..clear()..addAll((state["_mathProblems"] as List).map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map))).toList());
-    _isGenerating = false; _gameOver = false;
+    _denomOptions =
+        (state["_denomOptions"] as List).map((v0) => v0 as int).toList();
+    final selected = state["_selectedDenom"];
+    _selectedDenom = selected is int && _validDenom(selected) ? selected : null;
+    _mathProblems
+      ..clear()
+      ..addAll((state["_mathProblems"] as List)
+          .map((v0) =>
+              MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map)))
+          .toList());
+    _isGenerating = false;
+    // A correct selection alone may never have been submitted.
+    _gameOver = _attemptsUsed >= _maxAttempts;
+    if (_gameOver) {
+      finishPuzzleSession();
+      final epoch = _roundEpoch;
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _showLoseDialog(epoch));
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
     if (mounted) setState(() => _sessionReady = true);
   }
-
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -120,7 +177,8 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -129,11 +187,14 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _roundEpoch++;
+    cancelOneShotMotion(successController);
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
   void _generatePuzzle() {
+    _resetRoundEffects();
     beginPuzzleSession();
     if (currentDifficulty == null) return;
 
@@ -148,25 +209,33 @@ class _GalacticMarketGameState extends State<GalacticMarketGame>
 
     final grade = currentDifficulty!.grade;
 
-
-    final generated=generateGalacticMarket(grade, widget.level, random: _random);
-_changeTotal=generated['_changeTotal'] as int;
-_correctDenomination=generated['_correctDenomination'] as int;
-_denomOptions=List<int>.from(generated['_denomOptions'] as List);
-_knownCoins=List<int>.from(generated['_knownCoins'] as List);
-_mathProblems.addAll((generated['_mathProblems'] as List).map((p)=>MathProblem.fromJson(Map<String,dynamic>.from(p as Map))));
-_unknownCount=generated['_unknownCount'] as int;
-_constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.of(context)!.galacticMarketNCoins(_unknownCount);
+    final generated =
+        generateGalacticMarket(grade, widget.level, random: _random);
+    _changeTotal = generated['_changeTotal'] as int;
+    _correctDenomination = generated['_correctDenomination'] as int;
+    _denomOptions = List<int>.from(generated['_denomOptions'] as List);
+    _knownCoins = List<int>.from(generated['_knownCoins'] as List);
+    _mathProblems.addAll((generated['_mathProblems'] as List)
+        .map((p) => MathProblem.fromJson(Map<String, dynamic>.from(p as Map))));
+    _unknownCount = generated['_unknownCount'] as int;
+    _constraintText = _unknownCount == 1
+        ? S.of(context)!.galacticMarketOneCoin
+        : S.of(context)!.galacticMarketNCoins(_unknownCount);
     setState(() => _isGenerating = false);
   }
 
-  void _selectDenom(int denom) {
-    if (_gameOver) return;
+  void _selectDenom(int denom, int epoch) {
+    if (!_canInteract(epoch) || !_validDenom(denom)) return;
+    AppHaptics.selectionClick();
     setState(() => _selectedDenom = denom);
   }
 
-  void _submitAnswer() {
-    if (_gameOver || _selectedDenom == null) return;
+  void _submitAnswer(int epoch) {
+    if (!_canInteract(epoch) ||
+        _selectedDenom == null ||
+        !_validDenom(_selectedDenom!)) {
+      return;
+    }
 
     if (_selectedDenom == _correctDenomination) {
       _handleWin();
@@ -176,7 +245,8 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
   }
 
   void _handleWrongAnswer() {
-    _attemptsUsed++;
+    if (!_canInteract(_roundEpoch)) return;
+    setState(() => _attemptsUsed++);
     AppHaptics.heavyImpact();
 
     if (_attemptsUsed >= _maxAttempts) {
@@ -198,25 +268,50 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
   }
 
   void _handleLose() {
-    _gameOver = true;
+    if (!mounted || !_sessionReady || _isGenerating || _gameOver) return;
+    _resetRoundEffects();
+    setState(() => _gameOver = true);
+    final epoch = _roundEpoch;
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'galactic_market',
-      difficulty: widget.level,
-    ));
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _buildLoseDialog(),
-      );
-    }
+          skillLevel: widget.grade,
+          gameType: 'galactic_market',
+          difficulty: widget.level,
+          mathProblems: List<MathProblem>.unmodifiable(_mathProblems),
+        ));
+    _showLoseDialog(epoch);
   }
 
+  void _showLoseDialog(int epoch) {
+    if (!mounted ||
+        !_sessionReady ||
+        epoch != _roundEpoch ||
+        !_gameOver ||
+        _isGenerating) {
+      return;
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildLoseDialog(epoch, dialogContext),
+    );
+  }
+
+  bool _canUseDialog(int epoch, BuildContext dialogContext) =>
+      mounted &&
+      epoch == _roundEpoch &&
+      _gameOver &&
+      dialogContext.mounted &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
+
   void _handleWin() {
+    if (!_canInteract(_roundEpoch) || _selectedDenom != _correctDenomination) {
+      return;
+    }
+    _resetRoundEffects();
+    setState(() => _gameOver = true);
+    final epoch = _roundEpoch;
     AppHaptics.lightImpact();
-    _gameOver = true;
 
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
@@ -227,28 +322,32 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'galactic_market',
-      difficulty: widget.level,
-      score: totalScore,
-      mathProblems: _mathProblems,
-      performance: Perf.fromAttempts(_attemptsUsed + 1, _maxAttempts),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'galactic_market',
+          difficulty: widget.level,
+          score: totalScore,
+          mathProblems: List<MathProblem>.unmodifiable(_mathProblems),
+          performance: Perf.fromAttempts(_attemptsUsed + 1, _maxAttempts),
+        ));
 
-    successController.forward(from: 0.0);
+    playOneShotMotion(successController, () {});
     if (mounted) {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (_) => _buildWinDialog(totalScore),
+        builder: (dialogContext) =>
+            _buildWinDialog(totalScore, epoch, dialogContext),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
+    final epoch = _roundEpoch;
 
     if (_isGenerating || currentDifficulty == null) {
       return Scaffold(
@@ -273,9 +372,17 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
           child: Column(
             children: [
               GameUI(
+                key: ValueKey('market-header-$epoch'),
                 title: s.galacticMarketTitle,
                 level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: () {
+                  if (mounted &&
+                      _sessionReady &&
+                      epoch == _roundEpoch &&
+                      !_isGenerating) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
               Expanded(
                 child: SingleChildScrollView(
@@ -311,11 +418,13 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+        border:
+            Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline, color: SpaceTheme.starYellow, size: 18),
+          const Icon(Icons.info_outline,
+              color: SpaceTheme.starYellow, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -338,7 +447,8 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
             color: SpaceTheme.deepSpace.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: SpaceTheme.starYellow.withValues(alpha: glowAnimation.value * 0.5),
+              color: SpaceTheme.starYellow
+                  .withValues(alpha: glowAnimation.value * 0.5),
               width: 2,
             ),
           ),
@@ -370,21 +480,18 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
+        border:
+            Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8,
+        runSpacing: 8,
         children: [
-          // Known coins (face-up)
-          ..._knownCoins.map((d) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: _buildCoin(d, faceUp: true),
-              )),
-          // Unknown coins (face-down)
-          ...List.generate(_unknownCount, (_) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: _buildCoin(null, faceUp: false),
-              )),
+          // Known coins stay before the hidden coins on every row.
+          ..._knownCoins.map((d) => _buildCoin(d, faceUp: true)),
+          ...List.generate(
+              _unknownCount, (_) => _buildCoin(null, faceUp: false)),
         ],
       ),
     );
@@ -410,7 +517,8 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
         child: faceUp
             ? Text(
                 '$value',
-                style: SpaceTheme.headlineStyle.copyWith(fontSize: 18, color: Colors.white),
+                style: SpaceTheme.headlineStyle
+                    .copyWith(fontSize: 18, color: Colors.white),
               )
             : const Text(
                 '?',
@@ -425,61 +533,78 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
   }
 
   Widget _buildConstraintBanner() {
+    final question = Row(
+      children: [
+        const Icon(Icons.help_outline,
+            color: SpaceTheme.nebulaPurple, size: 18),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(_constraintText,
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 13)),
+        ),
+      ],
+    );
+    // Keep the scan budget visible before committing, including at large text.
+    final attempts = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: (_attemptsUsed == 0
+                  ? SpaceTheme.alienGreen
+                  : SpaceTheme.rocketRed)
+              .withValues(alpha: 0.8),
+        ),
+      ),
+      child: Text(
+        S
+            .of(context)!
+            .galacticMarketAttempts(_maxAttempts - _attemptsUsed, _maxAttempts),
+        softWrap: true,
+        style: SpaceTheme.bodyStyle.copyWith(
+          fontSize: 11,
+          color:
+              _attemptsUsed == 0 ? SpaceTheme.alienGreen : SpaceTheme.rocketRed,
+        ),
+      ),
+    );
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: SpaceTheme.nebulaPurple.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.4)),
+        border:
+            Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.4)),
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.help_outline, color: SpaceTheme.nebulaPurple, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              _constraintText,
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 13),
-            ),
-          ),
-          // The cost of being wrong, shown before the player commits. Kept
-          // next to the question rather than tucked in a corner: a counter
-          // noticed only after a wrong answer changes nothing about how the
-          // answer was chosen.
-          Container(
-            margin: const EdgeInsets.only(left: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: (_attemptsUsed == 0
-                        ? SpaceTheme.alienGreen
-                        : SpaceTheme.rocketRed)
-                    .withValues(alpha: 0.8),
-              ),
-            ),
-            child: Text(
-              S.of(context)!.galacticMarketAttempts(
-                  _maxAttempts - _attemptsUsed, _maxAttempts),
-              style: SpaceTheme.bodyStyle.copyWith(
-                fontSize: 11,
-                color: _attemptsUsed == 0
-                    ? SpaceTheme.alienGreen
-                    : SpaceTheme.rocketRed,
-              ),
-            ),
-          ),
-        ],
-      ),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final badgeScale = MediaQuery.textScalerOf(context).scale(11) / 11;
+        if (constraints.maxWidth >= 480 * badgeScale) {
+          return Row(children: [
+            Expanded(child: question),
+            const SizedBox(width: 8),
+            attempts,
+          ]);
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            question,
+            const SizedBox(height: 8),
+            Align(alignment: Alignment.centerRight, child: attempts),
+          ],
+        );
+      }),
     );
   }
 
   Widget _buildDenominationPicker() {
+    final epoch = _roundEpoch;
     return Column(
       children: [
         Text(
           S.of(context)!.galacticMarketDenominationQuestion,
-          style: SpaceTheme.titleStyle.copyWith(fontSize: 14, color: SpaceTheme.starYellow),
+          style: SpaceTheme.titleStyle
+              .copyWith(fontSize: 14, color: SpaceTheme.starYellow),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 12),
@@ -492,24 +617,31 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
             final color = _denomColors[denom] ?? SpaceTheme.starYellow;
 
             return GestureDetector(
+              key: ValueKey('market-denom-$epoch-$denom'),
               behavior: HitTestBehavior.opaque,
-              onTap: () {
-                AppHaptics.selectionClick();
-                _selectDenom(denom);
-              },
+              onTap: () => _selectDenom(denom, epoch),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: _reducedMotion
+                    ? Duration.zero
+                    : const Duration(milliseconds: 200),
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected ? color.withValues(alpha: 0.4) : SpaceTheme.deepSpace.withValues(alpha: 0.5),
+                  color: isSelected
+                      ? color.withValues(alpha: 0.4)
+                      : SpaceTheme.deepSpace.withValues(alpha: 0.5),
                   border: Border.all(
                     color: isSelected ? color : Colors.white24,
                     width: isSelected ? 3 : 1.5,
                   ),
                   boxShadow: isSelected
-                      ? [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 12, spreadRadius: 2)]
+                      ? [
+                          BoxShadow(
+                              color: color.withValues(alpha: 0.5),
+                              blurRadius: 12,
+                              spreadRadius: 2)
+                        ]
                       : null,
                 ),
                 child: Center(
@@ -530,10 +662,16 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
   }
 
   Widget _buildSubmitButton() {
+    final epoch = _roundEpoch;
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: _selectedDenom != null ? _submitAnswer : null,
+        key: ValueKey('market-submit-$epoch'),
+        onPressed: _canInteract(epoch) &&
+                _selectedDenom != null &&
+                _validDenom(_selectedDenom!)
+            ? () => _submitAnswer(epoch)
+            : null,
         icon: const Icon(Icons.check_circle_outline),
         label: Text(_selectedDenom != null
             ? S.of(context)!.galacticMarketSubmitEach(_selectedDenom!)
@@ -548,7 +686,7 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
   /// It reveals the answer *with the arithmetic that reaches it*, because a
   /// child who ran out of attempts is exactly the one who needs to see the
   /// method worked through once. Telling them only the number teaches nothing.
-  Widget _buildLoseDialog() {
+  Widget _buildLoseDialog(int epoch, BuildContext dialogContext) {
     final s = S.of(context)!;
     final knownTotal = _knownCoins.fold(0, (a, c) => a + c);
     final hiddenTotal = _unknownCount * _correctDenomination;
@@ -560,7 +698,7 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                  RoundSummary(gameKey: 'galactic_market'),
+            RoundSummary(gameKey: 'galactic_market'),
             const Icon(Icons.search_off, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(s.galacticMarketLoseTitle,
@@ -579,13 +717,17 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
             Text(s.galacticMarketReveal(_correctDenomination),
                 style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            OverflowBar(
+              alignment: MainAxisAlignment.spaceEvenly,
+              spacing: 12,
+              overflowSpacing: 12,
+              overflowAlignment: OverflowBarAlignment.center,
               children: [
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(epoch, dialogContext)) return;
+                    Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
@@ -593,7 +735,8 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(epoch, dialogContext)) return;
+                    Navigator.of(dialogContext).pop();
                     Navigator.of(context).pop();
                   },
                   style: SpaceTheme.primaryButtonStyle,
@@ -607,7 +750,7 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
     );
   }
 
-  Widget _buildWinDialog(int score) {
+  Widget _buildWinDialog(int score, int epoch, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -623,10 +766,12 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'galactic_market'),
-                  const Icon(Icons.storefront, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.storefront,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.galacticMarketWinTitle,
-                      style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 12),
                   Text(
                     '${s.galacticMarketReveal(_correctDenomination)}\n'
@@ -638,13 +783,17 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
                   Text(s.galacticMarketWinDesc(_unknownCount, score),
                       style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    spacing: 12,
+                    overflowSpacing: 12,
+                    overflowAlignment: OverflowBarAlignment.center,
                     children: [
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(epoch, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
                         style: SpaceTheme.secondaryButtonStyle,
@@ -652,7 +801,8 @@ _constraintText = _unknownCount == 1 ? S.of(context)!.galacticMarketOneCoin : S.
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(epoch, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
                           Navigator.of(context).pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,

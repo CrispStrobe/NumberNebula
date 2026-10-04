@@ -84,6 +84,9 @@ jobs:
       - name: Check Vault Cracker round effects
         run: flutter test test/widgets/vault_cracker_round_test.dart --concurrency=1 --reporter expanded
 
+      - name: Check Galactic Market round effects
+        run: flutter test test/widgets/galactic_market_round_test.dart --concurrency=1 --reporter expanded
+
       - name: Check cached wormhole rendering
         run: flutter test test/widgets/wormhole_rendering_test.dart --concurrency=1 --reporter expanded
 
