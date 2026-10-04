@@ -221,7 +221,7 @@ void main() {
     expect(saved!['_userAnswers'], [
       ['A', 2]
     ]);
-    await _restore(tester, app, saved!);
+    await _restore(tester, app, saved);
     expect(find.byType(SnackBar), findsNothing);
     await tester.tap(_plus);
     await tester.pump();
