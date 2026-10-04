@@ -18,6 +18,9 @@ import '../constants/difficulty_manager.dart';
 import '../services/nebula_matrix_logic.dart';
 import 'package:flutter/foundation.dart';
 
+/// The originating round remains attached even if a drag crosses restoration.
+typedef NebulaMatrixDrag = ({int number, Object round});
+
 class NebulaMatrixGame extends StatefulWidget {
   final int grade;
   final int level;
@@ -28,7 +31,61 @@ class NebulaMatrixGame extends StatefulWidget {
 }
 
 class _NebulaMatrixGameState extends State<NebulaMatrixGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<NebulaMatrixGame>, PuzzleSessionMixin<NebulaMatrixGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<NebulaMatrixGame>,
+        PuzzleSessionMixin<NebulaMatrixGame> {
+  Object _round = Object();
+  bool _gameOver = false;
+
+  bool _canInteract(Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      !_isGenerating &&
+      !_gameOver &&
+      puzzle != null;
+
+  bool _canPlace(NebulaMatrixDrag drag, String cellId, Object round) =>
+      _canInteract(round) &&
+      identical(drag.round, _round) &&
+      _movesRemaining > 0 &&
+      puzzle!.numberPool.contains(drag.number) &&
+      puzzle!.emptyCells.contains(cellId) &&
+      !userSolution.containsKey(cellId);
+
+  bool _isSolved() =>
+      puzzle != null &&
+      userSolution.length == puzzle!.emptyCells.length &&
+      puzzle!.validateSolution(userSolution);
+
+  void _invalidateRoundEffects({bool cancelDrop = true}) {
+    _round = Object();
+    if (cancelDrop) cancelOneShotMotion(_dropController);
+    cancelOneShotMotion(successController);
+  }
+
+  void _resetRoundEffects() {
+    _invalidateRoundEffects();
+    _dropController.reset();
+    successController.reset();
+    _lastDroppedCell = '';
+    _clearFeedback();
+  }
+
+  void _clearFeedback() {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.clearSnackBars();
+    messenger?.removeCurrentSnackBar();
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(_dropController, reduced,
+        duration: const Duration(milliseconds: 500));
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
+  }
+
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
 
@@ -45,18 +102,56 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
   /// once, so it doubles as the optimal move count for the performance grade.
   int _optimalMoves = 0;
 
-  @override String get sessionGameKey => 'nebula_matrix';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (puzzle == null || _isGenerating) return null;
-    return {'puzzle': puzzle!.toJson(), 'answers': userSolution, 'moves': _movesRemaining, 'maxMoves': _maxMoves, 'optimal': _optimalMoves};
+  @override
+  String get sessionGameKey => 'nebula_matrix';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (puzzle == null || _isGenerating || _gameOver) return null;
+    return {
+      'puzzle': puzzle!.toJson(),
+      'answers': userSolution,
+      'moves': _movesRemaining,
+      'maxMoves': _maxMoves,
+      'optimal': _optimalMoves
+    };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    puzzle = NebulaMatrixPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle']));
-    userSolution = Map<String, int>.from(state['answers']); _movesRemaining = state['moves']; _maxMoves = state['maxMoves']; _optimalMoves = state['optimal'];
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
+    puzzle =
+        NebulaMatrixPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle']));
+    userSolution = Map<String, int>.from(state['answers']);
+    _movesRemaining = state['moves'];
+    _maxMoves = state['maxMoves'];
+    _optimalMoves = state['optimal'];
     _isGenerating = false;
+    final solved = _isSolved();
+    _gameOver = solved || _movesRemaining <= 0;
+    if (_gameOver) {
+      finishPuzzleSession();
+      final round = _round;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted ||
+            !identical(round, _round) ||
+            !_gameOver ||
+            _isGenerating) {
+          return;
+        }
+        if (solved) {
+          _showWinDialog(_winScore(), round);
+        } else {
+          _showOutOfMovesDialog(round);
+        }
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) _generatePuzzle();
   }
@@ -66,18 +161,18 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
     super.initState();
     initGameAnimations();
 
-
     _dropController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
-
+    _dropAnimation =
+        CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -86,19 +181,29 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _invalidateRoundEffects();
     _dropController.dispose();
     disposeGameAnimations();
     super.dispose();
   }
 
-  int _getGridSize() => NebulaMatrixGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getGridSize();
+  int _getGridSize() => NebulaMatrixGenerationConfig(
+          currentDifficulty?.grade ?? widget.grade,
+          currentDifficulty?.level ?? widget.level)
+      .getGridSize();
 
-  int _getClueCount() => NebulaMatrixGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getClueCount();
+  int _getClueCount() => NebulaMatrixGenerationConfig(
+          currentDifficulty?.grade ?? widget.grade,
+          currentDifficulty?.level ?? widget.level)
+      .getClueCount();
 
   void _generatePuzzle() async {
+    _resetRoundEffects();
+    final round = _round;
     beginPuzzleSession();
     setState(() {
       _isGenerating = true;
+      _gameOver = false;
       userSolution.clear();
       successController.reset();
     });
@@ -110,7 +215,7 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
         clueCount: _getClueCount(),
       );
 
-      if (mounted) {
+      if (mounted && identical(round, _round)) {
         setState(() {
           puzzle = p;
 
@@ -122,76 +227,89 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
 
           _isGenerating = false;
         });
-        if (kDebugMode) debugPrint('[NebulaMatrix] Max moves allowed: $_maxMoves for ${p.emptyCells.length} empty cells');
+        if (kDebugMode) {
+          debugPrint(
+              '[NebulaMatrix] Max moves allowed: $_maxMoves for ${p.emptyCells.length} empty cells');
+        }
       }
     } catch (e) {
-      debugPrint('[NebulaMatrix] Error generating puzzle: $e');
+      if (kDebugMode) {
+        debugPrint('[NebulaMatrix] Error generating puzzle: $e');
+      }
     }
   }
 
-  void _placeNumber(int number, String cellId) {
+  void _placeNumber(NebulaMatrixDrag drag, String cellId, Object round) {
+    if (!_canPlace(drag, cellId, round)) return;
     setState(() {
-      userSolution[cellId] = number;
+      userSolution[cellId] = drag.number;
       _lastDroppedCell = cellId;
-      _dropController.forward(from: 0.0);
-
-      // Decrement moves on placement
       _movesRemaining--;
-      if (kDebugMode) debugPrint('[NebulaMatrix] Moves remaining: $_movesRemaining/$_maxMoves');
     });
-
-    // Check if out of moves BEFORE checking solution
-    if (_movesRemaining <= 0 && userSolution.length < puzzle!.emptyCells.length) {
-      _handleOutOfMoves();
-      return;
-    }
-
+    _dropController.reset();
+    playOneShotMotion(_dropController, () {});
     _checkSolution();
   }
 
-  void _removeNumber(String cellId) {
-    setState(() {
-      userSolution.remove(cellId);
-    });
+  void _removeNumber(String cellId, int? expected, Object round) {
+    if (!_canInteract(round) ||
+        !puzzle!.emptyCells.contains(cellId) ||
+        expected == null ||
+        userSolution[cellId] != expected) {
+      return;
+    }
+    setState(() => userSolution.remove(cellId));
   }
 
   void _checkSolution() {
-    if (userSolution.length != puzzle!.emptyCells.length) return;
-
-    if (puzzle!.validateSolution(userSolution)) {
+    if (!_canInteract(_round)) return;
+    // A correct final placement wins, including the last available move.
+    if (_isSolved()) {
       _handleWin();
-    } else {
+    } else if (_movesRemaining <= 0) {
+      _handleOutOfMoves();
+    } else if (userSolution.length == puzzle!.emptyCells.length) {
       _handleIncorrect();
     }
   }
 
+  int _winScore() =>
+      100 * widget.grade + widget.level * 25 + puzzle!.size * puzzle!.size * 10;
+
   void _handleWin() {
+    if (!_canInteract(_round) || !_isSolved()) return;
+    _invalidateRoundEffects(cancelDrop: false);
+    _clearFeedback();
+    setState(() => _gameOver = true);
+    final round = _round;
     finishPuzzleSession();
     AppHaptics.lightImpact();
-    int baseScore = 100 * widget.grade;
-    int levelBonus = widget.level * 25;
-    int sizeBonus = puzzle!.size * puzzle!.size * 10;
-    int totalScore = baseScore + levelBonus + sizeBonus;
+    final totalScore = _winScore();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'nebula_matrix',
-      difficulty: widget.level,
-      score: totalScore,
-        performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
+          skillLevel: widget.grade,
+          gameType: 'nebula_matrix',
+          difficulty: widget.level,
+          score: totalScore,
+          performance:
+              Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
+          movesUsed: _maxMoves - _movesRemaining,
+          optimalMoves: _optimalMoves,
+        ));
 
-      movesUsed: _maxMoves - _movesRemaining,
-      optimalMoves: _optimalMoves,
-    ));
+    _showWinDialog(totalScore, round);
+  }
 
-    successController.forward(from: 0.0);
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _buildWinDialog(totalScore),
-      );
+  void _showWinDialog(int score, Object round) {
+    if (!mounted || !identical(round, _round) || !_gameOver || puzzle == null) {
+      return;
     }
+    playOneShotMotion(successController, () {});
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildWinDialog(score, round, dialogContext),
+    );
   }
 
   void _handleIncorrect() {
@@ -214,28 +332,46 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
   void _handleFailure() {
     if (kDebugMode) debugPrint('[NebulaMatrix] FAILURE - recording loss');
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'nebula_matrix',
-      difficulty: widget.level,
-        progress: _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'nebula_matrix',
+          difficulty: widget.level,
+          progress:
+              _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
+        ));
   }
 
   void _handleOutOfMoves() {
+    if (!_canInteract(_round) || _movesRemaining > 0) return;
+    _invalidateRoundEffects(cancelDrop: false);
+    _clearFeedback();
+    setState(() => _gameOver = true);
+    final round = _round;
     finishPuzzleSession();
     if (kDebugMode) debugPrint('[NebulaMatrix] Out of moves! Game over.');
     _handleFailure();
 
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildOutOfMovesDialog(),
-      );
-    }
+    _showOutOfMovesDialog(round);
   }
 
-  Widget _buildOutOfMovesDialog() {
+  void _showOutOfMovesDialog(Object round) {
+    if (!mounted || !identical(round, _round) || !_gameOver || puzzle == null) {
+      return;
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildOutOfMovesDialog(round, dialogContext),
+    );
+  }
+
+  bool _canUseDialog(Object round, BuildContext dialogContext) =>
+      mounted &&
+      identical(round, _round) &&
+      _gameOver &&
+      dialogContext.mounted &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
+
+  Widget _buildOutOfMovesDialog(Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
@@ -247,12 +383,13 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                  RoundSummary(gameKey: 'nebula_matrix'),
+            RoundSummary(gameKey: 'nebula_matrix'),
             const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(
               s.nebulaMatrixOutOfMoves,
-              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              style: SpaceTheme.headlineStyle
+                  .copyWith(color: SpaceTheme.rocketRed),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -262,13 +399,17 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            OverflowBar(
+              alignment: MainAxisAlignment.spaceEvenly,
+              overflowAlignment: OverflowBarAlignment.center,
+              spacing: 16,
+              overflowSpacing: 12,
               children: [
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) return;
+                    Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
@@ -276,7 +417,8 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) return;
+                    Navigator.of(dialogContext).pop();
                     Navigator.of(context).pop();
                   },
                   style: SpaceTheme.primaryButtonStyle,
@@ -327,6 +469,7 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
   @override
   Widget build(BuildContext context) {
     final s = S.of(context)!;
+    final round = _round;
 
     if (puzzle == null || _isGenerating) {
       return Scaffold(
@@ -351,12 +494,18 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
           child: Column(
             children: [
               GameUI(
+                key: ValueKey(('nebula-header', round)),
                 title: s.nebulaMatrixTitle,
                 level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: () {
+                  if (mounted && identical(round, _round) && !_isGenerating) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -391,23 +540,26 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
     return Center(
       child: AnimatedBuilder(
         animation: glowAnimation,
+        child: _buildGrid(),
         builder: (context, child) {
           return Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.cosmicPink.withValues(alpha: 0.1 * glowAnimation.value),
+                  SpaceTheme.cosmicPink
+                      .withValues(alpha: 0.1 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.cosmicPink.withValues(alpha: glowAnimation.value),
+                color: SpaceTheme.cosmicPink
+                    .withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
-            child: _buildGrid(),
+            child: child,
           );
         },
       ),
@@ -450,6 +602,7 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
   }
 
   Widget _buildCell(String cellId, double cellSize, int row, int col) {
+    final round = _round;
     final isClue = puzzle!.clues.containsKey(cellId);
     final hasUserValue = userSolution.containsKey(cellId);
     final value = isClue ? puzzle!.clues[cellId] : userSolution[cellId];
@@ -465,17 +618,35 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
     // Compute thick borders on zone edges
     double borderTop = 1, borderBottom = 1, borderLeft = 1, borderRight = 1;
     if (hasZones && zoneIdx >= 0) {
-      if (row == 0 || puzzle!.getZoneIndex(row - 1, col) != zoneIdx) borderTop = 2.5;
-      if (row == puzzle!.size - 1 || puzzle!.getZoneIndex(row + 1, col) != zoneIdx) borderBottom = 2.5;
-      if (col == 0 || puzzle!.getZoneIndex(row, col - 1) != zoneIdx) borderLeft = 2.5;
-      if (col == puzzle!.size - 1 || puzzle!.getZoneIndex(row, col + 1) != zoneIdx) borderRight = 2.5;
+      if (row == 0 || puzzle!.getZoneIndex(row - 1, col) != zoneIdx) {
+        borderTop = 2.5;
+      }
+      if (row == puzzle!.size - 1 ||
+          puzzle!.getZoneIndex(row + 1, col) != zoneIdx) {
+        borderBottom = 2.5;
+      }
+      if (col == 0 || puzzle!.getZoneIndex(row, col - 1) != zoneIdx) {
+        borderLeft = 2.5;
+      }
+      if (col == puzzle!.size - 1 ||
+          puzzle!.getZoneIndex(row, col + 1) != zoneIdx) {
+        borderRight = 2.5;
+      }
     }
 
     Border cellBorder = Border(
-      top: BorderSide(color: SpaceTheme.moonSilver.withValues(alpha: 0.6), width: borderTop),
-      bottom: BorderSide(color: SpaceTheme.moonSilver.withValues(alpha: 0.6), width: borderBottom),
-      left: BorderSide(color: SpaceTheme.moonSilver.withValues(alpha: 0.6), width: borderLeft),
-      right: BorderSide(color: SpaceTheme.moonSilver.withValues(alpha: 0.6), width: borderRight),
+      top: BorderSide(
+          color: SpaceTheme.moonSilver.withValues(alpha: 0.6),
+          width: borderTop),
+      bottom: BorderSide(
+          color: SpaceTheme.moonSilver.withValues(alpha: 0.6),
+          width: borderBottom),
+      left: BorderSide(
+          color: SpaceTheme.moonSilver.withValues(alpha: 0.6),
+          width: borderLeft),
+      right: BorderSide(
+          color: SpaceTheme.moonSilver.withValues(alpha: 0.6),
+          width: borderRight),
     );
 
     if (isClue) {
@@ -485,7 +656,10 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
         decoration: BoxDecoration(
           color: zoneTint,
           gradient: LinearGradient(
-            colors: [SpaceTheme.alienGreen.withValues(alpha: 0.3), SpaceTheme.deepSpace.withValues(alpha: 0.8)],
+            colors: [
+              SpaceTheme.alienGreen.withValues(alpha: 0.3),
+              SpaceTheme.deepSpace.withValues(alpha: 0.8)
+            ],
           ),
           border: cellBorder,
         ),
@@ -505,7 +679,10 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
         decoration: BoxDecoration(
           color: zoneTint,
           gradient: LinearGradient(
-            colors: [SpaceTheme.deepSpace.withValues(alpha: 0.7), SpaceTheme.nebulaPurple.withValues(alpha: 0.4)],
+            colors: [
+              SpaceTheme.deepSpace.withValues(alpha: 0.7),
+              SpaceTheme.nebulaPurple.withValues(alpha: 0.4)
+            ],
           ),
           border: cellBorder,
         ),
@@ -522,13 +699,15 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
       }
 
       return GestureDetector(
-        onTap: () => _removeNumber(cellId),
+        key: ValueKey(('nebula-filled', round, cellId, value)),
+        onTap: () => _removeNumber(cellId, value, round),
         child: cell,
       );
     }
 
     // Empty cell - drag target
-    return DragTarget<int>(
+    return DragTarget<NebulaMatrixDrag>(
+      key: ValueKey(('nebula-target', round, cellId)),
       builder: (context, candidateData, rejectedData) {
         final isHovering = candidateData.isNotEmpty;
         return AnimatedBuilder(
@@ -540,7 +719,10 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
               decoration: BoxDecoration(
                 color: isHovering ? null : zoneTint,
                 gradient: isHovering
-                    ? const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
+                    ? const LinearGradient(colors: [
+                        SpaceTheme.starYellow,
+                        SpaceTheme.planetOrange
+                      ])
                     : null,
                 border: cellBorder,
               ),
@@ -558,12 +740,15 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
           },
         );
       },
-      onWillAcceptWithDetails: (_) => true,
-      onAcceptWithDetails: (details) => _placeNumber(details.data, cellId),
+      onWillAcceptWithDetails: (details) =>
+          _canPlace(details.data, cellId, round),
+      onAcceptWithDetails: (details) =>
+          _placeNumber(details.data, cellId, round),
     );
   }
 
   Widget _buildNumberPad() {
+    final round = _round;
     final numbers = puzzle!.numberPool;
 
     return Container(
@@ -577,18 +762,29 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
         runSpacing: 8,
         alignment: WrapAlignment.center,
         children: numbers.map((n) {
-          return Draggable<int>(
-            data: n,
+          return Draggable<NebulaMatrixDrag>(
+            key: ValueKey(('nebula-number', round, n)),
+            maxSimultaneousDrags:
+                _canInteract(round) && _movesRemaining > 0 ? 1 : 0,
+            data: (number: n, round: round),
             feedback: Material(
               color: Colors.transparent,
               child: Container(
-                width: 50, height: 50,
+                width: 50,
+                height: 50,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   gradient: SpaceTheme.starGradient,
-                  boxShadow: [BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.8), blurRadius: 20)],
+                  boxShadow: [
+                    BoxShadow(
+                        color: SpaceTheme.starYellow.withValues(alpha: 0.8),
+                        blurRadius: 20)
+                  ],
                 ),
-                child: Center(child: Text(n.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 20))),
+                child: Center(
+                    child: Text(n.toString(),
+                        style:
+                            SpaceTheme.headlineStyle.copyWith(fontSize: 20))),
               ),
             ),
             childWhenDragging: Opacity(opacity: 0.4, child: _buildTrayTile(n)),
@@ -601,19 +797,22 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
 
   Widget _buildTrayTile(int number) {
     return Container(
-      width: 44, height: 44,
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
+        border: Border.all(
+            color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
       ),
       child: Center(
-        child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 16)),
+        child: Text(number.toString(),
+            style: SpaceTheme.headlineStyle.copyWith(fontSize: 16)),
       ),
     );
   }
 
-  Widget _buildWinDialog(int score) {
+  Widget _buildWinDialog(int score, Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -629,23 +828,38 @@ class _NebulaMatrixGameState extends State<NebulaMatrixGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'nebula_matrix'),
-                  const Icon(Icons.grid_on_rounded, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.grid_on_rounded,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  Text(s.nebulaMatrixWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(s.nebulaMatrixWinTitle,
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
-                  Text(s.nebulaMatrixWinDesc(score), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  Text(s.nebulaMatrixWinDesc(score),
+                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
-                        onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                        onPressed: () {
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
+                          _generatePuzzle();
+                        },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(s.playAgain),
                       ),
                       ElevatedButton(
-                        onPressed: () { Navigator.of(context).pop(); Navigator.of(context).pop(); },
+                        onPressed: () {
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
+                          Navigator.of(context).pop();
+                        },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(s.backToMenu),
                       ),

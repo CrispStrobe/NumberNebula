@@ -90,6 +90,9 @@ jobs:
       - name: Check Crew Manifest round effects
         run: flutter test test/widgets/crew_manifest_round_test.dart --concurrency=1 --reporter expanded
 
+      - name: Check Nebula Matrix round effects
+        run: flutter test test/widgets/nebula_matrix_round_test.dart --concurrency=1 --reporter expanded
+
       - name: Check cached wormhole rendering
         run: flutter test test/widgets/wormhole_rendering_test.dart --concurrency=1 --reporter expanded
 
