@@ -1,246 +1,234 @@
-# Remaining Work -- Game Quality Fixes
+# Executable next-work lanes
 
-Status as of 2026-09-20.
+Updated 2026-10-05. Read [HANDOVER.md](HANDOVER.md) first for the green shipping
+baseline and completed audits. These are scoped next steps, not claims that the
+named games are broken. Each round-audit batch below is independent; implement
+one game per PR rather than combining an entire batch.
 
-## 2026-09-14 SESSION
+## Shared acceptance for game lanes A–F
 
-### Games withheld from players (`debugOnlyGames` in `game_pool.dart`)
+Read `lib/features/games/mixins/puzzle_session_mixin.dart`, the target screen,
+its service/model, and the existing `test/games/` rules before editing. Use
+`test/widgets/dark_matter_grid_round_test.dart`, `nebula_matrix_round_test.dart`,
+`crew_manifest_round_test.dart` and `vault_cracker_round_test.dart` as examples.
+Keep gameplay, generator paths, score formulas and allowances unless a reproduced
+bug requires a documented behavior change.
 
-None. The last three -- Sternen-Schmiede, Ionen-Ring and Würfel-Scanner --
-were released on 2026-09-23 after each was played to a win at skill levels 1
-and 3 (below), following Void-Überquerung, Galaktischer Markt and
-Relikte-Puzzle earlier the same day. All 48 games are in the menu. To hold one
-back again, add its key to `debugOnlyGames` with a reason; it is then hidden
-from the menu and from missions, and playable once the debug menu is unlocked
-(seven taps on the home screen title).
+For each game:
 
-## 2026-09-23 -- the last three gated games played to a win (skill levels 1 and 3)
+1. Trace generation, restore, input, outcome, retry, timers, async work and disposal.
+   List any unguarded old-round or terminal-state callback with a reproduction.
+2. Add focused tests using actual controls: pointer down before restore and up
+   afterward; drag across restore; pending delayed/async completion after restore
+   or disposal; duplicate win/loss; retry; partial and exhausted saves. Exercise
+   applicable mechanics rather than inventing irrelevant checks.
+3. Guard callbacks with round identity and terminal state. Key controls per round
+   where Flutter can replace gesture callbacks. Carry round identity in drag
+   payloads where old feedback overlays can reach new targets.
+4. Keep recoverable mistakes editable and saved. `finishPuzzleSession()` followed
+   by continued play needs `beginPuzzleSession()` and a fresh save. Correct but
+   unsubmitted manual answers stay playable; already terminal saves must not
+   replay rewards or learning outcomes. Capture terminal sessions as null.
+5. Respect reduced motion initially and when toggled mid-animation. Stop/reset
+   obsolete effects and queued feedback on restore/retry. Hoist unchanged board
+   children out of animation builders; preserve useful feedback and fallbacks.
+6. Test English/German, 390×844 and short 390×500 layouts at text scale 2 where
+   applicable. Controls and retry dialogs remain reachable; scroll full content
+   instead of clipping it. Preserve accessible labels and touch targets.
+7. Add the focused test to `.github/workflows/ci.yml`; run focused tests, full
+   Flutter CI, pure calibration and web/deployment checks remotely. A shipping
+   code PR must increase the version/build according to CI. Documentation alone
+   does not need a version bump. Record exact-head run links and any existing skips.
 
-Played interactively in Chrome against production: each board read from a
-screenshot, each move decided and made through the real UI.
+Dialog callbacks must check the actual dialog context is mounted, its route is
+current, and its round is current before dismissing or retrying. Controllers
+owned by text fields must survive until their old widgets detach. Tests must
+separate game animations from normal framework button ripples.
 
-| Game | Result |
-| --- | --- |
-| Würfel-Scanner | **Won** ("Cubes Decoded!", 200 points): top 1 → bottom 6. A deliberate wrong answer (copying the visible top) ended the round with the right answer marked but no reason given. **Fixed:** a wrong answer now shows the working ("Opposite faces add up to 7: 7 − 5 = 2", and the 21 − visible version for hidden-face sums). |
-| Ionen-Ring | **Won** ("Ring Stabilized!", 125 points). The rule named two shapes on the ring and left exactly one legal placement; a deliberate illegal drop was refused with "Rule violation! This bead can't go here." |
-| Sternen-Schmiede | **Won** ("Star Ignited!", 125 points) by reading two arm totals. A deliberately wrong placement showed "16 ×" on the arm at once. **Fixed:** the move budget was an unlabelled number that started in alarm red on a small board and turned redder with every *correct* placement; it now has a "N moves left" label and turns red only when no mistake is left to spare. |
+## A — Next compact puzzle audit
 
-At skill level 3 all three were won again with no page errors: Würfel-Scanner
-asked a real two-cube deduction (hidden pips across a stack whose touching
-faces match: 10 + 15 = 25); Ionen-Ring had a seven-bead ring under two rules;
-Sternen-Schmiede a six-pointed star (target 26, five empty nodes) solved
-without a wasted move.
+**Status:** Ready. **Owner files:** screens `star_forge_game.dart`,
+`chrono_repair_game.dart`, `orbital_towers_game.dart`; corresponding focused tests.
+Screen paths in this document are relative to `lib/features/games/screens/`.
 
-## 2026-09-23 -- three gated games released
+Start with **Star Forge**, then Chrono Repair, then Orbital Towers. Inspect their
+win/loss paths, manual submissions and `_dropController` where present. Prove
+whether restore cancels old input/effects, whether an exhausted save ends once,
+and whether wrong answers preserve an editable snapshot. Retain Star Forge's
+arm geometry, Chrono's clock transforms, and Orbital's visibility rules and
+illustrated tutorial. **Done:** shared acceptance above for all three, with
+no generator/scoring change unless independently justified.
 
-Void-Überquerung, Galaktischer Markt and Relikte-Puzzle were each played to
-a win in the browser (below) and are out of `debugOnlyGames`: they are in the
-menu and can be drawn for missions. Sternen-Schmiede, Ionen-Ring and
-Würfel-Scanner stay gated -- their fixes are in, but none has been played to
-a win yet.
+## B — Arithmetic and grid-input rounds
 
-## 2026-09-23 SESSION -- automated play-through of all six gated games
+**Status:** Ready; can run independently of A.
+**Games/screens:** `arithmatic_square_game.dart`, `arithmancer_crosswords_game.dart`,
+`kenken_game.dart`, `magic_triangles_game.dart`, `number_walls_game.dart`,
+`codebreaker_game.dart`, `puzzle_math_game.dart`.
 
-Driven in Chrome against production with Playwright (debug menu unlocked,
-each game opened through the real menu, tutorial stepped through, board
-captured); Void Crossing was also solved end to end. Nothing was ungated --
-that stays a human call.
+Start with Arithmetic Square; test number-pool conservation, old cell/palette
+callbacks, drag payload identity, manual versus automatic completion, budget
+exhaustion and restored mistakes. Repeat only applicable cases for each game.
+Keep legacy/candidate/constructive/pruned generation choices intact. **Done:**
+shared acceptance and independent rule validation for each changed game.
 
-| Game | Result |
-| --- | --- |
-| Void-Überquerung | **Plays correctly.** Solved in the optimal 7 crossings from the rules drawn on screen; "All Safe!" dialog, score awarded, no errors. |
-| Sternen-Schmiede | **Fixed text.** The tutorial said an arm is "two outer points and the two nodes between them", but an arm is four *consecutive* outline nodes (point, inner, point, inner) -- only one node lies between its two points. The sentence now says so, and the worked example sums along the outline (1 + 10 + 9 + 2). |
-| Ionen-Ring | **Fixed generator.** Grade 1 produced "Circle may not be next to Star" on a ring with no star, so every placement won. Puzzles are now rejected unless every shape a rule names is on the ring and at least one way of filling the blanks breaks a rule (`IonChainPuzzle.rulesMatter`, tested over 200 seeds per level band). |
-| Galaktischer Markt | **Plays correctly.** Solved end to end (total 12, visible 2, two hidden → 5): "Purchase Complete!" with the worked sum. Fixed: the confirm button was hardcoded English ("Each hidden coin = 1 credits"), now localized with a proper singular. |
-| Würfel-Scanner | Reads correctly; grade 1 asks for the bottom face (7 − top). **Fixed:** before any answer, the check button read the win headline ("Cubes Decoded!"), and as a disabled button it was nearly invisible. It now says "Check answer", and disabled primary buttons app-wide keep a dimmed orange. |
-| Relikte-Puzzle | Opens and reads. **Fixed:** board and tray now size to the space they have (a tablet gets 110px pieces instead of 65px, cells up to 140px instead of 80px) and the rotate button is 32px instead of 22px. Then solved end to end: "Artifact Restored!", 125 points. |
+## C — Deduction, roles and construction rounds
 
-Seen once on production and **not reproducible**: a tutorial paragraph
-wrapping mid-word, and the title "Relic" drawn as "Blic", both in Chrome while
-the dev box was at load 30+ and short on memory. A CI stress run rendered both
-texts against production with the browsers pinned to one core: all 43 valid
-renders were pixel-identical to a clean reference (at most 4 px apart), plus 8
-clean local re-runs. Closed; `.github/workflows/stress.yml` [glitch] re-runs it.
+**Status:** Ready. **Games/screens:** `alien_tribunal_game.dart`,
+`hive_station_game.dart`, `xenobiology_lab_game.dart`,
+`hull_plating_game.dart`, `relic_assembly_game.dart`.
 
-The intermittent Firefox "Null check operator used on a null value" at
-startup is **not** this app's: a CI bisect with the browsers pinned to one
-core reproduced it in the build from before any of the web changes (9 of 80
-loads). It is a race in Flutter's CanvasKit startup when there is no WebGL
-and rendering falls back to the CPU. The live tests tolerate exactly that
-message in CPU-only mode and fail on anything else. A plain `flutter create`
-app did not reproduce it (0 of 160 loads), and it reproduced unchanged on
-Flutter 3.47.5 (5 of 80 loads). Reported upstream as
-https://github.com/flutter/flutter/issues/193243; notes in
-`docs/flutter-engine-race-report.md`.
+Start with Alien Tribunal: role assignments, submit/retry, wrong-check persistence
+and restored outcomes. For construction games, exercise placement, rotation,
+controller/slider updates and stale drag overlays. Preserve unique-solution
+checks and the existing rules; confirm feedback describes actual board state.
+**Done:** shared acceptance, including phone layouts with all clues/controls
+reachable. Do not weaken puzzle rules to make widget tests easier.
 
-## 2026-09-20 SESSION -- second play-through of the four gated puzzles
+## D — Planning and bundled-level rounds
 
-A play-through of the gated games turned up a distinct class of problem from
-the first round. The first round fixed puzzles that were *unsolvable*; this
-round fixed puzzles that were solvable but *unreadable or not worth solving*.
+**Status:** Ready. **Games/screens:** `quantum_molecule_builder_game.dart`,
+`space_station_gridlock_game.dart`, `star_loader_game.dart`, `robot_path_game.dart`,
+`solarpanel_game.dart`.
 
-1. **Void-Überquerung** -- at boat capacity 1, tapping a second creature did
-   nothing: no movement, no haptic, no message. The capacity was shown as a
-   bare "1 / 1" in small grey text. Seats are now drawn as chairs, filled and
-   empty, and a refused boarding says why.
-2. **Sternen-Schmiede** -- the geometry did not match the puzzle. Nodes sat on
-   two rings in an order that did not follow the outline, so each "line" was a
-   bent polyline crossing its neighbours. The layout now puts every arm on four
-   *neighbouring* points of the star outline; every arm carries its own running
-   total against the target, tapping a total lights the four nodes it covers,
-   and there is a four-step illustrated walkthrough drawn from a solved board.
-   The task description no longer talks about "lines".
-3. **Ionen-Ring** -- rules were sentences naming shapes ("Raute darf nicht
-   neben Stern stehen") that the board only ever draws, so the player had to
-   guess which word meant which icon. `IonRule` now carries what it forbids as
-   data; each rule is drawn as the two beads with a red slash through them,
-   with the sentence kept underneath and localized.
-4. **Würfel-Scanner** -- two problems. The question text was English string
-   literals built inside the generator, which is why "The bottom of Cube 1..."
-   appeared in German play. And the questions were trivial: the grade 3 answer
-   always worked out to cube 1's *visible* top face and the grade 4 answer to
-   cube 3's *visible* right face, so both were solvable by copying a number off
-   the screen -- and each grade had exactly one question shape. Questions are
-   now data rendered through the ARB, every grade draws from several kinds, the
-   multi-cube questions ask for the total hidden pips (21 per cube minus what
-   is drawn, never a number on screen), and distractors cluster around the
-   answer instead of being scattered.
+Start with Molecule: interrupted moves, reset/restore, victory once and resumed
+move counts. Check pending animations or search work cannot mutate a replacement
+board. Verify bundled-level identity and solution references survive snapshots.
+For Robot distinguish the proven candidate command BFS from the legacy estimate.
+**Done:** shared acceptance plus bundled solution replay; authored order and
+approximate references remain unchanged without separate evidence from lane G.
 
-Tests added or rewritten: `star_forge_geometry_test.dart` (an arm really is
-four neighbouring outline positions; the worked example really is a solved
-board), the Star Forge diagram tests, and a rewritten
-`cube_scanner_logic_test.dart` -- which had been asserting the degenerate
-answers as if they were the specification.
+## E — Moving, timed and falling-piece rounds
 
-`game_pool.dart` is the source of truth for what is gated and why -- each key
-there carries its own note. This table is a summary of it and can go stale, as
-it did: it listed the last three as "Not started" for three commits after they
-were fixed.
+**Status:** Ready. **Games/screens:** `asteroid_math_game.dart`,
+`hyperdrive_gates_game.dart`, `planet_hopping_game.dart`, `path_finder_game.dart`,
+`cargo_bay_arranger_game.dart`, `asteroid_field_navigator_game.dart`.
 
-### Fixed and shipping
+Start with Cargo: tick/hold/next-piece callbacks across reset, pause and disposal;
+row outcomes and learning records; restored timers and piece queues. For moving
+games retain physics and meaningful movement under reduced decorative motion.
+For Navigator preserve mine rules and the timer/performance contract. Keep
+cached/legacy render paths and assisted/original Cargo paths. **Done:** shared
+acceptance plus deterministic timing/input regressions appropriate to each game;
+no claims of improved device FPS from headless tests.
 
-0. **Void-Überquerung, Galaktischer Markt, Relikte-Puzzle** -- released
-   2026-09-23 after each was played to a win in the browser (see the
-   2026-09-23 sections above).
-1. **Alien-Tribunal** — every puzzle was the hardcoded `TLT` fallback. Statements
-   about one other delegate only assert whether two share a role, so flipping
-   everyone is always a second valid solution and the uniqueness check could
-   never pass. Added statements about pairs and about tallies, which break that
-   symmetry; the verdict pattern is now drawn first and held fixed while
-   statements are re-rolled, so all patterns appear evenly.
-2. **Sternkarten-Scan** — a quick sweep reports pointer positions several cells
-   apart and the code kept only those, leaving gaps in the selection; correct
-   sweeps matched nothing. The run is now derived from its two endpoints
-   (`StarChartScanPuzzle.lineBetween`), which also lets the player drag back.
-3. **Orbital-Türme** — added an illustrated walkthrough (the sightline rule is
-   drawn, not just described) plus a "Spielanleitung" button to reopen it. The
-   diagram uses `OrbitalTowersPuzzle.visibilityAlongLine`, the same rule the
-   puzzle is scored by, so it cannot drift.
-4. **Asteroiden-Duell** — "YOUR TURN" / "AI TURN" / "AI THINKING..." were
-   hardcoded English; now localized.
-5. **German i18n** — ~90 words across the file had lost their umlauts
-   (`Lugner`, `Munzen`, `Hohe`, `Turme`, `fur`, `mussen`, ...). Swept and fixed.
-   The onboarding overlay's "Got it"/"Next" buttons were hardcoded English too.
+## F — Turn-based AI rounds
 
-### Notes
+**Status:** Ready. **Games/screens:** `arithmancer_duel_game.dart`,
+`asteroid_duel_game.dart`.
 
-- `OnboardingStep` now takes an optional `illustration` widget. Worth reusing
-  for the other games whose rules are hard to convey in a sentence.
-- Only `debugOnlyGames` gates a game. `calculationGames`, `puzzleGames` and the
-  mission generator all filter through `missionGameKeys`, which excludes it.
+Start with Arithmancer: schedule an AI response, replace/restore the round, and
+prove the response cannot land in the new state. Verify turn ownership, selected
+cards, outcomes once, localized turn labels, pause/retry and disposal. Repeat
+for Asteroid Duel. **Done:** shared acceptance and legal-move/AI regression tests.
+A–F cover the 28 registered games without the completed dedicated round audits.
+Legacy screens such as `bubble_math_game.dart` and `creature_forge_game.dart`
+are not extra registered-game lanes; do not delete them as incidental cleanup.
 
----
+## G — Structural difficulty review and larger samples
 
-## 2026-06-27 SESSION FIXES (20 items)
+**Status:** Ready for CLI work; human conclusions depend on lane H.
+**Owner files:** `tool/calibrate_games.dart`, `tool/compare_algorithm_paths.dart`,
+`tool/compare_generators.dart`, `lib/features/games/services/felt_difficulty.dart`,
+`docs/pure-dart-calibration.md`, `.github/workflows/pure-calibration.yml`.
 
-1. **Game Menu** — compact SRI bar + difficulty picker into single toolbar row
-2. **Komm-Relais** — i18n for all hardcoded strings, difficulty curve (always 1-2 letters hidden)
-3. **Rumpf-Panzerung** — drag placement uses piece center instead of top-left
-4. **Tresor-Knacker** — draggable number palette for digit input
-5. **Crew-Manifest** — i18n + uniqueness solver for puzzles, structured clues
-6. **Alien-Tribunal** — i18n + grade 3 difficulty fix (4→5 people)
-7. **Gravitationsfeld** — i18n + keyboard input + multi-scale puzzles
-8. **Ionen-Ring** — capped ring size + fixed duplicate rules
-9. **Start-Sequenz** — fixed missing key on ship cards (ReorderableListView)
-10. **Orbital-Türme** — clue number alignment with grid cells
-11. **Nebel-Matrix** — conditional zone instructions (only when zones exist)
-12. **Galaktischer Markt** — level-based difficulty scaling
-13. **Kreaturen-Schmiede** — fixed forbidden combo count bug + part variant labels
-14. **Sternen-Schmiede** — color-coded star lines + visible magic constant
-15. **Sektor-Maler** — edge crossing check prevents overlapping lines
-16. **Würfel-Scanner** — roll-sequence puzzles for spatial reasoning
-17. **Warp-Faltung** — replay animation button
-18. **Relikte-Puzzle** — tap-to-rotate pieces on solution grid (long-press to remove)
-19. **Bienen-Station** — investigated, confirmed solid (hex Minesweeper)
-20. **CLAUDE.md** — created gitignored project env instructions
+1. Reproduce the 60,400-case baseline using the documented seed; retain frozen
+   fixtures, summaries and per-stratum sample counts. Use workflow dispatch for
+   larger runs; above 50 samples the matrix is bounded to two grade jobs with
+   two workers each. Do not run the large sweep on a shared development host.
+2. Review the recorded 67 flags by mechanic: Molecule 42, Robot 15, Warp Fold 4,
+   Crossword 3, Solar 2, Gridlock 1. Verify those counts against the new report;
+   repeated authored transitions are not independent defects.
+3. Pick one transition, gather matched adjacent-level samples for both paths,
+   replay solution evidence, and distinguish hidden-count/workload jumps from
+   real invalid boards. Keep authored order unless solution paths support a change.
+4. Report distributions, fallback rates, sparse strata and reference-proof status.
+   Add a fixture-backed regression for a proven defect. Preserve per-case seeds
+   and fixture replay for wall-clock-bounded generators.
 
----
+**Done:** a public findings table with seed/commit/sample counts, flags explained
+or still open, paired baseline/candidate results and zero validation regressions.
+Do not automatically change child-facing pars or present software timing as
+felt difficulty.
 
-## ALL REPORTED ISSUES RESOLVED
+## H — Human difficulty and native-device evidence
 
-### Previously BROKEN/UNPLAYABLE — all fixed:
+**Status:** Instrumentation/research preparation is doable; actual measurement
+is blocked by unavailable devices and playtest data.
+**Owner files:** workload model, `Perf.*` call sites in screens, and calibration docs.
 
-1. **Launch Sequence** — bright ship card colors, container background lightened.
-2. **Creature Forge** — `HitTestBehavior.opaque` added. Clear combinatorics gameplay.
-3. **Galactic Market** — `HitTestBehavior.opaque` added. Division-based coin puzzle.
-4. **Warp Fold** — fold animation connected to puzzle logic.
-5. **Ion Chain** — CSP attempts 500, fallback uses backtracking with 2 rules.
+Prepare a consent-aware, minimal session protocol: relevant skill fluency,
+board seed, attempts, hints, completion/abandonment and qualitative confusion.
+Define how novice/fluent observations would validate the current ordinal bands.
+List unvalidated pars for deduction, Cargo, Molecule, Navigator and Cryptex.
+When devices/data become available, collect native frame/memory measurements
+and analyze matched skill groups before proposing threshold changes.
+**Done now:** a protocol and explicit missing-evidence table. **Done later:**
+reviewed human/device results and separately justified changes. No synthetic
+samples may stand in for children or physical-device measurements.
 
-### Previously NEEDS IMPROVEMENT — all fixed:
+## I — Solver integration in dart_csp
 
-6. **Cube Scanner** — isometric 3D rendering, auto-advance on correct answer.
-7. **Sector Painter** — overlap avoidance algorithm.
-8. **Nebula Matrix** — zone tints and thicker borders on zone boundaries.
-9. **Circuit Repair** — grade 1-2 → 4 digits, grade 3+ → 6 digits. Attempts 5→3.
-10. **Hull Plating** — rotation cycles, ghost preview, placement validation.
-11. **Relic Assembly** — numbers, drag-drop, rotate, green/red edge-match feedback.
-12. **Asteroid Duel** — procedural jagged asteroids with gradients and shadows.
-13. **Gravity Well** — font sizes 11-13px, enlarged boxes.
-14. **Hive Station** — 90/80/70/60% hints by grade + unique-solution verification.
-15. **Vault Cracker** — Wordle-style colored digit boxes, 6-guess limit.
-16. **Xenobiology Lab** — live-computed totals with color feedback.
+**Status:** Ready for a narrow fixture/benchmark lane.
+**Repository:** [CrispStrobe/dart_csp](https://github.com/CrispStrobe/dart_csp).
+Follow [upstream integration lanes](https://github.com/CrispStrobe/dart_csp/blob/main/doc/numbernebula-integration.md).
 
-### Balance Audit Fixes (all 49 games):
+Extract one deterministic Square/Crossword/Cargo workload, validate solutions
+independently, benchmark baseline and opt-in candidate, and optimize only a
+measured bottleneck. Land solver fixes upstream first; update both app dependency
+pins together only after native/dart2js/WASM and all-game replay pass.
+**Done:** reproducible upstream evidence, preserved fallback and downstream green
+checks. Do not bundle a broad engine rewrite with app UI fixes.
 
-17. **Bubble Math** — added missing `reportOutcome()` + SRI reporting.
-18. **Arithmetic Square, Perspective Puzzle, Star Loader, Puzzle Math** — fixed score:0 bugs.
-19. **Hyperdrive Gates** — fixed score:0, accumulates in `_levelScore`.
-20. **Cargo Bay Arranger, Gravity Well** — added SRI MathProblem reporting.
-21. **Grid Filler** — difficulty scaling 10×10 → 45×45.
-22. **7 puzzle games** — added move limits (Codebreaker, Nebula Matrix, Orbital Towers, Star Forge, Magic Triangles, Number Walls, KenKen).
-23. **All games** — star rating normalization (1-3 stars), displayed on game menu cards.
-24. **Arithmancer Duel** — fully audited, hybrid SRI+cognitive tracking confirmed working.
+## J — Browser rendering and hosting comparisons
 
----
+**Status:** Ready remotely. **Owner files:** `tool/web_live_test/tests/performance.spec.mjs`,
+rendering cache/painter files, `.github/workflows/hosted-performance.yml` and `web-perf.yml`.
 
-## MINOR REMAINING ITEMS (cosmetic only, all games fully playable)
+Measure cached versus legacy on identical builds, seeds and browsers with warm-up
+and repeated windows. Record renderer, cross-origin isolation, startup, storage
+writes, allocations where available and RAF limitations. Compare the public
+Vercel app and GitHub Pages with its correct base path. Keep preview bypass
+restricted to the intended preview host and probes restricted to the app origin.
+**Done:** raw measurements and a bounded claim supported by them, both fallback
+paths green, no idle checkpoint regression and no swallowed application errors.
+Physical battery and native raster conclusions depend on H.
 
-1. **Warp Fold** — 2D fold animation works but 3D perspective would look nicer. Replay button added. Cosmetic.
-2. **i18n gaps** — some games still have hardcoded English strings in logic services (constraint text, section headers). Scan in progress.
+## K — CI cost and documentation maintenance
 
----
+**Status:** Ready. **Owner files:** workflow YAML and handover/planning docs.
 
-## COMPLETED (cumulative)
+Use recent run durations to identify duplicated setup or repeated focused suites.
+Propose cache/matrix changes with before/after runner minutes; retain required
+analysis, full regression, all-game generation, fallback and deployed-site gates.
+Keep larger sweeps bounded and artifact retention explicit. Verify workflow
+syntax and the exact resulting head remotely. Documentation must distinguish
+configured jobs, successful historical runs and current green heads.
+**Done:** measured lower cost without coverage loss, or a documented no-change
+finding. Shared workflow/version files should have one integrator when lanes
+run in parallel; do not let separate agents race on them.
 
-- 49 games implemented from Kanguru competition analysis
-- 70+ test files (789+ tests, all passing)
-- Comprehensive game balance audit (GAME_BALANCE_AUDIT.md)
-- Star rating system: `scoreToStars()`, `bestStars`/`lastStars` in GameProvider, UI on game cards
-- `StarRatingDisplay` widget for win dialogs
-- SRI integration for all arithmetic games
-- Move limits for all puzzle games (2× empty cells)
-- Grid Filler difficulty scaling (10×10 to 45×45)
-- Score:0 bugs fixed in 5 games
-- Wordle-style feedback in Vault Cracker
-- Live-computed totals in Xenobiology Lab
-- Ion Chain CSP hardened (500 attempts + smart fallback)
-- Hive Station unique-solution verification
-- Localization for all new features (en + de)
+## R — Store release readiness
 
-## KEY FILES
+**Status:** Public preparation is doable; current store state requires authorized
+App Store Connect access. **Owner files:** `.github/workflows/release.yml`,
+`.github/workflows/submit.yml`, `pubspec.yaml`, public release notes.
 
-- `GAME_BALANCE_AUDIT.md` — systematic audit of all 49 games with per-game catalog
-- `DESIGN_BRIEFS.md` / `DESIGN_BRIEFS_ROUND2.md` — approved redesign specs
-- `GAME_IDEAS.md` — original 1544-problem analysis
-- `GAME_THEMING.md` — space narrative, i18n strings
-- `VISUAL_TEMPLATE.md` — mandatory UI patterns
+Read the two workflows and check platform/version/build mapping. Prepare release
+notes for the current code and identify which tested commit would be uploaded.
+Recheck current iOS/macOS review states and build numbers; the old 1.4.10 states
+are not current evidence. Distinguish upload, review submission and developer
+release, and use the authorized release policy before executing store actions.
+**Done:** a verified platform-by-platform readiness table and, if authorized,
+release outcome with public-safe notes. Keep account IDs, keys and machine
+instructions out of repo docs. Web deployment is already green at the baseline.
+
+## Optional housekeeping
+
+- `arithmatic_square` spelling: leave it unless a migration includes saved game
+  keys, menu, missions, skill mappings, l10n and compatibility tests in one PR.
+  A cosmetic rename that loses progress is unacceptable.
+- Launcher icons: regenerate from `assets/images/app_icon.png` when the artwork
+  actually changes; re-encoding unchanged source art is not a gameplay fix.
+- Historical design briefs/specs describe original implementation tasks. Verify
+  current source before treating their old assignments as open work.

@@ -1,4 +1,12 @@
 
+
+## Project status and next work
+
+The verified code baseline is **1.5.22+38** (2026-10-05): 48 registered games,
+60,400 pure Dart cases with zero failures, and passing Flutter/web/deployment CI.
+Start with [HANDOVER.md](HANDOVER.md) for evidence and boundaries, then
+[REMAINING_WORK.md](REMAINING_WORK.md) for scoped tasks. Automated workload
+estimates remain untrained; physical-device and child playtest evidence is pending.
 # 🚀 NumberNebula
 
 A space-themed math learning app for primary school students onwards. Features engaging mini-games including Magic Triangles, arithmetic puzzles, and visual spatial games.

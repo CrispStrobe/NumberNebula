@@ -1,53 +1,26 @@
-# Improvement Plan — space_math_academy & voc (WortUniversum)
+# Next-step execution plan
 
-Open punch list across both apps. Sibling repo: `../voc` for WortUniversum
-(German grammar/vocab); this repo for space_math_academy (math). Both ship.
+Updated 2026-10-05. The current verified state is in [HANDOVER.md](HANDOVER.md);
+full task specifications and acceptance checks are in [REMAINING_WORK.md](REMAINING_WORK.md).
+Completed work belongs in [HISTORY.md](HISTORY.md).
 
-Everything already finished — the two audit passes, Tiers 1-8, the StarLoader
-solver overhaul, the Vercel deployment fix, and the 2026-08-01 mission-grading
-work — lives in **[HISTORY.md](HISTORY.md)**. Only open items are listed here.
+1. **A:** Star Forge, Chrono Repair, Orbital Towers; one focused round audit per PR.
+2. **B–F:** Complete the other 25 registered-game round audits in independently
+   owned batches. A–F together cover 28 remaining games; 20 already have dedicated
+   audited round tests. All 48 already have generation/session baseline coverage.
+3. **G and I:** In parallel when resources permit, inspect structural progression
+   flags and create a narrow reproducible upstream solver benchmark. Preserve
+   all baseline/candidate/fallback paths and avoid automatic par changes.
+4. **J and K:** Measure browser/rendering and CI costs remotely. Optimize only
+   measured bottlenecks while retaining all required validation gates.
+5. **H:** Prepare human/device validation now; execute measurements when real
+   devices and playtest data are available. This dependency prevents claims of
+   calibrated child difficulty or native frame/battery improvements.
+6. **R:** Prepare release notes and verify current store states/build mappings.
+   Historical review labels are insufficient evidence to release a platform.
 
-## Status legend
-
-- [ ] not started
-- [/] in progress
-- [x] done
-- [-] decided not to do
-
----
-
-## Open items
-
-### [ ] Normalize the `arithmatic_square` typo key
-`skill_category.dart` and 12 other sites use `'arithmatic_square'` (matches the
-typo'd filename, so it is functionally fine). Renaming touches the game key,
-the menu, `gameSkillMap`, `kStarThresholds`, the mission game pool, the l10n
-key names and the contract tests — cosmetic, do it in one sweep or not at all.
-
----
-
-## Follow-ups from the mission-grading work (2026-08-01)
-
-### [ ] Play-test the per-game grading thresholds
-Every game now reports a 0..1 performance ratio, but a few of the pars are
-judgement calls made from reading the code, not from playing:
-- deduction games (vault cracker, signal triangulation) treat *half* the guess
-  allowance as par
-- cargo bay expects roughly one equation bonus per four cleared rows
-- atomix expects the molecule inside half the move limit
-- minesweeper's par is one second per cell
-- cryptex counts one committed dial setting per wrong-at-start dial as par
-Automated structural calibration is available through `tool/calibrate_games.dart`
-and the GitHub CI grade/level matrix. All 48 games also have pure Dart generation,
-every-level seeded sweeps, retained legacy/candidate A/B solver paths,
-and untrained workload estimates; see
-`docs/pure-dart-calibration.md` and `docs/optimization-validation.md`.
-No native devices or human playtest data are available yet. Watch real sessions and retune; the constants are all at the `Perf.*` call
-sites in `lib/features/games/screens/`.
-
-### [ ] Regenerate the launcher icons from the compressed source
-`assets/images/app_icon.png` was re-encoded (1342 KB → 441 KB, same 1024×1024
-art). The per-platform icons under `android/`, `ios/`, `macos/` and `web/` were
-generated from the old file and were left untouched — they are byte-identical
-art, so this is housekeeping, not a bug. Run
-`dart run flutter_launcher_icons` next time the icon changes for real.
+Parallel ownership: screen/test lanes can work independently. Assign a single
+integrator to shared mixins, workflow files, dependency pins and version bumps.
+Check host load, available RAM and disk before local work; large tests, sampling,
+WASM builds and browser jobs belong on GitHub Actions (or a configured remote runner).
+Use separate commits per repository and publish public documentation only.

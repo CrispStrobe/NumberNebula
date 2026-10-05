@@ -1,5 +1,12 @@
 # Automated game testing and calibration
 
+Current verified baseline (2026-10-05): **1.5.22+38**, commit
+`8eaf252bc86dfc7e44bb219613e60f2bd3450e7c`. See [handover](../HANDOVER.md)
+for exact-head green CI links (1,471 Flutter tests, two skips; 60,400 pure Dart
+cases with zero failures; 864 Flutter capture/replay cases and green web deployment).
+Dated results below are historical observations. Next tasks are defined in
+[the lane board](../REMAINING_WORK.md); estimates remain untrained.
+
 All 48 registered games now also generate puzzle content with the Dart SDK
 alone, using the app's shared generators. See [pure Dart calibration](pure-dart-calibration.md)
 for the isolated dependency package, 60,400-board every-level sweep, seeded regressions and
@@ -19,7 +26,7 @@ dart run tool/calibrate_games.dart --capture --require-all \
   --grades 1,3,6 --levels 1,10 --samples 3 --output calibration-report.json
 ```
 
-Use `--flutter /path/to/flutter` when the SDK is not on PATH. Add `--game KEY`
+Use the `--flutter` option with an SDK executable when it is not on PATH. Add `--game KEY`
 without `--require-all` to inspect one game. This captures 864
 boards (48 games × 3 grades × 2 levels × 3 samples), exercises English/German
 hints, checks snapshot round trips, and reopens the actual game from storage.
@@ -724,13 +731,11 @@ the rendering/session contracts; they do not establish children's felt
 difficulty or physical-device frame rate. Both browser reports observed zero
 idle session writes and three moving-game checkpoints per ten-second sample.
 
-## Shared VPS resource policy
+## Resource policy
 
-Check load averages, available RAM and free space before substantial local work.
-Use local work for edits, inspection and small targeted checks. Run large
-calibration, full suites, WASM compilation and browsers on GitHub Actions, or
-Kaggle when available. Never overlap heavy local jobs. The 2026-10-02 resource
-check found four CPUs, peak load averages 18.72/15.45/9.10, only 2.7 GiB free on
-the root volume and 6.0 GiB on the toolchain volume. Large outputs belong on the
-storage volume or remote artifacts, not the root filesystem. Preserve other
-users' processes and data.
+Check load averages, available RAM and output/cache disk space before substantial
+local work. Keep local work to edits, inspection and small targeted checks.
+Run large calibration, full suites, WASM builds and browser validation on GitHub
+Actions or a configured remote runner. Avoid overlapping heavy local jobs and
+preserve other users' processes and data. Host-specific configuration belongs in
+private operational notes outside the repository.

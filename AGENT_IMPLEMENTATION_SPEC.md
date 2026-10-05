@@ -1,5 +1,10 @@
 # Agent Implementation Specification
 
+This is the historical new-game implementation specification. Existing games
+already implement much of it; original batch assignments are not open tasks.
+Use [HANDOVER.md](HANDOVER.md) and [REMAINING_WORK.md](REMAINING_WORK.md) for
+current state and next work, and verify examples against current source.
+
 > STRICT PROTOCOL for implementing new games in Space Math Academy.
 > Every agent MUST follow these rules exactly. Non-compliance breaks the app.
 

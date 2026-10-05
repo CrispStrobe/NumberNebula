@@ -1,5 +1,28 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-10-05 — Round audits through Dark Matter Grid
+
+[PRs #29–#46](https://github.com/CrispStrobe/NumberNebula/pull/46) completed focused
+round-lifecycle audits for 20 games; the per-game PR map is in [HANDOVER.md](HANDOVER.md).
+Changes protect restored rounds against old input, timers, drag payloads and
+async results; preserve recoverable saves; prevent duplicate outcomes; respect
+initial and mid-animation reduced motion; and improve EN/DE phone layouts.
+Launch Sequence drag cost now matches inversion-based workload. Working
+algorithms, rendering alternatives and fallbacks remain available.
+
+Baseline `8eaf252bc86dfc7e44bb219613e60f2bd3450e7c`, version **1.5.22+38**:
+[Flutter CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/37241615028)
+passed 1,471 tests with two existing skips;
+[pure calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/37241614982)
+validated 60,400 cases with zero failures;
+[web/deployment](https://github.com/CrispStrobe/NumberNebula/actions/runs/37241614977)
+passed WASM/JS, 864 capture/replay cases, browser and production checks.
+No physical-device/child playtest calibration or new App Store release is claimed.
+
+Public planning now separates ready lanes from missing evidence. Historical
+entries below retain their original dates and counts; they are not current-head
+claims. Machine-specific instructions have moved out of public documentation.
+
 ## 2026-10-02 — Cargo verified on GitHub Actions
 
 Published an isolated CI snapshot on `ci/game-optimizations-20261002`, without

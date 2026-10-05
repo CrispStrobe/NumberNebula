@@ -1,5 +1,12 @@
 # Pure Dart generation and estimated difficulty
 
+Current verified baseline (2026-10-05): **1.5.22+38**, commit
+`8eaf252bc86dfc7e44bb219613e60f2bd3450e7c`. See [handover](../HANDOVER.md)
+for exact-head green CI links (1,471 Flutter tests, two skips; 60,400 pure Dart
+cases with zero failures; 864 Flutter capture/replay cases and green web deployment).
+Dated results below are historical observations. Next tasks are defined in
+[the lane board](../REMAINING_WORK.md); estimates remain untrained.
+
 The app and CLI share puzzle generators for all 48 registered games. Screen
 models with Flutter colors/layout retain adapters; their generation uses pure
 models. Molecule, Gridlock and normal Star Loader select their actual bundled
@@ -176,7 +183,7 @@ simplified-operation fallbacks. For a paired generation comparison and hint
 comparison on identical boards:
 
 ```sh
-dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/compare_algorithm_paths.dart /mnt/akademie_storage/algorithm-comparison.json
+dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/compare_algorithm_paths.dart algorithm-comparison.json
 ```
 
 The comparison keeps the generated boards, hint constraints, seeds, grade,
