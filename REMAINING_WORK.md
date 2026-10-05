@@ -5,6 +5,21 @@ baseline and completed audits. These are scoped next steps, not claims that the
 named games are broken. Each round-audit batch below is independent; implement
 one game per PR rather than combining an entire batch.
 
+## Player availability
+
+### Games withheld from players
+
+None. `debugOnlyGames` is empty. The source of truth is
+`lib/features/missions/data/game_pool.dart`; if a game is withheld later, list
+its exact key and release criteria here. Audit lanes below do not withhold games.
+
+### Fixed and shipping
+
+All 48 registered games are available in the menu and missions. The 20 completed
+focused round audits are mapped in [HANDOVER.md](HANDOVER.md); historical browser
+play-throughs are archived in [game-quality notes](docs/game-quality-history.md).
+The remaining 28 focused audits are additional hardening work, not a broken-game list.
+
 ## Shared acceptance for game lanes A–F
 
 Read `lib/features/games/mixins/puzzle_session_mixin.dart`, the target screen,
