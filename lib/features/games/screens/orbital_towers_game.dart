@@ -22,6 +22,8 @@ import '../constants/difficulty_manager.dart';
 import '../services/orbital_towers_logic.dart';
 import 'package:flutter/foundation.dart';
 
+typedef OrbitalTowersDrag = ({int number, Object round});
+
 class OrbitalTowersGame extends StatefulWidget {
   final int grade;
   final int level;
@@ -55,25 +57,95 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   // Track completed rows/columns that flash green
   final Set<String> _validatedLines = {};
 
+  Object _round = Object();
+  bool _won = false;
+  bool _outOfMoves = false;
+
+  bool _canInteract(Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      !_isGenerating &&
+      !_won &&
+      !_outOfMoves &&
+      puzzle != null;
+
+  void _resetRoundEffects() {
+    _round = Object();
+    cancelOneShotMotion(successController);
+    cancelOneShotMotion(_dropController);
+    _clearFeedback();
+  }
+
+  void _clearFeedback() {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.clearSnackBars();
+    messenger?.removeCurrentSnackBar();
+  }
+
+  bool _isSolved() =>
+      puzzle != null &&
+      userSolution.length == puzzle!.emptyCells.length &&
+      puzzle!.validateSolution(userSolution);
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(_dropController, reduced, duration: const Duration(milliseconds: 500));
+    updateOneShotMotion(successController, reduced, duration: const Duration(milliseconds: 600));
+  }
+
+  @visibleForTesting
+  Object get testRound => _round;
+
+  @visibleForTesting
+  void rebuildForTesting() => setState(() {});
+
+  @visibleForTesting
+  void placeForTesting(int number, String cellId, Object round) => _placeNumber(number, cellId, round);
+
   @override String get sessionGameKey => 'orbital_towers';
   @override int get sessionGrade => widget.grade;
   @override int get sessionLevel => widget.level;
   @override Map<String, dynamic>? capturePuzzleSession() {
-    if (puzzle == null || _isGenerating) return null;
-    return {'puzzle': puzzle!.toJson(), 'answers': userSolution,
-      'moves': _movesRemaining, 'maxMoves': _maxMoves, 'optimal': _optimalMoves,
+    if (puzzle == null || _isGenerating || _won || _outOfMoves) return null;
+    return {
+      'puzzle': puzzle!.toJson(),
+      'answers': userSolution,
+      'moves': _movesRemaining,
+      'maxMoves': _maxMoves,
+      'optimal': _optimalMoves,
       'hints': _hintsUsed,
     };
   }
   @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
     puzzle = OrbitalTowersPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle'] as Map));
     userSolution = Map<String, int>.from(state['answers'] as Map);
     _movesRemaining = state['moves'] as int;
     _maxMoves = state['maxMoves'] as int;
     _optimalMoves = state['optimal'] as int;
     _hintsUsed = state['hints'] as int? ?? 0;
-
     _isGenerating = false;
+    _won = false;
+    _outOfMoves = false;
+    _validatedLines.clear();
+    // Handle older terminal snapshots
+    final solved = _isSolved();
+    final exhausted = !solved && _movesRemaining <= 0 && userSolution.length < puzzle!.emptyCells.length;
+    if (solved || exhausted) {
+      _won = solved;
+      _outOfMoves = exhausted;
+      finishPuzzleSession();
+      final round = _round;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !identical(round, _round) || _isGenerating) return;
+        if (solved && _won) {
+          _showWinDialog(_winScore(), round);
+        } else if (exhausted && _outOfMoves) {
+          _showOutOfMovesDialog(round);
+        }
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) _generatePuzzle();
@@ -157,6 +229,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _round = Object();
+    cancelOneShotMotion(successController);
+    cancelOneShotMotion(_dropController);
     _dropController.dispose();
     disposeGameAnimations();
     super.dispose();
@@ -169,13 +244,18 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   int _getCellClueCount() => OrbitalTowersGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getCellClueCount();
 
   void _generatePuzzle() async {
+    _resetRoundEffects();
+    final round = _round;
     beginPuzzleSession();
     setState(() {
       _isGenerating = true;
+      _won = false;
+      _outOfMoves = false;
       _hintsUsed = 0;
       userSolution.clear();
       _validatedLines.clear();
       successController.reset();
+      _dropController.reset();
     });
 
     try {
@@ -186,7 +266,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
         cellClueCount: _getCellClueCount(),
       );
 
-      if (mounted) {
+      if (mounted && identical(round, _round)) {
         setState(() {
           puzzle = p;
 
@@ -245,33 +325,30 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     StrategyHintDialog.show(context, focus: s.hintTowerFocus(row + 1, column + 1),
       strategy: s.hintTowerStrategy,
       working: compatible ? '${line.join(' → ')} · 📷 $visible\n${s.hintPossibleMove(value!)}' : s.hintCheckPlacements,
-      demonstrate: compatible ? () { if (mounted) _placeNumber(value!, cell); } : null);
+      demonstrate: compatible ? () { if (mounted) _placeNumber(value!, cell, _round); } : null);
   }
 
-  void _placeNumber(int number, String cellId) {
-    if (puzzleSessionFinished) return;
+  void _placeNumber(int number, String cellId, Object round) {
+    if (!_canInteract(round) || puzzle!.clues.containsKey(cellId) || !puzzle!.emptyCells.contains(cellId) || !puzzle!.numberPool.contains(number)) return;
+    if (_won || _outOfMoves) return;
     setState(() {
       userSolution[cellId] = number;
       _lastDroppedCell = cellId;
-      _dropController.forward(from: 0.0);
-
-      // Decrement moves on placement
       _movesRemaining--;
       if (kDebugMode) debugPrint('[OrbitalTowers] Moves remaining: $_movesRemaining/$_maxMoves');
     });
+    _dropController.forward(from: 0.0);
+    playOneShotMotion(_dropController, () {});
     _checkLineCompletion(cellId);
-
-    // Check if out of moves BEFORE checking solution
     if (_movesRemaining <= 0 && userSolution.length < puzzle!.emptyCells.length) {
       _handleOutOfMoves();
       return;
     }
-
     _checkSolution();
   }
 
-  void _removeNumber(String cellId) {
-    if (puzzleSessionFinished) return;
+  void _removeNumber(String cellId, int? expected, Object round) {
+    if (!_canInteract(round) || !puzzle!.emptyCells.contains(cellId) || expected == null || userSolution[cellId] != expected) return;
     setState(() {
       userSolution.remove(cellId);
     });
@@ -314,6 +391,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   }
 
   void _checkSolution() {
+    if (!_canInteract(_round)) return;
     if (userSolution.length != puzzle!.emptyCells.length) return;
 
     if (puzzle!.validateSolution(userSolution)) {
@@ -323,36 +401,40 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     }
   }
 
+  int _winScore() => 100 * widget.grade + widget.level * 25 + puzzle!.size * puzzle!.size * 15;
+
   void _handleWin() {
+    if (!_canInteract(_round) || !_isSolved()) return;
+    _resetRoundEffects();
+    setState(() => _won = true);
+    final round = _round;
     finishPuzzleSession();
     AppHaptics.lightImpact();
-    int baseScore = 100 * widget.grade;
-    int levelBonus = widget.level * 25;
-    int sizeBonus = puzzle!.size * puzzle!.size * 15;
-    int totalScore = baseScore + levelBonus + sizeBonus;
-
+    final totalScore = _winScore();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       skillLevel: widget.grade,
       gameType: 'orbital_towers',
       difficulty: widget.level,
       score: totalScore,
-        performance: Perf.penalize(Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves), hints: _hintsUsed),
+      performance: Perf.penalize(Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves), hints: _hintsUsed),
       hintsUsed: _hintsUsed,
       movesUsed: _maxMoves - _movesRemaining,
       optimalMoves: _optimalMoves,
     ));
-
-    successController.forward(from: 0.0);
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _buildWinDialog(totalScore),
-      );
-    }
+    _showWinDialog(totalScore, round);
   }
 
+  void _showWinDialog(int score, Object round) {
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) return;
+    playOneShotMotion(successController, () {});
+    showDialog(context: context, barrierDismissible: false, builder: (dialogContext) => _buildWinDialog(score, round, dialogContext));
+  }
+
+  bool _canUseDialog(Object round, BuildContext dialogContext) =>
+      mounted && identical(round, _round) && (_won || _outOfMoves) && dialogContext.mounted && ModalRoute.of(dialogContext)?.isCurrent == true;
+
   void _handleIncorrect() {
+
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -380,20 +462,23 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   }
 
   void _handleOutOfMoves() {
+    if (_outOfMoves || _won) return;
+    if (!_canInteract(_round)) return;
+    _resetRoundEffects();
+    setState(() => _outOfMoves = true);
+    final round = _round;
     finishPuzzleSession();
     if (kDebugMode) debugPrint('[OrbitalTowers] Out of moves! Game over.');
     _handleFailure();
-
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildOutOfMovesDialog(),
-      );
-    }
+    _showOutOfMovesDialog(round);
   }
 
-  Widget _buildOutOfMovesDialog() {
+  void _showOutOfMovesDialog(Object round) {
+    if (!mounted || !identical(round, _round) || !_outOfMoves || puzzle == null) return;
+    showDialog(context: context, barrierDismissible: false, builder: (dialogContext) => _buildOutOfMovesDialog(round, dialogContext));
+  }
+
+  Widget _buildOutOfMovesDialog(Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
@@ -512,9 +597,14 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
           child: Column(
             children: [
               GameUI(
+                key: ValueKey(('orbital-header', _round)),
                 title: s.orbitalTowersTitle,
                 level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: () {
+                  if (mounted && identical(_round, _round) && !_isGenerating) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
               Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                 Flexible(child: TextButton.icon(onPressed: _hintLoading ? null : _showStrategyHint,
@@ -757,11 +847,15 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
         cell = ScaleTransition(scale: _dropAnimation, child: cell);
       }
 
-      return GestureDetector(onTap: () => _removeNumber(cellId), child: cell);
+      final round2 = _round;
+      final expected2 = userSolution[cellId];
+      return GestureDetector(key: ValueKey(('orbital-filled2', round2, cellId)), onTap: () => _removeNumber(cellId, expected2, round2), child: cell);
     }
 
     // Empty cell -- DragTarget
-    return DragTarget<int>(
+    final round4 = _round;
+    return DragTarget<OrbitalTowersDrag>(
+      key: ValueKey(('orbital-target4', round4, cellId)),
       builder: (context, candidateData, rejectedData) {
         final isHovering = candidateData.isNotEmpty;
         return AnimatedContainer(
@@ -797,8 +891,8 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
           ),
         );
       },
-      onWillAcceptWithDetails: (_) => true,
-      onAcceptWithDetails: (details) => _placeNumber(details.data, cellId),
+      onWillAcceptWithDetails: (details) => _canInteract(details.data.round) && details.data.round == round4,
+      onAcceptWithDetails: (details) => _placeNumber(details.data.number, cellId, details.data.round),
     );
   }
 
@@ -848,7 +942,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
 
   Widget _buildNumberPad() {
     final numbers = puzzle!.numberPool;
-
+    final round = _round;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -862,8 +956,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
             runSpacing: 8,
             alignment: WrapAlignment.center,
             children: numbers.map((n) {
-              return Draggable<int>(
-                data: n,
+              return Draggable<OrbitalTowersDrag>(
+                key: ValueKey(('orbital-drag', round, n)),
+                data: (number: n, round: round),
                 feedback: Material(
                   color: Colors.transparent,
                   child: Container(
@@ -906,7 +1001,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     );
   }
 
-  Widget _buildWinDialog(int score) {
+  Widget _buildWinDialog(int score, Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -928,12 +1023,19 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                   const SizedBox(height: 16),
                   Text(s.orbitalTowersWinDesc(score), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
-                        onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                        onPressed: () {
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
+                          _generatePuzzle();
+                        },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(s.playAgain),
                       ),
