@@ -1,5 +1,5 @@
 import 'generator_random.dart';
-// ignore_for_file: avoid_print, constant_identifier_names
+// ignore_for_file: constant_identifier_names
 // lib/features/games/services/starloader_level_generator.dart
 //
 // Runtime level generator for the Cargo-Loader (Sokoban) game. The CLI harness
@@ -8,6 +8,7 @@ import 'generator_random.dart';
 // longer carries a terminal renderer it can never use.
 
 import 'dart:math' as math;
+import '../../../core/utils/app_logger.dart';
 
 import 'starloader_solver.dart';
 
@@ -72,7 +73,7 @@ class LevelGenerator {
   LevelGenerator({bool verbose = false}) : _verbose = verbose;
 
   void _log(String message) {
-    if (_verbose) print('\x1B[90m[Gen] $message\x1B[0m');
+    AppLogger.verbose('\x1B[90m[Gen] $message\x1B[0m', enabled: _verbose, tag: 'Gen');
   }
 
   /// NEW METHOD: Ensures all floor tiles are connected using flood-fill.

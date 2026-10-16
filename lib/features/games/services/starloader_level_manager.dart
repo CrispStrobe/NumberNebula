@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, constant_identifier_names
+// ignore_for_file: constant_identifier_names
 // lib/features/games/services/starloader_level_manager.dart:
 
 import 'dart:convert';
@@ -8,11 +8,11 @@ import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 import '../../../core/services/profile_preferences.dart';
+import '../../../core/utils/app_logger.dart';
 import '../models/starloader_level_model.dart';
 import 'starloader_level_generator.dart';
 import 'sokoban_generator.dart' as sokoban;
 import '../screens/star_loader_game.dart';
-
 class StarLoaderLevelManager {
   static final StarLoaderLevelManager _instance =
       StarLoaderLevelManager._internal();
@@ -51,31 +51,31 @@ class StarLoaderLevelManager {
       final history = prefs.getStringList('starloader_played_ids');
       if (history != null) _playedLevelIds.addAll(history);
     } catch (e) {
-      print('⚠️ [Manager] Failed to load history: $e');
+      AppLogger.debug('⚠️ [Manager] Failed to load history: $e');
     }
 
     // B. Setup Local JSON File Access
     try {
       final directory = await getApplicationDocumentsDirectory();
       _localFile = File('${directory.path}/starloader_db.json');
-      print('📂 [Manager] DB Path: ${_localFile!.path}');
+      AppLogger.debug('📂 [Manager] DB Path: ${_localFile!.path}');
 
       if (await _localFile!.exists()) {
         final content = await _localFile!.readAsString();
         if (content.isNotEmpty) {
           final jsonMap = jsonDecode(content);
           _database = LevelDatabase.fromJson(jsonMap);
-          print(
+          AppLogger.debug(
               '✅ [Manager] Loaded Local DB: ${_database.levels.length} levels.');
         } else {
-          print('🆕 [Manager] Local DB file exists but is empty.');
+          AppLogger.debug('🆕 [Manager] Local DB file exists but is empty.');
         }
       } else {
-        print('🆕 [Manager] No Local DB found. Starting fresh.');
+        AppLogger.debug('🆕 [Manager] No Local DB found. Starting fresh.');
         await _saveDatabase(); // Create the empty file
       }
     } catch (e) {
-      print('❌ [Manager] File System Error: $e');
+      AppLogger.debug('❌ [Manager] File System Error: $e');
       _database = LevelDatabase.empty();
     }
 
@@ -116,10 +116,10 @@ class StarLoaderLevelManager {
           });
         }
       }
-      print('📦 [Manager] Merged $added bundled levels '
+      AppLogger.debug('📦 [Manager] Merged $added bundled levels '
           '(${bundled.levels.length} in asset).');
     } catch (e) {
-      print('⚠️ [Manager] Could not load bundled levels: $e');
+      AppLogger.debug('⚠️ [Manager] Could not load bundled levels: $e');
     }
   }
 
@@ -132,7 +132,7 @@ class StarLoaderLevelManager {
       _useSokobanGenerator = prefs.getBool(prefUseSokobanGen) ?? true;
       _preferPregenerated = prefs.getBool(prefPreferPregenerated) ?? true;
     } catch (e) {
-      print('⚠️ [Manager] Failed to read generator settings: $e');
+      AppLogger.debug('⚠️ [Manager] Failed to read generator settings: $e');
     }
   }
 
@@ -175,13 +175,13 @@ class StarLoaderLevelManager {
 
       if (pickBest) {
         selectedEntry = candidates.first;
-        print(
+        AppLogger.debug(
             '⭐ [Manager] Selected highest rated level (${selectedEntry.avgRating} stars).');
       } else {
         int poolSize =
             (candidates.length / 2).ceil().clamp(1, candidates.length);
         selectedEntry = candidates[Random().nextInt(poolSize)];
-        print(
+        AppLogger.debug(
             '🎲 [Manager] Selected random level from top $poolSize candidates.');
       }
     }
@@ -190,7 +190,7 @@ class StarLoaderLevelManager {
     if (selectedEntry == null) {
       final why = _preferPregenerated ? 'Pool empty' : 'Pool skipped (setting)';
       final gen = _useSokobanGenerator ? 'sokoban' : 'legacy';
-      print('🔧 [Manager] $why. Generating new level '
+      AppLogger.debug('🔧 [Manager] $why. Generating new level '
           '(Grade $grade, $gen generator)...');
 
       final generated = await compute<Map<String, dynamic>, LevelEntry>(
@@ -217,14 +217,14 @@ class StarLoaderLevelManager {
         // existing push target using a verified board from the bundled pool.
         selectedEntry =
             fallbackPool[Random().nextInt(min(3, fallbackPool.length))];
-        print('📦 [Manager] Search below target; selected verified fallback '
+        AppLogger.debug('📦 [Manager] Search below target; selected verified fallback '
             'with ${selectedEntry.optimalMoves} pushes (minimum $minimum).');
       } else {
         selectedEntry = generated;
         _database.levels.add(selectedEntry);
         await _saveDatabase();
       }
-      print('💾 [Manager] New level generated and written to JSON file.');
+      AppLogger.debug('💾 [Manager] New level generated and written to JSON file.');
     }
 
     // CRITICAL: Mark as played NOW so we don't get it again next click
@@ -260,10 +260,10 @@ class StarLoaderLevelManager {
 
       // WRITE TO FILE
       await _saveDatabase();
-      print(
+      AppLogger.debug(
           '⭐ [Manager] Rating saved to file. Level $levelId is now ${newAvg.toStringAsFixed(1)} stars.');
     } else {
-      print('⚠️ [Manager] Level $levelId not found in DB to rate.');
+      AppLogger.debug('⚠️ [Manager] Level $levelId not found in DB to rate.');
     }
   }
 
@@ -276,17 +276,17 @@ class StarLoaderLevelManager {
           const JsonEncoder.withIndent('  ').convert(_database.toJson());
       await _localFile!.writeAsString(jsonStr);
     } catch (e) {
-      print('❌ [Manager] Failed to save JSON file: $e');
+      AppLogger.debug('❌ [Manager] Failed to save JSON file: $e');
     }
   }
 
   /// 5. DEV TOOL: Export for Production
   /// Call this when you are happy with your levels and want to ship them.
   void printDatabaseForExport() {
-    print(
+    AppLogger.debug(
         '\n📋 [Manager] --- COPY CONTENT BELOW TO assets/data/starloader_levels.json ---');
-    print(jsonEncode(_database.toJson()));
-    print(
+    AppLogger.debug(jsonEncode(_database.toJson()));
+    AppLogger.debug(
         '📋 [Manager] ----------------------------------------------------------------\n');
   }
 
@@ -301,16 +301,16 @@ class StarLoaderLevelManager {
       levelsPerGrade[l.difficulty] = (levelsPerGrade[l.difficulty] ?? 0) + 1;
     }
 
-    print('\n📊 [Manager] --- LOCAL JSON DIAGNOSTICS ---');
-    print('   File Path:      ${_localFile?.path ?? "Unknown"}');
-    print('   Total Levels:   $totalLevels');
-    print('   Rated Levels:   $ratedLevels');
-    print('   History Size:   ${_playedLevelIds.length}');
-    print('   Breakdown:');
+    AppLogger.debug('\n📊 [Manager] --- LOCAL JSON DIAGNOSTICS ---');
+    AppLogger.debug('   File Path:      ${_localFile?.path ?? "Unknown"}');
+    AppLogger.debug('   Total Levels:   $totalLevels');
+    AppLogger.debug('   Rated Levels:   $ratedLevels');
+    AppLogger.debug('   History Size:   ${_playedLevelIds.length}');
+    AppLogger.debug('   Breakdown:');
     levelsPerGrade.forEach((key, count) {
-      print('     - $key: $count');
+      AppLogger.debug('     - $key: $count');
     });
-    print('------------------------------------------\n');
+    AppLogger.debug('------------------------------------------\n');
   }
 
   LevelEntry _generateRealTimeEntry(int grade, int level) {
@@ -356,7 +356,7 @@ class StarLoaderLevelManager {
         optimalMoves: entry.optimalMoves,
       );
     } catch (e) {
-      print('⚠️ [Manager] Sokoban generation failed ($e); '
+      AppLogger.debug('⚠️ [Manager] Sokoban generation failed ($e); '
           'falling back to legacy generator.');
       return _generateLegacyEntry(grade, level);
     }
@@ -456,7 +456,7 @@ class StarLoaderLevelManager {
       _playedLevelIds.clear();
       final prefs = await ProfilePreferences.getInstance();
       await prefs.remove('starloader_played_ids');
-      print('🧹 [Manager] Local Database and History Cleared.');
+      AppLogger.debug('🧹 [Manager] Local Database and History Cleared.');
     }
   }
 }

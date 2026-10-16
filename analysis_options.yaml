@@ -19,6 +19,10 @@ linter:
     avoid_empty_else: true
     avoid_returning_null_for_void: true
     no_duplicate_case_values: true
+    avoid_print: true
+    use_key_in_widget_constructors: true
+    cancel_subscriptions: true
+    close_sinks: true
 
     # Perf: avoid unnecessary closure allocations.
     unnecessary_lambdas: true
