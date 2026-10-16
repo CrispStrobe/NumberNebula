@@ -32,11 +32,42 @@ class ChronoRepairGame extends StatefulWidget {
 class _ChronoRepairGameState extends State<ChronoRepairGame>
     with TickerProviderStateMixin, GameAnimationsMixin<ChronoRepairGame>, PuzzleSessionMixin<ChronoRepairGame> {
   bool _sessionReady = false;
+  Object _round = Object();
+  bool _won = false;
+
+  bool _canInteract(Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      !_isGenerating &&
+      !_won &&
+      _sessionReady;
+
+  void _resetRoundEffects() {
+    _round = Object();
+    cancelOneShotMotion(successController);
+    successController.reset();
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.clearSnackBars();
+    messenger?.removeCurrentSnackBar();
+  }
+
+  @override
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(successController, reduced, duration: const Duration(milliseconds: 600));
+  }
+
+  @visibleForTesting
+  Object get testRound => _round;
+
+  @visibleForTesting
+  void rebuildForTesting() => setState(() {});
+
   @override String get sessionGameKey => 'chrono_repair';
   @override int get sessionGrade => widget.grade;
   @override int get sessionLevel => widget.level;
   @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+    if (!_sessionReady || _isGenerating || _won) return null;
     return {
       '_correctHour': _correctHour,
       '_correctMinute': _correctMinute,
@@ -123,22 +154,22 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   @override
   void dispose() {
     disposePuzzleSession();
-    glowController.stop();
-    successController.stop();
-    pulseController.stop();
-    
-    
+    _round = Object();
+    cancelOneShotMotion(successController);
     disposeGameAnimations();
     super.dispose();
   }
 
   void _generatePuzzle() {
+    _resetRoundEffects();
+    final round = _round;
     beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     setState(() {
       _isGenerating = true;
       _gameOver = false;
+      _won = false;
       _wrongChecks = 0;
       _mathProblems.clear();
       successController.reset();
@@ -147,7 +178,8 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
     final grade = currentDifficulty!.grade;
 
     final generated=generateChronoRepair(grade, widget.level, random: _random);
-_correctHour=generated['_correctHour'] as int;
+    if (!mounted || !identical(round, _round)) return;
+    _correctHour=generated['_correctHour'] as int;
 _correctMinute=generated['_correctMinute'] as int;
 _displayedHour=generated['_displayedHour'] as int;
 _displayedMinute=generated['_displayedMinute'] as int;
@@ -166,7 +198,7 @@ _malfunctionHint = switch (_malfunction) {
     
     
 
-    if (mounted) {
+    if (mounted && identical(round, _round)) {
       setState(() {
         _isGenerating = false;
       });
@@ -174,11 +206,12 @@ _malfunctionHint = switch (_malfunction) {
   }
 
   void _checkAnswer() {
-    if (_gameOver) return;
+    final round = _round;
+    if (!_canInteract(round)) return;
     if (_selectedHour == _correctHour && _selectedMinute == _correctMinute) {
-      _handleWin();
+      _handleWin(round);
     } else {
-      _handleLoss();
+      _handleLoss(round);
     }
   }
 
@@ -188,14 +221,18 @@ _malfunctionHint = switch (_malfunction) {
     required int max,
     int step = 1,
     required ValueChanged<int> onChanged,
+    Object? round,
   }) {
+    final currentRound = round ?? _round;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         // Up button
         IconButton(
+          key: ValueKey(('chrono-step-up', currentRound, value, min, max)),
           icon: const Icon(Icons.keyboard_arrow_up, color: SpaceTheme.starYellow, size: 32),
           onPressed: () {
+            if (!_canInteract(currentRound)) return;
             AppHaptics.selectionClick();
             onChanged(value + step > max ? min : value + step);
           },
@@ -217,8 +254,10 @@ _malfunctionHint = switch (_malfunction) {
         ),
         // Down button
         IconButton(
+          key: ValueKey(('chrono-step-down', currentRound, value, min, max)),
           icon: const Icon(Icons.keyboard_arrow_down, color: SpaceTheme.starYellow, size: 32),
           onPressed: () {
+            if (!_canInteract(currentRound)) return;
             AppHaptics.selectionClick();
             onChanged(value - step < min ? max : value - step);
           },
@@ -227,16 +266,21 @@ _malfunctionHint = switch (_malfunction) {
     );
   }
 
-  void _handleWin() {
+  void _handleWin(Object round) {
+    if (!_canInteract(round)) return;
+    _resetRoundEffects();
+    setState(() {
+      _gameOver = true;
+      _won = true;
+    });
+    final winRound = _round;
+    finishPuzzleSession();
     AppHaptics.lightImpact();
-    _gameOver = true;
 
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
     int complexityBonus = _malfunction == ClockMalfunction.combined ? 80 : 40;
     int totalScore = baseScore + levelBonus + complexityBonus;
-
-    finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       skillLevel: widget.grade,
@@ -247,23 +291,33 @@ _malfunctionHint = switch (_malfunction) {
       performance: Perf.fromMistakes(_wrongChecks),
     ));
 
-    successController.forward(from: 0.0);
-
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => _buildWinDialog(totalScore),
-      );
-    }
+    _showWinDialog(totalScore, winRound);
   }
 
-  void _handleLoss() {
+  void _showWinDialog(int totalScore, Object round) {
+    if (!mounted || !identical(round, _round) || !_won) return;
+    playOneShotMotion(successController, () {});
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildWinDialog(totalScore, round, dialogContext),
+    );
+  }
+
+  bool _canUseDialog(Object round, BuildContext dialogContext) =>
+      mounted &&
+      identical(round, _round) &&
+      _won &&
+      dialogContext.mounted &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
+
+  void _handleLoss(Object round) {
+    if (!_canInteract(round)) return;
+    setState(() => _wrongChecks++);
     AppHaptics.heavyImpact();
-    _wrongChecks++;
 
-    finishPuzzleSession();
-
+    // Do not finishPuzzleSession on wrong; keep board editable and save updated wrongChecks
+    // Report loss for SRI but keep session open for retry
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       skillLevel: widget.grade,
       gameType: 'chrono_repair',
@@ -313,9 +367,14 @@ _malfunctionHint = switch (_malfunction) {
           child: Column(
             children: [
               GameUI(
+                key: ValueKey(('chrono-header', _round)),
                 title: s.chronoRepairTitle,
                 level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: () {
+                  if (mounted && identical(_round, _round) && !_isGenerating) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -508,7 +567,11 @@ _malfunctionHint = switch (_malfunction) {
                   _buildStepper(
                     value: _selectedHour,
                     min: 1, max: 12,
-                    onChanged: (v) => setState(() => _selectedHour = v),
+                    onChanged: (v) {
+                      if (!_canInteract(_round)) return;
+                      setState(() => _selectedHour = v);
+                    },
+                    round: _round,
                   ),
                   // Colon
                   Padding(
@@ -523,12 +586,17 @@ _malfunctionHint = switch (_malfunction) {
                   _buildStepper(
                     value: _selectedMinute,
                     min: 0, max: 55, step: 5,
-                    onChanged: (v) => setState(() => _selectedMinute = v),
+                    onChanged: (v) {
+                      if (!_canInteract(_round)) return;
+                      setState(() => _selectedMinute = v);
+                    },
+                    round: _round,
                   ),
                 ],
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
+                key: ValueKey(('chrono-submit', _round)),
                 onPressed: _checkAnswer,
                 icon: const Icon(Icons.check, size: 24),
                 label: Text(S.of(context)!.chronoRepairSubmit, style: const TextStyle(fontSize: 16)),
@@ -543,7 +611,7 @@ _malfunctionHint = switch (_malfunction) {
 
   // Stepper widget is defined above in _buildStepper()
 
-  Widget _buildWinDialog(int totalScore) {
+  Widget _buildWinDialog(int totalScore, Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -567,13 +635,17 @@ _malfunctionHint = switch (_malfunction) {
                   Text(s.chronoRepairWinDesc(totalScore),
                       style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
                         style: SpaceTheme.secondaryButtonStyle,
@@ -581,7 +653,8 @@ _malfunctionHint = switch (_malfunction) {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
                           Navigator.of(context).pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,
