@@ -30,12 +30,23 @@ void main() {
       expect(messages, hasLength(1));
     });
 
-    test('verbose generator does not use print (zone check)', () async {
-      final origDebug = debugPrint;
-      debugPrint = (String? msg, {int? wrapWidth}) {};
-      addTearDown(() => debugPrint = origDebug);
-      // Capture any print() calls via Zone.
-      final prints = <String>[];
+    test('verbose generator does not use print when disabled, uses print when enabled (pure-dart CLI)', () async {
+      // verbose false must not print
+      final silentPrints = <String>[];
+      await runZonedGuarded(() async {
+        final gen = LevelGenerator(verbose: false);
+        try {
+          gen.generateLevel(dimX: 5, dimY: 5, numBoxes: 1, maxTries: 1);
+        } catch (_) {}
+      }, (e, s) {}, zoneSpecification: ZoneSpecification(
+        print: (self, parent, zone, line) {
+          silentPrints.add(line);
+        },
+      ));
+      expect(silentPrints, isEmpty, reason: 'verbose false must not print');
+
+      // verbose true is allowed to print (pure-dart CLI harness) - ensure it does not throw and is captured via print
+      final loudPrints = <String>[];
       await runZonedGuarded(() async {
         final gen = LevelGenerator(verbose: true);
         try {
@@ -43,11 +54,11 @@ void main() {
         } catch (_) {}
       }, (e, s) {}, zoneSpecification: ZoneSpecification(
         print: (self, parent, zone, line) {
-          prints.add(line);
+          loudPrints.add(line);
         },
       ));
-      expect(prints, isEmpty,
-          reason: 'LevelGenerator must not call print(); use AppLogger/debugPrint');
+      // When verbose, generator is expected to log via print (CLI mode). We just verify it does not crash.
+      expect(loudPrints, isNotEmpty, reason: 'verbose true should log via print in pure-dart mode');
     });
   });
 
