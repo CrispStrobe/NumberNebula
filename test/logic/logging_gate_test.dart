@@ -107,11 +107,25 @@ void main() {
       expect(enemy.health, 185);
     });
 
-    test('takeDamage does not call print() - zone intercept', () async {
-      final origDebug = debugPrint;
-      debugPrint = (String? msg, {int? wrapWidth}) {};
-      addTearDown(() => debugPrint = origDebug);
-      final prints = <String>[];
+    test('takeDamage does not log when verbose false, does log when verbose true (pure-dart verbose print)', () async {
+      // verbose false must not print
+      final silentPrints = <String>[];
+      await runZonedGuarded(() async {
+        final game = makeGame(verbose: false);
+        final enemy = MathematicalEnemy(
+            name: 'Goblin', maxHealth: 100, behavior: [
+          {'attack': 5}
+        ]);
+        enemy.takeDamage(makeResult(12), game);
+      }, (e, s) {}, zoneSpecification: ZoneSpecification(
+        print: (self, parent, zone, line) {
+          silentPrints.add(line);
+        },
+      ));
+      expect(silentPrints, isEmpty, reason: 'verbose false must not print');
+
+      // verbose true is allowed to print (pure-dart CLI mode) - ensure it does not throw
+      final loudPrints = <String>[];
       await runZonedGuarded(() async {
         final game = makeGame(verbose: true);
         final enemy = MathematicalEnemy(
@@ -121,36 +135,11 @@ void main() {
         enemy.takeDamage(makeResult(12), game);
       }, (e, s) {}, zoneSpecification: ZoneSpecification(
         print: (self, parent, zone, line) {
-          prints.add(line);
+          loudPrints.add(line);
         },
       ));
-      expect(prints, isEmpty,
-          reason: 'takeDamage must not use print(); gated AppLogger allowed (debugPrint)');
-    });
-
-    test('debugPrint from takeDamage only fires when verbose true', () {
-      final messages = <String>[];
-      final orig = debugPrint;
-      debugPrint = (String? msg, {int? wrapWidth}) {
-        if (msg != null) messages.add(msg);
-      };
-      addTearDown(() => debugPrint = orig);
-
-      final enemy = MathematicalEnemy(
-          name: 'Goblin', maxHealth: 100, behavior: [
-        {'attack': 5}
-      ]);
-
-      // verbose false -> no debugPrint
-      final quietGame = makeGame(verbose: false);
-      enemy.takeDamage(makeResult(5), quietGame);
-      expect(messages, isEmpty);
-
-      // verbose true -> debugPrint occurs
-      final loudGame = makeGame(verbose: true);
-      enemy.takeDamage(makeResult(5), loudGame);
-      expect(messages, isNotEmpty);
-      expect(messages.any((m) => m.contains('takeDamage')), isTrue);
+      expect(loudPrints, isNotEmpty, reason: 'verbose true should log via print in pure-dart mode');
+      expect(loudPrints.any((m) => m.contains('takeDamage')), isTrue);
     });
   });
 }

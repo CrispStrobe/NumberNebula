@@ -7,8 +7,6 @@
 // `tool/arithmancer_cli.dart` and drives this engine from outside.
 
 import 'dart:math';
-import 'package:flutter/foundation.dart';
-import '../../core/utils/app_logger.dart';
 import '../../features/games/services/generator_random.dart';
 
 // === CORE MATHEMATICAL TYPES ===
@@ -240,34 +238,34 @@ class MathematicalEnemy {
         mathematicalShields = mathematicalShields ?? {};
 
   int takeDamage(MathResult result, ArithmancerGame game) {
-    if (kDebugMode && game.verbose) {
-      AppLogger.debug("🎯 [takeDamage] Called with: ${result.expression}", tag: 'Combat');
-      AppLogger.debug("🎯 [takeDamage] isChained: ${result.isChained}", tag: 'Combat');
-      AppLogger.debug("🎯 [takeDamage] leftResult: ${result.leftResult?.expression}", tag: 'Combat');
-      AppLogger.debug("🎯 [takeDamage] rightResult: ${result.rightResult?.expression}", tag: 'Combat');
+    if (game.verbose) {
+      print("🎯 [takeDamage] Called with: ${result.expression}");
+      print("🎯 [takeDamage] isChained: ${result.isChained}");
+      print("🎯 [takeDamage] leftResult: ${result.leftResult?.expression}");
+      print("🎯 [takeDamage] rightResult: ${result.rightResult?.expression}");
     }
 
     // FIXED: Handle chained results by processing each side separately
     if (result.isChained) {
-      if (kDebugMode && game.verbose) AppLogger.debug("🎯 [takeDamage] Processing CHAINED result", tag: 'Combat');
+      if (game.verbose) print("🎯 [takeDamage] Processing CHAINED result");
       int leftDamage = takeDamage(result.leftResult!, game);
-      if (kDebugMode && game.verbose) AppLogger.debug("🎯 [takeDamage] Left damage: $leftDamage", tag: 'Combat');
+      if (game.verbose) print("🎯 [takeDamage] Left damage: $leftDamage");
       int rightDamage = takeDamage(result.rightResult!, game);
-      if (kDebugMode && game.verbose) AppLogger.debug("🎯 [takeDamage] Right damage: $rightDamage", tag: 'Combat');
+      if (game.verbose) print("🎯 [takeDamage] Right damage: $rightDamage");
       int totalDamage = leftDamage + rightDamage;
-      if (kDebugMode && game.verbose) AppLogger.debug("🎯 [takeDamage] Total chained damage: $totalDamage", tag: 'Combat');
+      if (game.verbose) print("🎯 [takeDamage] Total chained damage: $totalDamage");
       // DON'T subtract health here - already done in recursive calls
       return totalDamage;
     }
 
-    if (kDebugMode && game.verbose) AppLogger.debug("🎯 [takeDamage] Processing SINGLE result: ${result.value}", tag: 'Combat');
+    if (game.verbose) print("🎯 [takeDamage] Processing SINGLE result: ${result.value}");
 
     // Original single-result logic
     int baseDamage = result.damage;
     if (baseDamage <= 0) return 0;
 
     int finalDamage = _applyMathematicalShields(baseDamage, result);
-    if (kDebugMode && game.verbose) AppLogger.debug("🎯 [takeDamage] After shields: $finalDamage", tag: 'Combat');
+    if (game.verbose) print("🎯 [takeDamage] After shields: $finalDamage");
     health -= finalDamage;
     return finalDamage;
   }
