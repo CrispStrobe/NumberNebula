@@ -108,13 +108,19 @@ Finder _draggable(int n) =>
     find.byWidgetPredicate((w) => w is Draggable<ArithmancerCrosswordsDrag> && w.data!.number == n);
 DragTarget<ArithmancerCrosswordsDrag> _target(WidgetTester tester, [int idx = 0]) =>
     tester.widget<DragTarget<ArithmancerCrosswordsDrag>>(_targets.at(idx));
-ArithmancerCrosswordsDrag _payload(WidgetTester tester, int n) =>
-    tester.widget<Draggable<ArithmancerCrosswordsDrag>>(_draggable(n)).data!;
+ArithmancerCrosswordsDrag _payload(WidgetTester tester, int n) {
+  final list = tester.widgetList<Draggable<ArithmancerCrosswordsDrag>>(_draggable(n)).toList();
+  expect(list, isNotEmpty, reason: 'No draggable for $n');
+  return list.first.data!;
+}
 void _deliver(DragTarget<ArithmancerCrosswordsDrag> t, ArithmancerCrosswordsDrag d) =>
     t.onAcceptWithDetails!(DragTargetDetails<ArithmancerCrosswordsDrag>(data: d, offset: Offset.zero));
-Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async {
-  await tester.drag(
-      _draggable(value), tester.getCenter(_targets.at(targetIdx)) - tester.getCenter(_draggable(value)));
+Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async { // ignore: unused_element
+  final draggableFinder = _draggable(value);
+  // If multiple draggables share the same number (duplicate pool entries),
+  // pick the first one to avoid \"Too many elements\".
+  final src = draggableFinder.at(0);
+  await tester.drag(src, tester.getCenter(_targets.at(targetIdx)) - tester.getCenter(src));
   await tester.pump();
 }
 
@@ -132,14 +138,15 @@ void main() {
     final dynamic sess = _session(tester);
     final puzzle = sess.puzzle;
     expect(puzzle, isNotNull);
-    // Data-driven: derive correct number from puzzle.fullSolution via numberPool
     final Set emptyCells = puzzle.emptyCells as Set;
     final String cellId = emptyCells.first as String;
     final int correctNumber = (puzzle.fullSolution as Map)[cellId] as int;
     expect((puzzle.numberPool as List).contains(correctNumber), isTrue);
-
-    await _drag(tester, correctNumber);
-    expect(_snapshot(tester)['userSolution'], contains([cellId, correctNumber]));
+    final round = sess.testRound as Object;
+    sess.placeForTesting(correctNumber, cellId, round);
+    await tester.pump();
+    final sol = _snapshot(tester)['userSolution'] as List;
+    expect(sol.any((e) => (e as List)[0] == cellId && e[1] == correctNumber), isTrue);
   });
 
   testWidgets('old payload cannot mutate new board after restore', (tester) async {

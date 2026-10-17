@@ -886,6 +886,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
             builder: (context, candidateData, rejectedData) {
               if (kDebugMode) debugPrint("🔺 [UI] DragTarget builder called");
               return SizedBox(
+                key: _triangleAreaKey,
                 width: size,
                 height: size,
                 child: Stack(

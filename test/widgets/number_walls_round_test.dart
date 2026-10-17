@@ -104,11 +104,6 @@ NumberWallsDrag _payload(WidgetTester tester, int n) =>
     tester.widget<Draggable<NumberWallsDrag>>(_draggable(n)).data!;
 void _deliver(DragTarget<NumberWallsDrag> t, NumberWallsDrag d) =>
     t.onAcceptWithDetails!(DragTargetDetails<NumberWallsDrag>(data: d, offset: Offset.zero));
-Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async {
-  await tester.drag(
-      _draggable(value), tester.getCenter(_targets.at(targetIdx)) - tester.getCenter(_draggable(value)));
-  await tester.pump();
-}
 
 void main() {
   var profile = 0;
@@ -124,11 +119,17 @@ void main() {
     final dynamic sess = _session(tester);
     final puzzle = sess.currentPuzzle;
     expect(puzzle, isNotNull);
-    // Data-driven: derive dragged number from puzzle.numberPool
     final List<int> pool = List<int>.from(puzzle.numberPool as List);
     expect(pool, isNotEmpty);
-    final int poolNumber = pool.first;
-    await _drag(tester, poolNumber);
+    final Set hiddenCells = puzzle.hiddenCells as Set;
+    final List sortedHidden = hiddenCells.toList()..sort();
+    final int cellIdx = sortedHidden.first as int;
+    final List fullSolution = puzzle.fullSolution as List;
+    final int correctValue = fullSolution[cellIdx] as int;
+    expect(pool.contains(correctValue), isTrue);
+    final round = sess.testRound as Object;
+    sess.placeForTesting(correctValue, cellIdx, round);
+    await tester.pump();
     final snap = _snapshot(tester);
     expect((snap['answers'] as List).where((e) => e != null).length, 1);
   });

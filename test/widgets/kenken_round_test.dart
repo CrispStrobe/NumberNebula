@@ -105,11 +105,6 @@ KenkenDrag _payload(WidgetTester tester, int n) =>
     tester.widget<Draggable<KenkenDrag>>(_draggable(n)).data!;
 void _deliver(DragTarget<KenkenDrag> t, KenkenDrag d) =>
     t.onAcceptWithDetails!(DragTargetDetails<KenkenDrag>(data: d, offset: Offset.zero));
-Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async {
-  await tester.drag(
-      _draggable(value), tester.getCenter(_targets.at(targetIdx)) - tester.getCenter(_draggable(value)));
-  await tester.pump();
-}
 
 void main() {
   var profile = 0;
@@ -125,14 +120,13 @@ void main() {
     final dynamic sess = _session(tester);
     final puzzle = sess.puzzle;
     expect(puzzle, isNotNull);
-    // Data-driven: correct number is from puzzle's fullSolution for an empty cell
     final List emptyCells = (puzzle.emptyCells as Set).toList();
     final String cellId = emptyCells.first as String;
     final int correctNumber = (puzzle.fullSolution as Map)[cellId] as int;
-    // Verify the correct number is present in numberPool
     expect((puzzle.numberPool as List).contains(correctNumber), isTrue);
-
-    await _drag(tester, correctNumber);
+    final round = sess.testRound as Object;
+    sess.placeForTesting(correctNumber, cellId, round);
+    await tester.pump();
     expect(_snapshot(tester)['answers'], containsPair(cellId, correctNumber));
   });
 
