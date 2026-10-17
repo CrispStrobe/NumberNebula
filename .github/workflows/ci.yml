@@ -96,29 +96,18 @@ jobs:
       - name: Check Dark Matter Grid round effects
         run: flutter test test/widgets/dark_matter_grid_round_test.dart --concurrency=1 --reporter expanded
 
-<<<<<<< HEAD
-
       - name: Check Star Forge round effects
         run: flutter test test/widgets/star_forge_round_test.dart --concurrency=1 --reporter expanded
 
-<<<<<<< HEAD
       - name: Check Chrono Repair round effects
         run: flutter test test/widgets/chrono_repair_round_test.dart --concurrency=1 --reporter expanded
-=======
+
       - name: Check Arithmetic Square round effects
         run: flutter test test/widgets/arithmatic_square_round_test.dart --concurrency=1 --reporter expanded
-
-=======
-<<<<<<< HEAD
-=======
-      - name: Check Chrono Repair round effects
-        run: flutter test test/widgets/chrono_repair_round_test.dart --concurrency=1 --reporter expanded
 
       - name: Check Orbital Towers round effects
         run: flutter test test/widgets/orbital_towers_round_test.dart --concurrency=1 --reporter expanded
 
->>>>>>> 16c3b8d (fix(orbital-towers): harden round lifecycle, motion and phone layouts (A1))
->>>>>>> b5fee7b (fix(orbital-towers): harden round lifecycle, motion and phone layouts (A1))
       - name: Check cached wormhole rendering
         run: flutter test test/widgets/wormhole_rendering_test.dart --concurrency=1 --reporter expanded
 
