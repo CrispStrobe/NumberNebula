@@ -104,11 +104,6 @@ NumberWallsDrag _payload(WidgetTester tester, int n) =>
     tester.widget<Draggable<NumberWallsDrag>>(_draggable(n)).data!;
 void _deliver(DragTarget<NumberWallsDrag> t, NumberWallsDrag d) =>
     t.onAcceptWithDetails!(DragTargetDetails<NumberWallsDrag>(data: d, offset: Offset.zero));
-Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async {
-  await tester.drag(
-      _draggable(value), tester.getCenter(_targets.at(targetIdx)) - tester.getCenter(_draggable(value)));
-  await tester.pump();
-}
 
 void main() {
   var profile = 0;

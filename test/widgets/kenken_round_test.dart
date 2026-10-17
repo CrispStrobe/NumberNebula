@@ -105,11 +105,6 @@ KenkenDrag _payload(WidgetTester tester, int n) =>
     tester.widget<Draggable<KenkenDrag>>(_draggable(n)).data!;
 void _deliver(DragTarget<KenkenDrag> t, KenkenDrag d) =>
     t.onAcceptWithDetails!(DragTargetDetails<KenkenDrag>(data: d, offset: Offset.zero));
-Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async {
-  await tester.drag(
-      _draggable(value), tester.getCenter(_targets.at(targetIdx)) - tester.getCenter(_draggable(value)));
-  await tester.pump();
-}
 
 void main() {
   var profile = 0;

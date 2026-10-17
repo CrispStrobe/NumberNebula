@@ -115,7 +115,7 @@ ArithmancerCrosswordsDrag _payload(WidgetTester tester, int n) {
 }
 void _deliver(DragTarget<ArithmancerCrosswordsDrag> t, ArithmancerCrosswordsDrag d) =>
     t.onAcceptWithDetails!(DragTargetDetails<ArithmancerCrosswordsDrag>(data: d, offset: Offset.zero));
-Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async {
+Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async { // ignore: unused_element
   final draggableFinder = _draggable(value);
   // If multiple draggables share the same number (duplicate pool entries),
   // pick the first one to avoid \"Too many elements\".

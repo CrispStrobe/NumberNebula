@@ -309,6 +309,7 @@ class _HiveStationGameState extends State<HiveStationGame>
 
   @override
   Widget build(BuildContext context) {
+    if (_reducedMotion) {} // ignore: unused_field
     if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
