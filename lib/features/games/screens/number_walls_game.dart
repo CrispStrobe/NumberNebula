@@ -407,7 +407,6 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       
       // 2. Report the outcome to the central GameProvider.
       if (isValid) {
-        _victoryPending = true;
         finishPuzzleSession();
         // On SUCCESS, calculate the score and report it.
         int baseScore = 120 * widget.grade;
@@ -514,6 +513,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   void _handleSuccess(int totalScoreGained) {
     if (!_canInteract(_round) || !_isSolved()) return;
     _won = true;
+    _victoryPending = true;
     AppHaptics.lightImpact();
     playOneShotMotion(_warpController, () {
       _showSuccessDialog(totalScoreGained - (120 * widget.grade), _round);
@@ -1030,6 +1030,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
             key: ValueKey(('numberwalls-target', _round)),
             builder: (context, candidateData, rejectedData) {
               return SizedBox(
+                key: _dragTargetKey,
                 width: size,
                 height: size,
                 child: Stack(
@@ -1097,7 +1098,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
     final cellPositions = currentPuzzle!.getCellPositions(containerSize);
     final cellSize = containerSize * 0.12;
-    final double acceptanceRadius = cellSize * 1.2;
+    final double acceptanceRadius = cellSize * 1.9;
 
     double minDistance = double.infinity;
     int? closestEmptyCellIndex;

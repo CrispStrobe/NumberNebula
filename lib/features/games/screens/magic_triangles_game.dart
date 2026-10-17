@@ -886,6 +886,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
             builder: (context, candidateData, rejectedData) {
               if (kDebugMode) debugPrint("🔺 [UI] DragTarget builder called");
               return SizedBox(
+                key: _triangleAreaKey,
                 width: size,
                 height: size,
                 child: Stack(
@@ -993,7 +994,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       
       if (kDebugMode) debugPrint("🔍 [UI] Minimum distance: $minDistance, target: $targetNodeIndex");
       
-      final dropRadius = (triangleSize * 0.15).clamp(60.0, 120.0);
+      final dropRadius = (triangleSize * 0.32).clamp(90.0, 180.0);
       debugPrint("🔍 [UI] Using drop radius: $dropRadius");
       
       if (minDistance < dropRadius) {

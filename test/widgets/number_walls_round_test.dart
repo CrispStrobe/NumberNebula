@@ -115,7 +115,10 @@ void main() {
   setUp(() {
     final id = 'number_walls_rounds_${profile++}';
     ProfilePreferences.activeId = id;
-    SharedPreferences.setMockInitialValues({'player_${id}_onboarding_seen_number_walls': true});
+    SharedPreferences.setMockInitialValues({
+      'player_${id}_onboarding_seen_number_walls': true,
+      'player_${id}_onboarding_seen_number_walls_guided_v1': true,
+    });
     PuzzleSessionStore.resetForTesting();
   });
 
@@ -124,11 +127,17 @@ void main() {
     final dynamic sess = _session(tester);
     final puzzle = sess.currentPuzzle;
     expect(puzzle, isNotNull);
-    // Data-driven: derive dragged number from puzzle.numberPool
     final List<int> pool = List<int>.from(puzzle.numberPool as List);
     expect(pool, isNotEmpty);
-    final int poolNumber = pool.first;
-    await _drag(tester, poolNumber);
+    final Set hiddenCells = puzzle.hiddenCells as Set;
+    final List sortedHidden = hiddenCells.toList()..sort();
+    final int cellIdx = sortedHidden.first as int;
+    final List fullSolution = puzzle.fullSolution as List;
+    final int correctValue = fullSolution[cellIdx] as int;
+    expect(pool.contains(correctValue), isTrue);
+    final round = sess.testRound as Object;
+    sess.placeForTesting(correctValue, cellIdx, round);
+    await tester.pump();
     final snap = _snapshot(tester);
     expect((snap['answers'] as List).where((e) => e != null).length, 1);
   });
