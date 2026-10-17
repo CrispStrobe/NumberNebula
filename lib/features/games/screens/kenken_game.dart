@@ -20,6 +20,8 @@ import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../constants/app_constants.dart';
 
+typedef KenkenDrag = ({int number, Object round});
+
 class KenkenGame extends StatefulWidget {
   final int grade;
   final int level;
@@ -55,17 +57,69 @@ class _KenkenGameState extends State<KenkenGame>
   /// once, so it doubles as the optimal move count for the performance grade.
   int _optimalMoves = 0;
 
+  Object _round = Object();
+  bool _won = false;
+  bool _reducedMotion = false;
+  bool _canInteract(Object round) => mounted && identical(round, _round) && !_isGenerating && !_won && puzzle != null;
+  bool _canPlace(KenkenDrag drag, String cellId, Object round) => _canInteract(round) && identical(drag.round, _round) && puzzle!.numberPool.contains(drag.number) && puzzle!.emptyCells.contains(cellId) && !userSolution.containsKey(cellId);
+  bool _isSolved() => puzzle != null && userSolution.length == puzzle!.emptyCells.length && puzzle!.validateSolution(userSolution);
+  bool _isExhausted() => puzzle != null && _movesRemaining <= 0 && userSolution.length < puzzle!.emptyCells.length;
+  void _syncNumberPool() => numberPool = List<int>.from(puzzle!.numberPool);
+  void _resetRoundEffects() {
+    _round = Object();
+    cancelOneShotMotion(successController);
+    cancelOneShotMotion(_dropController);
+    _clearFeedback();
+  }
+  void _clearFeedback() {
+    final m = ScaffoldMessenger.maybeOf(context);
+    m?.clearSnackBars();
+    m?.removeCurrentSnackBar();
+  }
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    _reducedMotion = reduced;
+    updateOneShotMotion(_dropController, reduced, duration: const Duration(milliseconds: 500));
+    updateOneShotMotion(successController, reduced, duration: const Duration(milliseconds: 600));
+  }
+  @visibleForTesting
+  Object get testRound => _round;
+  @visibleForTesting
+  void rebuildForTesting() => setState(() {});
+  @visibleForTesting
+  void placeForTesting(int number, String cellId, Object round) => _placeNumber((number: number, round: round), cellId, round);
+
+
   @override String get sessionGameKey => 'kenken';
   @override int get sessionGrade => widget.grade;
   @override int get sessionLevel => widget.level;
   @override Map<String, dynamic>? capturePuzzleSession() {
-    if (puzzle == null || _isGenerating) return null;
+    if (puzzle == null || _isGenerating || _won) return null;
     return {'puzzle': puzzle!.toJson(), 'answers': userSolution, 'pool': numberPool, 'moves': _movesRemaining, 'maxMoves': _maxMoves, 'optimal': _optimalMoves};
   }
   @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
     puzzle = KenkenPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle']), currentDifficulty!);
     userSolution = Map<String, int>.from(state['answers']); numberPool = List<int>.from(state['pool']); _movesRemaining = state['moves']; _maxMoves = state['maxMoves']; _optimalMoves = state['optimal'];
     _isGenerating = false;
+    _won = false;
+    _syncNumberPool();
+    final solved = _isSolved();
+    final exhausted = _isExhausted();
+    if (solved || exhausted) {
+      _won = true;
+      finishPuzzleSession();
+      final round = _round;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !identical(round, _round) || _isGenerating) return;
+        if (solved) {
+          _showSuccessDialog(_successBonus(), round);
+        } else {
+          _showOutOfMovesDialog(round);
+        }
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) _generatePuzzle();
@@ -99,31 +153,23 @@ class _KenkenGameState extends State<KenkenGame>
   @override
   void dispose() {
     disposePuzzleSession();
-    if (kDebugMode) debugPrint("🔲 [KENKEN] Disposing game and cleaning up resources");
-    
-    glowController.stop();
-    successController.stop();
-    _dropController.stop();
-    pulseController.stop();
-    
+    _round = Object();
+    cancelOneShotMotion(successController);
+    cancelOneShotMotion(_dropController);
     _dropController.dispose();
-    
-    puzzle = null;
-    userSolution.clear();
-    numberPool.clear();
-    
     disposeGameAnimations();
     super.dispose();
   }
 
-  void _generatePuzzle() async {
+  Future<void> _generatePuzzle() async {
+    _resetRoundEffects();
+    final round = _round;
     beginPuzzleSession();
     if (currentDifficulty == null) return;
     
-    if (kDebugMode) debugPrint("🎯 [KENKEN] Starting puzzle generation process");
-    
     setState(() {
       _isGenerating = true;
+      _won = false;
       successController.reset();
       userSolution.clear();
     });
@@ -145,7 +191,7 @@ class _KenkenGameState extends State<KenkenGame>
       
       debugPrint("🎯 [KENKEN] Puzzle generation completed successfully");
       
-      if (mounted) {
+      if (mounted && identical(round, _round)) {
         setState(() {
           puzzle = generatedPuzzle;
           numberPool = List.from(generatedPuzzle.numberPool);
@@ -169,14 +215,16 @@ class _KenkenGameState extends State<KenkenGame>
     }
   }
 
-  void _placeNumber(int number, String cellId) {
+  void _placeNumber(KenkenDrag drag, String cellId, Object round) {
+    if (!_canPlace(drag, cellId, round)) return;
+    final number = drag.number;
     if (kDebugMode) debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
     
     setState(() {
       userSolution[cellId] = number;
-      // DON'T remove number from pool - numbers are reusable in Kenken
       _lastDroppedPosition = cellId;
-      _dropController.forward(from: 0.0);
+      _dropController.reset();
+      playOneShotMotion(_dropController, () {});
 
       // Decrement moves on placement
       _movesRemaining--;
@@ -195,16 +243,17 @@ class _KenkenGameState extends State<KenkenGame>
     _checkSolution();
   }
 
-  void _removeNumber(String cellId) {
+  void _removeNumber(String cellId, int? expected, Object round) {
+    if (!_canInteract(round) || !puzzle!.emptyCells.contains(cellId) || expected == null || userSolution[cellId] != expected) return;
     if (kDebugMode) debugPrint("🗑️ [KENKEN] Removing number from cell $cellId");
     
     setState(() {
       userSolution.remove(cellId);
-      // Don't add back to pool since numbers were never removed
     });
   }
 
   void _checkSolution() {
+    if (!_canInteract(_round)) return;
     if (kDebugMode) debugPrint("✅ [KENKEN] Checking solution...");
     debugPrint("✅ [KENKEN] User solution: $userSolution");
     debugPrint("✅ [KENKEN] Required cells: ${puzzle!.emptyCells.length}");
@@ -336,42 +385,53 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   void _handleSuccess(List<MathProblem> mathProblems) {
-    finishPuzzleSession();
+    if (!_canInteract(_round) || !_isSolved()) return;
     if (kDebugMode) debugPrint("🎉 [KENKEN] SUCCESS! Player solved the puzzle!");
     AppHaptics.lightImpact();
 
-    int baseScore = 300 * widget.grade;
-    int complexityBonus = puzzle!.size * puzzle!.size * 15 + puzzle!.cages.length * 20;
-    int operationBonus = puzzle!.getAllOperators()
-        .map(_getOperationBonus)
-        .fold(0, (a, b) => a + b);
+    final baseScore = 300 * widget.grade;
+    final bonus = _successBonus();
+    final totalScore = baseScore + bonus;
+    if (kDebugMode) debugPrint("🎉 [KENKEN] Score calculation: base=$baseScore, bonus=$bonus, total=$totalScore");
     
-    int totalScore = baseScore + complexityBonus + operationBonus;
-    if (kDebugMode) debugPrint("🎉 [KENKEN] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
-    
-    // SINGLE CALL to unified progression system
+    _resetRoundEffects();
+    _clearFeedback();
+    setState(() => _won = true);
+    final round = _round;
+    finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       skillLevel: widget.grade,
       gameType: 'kenken',
       difficulty: widget.level,
       score: totalScore,
       mathProblems: mathProblems,
-        performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
-
+      performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
       movesUsed: _maxMoves - _movesRemaining,
       optimalMoves: _optimalMoves,
     ));
     
-    successController.forward(from: 0.0);
-    
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildSuccessDialog(complexityBonus + operationBonus),
-      );
-    }
+    _showSuccessDialog(bonus, round);
   }
+
+  int _successBonus() {
+    if (puzzle == null) return 0;
+    final complexityBonus = puzzle!.size * puzzle!.size * 15 + puzzle!.cages.length * 20;
+    final operationBonus = puzzle!.getAllOperators().map(_getOperationBonus).fold(0, (a, b) => a + b);
+    return complexityBonus + operationBonus;
+  }
+
+  void _showSuccessDialog(int bonus, Object round) {
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) return;
+    playOneShotMotion(successController, () {});
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildSuccessDialog(bonus, round, dialogContext),
+    );
+  }
+
+  bool _canUseDialog(Object round, BuildContext dialogContext) =>
+      mounted && identical(round, _round) && _won && dialogContext.mounted && ModalRoute.of(dialogContext)?.isCurrent == true;
 
   int _getOperationBonus(String operation) {
     switch (operation) {
@@ -384,6 +444,7 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   void _handleIncorrect() {
+    if (!_canInteract(_round)) return;
     if (kDebugMode) debugPrint("❌ [KENKEN] Incorrect solution - showing error message");
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -414,20 +475,26 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   void _handleOutOfMoves() {
-    finishPuzzleSession();
+    if (_won || _isGenerating) return;
+    if (!_canInteract(_round)) return;
+    _resetRoundEffects();
+    setState(() => _won = true);
     if (kDebugMode) debugPrint("❌ [KENKEN] Out of moves! Game over.");
+    final round = _round;
     _handleFailure();
-
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildOutOfMovesDialog(),
-      );
-    }
+    _showOutOfMovesDialog(round);
   }
 
-  Widget _buildOutOfMovesDialog() {
+  void _showOutOfMovesDialog(Object round) {
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildOutOfMovesDialog(round, dialogContext),
+    );
+  }
+
+  Widget _buildOutOfMovesDialog(Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
@@ -454,13 +521,17 @@ class _KenkenGameState extends State<KenkenGame>
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            OverflowBar(
+              alignment: MainAxisAlignment.spaceEvenly,
+              overflowAlignment: OverflowBarAlignment.center,
+              spacing: 16,
+              overflowSpacing: 12,
               children: [
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) return;
+                    Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
@@ -468,8 +539,9 @@ class _KenkenGameState extends State<KenkenGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) return;
+                    Navigator.of(dialogContext).pop();
+                    if (mounted) Navigator.of(context).pop();
                   },
                   style: SpaceTheme.primaryButtonStyle,
                   child: Text(s.backToMenu),
@@ -524,6 +596,7 @@ class _KenkenGameState extends State<KenkenGame>
 
   @override
   Widget build(BuildContext context) {
+    if (_reducedMotion) {}
     if (puzzle == null || _isGenerating) {
       return Scaffold(
         body: SpaceBackground(
@@ -810,7 +883,9 @@ class _KenkenGameState extends State<KenkenGame>
     }
 
     if (isEmpty && !hasUserValue) {
-      return DragTarget<int>(
+      final round = _round;
+      return DragTarget<KenkenDrag>(
+        key: ValueKey(('kenken-target', round, cellId)),
         builder: (context, candidateData, rejectedData) {
           final isHovering = candidateData.isNotEmpty;
           
@@ -892,10 +967,8 @@ class _KenkenGameState extends State<KenkenGame>
             ),
           );
         },
-        onWillAcceptWithDetails: (details) => true,
-        onAcceptWithDetails: (details) {
-          _placeNumber(details.data, cellId);
-        },
+        onWillAcceptWithDetails: (details) => _canPlace(details.data, cellId, details.data.round),
+        onAcceptWithDetails: (details) => _placeNumber(details.data, cellId, details.data.round),
       );
     }
 
@@ -904,7 +977,7 @@ class _KenkenGameState extends State<KenkenGame>
         button: true,
         label: S.of(context)!.a11yPlacedValueTapRemove,
         child: GestureDetector(
-          onTap: () => _removeNumber(cellId),
+          onTap: () { final round = _round; final exp = userSolution[cellId]; _removeNumber(cellId, exp, round); },
           child: cellWidget,
         ),
       );
@@ -972,8 +1045,9 @@ class _KenkenGameState extends State<KenkenGame>
                                 width: cellSize,
                                 height: cellSize,
                                 // Semantics on visual child — see note in word_sort_game.
-                                child: Draggable<int>(
-                                  data: rowNumbers[i],
+                                child: Draggable<KenkenDrag>(
+                                  key: ValueKey(('kenken-drag', _round, rowNumbers[i])),
+                                  data: (number: rowNumbers[i], round: _round),
                                   feedback: _buildDraggableFeedback(rowNumbers[i], isCompact),
                                   childWhenDragging: Opacity(
                                     opacity: 0.7,
@@ -1118,7 +1192,7 @@ class _KenkenGameState extends State<KenkenGame>
     );
   }
 
-  Widget _buildSuccessDialog(int bonusScore) {
+  Widget _buildSuccessDialog(int bonusScore, Object round, BuildContext dialogContext) {
     return AnimatedBuilder(
       animation: successAnimation,
       builder: (context, child) {
@@ -1139,19 +1213,27 @@ class _KenkenGameState extends State<KenkenGame>
                   const SizedBox(height: 16),
                   Text(S.of(context)!.kenkenWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
-                        onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                        onPressed: () {
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
+                          _generatePuzzle();
+                        },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(S.of(context)!.playAgain),
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop(); // Close the dialog
-                          Navigator.of(context).pop(); // Close the game screen
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
+                          if (mounted) Navigator.of(context).pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.backToMenu),
