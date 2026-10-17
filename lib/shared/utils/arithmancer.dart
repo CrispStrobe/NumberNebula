@@ -238,32 +238,34 @@ class MathematicalEnemy {
         mathematicalShields = mathematicalShields ?? {};
 
   int takeDamage(MathResult result, ArithmancerGame game) {
-    print("🎯 [takeDamage] Called with: ${result.expression}");
-    print("🎯 [takeDamage] isChained: ${result.isChained}");
-    print("🎯 [takeDamage] leftResult: ${result.leftResult?.expression}");
-    print("🎯 [takeDamage] rightResult: ${result.rightResult?.expression}");
+    if (game.verbose) {
+      print("🎯 [takeDamage] Called with: ${result.expression}");
+      print("🎯 [takeDamage] isChained: ${result.isChained}");
+      print("🎯 [takeDamage] leftResult: ${result.leftResult?.expression}");
+      print("🎯 [takeDamage] rightResult: ${result.rightResult?.expression}");
+    }
 
     // FIXED: Handle chained results by processing each side separately
     if (result.isChained) {
-      print("🎯 [takeDamage] Processing CHAINED result");
+      if (game.verbose) print("🎯 [takeDamage] Processing CHAINED result");
       int leftDamage = takeDamage(result.leftResult!, game);
-      print("🎯 [takeDamage] Left damage: $leftDamage");
+      if (game.verbose) print("🎯 [takeDamage] Left damage: $leftDamage");
       int rightDamage = takeDamage(result.rightResult!, game);
-      print("🎯 [takeDamage] Right damage: $rightDamage");
+      if (game.verbose) print("🎯 [takeDamage] Right damage: $rightDamage");
       int totalDamage = leftDamage + rightDamage;
-      print("🎯 [takeDamage] Total chained damage: $totalDamage");
+      if (game.verbose) print("🎯 [takeDamage] Total chained damage: $totalDamage");
       // DON'T subtract health here - already done in recursive calls
       return totalDamage;
     }
 
-    print("🎯 [takeDamage] Processing SINGLE result: ${result.value}");
+    if (game.verbose) print("🎯 [takeDamage] Processing SINGLE result: ${result.value}");
 
     // Original single-result logic
     int baseDamage = result.damage;
     if (baseDamage <= 0) return 0;
 
     int finalDamage = _applyMathematicalShields(baseDamage, result);
-    print("🎯 [takeDamage] After shields: $finalDamage");
+    if (game.verbose) print("🎯 [takeDamage] After shields: $finalDamage");
     health -= finalDamage;
     return finalDamage;
   }

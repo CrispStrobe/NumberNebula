@@ -77,9 +77,14 @@ jobs:
           --generate --require-all --grades "$CALIBRATION_GRADES" --levels 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
           --samples "$CALIBRATION_SAMPLES" --seed 20261002 --workers 2
           --output calibration-grade-${{ matrix.grade_group }}.json
-      - uses: actions/upload-artifact@v4
+      - name: List calibration outputs
+        if: always()
+        run: ls -lh calibration-grade-* || echo "No calibration-grade-* files produced"
+      - name: Upload calibration artifacts
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: pure-calibration-grade-${{ matrix.grade_group }}
           path: calibration-grade-*
+          if-no-files-found: warn
           retention-days: 14
