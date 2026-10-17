@@ -96,6 +96,9 @@ jobs:
       - name: Check Dark Matter Grid round effects
         run: flutter test test/widgets/dark_matter_grid_round_test.dart --concurrency=1 --reporter expanded
 
+      - name: Check Star Forge round effects
+        run: flutter test test/widgets/star_forge_round_test.dart --concurrency=1 --reporter expanded
+
       - name: Check cached wormhole rendering
         run: flutter test test/widgets/wormhole_rendering_test.dart --concurrency=1 --reporter expanded
 
