@@ -30,11 +30,61 @@ class AlienTribunalGame extends StatefulWidget {
 class _AlienTribunalGameState extends State<AlienTribunalGame>
     with TickerProviderStateMixin, GameAnimationsMixin<AlienTribunalGame>, PuzzleSessionMixin<AlienTribunalGame> {
   bool _sessionReady = false;
+
+  Object _round = Object();
+  bool _won = false;
+
+  bool _canInteract(Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      !_isGenerating &&
+      !_won &&
+      !_gameOver &&
+      puzzle != null;
+
+  void _resetRoundEffects() {
+    _round = Object();
+    cancelOneShotMotion(successController);
+    successController.reset();
+    _clearFeedback();
+  }
+
+  void _clearFeedback() {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.clearSnackBars();
+    messenger?.removeCurrentSnackBar();
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(successController, reduced, duration: const Duration(milliseconds: 600));
+  }
+
+  @visibleForTesting
+  Object get testRound => _round;
+
+  @visibleForTesting
+  void rebuildForTesting() => setState(() {});
+
+  @visibleForTesting
+  void toggleForTesting(int index, Object round) => _toggleAssignment(index, round);
+
+  @visibleForTesting
+  Future<void> generateForTesting() => _generatePuzzle();
+
+  bool _isSolvedWith(Map<int, bool?> assignment) {
+    if (puzzle == null) return false;
+    if (assignment.length < puzzle!.personCount) return false;
+    if (assignment.values.any((v) => v == null)) return false;
+    final userMap = assignment.map((k, v) => MapEntry(k, v!));
+    return puzzle!.checkSolution(userMap);
+  }
+
   @override String get sessionGameKey => 'alien_tribunal';
   @override int get sessionGrade => widget.grade;
   @override int get sessionLevel => widget.level;
   @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+    if (!_sessionReady || _isGenerating || _won || _gameOver) return null;
     return {
       'puzzle': (puzzle?.toJson()),
       '_userAssignment': _userAssignment.entries.map((v0) => [v0.key, (v0.value)]).toList(),
@@ -42,10 +92,23 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     };
   }
   @override void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
     puzzle = (state["puzzle"] == null ? null : AlienTribunalPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
     _userAssignment = Map<int, bool?>.fromEntries((state["_userAssignment"] as List).map((v0) => MapEntry(v0[0] as int, (v0[1] == null ? null : v0[1] as bool))));
     _wrongVerdicts = state["_wrongVerdicts"] as int;
-    _isGenerating = false; _gameOver = false;
+    _isGenerating = false; _gameOver = false; _won = false;
+    final solved = _isSolvedWith(_userAssignment);
+    if (solved) {
+      _gameOver = true;
+      _won = true;
+      finishPuzzleSession();
+      final round = _round;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !identical(round, _round) || !_won || puzzle == null) return;
+        _showWinDialog(_winScore(), round);
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
@@ -87,6 +150,8 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _round = Object();
+    cancelOneShotMotion(successController);
     glowController.stop();
     successController.stop();
     disposeGameAnimations(usePulse: false);
@@ -94,13 +159,17 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
   }
 
   Future<void> _generatePuzzle() async {
+    _resetRoundEffects();
+    final round = _round;
     beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     setState(() {
       _isGenerating = true;
       _gameOver = false;
+      _won = false;
       _wrongVerdicts = 0;
+      _userAssignment = {};
       successController.reset();
     });
 
@@ -110,6 +179,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
       'difficulty': currentDifficulty!,
     });
 
+    if (!mounted || !identical(round, _round)) return;
     if (mounted) {
       setState(() {
         puzzle = generated;
@@ -119,8 +189,9 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     }
   }
 
-  void _toggleAssignment(int index) {
-    if (_gameOver) return;
+  void _toggleAssignment(int index, [Object? round]) {
+    final currentRound = round ?? _round;
+    if (!_canInteract(currentRound)) return;
     setState(() {
       final current = _userAssignment[index];
       if (current == null) {
@@ -151,7 +222,6 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
           case 1: return s.alienTribunalClaimLiar2(name);
           default: return s.alienTribunalClaimLiar3(name);
         }
-
       case TribunalClaimKind.pair:
         final first = puzzle!.people[person.targetIndex].name;
         final second = puzzle!.people[person.secondTargetIndex].name;
@@ -173,7 +243,6 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
         return person.statementStyle == 0
             ? s.alienTribunalPairAnyLiar1(first, second)
             : s.alienTribunalPairAnyLiar2(first, second);
-
       case TribunalClaimKind.count:
         if (person.countsTruthTellers) {
           if (person.countValue == 0) return s.alienTribunalCountTruthNone;
@@ -187,6 +256,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
   }
 
   void _checkSolution() {
+    if (!_canInteract(_round)) return;
     if (puzzle == null || _gameOver) return;
 
     // All must be assigned
@@ -220,49 +290,64 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     return correct / p.personCount;
   }
 
-  void _handleWin() {
-    AppHaptics.lightImpact();
-    _gameOver = true;
-
+  int _winScore() {
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
     int complexityBonus = puzzle!.personCount * 40;
-    int totalScore = baseScore + levelBonus + complexityBonus;
+    return baseScore + levelBonus + complexityBonus;
+  }
 
+  void _handleWin() {
+    if (!_canInteract(_round)) return;
+    final round = _round;
+    if (puzzle == null) return;
+    // Verify solution still correct for current assignment
+    final userMap = _userAssignment.map((k, v) => MapEntry(k, v!));
+    if (!puzzle!.checkSolution(userMap)) return;
+    _clearFeedback();
+    setState(() {
+      _gameOver = true;
+      _won = true;
+    });
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
       skillLevel: widget.grade,
       gameType: 'alien_tribunal',
       difficulty: widget.level,
-      score: totalScore,
+      score: _winScore(),
       performance: Perf.fromMistakes(_wrongVerdicts),
     ));
 
-    successController.forward(from: 0.0);
+    _showWinDialog(_winScore(), round);
+  }
 
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => _buildWinDialog(totalScore),
-      );
-    }
+  void _showWinDialog(int totalScore, Object round) {
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) return;
+    playOneShotMotion(successController, () {});
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildWinDialog(totalScore, round, dialogContext),
+    );
   }
 
   void _handleLoss() {
+    if (!_canInteract(_round)) return;
     AppHaptics.heavyImpact();
-    _wrongVerdicts++;
-
-    finishPuzzleSession();
-
+    setState(() => _wrongVerdicts++);
+    // Recoverable mistake: keep board editable and save snapshot
+    // Report loss for analytics but remain playable for retry
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
       skillLevel: widget.grade,
       gameType: 'alien_tribunal',
       difficulty: widget.level,
       progress: _correctlyJudgedFraction(),
     ));
-
+    // Keep session alive for retry: finish then immediately begin new session
+    finishPuzzleSession();
+    beginPuzzleSession();
+    savePuzzleSession();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -277,6 +362,13 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
       ),
     );
   }
+
+  bool _canUseDialog(BuildContext dialogContext, Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      (_won || _gameOver) &&
+      dialogContext.mounted &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
 
   @override
   Widget build(BuildContext context) {
@@ -306,9 +398,14 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
           child: Column(
             children: [
               GameUI(
+                key: ValueKey(('alien-header', _round)),
                 title: s.alienTribunalTitle,
                 level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: () {
+                  if (mounted && _sessionReady && !_isGenerating) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
               Expanded(child: _buildGameArea()),
             ],
@@ -320,50 +417,67 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
 
   Widget _buildGameArea() {
     final s = S.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Instructions
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Text(
-              s.alienTribunalInstructions,
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-          ),
-
-          // Person cards — fill available space
-          Expanded(
-            child: ListView.builder(
-              itemCount: puzzle!.personCount,
-              itemBuilder: (context, i) => _buildPersonCard(i),
-            ),
-          ),
-
-          // Submit button
-          if (!_gameOver)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  onPressed: _checkSolution,
-                  icon: const Icon(Icons.gavel, size: 24),
-                  label: Text(S.of(context)!.alienTribunalSubmit, style: const TextStyle(fontSize: 18)),
-                  style: SpaceTheme.primaryButtonStyle,
+    final round = _round;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isShort = constraints.maxHeight < 500;
+        final content = Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Instructions
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Text(
+                  s.alienTribunalInstructions,
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+                  textAlign: TextAlign.center,
                 ),
               ),
+              // Person cards — fill available space
+              Expanded(
+                child: ListView.builder(
+                  itemCount: puzzle!.personCount,
+                  itemBuilder: (context, i) => _buildPersonCard(i, round),
+                ),
+              ),
+              // Submit button
+              if (!_gameOver)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      key: ValueKey(('alien-submit', _round)),
+                      onPressed: _checkSolution,
+                      icon: const Icon(Icons.gavel, size: 24),
+                      label: Text(S.of(context)!.alienTribunalSubmit, style: const TextStyle(fontSize: 18)),
+                      style: SpaceTheme.primaryButtonStyle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+        if (isShort) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: SizedBox(
+                height: constraints.maxHeight,
+                child: content,
+              ),
             ),
-        ],
-      ),
+          );
+        }
+        return content;
+      },
     );
   }
 
-  Widget _buildPersonCard(int index) {
+  Widget _buildPersonCard(int index, Object round) {
     final person = puzzle!.people[index];
     final assignment = _userAssignment[index];
 
@@ -386,101 +500,104 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     }
 
     return Padding(
+      key: ValueKey(('alien-card', _round, index)),
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: AnimatedBuilder(
         animation: glowAnimation,
         builder: (context, child) {
           return GestureDetector(
+            key: ValueKey(('alien-tap', _round, index)),
             behavior: HitTestBehavior.opaque,
-            onTap: () => _toggleAssignment(index),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-              decoration: BoxDecoration(
-                color: SpaceTheme.deepSpace.withValues(alpha: 0.85),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: borderColor.withValues(
-                    alpha: assignment == null ? glowAnimation.value : 0.9,
-                  ),
-                  width: 2,
-                ),
-                boxShadow: assignment != null
-                    ? [
-                        BoxShadow(
-                          color: borderColor.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                        )
-                      ]
-                    : null,
+            onTap: () => _toggleAssignment(index, round),
+            child: child,
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          decoration: BoxDecoration(
+            color: SpaceTheme.deepSpace.withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: borderColor.withValues(
+                alpha: assignment == null ? glowAnimation.value : 0.9,
               ),
-              child: Row(
+              width: 2,
+            ),
+            boxShadow: assignment != null
+                ? [
+                    BoxShadow(
+                      color: borderColor.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    )
+                  ]
+                : null,
+          ),
+          child: Row(
+            children: [
+              // Avatar
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6B48FF), Color(0xFFE63946)],
+                  ),
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: Center(
+                  child: Text(
+                    person.name[0],
+                    style: SpaceTheme.headlineStyle.copyWith(fontSize: 26),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              // Name and statement
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      person.name,
+                      style: SpaceTheme.titleStyle.copyWith(fontSize: 20),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _localizedStatement(person),
+                      style: SpaceTheme.bodyStyle.copyWith(
+                        fontSize: 16,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Status indicator
+              Column(
                 children: [
-                  // Avatar
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF6B48FF), Color(0xFFE63946)],
-                      ),
-                      borderRadius: BorderRadius.circular(28),
+                  Icon(statusIcon, color: borderColor, size: 36),
+                  const SizedBox(height: 2),
+                  Text(
+                    statusText,
+                    style: TextStyle(
+                      color: borderColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
-                    child: Center(
-                      child: Text(
-                        person.name[0],
-                        style: SpaceTheme.headlineStyle.copyWith(fontSize: 26),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  // Name and statement
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          person.name,
-                          style: SpaceTheme.titleStyle.copyWith(fontSize: 20),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          _localizedStatement(person),
-                          style: SpaceTheme.bodyStyle.copyWith(
-                            fontSize: 16,
-                            fontStyle: FontStyle.italic,
-                            color: Colors.white70,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  // Status indicator
-                  Column(
-                    children: [
-                      Icon(statusIcon, color: borderColor, size: 36),
-                      const SizedBox(height: 2),
-                      Text(
-                        statusText,
-                        style: TextStyle(
-                          color: borderColor,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
-            ),
-          );
-        },
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildWinDialog(int totalScore) {
+  Widget _buildWinDialog(int totalScore, Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -503,7 +620,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                   const SizedBox(height: 16),
                   Text(s.alienTribunalWinDesc(totalScore),
                       style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
-                  if (context.read<DebugProvider>().isDebugMenuEnabled)
+                  if (dialogContext.read<DebugProvider>().isDebugMenuEnabled)
                     DebugPuzzleRating(
                       gameType: 'alien_tribunal',
                       puzzleId: 'at_g${widget.grade}_l${widget.level}_${DateTime.now().millisecondsSinceEpoch}',
@@ -511,13 +628,14 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                       level: widget.level,
                     ),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(dialogContext, round)) return;
+                          Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
                         style: SpaceTheme.secondaryButtonStyle,
@@ -525,7 +643,8 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(dialogContext, round)) return;
+                          Navigator.of(dialogContext).pop();
                           Navigator.of(context).pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,
