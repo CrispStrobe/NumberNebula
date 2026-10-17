@@ -9,7 +9,7 @@ import 'package:space_math_academy/core/services/cognitive_profile_service.dart'
 import 'package:space_math_academy/core/services/debug_provider.dart';
 import 'package:space_math_academy/core/services/puzzle_session_store.dart';
 import 'package:space_math_academy/features/games/providers/game_provider.dart';
-import 'package:space_math_academy/features/games/screens/star_forge_game.dart';
+import 'package:space_math_academy/features/games/screens/star_forge_game.dart' as star_forge;
 import 'package:space_math_academy/features/games/services/star_forge_logic.dart';
 import 'package:space_math_academy/generated/l10n.dart';
 
@@ -36,18 +36,18 @@ void main() {
             child: MaterialApp(
                 localizationsDelegates: S.localizationsDelegates,
                 supportedLocales: S.supportedLocales,
-                home: const StarForgeGame(grade: 1, level: 1)));
+                home: const star_forge.StarForgeGame(grade: 1, level: 1)));
     await tester.pumpWidget(app());
     for (int i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
-    dynamic state = tester.state(find.byType(StarForgeGame));
+    dynamic state = tester.state(find.byType(star_forge.StarForgeGame));
     final puzzle = state.puzzle as StarForgePuzzle;
     final nodes = puzzle.emptyNodes.toList()..sort();
     final number = puzzle.solution[nodes.first]!;
     final source =
-        find.byWidgetPredicate((w) => w is Draggable<int> && w.data == number);
-    final target = find.byType(DragTarget<int>).first;
+        find.byWidgetPredicate((w) => w is Draggable<star_forge.StarForgeDrag> && (w.data as star_forge.StarForgeDrag).number == number);
+    final target = find.byType(DragTarget<star_forge.StarForgeDrag>).first;
     await tester.dragFrom(tester.getCenter(source),
         tester.getCenter(target) - tester.getCenter(source));
     await tester.pump(const Duration(milliseconds: 600));
@@ -65,13 +65,13 @@ void main() {
     await tester.tap(find.text('Continue'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
-    state = tester.state(find.byType(StarForgeGame));
+    state = tester.state(find.byType(star_forge.StarForgeGame));
     expect(state.capturePuzzleSession(), before);
     expect(gp.score, 0);
     final lastNumber = puzzle.solution[nodes.last]!;
     final lastSource = find
-        .byWidgetPredicate((w) => w is Draggable<int> && w.data == lastNumber);
-    final lastTarget = find.byType(DragTarget<int>).first;
+        .byWidgetPredicate((w) => w is Draggable<star_forge.StarForgeDrag> && (w.data as star_forge.StarForgeDrag).number == lastNumber);
+    final lastTarget = find.byType(DragTarget<star_forge.StarForgeDrag>).first;
     await tester.dragFrom(tester.getCenter(lastSource),
         tester.getCenter(lastTarget) - tester.getCenter(lastSource));
     await tester.pump(const Duration(milliseconds: 800));
