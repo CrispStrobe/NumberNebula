@@ -10,7 +10,10 @@ import 'performance_badge.dart';
 /// becomes a made-up accuracy percentage. Reused by every end-of-round dialog.
 class RoundSummary extends StatelessWidget {
   final String gameKey;
-  const RoundSummary({super.key, required this.gameKey});
+
+  /// An owning game can reject navigation from an obsolete result round.
+  final bool Function()? canNavigate;
+  const RoundSummary({super.key, required this.gameKey, this.canNavigate});
   @override
   Widget build(BuildContext context) {
     final gp = context.read<GameProvider>();
@@ -70,6 +73,9 @@ class RoundSummary extends StatelessWidget {
                 icon: const Icon(Icons.arrow_forward),
                 label: Text(s.roundSuggestedChallenge),
                 onPressed: () {
+                  if (!context.mounted ||
+                      ModalRoute.of(context)?.isCurrent != true ||
+                      (canNavigate != null && !canNavigate!())) return;
                   final builder = gameBuilderFor(gameKey);
                   if (builder == null) return;
                   final navigator = Navigator.of(context);

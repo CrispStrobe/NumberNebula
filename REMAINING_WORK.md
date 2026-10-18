@@ -15,10 +15,10 @@ its exact key and release criteria here. Audit lanes below do not withhold games
 
 ### Fixed and shipping
 
-All 48 registered games are available in the menu and missions. The 32 implemented
+All 48 registered games are available in the menu and missions. The 33 implemented
 focused round audits are mapped in [HANDOVER.md](HANDOVER.md); historical browser
 play-throughs are archived in [game-quality notes](docs/game-quality-history.md).
-The remaining 16 focused audits are additional hardening work, not a broken-game list.
+The remaining 15 focused audits are additional hardening work, not a broken-game list.
 
 ## Shared acceptance for game lanes A–F
 
@@ -71,7 +71,8 @@ exact integrated head before release.
 
 ## B — Remaining arithmetic and grid-input rounds
 
-**Status:** Puzzle Math ready. **Remaining screen:** `puzzle_math_game.dart`.
+**Status:** Implemented; retain exact-source evidence from the repair PR.
+See the [Puzzle Math round audit](docs/puzzle-math-round-audit.md).
 Codebreaker now has a [dedicated round audit](docs/codebreaker-round-audit.md);
 retain its real-pointer, inventory, terminal, retry, navigation and motion tests.
 Arithmetic Square, Crossword, KenKen, Magic Triangles and Number Walls are covered
@@ -80,10 +81,10 @@ count when more than eight answer occurrences were needed; PR #58 fixes that
 boundary with finite-domain padding and unit regressions. Its broader round
 lifecycle audit is implemented in the Codebreaker repair.
 
-Continue with Puzzle Math. Exercise pool/answer conservation, old input across
-restore, duplicate outcomes, budget exhaustion, persisted mistakes, real retry
-and large-text layouts. Preserve legacy/candidate generation choices. **Done:**
-shared acceptance plus independent rule validation for each changed game.
+Retain the Puzzle Math pool/answer conservation, old input across restore,
+one-time outcomes, timer expiry, persisted mistakes, real retry and phone tests.
+Verify its exact-head native, generation and both-engine deployment evidence
+before treating the lane as validated. Preserve generator choices.
 
 ## C — Remaining construction rounds
 
@@ -134,7 +135,7 @@ Start with Arithmancer: schedule an AI response, replace/restore the round, and
 prove the response cannot land in the new state. Verify turn ownership, selected
 cards, outcomes once, localized turn labels, pause/retry and disposal. Repeat
 for Asteroid Duel. **Done:** shared acceptance and legal-move/AI regression tests.
-B–F cover the 16 registered games without completed dedicated round audits.
+C–F cover the 15 registered games without implemented dedicated round audits.
 Legacy screens such as `bubble_math_game.dart` and `creature_forge_game.dart`
 are not extra registered-game lanes; do not delete them as incidental cleanup.
 

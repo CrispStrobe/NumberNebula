@@ -1,5 +1,15 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-10-18 — Puzzle Math round contracts
+
+Version **1.5.35+51** implements the [Puzzle Math round audit](docs/puzzle-math-round-audit.md).
+Drags and controls carry round identity; finite tile accounting preserves equal-answer
+interchangeability. Terminal sessions stop accepting input and cannot replay outcomes.
+The timer expires at zero, while disabled timers retain playable zero-time saves.
+Phone layouts, retry dialogs and hover reduced motion have focused coverage.
+Use the repair PR’s exact-source validation and deployment evidence; implementation
+notes alone do not establish a verified baseline.
+
 ## 2026-10-18 — Codebreaker round isolation and inventory
 
 Version **1.5.34+50** adds the [Codebreaker round audit](docs/codebreaker-round-audit.md).

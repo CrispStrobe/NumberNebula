@@ -5,7 +5,8 @@ Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
 ## October 18 integration
 
-Current implemented version: **1.5.34+50**; see the Codebreaker audit below.
+Current implemented version: **1.5.35+51**; see the Puzzle Math audit.
+The preceding verified version is **1.5.34+50**, [PR #60](https://github.com/CrispStrobe/NumberNebula/pull/60).
 The preceding verified baseline is **1.5.33+49**, [PR #59](https://github.com/CrispStrobe/NumberNebula/pull/59).
 The earlier [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)
 repairs the October 17 audits and integrates the work originally proposed in
@@ -13,7 +14,7 @@ repairs the October 17 audits and integrates the work originally proposed in
 build evidence for the current source. Historical green runs do not validate a
 later head.
 
-There are focused round suites for **32 registered games**, with **16** remaining
+There are focused round suites for **33 registered games**, with **15** remaining
 to audit. All 22 newly skipped acceptance cases from the October 17 changes have
 been re-enabled, the Arithmetic Square placeholder has been replaced by actual
 input/save/inventory/terminal tests, and a coverage contract rejects skipped
@@ -32,7 +33,8 @@ historical summary integrity from four live seeded Robot generation/command
 replays. Its real Flutter wrapper and pure workflow step are present; unsupported
 sample/proof claims have been withdrawn. This is not human difficulty calibration.
 
-The next executable screen audit is Puzzle Math (B), followed by Hull
+Puzzle Math (B) is implemented; see its
+[round audit](docs/puzzle-math-round-audit.md). The next screen audits are Hull
 Plating and Relic Assembly (C), followed by the unchanged D/E/F lanes. H has a
 [prepared playtest protocol](docs/human-playtest-protocol.md); R has a
 [draft readiness document](docs/release-readiness.md). Neither claims device
@@ -110,6 +112,7 @@ fixes just because an older planning document predates them.
 
 | Games | Merged public change |
 | --- | --- |
+| Puzzle Math | [Round audit](docs/puzzle-math-round-audit.md) |
 | Codebreaker | [Round audit](docs/codebreaker-round-audit.md) |
 | Signal Triangulation | [#29](https://github.com/CrispStrobe/NumberNebula/pull/29) |
 | Perspective Puzzle; Block Counter | [#30](https://github.com/CrispStrobe/NumberNebula/pull/30) |
