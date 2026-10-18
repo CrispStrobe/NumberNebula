@@ -1,9 +1,10 @@
 import { test, expect, openGameMenu, watch } from './helpers.mjs';
 
-// Exercise every screen changed by the October 17 audits in both shipped
+// Exercise the audited screens in both shipped
 // engines. Widget tests provide the detailed input/restore/outcome contracts;
 // these cases catch deferred-module, release-build and browser-only failures.
 const games = [
+  { title: 'Codebreaker', role: 'button', ready: /^Number \d+, drag to a slot/ },
   { title: 'Wormhole Activator', role: 'button', ready: /^Resonator \d+, drag to a triangle node/ },
   { title: 'Quantum Pyramid Builder', role: 'button', ready: /^Number brick \d+, drag to a slot/ },
   { title: 'Arithmetic Square', role: 'button', ready: /^Number \d+, drag to a cell/ },

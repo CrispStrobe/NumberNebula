@@ -1,5 +1,16 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-10-18 — Codebreaker round isolation and inventory
+
+Version **1.5.34+50** adds the [Codebreaker round audit](docs/codebreaker-round-audit.md).
+Repeated-symbol autofill consumes and returns one assignment token; equal-valued
+assignments stay independent. Old drag/removal/navigation/dialog callbacks and
+obsolete generation results cannot alter replacement rounds. Solved/exhausted
+restores offer retry without replaying outcomes; full wrong last moves lose.
+The number tray and board remain scrollable on large-text phones. Generator
+paths, scoring and move pars are retained. Exact-source validation belongs to
+the repair PR, rather than earlier versions' green runs.
+
 ## 2026-10-18 — Second-pass regression contracts
 
 The [second-pass audit](docs/october-17-regression-audit.md) maps every modified

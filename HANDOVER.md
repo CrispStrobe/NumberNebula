@@ -5,14 +5,15 @@ Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
 ## October 18 integration
 
-Current implemented version: **1.5.33+49**; see the second-pass audit below.
+Current implemented version: **1.5.34+50**; see the Codebreaker audit below.
+The preceding verified baseline is **1.5.33+49**, [PR #59](https://github.com/CrispStrobe/NumberNebula/pull/59).
 The earlier [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)
 repairs the October 17 audits and integrates the work originally proposed in
 #55, #56 and #57. Its checks verify that earlier integration; use the second-pass
 build evidence for the current source. Historical green runs do not validate a
 later head.
 
-There are focused round suites for **31 registered games**, with **17** remaining
+There are focused round suites for **32 registered games**, with **16** remaining
 to audit. All 22 newly skipped acceptance cases from the October 17 changes have
 been re-enabled, the Arithmetic Square placeholder has been replaced by actual
 input/save/inventory/terminal tests, and a coverage contract rejects skipped
@@ -31,11 +32,21 @@ historical summary integrity from four live seeded Robot generation/command
 replays. Its real Flutter wrapper and pure workflow step are present; unsupported
 sample/proof claims have been withdrawn. This is not human difficulty calibration.
 
-The next executable screen audits are Codebreaker and Puzzle Math (B), Hull
+The next executable screen audit is Puzzle Math (B), followed by Hull
 Plating and Relic Assembly (C), followed by the unchanged D/E/F lanes. H has a
 [prepared playtest protocol](docs/human-playtest-protocol.md); R has a
 [draft readiness document](docs/release-readiness.md). Neither claims device
 measurements or a new store release.
+
+## Codebreaker round audit
+
+The [Codebreaker audit](docs/codebreaker-round-audit.md) adds real input,
+finite tray accounting, repeated-symbol and duplicate-value checks, restore
+isolation, terminal saves, one-time outcomes, guarded retry/navigation and
+reduced-motion coverage. English/German phone controls are exercised at doubled
+text size. Codebreaker retains both existing generator paths and symbol autofill.
+Use its repair PR's exact-source validation and deployed checks as evidence;
+implemented tests alone do not establish a passing build.
 
 ## Second-pass regression audit
 
@@ -99,6 +110,7 @@ fixes just because an older planning document predates them.
 
 | Games | Merged public change |
 | --- | --- |
+| Codebreaker | [Round audit](docs/codebreaker-round-audit.md) |
 | Signal Triangulation | [#29](https://github.com/CrispStrobe/NumberNebula/pull/29) |
 | Perspective Puzzle; Block Counter | [#30](https://github.com/CrispStrobe/NumberNebula/pull/30) |
 | Void Crossing | [#31](https://github.com/CrispStrobe/NumberNebula/pull/31) |

@@ -2,10 +2,10 @@
 
 ## Project status and next work
 
-The implemented version is **1.5.33+49** ([second-pass audit](docs/october-17-regression-audit.md)):
-48 registered games, 31 focused round suites and retained all-game calibration.
+The implemented version is **1.5.34+50** ([Codebreaker audit](docs/codebreaker-round-audit.md)):
+48 registered games, 32 focused round suites and retained all-game calibration.
 Consult the [build evidence](https://github.com/CrispStrobe/NumberNebula/pull/59)
-for its exact validated source; earlier PR checks apply to their named heads.
+for the preceding validated source; the Codebreaker repair records its own checks, and earlier PR checks apply to their named heads.
 Start with [HANDOVER.md](HANDOVER.md) for evidence and boundaries, then
 [REMAINING_WORK.md](REMAINING_WORK.md) for scoped tasks. Automated workload
 estimates remain untrained; physical-device and child playtest evidence is pending.
