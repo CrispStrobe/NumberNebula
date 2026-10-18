@@ -1,3 +1,4 @@
+import 'support/round_dialog_finder.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -57,11 +58,12 @@ class _App {
 }
 
 final _screen = find.byType(AlienTribunalGame);
-final _dialog = find.byWidgetPredicate((widget) => widget is Dialog);
+final _dialog = roundDialogs;
 dynamic _session(WidgetTester tester) => tester.state(_screen);
 S _strings(WidgetTester tester) => S.of(tester.element(_screen))!;
 Map<String, dynamic> _snapshot(WidgetTester tester) =>
-    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession())) as Map<String, dynamic>;
+    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession()))
+        as Map<String, dynamic>;
 
 Map<String, dynamic> _board({
   int personCount = 3,
@@ -126,7 +128,9 @@ Future<_App> _mount(WidgetTester tester,
     await tester.pump(const Duration(milliseconds: 20));
     await tester
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
   await _restore(tester, app, board ?? _board());
@@ -154,7 +158,9 @@ Future<void> _tapCard(WidgetTester tester, int index) async {
 
 Future<void> _submit(WidgetTester tester) async {
   final btn = _submitBtn();
-  if (btn.evaluate().isEmpty) return;
+  if (btn.evaluate().isEmpty) {
+    return;
+  }
   await tester.tap(btn);
   await tester.pump();
 }
@@ -176,8 +182,11 @@ Future<void> _retry(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 300));
   for (var i = 0; i < 100; i++) {
     await tester.pump(const Duration(milliseconds: 20));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   expect(_dialog, findsNothing);
   expect(_session(tester).capturePuzzleSession(), isNotNull);
@@ -233,7 +242,9 @@ void main() {
     for (int i = 0; i < puzzle.personCount; i++) {
       final needed = puzzle.people[i].isTruthTeller;
       await _tapCard(tester, i);
-      if (!needed) await _tapCard(tester, i);
+      if (!needed) {
+        await _tapCard(tester, i);
+      }
     }
     // Flip one to make it wrong
     await _tapCard(tester, 0);
@@ -261,7 +272,9 @@ void main() {
     for (int i = 0; i < puzzle.personCount; i++) {
       final needed = puzzle.people[i].isTruthTeller;
       await _tapCard(tester, i);
-      if (!needed) await _tapCard(tester, i);
+      if (!needed) {
+        await _tapCard(tester, i);
+      }
     }
     await _submitExpect(tester);
     await tester.pump(const Duration(milliseconds: 300));
@@ -322,7 +335,9 @@ void main() {
     for (int i = 0; i < puzzle.personCount; i++) {
       final needed = puzzle.people[i].isTruthTeller;
       await _tapCard(tester, i);
-      if (!needed) await _tapCard(tester, i);
+      if (!needed) {
+        await _tapCard(tester, i);
+      }
     }
     await _submitExpect(tester);
     await tester.pump(const Duration(milliseconds: 300));
@@ -350,7 +365,9 @@ void main() {
     for (int i = 0; i < puzzle.personCount; i++) {
       final needed = puzzle.people[i].isTruthTeller;
       await _tapCard(tester, i);
-      if (!needed) await _tapCard(tester, i);
+      if (!needed) {
+        await _tapCard(tester, i);
+      }
     }
     await _submitExpect(tester);
     await tester.pump(const Duration(milliseconds: 300));
@@ -368,7 +385,9 @@ void main() {
     for (int i = 0; i < puzzle.personCount; i++) {
       final needed = puzzle.people[i].isTruthTeller;
       await _tapCard(tester, i);
-      if (!needed) await _tapCard(tester, i);
+      if (!needed) {
+        await _tapCard(tester, i);
+      }
     }
     await _submitExpect(tester);
     await tester.pump();
@@ -400,5 +419,19 @@ void main() {
     await tester.ensureVisible(_submitBtn());
     await tester.pump();
     expect(tester.takeException(), isNull);
+  });
+  testWidgets(
+      'correct unsubmitted saved verdict remains playable and earns its win',
+      (tester) async {
+    final app = await _mount(tester,
+        reduced: true, board: _board(assignment: {0: true, 1: false, 2: true}));
+    expect(_session(tester).capturePuzzleSession(), isNotNull);
+    expect(_dialog, findsNothing);
+    expect(app.gp.outcomeCount, 0);
+    await _submitExpect(tester);
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(app.gp.outcomeCount, 1);
+    expect(app.gp.lastOutcome!.wasSuccessful, isTrue);
+    expect(_session(tester).capturePuzzleSession(), isNull);
   });
 }

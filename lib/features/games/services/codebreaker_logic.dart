@@ -36,9 +36,15 @@ class PuzzleEquation {
 
   List<String> getSymbols() {
     final symbols = <String>[];
-    if (term1 is String) symbols.add(term1 as String);
-    if (term2 is String) symbols.add(term2 as String);
-    if (result is String) symbols.add(result as String);
+    if (term1 is String) {
+      symbols.add(term1 as String);
+    }
+    if (term2 is String) {
+      symbols.add(term2 as String);
+    }
+    if (result is String) {
+      symbols.add(result as String);
+    }
     return symbols.toSet().toList();
   }
 
@@ -64,7 +70,9 @@ class PuzzleSolver {
     final knownValues = <String, int>{};
 
     if (verbose) {
-      if (kDebugMode) traceGenerator("🧠 [SOLVER] Equations to solve:");
+      if (kDebugMode) {
+        traceGenerator("🧠 [SOLVER] Equations to solve:");
+      }
       for (int i = 0; i < equations.length; i++) {
         traceGenerator("🧠 [SOLVER]   Eq$i: ${equations[i]}");
       }
@@ -88,7 +96,9 @@ class PuzzleSolver {
 
         if (unknowns.length == 1) {
           final unknownSymbol = unknowns.first;
-          if (knownValues.containsKey(unknownSymbol)) continue;
+          if (knownValues.containsKey(unknownSymbol)) {
+            continue;
+          }
 
           try {
             final value = _solveFor(unknownSymbol, eq, knownValues);
@@ -161,9 +171,15 @@ class PuzzleSolver {
     final res = _getValue(eq.result, known);
 
     // Check if we have non-symbol values that aren't our target
-    if (eq.term1 != symbol && t1 == null) return null;
-    if (eq.term2 != symbol && t2 == null) return null;
-    if (eq.result != symbol && res == null) return null;
+    if (eq.term1 != symbol && t1 == null) {
+      return null;
+    }
+    if (eq.term2 != symbol && t2 == null) {
+      return null;
+    }
+    if (eq.result != symbol && res == null) {
+      return null;
+    }
 
     if (symbol == eq.result) {
       if (t1 != null && t2 != null) {
@@ -209,8 +225,12 @@ class PuzzleSolver {
   }
 
   double? _getValue(dynamic term, Map<String, int> known) {
-    if (term is int) return term.toDouble();
-    if (term is String) return known[term]?.toDouble();
+    if (term is int) {
+      return term.toDouble();
+    }
+    if (term is String) {
+      return known[term]?.toDouble();
+    }
     return null;
   }
 
@@ -446,12 +466,16 @@ class AdvancedPuzzleGenerator {
       final s2 = symbolsList[_random.nextInt(symbolsList.length)];
       final s3 = symbolsList[_random.nextInt(symbolsList.length)];
 
-      if (s1 == s2 || s1 == s3 || s2 == s3) continue;
+      if (s1 == s2 || s1 == s3 || s2 == s3) {
+        continue;
+      }
 
       // Check if this combination already exists
       final existingEq = equations.any(
           (eq) => {eq.term1, eq.term2, eq.result}.containsAll({s1, s2, s3}));
-      if (existingEq) continue;
+      if (existingEq) {
+        continue;
+      }
 
       final v1 = solution[s1]!;
       final v2 = solution[s2]!;
@@ -509,9 +533,13 @@ class AdvancedPuzzleGenerator {
             break;
           }
         }
-        if (foundValid) break;
+        if (foundValid) {
+          break;
+        }
       }
-      if (foundValid) break;
+      if (foundValid) {
+        break;
+      }
     }
 
     // If we still don't have enough equations, create some mixed number-symbol equations
@@ -522,7 +550,9 @@ class AdvancedPuzzleGenerator {
       for (int i = 0; i < attempts; i++) {
         final s1 = symbolsList[_random.nextInt(symbolsList.length)];
         final s2 = symbolsList[_random.nextInt(symbolsList.length)];
-        if (s1 == s2) continue;
+        if (s1 == s2) {
+          continue;
+        }
 
         final v1 = solution[s1]!;
         final v2 = solution[s2]!;
@@ -538,13 +568,17 @@ class AdvancedPuzzleGenerator {
                 result = num + v1;
                 break;
               case '-':
-                if (num > v1) result = num - v1;
+                if (num > v1) {
+                  result = num - v1;
+                }
                 break;
               case '*':
                 result = num * v1;
                 break;
               case '/':
-                if (v1 != 0 && num % v1 == 0) result = num ~/ v1;
+                if (v1 != 0 && num % v1 == 0) {
+                  result = num ~/ v1;
+                }
                 break;
             }
 
@@ -566,9 +600,13 @@ class AdvancedPuzzleGenerator {
               break;
             }
           }
-          if (found) break;
+          if (found) {
+            break;
+          }
         }
-        if (found) break;
+        if (found) {
+          break;
+        }
       }
 
       if (!found) {
@@ -605,12 +643,20 @@ class AdvancedPuzzleGenerator {
     for (final eq in equations) {
       // Collect only symbol variables for this constraint
       final symbolVars = <String>[];
-      if (eq.term1 is String) symbolVars.add(eq.term1 as String);
-      if (eq.term2 is String) symbolVars.add(eq.term2 as String);
-      if (eq.result is String) symbolVars.add(eq.result as String);
+      if (eq.term1 is String) {
+        symbolVars.add(eq.term1 as String);
+      }
+      if (eq.term2 is String) {
+        symbolVars.add(eq.term2 as String);
+      }
+      if (eq.result is String) {
+        symbolVars.add(eq.result as String);
+      }
 
       // Skip equations with no symbols (shouldn't happen, but safety check)
-      if (symbolVars.isEmpty) continue;
+      if (symbolVars.isEmpty) {
+        continue;
+      }
 
       p.addConstraint(symbolVars, (assignment) {
         // Get actual values (symbols from assignment, numbers directly)
@@ -621,7 +667,9 @@ class AdvancedPuzzleGenerator {
         final valResult =
             eq.result is String ? assignment[eq.result] : (eq.result as int);
 
-        if (val1 == null || val2 == null || valResult == null) return false;
+        if (val1 == null || val2 == null || valResult == null) {
+          return false;
+        }
 
         switch (eq.op) {
           case '+':
@@ -653,7 +701,9 @@ class AdvancedPuzzleGenerator {
         return result.cast<String, int>();
       }
     } catch (e) {
-      if (verbose) traceGenerator("🗂️ [CSP] Validation error: $e");
+      if (verbose) {
+        traceGenerator("🗂️ [CSP] Validation error: $e");
+      }
     }
 
     return null;
@@ -697,7 +747,9 @@ class AdvancedPuzzleGenerator {
         }
       }).toList();
 
-      if (validOps.isEmpty) validOps.add('+'); // Fallback to addition
+      if (validOps.isEmpty) {
+        validOps.add('+');
+      } // Fallback to addition
 
       final op = validOps[_random.nextInt(validOps.length)];
 
@@ -811,7 +863,9 @@ class AdvancedPuzzleGenerator {
         return result.cast<String, int>();
       }
     } catch (e) {
-      if (verbose) traceGenerator("🗂️ [CSP] Error solving: $e");
+      if (verbose) {
+        traceGenerator("🗂️ [CSP] Error solving: $e");
+      }
     }
 
     return null;
@@ -929,8 +983,12 @@ class AdvancedPuzzleGenerator {
           final v1 = solution[s1]!;
           final v2 = solution[s2]!;
 
-          if (op == '-' && v1 < v2) continue;
-          if (op == '/' && (v2 == 0 || v1 % v2 != 0)) continue;
+          if (op == '-' && v1 < v2) {
+            continue;
+          }
+          if (op == '/' && (v2 == 0 || v1 % v2 != 0)) {
+            continue;
+          }
 
           final resVal = _calculateInt(v1, v2, op);
 
@@ -1172,7 +1230,9 @@ class AdvancedCodebreakerPuzzle {
     // FIX: Handle the enum conversion properly
     final customOpsRaw = args['customOps'] as List<dynamic>;
     final customOps = customOpsRaw.map((op) {
-      if (op is MathOperation) return op;
+      if (op is MathOperation) {
+        return op;
+      }
       // Handle string conversion from compute serialization
       if (op is String) {
         switch (op) {
@@ -1255,7 +1315,9 @@ class AdvancedCodebreakerPuzzle {
     final symbolsWithVisiblePositions = <String>{};
     for (final pos in visiblePositions) {
       final symbol = _getSymbolFromPosition(puzzleEquations, pos);
-      if (symbol != null) symbolsWithVisiblePositions.add(symbol);
+      if (symbol != null) {
+        symbolsWithVisiblePositions.add(symbol);
+      }
     }
     final hiddenSymbols =
         allSymbols.toSet().difference(symbolsWithVisiblePositions);
@@ -1266,15 +1328,20 @@ class AdvancedCodebreakerPuzzle {
     final allSymbolPositions = <String>{};
     for (int i = 0; i < puzzleEquations.length; i++) {
       final eq = puzzleEquations[i];
-      if (eq.term1 is String) allSymbolPositions.add('eq${i}_term1');
-      if (eq.term2 is String) allSymbolPositions.add('eq${i}_term2');
-      if (eq.result is String) allSymbolPositions.add('eq${i}_result');
+      if (eq.term1 is String) {
+        allSymbolPositions.add('eq${i}_term1');
+      }
+      if (eq.term2 is String) {
+        allSymbolPositions.add('eq${i}_term2');
+      }
+      if (eq.result is String) {
+        allSymbolPositions.add('eq${i}_result');
+      }
     }
     final hiddenPositionIds = allSymbolPositions.difference(visiblePositions);
 
     // Build the correct numbers list from hidden positions (not symbols).
-    // Use a Set for the pool so each distinct value appears once, but ensure
-    // every needed value is present.
+    // Preserve one tray occurrence for every position the player must fill.
     final correctNumbersList = <int>[];
     for (final pos in hiddenPositionIds) {
       final symbol = _getSymbolFromPosition(puzzleEquations, pos);
@@ -1282,41 +1349,9 @@ class AdvancedCodebreakerPuzzle {
         correctNumbersList.add(generator.solution[symbol]!);
       }
     }
-    final correctNumbersSet = correctNumbersList.toSet();
-    final decoys = <int>{};
     final numberRange = generator.params['valueRange'] as List<int>;
-    final maxVal = numberRange[1];
-
-    if (kDebugMode) {
-      traceGenerator(
-          "🎯 [PUZZLE FACTORY] Correct numbers needed: ${correctNumbersList.join(', ')}");
-    }
-
-    // Generate strategic decoys
-    for (final correct in correctNumbersSet) {
-      for (int i = 1; i <= 2; i++) {
-        if (correct - i > 0) decoys.add(correct - i);
-        if (correct + i <= maxVal) decoys.add(correct + i);
-      }
-    }
-    decoys.removeAll(correctNumbersSet);
-
-    final random = generatorRandom();
-    const targetPoolSize = 8;
-    final requiredDecoys = targetPoolSize - correctNumbersList.length;
-
-    while (decoys.length < requiredDecoys) {
-      final randomDecoy = random.nextInt(maxVal) + 1;
-      if (!correctNumbersSet.contains(randomDecoy)) {
-        decoys.add(randomDecoy);
-      }
-    }
-
-    final numberPool = <int>[];
-    numberPool.addAll(correctNumbersList);
-    numberPool.addAll(decoys.take(targetPoolSize - correctNumbersList.length));
-
-    numberPool.shuffle(generatorRandom());
+    final numberPool = buildCodebreakerNumberPool(correctNumbersList,
+        maxValue: numberRange[1]);
     final finalPool = numberPool;
 
     if (kDebugMode) {
@@ -1389,9 +1424,15 @@ class AdvancedCodebreakerPuzzle {
       final eq = equations[selectedEq];
 
       final symbolPositions = <String>[];
-      if (eq.term1 is String) symbolPositions.add('eq${selectedEq}_term1');
-      if (eq.term2 is String) symbolPositions.add('eq${selectedEq}_term2');
-      if (eq.result is String) symbolPositions.add('eq${selectedEq}_result');
+      if (eq.term1 is String) {
+        symbolPositions.add('eq${selectedEq}_term1');
+      }
+      if (eq.term2 is String) {
+        symbolPositions.add('eq${selectedEq}_term2');
+      }
+      if (eq.result is String) {
+        symbolPositions.add('eq${selectedEq}_result');
+      }
 
       if (symbolPositions.isNotEmpty) {
         final posToReveal =
@@ -1416,7 +1457,9 @@ class AdvancedCodebreakerPuzzle {
     final eqIndex = int.parse(parts[0].substring(2));
     final termType = parts[1];
 
-    if (eqIndex >= equations.length) return null;
+    if (eqIndex >= equations.length) {
+      return null;
+    }
     final equation = equations[eqIndex];
 
     switch (termType) {
@@ -1465,7 +1508,9 @@ class AdvancedCodebreakerPuzzle {
       }
     }
 
-    if (kDebugMode) traceGenerator("✅ [VALIDATION] ✓ Solution is valid!");
+    if (kDebugMode) {
+      traceGenerator("✅ [VALIDATION] ✓ Solution is valid!");
+    }
     return true;
   }
 
@@ -1495,8 +1540,51 @@ class AdvancedCodebreakerPuzzle {
 
   // NEW: Get value for a visible position
   int? getVisibleValue(String positionId) {
-    if (!isPositionVisible(positionId)) return null;
+    if (!isPositionVisible(positionId)) {
+      return null;
+    }
     final symbol = getSymbolFromPosition(positionId);
     return _fullSolution[symbol];
   }
+}
+
+/// Preserve every required occurrence; eight is a padding target, not a cap.
+/// Bounded domain sampling also handles configurations with no possible decoys.
+List<int> buildCodebreakerNumberPool(List<int> correctNumbers,
+    {required int maxValue, int targetSize = 8, math.Random? random}) {
+  final rng = random ?? generatorRandom();
+  final correct = correctNumbers.toSet();
+  final requiredDecoys = math.max(0, targetSize - correctNumbers.length);
+  final decoys = <int>{};
+  for (final value in correct) {
+    for (var delta = 1; delta <= 2; delta++) {
+      if (value - delta > 0) {
+        decoys.add(value - delta);
+      }
+      if (value + delta <= maxValue) {
+        decoys.add(value + delta);
+      }
+    }
+  }
+  decoys.removeAll(correct);
+  // Keep randomized padding, but never spin forever on a saturated domain or
+  // allocate a list proportional to a possibly large custom numeric range.
+  for (var attempt = 0;
+      maxValue > 0 &&
+          attempt < requiredDecoys * 8 &&
+          decoys.length < requiredDecoys;
+      attempt++) {
+    final value = rng.nextInt(maxValue) + 1;
+    if (!correct.contains(value)) {
+      decoys.add(value);
+    }
+  }
+  for (var value = 1;
+      value <= maxValue && decoys.length < requiredDecoys;
+      value++) {
+    if (!correct.contains(value)) {
+      decoys.add(value);
+    }
+  }
+  return [...correctNumbers, ...decoys.take(requiredDecoys)]..shuffle(rng);
 }

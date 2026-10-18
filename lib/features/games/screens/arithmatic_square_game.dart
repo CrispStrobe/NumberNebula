@@ -40,26 +40,43 @@ class ArithmeticSquareGame extends StatefulWidget {
 }
 
 class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<ArithmeticSquareGame>, PuzzleSessionMixin<ArithmeticSquareGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<ArithmeticSquareGame>,
+        PuzzleSessionMixin<ArithmeticSquareGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'arithmatic_square';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating || _won || puzzle == null) return null;
+  @override
+  String get sessionGameKey => 'arithmatic_square';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _won || puzzle == null) {
+      return null;
+    }
     return {
       'puzzle': puzzle?.toJson(),
-      'userSolution': userSolution.entries.map((v0) => [v0.key, v0.value]).toList(),
+      'userSolution':
+          userSolution.entries.map((v0) => [v0.key, v0.value]).toList(),
       'numberPool': numberPool.map((v0) => v0).toList(),
       '_movesRemaining': _movesRemaining,
       '_maxMoves': _maxMoves,
       '_optimalMoves': _optimalMoves,
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
     _resetRoundEffects();
-    puzzle = (state["puzzle"] == null ? null : ArithmeticSquarePuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
-    userSolution = Map<String, int>.fromEntries((state["userSolution"] as List).map((v0) => MapEntry(v0[0] as String, v0[1] as int)));
+    _lastDroppedPosition = '';
+    puzzle = (state["puzzle"] == null
+        ? null
+        : ArithmeticSquarePuzzle.fromJson(
+            Map<String, dynamic>.from(state["puzzle"] as Map)));
+    userSolution = Map<String, int>.fromEntries((state["userSolution"] as List)
+        .map((v0) => MapEntry(v0[0] as String, v0[1] as int)));
     _syncNumberPool();
     _movesRemaining = state["_movesRemaining"] as int;
     _maxMoves = state["_maxMoves"] as int;
@@ -85,11 +102,14 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       WidgetsBinding.instance.ensureVisualUpdate();
     }
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
-    if (mounted) setState(() => _sessionReady = true);
+    if (mounted) {
+      setState(() => _sessionReady = true);
+    }
   }
 
   late AnimationController _dropController;
@@ -98,7 +118,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   ArithmeticSquarePuzzle? puzzle;
   Map<String, int> userSolution = {};
   List<int> numberPool = [];
-  
+
   bool _isGenerating = true;
   String _lastDroppedPosition = '';
   DifficultyConfig? currentDifficulty;
@@ -111,42 +131,87 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   int _optimalMoves = 0;
 
   Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
+  }
+
   bool _won = false;
   bool _reducedMotion = false;
-  bool _canInteract(Object round) => mounted && identical(round, _round) && !_isGenerating && !_won && puzzle != null;
-  bool _canPlace(ArithmeticSquareDrag drag, String cellId, Object round) => _canInteract(round) && identical(drag.round, _round) && puzzle!.numberPool.contains(drag.number) && puzzle!.emptyCells.contains(cellId) && !userSolution.containsKey(cellId);
-  bool _isSolved() => puzzle != null && userSolution.length == puzzle!.emptyCells.length && puzzle!.validateSolution(userSolution);
-  bool _isExhausted() => puzzle != null && _movesRemaining <= 0 && userSolution.length < puzzle!.emptyCells.length;
+  bool _canInteract(Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      !_isGenerating &&
+      !_won &&
+      puzzle != null;
+  bool _canPlace(ArithmeticSquareDrag drag, String cellId, Object round) =>
+      _canInteract(round) &&
+      identical(drag.round, _round) &&
+      numberPool.contains(drag.number) &&
+      puzzle!.emptyCells.contains(cellId) &&
+      !userSolution.containsKey(cellId);
+  bool _isSolved() =>
+      puzzle != null &&
+      userSolution.length == puzzle!.emptyCells.length &&
+      puzzle!.validateSolution(userSolution);
+  bool _isExhausted() => puzzle != null && _movesRemaining <= 0 && !_isSolved();
   List<int> _remainingPool() {
-    final used = userSolution.values.toSet();
+    final used = userSolution.values;
     final pool = List<int>.from(puzzle!.numberPool);
     for (final v in used) {
       pool.remove(v);
     }
     return pool;
   }
+
   void _syncNumberPool() {
     numberPool = _remainingPool();
   }
+
   void _resetRoundEffects() {
     _round = Object();
     cancelOneShotMotion(successController);
     cancelOneShotMotion(_dropController);
     _clearFeedback();
+    _moveWarningController.stop();
+    _moveWarningController.reset();
   }
+
   void _clearFeedback() {
     final m = ScaffoldMessenger.maybeOf(context);
     m?.clearSnackBars();
     m?.removeCurrentSnackBar();
   }
-  @override void onPuzzleSessionMotionChanged(bool reduced) {
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
     _reducedMotion = reduced;
-    updateOneShotMotion(_dropController, reduced, duration: const Duration(milliseconds: 500));
-    updateOneShotMotion(successController, reduced, duration: const Duration(milliseconds: 600));
+    updateOneShotMotion(_dropController, reduced,
+        duration: const Duration(milliseconds: 500));
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
+    _moveWarningController.duration =
+        reduced ? Duration.zero : const Duration(milliseconds: 300);
+    if (reduced) {
+      _moveWarningController.stop();
+      _moveWarningController.reset();
+    }
   }
-  @visibleForTesting Object get testRound => _round;
-  @visibleForTesting void rebuildForTesting() => setState(() {});
-  @visibleForTesting void placeForTesting(int number, String cellId, Object round) => _placeNumber((number: number, round: round), cellId, round);
+
+  @visibleForTesting
+  Object get testRound => _round;
+  @visibleForTesting
+  void rebuildForTesting() => setState(() {});
+  @visibleForTesting
+  void placeForTesting(int number, String cellId, Object round) =>
+      _placeNumber((number: number, round: round), cellId, round);
   late AnimationController _moveWarningController;
   late Animation<double> _moveWarningAnimation;
 
@@ -154,14 +219,15 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   void initState() {
     super.initState();
     initGameAnimations();
-    if (kDebugMode) debugPrint("🔢 [ARITHMETIC SQUARE] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
-    
-    
+    if (kDebugMode) {
+      debugPrint(
+          "🔢 [ARITHMETIC SQUARE] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
+    }
+
     _dropController = AnimationController(
-      duration: const Duration(milliseconds: 500), 
-      vsync: this
-    );
-    _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
+        duration: const Duration(milliseconds: 500), vsync: this);
+    _dropAnimation =
+        CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
 
     _moveWarningController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -170,13 +236,18 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     _moveWarningAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
       CurvedAnimation(parent: _moveWarningController, curve: Curves.easeInOut),
     );
-    
+
     // Initialize difficulty from the framework
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gameProvider = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level, gradeOverride: widget.grade);
-        if (kDebugMode) debugPrint("🔢 [ARITHMETIC SQUARE] Difficulty initialized: ${currentDifficulty?.grade}");
+        currentDifficulty = DifficultyManager.getDifficulty(
+            gameProvider, widget.level,
+            gradeOverride: widget.grade);
+        if (kDebugMode) {
+          debugPrint(
+              "🔢 [ARITHMETIC SQUARE] Difficulty initialized: ${currentDifficulty?.grade}");
+        }
         _restoreOrGenerate();
       }
     });
@@ -198,7 +269,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     _resetRoundEffects();
     final round = _round;
     beginPuzzleSession();
-    if (currentDifficulty == null) return;
+    if (currentDifficulty == null) {
+      return;
+    }
     setState(() {
       _isGenerating = true;
       _won = false;
@@ -219,79 +292,122 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         'customMax': gameProvider.customRangeMax,
       };
 
-      if (kDebugMode) debugPrint("🎯 [ARITHMETIC SQUARE] Calling compute function with args: $puzzleArgs");
-      final generatedPuzzle = await compute(ArithmeticSquarePuzzle.generate, puzzleArgs);
-      
-      debugPrint("🎯 [ARITHMETIC SQUARE] Puzzle generation completed successfully");
-      
+      if (kDebugMode) {
+        debugPrint(
+            "🎯 [ARITHMETIC SQUARE] Calling compute function with args: $puzzleArgs");
+      }
+      final generatedPuzzle =
+          await compute(ArithmeticSquarePuzzle.generate, puzzleArgs);
+
+      if (kDebugMode) {
+        debugPrint(
+            "🎯 [ARITHMETIC SQUARE] Puzzle generation completed successfully");
+      }
+
       if (mounted && identical(round, _round)) {
         setState(() {
           puzzle = generatedPuzzle;
           _syncNumberPool();
-          
+
           // Calculate max moves: 160% of empty cells, rounded up
           final emptyCount = generatedPuzzle.emptyCells.length;
           _optimalMoves = emptyCount;
           _maxMoves = (emptyCount * 1.6).ceil();
           _movesRemaining = _maxMoves;
-          
+
           _isGenerating = false;
-          
-          if (kDebugMode) debugPrint("🎯 [ARITHMETIC SQUARE] Max moves allowed: $_maxMoves for $emptyCount empty cells");
+
+          if (kDebugMode) {
+            debugPrint(
+                "🎯 [ARITHMETIC SQUARE] Max moves allowed: $_maxMoves for $emptyCount empty cells");
+          }
         });
-        debugPrint("🎯 [ARITHMETIC SQUARE] UI state updated with new puzzle");
-        debugPrint("🎯 [ARITHMETIC SQUARE] Number pool (sorted): ${numberPool.join(', ')}");
-        if (kDebugMode) debugPrint("🎯 [ARITHMETIC SQUARE] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
-        debugPrint("🎯 [ARITHMETIC SQUARE] Player hints: ${generatedPuzzle.playerHints.keys.join(', ')}");
+        if (kDebugMode) {
+          debugPrint("🎯 [ARITHMETIC SQUARE] UI state updated with new puzzle");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "🎯 [ARITHMETIC SQUARE] Number pool (sorted): ${numberPool.join(', ')}");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "🎯 [ARITHMETIC SQUARE] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "🎯 [ARITHMETIC SQUARE] Player hints: ${generatedPuzzle.playerHints.keys.join(', ')}");
+        }
       }
     } catch (e, stackTrace) {
-      if (kDebugMode) debugPrint("❌ [ARITHMETIC SQUARE] Error generating puzzle: $e");
-      debugPrint("❌ [ARITHMETIC SQUARE] StackTrace: $stackTrace");
+      if (kDebugMode) {
+        debugPrint("❌ [ARITHMETIC SQUARE] Error generating puzzle: $e");
+      }
+      if (kDebugMode) {
+        debugPrint("❌ [ARITHMETIC SQUARE] StackTrace: $stackTrace");
+      }
     }
   }
 
   void _placeNumber(ArithmeticSquareDrag drag, String cellId, Object round) {
-    if (!_canPlace(drag, cellId, round)) return;
+    if (_movesRemaining <= 0 || !_canPlace(drag, cellId, round)) {
+      return;
+    }
     final number = drag.number;
-    if (kDebugMode) debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
-    
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
+    }
+
     setState(() {
       userSolution[cellId] = number;
       numberPool.remove(number);
       _lastDroppedPosition = cellId;
       _dropController.reset();
       playOneShotMotion(_dropController, () {});
-      
+
       // Decrement moves
       _movesRemaining--;
-      if (kDebugMode) debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
-      
+      if (kDebugMode) {
+        debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
+      }
+
       // Warning animation when low on moves
-      if (_movesRemaining <= 3 && _movesRemaining > 0) {
+      if (!_reducedMotion && _movesRemaining <= 3 && _movesRemaining > 0) {
         _moveWarningController.forward(from: 0.0).then((_) {
-          _moveWarningController.reverse();
+          if (_canInteract(round) && !_reducedMotion) {
+            _moveWarningController.reverse();
+          }
         });
       }
     });
 
-    if (kDebugMode) debugPrint("🎮 [PLACE] User solution after: $userSolution");
-    debugPrint("🎮 [PLACE] Number pool after: $numberPool");
-    
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] User solution after: $userSolution");
+    }
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] Number pool after: $numberPool");
+    }
+
     // Check if out of moves BEFORE checking solution
-    if (_movesRemaining <= 0 && userSolution.length < puzzle!.emptyCells.length) {
+    if (_movesRemaining <= 0 && !_isSolved()) {
       _handleOutOfMoves();
       return;
     }
-    
+
     _checkSolution();
   }
 
   void _handleOutOfMoves() {
-    if (_won || _isGenerating) return;
-    if (!_canInteract(_round)) return;
+    if (_won || _isGenerating) {
+      return;
+    }
+    if (!_canInteract(_round)) {
+      return;
+    }
     _resetRoundEffects();
     setState(() => _won = true);
-    if (kDebugMode) debugPrint("❌ [ARITHMETIC SQUARE] Out of moves! Game over.");
+    if (kDebugMode) {
+      debugPrint("❌ [ARITHMETIC SQUARE] Out of moves! Game over.");
+    }
     final round = _round;
     _handleFailure();
     _showOutOfMovesDialog(round);
@@ -326,12 +442,13 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                  RoundSummary(gameKey: 'arithmatic_square'),
+            RoundSummary(gameKey: 'arithmatic_square'),
             const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(
               S.of(context)!.arithmeticSquareOutOfMoves,
-              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              style: SpaceTheme.headlineStyle
+                  .copyWith(color: SpaceTheme.rocketRed),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -350,7 +467,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    if (!_canUseDialog(round, dialogContext)) return;
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
@@ -359,7 +478,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    if (!_canUseDialog(round, dialogContext)) return;
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
                     Navigator.of(context).pop();
                   },
@@ -375,64 +496,94 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   void _removeNumber(String cellId, int? expected, Object round) {
-    if (!_canInteract(round) || !puzzle!.emptyCells.contains(cellId) || expected == null || userSolution[cellId] != expected) return;
-    if (kDebugMode) debugPrint("🗑️ [ARITHMETIC SQUARE] Removing number from cell $cellId");
-    
+    if (!_canInteract(round) ||
+        !puzzle!.emptyCells.contains(cellId) ||
+        expected == null ||
+        userSolution[cellId] != expected) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint("🗑️ [ARITHMETIC SQUARE] Removing number from cell $cellId");
+    }
+
     setState(() {
       final number = userSolution[cellId];
       if (number != null) {
         userSolution.remove(cellId);
         numberPool.add(number);
         numberPool.sort();
-        
+
         // IMPORTANT: Removing doesn't restore moves (prevents abuse)
         // Player learns to think before placing
-        if (kDebugMode) debugPrint("🗑️ [ARITHMETIC SQUARE] Removed $number (moves not restored)");
+        if (kDebugMode) {
+          debugPrint(
+              "🗑️ [ARITHMETIC SQUARE] Removed $number (moves not restored)");
+        }
       }
     });
   }
 
   void _checkSolution() {
-    if (!_canInteract(_round)) return;
-    if (kDebugMode) debugPrint("✅ [ARITHMETIC SQUARE] Checking solution...");
-    debugPrint("✅ [ARITHMETIC SQUARE] User solution: $userSolution");
-    debugPrint("✅ [ARITHMETIC SQUARE] Required cells: ${puzzle!.emptyCells.length}");
-    
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint("✅ [ARITHMETIC SQUARE] Checking solution...");
+    }
+    if (kDebugMode) {
+      debugPrint("✅ [ARITHMETIC SQUARE] User solution: $userSolution");
+    }
+    if (kDebugMode) {
+      debugPrint(
+          "✅ [ARITHMETIC SQUARE] Required cells: ${puzzle!.emptyCells.length}");
+    }
+
     // Check for completed equations and log them to SRI immediately
     _checkAndLogCompletedEquations();
-    
+
     if (userSolution.length == puzzle!.emptyCells.length) {
-      if (kDebugMode) debugPrint("✅ [ARITHMETIC SQUARE] All cells filled, validating solution");
-      
+      if (kDebugMode) {
+        debugPrint(
+            "✅ [ARITHMETIC SQUARE] All cells filled, validating solution");
+      }
+
       final isValid = puzzle!.validateSolution(userSolution);
-      debugPrint("✅ [ARITHMETIC SQUARE] Solution validation result: $isValid");
-      
+      if (kDebugMode) {
+        debugPrint(
+            "✅ [ARITHMETIC SQUARE] Solution validation result: $isValid");
+      }
+
       if (isValid) {
         _handleSuccess();
       } else {
         _handleIncorrect();
       }
     } else {
-      if (kDebugMode) debugPrint("✅ [ARITHMETIC SQUARE] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
+      if (kDebugMode) {
+        debugPrint(
+            "✅ [ARITHMETIC SQUARE] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
+      }
     }
   }
-  
+
   // NEW: Track which equations have been logged to SRI
   final Set<String> _loggedEquations = {};
-  
+
   void _checkAndLogCompletedEquations() {
     final sriService = context.read<SriService>();
-    
+
     // Create the current grid state with clues, hints, and user solutions
     final currentGrid = Map<String, int>.from(puzzle!.clues);
     currentGrid.addAll(puzzle!.playerHints);
     currentGrid.addAll(userSolution);
-    
+
     // Check each row equation
     for (int r = 0; r < puzzle!.gridSize; r++) {
       final equationId = 'row_$r';
-      if (_loggedEquations.contains(equationId)) continue;
-      
+      if (_loggedEquations.contains(equationId)) {
+        continue;
+      }
+
       // Check if all cells in this row are filled
       bool rowComplete = true;
       final values = <int>[];
@@ -444,31 +595,39 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         }
         values.add(currentGrid[cellId]!);
       }
-      
+
       if (rowComplete) {
         // Log each operation in this row
-        for (int opIndex = 0; opIndex < puzzle!.rowOperators[r].length; opIndex++) {
+        for (int opIndex = 0;
+            opIndex < puzzle!.rowOperators[r].length;
+            opIndex++) {
           final operator = puzzle!.rowOperators[r][opIndex];
           final operand1 = values[opIndex];
           final operand2 = values[opIndex + 1];
-          
+
           final problem = _createMathProblem(operator, operand1, operand2);
           if (problem != null) {
             // The equation is complete - validate it
-            final isCorrect = puzzle!.validateSingleEquation(currentGrid, r, true);
+            final isCorrect =
+                puzzle!.validateSingleEquation(currentGrid, r, true);
             sriService.recordResponse(problem, isCorrect);
-            if (kDebugMode) debugPrint("🔢 SRI: Logged row $r problem -> ${problem.expression} (correct: $isCorrect)");
+            if (kDebugMode) {
+              debugPrint(
+                  "🔢 SRI: Logged row $r problem -> ${problem.expression} (correct: $isCorrect)");
+            }
           }
         }
         _loggedEquations.add(equationId);
       }
     }
-    
+
     // Check each column equation
     for (int c = 0; c < puzzle!.gridSize; c++) {
       final equationId = 'col_$c';
-      if (_loggedEquations.contains(equationId)) continue;
-      
+      if (_loggedEquations.contains(equationId)) {
+        continue;
+      }
+
       // Check if all cells in this column are filled
       bool colComplete = true;
       final values = <int>[];
@@ -480,34 +639,41 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         }
         values.add(currentGrid[cellId]!);
       }
-      
+
       if (colComplete) {
         // Log each operation in this column
-        for (int opIndex = 0; opIndex < puzzle!.columnOperators[c].length; opIndex++) {
+        for (int opIndex = 0;
+            opIndex < puzzle!.columnOperators[c].length;
+            opIndex++) {
           final operator = puzzle!.columnOperators[c][opIndex];
           final operand1 = values[opIndex];
           final operand2 = values[opIndex + 1];
-          
+
           final problem = _createMathProblem(operator, operand1, operand2);
           if (problem != null) {
             // The equation is complete - validate it
-            final isCorrect = puzzle!.validateSingleEquation(currentGrid, c, false);
+            final isCorrect =
+                puzzle!.validateSingleEquation(currentGrid, c, false);
             sriService.recordResponse(problem, isCorrect);
-            if (kDebugMode) debugPrint("🔢 SRI: Logged column $c problem -> ${problem.expression} (correct: $isCorrect)");
+            if (kDebugMode) {
+              debugPrint(
+                  "🔢 SRI: Logged column $c problem -> ${problem.expression} (correct: $isCorrect)");
+            }
           }
         }
         _loggedEquations.add(equationId);
       }
     }
   }
-  
+
   MathProblem? _createMathProblem(String operator, int operand1, int operand2) {
     switch (operator) {
       case '+':
         return MathProblem.addition(operand1, operand2);
       case '−':
       case '-':
-        return MathProblem.subtraction(math.max(operand1, operand2), math.min(operand1, operand2));
+        return MathProblem.subtraction(
+            math.max(operand1, operand2), math.min(operand1, operand2));
       case '×':
       case '*':
         return MathProblem.multiplication(operand1, operand2);
@@ -525,37 +691,50 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   int _successBonus() {
-    if (puzzle == null) return 0;
+    if (puzzle == null) {
+      return 0;
+    }
     final complexityBonus = puzzle!.gridSize * puzzle!.gridSize * 10;
-    final operationBonus = puzzle!.getAllOperators().map(_getOperationBonus).fold(0, (a, b) => a + b);
+    final operationBonus = puzzle!
+        .getAllOperators()
+        .map(_getOperationBonus)
+        .fold(0, (a, b) => a + b);
     return complexityBonus + operationBonus;
   }
 
   void _handleSuccess() {
-    if (!_canInteract(_round) || !_isSolved()) return;
+    if (!_canInteract(_round) || !_isSolved()) {
+      return;
+    }
     AppHaptics.lightImpact();
-    if (kDebugMode) debugPrint("🎉 [ARITHMETIC SQUARE] SUCCESS! Player solved the puzzle!");
-    
+    if (kDebugMode) {
+      debugPrint("🎉 [ARITHMETIC SQUARE] SUCCESS! Player solved the puzzle!");
+    }
+
     final baseScore = 200 * widget.grade;
     final bonus = _successBonus();
     final totalScore = baseScore + bonus;
-    if (kDebugMode) debugPrint("🎉 [ARITHMETIC SQUARE] Score calculation: base=$baseScore, bonus=$bonus, total=$totalScore");
-    
+    if (kDebugMode) {
+      debugPrint(
+          "🎉 [ARITHMETIC SQUARE] Score calculation: base=$baseScore, bonus=$bonus, total=$totalScore");
+    }
+
     _resetRoundEffects();
     _clearFeedback();
     setState(() => _won = true);
     final round = _round;
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'arithmatic_square',
-      difficulty: widget.level,
-      score: totalScore,
-      performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
-      movesUsed: _maxMoves - _movesRemaining,
-      optimalMoves: _optimalMoves,
-    ));
-    
+          skillLevel: widget.grade,
+          gameType: 'arithmatic_square',
+          difficulty: widget.level,
+          score: totalScore,
+          performance:
+              Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
+          movesUsed: _maxMoves - _movesRemaining,
+          optimalMoves: _optimalMoves,
+        ));
+
     _showSuccessDialog(bonus, round);
   }
 
@@ -567,39 +746,53 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => _buildSuccessDialog(bonus, round, dialogContext),
+      builder: (dialogContext) =>
+          _buildSuccessDialog(bonus, round, dialogContext),
     );
   }
 
   void _handleFailure() {
-    if (kDebugMode) debugPrint("❌ [ARITHMETIC SQUARE] Player gave up or failed");
-    
+    if (kDebugMode) {
+      debugPrint("❌ [ARITHMETIC SQUARE] Player gave up or failed");
+    }
+
     // Record the failure - equations were already tracked via SRI as they were completed
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'arithmatic_square',
-      difficulty: widget.level,
-      progress: _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'arithmatic_square',
+          difficulty: widget.level,
+          progress:
+              _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
+        ));
   }
 
   int _getOperationBonus(String operation) {
     switch (operation) {
-      case '+': return 0;
+      case '+':
+        return 0;
       case '−':
-      case '-': return 15;
+      case '-':
+        return 15;
       case '×':
-      case '*': return 25;
+      case '*':
+        return 25;
       case '÷':
-      case '/': return 35;
-      default: return 0;
+      case '/':
+        return 35;
+      default:
+        return 0;
     }
   }
 
   void _handleIncorrect() {
-    if (!_canInteract(_round)) return;
-    if (kDebugMode) debugPrint("❌ [ARITHMETIC SQUARE] Incorrect solution - showing error message");
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint(
+          "❌ [ARITHMETIC SQUARE] Incorrect solution - showing error message");
+    }
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -618,8 +811,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    if (_reducedMotion) {}
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     if (puzzle == null || _isGenerating) {
       return Scaffold(
         body: SpaceBackground(
@@ -629,7 +823,8 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
               children: [
                 const CircularProgressIndicator(),
                 const SizedBox(height: 16),
-                Text(S.of(context)!.loadingAdventure, style: SpaceTheme.bodyStyle),
+                Text(S.of(context)!.loadingAdventure,
+                    style: SpaceTheme.bodyStyle),
               ],
             ),
           ),
@@ -647,7 +842,15 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
 
               return Column(
                 children: [
-                  _buildAdaptiveHeader(isCompact: isCompact),
+                  if (isWide)
+                    _buildAdaptiveHeader(isCompact: isCompact)
+                  else
+                    GameUI(
+                      key: ValueKey(('arithmatic_square-header', _round)),
+                      title: S.of(context)!.arithmeticSquare,
+                      level: widget.level,
+                      onBack: _backForRound(),
+                    ),
                   Expanded(
                     child: isWide
                         ? _buildWideLayout(isCompact: isCompact)
@@ -667,9 +870,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       return Column(
         children: [
           GameUI(
+            key: ValueKey(('arithmatic_square-header', _round)),
             title: S.of(context)!.arithmeticSquare,
             level: widget.level,
-            onBack: () => Navigator.of(context).pop(),
+            onBack: _backForRound(),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -688,8 +892,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       child: Row(
         children: [
           IconButton(
+            key: ValueKey(('arithmatic_square-back', _round)),
             icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: _backForRound(),
           ),
           Expanded(
             child: Column(
@@ -701,7 +906,8 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
                 ),
                 Text(
                   S.of(context)!.arithmeticSquareInstructions,
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 11, color: Colors.white70),
+                  style: SpaceTheme.bodyStyle
+                      .copyWith(fontSize: 11, color: Colors.white70),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -712,12 +918,8 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
           _buildLevelIndicator(isCompact: true),
           const SizedBox(width: 8),
           _buildScoreIndicator(isCompact: true),
-
           const SizedBox(width: 8),
           _buildMovesIndicator(isCompact: true),
-
-          
-
         ],
       ),
     );
@@ -726,7 +928,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   Widget _buildMovesIndicator({required bool isCompact}) {
     final fontSize = isCompact ? 12.0 : 16.0;
     final iconSize = isCompact ? 20.0 : 24.0;
-    
+
     // Color changes based on remaining moves
     Color indicatorColor;
     if (_movesRemaining <= 3) {
@@ -736,7 +938,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     } else {
       indicatorColor = SpaceTheme.nebulaPurple;
     }
-    
+
     return AnimatedBuilder(
       animation: _moveWarningAnimation,
       builder: (context, child) {
@@ -793,22 +995,30 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   Widget _buildCompactLayout({required bool isCompact}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        children: [
+    return LayoutBuilder(builder: (context, constraints) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(children: [
           Expanded(
-            flex: 3,
-            child: _buildGridArea(isCompact: isCompact),
+            child: SingleChildScrollView(
+              child: Column(children: [
+                Text(S.of(context)!.arithmeticSquareInstructions,
+                    style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                const SizedBox(height: 8),
+                SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: _buildGridArea(isCompact: isCompact)),
+              ]),
+            ),
           ),
-          SizedBox(height: isCompact ? 8 : 16),
-          Expanded(
-            flex: 2,
-            child: _buildNumberPad(isCompact: isCompact),
-          ),
-        ],
-      ),
-    );
+          const SizedBox(height: 8),
+          ConstrainedBox(
+              constraints: BoxConstraints(
+                  maxHeight: (constraints.maxHeight * 0.4).clamp(0.0, 160.0)),
+              child: _buildNumberPad(isCompact: isCompact)),
+        ]),
+      );
+    });
   }
 
   Widget _buildGridArea({required bool isCompact}) {
@@ -821,13 +1031,15 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.nebulaPurple.withValues(alpha: 0.1 * glowAnimation.value),
+                  SpaceTheme.nebulaPurple
+                      .withValues(alpha: 0.1 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.nebulaPurple.withValues(alpha: glowAnimation.value),
+                color: SpaceTheme.nebulaPurple
+                    .withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -841,7 +1053,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   Widget _buildGrid({required bool isCompact}) {
     final cellSize = isCompact ? 50.0 : 60.0;
     final operatorSize = isCompact ? 24.0 : 30.0;
-    
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(puzzle!.gridSize * 2 - 1, (index) {
@@ -850,7 +1062,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
           final row = index ~/ 2;
           return _buildNumberRow(row, cellSize, operatorSize, isCompact);
         } else {
-          // Operator row  
+          // Operator row
           final row = index ~/ 2;
           return _buildOperatorRow(row, cellSize, operatorSize, isCompact);
         }
@@ -858,7 +1070,8 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     );
   }
 
-  Widget _buildNumberRow(int row, double cellSize, double operatorSize, bool isCompact) {
+  Widget _buildNumberRow(
+      int row, double cellSize, double operatorSize, bool isCompact) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -872,11 +1085,12 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
           } else {
             // This is a slot for an operator or an equals sign.
             final opIndex = index ~/ 2;
-            
+
             // Check if the operator index is within the bounds of the generated operators list.
             if (opIndex < puzzle!.rowOperators[row].length) {
               // If yes, it's a regular operator.
-              return _buildOperatorDisplay(puzzle!.rowOperators[row][opIndex], operatorSize);
+              return _buildOperatorDisplay(
+                  puzzle!.rowOperators[row][opIndex], operatorSize);
             } else {
               // If we are past the available operators, it must be the final equals sign for that row.
               return _buildOperatorDisplay('=', operatorSize);
@@ -887,7 +1101,8 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     );
   }
 
-  Widget _buildOperatorRow(int row, double cellSize, double operatorSize, bool isCompact) {
+  Widget _buildOperatorRow(
+      int row, double cellSize, double operatorSize, bool isCompact) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -900,7 +1115,8 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
               return SizedBox(
                 width: cellSize,
                 child: Center(
-                  child: _buildOperatorDisplay(puzzle!.columnOperators[col][row], operatorSize),
+                  child: _buildOperatorDisplay(
+                      puzzle!.columnOperators[col][row], operatorSize),
                 ),
               );
             } else {
@@ -928,16 +1144,17 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   Widget _buildNumberCell(String cellId, double cellSize, bool isCompact) {
+    final round = _round;
     final bool isEmpty = puzzle!.emptyCells.contains(cellId);
     final bool hasUserValue = userSolution.containsKey(cellId);
     final bool isPlayerHint = puzzle!.playerHints.containsKey(cellId);
 
     final int? value = isEmpty
-        ? userSolution[cellId] 
-        : isPlayerHint 
+        ? userSolution[cellId]
+        : isPlayerHint
             ? puzzle!.playerHints[cellId]
             : puzzle!.clues[cellId];
-    
+
     final bool isLastDropped = cellId == _lastDroppedPosition;
 
     Widget cell = Container(
@@ -946,25 +1163,30 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         gradient: isEmpty
-            ? const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple])
+            ? const LinearGradient(
+                colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple])
             : isPlayerHint
-                ? const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
-                : const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
+                ? const LinearGradient(
+                    colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
+                : const LinearGradient(
+                    colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
         border: Border.all(
-          color: isEmpty 
-              ? SpaceTheme.nebulaPurple 
-              : isPlayerHint 
+          color: isEmpty
+              ? SpaceTheme.nebulaPurple
+              : isPlayerHint
                   ? SpaceTheme.starYellow
                   : SpaceTheme.alienGreen,
           width: 2,
         ),
-        boxShadow: isPlayerHint ? [
-          BoxShadow(
-            color: SpaceTheme.starYellow.withValues(alpha: 0.3),
-            blurRadius: 6,
-            spreadRadius: 1,
-          )
-        ] : null,
+        boxShadow: isPlayerHint
+            ? [
+                BoxShadow(
+                  color: SpaceTheme.starYellow.withValues(alpha: 0.3),
+                  blurRadius: 6,
+                  spreadRadius: 1,
+                )
+              ]
+            : null,
       ),
       child: Center(
         child: Text(
@@ -988,26 +1210,32 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         key: ValueKey(('arith-target', round, cellId)),
         builder: (context, candidateData, rejectedData) {
           final isHovering = candidateData.isNotEmpty;
-          
+
           return Container(
             width: cellSize,
             height: cellSize,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               gradient: isHovering
-                  ? const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
-                  : const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
+                  ? const LinearGradient(
+                      colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
+                  : const LinearGradient(
+                      colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
               border: Border.all(
-                color: isHovering ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
+                color: isHovering
+                    ? SpaceTheme.starYellow
+                    : SpaceTheme.nebulaPurple,
                 width: isHovering ? 3 : 2,
               ),
-              boxShadow: isHovering ? [
-                BoxShadow(
-                  color: SpaceTheme.starYellow.withValues(alpha: 0.6),
-                  blurRadius: 8,
-                  spreadRadius: 2,
-                )
-              ] : null,
+              boxShadow: isHovering
+                  ? [
+                      BoxShadow(
+                        color: SpaceTheme.starYellow.withValues(alpha: 0.6),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      )
+                    ]
+                  : null,
             ),
             child: AnimatedBuilder(
               animation: pulseAnimation,
@@ -1017,7 +1245,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
                   child: Center(
                     child: Icon(
                       Icons.add,
-                      color: isHovering ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
+                      color: isHovering
+                          ? SpaceTheme.starYellow
+                          : SpaceTheme.nebulaPurple,
                       size: cellSize * 0.4,
                     ),
                   ),
@@ -1026,8 +1256,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
             ),
           );
         },
-        onWillAcceptWithDetails: (details) => _canPlace(details.data, cellId, details.data.round),
-        onAcceptWithDetails: (details) => _placeNumber(details.data, cellId, details.data.round),
+        onWillAcceptWithDetails: (details) =>
+            _canPlace(details.data, cellId, round),
+        onAcceptWithDetails: (details) =>
+            _placeNumber(details.data, cellId, round),
       );
     }
 
@@ -1036,7 +1268,8 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         button: true,
         label: S.of(context)!.a11yPlacedValueTapRemove,
         child: GestureDetector(
-          onTap: () { final round=_round; final exp=userSolution[cellId]; _removeNumber(cellId, exp, round); },
+          key: ValueKey(('arith-filled', round, cellId, value)),
+          onTap: () => _removeNumber(cellId, value, round),
           child: cell,
         ),
       );
@@ -1069,47 +1302,55 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   Widget _buildNumberPad({required bool isCompact}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (!isCompact)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Text(S.of(context)!.arithmeticSquareSelectNumbers, style: SpaceTheme.bodyStyle),
-          ),
-        Container(
-          padding: EdgeInsets.all(isCompact ? 8 : 12),
-          decoration: SpaceTheme.cardDecoration.copyWith(
-            border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
-          ),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: isCompact ? 5 : 4,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              childAspectRatio: 1.0,
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isCompact)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(S.of(context)!.arithmeticSquareSelectNumbers,
+                  style: SpaceTheme.bodyStyle),
             ),
-            itemCount: numberPool.length,
-            itemBuilder: (context, index) {
-              if (index >= numberPool.length) return Container();
-              final number = numberPool[index];
-              // Semantics on visual child — see note in word_sort_game.
-              return Draggable<ArithmeticSquareDrag>(
-                data: (number: number, round: _round),
-                feedback: _buildDraggableFeedback(number),
-                childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
-                child: Semantics(
-                  label: S.of(context)!.a11yNumberDragCell(number),
-                  button: true,
-                  child: _buildNumberTile(number, isCompact: isCompact),
-                ),
-              );
-            },
+          Container(
+            padding: EdgeInsets.all(isCompact ? 8 : 12),
+            decoration: SpaceTheme.cardDecoration.copyWith(
+              border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
+            ),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: isCompact ? 5 : 4,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 1.0,
+              ),
+              itemCount: numberPool.length,
+              itemBuilder: (context, index) {
+                if (index >= numberPool.length) {
+                  return Container();
+                }
+                final number = numberPool[index];
+                // Semantics on visual child — see note in word_sort_game.
+                return Draggable<ArithmeticSquareDrag>(
+                  key: ValueKey(('arith-source', _round, index, number)),
+                  data: (number: number, round: _round),
+                  feedback: _buildDraggableFeedback(number),
+                  childWhenDragging: Opacity(
+                      opacity: 0.3,
+                      child: _buildNumberTile(number, isCompact: isCompact)),
+                  child: Semantics(
+                    label: S.of(context)!.a11yNumberDragCell(number),
+                    button: true,
+                    child: _buildNumberTile(number, isCompact: isCompact),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1118,12 +1359,14 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
         borderRadius: BorderRadius.circular(isCompact ? 8 : 12),
-        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
+        border: Border.all(
+            color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
       ),
       child: Center(
         child: Text(
           number.toString(),
-          style: SpaceTheme.headlineStyle.copyWith(fontSize: isCompact ? 16 : 18),
+          style:
+              SpaceTheme.headlineStyle.copyWith(fontSize: isCompact ? 16 : 18),
         ),
       ),
     );
@@ -1133,14 +1376,21 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     return Material(
       color: Colors.transparent,
       child: Container(
-        width: 60, height: 60,
+        width: 60,
+        height: 60,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: SpaceTheme.starGradient,
-          boxShadow: [BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.8), blurRadius: 20, spreadRadius: 5)],
+          boxShadow: [
+            BoxShadow(
+                color: SpaceTheme.starYellow.withValues(alpha: 0.8),
+                blurRadius: 20,
+                spreadRadius: 5)
+          ],
         ),
         child: Center(
-          child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 22)),
+          child: Text(number.toString(),
+              style: SpaceTheme.headlineStyle.copyWith(fontSize: 22)),
         ),
       ),
     );
@@ -1151,7 +1401,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     final iconSize = isCompact ? 20.0 : 24.0;
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: isCompact ? 8 : 12, 
+        horizontal: isCompact ? 8 : 12,
         vertical: isCompact ? 4 : 8,
       ),
       decoration: BoxDecoration(
@@ -1162,7 +1412,8 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: iconSize),
+          Icon(Icons.emoji_events,
+              color: SpaceTheme.starYellow, size: iconSize),
           SizedBox(width: isCompact ? 4 : 8),
           Text(
             S.of(context)!.levelN(widget.level),
@@ -1180,7 +1431,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       builder: (context, gameProvider, child) {
         return Container(
           padding: EdgeInsets.symmetric(
-            horizontal: isCompact ? 8 : 12, 
+            horizontal: isCompact ? 8 : 12,
             vertical: isCompact ? 4 : 8,
           ),
           decoration: BoxDecoration(
@@ -1204,7 +1455,8 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     );
   }
 
-  Widget _buildSuccessDialog(int bonusScore, Object round, BuildContext dialogContext) {
+  Widget _buildSuccessDialog(
+      int bonusScore, Object round, BuildContext dialogContext) {
     return AnimatedBuilder(
       animation: successAnimation,
       builder: (context, child) {
@@ -1219,32 +1471,50 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'arithmatic_square'),
-                  const Icon(Icons.emoji_events, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.emoji_events,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  Text(S.of(context)!.arithmeticSquareWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(S.of(context)!.arithmeticSquareWinTitle,
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
-                  Text(S.of(context)!.arithmeticSquareWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  Text(S.of(context)!.arithmeticSquareWinDesc(bonusScore),
+                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   if (context.read<DebugProvider>().isDebugMenuEnabled)
                     DebugPuzzleRating(
                       gameType: 'arithmatic_square',
-                      puzzleId: 'sq_g${widget.grade}_l${widget.level}_${DateTime.now().millisecondsSinceEpoch}',
+                      puzzleId:
+                          'sq_g${widget.grade}_l${widget.level}_${DateTime.now().millisecondsSinceEpoch}',
                       grade: widget.grade,
                       level: widget.level,
                     ),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
-                        onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                        onPressed: () {
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
+                          Navigator.of(dialogContext).pop();
+                          _generatePuzzle();
+                        },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(S.of(context)!.playAgain),
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop(); // Close the dialog
-                          Navigator.of(context).pop(); // Close the game screen
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
+                          final navigator = Navigator.of(dialogContext);
+                          navigator.pop();
+                          navigator.pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.backToMenu),

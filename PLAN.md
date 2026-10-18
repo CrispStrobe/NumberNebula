@@ -1,13 +1,16 @@
 # Next-step execution plan
 
-Updated 2026-10-05. The current verified state is in [HANDOVER.md](HANDOVER.md);
+Updated 2026-10-18. The current verified state is in [HANDOVER.md](HANDOVER.md);
 full task specifications and acceptance checks are in [REMAINING_WORK.md](REMAINING_WORK.md).
 Completed work belongs in [HISTORY.md](HISTORY.md).
 
-1. **A:** Star Forge, Chrono Repair, Orbital Towers; one focused round audit per PR.
-2. **B–F:** Complete the other 25 registered-game round audits in independently
-   owned batches. A–F together cover 28 remaining games; 20 already have dedicated
-   audited round tests. All 48 already have generation/session baseline coverage.
+1. **A complete in the integrated repair:** retain Star Forge, Chrono Repair and
+   Orbital Towers acceptance coverage; consult [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)
+   for the exact validated/merged head.
+2. **B–F:** Audit the remaining 17 registered games. Start with Codebreaker and
+   Puzzle Math (B), then Hull Plating and Relic Assembly (C), or independently
+   owned D/E/F batches. There are now 31 focused round suites; all 48 already
+   have generation/session baseline coverage.
 3. **G and I:** In parallel when resources permit, inspect structural progression
    flags and create a narrow reproducible upstream solver benchmark. Preserve
    all baseline/candidate/fallback paths and avoid automatic par changes.

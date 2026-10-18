@@ -21,6 +21,8 @@ import '../widgets/strategy_hint_dialog.dart';
 import '../services/hint_completion_solver.dart';
 import '../../../shared/widgets/onboarding_overlay.dart';
 
+typedef NumberWallsDrag = ({int number, Object round});
+
 class NumberWallsGame extends StatefulWidget {
   final int grade;
   final int level;
@@ -36,7 +38,10 @@ class NumberWallsGame extends StatefulWidget {
 }
 
 class _NumberWallsGameState extends State<NumberWallsGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<NumberWallsGame>, PuzzleSessionMixin<NumberWallsGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<NumberWallsGame>,
+        PuzzleSessionMixin<NumberWallsGame> {
   final GlobalKey _dragTargetKey = GlobalKey();
 
   late AnimationController _dropController;
@@ -48,7 +53,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   NumberWallPuzzle? currentPuzzle;
   List<int?> userAnswers = [];
   List<int> numberPool = [];
-  
+
   bool _isGenerating = true;
   bool _victoryPending = false;
   int? _hintCell;
@@ -64,6 +69,93 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   /// once, so it doubles as the optimal move count for the performance grade.
   int _optimalMoves = 0;
 
+  Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
+  }
+
+  bool _won = false;
+  bool _canInteract(Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      !_isGenerating &&
+      !_won &&
+      currentPuzzle != null &&
+      !_victoryPending;
+  bool _canPlace(NumberWallsDrag drag, int hiddenCellIndex, Object round) {
+    if (!_canInteract(round) || !identical(drag.round, _round)) {
+      return false;
+    }
+    if (!numberPool.contains(drag.number)) {
+      return false;
+    }
+    if (!currentPuzzle!.hiddenCells.contains(hiddenCellIndex)) {
+      return false;
+    }
+    final answerIndex = currentPuzzle!.getAnswerIndexForCell(hiddenCellIndex);
+    if (answerIndex == -1 || userAnswers[answerIndex] != null) {
+      return false;
+    }
+    return true;
+  }
+
+  bool _isSolved() {
+    if (currentPuzzle == null) {
+      return false;
+    }
+    if (userAnswers.any((a) => a == null)) {
+      return false;
+    }
+    return currentPuzzle!.validateSolution(userAnswers.cast<int>());
+  }
+
+  bool _isExhausted() =>
+      currentPuzzle != null && _movesRemaining <= 0 && !_isSolved();
+  List<int> _remainingPool() {
+    if (currentPuzzle == null) {
+      return [];
+    }
+    final used = userAnswers.whereType<int>();
+    final pool = List<int>.from(currentPuzzle!.numberPool);
+    for (final v in used) {
+      pool.remove(v);
+    }
+    return pool;
+  }
+
+  void _syncNumberPool() => numberPool = _remainingPool();
+  void _resetRoundEffects() {
+    _round = Object();
+    _fadeTimer?.cancel();
+    _fadeController.stop();
+    cancelOneShotMotion(_warpController);
+    cancelOneShotMotion(_dropController);
+    cancelOneShotMotion(successController);
+    _clearFeedback();
+  }
+
+  void _clearFeedback() {
+    final m = ScaffoldMessenger.maybeOf(context);
+    m?.clearSnackBars();
+    m?.removeCurrentSnackBar();
+  }
+
+  @visibleForTesting
+  Object get testRound => _round;
+  @visibleForTesting
+  void rebuildForTesting() => setState(() {});
+  @visibleForTesting
+  void placeForTesting(int number, int hiddenCellIndex, Object round) =>
+      _placeNumber((number: number, round: round), hiddenCellIndex, round);
+
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   Timer? _fadeTimer;
@@ -76,95 +168,140 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         duration: const Duration(milliseconds: 1500));
   }
 
-  @override String get sessionGameKey => 'number_walls';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (currentPuzzle == null || _isGenerating) return null;
-    return {'puzzle': currentPuzzle!.toJson(), 'answers': userAnswers,
-      'moves': _movesRemaining, 'maxMoves': _maxMoves, 'optimal': _optimalMoves,
+  @override
+  String get sessionGameKey => 'number_walls';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (currentPuzzle == null || _isGenerating || _won || _victoryPending) {
+      return null;
+    }
+    return {
+      'puzzle': currentPuzzle!.toJson(),
+      'answers': userAnswers,
+      'moves': _movesRemaining,
+      'maxMoves': _maxMoves,
+      'optimal': _optimalMoves,
       'hints': _hintsUsed,
       'pool': numberPool,
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    cancelOneShotMotion(_warpController);
-    _victoryPending = false;
-    _warpController.reset();
-    currentPuzzle = NumberWallPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle'] as Map));
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
+    currentPuzzle = NumberWallPuzzle.fromJson(
+        Map<String, dynamic>.from(state['puzzle'] as Map));
     userAnswers = List<int?>.from(state['answers'] as List);
     _movesRemaining = state['moves'] as int;
     _maxMoves = state['maxMoves'] as int;
     _optimalMoves = state['optimal'] as int;
     _hintsUsed = state['hints'] as int? ?? 0;
-
-      numberPool = List<int>.from(state['pool'] as List);
+    numberPool = List<int>.from(state['pool'] as List);
     _isGenerating = false;
+    _won = false;
+    _victoryPending = false;
+    _warpController.reset();
+    _syncNumberPool();
+    final solved = _isSolved();
+    final exhausted = _isExhausted();
+    if (solved || exhausted) {
+      _won = true;
+      finishPuzzleSession();
+      final round = _round;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !identical(round, _round) || _isGenerating) {
+          return;
+        }
+        if (solved) {
+          _showSuccessDialog(_successBonus(), round);
+        } else {
+          _showOutOfMovesDialog(round);
+        }
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
+
   Future<void> _restoreOrGenerate() async {
-    if (!await restorePuzzleSession() && mounted) _generatePuzzle();
+    if (!await restorePuzzleSession() && mounted) {
+      _generatePuzzle();
+    }
   }
 
   @override
   void initState() {
     super.initState();
     initGameAnimations(usePulse: false);
-    if (kDebugMode) debugPrint("🧱 NumberWallsGame.initState() - Grade ${widget.grade}, Level ${widget.level}");
-    
-    
+    if (kDebugMode) {
+      debugPrint(
+          "🧱 NumberWallsGame.initState() - Grade ${widget.grade}, Level ${widget.level}");
+    }
+
     _dropController = AnimationController(
-      duration: const Duration(milliseconds: 500), vsync: this
-    );
-    _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
-    
+        duration: const Duration(milliseconds: 500), vsync: this);
+    _dropAnimation =
+        CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
+
     _warpController = AnimationController(
-      duration: const Duration(milliseconds: 1500), vsync: this
-    );
+        duration: const Duration(milliseconds: 1500), vsync: this);
 
     _operationController = AnimationController(
-      duration: const Duration(milliseconds: 1000), vsync: this
-    )..repeat(reverse: true);
-    _operationAnimation = Tween<double>(begin: 0.7, end: 1.0)
-        .animate(CurvedAnimation(parent: _operationController, curve: Curves.easeInOut));
-    
+        duration: const Duration(milliseconds: 1000), vsync: this)
+      ..repeat(reverse: true);
+    _operationAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
+        CurvedAnimation(parent: _operationController, curve: Curves.easeInOut));
+
     // New fade controller
     _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 1000), vsync: this
-    );
-    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0)
-        .animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOut));
-    
+        duration: const Duration(milliseconds: 1000), vsync: this);
+    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+        CurvedAnimation(parent: _fadeController, curve: Curves.easeOut));
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _restoreOrGenerate();
-      if (mounted) _showTutorial(onlyIfUnseen: true);
+      if (mounted) {
+        _showTutorial(onlyIfUnseen: true);
+      }
     });
-    
+
     // Start the fade timer
     _startFadeTimer();
   }
 
   void _showTutorial({bool onlyIfUnseen = false}) {
     final s = S.of(context)!;
-    final steps = [OnboardingStep(
-      icon: Icons.touch_app,
-      body: s.guidedWallPrompt,
-      practiceBoard: '     [ ? ]\n[ 3 ]  [ 4 ]',
-      choices: const [6, 7, 8],
-      answer: 7,
-      explanation: s.guidedWallReason,
-    )];
+    final steps = [
+      OnboardingStep(
+        icon: Icons.touch_app,
+        body: s.guidedWallPrompt,
+        practiceBoard: '     [ ? ]\n[ 3 ]  [ 4 ]',
+        choices: const [6, 7, 8],
+        answer: 7,
+        explanation: s.guidedWallReason,
+      )
+    ];
     if (onlyIfUnseen) {
-      OnboardingOverlay.maybeShow(context, gameKey: 'number_walls_guided_v1', title: s.guidedTry, steps: steps);
+      OnboardingOverlay.maybeShow(context,
+          gameKey: 'number_walls_guided_v1', title: s.guidedTry, steps: steps);
     } else {
-      showDialog(context: context, builder: (dialogContext) => OnboardingOverlay(
-        title: s.guidedTry, steps: steps, onDismiss: () => Navigator.of(dialogContext).pop()));
+      showDialog(
+          context: context,
+          builder: (dialogContext) => OnboardingOverlay(
+              title: s.guidedTry,
+              steps: steps,
+              onDismiss: () => Navigator.of(dialogContext).pop()));
     }
   }
 
   void _startFadeTimer() {
     _fadeTimer?.cancel();
+    final round = _round;
     _fadeTimer = Timer(const Duration(seconds: 15), () {
-      if (mounted && _shouldShowOperationHint) {
+      if (_canInteract(round) && _shouldShowOperationHint) {
         setState(() {
           _shouldShowOperationHint = false;
         });
@@ -176,6 +313,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _round = Object();
+    cancelOneShotMotion(_warpController);
     _fadeTimer?.cancel();
     _fadeController.dispose();
     _dropController.dispose();
@@ -185,12 +324,14 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     super.dispose();
   }
 
-  void _generatePuzzle() async {
-    cancelOneShotMotion(_warpController);
-    _victoryPending = false;
+  Future<void> _generatePuzzle() async {
+    _resetRoundEffects();
+    final round = _round;
     beginPuzzleSession();
-    if (kDebugMode) debugPrint("🧱 _generatePuzzle() - Starting puzzle generation");
-    
+    if (kDebugMode) {
+      debugPrint("🧱 _generatePuzzle() - Starting puzzle generation");
+    }
+
     setState(() {
       _isGenerating = true;
       _hintsUsed = 0;
@@ -212,12 +353,13 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       };
 
       final puzzle = await compute(NumberWallPuzzle.generate, puzzleArgs);
-      
-      if (mounted) {
+
+      if (mounted && identical(round, _round)) {
         setState(() {
           currentPuzzle = puzzle;
-          userAnswers = List.generate(currentPuzzle!.hiddenCells.length, (_) => null);
-          numberPool = List.from(currentPuzzle!.numberPool);
+          userAnswers =
+              List.generate(currentPuzzle!.hiddenCells.length, (_) => null);
+          _syncNumberPool();
 
           // Calculate max moves: 2x hidden cells (generous safety net)
           final hiddenCount = currentPuzzle!.hiddenCells.length;
@@ -227,25 +369,45 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
           _isGenerating = false;
         });
-        if (kDebugMode) debugPrint("🧱 Puzzle generated: ${currentPuzzle!.operation.name} wall, height ${currentPuzzle!.wallHeight}");
-        debugPrint("🧱 Max moves allowed: $_maxMoves for ${currentPuzzle!.hiddenCells.length} hidden cells");
+        if (kDebugMode) {
+          debugPrint(
+              "🧱 Puzzle generated: ${currentPuzzle!.operation.name} wall, height ${currentPuzzle!.wallHeight}");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "🧱 Max moves allowed: $_maxMoves for ${currentPuzzle!.hiddenCells.length} hidden cells");
+        }
         _startFadeTimer(); // Restart the timer for new puzzle
       }
     } catch (e, stackTrace) {
-      if (kDebugMode) debugPrint("❌ Error in _generatePuzzle: $e");
-      debugPrint("❌ StackTrace: $stackTrace");
+      if (kDebugMode) {
+        debugPrint("❌ Error in _generatePuzzle: $e");
+      }
+      if (kDebugMode) {
+        debugPrint("❌ StackTrace: $stackTrace");
+      }
     }
   }
-  
+
   Future<void> _showStrategyHint() async {
-    if (_hintLoading || puzzleSessionFinished) return;
+    final round = _round;
+    if (_hintLoading || puzzleSessionFinished) {
+      return;
+    }
     final p = currentPuzzle;
-    if (p == null) return;
+    if (p == null) {
+      return;
+    }
     final hidden = p.hiddenCells.toList()..sort();
     final answer = userAnswers.indexWhere((v) => v == null);
-    if (answer < 0) return;
+    if (answer < 0) {
+      return;
+    }
     final cell = hidden[answer];
-    setState(() { _hintCell = cell; _hintsUsed++; });
+    setState(() {
+      _hintCell = cell;
+      _hintsUsed++;
+    });
     final s = S.of(context)!;
     final initial = List<int?>.from(userAnswers);
     final equations = <Map<String, dynamic>>[];
@@ -253,19 +415,37 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       for (int col = 0; col <= row; col++) {
         final parent = row * (row + 1) ~/ 2 + col;
         final left = (row + 1) * (row + 2) ~/ 2 + col;
-        equations.add({'cells': ['$parent', '$left', '${left + 1}'], 'op': p.operation.name});
+        equations.add({
+          'cells': ['$parent', '$left', '${left + 1}'],
+          'op': p.operation.name
+        });
       }
     }
     _hintLoading = true;
     final completion = await compute(findHintCompletion, {
-      'values': {for (final e in p.visibleValues.entries) e.key.toString(): e.value,
-        for (int i = 0; i < hidden.length; i++) if (initial[i] != null) hidden[i].toString(): initial[i]!},
-      'domains': {for (final i in hidden) i.toString(): p.numberPool.toSet().toList()},
-      'pool': p.numberPool, 'equations': equations,
+      'values': {
+        for (final e in p.visibleValues.entries) e.key.toString(): e.value,
+        for (int i = 0; i < hidden.length; i++)
+          if (initial[i] != null) hidden[i].toString(): initial[i]!
+      },
+      'domains': {
+        for (final i in hidden) i.toString(): p.numberPool.toSet().toList()
+      },
+      'pool': p.numberPool,
+      'equations': equations,
     });
+    if (!mounted || !identical(round, _round)) {
+      return;
+    }
     _hintLoading = false;
-    if (mounted) setState(() {});
-    if (!mounted || !identical(p, currentPuzzle) || !listEquals(initial, userAnswers)) return;
+    if (mounted) {
+      setState(() {});
+    }
+    if (!mounted ||
+        !identical(p, currentPuzzle) ||
+        !listEquals(initial, userAnswers)) {
+      return;
+    }
     final compatible = completion != null;
     final value = completion?[cell.toString()];
     String equation = '';
@@ -274,23 +454,42 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         final parent = row * (row + 1) ~/ 2 + col;
         final left = (row + 1) * (row + 2) ~/ 2 + col;
         final right = left + 1;
-        if (![parent, left, right].contains(cell)) continue;
-        final a = completion?[left.toString()] ?? 0, b = completion?[right.toString()] ?? 0;
+        if (![parent, left, right].contains(cell)) {
+          continue;
+        }
+        final a = completion?[left.toString()] ?? 0,
+            b = completion?[right.toString()] ?? 0;
         final symbol = ['+', '−', '×', '÷'][p.operation.index];
-        equation = p.operation == WallOperation.subtraction || p.operation == WallOperation.division
-          ? '${math.max(a, b)} $symbol ${math.min(a, b)} = ${completion?[parent.toString()]}'
-          : '$a $symbol $b = ${completion?[parent.toString()]}';
+        equation = p.operation == WallOperation.subtraction ||
+                p.operation == WallOperation.division
+            ? '${math.max(a, b)} $symbol ${math.min(a, b)} = ${completion?[parent.toString()]}'
+            : '$a $symbol $b = ${completion?[parent.toString()]}';
         break;
       }
-      if (equation.isNotEmpty) break;
+      if (equation.isNotEmpty) {
+        break;
+      }
     }
-    StrategyHintDialog.show(context, focus: s.hintWallFocus, strategy: s.hintWallStrategy,
-      working: compatible ? '$equation\n${s.hintPossibleMove(value!)}' : s.hintCheckPlacements,
-      demonstrate: compatible ? () { if (mounted) _placeNumber(value!, cell); } : null);
+    StrategyHintDialog.show(context,
+        focus: s.hintWallFocus,
+        strategy: s.hintWallStrategy,
+        working: compatible
+            ? '$equation\n${s.hintPossibleMove(value!)}'
+            : s.hintCheckPlacements,
+        demonstrate: compatible
+            ? () {
+                if (mounted) {
+                  _placeNumber((number: value!, round: round), cell, round);
+                }
+              }
+            : null);
   }
 
-  void _placeNumber(int number, int hiddenCellIndex) {
-    if (_victoryPending || puzzleSessionFinished) return;
+  void _placeNumber(NumberWallsDrag drag, int hiddenCellIndex, Object round) {
+    if (_movesRemaining <= 0 || !_canPlace(drag, hiddenCellIndex, round)) {
+      return;
+    }
+    final number = drag.number;
     final answerIndex = currentPuzzle!.getAnswerIndexForCell(hiddenCellIndex);
     if (answerIndex == -1 || userAnswers[answerIndex] != null) {
       return;
@@ -300,15 +499,18 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       userAnswers[answerIndex] = number;
       numberPool.remove(number);
       _lastPlacedCellIndex = hiddenCellIndex;
-      _dropController.forward(from: 0.0);
+      _dropController.reset();
+      playOneShotMotion(_dropController, () {});
 
       // Decrement moves on placement
       _movesRemaining--;
-      if (kDebugMode) debugPrint("🧱 Moves remaining: $_movesRemaining/$_maxMoves");
+      if (kDebugMode) {
+        debugPrint("🧱 Moves remaining: $_movesRemaining/$_maxMoves");
+      }
     });
 
     // Check if out of moves BEFORE checking solution
-    if (_movesRemaining <= 0 && userAnswers.any((a) => a == null)) {
+    if (_movesRemaining <= 0 && !_isSolved()) {
       _handleOutOfMoves();
       return;
     }
@@ -316,8 +518,14 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     _checkIfComplete();
   }
 
-  void _removeNumber(int answerIndex) {
-    if (_victoryPending || puzzleSessionFinished) return;
+  void _removeNumber(int answerIndex, int? expected, Object round) {
+    if (!_canInteract(round) ||
+        answerIndex < 0 ||
+        answerIndex >= userAnswers.length ||
+        expected == null ||
+        userAnswers[answerIndex] != expected) {
+      return;
+    }
     setState(() {
       final number = userAnswers[answerIndex];
       if (number != null) {
@@ -329,49 +537,52 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _checkIfComplete() {
-    if (_victoryPending || puzzleSessionFinished) return;
+    if (!_canInteract(_round)) {
+      return;
+    }
     if (userAnswers.every((answer) => answer != null)) {
       final isValid = currentPuzzle!.validateSolution(userAnswers.cast<int>());
-      
+
       // 1. Get the list of problems the user was tested on in in this puzzle.
       final List<MathProblem> attemptedProblems = _getSolvedProblems();
-      
+
       // 2. Report the outcome to the central GameProvider.
       if (isValid) {
-        _victoryPending = true;
         finishPuzzleSession();
         // On SUCCESS, calculate the score and report it.
         int baseScore = 120 * widget.grade;
-        int bonusScore = (baseScore * (currentPuzzle!.wallHeight / 3.0)).round();
+        int bonusScore =
+            (baseScore * (currentPuzzle!.wallHeight / 3.0)).round();
         int operationBonus = _getOperationBonus(currentPuzzle!.operation);
         int totalScore = baseScore + bonusScore + operationBonus;
 
         context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'number_walls',
-      difficulty: widget.level,
-      score: totalScore,
-      mathProblems: attemptedProblems,
-      performance: Perf.penalize(Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves), hints: _hintsUsed),
-      hintsUsed: _hintsUsed,
-      movesUsed: _maxMoves - _movesRemaining,
-      optimalMoves: _optimalMoves,
-    ));
-        
+              skillLevel: widget.grade,
+              gameType: 'number_walls',
+              difficulty: widget.level,
+              score: totalScore,
+              mathProblems: attemptedProblems,
+              performance: Perf.penalize(
+                  Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
+                  hints: _hintsUsed),
+              hintsUsed: _hintsUsed,
+              movesUsed: _maxMoves - _movesRemaining,
+              optimalMoves: _optimalMoves,
+            ));
+
         // 3. Trigger the success UI/animation.
         _handleSuccess(totalScore);
-
       } else {
         // On FAILURE, report a loss with zero score.
         context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'number_walls',
-      difficulty: widget.level,
-      mathProblems: attemptedProblems,
-      progress: _optimalMoves == 0
-          ? 0.0
-          : userAnswers.where((a) => a != null).length / _optimalMoves,
-    ));
+              skillLevel: widget.grade,
+              gameType: 'number_walls',
+              difficulty: widget.level,
+              mathProblems: attemptedProblems,
+              progress: _optimalMoves == 0
+                  ? 0.0
+                  : userAnswers.where((a) => a != null).length / _optimalMoves,
+            ));
 
         // 3. Trigger the failure UI.
         _handleIncorrect();
@@ -380,11 +591,13 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   List<MathProblem> _getSolvedProblems() {
-    if (kDebugMode) debugPrint("🧱 Gathering all solved problems for the completed wall...");
+    if (kDebugMode) {
+      debugPrint("🧱 Gathering all solved problems for the completed wall...");
+    }
     // REMOVED: Direct access to sriService.
     final puzzle = currentPuzzle!;
     final List<MathProblem> problemsToLog = [];
-    
+
     // The rest of the logic for finding the problems is excellent and remains the same.
     final completeWall = puzzle.fullSolution;
 
@@ -403,31 +616,39 @@ class _NumberWallsGameState extends State<NumberWallsGame>
           if (rightChildIndex < completeWall.length) {
             final leftValue = completeWall[leftChildIndex];
             final rightValue = completeWall[rightChildIndex];
-            
+
             MathProblem? problem;
             switch (puzzle.operation) {
               case WallOperation.addition:
                 problem = MathProblem.addition(leftValue, rightValue);
                 break;
               case WallOperation.subtraction:
-                problem = MathProblem.subtraction(math.max(leftValue, rightValue), math.min(leftValue, rightValue));
+                problem = MathProblem.subtraction(
+                    math.max(leftValue, rightValue),
+                    math.min(leftValue, rightValue));
                 break;
               case WallOperation.multiplication:
                 problem = MathProblem.multiplication(leftValue, rightValue);
                 break;
               case WallOperation.division:
-                if (leftValue > rightValue && rightValue != 0 && leftValue % rightValue == 0) {
+                if (leftValue > rightValue &&
+                    rightValue != 0 &&
+                    leftValue % rightValue == 0) {
                   problem = MathProblem.division(leftValue, rightValue);
-                } else if (rightValue > leftValue && leftValue != 0 && rightValue % leftValue == 0) {
+                } else if (rightValue > leftValue &&
+                    leftValue != 0 &&
+                    rightValue % leftValue == 0) {
                   problem = MathProblem.division(rightValue, leftValue);
                 }
                 break;
             }
-            
+
             if (problem != null) {
               // CHANGED: Instead of calling sriService, add to our list.
               problemsToLog.add(problem);
-              if (kDebugMode) debugPrint("🧱 Found problem to log -> ${problem.expression}");
+              if (kDebugMode) {
+                debugPrint("🧱 Found problem to log -> ${problem.expression}");
+              }
             }
           }
         }
@@ -437,29 +658,66 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     return problemsToLog;
   }
 
+  int _successBonus() {
+    if (currentPuzzle == null) {
+      return 0;
+    }
+    return (120 * widget.grade * (currentPuzzle!.wallHeight / 3.0)).round() +
+        _getOperationBonus(currentPuzzle!.operation);
+  }
+
   void _handleSuccess(int totalScoreGained) {
+    if (!_canInteract(_round) || !_isSolved()) {
+      return;
+    }
+    _won = true;
+    _victoryPending = true;
     AppHaptics.lightImpact();
     playOneShotMotion(_warpController, () {
-      successController.forward(from: 0.0);
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) =>
-            _buildSuccessDialog(totalScoreGained - (120 * widget.grade)),
-      );
+      _showSuccessDialog(totalScoreGained - (120 * widget.grade), _round);
     });
   }
 
+  void _showSuccessDialog(int bonus, Object round) {
+    if (!mounted ||
+        !identical(round, _round) ||
+        !_won ||
+        currentPuzzle == null) {
+      return;
+    }
+    playOneShotMotion(successController, () {});
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) =>
+          _buildSuccessDialog(bonus, round, dialogContext),
+    );
+  }
+
+  bool _canUseDialog(Object round, BuildContext dialogContext) =>
+      mounted &&
+      identical(round, _round) &&
+      _won &&
+      dialogContext.mounted &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
+
   int _getOperationBonus(WallOperation operation) {
     switch (operation) {
-      case WallOperation.addition: return 0;
-      case WallOperation.subtraction: return 25;
-      case WallOperation.multiplication: return 50;
-      case WallOperation.division: return 75;
+      case WallOperation.addition:
+        return 0;
+      case WallOperation.subtraction:
+        return 25;
+      case WallOperation.multiplication:
+        return 50;
+      case WallOperation.division:
+        return 75;
     }
   }
 
   void _handleIncorrect() {
+    if (!_canInteract(_round)) {
+      return;
+    }
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -477,34 +735,54 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _handleFailure() {
-    if (kDebugMode) debugPrint("🧱 FAILURE - recording loss");
+    if (kDebugMode) {
+      debugPrint("🧱 FAILURE - recording loss");
+    }
     final attemptedProblems = _getSolvedProblems();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'number_walls',
-      difficulty: widget.level,
-      mathProblems: attemptedProblems,
-      progress: _optimalMoves == 0
-          ? 0.0
-          : userAnswers.where((a) => a != null).length / _optimalMoves,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'number_walls',
+          difficulty: widget.level,
+          mathProblems: attemptedProblems,
+          progress: _optimalMoves == 0
+              ? 0.0
+              : userAnswers.where((a) => a != null).length / _optimalMoves,
+        ));
   }
 
   void _handleOutOfMoves() {
-    finishPuzzleSession();
-    if (kDebugMode) debugPrint("🧱 Out of moves! Game over.");
-    _handleFailure();
-
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildOutOfMovesDialog(),
-      );
+    if (_won || _isGenerating) {
+      return;
     }
+    if (!_canInteract(_round)) {
+      return;
+    }
+    _resetRoundEffects();
+    setState(() => _won = true);
+    if (kDebugMode) {
+      debugPrint("🧱 Out of moves! Game over.");
+    }
+    final round = _round;
+    finishPuzzleSession();
+    _handleFailure();
+    _showOutOfMovesDialog(round);
   }
 
-  Widget _buildOutOfMovesDialog() {
+  void _showOutOfMovesDialog(Object round) {
+    if (!mounted ||
+        !identical(round, _round) ||
+        !_won ||
+        currentPuzzle == null) {
+      return;
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildOutOfMovesDialog(round, dialogContext),
+    );
+  }
+
+  Widget _buildOutOfMovesDialog(Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
@@ -516,12 +794,13 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                  RoundSummary(gameKey: 'number_walls'),
+            RoundSummary(gameKey: 'number_walls'),
             const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(
               s.numberWallsOutOfMoves,
-              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              style: SpaceTheme.headlineStyle
+                  .copyWith(color: SpaceTheme.rocketRed),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -531,13 +810,19 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            OverflowBar(
+              alignment: MainAxisAlignment.spaceEvenly,
+              overflowAlignment: OverflowBarAlignment.center,
+              spacing: 16,
+              overflowSpacing: 12,
               children: [
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
+                    Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
@@ -545,8 +830,13 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
+                    Navigator.of(dialogContext).pop();
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
                   },
                   style: SpaceTheme.primaryButtonStyle,
                   child: Text(s.backToMenu),
@@ -610,24 +900,33 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 children: [
                   _buildCompactHeader(),
                   Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                    Flexible(child: TextButton.icon(onPressed: _hintLoading ? null : _showStrategyHint,
-                      icon: const Icon(Icons.lightbulb_outline), label: Text(S.of(context)!.strategyHint))),
-                    Flexible(child: TextButton.icon(onPressed: _showTutorial,
-                      icon: const Icon(Icons.help_outline), label: Text(S.of(context)!.howToPlay))),
+                    Flexible(
+                        child: TextButton.icon(
+                            onPressed: _hintLoading ? null : _showStrategyHint,
+                            icon: const Icon(Icons.lightbulb_outline),
+                            label: Text(S.of(context)!.strategyHint))),
+                    Flexible(
+                        child: TextButton.icon(
+                            onPressed: _showTutorial,
+                            icon: const Icon(Icons.help_outline),
+                            label: Text(S.of(context)!.howToPlay))),
                   ]),
                   Expanded(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
                         // MODIFIED: Lowered breakpoint from 650 to 600
                         bool isWide = constraints.maxWidth > 600;
-                        return isWide ? _buildWideLayout() : _buildCompactTallLayout();
+                        return isWide
+                            ? _buildWideLayout()
+                            : _buildCompactTallLayout();
                       },
                     ),
                   ),
                 ],
               ),
               // Floating operation indicator on the right
-              if (_shouldShowOperationHint || _fadeController.status == AnimationStatus.reverse)
+              if (_shouldShowOperationHint ||
+                  _fadeController.status == AnimationStatus.reverse)
                 _buildFloatingOperationIndicator(),
             ],
           ),
@@ -650,16 +949,20 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               // MODIFIED: Replaced fixed width with a responsive constraint
               // width: MediaQuery.of(context).size.width * 0.75, // <--- OLD
               constraints: BoxConstraints(
-                maxWidth: math.min(MediaQuery.of(context).size.width * 0.6, 280), // <--- NEW
+                maxWidth: math.min(
+                    MediaQuery.of(context).size.width * 0.6, 280), // <--- NEW
               ),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 gradient: _getOperationGradient(currentPuzzle!.operation),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: _getOperationColor(currentPuzzle!.operation), width: 2),
+                border: Border.all(
+                    color: _getOperationColor(currentPuzzle!.operation),
+                    width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: _getOperationColor(currentPuzzle!.operation).withValues(alpha: 0.3),
+                    color: _getOperationColor(currentPuzzle!.operation)
+                        .withValues(alpha: 0.3),
                     blurRadius: 10,
                     spreadRadius: 1,
                   ),
@@ -680,10 +983,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
-                            _getOperationIcon(currentPuzzle!.operation), 
-                            color: Colors.white, 
-                            size: 16
-                          ),
+                              _getOperationIcon(currentPuzzle!.operation),
+                              color: Colors.white,
+                              size: 16),
                         ),
                       );
                     },
@@ -697,7 +999,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                         Text(
                           _getOperationTitle(currentPuzzle!.operation),
                           style: SpaceTheme.titleStyle.copyWith(
-                            color: Colors.white, 
+                            color: Colors.white,
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
@@ -705,7 +1007,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                         Text(
                           _getOperationDescription(currentPuzzle!.operation),
                           style: SpaceTheme.bodyStyle.copyWith(
-                            color: Colors.white70, 
+                            color: Colors.white70,
                             fontSize: 10,
                           ),
                           maxLines: 2,
@@ -716,7 +1018,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                   ),
                   if (kTweakProblems)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: Colors.orange.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(6),
@@ -746,7 +1049,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       child: Row(
         children: [
           IconButton(
-            onPressed: () => Navigator.of(context).pop(),
+            key: ValueKey(('number_walls-back', _round)),
+            onPressed: _backForRound(),
             icon: const Icon(Icons.arrow_back, color: Colors.white),
           ),
           Expanded(
@@ -762,7 +1066,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 // The floating hint provides the necessary context.
                 // Text(
                 //   S.of(context)!.numberWallsInstructions,
-                //   style: SpaceTheme.bodyStyle.copyWith(fontSize: 11), 
+                //   style: SpaceTheme.bodyStyle.copyWith(fontSize: 11),
                 //   textAlign: TextAlign.center,
                 //   maxLines: 2,
                 //   overflow: TextOverflow.ellipsis,
@@ -784,9 +1088,11 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.emoji_events, size: 16, color: SpaceTheme.starYellow),
+                    const Icon(Icons.emoji_events,
+                        size: 16, color: SpaceTheme.starYellow),
                     const SizedBox(width: 4),
-                    Text('${widget.level}', style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                    Text('${widget.level}',
+                        style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
                   ],
                 ),
               ),
@@ -803,9 +1109,11 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                     return Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.star, size: 16, color: SpaceTheme.alienGreen),
+                        const Icon(Icons.star,
+                            size: 16, color: SpaceTheme.alienGreen),
                         const SizedBox(width: 4),
-                        Text('${gameProvider.score}', style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
+                        Text('${gameProvider.score}',
+                            style: SpaceTheme.bodyStyle.copyWith(fontSize: 12)),
                       ],
                     );
                   },
@@ -825,64 +1133,83 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 1.5),
+        border: Border.all(
+            color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 1.5),
       ),
       child: Center(
-        child: Text(
-          number.toString(), 
-          style: SpaceTheme.headlineStyle.copyWith(fontSize: 14)
-        ),
+        child: Text(number.toString(),
+            style: SpaceTheme.headlineStyle.copyWith(fontSize: 14)),
       ),
     );
   }
 
   String _getOperationTitle(WallOperation operation) {
     switch (operation) {
-      case WallOperation.addition: return S.of(context)!.numberWallsAddition;
-      case WallOperation.subtraction: return S.of(context)!.numberWallsSubtraction;
-      case WallOperation.multiplication: return S.of(context)!.numberWallsMultiplication;
-      case WallOperation.division: return S.of(context)!.numberWallsDivision;
+      case WallOperation.addition:
+        return S.of(context)!.numberWallsAddition;
+      case WallOperation.subtraction:
+        return S.of(context)!.numberWallsSubtraction;
+      case WallOperation.multiplication:
+        return S.of(context)!.numberWallsMultiplication;
+      case WallOperation.division:
+        return S.of(context)!.numberWallsDivision;
     }
   }
 
   String _getOperationDescription(WallOperation operation) {
     // UPDATED description for subtraction
     switch (operation) {
-      case WallOperation.addition: return S.of(context)!.numberWallsAddDesc;
-      case WallOperation.subtraction: return S.of(context)!.numberWallsSubDesc;
-      case WallOperation.multiplication: return S.of(context)!.numberWallsMultDesc;
-      case WallOperation.division: return S.of(context)!.numberWallsDivDesc;
+      case WallOperation.addition:
+        return S.of(context)!.numberWallsAddDesc;
+      case WallOperation.subtraction:
+        return S.of(context)!.numberWallsSubDesc;
+      case WallOperation.multiplication:
+        return S.of(context)!.numberWallsMultDesc;
+      case WallOperation.division:
+        return S.of(context)!.numberWallsDivDesc;
     }
   }
 
   IconData _getOperationIcon(WallOperation operation) {
     switch (operation) {
-      case WallOperation.addition: return Icons.add;
-      case WallOperation.subtraction: return Icons.remove;
-      case WallOperation.multiplication: return Icons.close; // Multiplication icon
-      case WallOperation.division: return Icons.horizontal_rule; // Division icon
+      case WallOperation.addition:
+        return Icons.add;
+      case WallOperation.subtraction:
+        return Icons.remove;
+      case WallOperation.multiplication:
+        return Icons.close; // Multiplication icon
+      case WallOperation.division:
+        return Icons.horizontal_rule; // Division icon
     }
   }
 
   Color _getOperationColor(WallOperation operation) {
     switch (operation) {
-      case WallOperation.addition: return SpaceTheme.alienGreen;
-      case WallOperation.subtraction: return SpaceTheme.cosmicPink;
-      case WallOperation.multiplication: return SpaceTheme.starYellow;
-      case WallOperation.division: return SpaceTheme.planetOrange;
+      case WallOperation.addition:
+        return SpaceTheme.alienGreen;
+      case WallOperation.subtraction:
+        return SpaceTheme.cosmicPink;
+      case WallOperation.multiplication:
+        return SpaceTheme.starYellow;
+      case WallOperation.division:
+        return SpaceTheme.planetOrange;
     }
   }
 
   LinearGradient _getOperationGradient(WallOperation operation) {
     switch (operation) {
-      case WallOperation.addition: 
-        return const LinearGradient(colors: [SpaceTheme.alienGreen, Color(0xFF10343E)]);
-      case WallOperation.subtraction: 
-        return const LinearGradient(colors: [SpaceTheme.cosmicPink, Color(0xFF381B42)]);
-      case WallOperation.multiplication: 
-        return const LinearGradient(colors: [SpaceTheme.starYellow, Color(0xFF38311B)]);
-      case WallOperation.division: 
-        return const LinearGradient(colors: [SpaceTheme.planetOrange, Color(0xFF38251B)]);
+      case WallOperation.addition:
+        return const LinearGradient(
+            colors: [SpaceTheme.alienGreen, Color(0xFF10343E)]);
+      case WallOperation.subtraction:
+        return const LinearGradient(
+            colors: [SpaceTheme.cosmicPink, Color(0xFF381B42)]);
+      case WallOperation.multiplication:
+        return const LinearGradient(
+            colors: [SpaceTheme.starYellow, Color(0xFF38311B)]);
+      case WallOperation.division:
+        return const LinearGradient(
+            colors: [SpaceTheme.planetOrange, Color(0xFF38251B)]);
     }
   }
 
@@ -923,29 +1250,33 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   Widget _buildWallArea() {
+    final round = _round;
     return LayoutBuilder(
       builder: (context, constraints) {
         // MODIFIED: Removed the .clamp(300.0, 500.0) to allow scaling
         final size = math.min(constraints.maxWidth, constraints.maxHeight);
-        
+
         return Center(
-          child: DragTarget<int>(
-            key: _dragTargetKey,
+          child: DragTarget<NumberWallsDrag>(
+            key: ValueKey(('numberwalls-target', _round)),
             builder: (context, candidateData, rejectedData) {
               return SizedBox(
+                key: _dragTargetKey,
                 width: size,
                 height: size,
                 child: Stack(
                   children: [
                     Positioned.fill(
                       child: AnimatedBuilder(
-                        animation: Listenable.merge([glowController, _warpController]),
+                        animation:
+                            Listenable.merge([glowController, _warpController]),
                         builder: (context, child) {
                           return CustomPaint(
                             painter: NumberWallBackgroundPainter(
                               glowIntensity: glowAnimation.value,
                               warpActivation: _warpController.value,
-                              operation: currentPuzzle?.operation ?? WallOperation.addition,
+                              operation: currentPuzzle?.operation ??
+                                  WallOperation.addition,
                             ),
                           );
                         },
@@ -957,7 +1288,11 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 ),
               );
             },
-            onWillAcceptWithDetails: (data) {
+            onWillAcceptWithDetails: (details) {
+              if (!_canInteract(round) ||
+                  !identical(details.data.round, round)) {
+                return false;
+              }
               setState(() => _isDraggingOver = true);
               return true;
             },
@@ -965,18 +1300,27 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               setState(() => _isDraggingOver = false);
             },
             onAcceptWithDetails: (details) {
+              if (!_canInteract(round) ||
+                  !identical(details.data.round, round)) {
+                return;
+              }
               setState(() => _isDraggingOver = false);
-              
-              final RenderBox? renderBox = _dragTargetKey.currentContext?.findRenderObject() as RenderBox?;
-              if (renderBox == null) return;
-              
+
+              final RenderBox? renderBox = _dragTargetKey.currentContext
+                  ?.findRenderObject() as RenderBox?;
+              if (renderBox == null) {
+                return;
+              }
+
               final localDropPosition = renderBox.globalToLocal(details.offset);
               final droppedNumber = details.data;
 
-              int? closestCellIndex = _findClosestEmptyCell(localDropPosition, size);
+              int? closestCellIndex =
+                  _findClosestEmptyCell(localDropPosition, size);
 
               if (closestCellIndex != null) {
-                _placeNumber(droppedNumber, closestCellIndex);
+                _placeNumber(
+                    droppedNumber, closestCellIndex, droppedNumber.round);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -992,20 +1336,24 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       },
     );
   }
-    
+
   int? _findClosestEmptyCell(Offset dropPosition, double containerSize) {
-    if (currentPuzzle == null) return null;
+    if (currentPuzzle == null) {
+      return null;
+    }
 
     final cellPositions = currentPuzzle!.getCellPositions(containerSize);
     final cellSize = containerSize * 0.12;
-    final double acceptanceRadius = cellSize * 1.2;
+    final double acceptanceRadius = cellSize * 1.9;
 
     double minDistance = double.infinity;
     int? closestEmptyCellIndex;
-    
+
     for (int cellIndex in currentPuzzle!.hiddenCells) {
       final answerIndex = currentPuzzle!.getAnswerIndexForCell(cellIndex);
-      final isEmpty = answerIndex != -1 && answerIndex < userAnswers.length && userAnswers[answerIndex] == null;
+      final isEmpty = answerIndex != -1 &&
+          answerIndex < userAnswers.length &&
+          userAnswers[answerIndex] == null;
       if (isEmpty) {
         final cellCenter = cellPositions[cellIndex];
         final distance = (dropPosition - cellCenter).distance;
@@ -1023,16 +1371,18 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   List<Widget> _buildWallCells(double containerSize) {
-    if (currentPuzzle == null) return [];
-    
+    if (currentPuzzle == null) {
+      return [];
+    }
+
     List<Widget> cells = [];
     final cellPositions = currentPuzzle!.getCellPositions(containerSize);
     final cellSize = containerSize * 0.12;
-    
+
     for (int i = 0; i < currentPuzzle!.totalCells; i++) {
       int? value;
       bool isHidden = currentPuzzle!.hiddenCells.contains(i);
-      
+
       if (isHidden) {
         final answerIndex = currentPuzzle!.getAnswerIndexForCell(i);
         if (answerIndex != -1 && answerIndex < userAnswers.length) {
@@ -1042,10 +1392,11 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         value = currentPuzzle!.visibleValues[i];
       }
 
-      Widget cell = isHidden 
-          ? _buildDroppableCell(value, currentPuzzle!.getAnswerIndexForCell(i), cellSize)
+      Widget cell = isHidden
+          ? _buildDroppableCell(
+              value, currentPuzzle!.getAnswerIndexForCell(i), cellSize)
           : _buildFixedCell(value: value!, size: cellSize);
-      
+
       if (i == _lastPlacedCellIndex) {
         cell = ScaleTransition(scale: _dropAnimation, child: cell);
       }
@@ -1056,46 +1407,56 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         child: cell,
       ));
     }
-    
+
     return cells;
   }
 
   List<Widget> _buildOperationSymbols(double containerSize) {
-    if (currentPuzzle == null) return [];
-    
+    if (currentPuzzle == null) {
+      return [];
+    }
+
     final gameProvider = context.read<GameProvider>();
     List<Widget> symbols = [];
     final cellPositions = currentPuzzle!.getCellPositions(containerSize);
     final operationColor = _getOperationColor(currentPuzzle!.operation);
-    
+
     // Determine the symbol to display
     String symbolText;
     switch (currentPuzzle!.operation) {
-      case WallOperation.addition: symbolText = '+'; break;
-      case WallOperation.subtraction: symbolText = '-'; break;
-      case WallOperation.multiplication: symbolText = gameProvider.multiplicationSymbol; break;
-      case WallOperation.division: symbolText = gameProvider.divisionSymbol; break;
+      case WallOperation.addition:
+        symbolText = '+';
+        break;
+      case WallOperation.subtraction:
+        symbolText = '-';
+        break;
+      case WallOperation.multiplication:
+        symbolText = gameProvider.multiplicationSymbol;
+        break;
+      case WallOperation.division:
+        symbolText = gameProvider.divisionSymbol;
+        break;
     }
 
     for (int row = 0; row < currentPuzzle!.wallHeight - 1; row++) {
       final cellsInCurrentRow = row + 1;
       final currentRowStart = row * (row + 1) ~/ 2;
       final nextRowStart = (row + 1) * (row + 2) ~/ 2;
-      
+
       for (int col = 0; col < cellsInCurrentRow; col++) {
         final parentIndex = currentRowStart + col;
         final leftChildIndex = nextRowStart + col;
         final rightChildIndex = nextRowStart + col + 1;
-        
+
         if (rightChildIndex < currentPuzzle!.totalCells) {
           final parentPos = cellPositions[parentIndex];
           final leftChildPos = cellPositions[leftChildIndex];
           final rightChildPos = cellPositions[rightChildIndex];
-          
+
           // Calculate the midpoint between the two children
           final childrenMidX = (leftChildPos.dx + rightChildPos.dx) / 2;
           final childrenMidY = (leftChildPos.dy + rightChildPos.dy) / 2;
-          
+
           // The operator should be between the parent and the children.
           // In a normal wall, parent is ABOVE the children.
           // In a subtraction wall, parent is BELOW the children (due to inversion).
@@ -1103,7 +1464,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
             (parentPos.dx + childrenMidX) / 2,
             (parentPos.dy + childrenMidY) / 2,
           );
-          
+
           symbols.add(Positioned(
             left: symbolPos.dx - 14,
             top: symbolPos.dy - 14,
@@ -1113,12 +1474,21 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 return Transform.scale(
                   scale: _operationAnimation.value * 0.9,
                   child: Container(
-                    width: 28, height: 28,
+                    width: 28,
+                    height: 28,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [operationColor, operationColor.withValues(alpha: 0.7)]),
+                      gradient: LinearGradient(colors: [
+                        operationColor,
+                        operationColor.withValues(alpha: 0.7)
+                      ]),
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 1.5),
-                      boxShadow: [BoxShadow(color: operationColor.withValues(alpha: 0.6), blurRadius: 6, spreadRadius: 1)],
+                      boxShadow: [
+                        BoxShadow(
+                            color: operationColor.withValues(alpha: 0.6),
+                            blurRadius: 6,
+                            spreadRadius: 1)
+                      ],
                     ),
                     child: Center(
                       child: Text(
@@ -1138,10 +1508,10 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         }
       }
     }
-    
+
     return symbols;
   }
-  
+
   Widget _buildDroppableCell(int? value, int answerIndex, double size) {
     return Semantics(
       button: true,
@@ -1149,10 +1519,20 @@ class _NumberWallsGameState extends State<NumberWallsGame>
           ? 'Placed value $value, tap to remove'
           : 'Empty brick, drop a number here',
       child: GestureDetector(
-        onTap: value != null ? () => _removeNumber(answerIndex) : null,
+        onTap: value != null
+            ? () {
+                final round = _round;
+                final exp = userAnswers[answerIndex];
+                _removeNumber(answerIndex, exp, round);
+              }
+            : null,
         child: _buildBrickCell(
           value: value,
-          isSelected: (_isDraggingOver && value == null) || (currentPuzzle != null && _hintCell != null && currentPuzzle!.getAnswerIndexForCell(_hintCell!) == answerIndex),
+          isSelected: (_isDraggingOver && value == null) ||
+              (currentPuzzle != null &&
+                  _hintCell != null &&
+                  currentPuzzle!.getAnswerIndexForCell(_hintCell!) ==
+                      answerIndex),
           isHidden: true,
           size: size,
         ),
@@ -1169,16 +1549,25 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     );
   }
 
-  Widget _buildBrickCell({ required int? value, required bool isSelected, required bool isHidden, double size = 70 }) {
+  Widget _buildBrickCell(
+      {required int? value,
+      required bool isSelected,
+      required bool isHidden,
+      double size = 70}) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      width: size, height: size,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         gradient: _getCellGradient(isHidden, isSelected),
         border: Border.all(
           // MODIFIED: Changed SpaceTheme.alien to SpaceTheme.alienGreen
-          color: isSelected ? SpaceTheme.starYellow : currentPuzzle != null ? _getOperationColor(currentPuzzle!.operation) : SpaceTheme.alienGreen.withValues(alpha: 0.5),
+          color: isSelected
+              ? SpaceTheme.starYellow
+              : currentPuzzle != null
+                  ? _getOperationColor(currentPuzzle!.operation)
+                  : SpaceTheme.alienGreen.withValues(alpha: 0.5),
           width: isSelected ? 3 : 2,
         ),
         boxShadow: _getCellShadow(isSelected),
@@ -1188,7 +1577,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
           isHidden ? (value?.toString() ?? '') : value.toString(),
           style: SpaceTheme.headlineStyle.copyWith(
             fontSize: size * 0.35,
-            color: isHidden && value == null ? Colors.transparent : Colors.white,
+            color:
+                isHidden && value == null ? Colors.transparent : Colors.white,
           ),
           textAlign: TextAlign.center,
         ),
@@ -1200,37 +1590,36 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          S.of(context)!.numberWallsBricks, 
-          style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)
-        ),
+        Text(S.of(context)!.numberWallsBricks,
+            style: SpaceTheme.bodyStyle.copyWith(fontSize: 14)),
         const SizedBox(height: 6),
         Flexible(
           child: Container(
             padding: const EdgeInsets.all(6),
             decoration: SpaceTheme.cardDecoration.copyWith(
-              border: Border.all(color: SpaceTheme.nebulaPurple, width: 2)
-            ),
+                border: Border.all(color: SpaceTheme.nebulaPurple, width: 2)),
             child: GridView.builder(
               shrinkWrap: true,
               physics: const BouncingScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: math.max(1, math.min(5, numberPool.length)),
-                crossAxisSpacing: 6, 
+                crossAxisSpacing: 6,
                 mainAxisSpacing: 6,
                 // MODIFIED: Changed aspect ratio from 1.5 back to 1.0 (square)
                 childAspectRatio: 1.0,
               ),
               itemCount: numberPool.length,
               itemBuilder: (context, index) {
-                if (index >= numberPool.length) return Container();
+                if (index >= numberPool.length) {
+                  return Container();
+                }
                 final number = numberPool[index];
-                // Semantics goes on the visual child — see note in
-                // word_sort_game / codebreaker_game.
-                return Draggable<int>(
-                  data: number,
+                return Draggable<NumberWallsDrag>(
+                  key: ValueKey(('numberwalls-drag', _round, index, number)),
+                  data: (number: number, round: _round),
                   feedback: _buildDraggableFeedback(number),
-                  childWhenDragging: Opacity(opacity: 0.3, child: _buildCompactBrick(number)),
+                  childWhenDragging:
+                      Opacity(opacity: 0.3, child: _buildCompactBrick(number)),
                   child: Semantics(
                     label: S.of(context)!.a11yBrick(number),
                     button: true,
@@ -1249,42 +1638,52 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     return Material(
       color: Colors.transparent,
       child: Container(
-        width: 60, height: 60,
+        width: 60,
+        height: 60,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: SpaceTheme.starGradient,
-          boxShadow: const [BoxShadow(color: SpaceTheme.starYellow, blurRadius: 20)],
+          boxShadow: const [
+            BoxShadow(color: SpaceTheme.starYellow, blurRadius: 20)
+          ],
         ),
         child: Center(
-          child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 22))
-        ),
+            child: Text(number.toString(),
+                style: SpaceTheme.headlineStyle.copyWith(fontSize: 22))),
       ),
     );
   }
-  
+
   LinearGradient _getCellGradient(bool isHidden, bool isSelected) {
     if (!isHidden && currentPuzzle != null) {
       final operationColor = _getOperationColor(currentPuzzle!.operation);
       return LinearGradient(colors: [operationColor, SpaceTheme.deepSpace]);
     }
     if (isSelected) {
-      return const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange]);
+      return const LinearGradient(
+          colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange]);
     }
-    return const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]);
+    return const LinearGradient(
+        colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]);
   }
 
   List<BoxShadow> _getCellShadow(bool isSelected) {
     return [
       BoxShadow(
         // MODIFIED: Changed SpaceTheme.alien to SpaceTheme.alienGreen
-        color: isSelected ? SpaceTheme.starYellow : currentPuzzle != null ? _getOperationColor(currentPuzzle!.operation) : SpaceTheme.alienGreen.withValues(alpha: 0.5),
+        color: isSelected
+            ? SpaceTheme.starYellow
+            : currentPuzzle != null
+                ? _getOperationColor(currentPuzzle!.operation)
+                : SpaceTheme.alienGreen.withValues(alpha: 0.5),
         blurRadius: isSelected ? 20 : 10,
         spreadRadius: isSelected ? 3 : 1,
       ),
     ];
   }
 
-  Widget _buildSuccessDialog(int bonusScore) {
+  Widget _buildSuccessDialog(
+      int bonusScore, Object round, BuildContext dialogContext) {
     return AnimatedBuilder(
       animation: successAnimation,
       builder: (context, child) {
@@ -1299,19 +1698,29 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'number_walls'),
-                  const Icon(Icons.emoji_events, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.emoji_events,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  Text(S.of(context)!.numberWallsWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(S.of(context)!.numberWallsWinTitle,
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
-                  Text(S.of(context)!.numberWallsWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  Text(S.of(context)!.numberWallsWinDesc(bonusScore),
+                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
+                          Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
                         style: SpaceTheme.primaryButtonStyle,
@@ -1319,8 +1728,13 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
+                          Navigator.of(dialogContext).pop();
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
                         },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.toTheBridge),
@@ -1343,15 +1757,15 @@ extension NumberWallPuzzleLayout on NumberWallPuzzle {
     final positions = <Offset>[];
     final cellSpacing = containerSize / (wallHeight + 1);
     final isSubtraction = operation == WallOperation.subtraction;
-    
+
     // Adjust vertical starting position to keep the wall centered
     final totalWallHeight = cellSpacing * (wallHeight - 1);
     final startY = (containerSize - totalWallHeight) / 2;
-    
+
     for (int row = 0; row < wallHeight; row++) {
       final cellsInRow = row + 1;
       final startX = containerSize / 2 - (cellsInRow - 1) * cellSpacing / 2;
-      
+
       double yPos;
       if (isSubtraction) {
         // For subtraction, the base row (row `wallHeight - 1`) is at the top (y=startY).
@@ -1361,15 +1775,16 @@ extension NumberWallPuzzleLayout on NumberWallPuzzle {
         // For all other operations, the tip (row 0) is at the top.
         yPos = startY + row * cellSpacing;
       }
-      
+
       for (int col = 0; col < cellsInRow; col++) {
         positions.add(Offset(startX + col * cellSpacing, yPos));
       }
     }
-    
+
     return positions;
   }
 }
+
 // Background painter for visual effects
 class NumberWallBackgroundPainter extends CustomPainter {
   final double glowIntensity;
@@ -1385,30 +1800,43 @@ class NumberWallBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    
+
     Color baseColor;
     switch (operation) {
-      case WallOperation.addition: baseColor = SpaceTheme.alienGreen; break;
-      case WallOperation.subtraction: baseColor = SpaceTheme.cosmicPink; break;
-      case WallOperation.multiplication: baseColor = SpaceTheme.starYellow; break;
-      case WallOperation.division: baseColor = SpaceTheme.planetOrange; break;
+      case WallOperation.addition:
+        baseColor = SpaceTheme.alienGreen;
+        break;
+      case WallOperation.subtraction:
+        baseColor = SpaceTheme.cosmicPink;
+        break;
+      case WallOperation.multiplication:
+        baseColor = SpaceTheme.starYellow;
+        break;
+      case WallOperation.division:
+        baseColor = SpaceTheme.planetOrange;
+        break;
     }
-    
+
     final backgroundPaint = Paint()
       ..shader = RadialGradient(
-        colors: [ baseColor.withValues(alpha: 0.1 * glowIntensity), Colors.transparent ],
+        colors: [
+          baseColor.withValues(alpha: 0.1 * glowIntensity),
+          Colors.transparent
+        ],
       ).createShader(Rect.fromCircle(center: center, radius: size.width * 0.6));
-    
+
     canvas.drawCircle(center, size.width * 0.6, backgroundPaint);
-    
+
     if (warpActivation > 0) {
       final warpPaint = Paint()
         ..color = baseColor.withValues(alpha: 0.4 * (1 - warpActivation))
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3.0 + (warpActivation * 10)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 5 + warpActivation * 10);
-      
-      canvas.drawCircle(center, size.width * 0.1 + (size.width/2 * warpActivation), warpPaint);
+        ..maskFilter =
+            MaskFilter.blur(BlurStyle.normal, 5 + warpActivation * 10);
+
+      canvas.drawCircle(center,
+          size.width * 0.1 + (size.width / 2 * warpActivation), warpPaint);
     }
   }
 

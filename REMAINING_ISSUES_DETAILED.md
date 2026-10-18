@@ -1,19 +1,19 @@
 # Current risks and issue triage
 
-Updated 2026-10-05. [HANDOVER.md](HANDOVER.md) records the exact green baseline;
+Updated 2026-10-18. [HANDOVER.md](HANDOVER.md) records the exact green baseline;
 [REMAINING_WORK.md](REMAINING_WORK.md) defines executable lanes. Earlier claims
 that all issues were resolved referred to the June audit, not every future
 interaction or difficulty question.
 
 | Risk or evidence gap | Current evidence | Action lane |
 | --- | --- | --- |
-| Remaining round lifecycle/input edge cases | 20 games have dedicated completed audits; 28 remain to inspect. No specific new defect is asserted without reproduction. | A–F |
+| Remaining round lifecycle/input edge cases | 31 games have focused suites; 17 remain to inspect. No specific new defect is asserted without reproduction. | A–F |
 | Structural progression jumps | Recorded 67 flags; zero generation failures. Authored transitions can repeat across grades. | G |
 | Child-facing pars and workload bands | Untrained estimates; no child playtest results. Generator timing is not solving time. | H |
 | Solver costs and browser integer representations | App retains pinned v2.2.0, alternatives and fallbacks. Native success alone does not prove dart2js/WASM safety. | I |
 | Rendering/startup claims | Cached paths and remote probes exist; no demonstrated native FPS/battery gain. | J, H |
 | CI duplication and artifact expiry | Full gates pass; calibration artifacts have finite retention. Preserve needed fixtures. | K |
-| Store release readiness | Old 1.4.10 platform labels are historical; source is 1.5.22+38. No new store release is claimed. | R |
+| Store release readiness | Old 1.4.10 platform labels are historical; the integrated source version is 1.5.32+48. No new store release is claimed. | R |
 
 ## Reproduction requirements
 

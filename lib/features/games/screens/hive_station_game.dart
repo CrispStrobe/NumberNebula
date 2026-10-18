@@ -28,32 +28,122 @@ class HiveStationGame extends StatefulWidget {
 }
 
 class _HiveStationGameState extends State<HiveStationGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<HiveStationGame>, PuzzleSessionMixin<HiveStationGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<HiveStationGame>,
+        PuzzleSessionMixin<HiveStationGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'hive_station';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  @override
+  String get sessionGameKey => 'hive_station';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+
+  Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
+  }
+
+  bool _won = false;
+
+  bool _canInteract(Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      !_isGenerating &&
+      !_won &&
+      puzzle != null;
+
+  void _resetRoundEffects() {
+    _round = Object();
+    cancelOneShotMotion(successController);
+    _clearFeedback();
+  }
+
+  void _clearFeedback() {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.clearSnackBars();
+    messenger?.removeCurrentSnackBar();
+  }
+
+  bool _canUseDialog(Object round, BuildContext dialogContext) =>
+      mounted &&
+      identical(round, _round) &&
+      _won &&
+      dialogContext.mounted &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateDecorativeMotion([glowController], reduced);
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
+  }
+
+  @visibleForTesting
+  Object get testRound => _round;
+  @visibleForTesting
+  void rebuildForTesting() => setState(() {});
+  @visibleForTesting
+  void toggleForTesting(HexCoord coord, Object round) =>
+      _toggleCell(coord, round);
+
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _won || puzzle == null) {
+      return null;
+    }
     return {
       'puzzle': (puzzle?.toJson()),
       'userMarked': userMarked.map((v0) => v0.toJson()).toList(),
       '_attemptsLeft': _attemptsLeft
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    puzzle = (state["puzzle"] == null ? null : HiveStationPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
-    userMarked = (state["userMarked"] as List).map((v0) => HexCoord.fromJson(Map<String, dynamic>.from(v0 as Map))).toSet();
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
+    puzzle = (state["puzzle"] == null
+        ? null
+        : HiveStationPuzzle.fromJson(
+            Map<String, dynamic>.from(state["puzzle"] as Map)));
+    userMarked = (state["userMarked"] as List)
+        .map((v0) => HexCoord.fromJson(Map<String, dynamic>.from(v0 as Map)))
+        .toSet();
     _attemptsLeft = state["_attemptsLeft"] as int;
-    _isGenerating = false; _gameOver = false;
+    _isGenerating = false;
+    _gameOver = false;
+    _won = false;
+    if (_attemptsLeft <= 0) {
+      _gameOver = true;
+      _won = true;
+      finishPuzzleSession();
+      final round = _round;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && identical(round, _round) && _won) {
+          _showLossDialog(round);
+        }
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
-    if (mounted) setState(() => _sessionReady = true);
+    if (mounted) {
+      setState(() => _sessionReady = true);
+    }
   }
-
 
   HiveStationPuzzle? puzzle;
   Set<HexCoord> userMarked = {};
@@ -67,11 +157,11 @@ class _HiveStationGameState extends State<HiveStationGame>
     super.initState();
     initGameAnimations(usePulse: false);
 
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -80,6 +170,8 @@ class _HiveStationGameState extends State<HiveStationGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _round = Object();
+    cancelOneShotMotion(successController);
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
@@ -97,15 +189,29 @@ class _HiveStationGameState extends State<HiveStationGame>
   //   - Energy fraction increases slightly (more mines to find)
   //   - Attempts stay fixed per grade (mechanical gate)
 
-  int _getRadius() => HiveStationGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getRadius();
+  int _getRadius() => HiveStationGenerationConfig(
+          currentDifficulty?.grade ?? widget.grade,
+          currentDifficulty?.level ?? widget.level)
+      .getRadius();
 
-  double _getEnergyFraction() => HiveStationGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getEnergyFraction();
+  double _getEnergyFraction() => HiveStationGenerationConfig(
+          currentDifficulty?.grade ?? widget.grade,
+          currentDifficulty?.level ?? widget.level)
+      .getEnergyFraction();
 
-  double _getHintFraction() => HiveStationGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getHintFraction();
+  double _getHintFraction() => HiveStationGenerationConfig(
+          currentDifficulty?.grade ?? widget.grade,
+          currentDifficulty?.level ?? widget.level)
+      .getHintFraction();
 
-  int _getMaxAttempts() => HiveStationGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getMaxAttempts();
+  int _getMaxAttempts() => HiveStationGenerationConfig(
+          currentDifficulty?.grade ?? widget.grade,
+          currentDifficulty?.level ?? widget.level)
+      .getMaxAttempts();
 
   Future<void> _generatePuzzle() async {
+    _resetRoundEffects();
+    final round = _round;
     beginPuzzleSession();
     setState(() {
       _isGenerating = true;
@@ -113,6 +219,7 @@ class _HiveStationGameState extends State<HiveStationGame>
       successController.reset();
       _attemptsLeft = _getMaxAttempts();
       _gameOver = false;
+      _won = false;
     });
 
     try {
@@ -123,21 +230,28 @@ class _HiveStationGameState extends State<HiveStationGame>
         hintFraction: _getHintFraction(),
       );
 
-      if (mounted) {
+      if (mounted && identical(round, _round)) {
         setState(() {
           puzzle = p;
           _isGenerating = false;
         });
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('[HiveStation] Error generating puzzle: $e');
+      if (kDebugMode) {
+        debugPrint('[HiveStation] Error generating puzzle: $e');
+      }
     }
   }
 
-  void _toggleCell(HexCoord coord) {
-    if (_gameOver) return;
+  void _toggleCell(HexCoord coord, [Object? round]) {
+    final r = round ?? _round;
+    if (!_canInteract(r) || !puzzle!.allCells.contains(coord)) {
+      return;
+    }
     // Don't toggle cells that show a hint
-    if (puzzle!.revealedHints.contains(coord)) return;
+    if (puzzle!.revealedHints.contains(coord)) {
+      return;
+    }
 
     setState(() {
       if (userMarked.contains(coord)) {
@@ -150,25 +264,35 @@ class _HiveStationGameState extends State<HiveStationGame>
     AppHaptics.selectionClick();
   }
 
-  void _checkSolution() {
-    if (_gameOver) return;
+  void _checkSolution([Object? round]) {
+    final r = round ?? _round;
+    if (!_canInteract(r)) {
+      return;
+    }
+    if (_gameOver || _won) {
+      return;
+    }
     if (puzzle!.validateSolution(userMarked)) {
-      _handleWin();
+      _handleWin(r);
     } else {
       setState(() {
         _attemptsLeft--;
         if (_attemptsLeft <= 0) {
           _gameOver = true;
-          _handleFinalLoss();
+          _handleFinalLoss(r);
         } else {
-          _handleWrongAttempt();
+          _handleWrongAttempt(r);
         }
       });
     }
   }
 
-  void _handleWrongAttempt() {
+  void _handleWrongAttempt(Object round) {
+    if (!mounted || !identical(round, _round) || _won) {
+      return;
+    }
     AppHaptics.heavyImpact();
+    _clearFeedback();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -176,7 +300,8 @@ class _HiveStationGameState extends State<HiveStationGame>
             const Icon(Icons.error_outline, color: Colors.white),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(S.of(context)!.hiveStationWrongAttempt(_attemptsLeft)),
+              child:
+                  Text(S.of(context)!.hiveStationWrongAttempt(_attemptsLeft)),
             ),
           ],
         ),
@@ -186,26 +311,56 @@ class _HiveStationGameState extends State<HiveStationGame>
     );
   }
 
-  void _handleFinalLoss() {
+  void _handleFinalLoss(Object round) {
+    if (_won) {
+      return;
+    }
+    if (!identical(round, _round)) {
+      return;
+    }
+    _won = true;
+    _clearFeedback();
     AppHaptics.heavyImpact();
     finishPuzzleSession();
-    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'hive_station',
-      difficulty: widget.level,
-    ));
     if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _buildLossDialog(),
-      );
+      context.read<GameProvider>().reportOutcome(GameOutcome.loss(
+            skillLevel: widget.grade,
+            gameType: 'hive_station',
+            difficulty: widget.level,
+          ));
     }
+    _showLossDialog(round);
   }
 
-  void _handleWin() {
-    AppHaptics.lightImpact();
+  void _showLossDialog(Object round) {
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
+      return;
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildLossDialog(round, dialogContext),
+    );
+  }
+
+  void _handleWin(Object round) {
+    if (_won) {
+      return;
+    }
+    if (!identical(round, _round)) {
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
+    // Validate still correct at call time
+    if (puzzle == null || !puzzle!.validateSolution(userMarked)) {
+      return;
+    }
+    _won = true;
     _gameOver = true;
+    _clearFeedback();
+    AppHaptics.lightImpact();
     int baseScore = 100 * widget.grade;
     int levelBonus = widget.level * 25;
     int attemptBonus = _attemptsLeft * 30;
@@ -213,28 +368,38 @@ class _HiveStationGameState extends State<HiveStationGame>
 
     finishPuzzleSession();
 
-    context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'hive_station',
-      difficulty: widget.level,
-      score: totalScore,
-      performance: Perf.fromAttempts(
-          _getMaxAttempts() - _attemptsLeft + 1, _getMaxAttempts()),
-    ));
-
-    successController.forward(from: 0.0);
     if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _buildWinDialog(totalScore),
-      );
+      context.read<GameProvider>().reportOutcome(GameOutcome.win(
+            skillLevel: widget.grade,
+            gameType: 'hive_station',
+            difficulty: widget.level,
+            score: totalScore,
+            performance: Perf.fromAttempts(
+                _getMaxAttempts() - _attemptsLeft + 1, _getMaxAttempts()),
+          ));
     }
+
+    _showWinDialog(totalScore, round);
+  }
+
+  void _showWinDialog(int totalScore, Object round) {
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
+      return;
+    }
+    playOneShotMotion(successController, () {});
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) =>
+          _buildWinDialog(totalScore, round, dialogContext),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
 
     if (puzzle == null || _isGenerating) {
@@ -257,28 +422,79 @@ class _HiveStationGameState extends State<HiveStationGame>
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
-          child: Column(
-            children: [
-              GameUI(
-                title: s.hiveStationTitle,
-                level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  s.hiveStationInstructions,
-                  style: SpaceTheme.bodyStyle,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Expanded(child: _buildHexGrid()),
-              _buildCheckButton(),
-              const SizedBox(height: 16),
-            ],
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isShort = constraints.maxHeight < 500;
+              final isWide = constraints.maxWidth > 700;
+              return Column(
+                children: [
+                  GameUI(
+                    key: ValueKey(('hive-header', _round)),
+                    title: s.hiveStationTitle,
+                    level: widget.level,
+                    onBack: _backForRound(),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 16, vertical: isShort ? 2 : 4),
+                    child: Text(
+                      s.hiveStationInstructions,
+                      style: SpaceTheme.bodyStyle
+                          .copyWith(fontSize: isShort ? 12 : 14),
+                      textAlign: TextAlign.center,
+                      maxLines: isShort ? 2 : 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (isWide && !isShort)
+                    Expanded(child: _buildWideContent(isShort))
+                  else
+                    Expanded(child: _buildCompactContent(isShort)),
+                ],
+              );
+            },
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildWideContent(bool isShort) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(flex: 3, child: _buildHexGrid()),
+          const SizedBox(width: 16),
+          Flexible(child: _buildCheckButton()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactContent(bool isShort) {
+    // Short viewports need scrolling so the check button stays reachable
+    if (isShort) {
+      return SingleChildScrollView(
+        child: Column(
+          children: [
+            SizedBox(
+              height: 280,
+              child: _buildHexGrid(),
+            ),
+            _buildCheckButton(),
+            const SizedBox(height: 8),
+          ],
+        ),
+      );
+    }
+    return Column(
+      children: [
+        Expanded(child: _buildHexGrid()),
+        _buildCheckButton(),
+        const SizedBox(height: 16),
+      ],
     );
   }
 
@@ -292,19 +508,22 @@ class _HiveStationGameState extends State<HiveStationGame>
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.starYellow.withValues(alpha: 0.08 * glowAnimation.value),
+                  SpaceTheme.starYellow
+                      .withValues(alpha: 0.08 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.starYellow.withValues(alpha: glowAnimation.value * 0.5),
+                color: SpaceTheme.starYellow
+                    .withValues(alpha: glowAnimation.value * 0.5),
                 width: 2,
               ),
             ),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final availableSize = math.min(constraints.maxWidth, constraints.maxHeight) * 0.9;
+                final availableSize =
+                    math.min(constraints.maxWidth, constraints.maxHeight) * 0.9;
                 return SizedBox(
                   width: availableSize,
                   height: availableSize,
@@ -330,13 +549,15 @@ class _HiveStationGameState extends State<HiveStationGame>
       final isRevealed = puzzle!.revealedHints.contains(coord);
       final isMarked = userMarked.contains(coord);
       final hint = puzzle!.numberHints[coord];
+      final round = _round;
 
       cells.add(Positioned(
         left: pixelPos.dx - hexSize * 0.8,
         top: pixelPos.dy - hexSize * 0.8,
         child: GestureDetector(
+          key: ValueKey(('hive-hex', round, coord.q, coord.r)),
           behavior: HitTestBehavior.opaque,
-          onTap: () => _toggleCell(coord),
+          onTap: () => _toggleCell(coord, round),
           child: _buildHexCell(
             hexSize: hexSize * 1.6,
             isRevealed: isRevealed,
@@ -372,7 +593,8 @@ class _HiveStationGameState extends State<HiveStationGame>
       borderColor = const Color(0xFF4A5A8A); // visible light blue border
     } else {
       bgColor = const Color(0xFF2A1A3A); // dark purple, tappable cells
-      borderColor = const Color(0xFF6B48FF).withValues(alpha: 0.6); // brighter purple
+      borderColor =
+          const Color(0xFF6B48FF).withValues(alpha: 0.6); // brighter purple
     }
 
     return SizedBox(
@@ -382,7 +604,8 @@ class _HiveStationGameState extends State<HiveStationGame>
         painter: _HexCellPainter(
           fillColor: bgColor,
           borderColor: borderColor,
-          glowColor: isMarked ? SpaceTheme.starYellow.withValues(alpha: 0.4) : null,
+          glowColor:
+              isMarked ? SpaceTheme.starYellow.withValues(alpha: 0.4) : null,
         ),
         child: Center(
           child: hint != null
@@ -394,7 +617,8 @@ class _HiveStationGameState extends State<HiveStationGame>
                   ),
                 )
               : isMarked
-                  ? Icon(Icons.flash_on, color: Colors.white, size: hexSize * 0.4)
+                  ? Icon(Icons.flash_on,
+                      color: Colors.white, size: hexSize * 0.4)
                   : null,
         ),
       ),
@@ -411,28 +635,32 @@ class _HiveStationGameState extends State<HiveStationGame>
             ? SpaceTheme.planetOrange
             : SpaceTheme.alienGreen;
 
+    final round = _round;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: OverflowBar(
+        alignment: MainAxisAlignment.center,
+        overflowAlignment: OverflowBarAlignment.center,
+        spacing: 12,
+        overflowSpacing: 8,
         children: [
           // Marked / total
           Text(
             '${userMarked.length} / ${puzzle!.energyCells.length}',
             style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow),
           ),
-          const SizedBox(width: 16),
           // Check button
           ElevatedButton.icon(
+            key: ValueKey(('hive-check', round)),
             onPressed: !_gameOver &&
+                    !_won &&
                     userMarked.length == puzzle!.energyCells.length
-                ? _checkSolution
+                ? () => _checkSolution(round)
                 : null,
             icon: const Icon(Icons.check),
             label: Text(s.correct.replaceAll('!', '')),
             style: SpaceTheme.primaryButtonStyle,
           ),
-          const SizedBox(width: 16),
           // Attempts remaining
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -461,7 +689,7 @@ class _HiveStationGameState extends State<HiveStationGame>
     );
   }
 
-  Widget _buildLossDialog() {
+  Widget _buildLossDialog(Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
@@ -473,12 +701,14 @@ class _HiveStationGameState extends State<HiveStationGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                  RoundSummary(gameKey: 'hive_station'),
-            const Icon(Icons.hexagon_outlined, size: 64, color: SpaceTheme.rocketRed),
+            RoundSummary(gameKey: 'hive_station'),
+            const Icon(Icons.hexagon_outlined,
+                size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(
               s.hiveStationLoseTitle,
-              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              style: SpaceTheme.headlineStyle
+                  .copyWith(color: SpaceTheme.rocketRed),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -488,13 +718,19 @@ class _HiveStationGameState extends State<HiveStationGame>
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            OverflowBar(
+              alignment: MainAxisAlignment.spaceEvenly,
+              overflowAlignment: OverflowBarAlignment.center,
+              spacing: 16,
+              overflowSpacing: 12,
               children: [
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
+                    Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
@@ -516,7 +752,7 @@ class _HiveStationGameState extends State<HiveStationGame>
     );
   }
 
-  Widget _buildWinDialog(int score) {
+  Widget _buildWinDialog(int score, Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -532,23 +768,39 @@ class _HiveStationGameState extends State<HiveStationGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'hive_station'),
-                  const Icon(Icons.hexagon, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.hexagon,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  Text(s.hiveStationWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(s.hiveStationWinTitle,
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
-                  Text(s.hiveStationWinDesc(score), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  Text(s.hiveStationWinDesc(score),
+                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
-                        onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                        onPressed: () {
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
+                          Navigator.of(dialogContext).pop();
+                          _generatePuzzle();
+                        },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(s.playAgain),
                       ),
                       ElevatedButton(
-                        onPressed: () { Navigator.of(context).pop(); Navigator.of(context).pop(); },
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop();
+                        },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(s.backToMenu),
                       ),

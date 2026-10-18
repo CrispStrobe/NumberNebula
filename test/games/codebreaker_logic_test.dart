@@ -42,6 +42,37 @@ DifficultyConfig _config({
 }
 
 void main() {
+  group('Codebreaker finite answer tray', () {
+    test(
+        'nine required occurrences exceed the padding target without truncation',
+        () {
+      const required = [1, 1, 2, 3, 4, 5, 6, 7, 8];
+      expect(buildCodebreakerNumberPool(required, maxValue: 20),
+          unorderedEquals(required));
+    });
+    test(
+        'a saturated domain returns the required tiles without searching forever',
+        () {
+      expect(buildCodebreakerNumberPool([1, 1], maxValue: 1), [1, 1]);
+    });
+    test('large custom ranges do not require enumerating the numeric domain',
+        () {
+      final pool = buildCodebreakerNumberPool([1, 1], maxValue: 1073741824);
+      expect(pool, hasLength(8));
+      expect(pool.where((v) => v == 1), hasLength(2));
+      expect(pool.every((v) => v >= 1 && v <= 1073741824), isTrue);
+    });
+    test('padding retains duplicate answers and adds distinct in-range decoys',
+        () {
+      final pool = buildCodebreakerNumberPool([5, 5], maxValue: 10);
+      expect(pool, hasLength(8));
+      expect(pool.where((v) => v == 5), hasLength(2));
+      final decoys = pool.where((v) => v != 5).toList();
+      expect(decoys.toSet(), hasLength(decoys.length));
+      expect(decoys.every((v) => v >= 1 && v <= 10), isTrue);
+    });
+  });
+
   group('PuzzleSolver.solve', () {
     test('solves a fully determined linear system', () {
       // star = 3, moon = 5, sun = 8 with:
@@ -50,7 +81,8 @@ void main() {
       // Anchor star to a literal so the chain is determined.
       final equations = <PuzzleEquation>[
         PuzzleEquation(term1: 1, op: '+', term2: 2, result: 'star'), // star = 3
-        PuzzleEquation(term1: 'star', op: '+', term2: 2, result: 'moon'), // moon=5
+        PuzzleEquation(
+            term1: 'star', op: '+', term2: 2, result: 'moon'), // moon=5
         PuzzleEquation(
             term1: 'star', op: '+', term2: 'moon', result: 'sun'), // sun=8
       ];
@@ -94,8 +126,7 @@ void main() {
     // hidden positions: eq0_term1 (star), eq0_term2 (moon), eq0_result (sun)
     AdvancedCodebreakerPuzzle buildPuzzle() {
       final equations = <PuzzleEquation>[
-        PuzzleEquation(
-            term1: 'star', op: '+', term2: 'moon', result: 'sun'),
+        PuzzleEquation(term1: 'star', op: '+', term2: 'moon', result: 'sun'),
       ];
       return AdvancedCodebreakerPuzzle(
         knownSymbolValues: const {},
@@ -159,8 +190,7 @@ void main() {
 
         // The generator's own solver must recover exactly the solution key.
         final solved = PuzzleSolver().solve(equations, symbols);
-        expect(solved, isNotNull,
-            reason: 'generated puzzle must be solvable');
+        expect(solved, isNotNull, reason: 'generated puzzle must be solvable');
         for (final symbol in symbols) {
           expect(solved![symbol], key[symbol],
               reason: 'solver value for $symbol must match generated key');

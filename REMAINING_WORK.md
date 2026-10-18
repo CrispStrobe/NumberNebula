@@ -1,6 +1,6 @@
 # Executable next-work lanes
 
-Updated 2026-10-05. Read [HANDOVER.md](HANDOVER.md) first for the green shipping
+Updated 2026-10-18. Read [HANDOVER.md](HANDOVER.md) first for the green shipping
 baseline and completed audits. These are scoped next steps, not claims that the
 named games are broken. Each round-audit batch below is independent; implement
 one game per PR rather than combining an entire batch.
@@ -15,10 +15,10 @@ its exact key and release criteria here. Audit lanes below do not withhold games
 
 ### Fixed and shipping
 
-All 48 registered games are available in the menu and missions. The 20 completed
+All 48 registered games are available in the menu and missions. The 31 implemented
 focused round audits are mapped in [HANDOVER.md](HANDOVER.md); historical browser
 play-throughs are archived in [game-quality notes](docs/game-quality-history.md).
-The remaining 28 focused audits are additional hardening work, not a broken-game list.
+The remaining 17 focused audits are additional hardening work, not a broken-game list.
 
 ## Shared acceptance for game lanes A–F
 
@@ -60,45 +60,41 @@ current, and its round is current before dismissing or retrying. Controllers
 owned by text fields must survive until their old widgets detach. Tests must
 separate game animations from normal framework button ripples.
 
-## A — Next compact puzzle audit
+## A — Compact puzzle audits: implemented
 
-**Status:** Ready. **Owner files:** screens `star_forge_game.dart`,
-`chrono_repair_game.dart`, `orbital_towers_game.dart`; corresponding focused tests.
-Screen paths in this document are relative to `lib/features/games/screens/`.
+Star Forge, Chrono Repair and Orbital Towers have focused round suites. Their
+October 17 work was repaired in [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58):
+restore epochs/terminal flags, exhausted full boards, reduced motion, real input,
+large text and retry. Retain these tests when changing the screens; do not treat
+the former skipped acceptance cases as evidence. Use PR checks to verify the
+exact integrated head before release.
 
-Start with **Star Forge**, then Chrono Repair, then Orbital Towers. Inspect their
-win/loss paths, manual submissions and `_dropController` where present. Prove
-whether restore cancels old input/effects, whether an exhausted save ends once,
-and whether wrong answers preserve an editable snapshot. Retain Star Forge's
-arm geometry, Chrono's clock transforms, and Orbital's visibility rules and
-illustrated tutorial. **Done:** shared acceptance above for all three, with
-no generator/scoring change unless independently justified.
+## B — Remaining arithmetic and grid-input rounds
 
-## B — Arithmetic and grid-input rounds
+**Status:** Ready. **Games/screens:** `codebreaker_game.dart`, `puzzle_math_game.dart`.
+Arithmetic Square, Crossword, KenKen, Magic Triangles and Number Walls are covered
+by the integrated #58 suites. The Codebreaker capture failure in #55 was traced to a negative tray-padding
+count when more than eight answer occurrences were needed; PR #58 fixes that
+boundary with finite-domain padding and unit regressions. Its broader round
+lifecycle audit remains open.
 
-**Status:** Ready; can run independently of A.
-**Games/screens:** `arithmatic_square_game.dart`, `arithmancer_crosswords_game.dart`,
-`kenken_game.dart`, `magic_triangles_game.dart`, `number_walls_game.dart`,
-`codebreaker_game.dart`, `puzzle_math_game.dart`.
+Start with Codebreaker. Exercise pool/answer conservation, old input across
+restore, duplicate outcomes, budget exhaustion, persisted mistakes, real retry
+and large-text layouts. Preserve legacy/candidate generation choices. **Done:**
+shared acceptance plus independent rule validation for each changed game.
 
-Start with Arithmetic Square; test number-pool conservation, old cell/palette
-callbacks, drag payload identity, manual versus automatic completion, budget
-exhaustion and restored mistakes. Repeat only applicable cases for each game.
-Keep legacy/candidate/constructive/pruned generation choices intact. **Done:**
-shared acceptance and independent rule validation for each changed game.
+## C — Remaining construction rounds
 
-## C — Deduction, roles and construction rounds
+**Status:** Ready. **Games/screens:** `hull_plating_game.dart`, `relic_assembly_game.dart`.
+Alien Tribunal, Hive Station and Xenobiology Lab have integrated #58 suites.
+Manual-submit games must retain correct-but-unsubmitted saved answers as playable;
+correctness alone is not a terminal marker. Zero-attempt Hive saves offer retry
+without replaying a loss.
 
-**Status:** Ready. **Games/screens:** `alien_tribunal_game.dart`,
-`hive_station_game.dart`, `xenobiology_lab_game.dart`,
-`hull_plating_game.dart`, `relic_assembly_game.dart`.
-
-Start with Alien Tribunal: role assignments, submit/retry, wrong-check persistence
-and restored outcomes. For construction games, exercise placement, rotation,
-controller/slider updates and stale drag overlays. Preserve unique-solution
-checks and the existing rules; confirm feedback describes actual board state.
-**Done:** shared acceptance, including phone layouts with all clues/controls
-reachable. Do not weaken puzzle rules to make widget tests easier.
+Start with Hull Plating: exercise interrupted placement/rotation, restored piece
+inventory, stale drag overlays and controller updates. Then repeat applicable
+checks for Relic Assembly. **Done:** shared acceptance, rule/placement validation
+and reachable clues/controls on phones. Preserve the rules and existing fallbacks.
 
 ## D — Planning and bundled-level rounds
 
@@ -136,13 +132,13 @@ Start with Arithmancer: schedule an AI response, replace/restore the round, and
 prove the response cannot land in the new state. Verify turn ownership, selected
 cards, outcomes once, localized turn labels, pause/retry and disposal. Repeat
 for Asteroid Duel. **Done:** shared acceptance and legal-move/AI regression tests.
-A–F cover the 28 registered games without the completed dedicated round audits.
+B–F cover the 17 registered games without completed dedicated round audits.
 Legacy screens such as `bubble_math_game.dart` and `creature_forge_game.dart`
 are not extra registered-game lanes; do not delete them as incidental cleanup.
 
 ## G — Structural difficulty review and larger samples
 
-**Status:** Ready for CLI work; human conclusions depend on lane H.
+**Status:** Bounded live Robot replay and report-integrity checks implemented; larger matched sampling remains open. Human conclusions depend on lane H.
 **Owner files:** `tool/calibrate_games.dart`, `tool/compare_algorithm_paths.dart`,
 `tool/compare_generators.dart`, `lib/features/games/services/felt_difficulty.dart`,
 `docs/pure-dart-calibration.md`, `.github/workflows/pure-calibration.yml`.
@@ -168,7 +164,7 @@ felt difficulty.
 
 ## H — Human difficulty and native-device evidence
 
-**Status:** Instrumentation/research preparation is doable; actual measurement
+**Status:** [Protocol prepared](docs/human-playtest-protocol.md); actual measurement
 is blocked by unavailable devices and playtest data.
 **Owner files:** workload model, `Perf.*` call sites in screens, and calibration docs.
 
@@ -225,7 +221,7 @@ run in parallel; do not let separate agents race on them.
 
 ## R — Store release readiness
 
-**Status:** Public preparation is doable; current store state requires authorized
+**Status:** [Draft preparation available](docs/release-readiness.md); current store state requires authorized
 App Store Connect access. **Owner files:** `.github/workflows/release.yml`,
 `.github/workflows/submit.yml`, `pubspec.yaml`, public release notes.
 

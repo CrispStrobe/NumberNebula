@@ -1,3 +1,4 @@
+import 'support/round_dialog_finder.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -57,13 +58,15 @@ class _App {
 }
 
 final _screen = find.byType(StarForgeGame);
-final _dialog = find.byWidgetPredicate((widget) => widget is Dialog);
+final _dialog = roundDialogs;
 dynamic _session(WidgetTester tester) => tester.state(_screen);
 S _strings(WidgetTester tester) => S.of(tester.element(_screen))!;
 Map<String, dynamic> _snapshot(WidgetTester tester) =>
-    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession())) as Map<String, dynamic>;
+    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession()))
+        as Map<String, dynamic>;
 
-StarForgePuzzle _testPuzzle({int points = 5, Set<int> emptyNodes = const {7, 8}}) {
+StarForgePuzzle _testPuzzle(
+    {int points = 5, Set<int> emptyNodes = const {7, 8}}) {
   // Fixed solved layout for 5-point star: tips 1,9,3,7,5 + inner 10,2,8,4,6
   const tips = [1, 9, 3, 7, 5];
   const inner = [10, 2, 8, 4, 6]; // ignore: prefer_const_declarations
@@ -81,10 +84,15 @@ StarForgePuzzle _testPuzzle({int points = 5, Set<int> emptyNodes = const {7, 8}}
   final nodeCount = points * 2;
   final clues = <int, int>{};
   for (int i = 0; i < nodeCount; i++) {
-    if (!emptyNodes.contains(i)) clues[i] = solution[i]!;
+    if (!emptyNodes.contains(i)) {
+      clues[i] = solution[i]!;
+    }
   }
   final clueValues = clues.values.toSet();
-  final numberPool = List<int>.generate(nodeCount, (i) => i + 1).where((v) => !clueValues.contains(v)).toList()..sort();
+  final numberPool = List<int>.generate(nodeCount, (i) => i + 1)
+      .where((v) => !clueValues.contains(v))
+      .toList()
+    ..sort();
   return StarForgePuzzle(
     points: points,
     nodeCount: nodeCount,
@@ -121,7 +129,8 @@ Map<String, dynamic> _board({
   };
 }
 
-Future<void> _restore(WidgetTester tester, _App app, Map<String, dynamic> board) async {
+Future<void> _restore(
+    WidgetTester tester, _App app, Map<String, dynamic> board) async {
   final dynamic session = _session(tester);
   session.beginPuzzleSession();
   session.applyPuzzleSession(board);
@@ -131,7 +140,10 @@ Future<void> _restore(WidgetTester tester, _App app, Map<String, dynamic> board)
 }
 
 Future<_App> _mount(WidgetTester tester,
-    {bool reduced = false, double textScale = 1, Locale? locale, Map<String, dynamic>? board}) async {
+    {bool reduced = false,
+    double textScale = 1,
+    Locale? locale,
+    Map<String, dynamic>? board}) async {
   final app = _App(reduced: reduced, textScale: textScale, locale: locale);
   tester.view.physicalSize = const Size(1400, 1100);
   tester.view.devicePixelRatio = 1;
@@ -144,24 +156,41 @@ Future<_App> _mount(WidgetTester tester,
   await tester.pumpWidget(app.build());
   for (var attempt = 0; attempt < 150; attempt++) {
     await tester.pump(const Duration(milliseconds: 20));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
   await _restore(tester, app, board ?? _board());
   return app;
 }
 
-final _targets = find.byWidgetPredicate((widget) => widget is DragTarget<StarForgeDrag>);
-Finder _draggable(int n) => find.byWidgetPredicate((w) => w is Draggable<StarForgeDrag> && w.data!.number == n);
-DragTarget<StarForgeDrag> _target(WidgetTester tester, [int index = 0]) => tester.widget<DragTarget<StarForgeDrag>>(_targets.at(index));
-StarForgeDrag _payload(WidgetTester tester, int n) => tester.widget<Draggable<StarForgeDrag>>(_draggable(n)).data!;
-void _deliver(DragTarget<StarForgeDrag> target, StarForgeDrag data) => target.onAcceptWithDetails!(DragTargetDetails<StarForgeDrag>(data: data, offset: Offset.zero));
-Future<void> _drag(WidgetTester tester, int value, [int targetIndex = 0]) async {
-  await tester.drag(_draggable(value), tester.getCenter(_targets.at(targetIndex)) - tester.getCenter(_draggable(value)));
+final _targets =
+    find.byWidgetPredicate((widget) => widget is DragTarget<StarForgeDrag>);
+Finder _draggable(int n) => find.byWidgetPredicate(
+    (w) => w is Draggable<StarForgeDrag> && w.data!.number == n);
+DragTarget<StarForgeDrag> _target(WidgetTester tester, [int index = 0]) =>
+    tester.widget<DragTarget<StarForgeDrag>>(_targets.at(index));
+StarForgeDrag _payload(WidgetTester tester, int n) =>
+    tester.widget<Draggable<StarForgeDrag>>(_draggable(n)).data!;
+void _deliver(DragTarget<StarForgeDrag> target, StarForgeDrag data) =>
+    target.onAcceptWithDetails!(
+        DragTargetDetails<StarForgeDrag>(data: data, offset: Offset.zero));
+Future<void> _drag(WidgetTester tester, int value,
+    [int targetIndex = 0]) async {
+  await tester.drag(
+      _draggable(value),
+      tester.getCenter(_targets.at(targetIndex)) -
+          tester.getCenter(_draggable(value)));
   await tester.pump();
 }
-final _filled = find.byWidgetPredicate((widget) => widget is GestureDetector && widget.key is ValueKey && (widget.key as ValueKey).value.toString().contains('star-filled'));
+
+final _filled = find.byWidgetPredicate((widget) =>
+    widget is GestureDetector &&
+    widget.key is ValueKey &&
+    (widget.key as ValueKey).value.toString().contains('star-filled'));
 
 void _grade(_App app, {int moves = 2, int optimal = 2}) {
   expect(app.gp.outcomeCount, 1);
@@ -169,18 +198,23 @@ void _grade(_App app, {int moves = 2, int optimal = 2}) {
   expect(app.gp.lastOutcome!.score, 125);
   expect(app.gp.lastOutcome!.movesUsed, moves);
   expect(app.gp.lastOutcome!.optimalMoves, optimal);
-  expect(app.gp.lastOutcome!.performance, Perf.penalize(Perf.fromMoves(moves, optimal), hints: 0));
+  expect(app.gp.lastOutcome!.performance,
+      Perf.penalize(Perf.fromMoves(moves, optimal), hints: 0));
 }
 
 Future<void> _retry(WidgetTester tester, {bool loss = false}) async {
-  final button = find.widgetWithText(ElevatedButton, loss ? _strings(tester).tryAgain : _strings(tester).playAgain);
+  final button = find.widgetWithText(ElevatedButton,
+      loss ? _strings(tester).tryAgain : _strings(tester).playAgain);
   await tester.ensureVisible(button);
   await tester.pump();
   await tester.tap(button);
   for (var attempt = 0; attempt < 150; attempt++) {
     await tester.pump(const Duration(milliseconds: 20));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   await tester.pump(const Duration(milliseconds: 300));
   final board = _snapshot(tester);
@@ -199,7 +233,8 @@ Future<Map<String, dynamic>?> _stored(WidgetTester tester) async {
   for (var frame = 0; frame < 100 && !complete; frame++) {
     await tester.pump(const Duration(milliseconds: 20));
   }
-  expect(complete, isTrue, reason: 'Session read must finish within 100 frames');
+  expect(complete, isTrue,
+      reason: 'Session read must finish within 100 frames');
   return saved;
 }
 
@@ -208,11 +243,14 @@ void main() {
   setUp(() {
     final id = 'star_forge_rounds_${profile++}';
     ProfilePreferences.activeId = id;
-    SharedPreferences.setMockInitialValues({'player_${id}_onboarding_seen_star_forge_guided_v1': true});
+    SharedPreferences.setMockInitialValues(
+        {'player_${id}_onboarding_seen_star_forge_guided_v1': true});
     PuzzleSessionStore.resetForTesting();
   });
 
-  testWidgets('real drop consumes one move and removal is free; partial data persists', (tester) async {
+  testWidgets(
+      'real drop consumes one move and removal is free; partial data persists',
+      (tester) async {
     final app = await _mount(tester, reduced: true);
     await _drag(tester, 8);
     expect(_snapshot(tester)['answers'], containsPair('7', 8));
@@ -237,7 +275,9 @@ void main() {
   });
 
   for (final reduced in [false, true]) {
-    testWidgets('actual final correct drop wins once and retry resets doubled budget (reduced:$reduced)', (tester) async {
+    testWidgets(
+        'actual final correct drop wins once and retry resets doubled budget (reduced:$reduced)',
+        (tester) async {
       final app = await _mount(tester, reduced: reduced);
       final oldTarget = _target(tester);
       final oldPayload = _payload(tester, 8);
@@ -257,23 +297,11 @@ void main() {
     });
   }
 
-  testWidgets('full wrong final-budget drop still shows incorrect snackbar but does not lose until moves exhausted', skip: true, (tester) async {
-    final app = await _mount(tester, reduced: true, board: _board(answers: {7: 8}, movesRemaining: 1));
-    // board has 2 empty, one already filled correct, one move left, fill wrong (e.g., 2 instead of 4)
-    await _drag(tester, 2);
-    await tester.pump();
-    expect(find.byType(SnackBar), findsOneWidget);
-    expect(app.gp.outcomeCount, 0);
-    expect(_session(tester).capturePuzzleSession(), isNotNull);
-    // Now we have used last move, but board full wrong should remain editable per Star Forge logic (it checks only at full)
-    // After incorrect, move remains at 0? Actually _movesRemaining becomes 0 after placement, but _checkSolution sees wrong and shows snackbar, not outOfMoves
-    // OutOfMoves only triggers when moves <=0 && not full. Here board is full wrong, so not outOfMoves.
-    expect(_snapshot(tester)['moves'], 0);
-  });
-
-  testWidgets('full incorrect at zero remaining with empty still triggers outOfMoves loss', (tester) async {
-    final app = await _mount(tester, reduced: true, board: _board(empty: {7, 8, 3}, answers: {7: 8}, movesRemaining: 1));
-    await _drag(tester, 4); // fill second slot, but still one empty left and moves become 0 -> should outOfMoves
+  testWidgets('full wrong last-budget drop loses once and offers retry',
+      (tester) async {
+    final app = await _mount(tester,
+        reduced: true, board: _board(answers: {7: 4}, movesRemaining: 1));
+    await _drag(tester, 8);
     await tester.pump(const Duration(milliseconds: 700));
     expect(app.gp.outcomeCount, 1);
     expect(app.gp.lastOutcome!.wasSuccessful, isFalse);
@@ -283,20 +311,43 @@ void main() {
     expect(app.gp.outcomeCount, 1);
   });
 
-  testWidgets('old target and old round payload cannot mutate current board or clue cell', skip: true, (tester) async {
+  testWidgets(
+      'full incorrect at zero remaining with empty still triggers outOfMoves loss',
+      (tester) async {
+    final app = await _mount(tester,
+        reduced: true,
+        board: _board(empty: {7, 8, 3}, answers: {7: 8}, movesRemaining: 1));
+    await _drag(tester,
+        4); // fill second slot, but still one empty left and moves become 0 -> should outOfMoves
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(app.gp.outcomeCount, 1);
+    expect(app.gp.lastOutcome!.wasSuccessful, isFalse);
+    expect(_session(tester).capturePuzzleSession(), isNull);
+    expect(_dialog, findsOneWidget);
+    await _retry(tester, loss: true);
+    expect(app.gp.outcomeCount, 1);
+  });
+
+  testWidgets(
+      'old target and old round payload cannot mutate current board or clue cell',
+      (tester) async {
     final app = await _mount(tester);
     final target = _target(tester);
     final old = _payload(tester, 8);
     final back = tester.widget<GameUI>(find.byType(GameUI));
-    await _restore(tester, app, _board(empty: {3, 7}, answers: {}, movesRemaining: 4));
+    await _restore(
+        tester, app, _board(empty: {3, 7}, answers: {}, movesRemaining: 4));
     final before = _snapshot(tester);
     final current = _target(tester);
-    final fresh = _payload(tester, 4);
+    final fresh = _payload(tester, 7);
     _deliver(target, fresh);
     _deliver(target, old);
     _deliver(current, old);
     back.onBack();
-    expect(current.onWillAcceptWithDetails!(DragTargetDetails<StarForgeDrag>(data: old, offset: Offset.zero)), isFalse);
+    expect(
+        current.onWillAcceptWithDetails!(
+            DragTargetDetails<StarForgeDrag>(data: old, offset: Offset.zero)),
+        isFalse);
     await tester.pump(const Duration(milliseconds: 700));
     expect(_snapshot(tester), before);
     expect(app.gp.outcomeCount, 0);
@@ -304,7 +355,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('old same-round filled callback cannot remove different new value', (tester) async {
+  testWidgets(
+      'old same-round filled callback cannot remove different new value',
+      (tester) async {
     await _mount(tester, reduced: true);
     await _drag(tester, 8);
     final old = tester.widget<GestureDetector>(_filled.first);
@@ -317,7 +370,8 @@ void main() {
     expect(_snapshot(tester)['moves'], 2);
   });
 
-  testWidgets('accepted active drag payload cannot land in replacement round', (tester) async {
+  testWidgets('accepted active drag payload cannot land in replacement round',
+      (tester) async {
     final app = await _mount(tester, reduced: true);
     final pointer = await tester.startGesture(tester.getCenter(_draggable(8)));
     await pointer.moveBy(const Offset(0, -30));
@@ -333,8 +387,11 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('active filled-cell finger cannot remove restored same-geometry value', (tester) async {
-    final app = await _mount(tester, reduced: true, board: _board(answers: {7: 8}, movesRemaining: 3));
+  testWidgets(
+      'active filled-cell finger cannot remove restored same-geometry value',
+      (tester) async {
+    final app = await _mount(tester,
+        reduced: true, board: _board(answers: {7: 8}, movesRemaining: 3));
     final pointer = await tester.startGesture(tester.getCenter(_filled.first));
     await _restore(tester, app, _board(answers: {7: 4}, movesRemaining: 3));
     final before = _snapshot(tester);
@@ -346,7 +403,9 @@ void main() {
   });
 
   for (final won in [false, true]) {
-    testWidgets('older ${won ? 'full correct' : 'exhausted'} snapshot offers retry without outcome replay', (tester) async {
+    testWidgets(
+        'older ${won ? 'full correct' : 'exhausted'} snapshot offers retry without outcome replay',
+        (tester) async {
       final app = await _mount(tester,
           reduced: true,
           board: _board(
@@ -362,39 +421,56 @@ void main() {
     });
   }
 
-  testWidgets('restore clears pending incorrect feedback and last-drop visuals', skip: true, (tester) async {
+  testWidgets('restore clears pending incorrect feedback and last-drop visuals',
+      (tester) async {
     final app = await _mount(tester, reduced: true);
-    await _drag(tester, 2);
-    await _drag(tester, 2);
+    await _drag(tester, 4);
+    await _drag(tester, 8);
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byType(SnackBar), findsOneWidget);
-    ScaffoldMessenger.of(tester.element(_screen)).showSnackBar(const SnackBar(content: Text('obsolete star feedback'), duration: Duration(seconds: 20)));
+    ScaffoldMessenger.of(tester.element(_screen)).showSnackBar(const SnackBar(
+        content: Text('obsolete star feedback'),
+        duration: Duration(seconds: 20)));
     await _restore(tester, app, _board(answers: {7: 8}, movesRemaining: 3));
     final before = _snapshot(tester);
-    expect(find.descendant(of: _filled.first, matching: find.byType(ScaleTransition)), findsNothing);
+    expect(
+        find.descendant(
+            of: _filled.first, matching: find.byType(ScaleTransition)),
+        findsNothing);
     await tester.pump(const Duration(seconds: 5));
     expect(find.byType(SnackBar), findsNothing);
     expect(_snapshot(tester), before);
     expect(app.gp.outcomeCount, 0);
   });
 
-  testWidgets('mid-drop reduction completes 500ms effect without changing board or budget', skip: true, (tester) async {
+  testWidgets(
+      'mid-drop reduction completes 500ms effect without changing board or budget',
+      (tester) async {
     final app = await _mount(tester);
     await _drag(tester, 8);
     await tester.pump(const Duration(milliseconds: 100));
     final before = _snapshot(tester);
+    final scaleFinder = find.descendant(
+        of: _filled.first, matching: find.byType(ScaleTransition));
+    final scale = tester.widget<ScaleTransition>(scaleFinder);
     app.motion.value = true;
     await tester.pump();
     await tester.pump();
-    final scale = tester.widget<ScaleTransition>(find.descendant(of: _filled.first, matching: find.byType(ScaleTransition)));
+    expect(scaleFinder, findsNothing);
     expect(scale.scale.value, 1);
+    expect(scale.scale.status, AnimationStatus.completed);
+    // The game effect completes immediately; let pointer/hover effects settle.
+    await tester.pump(const Duration(milliseconds: 300));
     expect(tester.binding.transientCallbackCount, 0);
     expect(_snapshot(tester), before);
     expect(app.gp.outcomeCount, 0);
   });
 
-  testWidgets('mid-success reduction immediately completes visual before finite Material settling', (tester) async {
-    final app = await _mount(tester, board: _board(empty: const {7, 8}, answers: {7: 8}, movesRemaining: 3));
+  testWidgets(
+      'mid-success reduction immediately completes visual before finite Material settling',
+      (tester) async {
+    final app = await _mount(tester,
+        board: _board(empty: const {7, 8}, answers: {7: 8}, movesRemaining: 3));
     await _drag(tester, 4);
     await tester.pump(const Duration(milliseconds: 100));
     app.motion.value = true;
@@ -411,12 +487,19 @@ void main() {
   });
 
   for (final replace in [false, true]) {
-    testWidgets('closed star dialog buttons cannot navigate or retry (replace:$replace)', skip: true, (tester) async {
-      final app = await _mount(tester, reduced: true, board: _board(empty: const {7, 8}, answers: {7: 8}, movesRemaining: 3));
+    testWidgets(
+        'closed star dialog buttons cannot navigate or retry (replace:$replace)',
+        (tester) async {
+      final app = await _mount(tester,
+          reduced: true,
+          board:
+              _board(empty: const {7, 8}, answers: {7: 8}, movesRemaining: 3));
       await _drag(tester, 4);
       await tester.pump(const Duration(milliseconds: 700));
-      final retry = tester.widget<ElevatedButton>(find.widgetWithText(ElevatedButton, _strings(tester).playAgain));
-      final exit = tester.widget<ElevatedButton>(find.widgetWithText(ElevatedButton, _strings(tester).backToMenu));
+      final retry = tester.widget<ElevatedButton>(
+          find.widgetWithText(ElevatedButton, _strings(tester).playAgain));
+      final exit = tester.widget<ElevatedButton>(
+          find.widgetWithText(ElevatedButton, _strings(tester).backToMenu));
       Navigator.of(tester.element(_screen)).pop();
       await tester.pump();
       Map<String, dynamic>? before;
@@ -439,22 +522,28 @@ void main() {
     });
   }
 
-  testWidgets('retry generation cannot overwrite synchronous restore', (tester) async {
-    final app = await _mount(tester, reduced: true, board: _board(empty: const {7, 8}, answers: {7: 8}, movesRemaining: 3));
+  testWidgets('retry generation cannot overwrite synchronous restore',
+      (tester) async {
+    final app = await _mount(tester,
+        reduced: true,
+        board: _board(empty: const {7, 8}, answers: {7: 8}, movesRemaining: 3));
     await _drag(tester, 4);
     await tester.pump(const Duration(milliseconds: 700));
-    final retry = tester.widget<ElevatedButton>(find.widgetWithText(ElevatedButton, _strings(tester).playAgain));
+    final retry = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, _strings(tester).playAgain));
     retry.onPressed!();
     expect(_session(tester).capturePuzzleSession(), isNull);
     _session(tester).beginPuzzleSession();
-    _session(tester).applyPuzzleSession(_board(empty: const {7, 8}, answers: {7: 2}, movesRemaining: 3));
+    _session(tester).applyPuzzleSession(
+        _board(empty: const {7, 8}, answers: {7: 2}, movesRemaining: 3));
     app.motion.value = false;
     await tester.pump();
     app.motion.value = true;
     await tester.pump();
     final before = _snapshot(tester);
     for (var attempt = 0; attempt < 20; attempt++) {
-      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)));
       await tester.pump(const Duration(milliseconds: 50));
     }
     expect(_snapshot(tester), before);
@@ -463,8 +552,10 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('disposal rejects retained drag payload target removal and back', (tester) async {
-    final app = await _mount(tester, board: _board(empty: const {7, 8}, answers: {7: 8}, movesRemaining: 3));
+  testWidgets('disposal rejects retained drag payload target removal and back',
+      (tester) async {
+    final app = await _mount(tester,
+        board: _board(empty: const {7, 8}, answers: {7: 8}, movesRemaining: 3));
     final target = _target(tester);
     final data = _payload(tester, 4);
     final remove = tester.widget<GestureDetector>(_filled.first);
@@ -480,8 +571,11 @@ void main() {
   });
 
   for (final language in ['en', 'de']) {
-    testWidgets('five-point phone doubled text supports real win and retry in $language', (tester) async {
-      final app = await _mount(tester, reduced: true, textScale: 2, locale: Locale(language));
+    testWidgets(
+        'five-point phone doubled text supports real win and retry in $language',
+        (tester) async {
+      final app = await _mount(tester,
+          reduced: true, textScale: 2, locale: Locale(language));
       expect(tester.takeException(), isNull);
       tester.view.physicalSize = const Size(390, 844);
       await tester.pump();
@@ -500,8 +594,11 @@ void main() {
     });
   }
 
-  testWidgets('short viewport scrolls star board while preserving minimum hit boxes', (tester) async {
-    final app = await _mount(tester, reduced: true, textScale: 2, locale: const Locale('en'));
+  testWidgets(
+      'short viewport scrolls star board while preserving minimum hit boxes',
+      (tester) async {
+    final app = await _mount(tester,
+        reduced: true, textScale: 2, locale: const Locale('en'));
     expect(tester.takeException(), isNull);
     tester.view.physicalSize = const Size(390, 500);
     await tester.pump();
@@ -514,4 +611,25 @@ void main() {
     expect(app.gp.outcomeCount, 0);
     expect(tester.takeException(), isNull);
   });
+  for (final win in [false, true]) {
+    testWidgets('partial restore clears prior terminal flags (win:$win)',
+        (tester) async {
+      final app = await _mount(tester,
+          reduced: true,
+          board: win
+              ? _board(answers: {7: 8}, movesRemaining: 1)
+              : _board(movesRemaining: 1));
+      await _drag(tester, win ? 4 : 8);
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(_dialog, findsOneWidget);
+      Navigator.of(tester.element(_screen)).pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await _restore(tester, app, _board());
+      expect(_session(tester).capturePuzzleSession(), isNotNull);
+      await _drag(tester, 8);
+      expect(_snapshot(tester)['answers'], containsPair('7', 8));
+      expect(app.gp.outcomeCount, 1);
+    });
+  }
 }

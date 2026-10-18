@@ -1,5 +1,23 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-10-18 — Integrated round-audit repairs
+
+[PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58) integrates the work
+from #55/#56/#57 and repairs the October 17 audits. Correct unsubmitted saves
+remain playable; restores reset callbacks/effects and terminal flags; duplicate
+inventory is conserved; exhausted full wrong boards cannot bypass their budgets.
+Twenty-two skipped acceptance cases are re-enabled, the Arithmetic Square
+placeholder is replaced by actual input/save/terminal tests, and additional
+post-terminal restore regressions plus a no-skipped-audits contract are present.
+
+The structural review now distinguishes historical summary integrity from four
+live seeded Robot generation/command replays, with an actual Flutter wrapper
+and pure workflow step. Unsupported Robot authorship/proof/timing claims are
+withdrawn. Pars, scores, generator choices, A/B and fallbacks are retained.
+There are 31 focused game suites and 17 remaining screen audits; H/R preparation
+exists without claiming physical-device/child data or a new App Store release.
+Use the linked PR checks for exact-head validation and merge state.
+
 ## 2026-10-05 — Round audits through Dark Matter Grid
 
 [PRs #29–#46](https://github.com/CrispStrobe/NumberNebula/pull/46) completed focused

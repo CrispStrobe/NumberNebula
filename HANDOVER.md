@@ -1,7 +1,39 @@
 # NumberNebula: current state and agent handover
 
-Verified 2026-10-05. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
+Updated 2026-10-18. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
+
+## October 18 integration
+
+Current implemented version: **1.5.32+48**. [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)
+repairs the October 17 audits and integrates the work originally proposed in
+#55, #56 and #57. Use that PR's exact-head checks and merge state to verify
+publication; historical green runs below do not stand in for its validation.
+
+There are focused round suites for **31 registered games**, with **17** remaining
+to audit. All 22 newly skipped acceptance cases from the October 17 changes have
+been re-enabled, the Arithmetic Square placeholder has been replaced by actual
+input/save/inventory/terminal tests, and a coverage contract rejects skipped
+acceptance cases in these eleven added suites. The two unrelated slow-generator
+skips are outside this repair.
+
+The integration keeps correct but unsubmitted manual answers playable, resets
+round identity and terminal effects on restoration, conserves duplicate tray
+values, and makes a full incorrect board lose at its exhausted budget. A correct
+last legal move can still win. Existing scores, pars, generators, A/B selection
+and fallback implementations are retained. The dynamic Alien card border remains
+animated while its static card contents are reused.
+
+The [Lane G evidence review](docs/structural-difficulty-review-G.md) now separates
+historical summary integrity from four live seeded Robot generation/command
+replays. Its real Flutter wrapper and pure workflow step are present; unsupported
+sample/proof claims have been withdrawn. This is not human difficulty calibration.
+
+The next executable screen audits are Codebreaker and Puzzle Math (B), Hull
+Plating and Relic Assembly (C), followed by the unchanged D/E/F lanes. H has a
+[prepared playtest protocol](docs/human-playtest-protocol.md); R has a
+[draft readiness document](docs/release-readiness.md). Neither claims device
+measurements or a new store release.
 
 ## Start here
 
@@ -20,12 +52,12 @@ Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 Private machine configuration, credentials and operational notes do not belong
 in this repository. Documentation uses repository-relative paths and public URLs.
 
-## Verified shipping baseline
+## Historical verified baseline (October 5)
 
 App version **1.5.22+38** at
 [`8eaf252bc86dfc7e44bb219613e60f2bd3450e7c`](https://github.com/CrispStrobe/NumberNebula/commit/8eaf252bc86dfc7e44bb219613e60f2bd3450e7c),
 after [PR #46](https://github.com/CrispStrobe/NumberNebula/pull/46).
-The documentation update does not change the app version.
+That documentation-only update did not change the app version.
 
 | Evidence on that exact main commit | Result | Public run |
 | --- | --- | --- |
@@ -41,8 +73,8 @@ for all games does not mean every interactive edge case has been audited.
 
 ## Completed focused round audits
 
-These games have dedicated round regressions in `test/widgets/` and merged
-fixes. The latest shared suite covers them together; do not reimplement these
+These games have dedicated round regressions in `test/widgets/`. The October 18
+rows refer to the integrated repair; consult PR #58 for its exact merge/check state. The latest shared suite covers them together; do not reimplement these
 fixes just because an older planning document predates them.
 
 | Games | Merged public change |
@@ -65,6 +97,8 @@ fixes just because an older planning document predates them.
 | Crew Manifest | [#44](https://github.com/CrispStrobe/NumberNebula/pull/44) |
 | Nebula Matrix | [#45](https://github.com/CrispStrobe/NumberNebula/pull/45) |
 | Dark Matter Grid | [#46](https://github.com/CrispStrobe/NumberNebula/pull/46) |
+| Star Forge; Chrono Repair; Arithmetic Square; Orbital Towers; Alien Tribunal | [Audit repairs #58](https://github.com/CrispStrobe/NumberNebula/pull/58) |
+| Crossword; KenKen; Magic Triangles; Number Walls; Hive Station; Xenobiology Lab | [Integrated audits #58](https://github.com/CrispStrobe/NumberNebula/pull/58) |
 
 The last five audits cover old controls and drag payloads surviving restoration,
 outcomes reported once, exhausted saves, recoverable mistakes, reduced motion,

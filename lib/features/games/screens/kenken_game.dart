@@ -20,6 +20,8 @@ import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../constants/app_constants.dart';
 
+typedef KenkenDrag = ({int number, Object round});
+
 class KenkenGame extends StatefulWidget {
   final int grade;
   final int level;
@@ -35,15 +37,17 @@ class KenkenGame extends StatefulWidget {
 }
 
 class _KenkenGameState extends State<KenkenGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<KenkenGame>, PuzzleSessionMixin<KenkenGame> {
-  
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<KenkenGame>,
+        PuzzleSessionMixin<KenkenGame> {
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
 
   KenkenPuzzle? puzzle;
   Map<String, int> userSolution = {};
   List<int> numberPool = [];
-  
+
   bool _isGenerating = true;
   String _lastDroppedPosition = '';
   DifficultyConfig? currentDifficulty;
@@ -55,42 +59,152 @@ class _KenkenGameState extends State<KenkenGame>
   /// once, so it doubles as the optimal move count for the performance grade.
   int _optimalMoves = 0;
 
-  @override String get sessionGameKey => 'kenken';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (puzzle == null || _isGenerating) return null;
-    return {'puzzle': puzzle!.toJson(), 'answers': userSolution, 'pool': numberPool, 'moves': _movesRemaining, 'maxMoves': _maxMoves, 'optimal': _optimalMoves};
+  Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    puzzle = KenkenPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle']), currentDifficulty!);
-    userSolution = Map<String, int>.from(state['answers']); numberPool = List<int>.from(state['pool']); _movesRemaining = state['moves']; _maxMoves = state['maxMoves']; _optimalMoves = state['optimal'];
+
+  bool _won = false;
+  bool _canInteract(Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      !_isGenerating &&
+      !_won &&
+      puzzle != null;
+  bool _canPlace(KenkenDrag drag, String cellId, Object round) =>
+      _canInteract(round) &&
+      identical(drag.round, _round) &&
+      puzzle!.numberPool.contains(drag.number) &&
+      puzzle!.emptyCells.contains(cellId) &&
+      !userSolution.containsKey(cellId);
+  bool _isSolved() =>
+      puzzle != null &&
+      userSolution.length == puzzle!.emptyCells.length &&
+      puzzle!.validateSolution(userSolution);
+  bool _isExhausted() => puzzle != null && _movesRemaining <= 0 && !_isSolved();
+  void _syncNumberPool() => numberPool = List<int>.from(puzzle!.numberPool);
+  void _resetRoundEffects() {
+    _round = Object();
+    cancelOneShotMotion(successController);
+    cancelOneShotMotion(_dropController);
+    _clearFeedback();
+  }
+
+  void _clearFeedback() {
+    final m = ScaffoldMessenger.maybeOf(context);
+    m?.clearSnackBars();
+    m?.removeCurrentSnackBar();
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(_dropController, reduced,
+        duration: const Duration(milliseconds: 500));
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
+  }
+
+  @visibleForTesting
+  Object get testRound => _round;
+  @visibleForTesting
+  void rebuildForTesting() => setState(() {});
+  @visibleForTesting
+  void placeForTesting(int number, String cellId, Object round) =>
+      _placeNumber((number: number, round: round), cellId, round);
+
+  @override
+  String get sessionGameKey => 'kenken';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (puzzle == null || _isGenerating || _won) {
+      return null;
+    }
+    return {
+      'puzzle': puzzle!.toJson(),
+      'answers': userSolution,
+      'pool': numberPool,
+      'moves': _movesRemaining,
+      'maxMoves': _maxMoves,
+      'optimal': _optimalMoves
+    };
+  }
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
+    puzzle = KenkenPuzzle.fromJson(
+        Map<String, dynamic>.from(state['puzzle']), currentDifficulty!);
+    userSolution = Map<String, int>.from(state['answers']);
+    numberPool = List<int>.from(state['pool']);
+    _movesRemaining = state['moves'];
+    _maxMoves = state['maxMoves'];
+    _optimalMoves = state['optimal'];
     _isGenerating = false;
+    _won = false;
+    _syncNumberPool();
+    final solved = _isSolved();
+    final exhausted = _isExhausted();
+    if (solved || exhausted) {
+      _won = true;
+      finishPuzzleSession();
+      final round = _round;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !identical(round, _round) || _isGenerating) {
+          return;
+        }
+        if (solved) {
+          _showSuccessDialog(_successBonus(), round);
+        } else {
+          _showOutOfMovesDialog(round);
+        }
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
+
   Future<void> _restoreOrGenerate() async {
-    if (!await restorePuzzleSession() && mounted) _generatePuzzle();
+    if (!await restorePuzzleSession() && mounted) {
+      _generatePuzzle();
+    }
   }
 
   @override
   void initState() {
     super.initState();
     initGameAnimations();
-    if (kDebugMode) debugPrint("🔲 [KENKEN] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
-    
-    
-    _dropController = AnimationController(
-      duration: const Duration(milliseconds: 500), 
-      vsync: this
-    );
-    _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
+    if (kDebugMode) {
+      debugPrint(
+          "🔲 [KENKEN] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
+    }
 
-    
+    _dropController = AnimationController(
+        duration: const Duration(milliseconds: 500), vsync: this);
+    _dropAnimation =
+        CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
+
     // Initialize difficulty from the framework
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gameProvider = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level, gradeOverride: widget.grade);
-        if (kDebugMode) debugPrint("🔲 [KENKEN] Difficulty initialized: ${currentDifficulty?.grade}");
+        currentDifficulty = DifficultyManager.getDifficulty(
+            gameProvider, widget.level,
+            gradeOverride: widget.grade);
+        if (kDebugMode) {
+          debugPrint(
+              "🔲 [KENKEN] Difficulty initialized: ${currentDifficulty?.grade}");
+        }
         _restoreOrGenerate();
       }
     });
@@ -99,31 +213,25 @@ class _KenkenGameState extends State<KenkenGame>
   @override
   void dispose() {
     disposePuzzleSession();
-    if (kDebugMode) debugPrint("🔲 [KENKEN] Disposing game and cleaning up resources");
-    
-    glowController.stop();
-    successController.stop();
-    _dropController.stop();
-    pulseController.stop();
-    
+    _round = Object();
+    cancelOneShotMotion(successController);
+    cancelOneShotMotion(_dropController);
     _dropController.dispose();
-    
-    puzzle = null;
-    userSolution.clear();
-    numberPool.clear();
-    
     disposeGameAnimations();
     super.dispose();
   }
 
-  void _generatePuzzle() async {
+  Future<void> _generatePuzzle() async {
+    _resetRoundEffects();
+    final round = _round;
     beginPuzzleSession();
-    if (currentDifficulty == null) return;
-    
-    if (kDebugMode) debugPrint("🎯 [KENKEN] Starting puzzle generation process");
-    
+    if (currentDifficulty == null) {
+      return;
+    }
+
     setState(() {
       _isGenerating = true;
+      _won = false;
       successController.reset();
       userSolution.clear();
     });
@@ -140,12 +248,17 @@ class _KenkenGameState extends State<KenkenGame>
         'customMax': gameProvider.customRangeMax,
       };
 
-      if (kDebugMode) debugPrint("🎯 [KENKEN] Calling compute function with args: $puzzleArgs");
+      if (kDebugMode) {
+        debugPrint(
+            "🎯 [KENKEN] Calling compute function with args: $puzzleArgs");
+      }
       final generatedPuzzle = await compute(KenkenPuzzle.generate, puzzleArgs);
-      
-      debugPrint("🎯 [KENKEN] Puzzle generation completed successfully");
-      
-      if (mounted) {
+
+      if (kDebugMode) {
+        debugPrint("🎯 [KENKEN] Puzzle generation completed successfully");
+      }
+
+      if (mounted && identical(round, _round)) {
         setState(() {
           puzzle = generatedPuzzle;
           numberPool = List.from(generatedPuzzle.numberPool);
@@ -158,36 +271,62 @@ class _KenkenGameState extends State<KenkenGame>
 
           _isGenerating = false;
         });
-        if (kDebugMode) debugPrint("🎯 [KENKEN] UI state updated with new puzzle");
-        debugPrint("🎯 [KENKEN] Max moves allowed: $_maxMoves for ${generatedPuzzle.emptyCells.length} empty cells");
-        debugPrint("🎯 [KENKEN] Number pool: ${numberPool.join(', ')}");
-        debugPrint("🎯 [KENKEN] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+        if (kDebugMode) {
+          debugPrint("🎯 [KENKEN] UI state updated with new puzzle");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "🎯 [KENKEN] Max moves allowed: $_maxMoves for ${generatedPuzzle.emptyCells.length} empty cells");
+        }
+        if (kDebugMode) {
+          debugPrint("🎯 [KENKEN] Number pool: ${numberPool.join(', ')}");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "🎯 [KENKEN] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+        }
       }
     } catch (e, stackTrace) {
-      if (kDebugMode) debugPrint("❌ [KENKEN] Error generating puzzle: $e");
-      debugPrint("❌ [KENKEN] StackTrace: $stackTrace");
+      if (kDebugMode) {
+        debugPrint("❌ [KENKEN] Error generating puzzle: $e");
+      }
+      if (kDebugMode) {
+        debugPrint("❌ [KENKEN] StackTrace: $stackTrace");
+      }
     }
   }
 
-  void _placeNumber(int number, String cellId) {
-    if (kDebugMode) debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
-    
+  void _placeNumber(KenkenDrag drag, String cellId, Object round) {
+    if (_movesRemaining <= 0 || !_canPlace(drag, cellId, round)) {
+      return;
+    }
+    final number = drag.number;
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
+    }
+
     setState(() {
       userSolution[cellId] = number;
-      // DON'T remove number from pool - numbers are reusable in Kenken
       _lastDroppedPosition = cellId;
-      _dropController.forward(from: 0.0);
+      _dropController.reset();
+      playOneShotMotion(_dropController, () {});
 
       // Decrement moves on placement
       _movesRemaining--;
-      if (kDebugMode) debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
+      if (kDebugMode) {
+        debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
+      }
     });
 
-    debugPrint("🎮 [PLACE] User solution after: $userSolution");
-    if (kDebugMode) debugPrint("🎮 [PLACE] Number pool remains: $numberPool");
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] User solution after: $userSolution");
+    }
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] Number pool remains: $numberPool");
+    }
 
     // Check if out of moves BEFORE checking solution
-    if (_movesRemaining <= 0 && userSolution.length < puzzle!.emptyCells.length) {
+    if (_movesRemaining <= 0 && !_isSolved()) {
       _handleOutOfMoves();
       return;
     }
@@ -195,26 +334,46 @@ class _KenkenGameState extends State<KenkenGame>
     _checkSolution();
   }
 
-  void _removeNumber(String cellId) {
-    if (kDebugMode) debugPrint("🗑️ [KENKEN] Removing number from cell $cellId");
-    
+  void _removeNumber(String cellId, int? expected, Object round) {
+    if (!_canInteract(round) ||
+        !puzzle!.emptyCells.contains(cellId) ||
+        expected == null ||
+        userSolution[cellId] != expected) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint("🗑️ [KENKEN] Removing number from cell $cellId");
+    }
+
     setState(() {
       userSolution.remove(cellId);
-      // Don't add back to pool since numbers were never removed
     });
   }
 
   void _checkSolution() {
-    if (kDebugMode) debugPrint("✅ [KENKEN] Checking solution...");
-    debugPrint("✅ [KENKEN] User solution: $userSolution");
-    debugPrint("✅ [KENKEN] Required cells: ${puzzle!.emptyCells.length}");
-    
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint("✅ [KENKEN] Checking solution...");
+    }
+    if (kDebugMode) {
+      debugPrint("✅ [KENKEN] User solution: $userSolution");
+    }
+    if (kDebugMode) {
+      debugPrint("✅ [KENKEN] Required cells: ${puzzle!.emptyCells.length}");
+    }
+
     if (userSolution.length == puzzle!.emptyCells.length) {
-      if (kDebugMode) debugPrint("✅ [KENKEN] All cells filled, validating solution");
-      
+      if (kDebugMode) {
+        debugPrint("✅ [KENKEN] All cells filled, validating solution");
+      }
+
       final isValid = puzzle!.validateSolution(userSolution);
-      debugPrint("✅ [KENKEN] Solution validation result: $isValid");
-      
+      if (kDebugMode) {
+        debugPrint("✅ [KENKEN] Solution validation result: $isValid");
+      }
+
       if (isValid) {
         // Extract problems ONCE for unified progression
         final mathProblems = _extractMathProblems(userSolution);
@@ -223,31 +382,43 @@ class _KenkenGameState extends State<KenkenGame>
         _handleIncorrect();
       }
     } else {
-      if (kDebugMode) debugPrint("✅ [KENKEN] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
+      if (kDebugMode) {
+        debugPrint(
+            "✅ [KENKEN] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
+      }
     }
   }
 
   List<MathProblem> _extractMathProblems(Map<String, int> solution) {
-    if (kDebugMode) debugPrint("🔲 [KENKEN] Extracting math problems from completed puzzle...");
+    if (kDebugMode) {
+      debugPrint(
+          "🔲 [KENKEN] Extracting math problems from completed puzzle...");
+    }
     final problems = <MathProblem>[];
-    
+
     // Create the complete grid with user solutions
     final completeGrid = Map<String, int>.from(puzzle!.clues);
     completeGrid.addAll(solution);
-    
+
     // Extract each cage equation as math problem(s)
     for (final cage in puzzle!.cages) {
       if (cage.operation == null) {
         // Single-cell cage, no operation to track
         continue;
       }
-      
-      final values = cage.cells.map((cell) => completeGrid[cell.id] ?? 0).toList();
-      if (values.contains(0)) continue; // skip cage with missing data
+
+      final values =
+          cage.cells.map((cell) => completeGrid[cell.id] ?? 0).toList();
+      if (values.contains(0)) {
+        continue;
+      } // skip cage with missing data
       final operation = cage.operation!;
-      
-      if (kDebugMode) debugPrint("🔲 [KENKEN] Processing cage: ${cage.clue} with ${values.length} cells = $values");
-      
+
+      if (kDebugMode) {
+        debugPrint(
+            "🔲 [KENKEN] Processing cage: ${cage.clue} with ${values.length} cells = $values");
+      }
+
       switch (operation.symbol) {
         case '+':
           // For addition, decompose multi-cell into binary operations
@@ -264,12 +435,15 @@ class _KenkenGameState extends State<KenkenGame>
                 difficulty: widget.grade,
               );
               problems.add(problem);
-              if (kDebugMode) debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+              if (kDebugMode) {
+                debugPrint(
+                    "🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+              }
               accumulator = problem.answer;
             }
           }
           break;
-          
+
         case '-':
           // Subtraction is always 2 cells in Kenken
           if (values.length == 2) {
@@ -284,10 +458,13 @@ class _KenkenGameState extends State<KenkenGame>
               difficulty: widget.grade,
             );
             problems.add(problem);
-            if (kDebugMode) debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+            if (kDebugMode) {
+              debugPrint(
+                  "🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+            }
           }
           break;
-          
+
         case '×':
           // For multiplication, decompose multi-cell into binary operations
           // Example: 2×3×2 becomes (2×3=6) and (6×2=12)
@@ -303,12 +480,15 @@ class _KenkenGameState extends State<KenkenGame>
                 difficulty: widget.grade,
               );
               problems.add(problem);
-              if (kDebugMode) debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+              if (kDebugMode) {
+                debugPrint(
+                    "🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+              }
               accumulator = problem.answer;
             }
           }
           break;
-          
+
         case '÷':
           // Division is always 2 cells in Kenken
           if (values.length == 2) {
@@ -324,67 +504,115 @@ class _KenkenGameState extends State<KenkenGame>
                 difficulty: widget.grade,
               );
               problems.add(problem);
-              if (kDebugMode) debugPrint("🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+              if (kDebugMode) {
+                debugPrint(
+                    "🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+              }
             }
           }
           break;
       }
     }
-    
-    if (kDebugMode) debugPrint("🔲 [KENKEN] Extracted ${problems.length} math problems total");
+
+    if (kDebugMode) {
+      debugPrint(
+          "🔲 [KENKEN] Extracted ${problems.length} math problems total");
+    }
     return problems;
   }
 
   void _handleSuccess(List<MathProblem> mathProblems) {
-    finishPuzzleSession();
-    if (kDebugMode) debugPrint("🎉 [KENKEN] SUCCESS! Player solved the puzzle!");
+    if (!_canInteract(_round) || !_isSolved()) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint("🎉 [KENKEN] SUCCESS! Player solved the puzzle!");
+    }
     AppHaptics.lightImpact();
 
-    int baseScore = 300 * widget.grade;
-    int complexityBonus = puzzle!.size * puzzle!.size * 15 + puzzle!.cages.length * 20;
-    int operationBonus = puzzle!.getAllOperators()
+    final baseScore = 300 * widget.grade;
+    final bonus = _successBonus();
+    final totalScore = baseScore + bonus;
+    if (kDebugMode) {
+      debugPrint(
+          "🎉 [KENKEN] Score calculation: base=$baseScore, bonus=$bonus, total=$totalScore");
+    }
+
+    _resetRoundEffects();
+    _clearFeedback();
+    setState(() => _won = true);
+    final round = _round;
+    finishPuzzleSession();
+    context.read<GameProvider>().reportOutcome(GameOutcome.win(
+          skillLevel: widget.grade,
+          gameType: 'kenken',
+          difficulty: widget.level,
+          score: totalScore,
+          mathProblems: mathProblems,
+          performance:
+              Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
+          movesUsed: _maxMoves - _movesRemaining,
+          optimalMoves: _optimalMoves,
+        ));
+
+    _showSuccessDialog(bonus, round);
+  }
+
+  int _successBonus() {
+    if (puzzle == null) {
+      return 0;
+    }
+    final complexityBonus =
+        puzzle!.size * puzzle!.size * 15 + puzzle!.cages.length * 20;
+    final operationBonus = puzzle!
+        .getAllOperators()
         .map(_getOperationBonus)
         .fold(0, (a, b) => a + b);
-    
-    int totalScore = baseScore + complexityBonus + operationBonus;
-    if (kDebugMode) debugPrint("🎉 [KENKEN] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
-    
-    // SINGLE CALL to unified progression system
-    context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'kenken',
-      difficulty: widget.level,
-      score: totalScore,
-      mathProblems: mathProblems,
-        performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
-
-      movesUsed: _maxMoves - _movesRemaining,
-      optimalMoves: _optimalMoves,
-    ));
-    
-    successController.forward(from: 0.0);
-    
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildSuccessDialog(complexityBonus + operationBonus),
-      );
-    }
+    return complexityBonus + operationBonus;
   }
+
+  void _showSuccessDialog(int bonus, Object round) {
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
+      return;
+    }
+    playOneShotMotion(successController, () {});
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) =>
+          _buildSuccessDialog(bonus, round, dialogContext),
+    );
+  }
+
+  bool _canUseDialog(Object round, BuildContext dialogContext) =>
+      mounted &&
+      identical(round, _round) &&
+      _won &&
+      dialogContext.mounted &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
 
   int _getOperationBonus(String operation) {
     switch (operation) {
-      case '+': return 0;
-      case '-': return 15;
-      case '×': return 25;
-      case '÷': return 35;
-      default: return 0;
+      case '+':
+        return 0;
+      case '-':
+        return 15;
+      case '×':
+        return 25;
+      case '÷':
+        return 35;
+      default:
+        return 0;
     }
   }
 
   void _handleIncorrect() {
-    if (kDebugMode) debugPrint("❌ [KENKEN] Incorrect solution - showing error message");
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint("❌ [KENKEN] Incorrect solution - showing error message");
+    }
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -402,32 +630,49 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   void _handleFailure() {
-    if (kDebugMode) debugPrint("❌ [KENKEN] FAILURE - recording loss");
+    if (kDebugMode) {
+      debugPrint("❌ [KENKEN] FAILURE - recording loss");
+    }
     final mathProblems = _extractMathProblems(userSolution);
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'kenken',
-      difficulty: widget.level,
-      mathProblems: mathProblems,
-      progress: _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'kenken',
+          difficulty: widget.level,
+          mathProblems: mathProblems,
+          progress:
+              _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
+        ));
   }
 
   void _handleOutOfMoves() {
-    finishPuzzleSession();
-    if (kDebugMode) debugPrint("❌ [KENKEN] Out of moves! Game over.");
-    _handleFailure();
-
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildOutOfMovesDialog(),
-      );
+    if (_won || _isGenerating) {
+      return;
     }
+    if (!_canInteract(_round)) {
+      return;
+    }
+    _resetRoundEffects();
+    setState(() => _won = true);
+    if (kDebugMode) {
+      debugPrint("❌ [KENKEN] Out of moves! Game over.");
+    }
+    final round = _round;
+    _handleFailure();
+    _showOutOfMovesDialog(round);
   }
 
-  Widget _buildOutOfMovesDialog() {
+  void _showOutOfMovesDialog(Object round) {
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
+      return;
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildOutOfMovesDialog(round, dialogContext),
+    );
+  }
+
+  Widget _buildOutOfMovesDialog(Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
@@ -439,12 +684,13 @@ class _KenkenGameState extends State<KenkenGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                  RoundSummary(gameKey: 'kenken'),
+            RoundSummary(gameKey: 'kenken'),
             const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(
               s.kenkenOutOfMoves,
-              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              style: SpaceTheme.headlineStyle
+                  .copyWith(color: SpaceTheme.rocketRed),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -454,13 +700,19 @@ class _KenkenGameState extends State<KenkenGame>
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            OverflowBar(
+              alignment: MainAxisAlignment.spaceEvenly,
+              overflowAlignment: OverflowBarAlignment.center,
+              spacing: 16,
+              overflowSpacing: 12,
               children: [
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
+                    Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
@@ -468,8 +720,13 @@ class _KenkenGameState extends State<KenkenGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
+                    Navigator.of(dialogContext).pop();
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
                   },
                   style: SpaceTheme.primaryButtonStyle,
                   child: Text(s.backToMenu),
@@ -533,7 +790,8 @@ class _KenkenGameState extends State<KenkenGame>
               children: [
                 const CircularProgressIndicator(),
                 const SizedBox(height: 16),
-                Text(S.of(context)!.loadingAdventure, style: SpaceTheme.bodyStyle),
+                Text(S.of(context)!.loadingAdventure,
+                    style: SpaceTheme.bodyStyle),
               ],
             ),
           ),
@@ -571,9 +829,10 @@ class _KenkenGameState extends State<KenkenGame>
       return Column(
         children: [
           GameUI(
+            key: ValueKey(('kenken-header', _round)),
             title: S.of(context)!.kenken,
             level: widget.level,
-            onBack: () => Navigator.of(context).pop(),
+            onBack: _backForRound(),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -604,8 +863,9 @@ class _KenkenGameState extends State<KenkenGame>
       child: Row(
         children: [
           IconButton(
+            key: ValueKey(('kenken-back', _round)),
             icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: _backForRound(),
           ),
           Expanded(
             child: Column(
@@ -688,13 +948,15 @@ class _KenkenGameState extends State<KenkenGame>
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.cosmicPink.withValues(alpha: 0.1 * glowAnimation.value),
+                  SpaceTheme.cosmicPink
+                      .withValues(alpha: 0.1 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.cosmicPink.withValues(alpha: glowAnimation.value),
+                color: SpaceTheme.cosmicPink
+                    .withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -711,7 +973,7 @@ class _KenkenGameState extends State<KenkenGame>
     final maxGridWidth = isCompact ? 350.0 : 500.0; // Increased from 300
     final maxCellSize = isCompact ? 45.0 : 70.0; // Increased from 35/50
     final cellSize = math.min(maxCellSize, maxGridWidth / gridSize);
-    
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(gridSize, (row) {
@@ -726,17 +988,20 @@ class _KenkenGameState extends State<KenkenGame>
     );
   }
 
-  Widget _buildKenkenCell(String cellId, int row, int col, double cellSize, bool isCompact) {
+  Widget _buildKenkenCell(
+      String cellId, int row, int col, double cellSize, bool isCompact) {
+    final round = _round;
     final cell = puzzle!.board[row][col];
     final cage = puzzle!.getCageForCell(cell);
     final bool isEmpty = puzzle!.emptyCells.contains(cellId);
     final bool hasUserValue = userSolution.containsKey(cellId);
     final int? value = isEmpty ? userSolution[cellId] : puzzle!.clues[cellId];
     final bool isLastDropped = cellId == _lastDroppedPosition;
-    
+
     // Determine if this cell should show the cage clue
-    final bool showClue = cage != null && cage.getTopLeftCell() == cell && cage.clue != null;
-    
+    final bool showClue =
+        cage != null && cage.getTopLeftCell() == cell && cage.clue != null;
+
     // Determine border style based on cage membership
     final borderSides = _getCageBorderSides(cell, cage, row, col);
 
@@ -745,23 +1010,33 @@ class _KenkenGameState extends State<KenkenGame>
       height: cellSize,
       decoration: BoxDecoration(
         gradient: isEmpty
-            ? const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple])
-            : const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
+            ? const LinearGradient(
+                colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple])
+            : const LinearGradient(
+                colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
         border: Border(
           top: BorderSide(
-            color: borderSides['top']! ? SpaceTheme.starYellow : Colors.grey.shade600,
+            color: borderSides['top']!
+                ? SpaceTheme.starYellow
+                : Colors.grey.shade600,
             width: borderSides['top']! ? 3 : 1,
           ),
           right: BorderSide(
-            color: borderSides['right']! ? SpaceTheme.starYellow : Colors.grey.shade600,
+            color: borderSides['right']!
+                ? SpaceTheme.starYellow
+                : Colors.grey.shade600,
             width: borderSides['right']! ? 3 : 1,
           ),
           bottom: BorderSide(
-            color: borderSides['bottom']! ? SpaceTheme.starYellow : Colors.grey.shade600,
+            color: borderSides['bottom']!
+                ? SpaceTheme.starYellow
+                : Colors.grey.shade600,
             width: borderSides['bottom']! ? 3 : 1,
           ),
           left: BorderSide(
-            color: borderSides['left']! ? SpaceTheme.starYellow : Colors.grey.shade600,
+            color: borderSides['left']!
+                ? SpaceTheme.starYellow
+                : Colors.grey.shade600,
             width: borderSides['left']! ? 3 : 1,
           ),
         ),
@@ -781,8 +1056,10 @@ class _KenkenGameState extends State<KenkenGame>
                 ),
                 child: Text(
                   cage.clue!
-                      .replaceAll('÷', context.read<GameProvider>().divisionSymbol)
-                      .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
+                      .replaceAll(
+                          '÷', context.read<GameProvider>().divisionSymbol)
+                      .replaceAll('×',
+                          context.read<GameProvider>().multiplicationSymbol),
                   style: TextStyle(
                     fontSize: isCompact ? 10 : 12,
                     fontWeight: FontWeight.bold,
@@ -810,42 +1087,56 @@ class _KenkenGameState extends State<KenkenGame>
     }
 
     if (isEmpty && !hasUserValue) {
-      return DragTarget<int>(
+      final round = _round;
+      return DragTarget<KenkenDrag>(
+        key: ValueKey(('kenken-target', round, cellId)),
         builder: (context, candidateData, rejectedData) {
           final isHovering = candidateData.isNotEmpty;
-          
+
           return Container(
             width: cellSize,
             height: cellSize,
             decoration: BoxDecoration(
               gradient: isHovering
-                  ? const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
-                  : const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
+                  ? const LinearGradient(
+                      colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
+                  : const LinearGradient(
+                      colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
               border: Border(
                 top: BorderSide(
-                  color: borderSides['top']! ? SpaceTheme.starYellow : Colors.grey.shade600,
+                  color: borderSides['top']!
+                      ? SpaceTheme.starYellow
+                      : Colors.grey.shade600,
                   width: borderSides['top']! ? 3 : 1,
                 ),
                 right: BorderSide(
-                  color: borderSides['right']! ? SpaceTheme.starYellow : Colors.grey.shade600,
+                  color: borderSides['right']!
+                      ? SpaceTheme.starYellow
+                      : Colors.grey.shade600,
                   width: borderSides['right']! ? 3 : 1,
                 ),
                 bottom: BorderSide(
-                  color: borderSides['bottom']! ? SpaceTheme.starYellow : Colors.grey.shade600,
+                  color: borderSides['bottom']!
+                      ? SpaceTheme.starYellow
+                      : Colors.grey.shade600,
                   width: borderSides['bottom']! ? 3 : 1,
                 ),
                 left: BorderSide(
-                  color: borderSides['left']! ? SpaceTheme.starYellow : Colors.grey.shade600,
+                  color: borderSides['left']!
+                      ? SpaceTheme.starYellow
+                      : Colors.grey.shade600,
                   width: borderSides['left']! ? 3 : 1,
                 ),
               ),
-              boxShadow: isHovering ? [
-                BoxShadow(
-                  color: SpaceTheme.starYellow.withValues(alpha: 0.6),
-                  blurRadius: 8,
-                  spreadRadius: 2,
-                )
-              ] : null,
+              boxShadow: isHovering
+                  ? [
+                      BoxShadow(
+                        color: SpaceTheme.starYellow.withValues(alpha: 0.6),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      )
+                    ]
+                  : null,
             ),
             child: Stack(
               children: [
@@ -855,15 +1146,21 @@ class _KenkenGameState extends State<KenkenGame>
                     top: 2,
                     left: 2,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 2, vertical: 1),
                       decoration: BoxDecoration(
                         color: SpaceTheme.starYellow.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         cage.clue!
-                            .replaceAll('÷', context.read<GameProvider>().divisionSymbol)
-                            .replaceAll('×', context.read<GameProvider>().multiplicationSymbol),
+                            .replaceAll('÷',
+                                context.read<GameProvider>().divisionSymbol)
+                            .replaceAll(
+                                '×',
+                                context
+                                    .read<GameProvider>()
+                                    .multiplicationSymbol),
                         style: TextStyle(
                           fontSize: isCompact ? 10 : 12,
                           fontWeight: FontWeight.bold,
@@ -881,7 +1178,9 @@ class _KenkenGameState extends State<KenkenGame>
                       child: Center(
                         child: Icon(
                           Icons.add,
-                          color: isHovering ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
+                          color: isHovering
+                              ? SpaceTheme.starYellow
+                              : SpaceTheme.nebulaPurple,
                           size: cellSize * 0.3,
                         ),
                       ),
@@ -892,10 +1191,10 @@ class _KenkenGameState extends State<KenkenGame>
             ),
           );
         },
-        onWillAcceptWithDetails: (details) => true,
-        onAcceptWithDetails: (details) {
-          _placeNumber(details.data, cellId);
-        },
+        onWillAcceptWithDetails: (details) =>
+            _canPlace(details.data, cellId, round),
+        onAcceptWithDetails: (details) =>
+            _placeNumber(details.data, cellId, round),
       );
     }
 
@@ -904,7 +1203,8 @@ class _KenkenGameState extends State<KenkenGame>
         button: true,
         label: S.of(context)!.a11yPlacedValueTapRemove,
         child: GestureDetector(
-          onTap: () => _removeNumber(cellId),
+          key: ValueKey(('kenken-filled', round, cellId, value)),
+          onTap: () => _removeNumber(cellId, value, round),
           child: cellWidget,
         ),
       );
@@ -913,11 +1213,12 @@ class _KenkenGameState extends State<KenkenGame>
     return cellWidget;
   }
 
-  Map<String, bool> _getCageBorderSides(KenkenCell cell, KenkenCage? cage, int row, int col) {
+  Map<String, bool> _getCageBorderSides(
+      KenkenCell cell, KenkenCage? cage, int row, int col) {
     if (cage == null) {
       return {'top': true, 'right': true, 'bottom': true, 'left': true};
     }
-    
+
     return {
       'top': row == 0 || !cage.containsCell(row - 1, col),
       'right': col == puzzle!.size - 1 || !cage.containsCell(row, col + 1),
@@ -928,28 +1229,29 @@ class _KenkenGameState extends State<KenkenGame>
 
   Widget _buildNumberPad({required bool isCompact}) {
     final gridSize = puzzle!.size;
-    
+
     // Use the SAME cell size calculation as the grid
     final maxGridWidth = isCompact ? 350.0 : 500.0;
     final maxCellSize = isCompact ? 45.0 : 70.0;
     final cellSize = math.min(maxCellSize, maxGridWidth / gridSize);
-    
+
     // Arrange numbers in 3 columns like a phone keypad
     final numbers = numberPool;
     final rows = <List<int>>[];
-    
+
     for (int i = 0; i < numbers.length; i += 3) {
       final rowNumbers = numbers.sublist(i, math.min(i + 3, numbers.length));
       rows.add(rowNumbers);
     }
-    
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (!isCompact && gridSize <= 6)
           Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
-            child: Text(S.of(context)!.kenkenSelectNumbers, style: SpaceTheme.bodyStyle),
+            child: Text(S.of(context)!.kenkenSelectNumbers,
+                style: SpaceTheme.bodyStyle),
           ),
         Container(
           padding: EdgeInsets.all(isCompact ? 6 : 12),
@@ -972,21 +1274,29 @@ class _KenkenGameState extends State<KenkenGame>
                                 width: cellSize,
                                 height: cellSize,
                                 // Semantics on visual child — see note in word_sort_game.
-                                child: Draggable<int>(
-                                  data: rowNumbers[i],
-                                  feedback: _buildDraggableFeedback(rowNumbers[i], isCompact),
+                                child: Draggable<KenkenDrag>(
+                                  key: ValueKey(
+                                      ('kenken-drag', _round, rowNumbers[i])),
+                                  data: (number: rowNumbers[i], round: _round),
+                                  feedback: _buildDraggableFeedback(
+                                      rowNumbers[i], isCompact),
                                   childWhenDragging: Opacity(
-                                    opacity: 0.7,
-                                    child: _buildNumberTile(rowNumbers[i], tileSize: cellSize)
-                                  ),
+                                      opacity: 0.7,
+                                      child: _buildNumberTile(rowNumbers[i],
+                                          tileSize: cellSize)),
                                   child: Semantics(
-                                    label: S.of(context)!.a11yNumberDragCell(rowNumbers[i]),
+                                    label: S
+                                        .of(context)!
+                                        .a11yNumberDragCell(rowNumbers[i]),
                                     button: true,
-                                    child: _buildNumberTile(rowNumbers[i], tileSize: cellSize),
+                                    child: _buildNumberTile(rowNumbers[i],
+                                        tileSize: cellSize),
                                   ),
                                 ),
                               )
-                            : SizedBox(width: cellSize, height: cellSize), // Empty space
+                            : SizedBox(
+                                width: cellSize,
+                                height: cellSize), // Empty space
                       ),
                   ],
                 ),
@@ -1001,14 +1311,15 @@ class _KenkenGameState extends State<KenkenGame>
   Widget _buildNumberTile(int number, {double? tileSize}) {
     final size = tileSize ?? 50.0;
     final fontSize = size < 40 ? 14.0 : (size < 45 ? 16.0 : 18.0);
-    
+
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
         borderRadius: BorderRadius.circular(size < 40 ? 8 : 12),
-        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
+        border: Border.all(
+            color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
       ),
       child: Center(
         child: Text(
@@ -1022,18 +1333,25 @@ class _KenkenGameState extends State<KenkenGame>
   Widget _buildDraggableFeedback(int number, [bool isSmall = false]) {
     final size = isSmall ? 40.0 : 60.0;
     final fontSize = isSmall ? 18.0 : 22.0;
-    
+
     return Material(
       color: Colors.transparent,
       child: Container(
-        width: size, height: size,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: SpaceTheme.starGradient,
-          boxShadow: [BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.8), blurRadius: 20, spreadRadius: 5)],
+          boxShadow: [
+            BoxShadow(
+                color: SpaceTheme.starYellow.withValues(alpha: 0.8),
+                blurRadius: 20,
+                spreadRadius: 5)
+          ],
         ),
         child: Center(
-          child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: fontSize)),
+          child: Text(number.toString(),
+              style: SpaceTheme.headlineStyle.copyWith(fontSize: fontSize)),
         ),
       ),
     );
@@ -1060,7 +1378,8 @@ class _KenkenGameState extends State<KenkenGame>
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: iconSize),
+              Icon(Icons.emoji_events,
+                  color: SpaceTheme.starYellow, size: iconSize),
               SizedBox(width: isCompact ? 4 : 8),
               FittedBox(
                 fit: BoxFit.scaleDown,
@@ -1100,7 +1419,8 @@ class _KenkenGameState extends State<KenkenGame>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.star, color: SpaceTheme.alienGreen, size: iconSize),
+                  Icon(Icons.star,
+                      color: SpaceTheme.alienGreen, size: iconSize),
                   SizedBox(width: isCompact ? 4 : 8),
                   FittedBox(
                     fit: BoxFit.scaleDown,
@@ -1118,7 +1438,8 @@ class _KenkenGameState extends State<KenkenGame>
     );
   }
 
-  Widget _buildSuccessDialog(int bonusScore) {
+  Widget _buildSuccessDialog(
+      int bonusScore, Object round, BuildContext dialogContext) {
     return AnimatedBuilder(
       animation: successAnimation,
       builder: (context, child) {
@@ -1133,25 +1454,43 @@ class _KenkenGameState extends State<KenkenGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'kenken'),
-                  const Icon(Icons.emoji_events, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.emoji_events,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  Text(S.of(context)!.kenkenWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(S.of(context)!.kenkenWinTitle,
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
-                  Text(S.of(context)!.kenkenWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  Text(S.of(context)!.kenkenWinDesc(bonusScore),
+                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
-                        onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                        onPressed: () {
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
+                          Navigator.of(dialogContext).pop();
+                          _generatePuzzle();
+                        },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(S.of(context)!.playAgain),
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop(); // Close the dialog
-                          Navigator.of(context).pop(); // Close the game screen
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
+                          Navigator.of(dialogContext).pop();
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
                         },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.backToMenu),

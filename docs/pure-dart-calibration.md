@@ -1,11 +1,10 @@
 # Pure Dart generation and estimated difficulty
 
-Current verified baseline (2026-10-05): **1.5.22+38**, commit
-`8eaf252bc86dfc7e44bb219613e60f2bd3450e7c`. See [handover](../HANDOVER.md)
-for exact-head green CI links (1,471 Flutter tests, two skips; 60,400 pure Dart
-cases with zero failures; 864 Flutter capture/replay cases and green web deployment).
-Dated results below are historical observations. Next tasks are defined in
-[the lane board](../REMAINING_WORK.md); estimates remain untrained.
+Current integration: **1.5.32+48**, [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58).
+It repairs restored rounds and acceptance coverage, retaining all generator and
+rendering A/B paths. See [handover](../HANDOVER.md) and the exact-head PR checks
+for validation/merge state. Dated runs below are historical evidence; they do
+not automatically establish a later head as green.
 
 The app and CLI share puzzle generators for all 48 registered games. Screen
 models with Flutter colors/layout retain adapters; their generation uses pure

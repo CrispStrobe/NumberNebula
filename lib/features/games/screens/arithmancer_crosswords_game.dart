@@ -1,6 +1,5 @@
 import 'package:space_math_academy/core/services/app_haptics.dart';
 import '../mixins/puzzle_session_mixin.dart';
-import '../widgets/game_learning_shell.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../widgets/round_summary.dart';
@@ -21,6 +20,8 @@ import '../widgets/space_background.dart';
 import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 
+typedef ArithmancerCrosswordsDrag = ({int number, Object round});
+
 class ArithmancerCrosswordsGame extends StatefulWidget {
   final int grade;
   final int level;
@@ -32,25 +33,129 @@ class ArithmancerCrosswordsGame extends StatefulWidget {
   });
 
   @override
-  State<ArithmancerCrosswordsGame> createState() => _ArithmancerCrosswordsGameState();
+  State<ArithmancerCrosswordsGame> createState() =>
+      _ArithmancerCrosswordsGameState();
 }
 
 class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
-    with TickerProviderStateMixin, PuzzleSessionMixin<ArithmancerCrosswordsGame> {
+    with
+        TickerProviderStateMixin,
+        PuzzleSessionMixin<ArithmancerCrosswordsGame> {
   bool _sessionReady = false;
-  @override
-  void onPuzzleSessionMotionChanged(bool reduced) {
-    updateDecorativeMotion([_glowController, _pulseController], reduced);
+  Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
   }
 
-  @override String get sessionGameKey => 'arithmancer_crosswords';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  bool _won = false;
+  bool _reducedMotion = false;
+  bool _canInteract(Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      !_isGenerating &&
+      !_won &&
+      puzzle != null;
+  bool _canPlace(ArithmancerCrosswordsDrag drag, String cellId, Object round) =>
+      _canInteract(round) &&
+      identical(drag.round, _round) &&
+      numberPool.contains(drag.number) &&
+      puzzle!.emptyCells.contains(cellId) &&
+      !userSolution.containsKey(cellId);
+  bool _isSolved() =>
+      puzzle != null &&
+      userSolution.length == puzzle!.emptyCells.length &&
+      puzzle!.validateSolution(userSolution);
+  bool _isExhausted() => puzzle != null && _movesRemaining <= 0 && !_isSolved();
+  List<int> _remainingPool() {
+    if (puzzle == null) {
+      return [];
+    }
+    final solutionCounts = <int, int>{};
+    for (final cellId in puzzle!.emptyCells) {
+      final number = puzzle!.fullSolution[cellId]!;
+      solutionCounts[number] = (solutionCounts[number] ?? 0) + 1;
+    }
+    final placedCounts = <int, int>{};
+    for (final number in userSolution.values) {
+      placedCounts[number] = (placedCounts[number] ?? 0) + 1;
+    }
+    final newPool = <int>[];
+    for (final number in solutionCounts.keys) {
+      final needed = solutionCounts[number]!;
+      final placed = placedCounts[number] ?? 0;
+      final remaining = needed - placed;
+      for (int i = 0; i < remaining; i++) {
+        newPool.add(number);
+      }
+    }
+    newPool.addAll(decoyNumbers);
+    newPool.sort();
+    return newPool;
+  }
+
+  void _syncNumberPool() => numberPool = _remainingPool();
+  void _resetRoundEffects() {
+    _round = Object();
+    cancelOneShotMotion(_successController);
+    cancelOneShotMotion(_dropController);
+    _clearFeedback();
+    _moveWarningController.stop();
+    _moveWarningController.reset();
+  }
+
+  void _clearFeedback() {
+    final m = ScaffoldMessenger.maybeOf(context);
+    m?.clearSnackBars();
+    m?.removeCurrentSnackBar();
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    _reducedMotion = reduced;
+    updateDecorativeMotion([_glowController, _pulseController], reduced);
+    updateOneShotMotion(_successController, reduced,
+        duration: const Duration(milliseconds: 600));
+    updateOneShotMotion(_dropController, reduced,
+        duration: const Duration(milliseconds: 500));
+    _moveWarningController.duration =
+        reduced ? Duration.zero : const Duration(milliseconds: 300);
+    if (reduced) {
+      _moveWarningController.stop();
+      _moveWarningController.reset();
+    }
+  }
+
+  @visibleForTesting
+  Object get testRound => _round;
+  @visibleForTesting
+  void rebuildForTesting() => setState(() {});
+  @visibleForTesting
+  void placeForTesting(int number, String cellId, Object round) =>
+      _placeNumber((number: number, round: round), cellId, round);
+
+  @override
+  String get sessionGameKey => 'arithmancer_crosswords';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _won || puzzle == null) {
+      return null;
+    }
     return {
       'puzzle': (puzzle?.toJson()),
-      'userSolution': userSolution.entries.map((v0) => [v0.key, v0.value]).toList(),
+      'userSolution':
+          userSolution.entries.map((v0) => [v0.key, v0.value]).toList(),
       'numberPool': numberPool.map((v0) => v0).toList(),
       'correctNumbers': correctNumbers.map((v0) => v0).toList(),
       'decoyNumbers': decoyNumbers.map((v0) => v0).toList(),
@@ -59,25 +164,56 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       '_optimalMoves': _optimalMoves
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    puzzle = (state["puzzle"] == null ? null : CrosswordPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
-    userSolution = Map<String, int>.fromEntries((state["userSolution"] as List).map((v0) => MapEntry(v0[0] as String, v0[1] as int)));
-    numberPool = (state["numberPool"] as List).map((v0) => v0 as int).toList();
-    correctNumbers = (state["correctNumbers"] as List).map((v0) => v0 as int).toSet();
-    decoyNumbers = (state["decoyNumbers"] as List).map((v0) => v0 as int).toSet();
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
+    _lastDroppedPosition = '';
+    puzzle = (state["puzzle"] == null
+        ? null
+        : CrosswordPuzzle.fromJson(
+            Map<String, dynamic>.from(state["puzzle"] as Map)));
+    userSolution = Map<String, int>.fromEntries((state["userSolution"] as List)
+        .map((v0) => MapEntry(v0[0] as String, v0[1] as int)));
+    correctNumbers =
+        (state["correctNumbers"] as List).map((v0) => v0 as int).toSet();
+    decoyNumbers =
+        (state["decoyNumbers"] as List).map((v0) => v0 as int).toSet();
     _movesRemaining = state["_movesRemaining"] as int;
     _maxMoves = state["_maxMoves"] as int;
     _optimalMoves = state["_optimalMoves"] as int;
     _isGenerating = false;
+    _won = false;
+    _syncNumberPool();
+    final solved = _isSolved();
+    final exhausted = _isExhausted();
+    if (solved || exhausted) {
+      _won = true;
+      finishPuzzleSession();
+      final round = _round;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !identical(round, _round) || _isGenerating) {
+          return;
+        }
+        if (solved) {
+          _showSuccessDialog(_successBonus(), round);
+        } else {
+          _showOutOfMovesDialog(round);
+        }
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
-    if (mounted) setState(() => _sessionReady = true);
+    if (mounted) {
+      setState(() => _sessionReady = true);
+    }
   }
 
-  
   late AnimationController _glowController;
   late Animation<double> _glowAnimation;
   late AnimationController _successController;
@@ -93,7 +229,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   CrosswordPuzzle? puzzle;
   Map<String, int> userSolution = {};
   List<int> numberPool = [];
-  
+
   bool _isGenerating = true;
   String _lastDroppedPosition = '';
   DifficultyConfig? currentDifficulty;
@@ -110,33 +246,34 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   @override
   void initState() {
     super.initState();
-    if (kDebugMode) debugPrint("🔤 [ARITHMANCER CROSSWORDS] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
-    
+    if (kDebugMode) {
+      debugPrint(
+          "🔤 [ARITHMANCER CROSSWORDS] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
+    }
+
     _glowController = AnimationController(
-      duration: const Duration(milliseconds: 2000), 
-      vsync: this
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0)
-        .animate(CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
-    
+        duration: const Duration(milliseconds: 2000), vsync: this)
+      ..repeat(reverse: true);
+    _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+        CurvedAnimation(parent: _glowController, curve: Curves.easeInOut));
+
     _successController = AnimationController(
-      duration: const Duration(milliseconds: 600), 
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
-    
+    _successAnimation =
+        CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+
     _dropController = AnimationController(
-      duration: const Duration(milliseconds: 500), 
-      vsync: this
-    );
-    _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
+        duration: const Duration(milliseconds: 500), vsync: this);
+    _dropAnimation =
+        CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
 
     _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.7, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+        duration: const Duration(milliseconds: 1200), vsync: this)
+      ..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
+        CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
     _moveWarningController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -145,13 +282,18 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     _moveWarningAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
       CurvedAnimation(parent: _moveWarningController, curve: Curves.easeInOut),
     );
-    
+
     // Initialize difficulty from the framework
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gameProvider = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gameProvider, widget.level, gradeOverride: widget.grade);
-        if (kDebugMode) debugPrint("🔤 [ARITHMANCER CROSSWORDS] Difficulty initialized: ${currentDifficulty?.grade}");
+        currentDifficulty = DifficultyManager.getDifficulty(
+            gameProvider, widget.level,
+            gradeOverride: widget.grade);
+        if (kDebugMode) {
+          debugPrint(
+              "🔤 [ARITHMANCER CROSSWORDS] Difficulty initialized: ${currentDifficulty?.grade}");
+        }
         _restoreOrGenerate();
       }
     });
@@ -160,32 +302,35 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   @override
   void dispose() {
     disposePuzzleSession();
-    if (kDebugMode) debugPrint("🔤 [ARITHMANCER CROSSWORDS] Disposing game and cleaning up resources");
-    
+    _round = Object();
+    _successController.stop();
+    _dropController.stop();
     _glowController.dispose();
     _successController.dispose();
     _dropController.dispose();
     _pulseController.dispose();
     _moveWarningController.dispose();
-    
-    puzzle = null;
-    userSolution.clear();
-    numberPool.clear();
-    
     super.dispose();
   }
 
   Future<void> _generatePuzzle() async {
+    _resetRoundEffects();
+    final round = _round;
     beginPuzzleSession();
-    if (currentDifficulty == null) return;
-    
-    if (kDebugMode) debugPrint("🎯 [ARITHMANCER CROSSWORDS] Starting puzzle generation process");
-    
+    if (currentDifficulty == null) {
+      return;
+    }
+
+    if (kDebugMode) {
+      debugPrint(
+          "🎯 [ARITHMANCER CROSSWORDS] Starting puzzle generation process");
+    }
+
     setState(() {
       _isGenerating = true;
+      _won = false;
       _successController.reset();
       userSolution.clear();
-      
     });
 
     try {
@@ -200,48 +345,83 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         'customMax': gameProvider.customRangeMax,
       };
 
-      if (kDebugMode) debugPrint("🎯 [ARITHMANCER CROSSWORDS] Calling compute function");
-      
+      if (kDebugMode) {
+        debugPrint("🎯 [ARITHMANCER CROSSWORDS] Calling compute function");
+      }
+
       // STEP 1: Generate the puzzle (this is where the variable is declared and assigned)
-      CrosswordPuzzle? generatedPuzzle = await compute(CrosswordPuzzle.generate, puzzleArgs);
-      
-      if (kDebugMode) debugPrint("🎯 [GEN-RESULT] Generation complete. Result: ${generatedPuzzle != null ? 'SUCCESS' : 'FAILURE'}");
-      
+      CrosswordPuzzle? generatedPuzzle =
+          await compute(CrosswordPuzzle.generate, puzzleArgs);
+
+      if (kDebugMode) {
+        debugPrint(
+            "🎯 [GEN-RESULT] Generation complete. Result: ${generatedPuzzle != null ? 'SUCCESS' : 'FAILURE'}");
+      }
+
       // STEP 2: Now we can use generatedPuzzle
       if (generatedPuzzle != null) {
-        if (kDebugMode) debugPrint("✅ [GEN-RESULT] Puzzle details:");
-        debugPrint("✅ [GEN-RESULT]   - Clues: ${generatedPuzzle.clues.length}");
-        debugPrint("✅ [GEN-RESULT]   - Empty cells: ${generatedPuzzle.emptyCells.length}");
-        debugPrint("✅ [GEN-RESULT]   - Equations: ${generatedPuzzle.equations.length}");
-        
-        _initializeNumberPool(generatedPuzzle);
-        
+        if (kDebugMode) {
+          debugPrint("✅ [GEN-RESULT] Puzzle details:");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "✅ [GEN-RESULT]   - Clues: ${generatedPuzzle.clues.length}");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "✅ [GEN-RESULT]   - Empty cells: ${generatedPuzzle.emptyCells.length}");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "✅ [GEN-RESULT]   - Equations: ${generatedPuzzle.equations.length}");
+        }
+
         // STEP 3: Now update the state with the generated puzzle
-        if (mounted) {
+        if (mounted && identical(round, _round)) {
           setState(() {
             puzzle = generatedPuzzle;
-            
+            correctNumbers = generatedPuzzle.emptyCells
+                .map((cellId) => generatedPuzzle.fullSolution[cellId]!)
+                .toSet();
+            decoyNumbers = generatedPuzzle.numberPool
+                .where((n) => !correctNumbers.contains(n))
+                .toSet();
+            _syncNumberPool();
             // Calculate max moves: 160% of empty cells, rounded up
             final emptyCount = generatedPuzzle.emptyCells.length;
             _optimalMoves = emptyCount;
             _maxMoves = (emptyCount * 1.6).ceil();
             _movesRemaining = _maxMoves;
-            
             _isGenerating = false;
-            
-            if (kDebugMode) debugPrint("🎯 [ARITHMANCER CROSSWORDS] Max moves allowed: $_maxMoves for $emptyCount empty cells");
-            debugPrint("🎯 [ARITHMANCER CROSSWORDS] UI state updated with new puzzle");
-            debugPrint("🎯 [ARITHMANCER CROSSWORDS] Number pool: ${numberPool.join(', ')}");
-            debugPrint("✅ [GEN-RESULT] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+            if (kDebugMode) {
+              debugPrint(
+                  "🎯 [ARITHMANCER CROSSWORDS] Max moves allowed: $_maxMoves for $emptyCount empty cells");
+            }
+            if (kDebugMode) {
+              debugPrint(
+                  "🎯 [ARITHMANCER CROSSWORDS] UI state updated with new puzzle");
+            }
+            if (kDebugMode) {
+              debugPrint(
+                  "🎯 [ARITHMANCER CROSSWORDS] Number pool: ${numberPool.join(', ')}");
+            }
+            if (kDebugMode) {
+              debugPrint(
+                  "✅ [GEN-RESULT] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+            }
           });
         }
       } else {
         throw Exception("Puzzle generation returned null");
       }
     } catch (e, stackTrace) {
-      if (kDebugMode) debugPrint("❌ [ARITHMANCER CROSSWORDS] Error generating puzzle: $e");
-      debugPrint("❌ [ARITHMANCER CROSSWORDS] StackTrace: $stackTrace");
-      
+      if (kDebugMode) {
+        debugPrint("❌ [ARITHMANCER CROSSWORDS] Error generating puzzle: $e");
+      }
+      if (kDebugMode) {
+        debugPrint("❌ [ARITHMANCER CROSSWORDS] StackTrace: $stackTrace");
+      }
+
       if (mounted) {
         setState(() => _isGenerating = false);
         // Show error dialog
@@ -274,147 +454,135 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     }
   }
 
-  void _initializeNumberPool(CrosswordPuzzle generatedPuzzle) {
-    // Identify which numbers are correct (in solution) vs decoys
-    correctNumbers = generatedPuzzle.emptyCells
-        .map((cellId) => generatedPuzzle.fullSolution[cellId]!)
-        .toSet();
-    
-    decoyNumbers = generatedPuzzle.numberPool
-        .where((n) => !correctNumbers.contains(n))
-        .toSet();
-    
-    numberPool = List.from(generatedPuzzle.numberPool)..sort();  // sorted!
-    
-    if (kDebugMode) debugPrint("🎯 [POOL INIT] Correct numbers: $correctNumbers");
-    debugPrint("🎯 [POOL INIT] Decoy numbers: $decoyNumbers");
-    debugPrint("🎯 [POOL INIT] Initial pool (sorted): $numberPool");
-  }
-
-  void _placeNumber(int number, String cellId) {
-    if (kDebugMode) debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
-    
+  void _placeNumber(
+      ArithmancerCrosswordsDrag drag, String cellId, Object round) {
+    if (_movesRemaining <= 0 || !_canPlace(drag, cellId, round)) {
+      return;
+    }
+    final number = drag.number;
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
+    }
     setState(() {
       userSolution[cellId] = number;
       _lastDroppedPosition = cellId;
-      _dropController.forward(from: 0.0);
-      _updateNumberPool();
-      
+      _dropController.reset();
+      playOneShotMotion(_dropController, () {});
+      numberPool.remove(number);
+      _syncNumberPool();
       // Decrement moves
       _movesRemaining--;
-      if (kDebugMode) debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
-      
+      if (kDebugMode) {
+        debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
+      }
       // Warning animation when low on moves
-      if (_movesRemaining <= 3 && _movesRemaining > 0) {
+      if (!_reducedMotion && _movesRemaining <= 3 && _movesRemaining > 0) {
         _moveWarningController.forward(from: 0.0).then((_) {
-          _moveWarningController.reverse();
+          if (_canInteract(round) && !_reducedMotion) {
+            _moveWarningController.reverse();
+          }
         });
       }
     });
 
-    if (kDebugMode) debugPrint("🎮 [PLACE] User solution after: $userSolution");
-    debugPrint("🎮 [PLACE] Updated pool: $numberPool");
-    
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] User solution after: $userSolution");
+    }
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] Updated pool: $numberPool");
+    }
+
     // Check if out of moves BEFORE checking solution
-    if (_movesRemaining <= 0 && userSolution.length < puzzle!.emptyCells.length) {
+    if (_movesRemaining <= 0 && !_isSolved()) {
       _handleOutOfMoves();
       return;
     }
-    
+
     _checkSolution();
   }
 
-  void _removeNumber(String cellId) {
-    if (kDebugMode) debugPrint("🗑️ [REMOVE] Removing number from cell $cellId");
-    
+  void _removeNumber(String cellId, int? expected, Object round) {
+    if (!_canInteract(round) ||
+        !puzzle!.emptyCells.contains(cellId) ||
+        expected == null ||
+        userSolution[cellId] != expected) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint("🗑️ [REMOVE] Removing number from cell $cellId");
+    }
     setState(() {
-      userSolution.remove(cellId);
-      _updateNumberPool();
-      
-      // IMPORTANT: Removing doesn't restore moves (prevents abuse)
-      // Player learns to think before placing
-    });
-    
-    if (kDebugMode) debugPrint("🗑️ [REMOVE] Updated pool: $numberPool");
-  }
-
-  void _updateNumberPool() {
-    if (!_sessionReady || GamePauseScope.isPaused(context)) return;
-    if (puzzle == null) return;
-    
-    // Count how many of each number is needed in the solution
-    final solutionCounts = <int, int>{};
-    for (final cellId in puzzle!.emptyCells) {
-      final number = puzzle!.fullSolution[cellId]!;
-      solutionCounts[number] = (solutionCounts[number] ?? 0) + 1;
-    }
-    
-    // Count how many of each number has been placed by the user
-    final placedCounts = <int, int>{};
-    for (final number in userSolution.values) {
-      placedCounts[number] = (placedCounts[number] ?? 0) + 1;
-    }
-    
-    final newPool = <int>[];
-    
-    // For each correct number, add remaining needed instances
-    for (final number in solutionCounts.keys) {
-      final needed = solutionCounts[number]!;
-      final placed = placedCounts[number] ?? 0;
-      final remaining = needed - placed;
-      
-      for (int i = 0; i < remaining; i++) {
-        newPool.add(number);
+      final number = userSolution[cellId];
+      if (number != null) {
+        userSolution.remove(cellId);
+        numberPool.add(number);
+        numberPool.sort();
+        _syncNumberPool();
       }
+    });
+    if (kDebugMode) {
+      debugPrint("🗑️ [REMOVE] Updated pool: $numberPool");
     }
-    
-    // Always keep all decoy numbers available (they can't be "used up")
-    newPool.addAll(decoyNumbers);
-    
-    // Shuffle to maintain visual randomness
-    newPool.sort();  // CHANGED FROM shuffle() to sort()
-    
-    numberPool = newPool;
-    
-    if (kDebugMode) debugPrint("🔄 [POOL UPDATE] Solution needs: $solutionCounts");
-    debugPrint("🔄 [POOL UPDATE] User placed: $placedCounts");
-    debugPrint("🔄 [POOL UPDATE] New pool size: ${newPool.length}");
   }
 
   void _checkSolution() {
-    if (kDebugMode) debugPrint("✅ [ARITHMANCER CROSSWORDS] Checking solution...");
-    debugPrint("✅ [ARITHMANCER CROSSWORDS] User solution: $userSolution");
-    debugPrint("✅ [ARITHMANCER CROSSWORDS] Required cells: ${puzzle!.emptyCells.length}");
-    
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint("✅ [ARITHMANCER CROSSWORDS] Checking solution...");
+    }
+    if (kDebugMode) {
+      debugPrint("✅ [ARITHMANCER CROSSWORDS] User solution: $userSolution");
+    }
+    if (kDebugMode) {
+      debugPrint(
+          "✅ [ARITHMANCER CROSSWORDS] Required cells: ${puzzle!.emptyCells.length}");
+    }
+
     if (userSolution.length == puzzle!.emptyCells.length) {
-      if (kDebugMode) debugPrint("✅ [ARITHMANCER CROSSWORDS] All cells filled, validating solution");
-      
+      if (kDebugMode) {
+        debugPrint(
+            "✅ [ARITHMANCER CROSSWORDS] All cells filled, validating solution");
+      }
+
       final isValid = puzzle!.validateSolution(userSolution);
-      debugPrint("✅ [ARITHMANCER CROSSWORDS] Solution validation result: $isValid");
-      
+      if (kDebugMode) {
+        debugPrint(
+            "✅ [ARITHMANCER CROSSWORDS] Solution validation result: $isValid");
+      }
+
       if (isValid) {
         _handleSuccess(userSolution);
       } else {
         _handleIncorrect(); // We keep this! ==> Error message...
       }
     } else {
-      if (kDebugMode) debugPrint("✅ [ARITHMANCER CROSSWORDS] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
+      if (kDebugMode) {
+        debugPrint(
+            "✅ [ARITHMANCER CROSSWORDS] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
+      }
     }
   }
 
   List<MathProblem> _extractMathProblems(Map<String, int> solution) {
-    if (kDebugMode) debugPrint("📤 [CROSSWORDS] Extracting all math problems from completed crossword...");
-    
+    if (kDebugMode) {
+      debugPrint(
+          "📤 [CROSSWORDS] Extracting all math problems from completed crossword...");
+    }
+
     final problems = <MathProblem>[];
-    
+
     // Create the complete solution
     final completeGrid = Map<String, int>.from(puzzle!.clues);
     completeGrid.addAll(solution);
-    
+
     // Extract a problem from each equation
     for (final equation in puzzle!.equations) {
-      final values = equation.variableNames.map((varName) => completeGrid[varName]!).toList();
-      
+      final values = equation.variableNames
+          .map((varName) => completeGrid[varName]!)
+          .toList();
+
       final operand1 = values[0];
       final operand2 = values[1];
 
@@ -425,7 +593,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
           break;
         case '−':
         case '-':
-          problem = MathProblem.subtraction(math.max(operand1, operand2), math.min(operand1, operand2));
+          problem = MathProblem.subtraction(
+              math.max(operand1, operand2), math.min(operand1, operand2));
           break;
         case '×':
         case '*':
@@ -440,74 +609,120 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
           }
           break;
       }
-      
+
       if (problem != null) {
         problems.add(problem);
-        if (kDebugMode) debugPrint("📤 [CROSSWORDS] Extracted: ${problem.expression}");
+        if (kDebugMode) {
+          debugPrint("📤 [CROSSWORDS] Extracted: ${problem.expression}");
+        }
       }
     }
-    
-    if (kDebugMode) debugPrint("📤 [CROSSWORDS] Extracted ${problems.length} problems total");
+
+    if (kDebugMode) {
+      debugPrint("📤 [CROSSWORDS] Extracted ${problems.length} problems total");
+    }
     return problems;
   }
 
-  void _handleSuccess(Map<String, int> userSolution) {
-    if (kDebugMode) debugPrint("🎉 [ARITHMANCER CROSSWORDS] SUCCESS! Player solved the puzzle!");
-    AppHaptics.lightImpact();
-
-    int baseScore = 250 * widget.grade;
-    int complexityBonus = puzzle!.equations.length * 15 + puzzle!.emptyCells.length * 5;
-    int operationBonus = puzzle!.getAllOperators()
+  int _successBonus() {
+    if (puzzle == null) {
+      return 0;
+    }
+    final complexityBonus =
+        puzzle!.equations.length * 15 + puzzle!.emptyCells.length * 5;
+    final operationBonus = puzzle!
+        .getAllOperators()
         .map(_getOperationBonus)
         .fold(0, (a, b) => a + b);
-    
-    int totalScore = baseScore + complexityBonus + operationBonus;
-    if (kDebugMode) debugPrint("🎉 [ARITHMANCER CROSSWORDS] Score calculation: base=$baseScore, complexity=$complexityBonus, operation=$operationBonus, total=$totalScore");
-    
-    // Extract all math problems from the solved crossword
+    return complexityBonus + operationBonus;
+  }
+
+  void _handleSuccess(Map<String, int> userSolution) {
+    if (!_canInteract(_round) || !_isSolved()) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint(
+          "🎉 [ARITHMANCER CROSSWORDS] SUCCESS! Player solved the puzzle!");
+    }
+    AppHaptics.lightImpact();
+    final baseScore = 250 * widget.grade;
+    final bonus = _successBonus();
+    final totalScore = baseScore + bonus;
+    if (kDebugMode) {
+      debugPrint(
+          "🎉 [ARITHMANCER CROSSWORDS] Score calculation: base=$baseScore, bonus=$bonus, total=$totalScore");
+    }
     final mathProblems = _extractMathProblems(userSolution);
-    if (kDebugMode) debugPrint("🎉 [ARITHMANCER CROSSWORDS] Extracted ${mathProblems.length} math problems for tracking");
-    
-    // SINGLE CALL to unified progression system
+    if (kDebugMode) {
+      debugPrint(
+          "🎉 [ARITHMANCER CROSSWORDS] Extracted ${mathProblems.length} math problems for tracking");
+    }
+    _resetRoundEffects();
+    _clearFeedback();
+    setState(() => _won = true);
+    final round = _round;
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'arithmancer_crosswords',
-      difficulty: widget.level,
-      score: totalScore,
-      mathProblems: mathProblems,
-        performance: Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
-
-      movesUsed: _maxMoves - _movesRemaining,
-      optimalMoves: _optimalMoves,
-    ));
-    
-    _successController.forward(from: 0.0);
-    
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildSuccessDialog(complexityBonus + operationBonus),
-      );
-    }
+          skillLevel: widget.grade,
+          gameType: 'arithmancer_crosswords',
+          difficulty: widget.level,
+          score: totalScore,
+          mathProblems: mathProblems,
+          performance:
+              Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
+          movesUsed: _maxMoves - _movesRemaining,
+          optimalMoves: _optimalMoves,
+        ));
+    _showSuccessDialog(bonus, round);
   }
+
+  void _showSuccessDialog(int bonus, Object round) {
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
+      return;
+    }
+    playOneShotMotion(_successController, () {});
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) =>
+          _buildSuccessDialog(bonus, round, dialogContext),
+    );
+  }
+
+  bool _canUseDialog(Object round, BuildContext dialogContext) =>
+      mounted &&
+      identical(round, _round) &&
+      _won &&
+      dialogContext.mounted &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
 
   int _getOperationBonus(String operation) {
     switch (operation) {
-      case '+': return 0;
+      case '+':
+        return 0;
       case '−':
-      case '-': return 15;
+      case '-':
+        return 15;
       case '×':
-      case '*': return 25;
+      case '*':
+        return 25;
       case '÷':
-      case '/': return 35;
-      default: return 0;
+      case '/':
+        return 35;
+      default:
+        return 0;
     }
   }
 
   void _handleIncorrect() {
-    if (kDebugMode) debugPrint("❌ [ARITHMANCER CROSSWORDS] Incorrect solution - showing error message");
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint(
+          "❌ [ARITHMANCER CROSSWORDS] Incorrect solution - showing error message");
+    }
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -525,21 +740,35 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   void _handleOutOfMoves() {
-    if (kDebugMode) debugPrint("❌ [ARITHMANCER CROSSWORDS] Out of moves! Game over.");
-    
-    // Call the failure handler
-    _handleFailure();
-    
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildOutOfMovesDialog(),
-      );
+    if (_won || _isGenerating) {
+      return;
     }
+    if (!_canInteract(_round)) {
+      return;
+    }
+    _resetRoundEffects();
+    setState(() => _won = true);
+    if (kDebugMode) {
+      debugPrint("❌ [ARITHMANCER CROSSWORDS] Out of moves! Game over.");
+    }
+    final round = _round;
+    _handleFailure();
+    _showOutOfMovesDialog(round);
   }
 
-  Widget _buildOutOfMovesDialog() {
+  void _showOutOfMovesDialog(Object round) {
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
+      return;
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildOutOfMovesDialog(round, dialogContext),
+    );
+  }
+
+  Widget _buildOutOfMovesDialog(Object round, BuildContext dialogContext) {
+    final sL10n = S.of(context)!;
     return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
       child: Container(
@@ -550,40 +779,50 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                  RoundSummary(gameKey: 'arithmancer_crosswords'),
+            RoundSummary(gameKey: 'arithmancer_crosswords'),
             const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(
-              S.of(context)!.arithmancerCrosswordsOutOfMoves,
-              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              sL10n.arithmancerCrosswordsOutOfMoves,
+              style: SpaceTheme.headlineStyle
+                  .copyWith(color: SpaceTheme.rocketRed),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             Text(
-              S.of(context)!.arithmancerCrosswordsOutOfMovesDesc,
+              sL10n.arithmancerCrosswordsOutOfMovesDesc,
               style: SpaceTheme.bodyStyle,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            OverflowBar(
+              alignment: MainAxisAlignment.spaceEvenly,
+              overflowAlignment: OverflowBarAlignment.center,
+              spacing: 16,
+              overflowSpacing: 12,
               children: [
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
+                    Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
-                  child: Text(S.of(context)!.tryAgain),
+                  child: Text(sL10n.tryAgain),
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
+                    Navigator.of(dialogContext).pop();
                     Navigator.of(context).pop();
                   },
                   style: SpaceTheme.primaryButtonStyle,
-                  child: Text(S.of(context)!.backToMenu),
+                  child: Text(sL10n.backToMenu),
                 ),
               ],
             ),
@@ -596,7 +835,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   Widget _buildMovesIndicator({required bool isCompact}) {
     final fontSize = isCompact ? 12.0 : 16.0;
     final iconSize = isCompact ? 20.0 : 24.0;
-    
+
     // Color changes based on remaining moves
     Color indicatorColor;
     if (_movesRemaining <= 3) {
@@ -606,7 +845,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     } else {
       indicatorColor = SpaceTheme.cosmicPink;
     }
-    
+
     return Semantics(
       label: S.of(context)!.a11yMovesRemaining(_movesRemaining),
       liveRegion: true,
@@ -630,7 +869,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.touch_app, color: indicatorColor, size: iconSize),
+                    Icon(Icons.touch_app,
+                        color: indicatorColor, size: iconSize),
                     SizedBox(width: isCompact ? 4 : 8),
                     FittedBox(
                       fit: BoxFit.scaleDown,
@@ -653,27 +893,32 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   void _handleFailure() {
-    if (kDebugMode) debugPrint("❌ [ARITHMANCER CROSSWORDS] FAILURE! Player gave up");
-    
+    if (kDebugMode) {
+      debugPrint("❌ [ARITHMANCER CROSSWORDS] FAILURE! Player gave up");
+    }
+
     // Extract problems for learning purposes (using partial solution if any)
-    final mathProblems = userSolution.isNotEmpty 
+    final mathProblems = userSolution.isNotEmpty
         ? _extractMathProblems(userSolution)
         : <MathProblem>[];
-    
+
     // Record the failure
     finishPuzzleSession();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'arithmancer_crosswords',
-      difficulty: widget.level,
-      mathProblems: mathProblems,
-      progress: _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'arithmancer_crosswords',
+          difficulty: widget.level,
+          mathProblems: mathProblems,
+          progress:
+              _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
+        ));
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     if (puzzle == null || _isGenerating) {
       return Scaffold(
         body: SpaceBackground(
@@ -683,7 +928,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
               children: [
                 const CircularProgressIndicator(),
                 const SizedBox(height: 16),
-                Text(S.of(context)!.loadingAdventure, style: SpaceTheme.bodyStyle),
+                Text(S.of(context)!.loadingAdventure,
+                    style: SpaceTheme.bodyStyle),
               ],
             ),
           ),
@@ -697,16 +943,21 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
           child: LayoutBuilder(
             builder: (context, constraints) {
               // MODIFIED: Use aspect ratio for landscape, and smallest dim for compact
-              final bool isLandscape = constraints.maxWidth > constraints.maxHeight;
-              final bool isCompact = math.min(constraints.maxWidth, constraints.maxHeight) < 500;
+              final bool isLandscape =
+                  constraints.maxWidth > constraints.maxHeight;
+              final bool isCompact =
+                  math.min(constraints.maxWidth, constraints.maxHeight) < 500;
 
               return Column(
                 children: [
-                  _buildAdaptiveHeader(isCompact: isCompact), // MODIFIED: Header now just uses isCompact
+                  _buildAdaptiveHeader(
+                      isCompact:
+                          isCompact), // MODIFIED: Header now just uses isCompact
                   Expanded(
-                    child: isLandscape // MODIFIED: Swaps layout based on orientation
-                        ? _buildWideLayout(isCompact: isCompact)
-                        : _buildCompactLayout(isCompact: isCompact),
+                    child:
+                        isLandscape // MODIFIED: Swaps layout based on orientation
+                            ? _buildWideLayout(isCompact: isCompact)
+                            : _buildCompactLayout(isCompact: isCompact),
                   ),
                 ],
               );
@@ -718,17 +969,20 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   Widget _buildAdaptiveHeader({required bool isCompact}) {
-    if (!isCompact) { // Portrait, tall screen
+    if (!isCompact) {
+      // Portrait, tall screen
       return Column(
         children: [
           GameUI(
+            key: ValueKey(('arithmancer_crosswords-header', _round)),
             title: S.of(context)!.arithmancerCrosswords,
             level: widget.level,
-            onBack: () => Navigator.of(context).pop(),
+            onBack: _backForRound(),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Row( // MODIFIED: Put instructions and moves on one line
+            child: Row(
+              // MODIFIED: Put instructions and moves on one line
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -752,18 +1006,21 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
 
     // MODIFIED: Compact (landscape phone, or small screen)
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 4, 16, 4), // Reduced vertical padding
+      padding:
+          const EdgeInsets.fromLTRB(8, 4, 16, 4), // Reduced vertical padding
       child: Row(
         children: [
           IconButton(
+            key: ValueKey(('arithmancer_crosswords-back', _round)),
             icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: _backForRound(),
           ),
           Expanded(
             child: FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: Text( // Just the title
+              child: Text(
+                // Just the title
                 S.of(context)!.arithmancerCrosswords,
                 style: SpaceTheme.headlineStyle,
                 maxLines: 1,
@@ -829,17 +1086,20 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
           return Container(
             width: double.infinity,
             height: double.infinity,
-            padding: EdgeInsets.all(isCompact ? 8 : 12), // MODIFIED: Reduced padding
+            padding:
+                EdgeInsets.all(isCompact ? 8 : 12), // MODIFIED: Reduced padding
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.cosmicPink.withValues(alpha: 0.1 * _glowAnimation.value),
+                  SpaceTheme.cosmicPink
+                      .withValues(alpha: 0.1 * _glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.cosmicPink.withValues(alpha: _glowAnimation.value),
+                color: SpaceTheme.cosmicPink
+                    .withValues(alpha: _glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -852,21 +1112,25 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   Widget _buildCrossword({required bool isCompact}) {
-    if (puzzle == null) return Container();
-    
+    if (puzzle == null) {
+      return Container();
+    }
+
     // Calculate the bounding box of all cells in *grid units*
     final allPositions = <math.Point<int>>[
       ...puzzle!.numberCells.keys,
       ...puzzle!.operatorCells.keys,
     ];
-    
-    if (allPositions.isEmpty) return Container();
-    
+
+    if (allPositions.isEmpty) {
+      return Container();
+    }
+
     final minX = allPositions.map((p) => p.x).reduce(math.min);
     final maxX = allPositions.map((p) => p.x).reduce(math.max);
     final minY = allPositions.map((p) => p.y).reduce(math.min);
     final maxY = allPositions.map((p) => p.y).reduce(math.max);
-    
+
     final gridUnitsWidth = (maxX - minX + 1);
     final gridUnitsHeight = (maxY - minY + 1);
 
@@ -875,13 +1139,15 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       builder: (context, constraints) {
         // Calculate cell size based on available space
         // (cellSize + 4) is the space per cell.
-        final maxCellSizeW = (constraints.maxWidth - (gridUnitsWidth * 4)) / gridUnitsWidth;
-        final maxCellSizeH = (constraints.maxHeight - (gridUnitsHeight * 4)) / gridUnitsHeight;
+        final maxCellSizeW =
+            (constraints.maxWidth - (gridUnitsWidth * 4)) / gridUnitsWidth;
+        final maxCellSizeH =
+            (constraints.maxHeight - (gridUnitsHeight * 4)) / gridUnitsHeight;
         // Use the smallest dimension and clamp the size
         final cellSize = math.min(maxCellSizeW, maxCellSizeH).clamp(25.0, 45.0);
-        
+
         final operatorSize = cellSize * 0.6; // Scale operator size
-        
+
         final totalWidth = gridUnitsWidth * (cellSize + 4);
         final totalHeight = gridUnitsHeight * (cellSize + 4);
 
@@ -900,37 +1166,40 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
                     final cellId = entry.value;
                     final x = (pos.x - minX) * (cellSize + 4);
                     final y = (pos.y - minY) * (cellSize + 4);
-                    
+
                     return Positioned(
                       left: x,
                       top: y,
-                      child: _buildNumberCell(cellId, cellSize, isCompact), // Pass new cell size
+                      child: _buildNumberCell(
+                          cellId, cellSize, isCompact), // Pass new cell size
                     );
                   }),
-                  
+
                   // Draw operator cells
                   ...puzzle!.operatorCells.entries.map((entry) {
                     final pos = entry.key;
                     final operator = entry.value;
                     final x = (pos.x - minX) * (cellSize + 4);
                     final y = (pos.y - minY) * (cellSize + 4);
-                    
+
                     return Positioned(
                       left: x,
                       top: y,
-                      child: _buildOperatorCell(operator, cellSize, operatorSize), // Pass new sizes
+                      child: _buildOperatorCell(
+                          operator, cellSize, operatorSize), // Pass new sizes
                     );
                   }),
-                  
+
                   // Draw equals signs
                   ...puzzle!.equalsCells.map((pos) {
                     final x = (pos.x - minX) * (cellSize + 4);
                     final y = (pos.y - minY) * (cellSize + 4);
-                    
+
                     return Positioned(
                       left: x,
                       top: y,
-                      child: _buildEqualsCell(cellSize, operatorSize), // Pass new sizes
+                      child: _buildEqualsCell(
+                          cellSize, operatorSize), // Pass new sizes
                     );
                   }),
                 ],
@@ -943,12 +1212,11 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   Widget _buildNumberCell(String cellId, double cellSize, bool isCompact) {
+    final round = _round;
     final bool isEmpty = puzzle!.emptyCells.contains(cellId);
     final bool hasUserValue = userSolution.containsKey(cellId);
-    final int? value = isEmpty 
-        ? userSolution[cellId] 
-        : puzzle!.clues[cellId];
-    
+    final int? value = isEmpty ? userSolution[cellId] : puzzle!.clues[cellId];
+
     final bool isLastDropped = cellId == _lastDroppedPosition;
 
     Widget cell = Container(
@@ -957,8 +1225,10 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(6),
         gradient: isEmpty
-            ? const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple])
-            : const LinearGradient(colors: [SpaceTheme.cosmicPink, SpaceTheme.deepSpace]),
+            ? const LinearGradient(
+                colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple])
+            : const LinearGradient(
+                colors: [SpaceTheme.cosmicPink, SpaceTheme.deepSpace]),
         border: Border.all(
           color: isEmpty ? SpaceTheme.nebulaPurple : SpaceTheme.cosmicPink,
           width: 2,
@@ -980,29 +1250,36 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     }
 
     if (isEmpty && !hasUserValue) {
-      return DragTarget<int>(
+      final round = _round;
+      return DragTarget<ArithmancerCrosswordsDrag>(
+        key: ValueKey(('crosswords-target', round, cellId)),
         builder: (context, candidateData, rejectedData) {
           final isHovering = candidateData.isNotEmpty;
-          
           return Container(
             width: cellSize,
             height: cellSize,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(6),
               gradient: isHovering
-                  ? const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
-                  : const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
+                  ? const LinearGradient(
+                      colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
+                  : const LinearGradient(
+                      colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
               border: Border.all(
-                color: isHovering ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple,
+                color: isHovering
+                    ? SpaceTheme.starYellow
+                    : SpaceTheme.nebulaPurple,
                 width: isHovering ? 3 : 2,
               ),
-              boxShadow: isHovering ? [
-                BoxShadow(
-                  color: SpaceTheme.starYellow.withValues(alpha: 0.6),
-                  blurRadius: 8,
-                  spreadRadius: 2,
-                )
-              ] : null,
+              boxShadow: isHovering
+                  ? [
+                      BoxShadow(
+                        color: SpaceTheme.starYellow.withValues(alpha: 0.6),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      )
+                    ]
+                  : null,
             ),
             child: AnimatedBuilder(
               animation: _pulseAnimation,
@@ -1012,7 +1289,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
                   child: Center(
                     child: Icon(
                       Icons.add_circle_outline,
-                      color: isHovering ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple.withValues(alpha: 0.7),
+                      color: isHovering
+                          ? SpaceTheme.starYellow
+                          : SpaceTheme.nebulaPurple.withValues(alpha: 0.7),
                       size: cellSize * 0.4,
                     ),
                   ),
@@ -1021,10 +1300,10 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
             ),
           );
         },
-        onWillAcceptWithDetails: (details) => true,
-        onAcceptWithDetails: (details) {
-          _placeNumber(details.data, cellId);
-        },
+        onWillAcceptWithDetails: (details) =>
+            _canPlace(details.data, cellId, round),
+        onAcceptWithDetails: (details) =>
+            _placeNumber(details.data, cellId, round),
       );
     }
 
@@ -1033,7 +1312,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         button: true,
         label: S.of(context)!.a11yPlacedValueTapRemove,
         child: GestureDetector(
-          onTap: () => _removeNumber(cellId),
+          key: ValueKey(('crossword-filled', round, cellId, value)),
+          onTap: () => _removeNumber(cellId, value, round),
           child: cell,
         ),
       );
@@ -1042,7 +1322,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     return cell;
   }
 
-  Widget _buildOperatorCell(String operator, double cellSize, double operatorSize) {
+  Widget _buildOperatorCell(
+      String operator, double cellSize, double operatorSize) {
     final gameProvider = context.read<GameProvider>();
     String displayOp = operator;
     if (operator == '÷' || operator == '/') {
@@ -1056,7 +1337,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       height: cellSize,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(6),
-        gradient: const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.deepSpace]),
+        gradient: const LinearGradient(
+            colors: [SpaceTheme.starYellow, SpaceTheme.deepSpace]),
         border: Border.all(color: SpaceTheme.starYellow, width: 2),
       ),
       child: Center(
@@ -1078,7 +1360,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       height: cellSize,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(6),
-        gradient: const LinearGradient(colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
+        gradient: const LinearGradient(
+            colors: [SpaceTheme.alienGreen, SpaceTheme.deepSpace]),
         border: Border.all(color: SpaceTheme.alienGreen, width: 2),
       ),
       child: Center(
@@ -1101,7 +1384,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         if (!isCompact)
           Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
-            child: Text(S.of(context)!.arithmancerCrosswordsSelectNumbers, style: SpaceTheme.bodyStyle),
+            child: Text(S.of(context)!.arithmancerCrosswordsSelectNumbers,
+                style: SpaceTheme.bodyStyle),
           ),
         // MODIFIED: Wrap GridView in Flexible/Expanded
         Flexible(
@@ -1112,7 +1396,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
             ),
             child: GridView.builder(
               shrinkWrap: true, // Keep shrinkWrap because parent is Flexible
-              physics: const BouncingScrollPhysics(), // MODIFIED: Allow scrolling
+              physics:
+                  const BouncingScrollPhysics(), // MODIFIED: Allow scrolling
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: isCompact ? 6 : 5, // MODIFIED: More columns
                 crossAxisSpacing: 8,
@@ -1121,13 +1406,18 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
               ),
               itemCount: numberPool.length,
               itemBuilder: (context, index) {
-                if (index >= numberPool.length) return Container();
-                 final number = numberPool[index];
+                if (index >= numberPool.length) {
+                  return Container();
+                }
+                final number = numberPool[index];
                 // Semantics on visual child — see note in word_sort_game.
-                return Draggable<int>(
-                  data: number,
+                return Draggable<ArithmancerCrosswordsDrag>(
+                  key: ValueKey(('crossword-source', _round, index, number)),
+                  data: (number: number, round: _round),
                   feedback: _buildDraggableFeedback(number),
-                  childWhenDragging: Opacity(opacity: 0.3, child: _buildNumberTile(number, isCompact: isCompact)),
+                  childWhenDragging: Opacity(
+                      opacity: 0.3,
+                      child: _buildNumberTile(number, isCompact: isCompact)),
                   child: Semantics(
                     label: S.of(context)!.a11yNumberDragSlot(number),
                     button: true,
@@ -1147,12 +1437,14 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
         borderRadius: BorderRadius.circular(isCompact ? 8 : 12),
-        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
+        border: Border.all(
+            color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
       ),
       child: Center(
         child: Text(
           number.toString(),
-          style: SpaceTheme.headlineStyle.copyWith(fontSize: isCompact ? 14 : 16),
+          style:
+              SpaceTheme.headlineStyle.copyWith(fontSize: isCompact ? 14 : 16),
         ),
       ),
     );
@@ -1162,14 +1454,21 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     return Material(
       color: Colors.transparent,
       child: Container(
-        width: 50, height: 50,
+        width: 50,
+        height: 50,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: SpaceTheme.starGradient,
-          boxShadow: [BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.8), blurRadius: 20, spreadRadius: 5)],
+          boxShadow: [
+            BoxShadow(
+                color: SpaceTheme.starYellow.withValues(alpha: 0.8),
+                blurRadius: 20,
+                spreadRadius: 5)
+          ],
         ),
         child: Center(
-          child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 18)),
+          child: Text(number.toString(),
+              style: SpaceTheme.headlineStyle.copyWith(fontSize: 18)),
         ),
       ),
     );
@@ -1196,7 +1495,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: iconSize),
+              Icon(Icons.emoji_events,
+                  color: SpaceTheme.starYellow, size: iconSize),
               SizedBox(width: isCompact ? 4 : 8),
               FittedBox(
                 fit: BoxFit.scaleDown,
@@ -1236,7 +1536,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.star, color: SpaceTheme.alienGreen, size: iconSize),
+                  Icon(Icons.star,
+                      color: SpaceTheme.alienGreen, size: iconSize),
                   SizedBox(width: isCompact ? 4 : 8),
                   FittedBox(
                     fit: BoxFit.scaleDown,
@@ -1254,7 +1555,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     );
   }
 
-  Widget _buildSuccessDialog(int bonusScore) {
+  Widget _buildSuccessDialog(
+      int bonusScore, Object round, BuildContext dialogContext) {
     return AnimatedBuilder(
       animation: _successAnimation,
       builder: (context, child) {
@@ -1269,32 +1571,49 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'arithmancer_crosswords'),
-                  const Icon(Icons.emoji_events, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.emoji_events,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  Text(S.of(context)!.arithmancerCrosswordsWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(S.of(context)!.arithmancerCrosswordsWinTitle,
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
-                  Text(S.of(context)!.arithmancerCrosswordsWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  Text(S.of(context)!.arithmancerCrosswordsWinDesc(bonusScore),
+                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   if (context.read<DebugProvider>().isDebugMenuEnabled)
                     DebugPuzzleRating(
                       gameType: 'arithmancer_crosswords',
-                      puzzleId: 'cw_g${widget.grade}_l${widget.level}_${DateTime.now().millisecondsSinceEpoch}',
+                      puzzleId:
+                          'cw_g${widget.grade}_l${widget.level}_${DateTime.now().millisecondsSinceEpoch}',
                       grade: widget.grade,
                       level: widget.level,
                     ),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
-                        onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                        onPressed: () {
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
+                          Navigator.of(dialogContext).pop();
+                          _generatePuzzle();
+                        },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(S.of(context)!.playAgain),
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop(); // Close the dialog
-                          Navigator.of(context).pop(); // Close the game screen
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
+                          Navigator.of(dialogContext).pop();
+                          Navigator.of(context).pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.backToMenu),
@@ -1310,4 +1629,3 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     );
   }
 }
-
