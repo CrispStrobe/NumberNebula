@@ -8,7 +8,9 @@ assignments stay independent. Old drag/removal/navigation/dialog callbacks and
 obsolete generation results cannot alter replacement rounds. Solved/exhausted
 restores offer retry without replaying outcomes; full wrong last moves lose.
 The number tray and board remain scrollable on large-text phones. Generator
-paths, scoring and move pars are retained. Exact-source validation belongs to
+paths, score formulas and move budgets are retained. The move reference now
+includes a revealed symbol that still requires placement, backed by a three-move
+full-solve fixture. Exact-source validation belongs to
 the repair PR, rather than earlier versions' green runs.
 
 ## 2026-10-18 — Second-pass regression contracts

@@ -9,7 +9,10 @@ these implementation notes alone do not establish a passing build.
 ## Rules retained
 
 Both original and CSP generator implementations remain available as before.
-Scores, move allowances and symbol-based move pars are unchanged. One tile
+Score formulas and move allowances are retained. The move reference counts
+all symbols requiring placement, including a symbol revealed in another slot.
+A three-placement fixture exposes the old two-symbol reference; restored saves
+retain their spent moves and budget while correcting that reference. One tile
 assigns a symbol and automatically fills that symbol's hidden occurrences.
 Removing the assignment returns one tile. Repeated equal-valued tray tiles are
 independent; assigning one must not erase another symbol's answer. Visible clues
@@ -24,8 +27,10 @@ pool generator remain available; this repair does not redesign that generator.
 - Placement removed every prior assignment with the same number. Two duplicate
   tiles assigned to different symbols could silently erase the first answer.
   Only the selected symbol is filled or removed, with exact tray accounting.
-- Autofill included visible occurrences when the symbol was hidden elsewhere.
-  Only the declared hidden positions receive answers.
+- The generator can reveal one occurrence while retaining other hidden slots
+  for the same symbol. The old completely-hidden-symbol guard rejected those
+  slots. Input now follows declared hidden positions, preserves visible clues
+  and uses the independently verified placement count for its move reference.
 - A full incorrect last move bypassed the loss condition. Correct last moves
   still win; exhausted incorrect boards lose once. Mistakes with remaining moves
   stay editable and saved. Learning records cannot be rewritten by old input.
@@ -59,7 +64,7 @@ bash tool/build_web.sh
 ```
 
 The focused suite uses actual pointer drops and removal/Back presses, validated
-repeated-symbol fixtures, complete snapshots, persisted mistakes, win/loss retry,
+generator-consistent repeated/partially-visible-symbol fixtures, complete snapshots, persisted mistakes, win/loss retry,
 covering routes, terminal restores, controlled pending generation and
 English/German 390×500/844 phones at text scale 2. Browser smoke opens Codebreaker
 in Chromium/WASM and Firefox/JavaScript. All-game generation and capture/replay

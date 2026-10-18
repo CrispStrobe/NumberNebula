@@ -56,8 +56,8 @@ class _CodebreakerGameState extends State<CodebreakerGame>
   int _movesRemaining = 0;
   int _maxMoves = 0;
 
-  /// Cells the player has to fill — a flawless solve places each exactly
-  /// once, so it doubles as the optimal move count for the performance grade.
+  /// One placement assigns a symbol across its hidden occurrences, including
+  /// symbols whose value is already revealed elsewhere.
   int _optimalMoves = 0;
 
   Object _round = Object();
@@ -76,6 +76,8 @@ class _CodebreakerGameState extends State<CodebreakerGame>
       numberPool.contains(drag.number) &&
       puzzle!.hiddenPositions.contains(position) &&
       !userSolution.containsKey(position);
+  int _placementCount(AdvancedCodebreakerPuzzle board) =>
+      board.hiddenPositions.map(board.getSymbolFromPosition).toSet().length;
   bool _isSolved() => puzzle != null && puzzle!.validateSolution(userSolution);
 
   void _resetRound() {
@@ -142,7 +144,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
     userSolution = Map<String, int>.from(state['answers'] as Map);
     _movesRemaining = state['moves'] as int;
     _maxMoves = state['maxMoves'] as int;
-    _optimalMoves = state['optimal'] as int;
+    _optimalMoves = _placementCount(puzzle!);
     numberPool = List<int>.from(state['pool'] as List);
     _isGenerating = false;
     final solved = _isSolved();
@@ -280,7 +282,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
           // Calculate max moves: 2x hidden symbols (generous safety net)
           final emptyCount = generatedPuzzle.hiddenSymbols.length;
-          _optimalMoves = emptyCount;
+          _optimalMoves = _placementCount(generatedPuzzle);
           _maxMoves = emptyCount * 2;
           _movesRemaining = _maxMoves;
 
@@ -526,13 +528,8 @@ class _CodebreakerGameState extends State<CodebreakerGame>
           gameType: 'codebreaker',
           difficulty: widget.level,
           mathProblems: mathProblems,
-          progress: _optimalMoves == 0
-              ? 0.0
-              : userSolution.keys
-                      .map(puzzle!.getSymbolFromPosition)
-                      .toSet()
-                      .length /
-                  _optimalMoves,
+          progress:
+              _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
         ));
   }
 

@@ -123,6 +123,48 @@ Map<String, dynamic> _board(
       'optimal': 3,
       'pool': [2, 2, 3, 4, 7, 7, 8, 9],
     };
+Map<String, dynamic> _knownSymbolBoard() {
+  final board = _board(moves: 4);
+  final p = board['puzzle'] as Map<String, dynamic>;
+  (p['equations'] as List)[0] = {
+    'term1': 'nebula',
+    'op': '+',
+    'term2': 'nebula',
+    'result': 'planet'
+  };
+  p['hiddenPositions'] = [
+    'eq0_term2',
+    'eq0_result',
+    'eq1_term1',
+    'eq1_term2',
+    'eq2_term1'
+  ];
+  p['visiblePositions'] = ['eq0_term1'];
+  p['hiddenSymbols'] = ['star', 'planet'];
+  p['knownSymbolValues'] = {'eq0_term1': 2};
+  p['numberPool'] = [2, 2, 3, 4, 4, 7, 8, 9];
+  board['pool'] = [2, 2, 3, 4, 4, 7, 8, 9];
+  board['optimal'] = 2;
+  board['maxMoves'] = 4;
+  return board;
+}
+
+void _validateFixture(AdvancedCodebreakerPuzzle p) {
+  int value(dynamic term) =>
+      term is int ? term : p.fullSolution[term as String]!;
+  for (final eq in p.equations) {
+    expect(eq.op, '+');
+    expect(value(eq.term1) + value(eq.term2), value(eq.result));
+  }
+  final symbols = p.equations.expand((eq) => eq.getSymbols()).toSet();
+  final known = p.visiblePositions.map(p.getSymbolFromPosition).toSet();
+  expect(p.hiddenSymbols, unorderedEquals(symbols.difference(known)));
+  final tray = List<int>.from(p.numberPool);
+  for (final id in p.hiddenPositions) {
+    expect(tray.remove(p.fullSolution[p.getSymbolFromPosition(id)]), isTrue);
+  }
+}
+
 Future<void> _restore(WidgetTester t, Map<String, dynamic> board) async {
   final dynamic s = _state(t);
   s.beginPuzzleSession();
@@ -162,6 +204,7 @@ Future<_App> _mount(WidgetTester t,
   }
   expect(_state(t).capturePuzzleSession(), isNotNull);
   final p = _puzzle();
+  _validateFixture(p);
   expect(
       p.validateSolution(
           {'eq0_term1': 2, 'eq1_term1': 2, 'eq1_term2': 3, 'eq2_term1': 4}),
@@ -539,17 +582,40 @@ void main() {
     expect(_snapshot(t)['moves'], 4);
   });
   testWidgets(
-      'contract: autofill never writes a visible occurrence into answers',
+      'contract: a revealed symbol can still fill only its hidden occurrences',
       (t) async {
     await _mount(t);
-    final board = _board();
-    final p = board['puzzle'] as Map<String, dynamic>;
-    p['hiddenPositions'] = ['eq1_term1', 'eq1_term2', 'eq2_term1'];
-    p['visiblePositions'] = ['eq0_term1'];
+    final board = _knownSymbolBoard();
+    _validateFixture(AdvancedCodebreakerPuzzle.fromJson(
+        board['puzzle'] as Map<String, dynamic>));
     await _restore(t, board);
     await _drop(t, 2, 0);
-    expect(_snapshot(t)['answers'], {'eq1_term1': 2});
-    expect(_snapshot(t)['moves'], 5);
+    expect(_snapshot(t)['answers'], {'eq0_term2': 2, 'eq1_term1': 2});
+    expect(_snapshot(t)['moves'], 3);
+    expect(_snapshot(t)['maxMoves'], 4);
+    expect(_snapshot(t)['optimal'], 3,
+        reason:
+            'Legacy two-symbol reference omits the extra required copy placement');
+  });
+  testWidgets(
+      'contract: a generator-consistent revealed-symbol round wins in three placements',
+      (t) async {
+    final app = await _mount(t);
+    final board = _knownSymbolBoard();
+    final p = AdvancedCodebreakerPuzzle.fromJson(
+        board['puzzle'] as Map<String, dynamic>);
+    _validateFixture(p);
+    await _restore(t, board);
+    await _drop(t, 2, 0);
+    await _drop(t, 3, 1);
+    await _drop(t, 4, 0);
+    await _settleDialog(t);
+    expect(app.gp.outcomeCount, 1);
+    expect(app.gp.lastOutcome!.wasSuccessful, isTrue);
+    expect(app.gp.lastOutcome!.movesUsed, 3);
+    expect(app.gp.lastOutcome!.optimalMoves, 3);
+    expect(app.gp.lastOutcome!.performance, 1);
+    expect(_state(t).capturePuzzleSession(), isNull);
   });
   for (final fail in [false, true]) {
     testWidgets(
