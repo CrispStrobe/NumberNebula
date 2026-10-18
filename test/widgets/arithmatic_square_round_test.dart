@@ -140,6 +140,7 @@ Future<void> _drag(WidgetTester t, int n) async {
   final target = _targets.first;
   await t.ensureVisible(source);
   await t.ensureVisible(target);
+  await t.pump();
   await t.drag(source, t.getCenter(target) - t.getCenter(source));
   await t.pump();
 }

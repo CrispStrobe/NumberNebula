@@ -136,6 +136,7 @@ Future<void> _tapSubmit(WidgetTester tester) async {
       (w.key as ValueKey).value.toString().contains('chrono-submit'));
   expect(btn, findsOneWidget);
   await tester.ensureVisible(btn);
+  await tester.pump();
   await tester.tap(btn);
   await tester.pump();
 }
@@ -152,6 +153,7 @@ Future<void> _setHour(WidgetTester tester, int target) async {
       break;
     }
     await tester.ensureVisible(upButtons.at(0));
+    await tester.pump();
     await tester.tap(upButtons.at(0));
     await tester.pump();
   }
@@ -167,6 +169,7 @@ Future<void> _setMinute(WidgetTester tester, int target) async {
       break;
     }
     await tester.ensureVisible(upButtons.at(1));
+    await tester.pump();
     await tester.tap(upButtons.at(1));
     await tester.pump();
   }
