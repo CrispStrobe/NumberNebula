@@ -1,3 +1,4 @@
+import 'package:space_math_academy/features/games/widgets/star_forge_diagram.dart';
 import 'support/round_dialog_finder.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -239,6 +240,88 @@ Future<Map<String, dynamic>?> _stored(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets(
+      'adversarial: short phone keeps star targets inside the painted board',
+      (t) async {
+    await _mount(t, reduced: true, textScale: 2, locale: const Locale('de'));
+    t.view.physicalSize = const Size(390, 500);
+    await t.pump();
+    final painter = find.byWidgetPredicate(
+        (w) => w is CustomPaint && w.painter is StarForgeOutlinePainter);
+    final board = t.getRect(painter);
+    expect(board.width, greaterThan(0));
+    expect(board.height, greaterThan(0));
+    for (final node in _targets.evaluate()) {
+      final rect =
+          t.getRect(find.byElementPredicate((e) => identical(e, node)));
+      expect(board.inflate(0.5).contains(rect.topLeft), isTrue);
+      expect(board.inflate(0.5).contains(rect.bottomRight), isTrue);
+    }
+    expect(t.takeException(), isNull);
+  });
+
+  testWidgets(
+      'adversarial: outline glow advances while board widgets remain stable',
+      (t) async {
+    final app = await _mount(t);
+    final painter = find.byWidgetPredicate(
+        (w) => w is CustomPaint && w.painter is StarForgeOutlinePainter);
+    final before = t.widget<CustomPaint>(painter);
+    final saved = _snapshot(t);
+    await t.pump(const Duration(milliseconds: 300));
+    final after = t.widget<CustomPaint>(painter);
+    expect((after.painter as StarForgeOutlinePainter).glowValue,
+        isNot((before.painter as StarForgeOutlinePainter).glowValue));
+    expect(identical(before.child, after.child), isTrue);
+    app.motion.value = true;
+    await t.pump();
+    final frozen =
+        (t.widget<CustomPaint>(painter).painter as StarForgeOutlinePainter)
+            .glowValue;
+    await t.pump(const Duration(milliseconds: 700));
+    expect(
+        (t.widget<CustomPaint>(painter).painter as StarForgeOutlinePainter)
+            .glowValue,
+        frozen);
+    expect(_snapshot(t), saved);
+    expect(app.gp.outcomeCount, 0);
+  });
+
+  testWidgets('adversarial: retained back callback rejects restored round',
+      (t) async {
+    await _mount(t, reduced: true);
+    final old = t.widget<GameUI>(find.byType(GameUI)).onBack;
+    final dynamic session = _session(t);
+    final before = jsonDecode(jsonEncode(session.capturePuzzleSession()))
+        as Map<String, dynamic>;
+    session.beginPuzzleSession();
+    session.applyPuzzleSession(before);
+    session.rebuildForTesting();
+    await t.pump();
+    old();
+    await t.pump();
+    expect(_screen, findsOneWidget);
+    expect(session.capturePuzzleSession(), before);
+    expect(t.takeException(), isNull);
+  });
+  testWidgets('adversarial: back callback cannot dismiss a covering route',
+      (t) async {
+    await _mount(t, reduced: true);
+    final back = t.widget<GameUI>(find.byType(GameUI)).onBack;
+    final context = t.element(_screen);
+    showDialog<void>(
+        context: context,
+        builder: (_) => const AlertDialog(content: Text('audit route probe')));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 400));
+    back();
+    await t.pump(const Duration(milliseconds: 400));
+    expect(find.text('audit route probe'), findsOneWidget);
+    Navigator.of(context).pop();
+    await t.pump(const Duration(milliseconds: 400));
+    expect(t.takeException(), isNull);
+  });
+
   var profile = 0;
   setUp(() {
     final id = 'star_forge_rounds_${profile++}';

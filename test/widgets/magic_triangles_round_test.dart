@@ -1,3 +1,4 @@
+import 'support/round_contract_checks.dart';
 import 'support/round_dialog_finder.dart';
 import 'dart:convert';
 
@@ -60,17 +61,23 @@ Map<String, dynamic> _snapshot(WidgetTester tester) =>
 
 Future<void> _restoreFromSessionPuzzle(WidgetTester tester) async {
   final dynamic session = _session(tester);
-  final puzzle = session.currentPuzzle;
-  if (puzzle == null) {
-    return;
-  }
+  const solved = [1, 4, 5, 2, 3, 6];
+  final puzzle = MagicTrianglePuzzle(
+    circlesPerSide: 3,
+    warpFrequency: 10,
+    hiddenIndices: {0, 2},
+    visibleValues: {1: 4, 3: 2, 4: 3, 5: 6},
+    allNumbers: solved,
+    numberPool: [1, 5, 7, 8],
+  );
+  expect(puzzle.checkSolution([1, 5]).isPerfect, isTrue);
   final board = {
     'currentPuzzle': puzzle.toJson(),
-    'userAnswers': List.filled((puzzle.hiddenIndices as Set).length, null),
-    'numberPool': List<int>.from(puzzle.numberPool as List),
-    '_movesRemaining': (puzzle.hiddenIndices as Set).length * 2,
-    '_maxMoves': (puzzle.hiddenIndices as Set).length * 2,
-    '_optimalMoves': (puzzle.hiddenIndices as Set).length,
+    'userAnswers': [null, null],
+    'numberPool': [1, 5, 7, 8],
+    '_movesRemaining': 4,
+    '_maxMoves': 4,
+    '_optimalMoves': 2,
   };
   session.beginPuzzleSession();
   session.applyPuzzleSession(board);
@@ -130,6 +137,32 @@ Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async {
 }
 
 void main() {
+  registerGridRoundChecks(
+    mount: (t, reduced) async {
+      final app = await _mount(t, reduced: reduced);
+      return (gp: app.gp, motion: app.motion);
+    },
+    state: _session,
+    snapshot: _snapshot,
+    solution: (s) => {
+      for (final cell
+          in (s.currentPuzzle.hiddenIndices as Set).toList()..sort())
+        cell as Object: (s.currentPuzzle.allNumbers as List)[cell as int] as int
+    },
+    valid: (s, answers) =>
+        s.currentPuzzle.checkSolution(answers.values.toList()).isValid,
+    place: (s, cell, value) => s.placeForTesting(value,
+        s.currentPuzzle.getAnswerIndex(cell as int), cell as int, s.testRound),
+    answersKey: 'userAnswers',
+    movesKey: '_movesRemaining',
+    poolKey: 'numberPool',
+    maxMovesKey: '_maxMoves',
+    optimalKey: '_optimalMoves',
+    shape: 'list',
+    reusable: false,
+    boardDrop: true,
+  );
+
   testWidgets('back press from a replaced round cannot navigate',
       (tester) async {
     await _mount(tester);
@@ -215,46 +248,8 @@ void main() {
     _deliver(oldTarget, oldPayload);
     _deliver(newTarget, oldPayload);
     await tester.pump();
+    expect(_snapshot(tester), before);
     expect(app.gp.outcomeCount, 0);
     expect(poolBefore.contains(poolNumber), isTrue);
-  });
-
-  testWidgets('correct final drops win once and show dialog', (tester) async {
-    final app = await _mount(tester, reduced: true);
-    dynamic sess = _session(tester);
-    final puzzle = sess.currentPuzzle;
-    expect(puzzle, isNotNull);
-    // Data-driven: solve by deriving correct numbers from numberPool.
-    // For Magic Triangles, the solution is embedded in puzzle hiddenIndices -
-    // we place each number from numberPool in order and verify against isValid.
-    // Instead, restore a puzzle where we know numberPool corresponds to hidden solution.
-    // Data-driven approach: iterate hiddenIndices and use fullSolution-equivalent
-    // by asking the puzzle to validate - place numberPool values and check.
-    // Simpler: use _restoreFromSessionPuzzle's known state and place pool numbers.
-    final List<int> pool = List<int>.from(puzzle.numberPool as List);
-    final int hiddenCount = (puzzle.hiddenIndices as Set).length;
-    // Place each pool number into successive empty slots
-    for (int i = 0; i < hiddenCount; i++) {
-      sess = _session(tester);
-      final int v = pool[i % pool.length];
-      final round = sess.testRound as Object;
-      // Map hidden index to answer index
-      final List hiddenList = (puzzle.hiddenIndices as Set).toList()..sort();
-      final int globalIdx = hiddenList[i] as int;
-      sess.placeForTesting(v, i, globalIdx, round);
-      await tester.pump();
-    }
-    await tester.pump(const Duration(milliseconds: 1000));
-    // Outcome recorded (win or error toast); at minimum no crash
-    // If puzzle isValid, expect dialog
-    final snap = _snapshot(tester);
-    if (snap.toString().contains('currentPuzzle') == false) {
-      // Terminal state cleared => win
-      expect(app.gp.outcomeCount, 1);
-      expect(_dialog, findsOneWidget);
-    } else {
-      // Wrong numbers placed but move count decremented
-      expect(snap['_movesRemaining'], lessThan(snap['_maxMoves']));
-    }
   });
 }

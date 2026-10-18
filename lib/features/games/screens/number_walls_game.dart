@@ -163,6 +163,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(_dropController, reduced,
+        duration: const Duration(milliseconds: 500));
     updateDecorativeMotion([_operationController], reduced);
     updateOneShotMotion(_warpController, reduced,
         duration: const Duration(milliseconds: 1500));
@@ -193,6 +195,10 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   @override
   void applyPuzzleSession(Map<String, dynamic> state) {
     _resetRoundEffects();
+    _lastPlacedCellIndex = -1;
+    _isDraggingOver = false;
+    _hintCell = null;
+    _hintLoading = false;
     currentPuzzle = NumberWallPuzzle.fromJson(
         Map<String, dynamic>.from(state['puzzle'] as Map));
     userAnswers = List<int?>.from(state['answers'] as List);
@@ -1297,6 +1303,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               return true;
             },
             onLeave: (data) {
+              if (!mounted || !identical(round, _round)) {
+                return;
+              }
               setState(() => _isDraggingOver = false);
             },
             onAcceptWithDetails: (details) {
@@ -1513,18 +1522,16 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   Widget _buildDroppableCell(int? value, int answerIndex, double size) {
+    final round = _round;
     return Semantics(
       button: true,
       label: value != null
           ? 'Placed value $value, tap to remove'
           : 'Empty brick, drop a number here',
       child: GestureDetector(
+        key: ValueKey(('number_walls-filled', round, answerIndex, value)),
         onTap: value != null
-            ? () {
-                final round = _round;
-                final exp = userAnswers[answerIndex];
-                _removeNumber(answerIndex, exp, round);
-              }
+            ? () => _removeNumber(answerIndex, value, round)
             : null,
         child: _buildBrickCell(
           value: value,

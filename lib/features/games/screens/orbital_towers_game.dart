@@ -62,6 +62,18 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   final Set<String> _validatedLines = {};
 
   Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
+  }
+
   bool _won = false;
   bool _outOfMoves = false;
 
@@ -737,11 +749,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                 key: ValueKey(('orbital-header', _round)),
                 title: s.orbitalTowersTitle,
                 level: widget.level,
-                onBack: () {
-                  if (mounted && identical(_round, _round) && !_isGenerating) {
-                    Navigator.of(context).pop();
-                  }
-                },
+                onBack: _backForRound(),
               ),
               Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                 Flexible(

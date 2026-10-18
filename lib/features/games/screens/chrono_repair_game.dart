@@ -34,6 +34,18 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
         PuzzleSessionMixin<ChronoRepairGame> {
   bool _sessionReady = false;
   Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
+  }
+
   bool _won = false;
 
   bool _canInteract(Object round) =>
@@ -410,11 +422,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
                 key: ValueKey(('chrono-header', round)),
                 title: s.chronoRepairTitle,
                 level: widget.level,
-                onBack: () {
-                  if (mounted && identical(round, _round) && !_isGenerating) {
-                    Navigator.of(context).pop();
-                  }
-                },
+                onBack: _backForRound(),
               ),
               Expanded(
                 child: LayoutBuilder(

@@ -144,6 +144,7 @@ class _KenkenGameState extends State<KenkenGame>
   @override
   void applyPuzzleSession(Map<String, dynamic> state) {
     _resetRoundEffects();
+    _lastDroppedPosition = "";
     puzzle = KenkenPuzzle.fromJson(
         Map<String, dynamic>.from(state['puzzle']), currentDifficulty!);
     userSolution = Map<String, int>.from(state['answers']);

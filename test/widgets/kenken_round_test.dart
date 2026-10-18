@@ -1,3 +1,4 @@
+import 'support/round_contract_checks.dart';
 import 'support/round_dialog_finder.dart';
 import 'dart:convert';
 
@@ -113,6 +114,31 @@ void _deliver(DragTarget<KenkenDrag> t, KenkenDrag d) => t.onAcceptWithDetails!(
     DragTargetDetails<KenkenDrag>(data: d, offset: Offset.zero));
 
 void main() {
+  registerGridRoundChecks(
+    mount: (t, reduced) async {
+      final app = await _mount(t, reduced: reduced);
+      return (gp: app.gp, motion: app.motion);
+    },
+    state: _session,
+    snapshot: _snapshot,
+    solution: (s) => {
+      for (final cell in (s.puzzle.emptyCells as Set).toList()..sort())
+        cell as Object: (s.puzzle.fullSolution as Map)[cell] as int
+    },
+    valid: (s, answers) => s.puzzle.validateSolution(
+        {for (final e in answers.entries) e.key as String: e.value}),
+    place: (s, cell, value) =>
+        s.placeForTesting(value, cell as String, s.testRound),
+    answersKey: 'answers',
+    movesKey: 'moves',
+    poolKey: 'pool',
+    maxMovesKey: 'maxMoves',
+    optimalKey: 'optimal',
+    shape: 'map',
+    reusable: true,
+    boardDrop: false,
+  );
+
   testWidgets('back press from a replaced round cannot navigate',
       (tester) async {
     await _mount(tester);
@@ -193,10 +219,8 @@ void main() {
     _deliver(oldTarget, oldPayload);
     _deliver(newTarget, oldPayload);
     await tester.pump();
-    // Round guard should prevent at least one stale delivery from mutating
-    // The session should either stay at 'before' or still be valid (not double-win)
+    expect(_snapshot(tester), before);
     expect(app.gp.outcomeCount, 0);
-    // At least numberPool data was used to select the dragged number (data-driven)
     expect(poolBefore.contains(poolNumber), isTrue);
   });
 }

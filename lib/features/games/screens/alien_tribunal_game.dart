@@ -36,6 +36,18 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
   bool _sessionReady = false;
 
   Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
+  }
+
   bool _won = false;
 
   bool _canInteract(Object round) =>
@@ -452,11 +464,7 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                 key: ValueKey(('alien-header', _round)),
                 title: s.alienTribunalTitle,
                 level: widget.level,
-                onBack: () {
-                  if (mounted && _sessionReady && !_isGenerating) {
-                    Navigator.of(context).pop();
-                  }
-                },
+                onBack: _backForRound(),
               ),
               Expanded(child: _buildGameArea()),
             ],

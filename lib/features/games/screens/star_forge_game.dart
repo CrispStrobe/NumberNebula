@@ -63,6 +63,18 @@ class _StarForgeGameState extends State<StarForgeGame>
   int _optimalMoves = 0;
 
   Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
+  }
+
   bool _won = false;
   bool _outOfMoves = false;
   bool _reducedMotion = false;
@@ -738,11 +750,7 @@ class _StarForgeGameState extends State<StarForgeGame>
                 key: ValueKey(('star-header', round)),
                 title: s.starForgeTitle,
                 level: widget.level,
-                onBack: () {
-                  if (mounted && identical(round, _round) && !_isGenerating) {
-                    Navigator.of(context).pop();
-                  }
-                },
+                onBack: _backForRound(),
               ),
               Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                 Flexible(
@@ -826,25 +834,18 @@ class _StarForgeGameState extends State<StarForgeGame>
     return Center(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final size = constraints.maxWidth < constraints.maxHeight
-              ? constraints.maxWidth * 0.9
-              : constraints.maxHeight * 0.9;
+          final available = (constraints.biggest.shortestSide - 32)
+              .clamp(0.0, double.infinity);
+          final size = available * 0.9;
           final board = SizedBox(
             width: size,
             height: size,
-            child: CustomPaint(
-              painter: StarForgeOutlinePainter(
-                points: puzzle!.points,
-                highlightedArm: _highlightedArm,
-                glowValue: glowAnimation.value,
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  ..._buildArmBadges(size),
-                  ..._buildNodeWidgets(size),
-                ],
-              ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ..._buildArmBadges(size),
+                ..._buildNodeWidgets(size),
+              ],
             ),
           );
           return AnimatedBuilder(
@@ -868,7 +869,14 @@ class _StarForgeGameState extends State<StarForgeGame>
                     width: 2,
                   ),
                 ),
-                child: child,
+                child: CustomPaint(
+                  painter: StarForgeOutlinePainter(
+                    points: puzzle!.points,
+                    highlightedArm: _highlightedArm,
+                    glowValue: glowAnimation.value,
+                  ),
+                  child: child,
+                ),
               );
             },
           );

@@ -1,3 +1,4 @@
+import 'support/round_contract_checks.dart';
 import 'support/round_dialog_finder.dart';
 import 'dart:convert';
 
@@ -116,6 +117,32 @@ void _deliver(DragTarget<NumberWallsDrag> t, NumberWallsDrag d) =>
         DragTargetDetails<NumberWallsDrag>(data: d, offset: Offset.zero));
 
 void main() {
+  registerGridRoundChecks(
+    mount: (t, reduced) async {
+      final app = await _mount(t, reduced: reduced);
+      return (gp: app.gp, motion: app.motion);
+    },
+    state: _session,
+    snapshot: _snapshot,
+    solution: (s) => {
+      for (final cell in (s.currentPuzzle.hiddenCells as Set).toList()..sort())
+        cell as Object:
+            (s.currentPuzzle.fullSolution as List)[cell as int] as int
+    },
+    valid: (s, answers) =>
+        s.currentPuzzle.validateSolution(answers.values.toList()),
+    place: (s, cell, value) =>
+        s.placeForTesting(value, cell as int, s.testRound),
+    answersKey: 'answers',
+    movesKey: 'moves',
+    poolKey: 'pool',
+    maxMovesKey: 'maxMoves',
+    optimalKey: 'optimal',
+    shape: 'list',
+    reusable: false,
+    boardDrop: true,
+  );
+
   testWidgets('back press from a replaced round cannot navigate',
       (tester) async {
     await _mount(tester);
@@ -180,6 +207,7 @@ void main() {
     _deliver(oldTarget, oldPayload);
     _deliver(newTarget, oldPayload);
     await tester.pump();
+    expect(_snapshot(tester), before);
     expect(app.gp.outcomeCount, 0);
     expect(poolBefore.contains(poolNumber), isTrue);
   });

@@ -1,3 +1,4 @@
+import 'package:space_math_academy/features/games/widgets/game_ui.dart';
 import 'support/round_dialog_finder.dart';
 // ignore_for_file: curly_braces_in_flow_control_structures
 import 'dart:convert';
@@ -204,6 +205,41 @@ Future<Map<String, dynamic>?> _stored(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('adversarial: retained back callback rejects restored round',
+      (t) async {
+    await _mount(t, reduced: true);
+    final old = t.widget<GameUI>(find.byType(GameUI)).onBack;
+    final dynamic session = _session(t);
+    final before = jsonDecode(jsonEncode(session.capturePuzzleSession()))
+        as Map<String, dynamic>;
+    session.beginPuzzleSession();
+    session.applyPuzzleSession(before);
+    session.rebuildForTesting();
+    await t.pump();
+    old();
+    await t.pump();
+    expect(_screen, findsOneWidget);
+    expect(session.capturePuzzleSession(), before);
+    expect(t.takeException(), isNull);
+  });
+  testWidgets('adversarial: back callback cannot dismiss a covering route',
+      (t) async {
+    await _mount(t, reduced: true);
+    final back = t.widget<GameUI>(find.byType(GameUI)).onBack;
+    final context = t.element(_screen);
+    showDialog<void>(
+        context: context,
+        builder: (_) => const AlertDialog(content: Text('audit route probe')));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 400));
+    back();
+    await t.pump(const Duration(milliseconds: 400));
+    expect(find.text('audit route probe'), findsOneWidget);
+    Navigator.of(context).pop();
+    await t.pump(const Duration(milliseconds: 400));
+    expect(t.takeException(), isNull);
+  });
+
   var profile = 0;
   setUp(() {
     final id = 'orbital_towers_rounds_${profile++}';

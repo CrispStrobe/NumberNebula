@@ -53,6 +53,8 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       WormholeRenderPath.cached;
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(_dropController, reduced,
+        duration: const Duration(milliseconds: 500));
     updateDecorativeMotion([_timeController], reduced, reverse: false);
     updateOneShotMotion(_warpController, reduced,
         duration: const Duration(milliseconds: 1500));
@@ -82,6 +84,8 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   @override
   void applyPuzzleSession(Map<String, dynamic> state) {
     _resetRoundEffects();
+    _lastPlacedNodeIndex = -1;
+    _isDraggingOver = false;
     currentPuzzle = (state["currentPuzzle"] == null
         ? null
         : MagicTrianglePuzzle.fromJson(
@@ -1141,6 +1145,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               return true;
             },
             onLeave: (data) {
+              if (!mounted || !identical(round, _round)) {
+                return;
+              }
               if (kDebugMode) {
                 debugPrint("🎯 [UI] DragTarget.onLeave: $data");
               }
@@ -1352,18 +1359,16 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       debugPrint(
           "🎯 [UI] _buildDroppableNode - value: $value, answerIndex: $answerIndex");
     }
+    final round = _round;
     return Semantics(
       button: true,
       label: value != null
           ? 'Placed value $value, tap to remove'
           : 'Empty triangle node, drop a number here',
       child: GestureDetector(
+        key: ValueKey(('magic_triangles-filled', round, answerIndex, value)),
         onTap: value != null
-            ? () {
-                final round = _round;
-                final exp = userAnswers[answerIndex];
-                _removeNumber(answerIndex, exp, round);
-              }
+            ? () => _removeNumber(answerIndex, value, round)
             : null,
         child: _buildStargateNode(
           value: value,
