@@ -29,11 +29,56 @@ class XenobiologyLabGame extends StatefulWidget {
 class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     with TickerProviderStateMixin, GameAnimationsMixin<XenobiologyLabGame>, PuzzleSessionMixin<XenobiologyLabGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'xenobiology_lab';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  Object _round = Object();
+  bool _won = false;
+  bool _canInteract(Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      !_isGenerating &&
+      !_won &&
+      !_gameOver &&
+      currentDifficulty != null;
+
+  void _resetRoundEffects() {
+    _round = Object();
+    cancelOneShotMotion(successController);
+    successController.reset();
+    _clearFeedback();
+  }
+
+  void _clearFeedback() {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.clearSnackBars();
+    messenger?.removeCurrentSnackBar();
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(successController, reduced, duration: const Duration(milliseconds: 600));
+  }
+
+  @visibleForTesting
+  Object get testRound => _round;
+  @visibleForTesting
+  void rebuildForTesting() => setState(() {});
+  @visibleForTesting
+  void setSliderForTesting(int which, int value, Object round) => _setSlider(which, value, round);
+  @visibleForTesting
+  void checkForTesting(Object round) => _checkSolution(round);
+  @visibleForTesting
+  Future<void> generateForTesting() async {
+    _generatePuzzle();
+  }
+
+  @override
+  String get sessionGameKey => 'xenobiology_lab';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _won || _gameOver) return null;
     return {
       '_eyesA': _eyesA,
       '_legsA': _legsA,
@@ -58,37 +103,76 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
       '_wrongChecks': _wrongChecks
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    _eyesA = state["_eyesA"] as int;
-    _legsA = state["_legsA"] as int;
-    _eyesB = state["_eyesB"] as int;
-    _legsB = state["_legsB"] as int;
-    _countA = state["_countA"] as int;
-    _countB = state["_countB"] as int;
-    _totalEyes = state["_totalEyes"] as int;
-    _totalLegs = state["_totalLegs"] as int;
-    _nameA = state["_nameA"] as String;
-    _nameB = state["_nameB"] as String;
-    _hasThirdType = state["_hasThirdType"] as bool;
-    _eyesC = state["_eyesC"] as int;
-    _legsC = state["_legsC"] as int;
-    _countC = state["_countC"] as int;
-    _nameC = state["_nameC"] as String;
-    _sliderA = state["_sliderA"] as int;
-    _sliderB = state["_sliderB"] as int;
-    _sliderC = state["_sliderC"] as int;
-    _maxSliderValue = state["_maxSliderValue"] as int;
-    _mathProblems..clear()..addAll((state["_mathProblems"] as List).map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map))).toList());
-    _wrongChecks = state["_wrongChecks"] as int;
-    _isGenerating = false; _gameOver = false;
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
+    _eyesA = state['_eyesA'] as int;
+    _legsA = state['_legsA'] as int;
+    _eyesB = state['_eyesB'] as int;
+    _legsB = state['_legsB'] as int;
+    _countA = state['_countA'] as int;
+    _countB = state['_countB'] as int;
+    _totalEyes = state['_totalEyes'] as int;
+    _totalLegs = state['_totalLegs'] as int;
+    _nameA = state['_nameA'] as String;
+    _nameB = state['_nameB'] as String;
+    _hasThirdType = state['_hasThirdType'] as bool;
+    _eyesC = state['_eyesC'] as int;
+    _legsC = state['_legsC'] as int;
+    _countC = state['_countC'] as int;
+    _nameC = state['_nameC'] as String;
+    _sliderA = state['_sliderA'] as int;
+    _sliderB = state['_sliderB'] as int;
+    _sliderC = state['_sliderC'] as int;
+    _maxSliderValue = state['_maxSliderValue'] as int;
+    _mathProblems
+      ..clear()
+      ..addAll((state['_mathProblems'] as List)
+          .map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map)))
+          .toList());
+    _wrongChecks = state['_wrongChecks'] as int;
+    _isGenerating = false;
+    _gameOver = false;
+    _won = false;
+    // If the restored snapshot is already solved, treat it as a won terminal
+    // state: show the win dialog once rather than leaving the board stuck
+    // in a finished-but-not-reported loop.
+    final isSolved = matchesCensusTotals({
+      '_maxSliderValue': _maxSliderValue,
+      '_hasThirdType': _hasThirdType,
+      '_eyesA': _eyesA,
+      '_eyesB': _eyesB,
+      '_eyesC': _eyesC,
+      '_legsA': _legsA,
+      '_legsB': _legsB,
+      '_legsC': _legsC,
+      '_totalEyes': _totalEyes,
+      '_totalLegs': _totalLegs,
+      '_countA': _countA,
+      '_countB': _countB,
+      '_countC': _countC,
+    }, _sliderA, _sliderB, _sliderC);
+    if (isSolved) {
+      _gameOver = true;
+      _won = true;
+      finishPuzzleSession();
+      final round = _round;
+      final score = _winScore();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !identical(round, _round) || !_won) return;
+        _showWinDialog(score, round);
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
     if (mounted) setState(() => _sessionReady = true);
   }
-
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -121,7 +205,6 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
   final _random = math.Random();
 
-
   @override
   void initState() {
     super.initState();
@@ -129,7 +212,6 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
     successAnimation =
         CurvedAnimation(parent: successController, curve: Curves.elasticOut);
-
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -142,18 +224,22 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
   @override
   void dispose() {
+    _round = Object();
     disposePuzzleSession();
     disposeGameAnimations();
     super.dispose();
   }
 
   void _generatePuzzle() {
+    _resetRoundEffects();
+    final round = _round;
     beginPuzzleSession();
     if (currentDifficulty == null) return;
 
     setState(() {
       _isGenerating = true;
       _gameOver = false;
+      _won = false;
       _wrongChecks = 0;
       _mathProblems.clear();
       _sliderA = 0;
@@ -163,26 +249,28 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     });
 
     final grade = currentDifficulty!.grade;
-    final generated=generateXenobiologyLab(grade, widget.level, random: _random);
-_countA=generated['_countA'] as int;
-_countB=generated['_countB'] as int;
-_countC=generated['_countC'] as int;
-_eyesA=generated['_eyesA'] as int;
-_eyesB=generated['_eyesB'] as int;
-_eyesC=generated['_eyesC'] as int;
-_hasThirdType=generated['_hasThirdType'] as bool;
-_legsA=generated['_legsA'] as int;
-_legsB=generated['_legsB'] as int;
-_legsC=generated['_legsC'] as int;
-_mathProblems.addAll((generated['_mathProblems'] as List).map((p)=>MathProblem.fromJson(Map<String,dynamic>.from(p as Map))));
-_maxSliderValue=generated['_maxSliderValue'] as int;
-_nameA=generated['_nameA'] as String;
-_nameB=generated['_nameB'] as String;
-_nameC=generated['_nameC'] as String;
-_totalEyes=generated['_totalEyes'] as int;
-_totalLegs=generated['_totalLegs'] as int;
+    final generated = generateXenobiologyLab(grade, widget.level, random: _random);
+    if (!mounted || !identical(round, _round)) return;
+    _countA = generated['_countA'] as int;
+    _countB = generated['_countB'] as int;
+    _countC = generated['_countC'] as int;
+    _eyesA = generated['_eyesA'] as int;
+    _eyesB = generated['_eyesB'] as int;
+    _eyesC = generated['_eyesC'] as int;
+    _hasThirdType = generated['_hasThirdType'] as bool;
+    _legsA = generated['_legsA'] as int;
+    _legsB = generated['_legsB'] as int;
+    _legsC = generated['_legsC'] as int;
+    _mathProblems.addAll((generated['_mathProblems'] as List)
+        .map((p) => MathProblem.fromJson(Map<String, dynamic>.from(p as Map))));
+    _maxSliderValue = generated['_maxSliderValue'] as int;
+    _nameA = generated['_nameA'] as String;
+    _nameB = generated['_nameB'] as String;
+    _nameC = generated['_nameC'] as String;
+    _totalEyes = generated['_totalEyes'] as int;
+    _totalLegs = generated['_totalLegs'] as int;
 
-    if (mounted) {
+    if (mounted && identical(round, _round)) {
       setState(() {
         _isGenerating = false;
       });
@@ -198,62 +286,109 @@ _totalLegs=generated['_totalLegs'] as int;
   bool get _eyesMatch => _computedEyes == _totalEyes;
   bool get _legsMatch => _computedLegs == _totalLegs;
 
-  void _checkSolution() {
-    if (_gameOver) return;
+  int _winScore() {
+    final baseScore = 100 * widget.grade;
+    final levelBonus = widget.level * 25;
+    final complexityBonus = _hasThirdType ? 100 : 50;
+    return baseScore + levelBonus + complexityBonus;
+  }
 
-    final correct=matchesCensusTotals(capturePuzzleSession()!,_sliderA,_sliderB,_sliderC);
+  bool _isCorrect() {
+    return matchesCensusTotals({
+      '_maxSliderValue': _maxSliderValue,
+      '_hasThirdType': _hasThirdType,
+      '_eyesA': _eyesA,
+      '_eyesB': _eyesB,
+      '_eyesC': _eyesC,
+      '_legsA': _legsA,
+      '_legsB': _legsB,
+      '_legsC': _legsC,
+      '_totalEyes': _totalEyes,
+      '_totalLegs': _totalLegs,
+      '_countA': _countA,
+      '_countB': _countB,
+      '_countC': _countC,
+    }, _sliderA, _sliderB, _sliderC);
+  }
 
+  void _setSlider(int which, int value, Object round) {
+    if (!_canInteract(round)) return;
+    setState(() {
+      if (which == 0) _sliderA = value;
+      if (which == 1) _sliderB = value;
+      if (which == 2) _sliderC = value;
+    });
+  }
+
+  void _checkSolution([Object? round]) {
+    final currentRound = round ?? _round;
+    if (!_canInteract(currentRound)) return;
+    final correct = _isCorrect();
     if (correct) {
-      _handleWin();
+      _handleWin(currentRound);
     } else {
-      _handleLoss();
+      _handleLoss(currentRound);
     }
   }
 
-  void _handleWin() {
-    AppHaptics.lightImpact();
-    _gameOver = true;
-
-    int baseScore = 100 * widget.grade;
-    int levelBonus = widget.level * 25;
-    int complexityBonus = _hasThirdType ? 100 : 50;
-    int totalScore = baseScore + levelBonus + complexityBonus;
-
+  void _handleWin(Object round) {
+    if (!_canInteract(round)) return;
+    if (!_isCorrect()) return;
+    _clearFeedback();
+    setState(() {
+      _gameOver = true;
+      _won = true;
+    });
+    final totalScore = _winScore();
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'xenobiology_lab',
-      difficulty: widget.level,
-      score: totalScore,
-      mathProblems: _mathProblems,
-      performance: Perf.fromMistakes(_wrongChecks),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'xenobiology_lab',
+          difficulty: widget.level,
+          score: totalScore,
+          mathProblems: List<MathProblem>.from(_mathProblems),
+          performance: Perf.fromMistakes(_wrongChecks),
+        ));
 
-    successController.forward(from: 0.0);
-
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => _buildWinDialog(totalScore),
-      );
-    }
+    _showWinDialog(totalScore, round);
   }
 
-  void _handleLoss() {
-    AppHaptics.heavyImpact();
-    _wrongChecks++;
+  void _showWinDialog(int totalScore, Object round) {
+    if (!mounted || !identical(round, _round) || !_won) return;
+    playOneShotMotion(successController, () {});
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildWinDialog(totalScore, round, dialogContext),
+    );
+  }
 
-    finishPuzzleSession();
+  bool _canUseDialog(BuildContext dialogContext, Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      _won &&
+      dialogContext.mounted &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
+
+  void _handleLoss(Object round) {
+    if (!_canInteract(round)) return;
+    AppHaptics.heavyImpact();
+    setState(() => _wrongChecks++);
 
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'xenobiology_lab',
-      difficulty: widget.level,
-      mathProblems: _mathProblems,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'xenobiology_lab',
+          difficulty: widget.level,
+          mathProblems: List<MathProblem>.from(_mathProblems),
+        ));
 
+    // Recoverable mistake: keep board editable and save snapshot.
+    finishPuzzleSession();
+    beginPuzzleSession();
+    savePuzzleSession();
+
+    if (!mounted || !identical(round, _round)) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -264,6 +399,7 @@ _totalLegs=generated['_totalLegs'] as int;
           ],
         ),
         backgroundColor: SpaceTheme.rocketRed,
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -290,12 +426,14 @@ _totalLegs=generated['_totalLegs'] as int;
       );
     }
 
+    final round = _round;
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
           child: Column(
             children: [
               GameUI(
+                key: ValueKey(('xeno-header', round)),
                 title: s.xenobiologyLabTitle,
                 level: widget.level,
                 onBack: () => Navigator.of(context).pop(),
@@ -304,9 +442,19 @@ _totalLegs=generated['_totalLegs'] as int;
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final isWide = constraints.maxWidth > 700;
-                    return isWide
-                        ? _buildWideLayout(constraints)
-                        : _buildCompactLayout(constraints);
+                    final isShort = constraints.maxHeight < 500;
+                    final content = isWide
+                        ? _buildWideLayout(round)
+                        : _buildCompactLayout(round);
+                    if (isShort) {
+                      return SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                          child: content,
+                        ),
+                      );
+                    }
+                    return content;
                   },
                 ),
               ),
@@ -317,7 +465,7 @@ _totalLegs=generated['_totalLegs'] as int;
     );
   }
 
-  Widget _buildWideLayout(BoxConstraints constraints) {
+  Widget _buildWideLayout(Object round) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -341,7 +489,7 @@ _totalLegs=generated['_totalLegs'] as int;
           Expanded(
             flex: 2,
             child: SingleChildScrollView(
-              child: _buildSlidersAndSubmit(),
+              child: _buildSlidersAndSubmit(round),
             ),
           ),
         ],
@@ -349,7 +497,7 @@ _totalLegs=generated['_totalLegs'] as int;
     );
   }
 
-  Widget _buildCompactLayout(BoxConstraints constraints) {
+  Widget _buildCompactLayout(Object round) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -360,7 +508,7 @@ _totalLegs=generated['_totalLegs'] as int;
           const SizedBox(height: 16),
           _buildCensusDisplay(),
           const SizedBox(height: 16),
-          _buildSlidersAndSubmit(),
+          _buildSlidersAndSubmit(round),
           const SizedBox(height: 16),
         ],
       ),
@@ -428,7 +576,9 @@ _totalLegs=generated['_totalLegs'] as int;
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(name, style: SpaceTheme.titleStyle.copyWith(color: color, fontSize: 16)),
+                    Text(name,
+                        style: SpaceTheme.titleStyle.copyWith(color: color, fontSize: 16),
+                        overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4),
                     _buildTraitRow(Icons.visibility, '$eyes eyes', color),
                     const SizedBox(height: 2),
@@ -448,7 +598,9 @@ _totalLegs=generated['_totalLegs'] as int;
       children: [
         Icon(icon, color: color.withValues(alpha: 0.7), size: 16),
         const SizedBox(width: 6),
-        Text(text, style: SpaceTheme.bodyStyle.copyWith(fontSize: 13)),
+        Expanded(
+          child: Text(text, style: SpaceTheme.bodyStyle.copyWith(fontSize: 13), overflow: TextOverflow.ellipsis),
+        ),
       ],
     );
   }
@@ -487,8 +639,12 @@ _totalLegs=generated['_totalLegs'] as int;
               Text(S.of(context)!.xenoCensusReport,
                   style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 18)),
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              // FIX: Row overflow -> Wrap with spacing so the two (or three)
+              // census cards never overflow on 390w or at textScale 2.0.
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
                 children: [
                   _buildTargetComparison(
                     Icons.visibility,
@@ -504,18 +660,16 @@ _totalLegs=generated['_totalLegs'] as int;
                     _computedLegs,
                     _legsMatch,
                   ),
+                  if (_hasThirdType)
+                    _buildTargetComparison(
+                      Icons.pest_control,
+                      S.of(context)!.xenoCreatures,
+                      _totalCreatures,
+                      _computedCreatures,
+                      _creaturesMatch,
+                    ),
                 ],
               ),
-              if (_hasThirdType) ...[
-                const SizedBox(height: 8),
-                _buildTargetComparison(
-                  Icons.pest_control,
-                  S.of(context)!.xenoCreatures,
-                  _totalCreatures,
-                  _computedCreatures,
-                  _creaturesMatch,
-                ),
-              ],
             ],
           ),
         );
@@ -544,20 +698,21 @@ _totalLegs=generated['_totalLegs'] as int;
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: SpaceTheme.starYellow, size: 22),
           const SizedBox(height: 4),
           Text(label,
-              style: SpaceTheme.bodyStyle
-                  .copyWith(fontSize: 13, color: Colors.white70)),
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 13, color: Colors.white70),
+              textAlign: TextAlign.center),
           const SizedBox(height: 6),
-          // Target row
-          Row(
-            mainAxisSize: MainAxisSize.min,
+          // Target row — FIX: use Wrap so long German labels don't overflow.
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 4,
             children: [
               Text(S.of(context)!.xenoTarget,
-                  style: SpaceTheme.bodyStyle
-                      .copyWith(fontSize: 12, color: Colors.white54)),
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white54)),
               Text('$target',
                   style: SpaceTheme.headlineStyle.copyWith(
                     fontSize: 22,
@@ -567,21 +722,18 @@ _totalLegs=generated['_totalLegs'] as int;
           ),
           const SizedBox(height: 2),
           // Current (computed) row
-          Row(
-            mainAxisSize: MainAxisSize.min,
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 4,
             children: [
               Text(S.of(context)!.xenoYours,
-                  style: SpaceTheme.bodyStyle
-                      .copyWith(fontSize: 12, color: Colors.white54)),
+                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white54)),
               Text('$current',
                   style: SpaceTheme.headlineStyle.copyWith(
                     fontSize: 22,
                     color: statusColor,
                   )),
-              if (matches) ...[
-                const SizedBox(width: 4),
-                const Icon(Icons.check_circle, color: matchColor, size: 16),
-              ],
+              if (matches) const Icon(Icons.check_circle, color: matchColor, size: 16),
             ],
           ),
         ],
@@ -589,29 +741,30 @@ _totalLegs=generated['_totalLegs'] as int;
     );
   }
 
-  Widget _buildSlidersAndSubmit() {
+  Widget _buildSlidersAndSubmit(Object round) {
     return Column(
       children: [
         _buildSlider(_nameA, _sliderA, const Color(0xFF06FFA5), (v) {
-          setState(() => _sliderA = v);
-        }),
+          _setSlider(0, v, round);
+        }, round, 0),
         const SizedBox(height: 12),
         _buildSlider(_nameB, _sliderB, const Color(0xFFFFD700), (v) {
-          setState(() => _sliderB = v);
-        }),
+          _setSlider(1, v, round);
+        }, round, 1),
         if (_hasThirdType) ...[
           const SizedBox(height: 12),
           _buildSlider(_nameC, _sliderC, const Color(0xFFFF69B4), (v) {
-            setState(() => _sliderC = v);
-          }),
+            _setSlider(2, v, round);
+          }, round, 2),
         ],
         const SizedBox(height: 20),
-        // Submit button - always enabled (player must think before submitting)
+        // Submit button — keyed per round so stale gesture callbacks are dropped.
         if (!_gameOver)
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: _checkSolution,
+              key: ValueKey(('xeno-submit', round)),
+              onPressed: () => _checkSolution(round),
               icon: const Icon(Icons.check, size: 28),
               label: Text(S.of(context)!.xenobiologySubmitCensus, style: const TextStyle(fontSize: 16)),
               style: SpaceTheme.primaryButtonStyle,
@@ -621,8 +774,9 @@ _totalLegs=generated['_totalLegs'] as int;
     );
   }
 
-  Widget _buildSlider(String name, int value, Color color, ValueChanged<int> onChanged) {
+  Widget _buildSlider(String name, int value, Color color, ValueChanged<int> onChanged, Object round, int index) {
     return Container(
+      key: ValueKey(('xeno-slider', round, index)),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
@@ -632,9 +786,13 @@ _totalLegs=generated['_totalLegs'] as int;
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(name, style: SpaceTheme.titleStyle.copyWith(color: color, fontSize: 14)),
+              Expanded(
+                child: Text(name,
+                    style: SpaceTheme.titleStyle.copyWith(color: color, fontSize: 14),
+                    overflow: TextOverflow.ellipsis),
+              ),
+              const SizedBox(width: 8),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -674,7 +832,7 @@ _totalLegs=generated['_totalLegs'] as int;
     );
   }
 
-  Widget _buildWinDialog(int totalScore) {
+  Widget _buildWinDialog(int totalScore, Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -692,19 +850,22 @@ _totalLegs=generated['_totalLegs'] as int;
                   RoundSummary(gameKey: 'xenobiology_lab'),
                   const Icon(Icons.biotech, size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  Text(s.xenobiologyLabWinTitle,
-                      style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(s.xenobiologyLabWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(s.xenobiologyLabWinDesc(totalScore),
                       style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  // FIX: Row overflow -> Wrap so buttons wrap on narrow/phone at textScale 2.0
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    alignment: WrapAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(dialogContext, round)) return;
+                          Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
                         style: SpaceTheme.secondaryButtonStyle,
@@ -712,7 +873,8 @@ _totalLegs=generated['_totalLegs'] as int;
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(dialogContext, round)) return;
+                          Navigator.of(dialogContext).pop();
                           Navigator.of(context).pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,

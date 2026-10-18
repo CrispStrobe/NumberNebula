@@ -111,6 +111,9 @@ jobs:
       - name: Check Alien Tribunal round effects
         run: flutter test test/widgets/alien_tribunal_round_test.dart --concurrency=1 --reporter expanded
 
+      - name: Check Xenobiology Lab round effects
+        run: flutter test test/widgets/xenobiology_lab_round_test.dart --concurrency=1 --reporter expanded
+
       - name: Check cached wormhole rendering
         run: flutter test test/widgets/wormhole_rendering_test.dart --concurrency=1 --reporter expanded
 
