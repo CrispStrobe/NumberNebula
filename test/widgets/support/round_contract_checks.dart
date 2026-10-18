@@ -278,10 +278,10 @@ void registerGridRoundChecks({
   testWidgets('adversarial: retained hover callback is harmless after disposal',
       (t) async {
     await mount(t, false);
-    final target = t.widget<DragTarget>(
-        find.byWidgetPredicate((w) => w is DragTarget).first);
-    final source = t
-        .widget<Draggable>(find.byWidgetPredicate((w) => w is Draggable).first);
+    final dynamic target =
+        t.widget(find.byWidgetPredicate((w) => w is DragTarget).first);
+    final dynamic source =
+        t.widget(find.byWidgetPredicate((w) => w is Draggable).first);
     await t.pumpWidget(const SizedBox.shrink());
     await t.pump();
     expect(() => target.onLeave?.call(source.data), returnsNormally);
