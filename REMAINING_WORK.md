@@ -73,9 +73,10 @@ exact integrated head before release.
 
 **Status:** Ready. **Games/screens:** `codebreaker_game.dart`, `puzzle_math_game.dart`.
 Arithmetic Square, Crossword, KenKen, Magic Triangles and Number Walls are covered
-by the integrated #58 suites. Codebreaker also needs investigation of an
-intermittent all-games capture readiness failure; preserve the bounded generator
-and reproduce a failing frozen board/seed before attributing it to solver logic.
+by the integrated #58 suites. The Codebreaker capture failure in #55 was traced to a negative tray-padding
+count when more than eight answer occurrences were needed; PR #58 fixes that
+boundary with finite-domain padding and unit regressions. Its broader round
+lifecycle audit remains open.
 
 Start with Codebreaker. Exercise pool/answer conservation, old input across
 restore, duplicate outcomes, budget exhaustion, persisted mistakes, real retry
