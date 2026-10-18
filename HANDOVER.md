@@ -33,7 +33,7 @@ historical summary integrity from four live seeded Robot generation/command
 replays. Its real Flutter wrapper and pure workflow step are present; unsupported
 sample/proof claims have been withdrawn. This is not human difficulty calibration.
 
-Puzzle Math (B) is implemented; see its
+Puzzle Math (B) is implemented in [PR #61](https://github.com/CrispStrobe/NumberNebula/pull/61); see its
 [round audit](docs/puzzle-math-round-audit.md). The next screen audits are Hull
 Plating and Relic Assembly (C), followed by the unchanged D/E/F lanes. H has a
 [prepared playtest protocol](docs/human-playtest-protocol.md); R has a

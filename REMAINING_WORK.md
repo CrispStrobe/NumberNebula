@@ -71,7 +71,7 @@ exact integrated head before release.
 
 ## B — Remaining arithmetic and grid-input rounds
 
-**Status:** Implemented; retain exact-source evidence from the repair PR.
+**Status:** Implemented; retain exact-source evidence from [PR #61](https://github.com/CrispStrobe/NumberNebula/pull/61).
 See the [Puzzle Math round audit](docs/puzzle-math-round-audit.md).
 Codebreaker now has a [dedicated round audit](docs/codebreaker-round-audit.md);
 retain its real-pointer, inventory, terminal, retry, navigation and motion tests.

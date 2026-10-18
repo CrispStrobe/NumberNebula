@@ -7,7 +7,7 @@ interaction or difficulty question.
 
 | Risk or evidence gap | Current evidence | Action lane |
 | --- | --- | --- |
-| Remaining round lifecycle/input edge cases | 33 games have implemented focused suites; 15 remain to inspect. Verify Puzzle Math against its repair PR’s exact-source evidence. No specific new defect is asserted without reproduction. | A–F |
+| Remaining round lifecycle/input edge cases | 33 games have implemented focused suites; 15 remain to inspect. Use [#61](https://github.com/CrispStrobe/NumberNebula/pull/61) for Puzzle Math exact-source evidence. No specific new defect is asserted without reproduction. | A–F |
 | Structural progression jumps | Recorded 67 flags; zero generation failures. Authored transitions can repeat across grades. | G |
 | Child-facing pars and workload bands | Untrained estimates; no child playtest results. Generator timing is not solving time. | H |
 | Solver costs and browser integer representations | App retains pinned v2.2.0, alternatives and fallbacks. Native success alone does not prove dart2js/WASM safety. | I |

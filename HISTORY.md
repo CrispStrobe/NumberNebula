@@ -7,7 +7,7 @@ Drags and controls carry round identity; finite tile accounting preserves equal-
 interchangeability. Terminal sessions stop accepting input and cannot replay outcomes.
 The timer expires at zero, while disabled timers retain playable zero-time saves.
 Phone layouts, retry dialogs and hover reduced motion have focused coverage.
-Use the repair PR’s exact-source validation and deployment evidence; implementation
+Use [PR #61](https://github.com/CrispStrobe/NumberNebula/pull/61) for exact-source validation and deployment evidence; implementation
 notes alone do not establish a verified baseline.
 
 ## 2026-10-18 — Codebreaker round isolation and inventory

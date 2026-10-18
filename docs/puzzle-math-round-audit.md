@@ -2,7 +2,7 @@
 
 Implemented version **1.5.35+51**. The preceding verified source
 is [PR #60](https://github.com/CrispStrobe/NumberNebula/pull/60). Tests being present
-does not establish a passing build; the repair PR must record exact-source checks.
+does not establish a passing build; [PR #61](https://github.com/CrispStrobe/NumberNebula/pull/61) records exact-source checks and deployment.
 
 ## Rules and findings
 
