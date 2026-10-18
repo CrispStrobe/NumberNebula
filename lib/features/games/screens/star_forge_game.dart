@@ -936,6 +936,7 @@ class _StarForgeGameState extends State<StarForgeGame>
   /// accepted or rejected wholesale once the last number went down, with no
   /// way to tell which arm was wrong or how far off it was.
   List<Widget> _buildArmBadges(double areaSize) {
+    final round = _round;
     final s = S.of(context)!;
     final points = puzzle!.points;
     final target = puzzle!.magicConstant;
@@ -961,7 +962,7 @@ class _StarForgeGameState extends State<StarForgeGame>
       }
 
       badges.add(Positioned(
-        key: ValueKey(('star-badge', _round, arm)),
+        key: ValueKey(('star-badge', round, arm)),
         left: pos.dx - 30,
         top: pos.dy - 15,
         width: 60,
@@ -972,7 +973,7 @@ class _StarForgeGameState extends State<StarForgeGame>
             button: true,
             child: GestureDetector(
               onTap: () {
-                if (!mounted || _isGenerating) {
+                if (!_canInteract(round)) {
                   return;
                 }
                 setState(() => _highlightedArm = isLit ? null : arm);

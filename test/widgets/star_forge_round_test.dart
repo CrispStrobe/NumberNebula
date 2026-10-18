@@ -254,6 +254,27 @@ Future<Map<String, dynamic>?> _stored(WidgetTester tester) async {
 
 void main() {
   testWidgets(
+      'adversarial: retained arm badge cannot highlight a restored round',
+      (t) async {
+    final app = await _mount(t, reduced: true);
+    final badge = find.byWidgetPredicate((w) =>
+        w is Positioned &&
+        w.key is ValueKey &&
+        (w.key as ValueKey).value.toString().contains('star-badge'));
+    final old = t.widget<GestureDetector>(find.descendant(
+        of: badge.first, matching: find.byType(GestureDetector)));
+    final before = _snapshot(t);
+    await _restore(t, app, before);
+    old.onTap!();
+    await t.pump();
+    final painter = t.widget<CustomPaint>(find.byWidgetPredicate(
+        (w) => w is CustomPaint && w.painter is StarForgeOutlinePainter));
+    expect((painter.painter as StarForgeOutlinePainter).highlightedArm, isNull);
+    expect(_snapshot(t), before);
+    expect(app.gp.outcomeCount, 0);
+  });
+
+  testWidgets(
       'adversarial: short phone keeps star targets inside the painted board',
       (t) async {
     await _mount(t, reduced: true, textScale: 2, locale: const Locale('de'));
@@ -313,6 +334,7 @@ void main() {
     await t.pump();
     old();
     await t.pump();
+    await t.pump(const Duration(milliseconds: 400));
     expect(_screen, findsOneWidget);
     expect(session.capturePuzzleSession(), before);
     expect(t.takeException(), isNull);

@@ -234,6 +234,7 @@ void main() {
     await t.pump();
     old();
     await t.pump();
+    await t.pump(const Duration(milliseconds: 400));
     expect(_screen, findsOneWidget);
     expect(session.capturePuzzleSession(), before);
     expect(t.takeException(), isNull);
