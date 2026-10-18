@@ -382,6 +382,7 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final s = S.of(context)!;
+    final round = _round;
 
     if (_isGenerating || currentDifficulty == null) {
       return Scaffold(
@@ -406,23 +407,14 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
           child: Column(
             children: [
               GameUI(
-                key: ValueKey(('chrono-header', _round)),
+                key: ValueKey(('chrono-header', round)),
                 title: s.chronoRepairTitle,
                 level: widget.level,
                 onBack: () {
-                  if (mounted && identical(_round, _round) && !_isGenerating) {
+                  if (mounted && identical(round, _round) && !_isGenerating) {
                     Navigator.of(context).pop();
                   }
                 },
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  s.chronoRepairInstructions,
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
               ),
               Expanded(
                 child: LayoutBuilder(
@@ -460,6 +452,10 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Text(S.of(context)!.chronoRepairInstructions,
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
+              textAlign: TextAlign.center),
+          const SizedBox(height: 8),
           _buildMalfunctionHint(),
           const SizedBox(height: 10),
           SizedBox(
@@ -481,6 +477,10 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Text(S.of(context)!.chronoRepairInstructions,
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
+              textAlign: TextAlign.center),
+          const SizedBox(height: 8),
           _buildMalfunctionHint(),
           const SizedBox(height: 16),
           _buildClockDisplay(constraints),
@@ -610,12 +610,12 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
                     min: 1,
                     max: 12,
                     onChanged: (v) {
-                      if (!_canInteract(_round)) {
+                      if (!_canInteract(round)) {
                         return;
                       }
                       setState(() => _selectedHour = v);
                     },
-                    round: _round,
+                    round: round,
                   ),
                   // Colon
                   Padding(
@@ -635,18 +635,18 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
                     max: 55,
                     step: 5,
                     onChanged: (v) {
-                      if (!_canInteract(_round)) {
+                      if (!_canInteract(round)) {
                         return;
                       }
                       setState(() => _selectedMinute = v);
                     },
-                    round: _round,
+                    round: round,
                   ),
                 ],
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                key: ValueKey(('chrono-submit', _round)),
+                key: ValueKey(('chrono-submit', round)),
                 onPressed: () => _checkAnswer(round),
                 icon: const Icon(Icons.check, size: 24),
                 label: Text(S.of(context)!.chronoRepairSubmit,

@@ -266,19 +266,21 @@ void main() {
     expect(app.gp.outcomeCount, 0);
   });
   for (final locale in [const Locale('en'), const Locale('de')]) {
-    testWidgets(
-        'doubled text phone supports actual win in ${locale.languageCode}',
-        (t) async {
-      final app = await _mount(t, scale: 2, locale: locale);
-      t.view.physicalSize = const Size(390, 844);
-      await t.pump();
-      expect(t.takeException(), isNull);
-      await _drag(t, 1);
-      await _drag(t, 1);
-      await t.pump(const Duration(milliseconds: 700));
-      expect(_dialog, findsOneWidget);
-      expect(app.gp.outcomeCount, 1);
-      expect(t.takeException(), isNull);
-    });
+    for (final height in [844.0, 500.0]) {
+      testWidgets(
+          'doubled text phone supports actual win in ${locale.languageCode} at $height',
+          (t) async {
+        final app = await _mount(t, scale: 2, locale: locale);
+        t.view.physicalSize = Size(390, height);
+        await t.pump();
+        expect(t.takeException(), isNull);
+        await _drag(t, 1);
+        await _drag(t, 1);
+        await t.pump(const Duration(milliseconds: 700));
+        expect(_dialog, findsOneWidget);
+        expect(app.gp.outcomeCount, 1);
+        expect(t.takeException(), isNull);
+      });
+    }
   }
 }

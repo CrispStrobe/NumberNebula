@@ -1341,8 +1341,7 @@ class AdvancedCodebreakerPuzzle {
     final hiddenPositionIds = allSymbolPositions.difference(visiblePositions);
 
     // Build the correct numbers list from hidden positions (not symbols).
-    // Use a Set for the pool so each distinct value appears once, but ensure
-    // every needed value is present.
+    // Preserve one tray occurrence for every position the player must fill.
     final correctNumbersList = <int>[];
     for (final pos in hiddenPositionIds) {
       final symbol = _getSymbolFromPosition(puzzleEquations, pos);

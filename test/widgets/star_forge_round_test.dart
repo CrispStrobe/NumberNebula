@@ -458,6 +458,9 @@ void main() {
     await tester.pump();
     expect(scaleFinder, findsNothing);
     expect(scale.scale.value, 1);
+    expect(scale.scale.status, AnimationStatus.completed);
+    // The game effect completes immediately; let pointer/hover effects settle.
+    await tester.pump(const Duration(milliseconds: 300));
     expect(tester.binding.transientCallbackCount, 0);
     expect(_snapshot(tester), before);
     expect(app.gp.outcomeCount, 0);

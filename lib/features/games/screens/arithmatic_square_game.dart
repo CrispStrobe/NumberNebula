@@ -811,7 +811,14 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
 
               return Column(
                 children: [
-                  _buildAdaptiveHeader(isCompact: isCompact),
+                  if (isWide)
+                    _buildAdaptiveHeader(isCompact: isCompact)
+                  else
+                    GameUI(
+                      title: S.of(context)!.arithmeticSquare,
+                      level: widget.level,
+                      onBack: () => Navigator.of(context).pop(),
+                    ),
                   Expanded(
                     child: isWide
                         ? _buildWideLayout(isCompact: isCompact)
@@ -954,20 +961,30 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   Widget _buildCompactLayout({required bool isCompact}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(children: [
-        Expanded(
+    return LayoutBuilder(builder: (context, constraints) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(children: [
+          Expanded(
             child: SingleChildScrollView(
-                child: SingleChildScrollView(
+              child: Column(children: [
+                Text(S.of(context)!.arithmeticSquareInstructions,
+                    style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                const SizedBox(height: 8),
+                SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    child: _buildGridArea(isCompact: isCompact)))),
-        const SizedBox(height: 8),
-        ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 160),
-            child: _buildNumberPad(isCompact: isCompact)),
-      ]),
-    );
+                    child: _buildGridArea(isCompact: isCompact)),
+              ]),
+            ),
+          ),
+          const SizedBox(height: 8),
+          ConstrainedBox(
+              constraints: BoxConstraints(
+                  maxHeight: (constraints.maxHeight * 0.4).clamp(0.0, 160.0)),
+              child: _buildNumberPad(isCompact: isCompact)),
+        ]),
+      );
+    });
   }
 
   Widget _buildGridArea({required bool isCompact}) {

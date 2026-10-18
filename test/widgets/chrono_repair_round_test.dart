@@ -14,6 +14,7 @@ import 'package:space_math_academy/features/games/models/performance.dart';
 import 'package:space_math_academy/features/games/providers/game_provider.dart';
 import 'package:space_math_academy/features/games/screens/chrono_repair_game.dart';
 import 'package:space_math_academy/generated/l10n.dart';
+import 'package:space_math_academy/features/games/widgets/game_ui.dart';
 
 class _App {
   final ValueNotifier<bool> motion;
@@ -264,6 +265,7 @@ void main() {
 
   testWidgets('old stepper callbacks cannot affect new board', (tester) async {
     final app = await _mount(tester);
+    final oldBack = tester.widget<GameUI>(find.byType(GameUI));
     final oldUp = tester.widget<IconButton>(
         find.widgetWithIcon(IconButton, Icons.keyboard_arrow_up).first);
     final oldSubmit = tester.widget<ElevatedButton>(find.byWidgetPredicate(
@@ -280,6 +282,7 @@ void main() {
             displayedHour: 9,
             displayedMinute: 30));
     final before = _snapshot(tester);
+    oldBack.onBack();
     oldUp.onPressed!();
     oldSubmit.onPressed!();
     await tester.pump(const Duration(milliseconds: 500));
