@@ -600,9 +600,8 @@ void main() {
       }
       await _drop(t, 3, 0);
       await t.pump(const Duration(milliseconds: 100));
-      final scale = t.widget<ScaleTransition>(find
-          .ancestor(of: _filled(t, 3), matching: find.byType(ScaleTransition))
-          .single);
+      final scale = t.widget<ScaleTransition>(find.ancestor(
+          of: _filled(t, 3), matching: find.byType(ScaleTransition)));
       expect(scale.scale.status, AnimationStatus.forward);
       expect(_snapshot(t)['moves'], 4);
     });
