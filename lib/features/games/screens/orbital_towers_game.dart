@@ -1065,10 +1065,10 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
       onWillAcceptWithDetails: (details) =>
           _canInteract(details.data.round) && details.data.round == round4,
       onAcceptWithDetails: (details) {
-        if (!identical(details.data.round, round)) {
+        if (!identical(details.data.round, round4)) {
           return;
         }
-        _placeNumber(details.data.number, cellId, round);
+        _placeNumber(details.data.number, cellId, round4);
       },
     );
   }
