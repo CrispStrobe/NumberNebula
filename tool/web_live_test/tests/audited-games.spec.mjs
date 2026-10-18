@@ -35,7 +35,15 @@ for (const game of games) {
     await expect(skip).toBeVisible();
     // A game may have its own worked example after the shared introduction.
     for (let step = 0; step < 4 && await skip.isVisible(); step++) {
-      await skip.click();
+      // A closing tutorial can stay visible during its route transition.
+      // Wait for this exact control to detach before looking for another one;
+      // otherwise a second click can wait forever for an already-dismissed Skip.
+      const clickedSkip = await skip.elementHandle();
+      expect(clickedSkip).not.toBeNull();
+      await skip.click({ timeout: 10_000 });
+      await page.waitForFunction((element) => !element.isConnected,
+        clickedSkip, { timeout: 10_000 });
+      await clickedSkip.dispose();
       await page.waitForTimeout(250);
     }
     await expect(skip).toHaveCount(0);
