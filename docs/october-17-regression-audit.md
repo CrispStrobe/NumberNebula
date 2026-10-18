@@ -46,11 +46,12 @@ Review of `47c5351` found gaps after the first repair:
 
 The expanded tests must also run against the previous implementations as negative
 controls, so passing assertions cannot be mistaken for tests that never exercise
-the defect. The [published build evidence](https://numbernebula.vercel.app/audit-proof.json)
+the defect. The [published audit evidence](https://github.com/CrispStrobe/NumberNebula/pull/59)
 records the exact tested source, before-fix failing cases, full-suite summaries,
-generation/capture counts and changed-line coverage. That report is generated
-only after all configured validation steps pass; verify its source commit before
-using it as evidence. Coverage lists unexecuted changed lines and is not a claim
+generation/capture counts and changed-line coverage. The build report is generated only after all validation steps pass; its exact
+source and results are retained in the linked PR. Verify its source commit before
+using it as evidence. The immutable validation deployment preserves the report
+when subsequent production builds replace supplementary files. Coverage lists unexecuted changed lines and is not a claim
 that every possible interaction or error path has been exercised.
 
 To reproduce, use the pinned SDK and an isolated checkout. Run the eleven focused

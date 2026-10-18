@@ -46,11 +46,12 @@ and run against the previous implementations as negative controls. Browser smoke
 coverage opens all eleven changed games in both release engines. Passing totals
 are evidence for those contracts, not proof that every possible defect is absent.
 
-The [published build evidence](https://numbernebula.vercel.app/audit-proof.json)
+The [published audit evidence](https://github.com/CrispStrobe/NumberNebula/pull/59)
 identifies the tested source, negative controls, full-suite results, all-game
-samples and changed-line coverage. It is generated only after all validation
-steps pass. An older deployed version or a missing report does not validate the
-current source. When GitHub's runner queue is excessive, reuse a tested artifact
+samples and changed-line coverage. Its results are recorded only after validation passes and retain links to the
+validated build report. An older deployment or a missing report does not validate
+the current source. Production redeployments may omit supplementary audit assets;
+the linked PR retains the evidence and exact tested commit. When GitHub's runner queue is excessive, reuse a tested artifact
 or use a configured remote validation container; do not wait indefinitely or run
 large jobs on a busy shared host.
 
