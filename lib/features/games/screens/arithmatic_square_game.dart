@@ -1283,54 +1283,55 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   Widget _buildNumberPad({required bool isCompact}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (!isCompact)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Text(S.of(context)!.arithmeticSquareSelectNumbers,
-                style: SpaceTheme.bodyStyle),
-          ),
-        Flexible(
-            child: Container(
-          padding: EdgeInsets.all(isCompact ? 8 : 12),
-          decoration: SpaceTheme.cardDecoration.copyWith(
-            border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
-          ),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const ClampingScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: isCompact ? 5 : 4,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              childAspectRatio: 1.0,
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isCompact)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(S.of(context)!.arithmeticSquareSelectNumbers,
+                  style: SpaceTheme.bodyStyle),
             ),
-            itemCount: numberPool.length,
-            itemBuilder: (context, index) {
-              if (index >= numberPool.length) {
-                return Container();
-              }
-              final number = numberPool[index];
-              // Semantics on visual child — see note in word_sort_game.
-              return Draggable<ArithmeticSquareDrag>(
-                key: ValueKey(('arith-source', _round, index, number)),
-                data: (number: number, round: _round),
-                feedback: _buildDraggableFeedback(number),
-                childWhenDragging: Opacity(
-                    opacity: 0.3,
-                    child: _buildNumberTile(number, isCompact: isCompact)),
-                child: Semantics(
-                  label: S.of(context)!.a11yNumberDragCell(number),
-                  button: true,
-                  child: _buildNumberTile(number, isCompact: isCompact),
-                ),
-              );
-            },
+          Container(
+            padding: EdgeInsets.all(isCompact ? 8 : 12),
+            decoration: SpaceTheme.cardDecoration.copyWith(
+              border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
+            ),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: isCompact ? 5 : 4,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 1.0,
+              ),
+              itemCount: numberPool.length,
+              itemBuilder: (context, index) {
+                if (index >= numberPool.length) {
+                  return Container();
+                }
+                final number = numberPool[index];
+                // Semantics on visual child — see note in word_sort_game.
+                return Draggable<ArithmeticSquareDrag>(
+                  key: ValueKey(('arith-source', _round, index, number)),
+                  data: (number: number, round: _round),
+                  feedback: _buildDraggableFeedback(number),
+                  childWhenDragging: Opacity(
+                      opacity: 0.3,
+                      child: _buildNumberTile(number, isCompact: isCompact)),
+                  child: Semantics(
+                    label: S.of(context)!.a11yNumberDragCell(number),
+                    button: true,
+                    child: _buildNumberTile(number, isCompact: isCompact),
+                  ),
+                );
+              },
+            ),
           ),
-        )),
-      ],
+        ],
+      ),
     );
   }
 
