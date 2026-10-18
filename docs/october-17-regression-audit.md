@@ -40,6 +40,11 @@ Review of `47c5351` found gaps after the first repair:
 - Triangle/wall retry generation retained terminal and pending-victory flags,
   leaving the next board unplayable. Real win/loss retry must generate a fresh,
   interactable round. Pending hint/loading and last-drop state must reset too.
+- Reordered real-pointer runs exposed a pre-existing Crossword parser defect:
+  overlapping five-cell windows in a longer run assigned number and symbol roles
+  to the same position. Operators/equals covered input targets. Both generation
+  paths now reject conflicting visual roles while preserving shared number cells;
+  deterministic horizontal/vertical nine-cell regressions cover the failure.
 - Several stale-drag tests checked only outcome counts, allowing silent board or
   inventory mutation. The triangle win test accepted an unsuccessful outcome.
   Assert exact unchanged snapshots and require a validated solution and a win.

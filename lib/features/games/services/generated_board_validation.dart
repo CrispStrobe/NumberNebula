@@ -141,8 +141,24 @@ List<String> validateGeneratedBoard(String game, Map<String, dynamic> state) {
             'Arithmetic square column $c fails');
       }
     case 'arithmancer_crosswords':
+      final visualRoles = <String, String>{};
+      void visualRole(Object cell, String role) {
+        final position = jsonEncode(cell);
+        check(
+            !visualRoles.containsKey(position) || visualRoles[position] == role,
+            'Crossword visual roles overlap at $position');
+        visualRoles[position] = role;
+      }
       for (final eq in boardList(p['equations'])) {
         final cells = boardList(eq['numberCells']);
+        for (final cell in cells) {
+          visualRole(cell, 'number');
+        }
+        visualRole(eq['operatorCell'], eq['operator'] as String);
+        visualRole([
+          (cells[1][0] + cells[2][0]) ~/ 2,
+          (cells[1][1] + cells[2][1]) ~/ 2,
+        ], '=');
         final v = [
           for (final cell in cells) solution['C_${cell[1]}_${cell[0]}'] as int
         ];

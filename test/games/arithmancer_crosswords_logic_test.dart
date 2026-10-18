@@ -60,6 +60,37 @@ CrosswordPuzzle _singleEquationPuzzle(String op, int a, int b, int c) {
 }
 
 void main() {
+  group('Crossword visual roles', () {
+    for (final vertical in [false, true]) {
+      test('nine-cell run keeps number targets uncovered (vertical:$vertical)',
+          () {
+        final grid =
+            vertical ? List.generate(9, (_) => ['█']) : [List.filled(9, '█')];
+        final parser = PuzzleParser(grid, PuzzleConfig(ops: ['+']));
+        expect(parser.isPatternValid(), isTrue);
+        expect(parser.equations, hasLength(2));
+        final roles = <math.Point<int>, String>{};
+        for (final equation in parser.equations) {
+          final numbers = equation.numberCells;
+          final equals = math.Point(
+            (numbers[1].x + numbers[2].x) ~/ 2,
+            (numbers[1].y + numbers[2].y) ~/ 2,
+          );
+          for (final entry in {
+            for (final cell in numbers) cell: 'number',
+            equation.operatorCell: equation.operator,
+            equals: '=',
+          }.entries) {
+            expect(roles[entry.key] ?? entry.value, entry.value,
+                reason: 'No drawable cell can have conflicting roles');
+            roles[entry.key] = entry.value;
+          }
+        }
+        expect(roles, hasLength(9));
+      });
+    }
+  });
+
   group('CrosswordConfig.createConfig difficulty scaling bounds', () {
     test('all grade/level combinations stay within documented bounds', () {
       for (var grade = 1; grade <= 4; grade++) {
@@ -75,7 +106,8 @@ void main() {
           // Edges.
           expect(cfg.targetEdges, lessThanOrEqualTo(CrosswordConfig.maxEdges),
               reason: 'edges capped at maxEdges');
-          expect(cfg.targetEdges, greaterThanOrEqualTo(CrosswordConfig.baseEdges));
+          expect(
+              cfg.targetEdges, greaterThanOrEqualTo(CrosswordConfig.baseEdges));
 
           // Clues.
           expect(cfg.numClues, lessThanOrEqualTo(CrosswordConfig.maxClues),
@@ -83,8 +115,8 @@ void main() {
           expect(cfg.numClues, greaterThanOrEqualTo(CrosswordConfig.baseClues));
 
           // Timeout.
-          expect(cfg.timeoutSeconds,
-              lessThanOrEqualTo(CrosswordConfig.maxTimeout),
+          expect(
+              cfg.timeoutSeconds, lessThanOrEqualTo(CrosswordConfig.maxTimeout),
               reason: 'timeout capped at maxTimeout');
           expect(cfg.timeoutSeconds,
               greaterThanOrEqualTo(CrosswordConfig.baseTimeout));
@@ -142,8 +174,8 @@ void main() {
   group('CrosswordPuzzle.validateSolution semantics', () {
     test('accepts a correct addition solution and rejects a corrupted one', () {
       final puzzle = _singleEquationPuzzle('+', 3, 4, 7);
-      expect(
-          puzzle.validateSolution({'C_0_0': 3, 'C_0_2': 4, 'C_0_4': 7}), isTrue);
+      expect(puzzle.validateSolution({'C_0_0': 3, 'C_0_2': 4, 'C_0_4': 7}),
+          isTrue);
       expect(puzzle.validateSolution({'C_0_0': 3, 'C_0_2': 4, 'C_0_4': 8}),
           isFalse);
     });
@@ -160,30 +192,43 @@ void main() {
     });
 
     test('treats unicode times/divide and ASCII */ identically', () {
-      expect(_singleEquationPuzzle('×', 3, 4, 12)
-          .validateSolution({'C_0_0': 3, 'C_0_2': 4, 'C_0_4': 12}), isTrue);
-      expect(_singleEquationPuzzle('*', 3, 4, 12)
-          .validateSolution({'C_0_0': 3, 'C_0_2': 4, 'C_0_4': 12}), isTrue);
-      expect(_singleEquationPuzzle('÷', 12, 4, 3)
-          .validateSolution({'C_0_0': 12, 'C_0_2': 4, 'C_0_4': 3}), isTrue);
-      expect(_singleEquationPuzzle('/', 12, 4, 3)
-          .validateSolution({'C_0_0': 12, 'C_0_2': 4, 'C_0_4': 3}), isTrue);
+      expect(
+          _singleEquationPuzzle('×', 3, 4, 12)
+              .validateSolution({'C_0_0': 3, 'C_0_2': 4, 'C_0_4': 12}),
+          isTrue);
+      expect(
+          _singleEquationPuzzle('*', 3, 4, 12)
+              .validateSolution({'C_0_0': 3, 'C_0_2': 4, 'C_0_4': 12}),
+          isTrue);
+      expect(
+          _singleEquationPuzzle('÷', 12, 4, 3)
+              .validateSolution({'C_0_0': 12, 'C_0_2': 4, 'C_0_4': 3}),
+          isTrue);
+      expect(
+          _singleEquationPuzzle('/', 12, 4, 3)
+              .validateSolution({'C_0_0': 12, 'C_0_2': 4, 'C_0_4': 3}),
+          isTrue);
     });
 
     test('division rejects non-integer / divide-by-zero results', () {
       // 7 / 2 is not an integer -> invalid.
-      expect(_singleEquationPuzzle('÷', 7, 2, 3)
-          .validateSolution({'C_0_0': 7, 'C_0_2': 2, 'C_0_4': 3}), isFalse);
+      expect(
+          _singleEquationPuzzle('÷', 7, 2, 3)
+              .validateSolution({'C_0_0': 7, 'C_0_2': 2, 'C_0_4': 3}),
+          isFalse);
       // divide by zero -> invalid.
-      expect(_singleEquationPuzzle('÷', 5, 0, 0)
-          .validateSolution({'C_0_0': 5, 'C_0_2': 0, 'C_0_4': 0}), isFalse);
+      expect(
+          _singleEquationPuzzle('÷', 5, 0, 0)
+              .validateSolution({'C_0_0': 5, 'C_0_2': 0, 'C_0_4': 0}),
+          isFalse);
     });
 
     test('clue values are merged into the grid during validation', () {
       const n1 = math.Point<int>(0, 0);
       const n2 = math.Point<int>(2, 0);
       const n3 = math.Point<int>(4, 0);
-      final eq = CrosswordEquation([n1, n2, n3], const math.Point<int>(1, 0), '+');
+      final eq =
+          CrosswordEquation([n1, n2, n3], const math.Point<int>(1, 0), '+');
       final puzzle = CrosswordPuzzle(
         clues: const {'C_0_0': 2}, // pre-filled clue
         emptyCells: {'C_0_2', 'C_0_4'},

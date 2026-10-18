@@ -363,6 +363,29 @@ class PuzzleParser {
     _findEquations();
   }
 
+  // A run longer than five cells has overlapping windows. Accepting every
+  // window assigns number, operator and equals roles to the same position,
+  // so visual tiles cover otherwise valid input targets.
+  final Map<math.Point<int>, String> _symbols = {};
+
+  void _addCompatibleEquation(Equation equation) {
+    final numbers = equation.numberCells;
+    final equals = math.Point(
+      (numbers[1].x + numbers[2].x) ~/ 2,
+      (numbers[1].y + numbers[2].y) ~/ 2,
+    );
+    final symbols = {equation.operatorCell: equation.operator, equals: '='};
+    if (numbers.any(_symbols.containsKey) ||
+        symbols.keys.any(numberCellLocations.contains) ||
+        symbols.entries.any(
+            (e) => _symbols.containsKey(e.key) && _symbols[e.key] != e.value)) {
+      return;
+    }
+    equations.add(equation);
+    numberCellLocations.addAll(numbers);
+    _symbols.addAll(symbols);
+  }
+
   void _findEquations() {
     int height = grid.length;
     int width = grid[0].length;
@@ -378,8 +401,7 @@ class PuzzleParser {
           final operatorCell = math.Point(c + 1, r);
           final eq = Equation(numberCells, operatorCell,
               config.ops[random.nextInt(config.ops.length)]);
-          equations.add(eq);
-          numberCellLocations.addAll(numberCells);
+          _addCompatibleEquation(eq);
         }
       }
     }
@@ -395,8 +417,7 @@ class PuzzleParser {
           final operatorCell = math.Point(c, r + 1);
           final eq = Equation(numberCells, operatorCell,
               config.ops[random.nextInt(config.ops.length)]);
-          equations.add(eq);
-          numberCellLocations.addAll(numberCells);
+          _addCompatibleEquation(eq);
         }
       }
     }
