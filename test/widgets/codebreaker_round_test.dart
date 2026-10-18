@@ -588,4 +588,43 @@ void main() {
     expect(t.takeException(), isNull);
     expect(app.gp.outcomeCount, 0);
   });
+  for (final restore in [false, true]) {
+    testWidgets(
+        'motion replay: a later drop restarts feedback (restored:$restore)',
+        (t) async {
+      await _mount(t, reduced: false);
+      await _drop(t, 2, 0);
+      await t.pump(const Duration(milliseconds: 600));
+      if (restore) {
+        await _restore(t, _snapshot(t));
+      }
+      await _drop(t, 3, 0);
+      await t.pump(const Duration(milliseconds: 100));
+      final scale = t.widget<ScaleTransition>(find
+          .ancestor(of: _filled(t, 3), matching: find.byType(ScaleTransition))
+          .single);
+      expect(scale.scale.status, AnimationStatus.forward);
+      expect(_snapshot(t)['moves'], 4);
+    });
+  }
+  testWidgets(
+      'motion replay: restored playable round restarts its next victory',
+      (t) async {
+    final app = await _mount(t, reduced: false);
+    await _last(t, correct: true);
+    final dynamic state = _state(t);
+    expect(state.successController.status, AnimationStatus.completed);
+    Navigator.of(t.element(roundDialogs)).pop();
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 400));
+    final b = _board(
+        answers: {'eq0_term1': 2, 'eq1_term1': 2, 'eq1_term2': 3}, moves: 1);
+    b['pool'] = [2, 4, 7, 7, 8, 9];
+    await _restore(t, b);
+    await _drop(t, 4, 0);
+    await t.pump(const Duration(milliseconds: 100));
+    expect(state.successController.status, AnimationStatus.forward);
+    expect(app.gp.outcomeCount, 2);
+    expect(app.gp.lastOutcome!.wasSuccessful, isTrue);
+  });
 }

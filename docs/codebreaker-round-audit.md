@@ -39,7 +39,8 @@ pool generator remain available; this repair does not redesign that generator.
   failure. Success/error completion checks the generation round. Controlled
   futures exercise the production completion path after restore and disposal.
 - Drop effects and snackbars survived restore; drop motion ignored accessibility
-  settings. Initial/mid-effect reduced motion and effect cancellation are covered.
+  settings. Initial/mid-effect reduced motion, effect cancellation and restarting
+  feedback after prior drops or restored wins are covered.
 - The fixed-height tray could crowd the board off a short phone. Board and tray
   now have independently scrollable bounded areas; equations can scroll
   horizontally, and translated dialog actions wrap. Glow reuses stable equation

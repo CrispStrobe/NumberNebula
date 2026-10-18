@@ -364,6 +364,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
       _lastDroppedPosition = positionId;
       _movesRemaining--;
     });
+    _dropController.reset();
     playOneShotMotion(_dropController, () {});
     if (_isSolved()) {
       _handleSuccess();
@@ -502,6 +503,7 @@ class _CodebreakerGameState extends State<CodebreakerGame>
 
   void _showSuccessDialog(Object round) {
     if (!mounted || !identical(round, _round) || !_terminal) return;
+    successController.reset();
     playOneShotMotion(successController, () {});
     showDialog(
         context: context,
