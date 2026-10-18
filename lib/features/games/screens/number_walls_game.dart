@@ -21,6 +21,8 @@ import '../widgets/strategy_hint_dialog.dart';
 import '../services/hint_completion_solver.dart';
 import '../../../shared/widgets/onboarding_overlay.dart';
 
+typedef NumberWallsDrag = ({int number, Object round});
+
 class NumberWallsGame extends StatefulWidget {
   final int grade;
   final int level;
@@ -64,6 +66,52 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   /// once, so it doubles as the optimal move count for the performance grade.
   int _optimalMoves = 0;
 
+  Object _round = Object();
+  bool _won = false;
+  bool _reducedMotion = false;
+  bool _canInteract(Object round) => mounted && identical(round, _round) && !_isGenerating && !_won && currentPuzzle != null && !_victoryPending;
+  bool _canPlace(NumberWallsDrag drag, int hiddenCellIndex, Object round) {
+    if (!_canInteract(round) || !identical(drag.round, _round)) return false;
+    if (!currentPuzzle!.numberPool.contains(drag.number)) return false;
+    if (!currentPuzzle!.hiddenCells.contains(hiddenCellIndex)) return false;
+    final answerIndex = currentPuzzle!.getAnswerIndexForCell(hiddenCellIndex);
+    if (answerIndex == -1 || userAnswers[answerIndex] != null) return false;
+    return true;
+  }
+  bool _isSolved() {
+    if (currentPuzzle == null) return false;
+    if (userAnswers.any((a) => a == null)) return false;
+    return currentPuzzle!.validateSolution(userAnswers.cast<int>());
+  }
+  bool _isExhausted() => currentPuzzle != null && _movesRemaining <= 0 && userAnswers.any((a) => a == null);
+  List<int> _remainingPool() {
+    if (currentPuzzle == null) return [];
+    final used = userAnswers.whereType<int>().toSet();
+    final pool = List<int>.from(currentPuzzle!.numberPool);
+    for (final v in used) {
+      pool.remove(v);
+    }
+    return pool;
+  }
+  void _syncNumberPool() => numberPool = _remainingPool();
+  void _resetRoundEffects() {
+    _round = Object();
+    cancelOneShotMotion(_warpController);
+    _clearFeedback();
+  }
+  void _clearFeedback() {
+    final m = ScaffoldMessenger.maybeOf(context);
+    m?.clearSnackBars();
+    m?.removeCurrentSnackBar();
+  }
+  @visibleForTesting
+  Object get testRound => _round;
+  @visibleForTesting
+  void rebuildForTesting() => setState(() {});
+  @visibleForTesting
+  void placeForTesting(int number, int hiddenCellIndex, Object round) => _placeNumber((number: number, round: round), hiddenCellIndex, round);
+
+
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   Timer? _fadeTimer;
@@ -71,16 +119,16 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
+    _reducedMotion = reduced;
     updateDecorativeMotion([_operationController], reduced);
-    updateOneShotMotion(_warpController, reduced,
-        duration: const Duration(milliseconds: 1500));
+    updateOneShotMotion(_warpController, reduced, duration: const Duration(milliseconds: 1500));
   }
 
   @override String get sessionGameKey => 'number_walls';
   @override int get sessionGrade => widget.grade;
   @override int get sessionLevel => widget.level;
   @override Map<String, dynamic>? capturePuzzleSession() {
-    if (currentPuzzle == null || _isGenerating) return null;
+    if (currentPuzzle == null || _isGenerating || _won || _victoryPending) return null;
     return {'puzzle': currentPuzzle!.toJson(), 'answers': userAnswers,
       'moves': _movesRemaining, 'maxMoves': _maxMoves, 'optimal': _optimalMoves,
       'hints': _hintsUsed,
@@ -88,18 +136,35 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     };
   }
   @override void applyPuzzleSession(Map<String, dynamic> state) {
-    cancelOneShotMotion(_warpController);
-    _victoryPending = false;
-    _warpController.reset();
+    _resetRoundEffects();
     currentPuzzle = NumberWallPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle'] as Map));
     userAnswers = List<int?>.from(state['answers'] as List);
     _movesRemaining = state['moves'] as int;
     _maxMoves = state['maxMoves'] as int;
     _optimalMoves = state['optimal'] as int;
     _hintsUsed = state['hints'] as int? ?? 0;
-
-      numberPool = List<int>.from(state['pool'] as List);
+    numberPool = List<int>.from(state['pool'] as List);
     _isGenerating = false;
+    _won = false;
+    _victoryPending = false;
+    _warpController.reset();
+    _syncNumberPool();
+    final solved = _isSolved();
+    final exhausted = _isExhausted();
+    if (solved || exhausted) {
+      _won = true;
+      finishPuzzleSession();
+      final round = _round;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !identical(round, _round) || _isGenerating) return;
+        if (solved) {
+          _showSuccessDialog(_successBonus(), round);
+        } else {
+          _showOutOfMovesDialog(round);
+        }
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) _generatePuzzle();
@@ -176,6 +241,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _round = Object();
+    cancelOneShotMotion(_warpController);
     _fadeTimer?.cancel();
     _fadeController.dispose();
     _dropController.dispose();
@@ -185,9 +252,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     super.dispose();
   }
 
-  void _generatePuzzle() async {
-    cancelOneShotMotion(_warpController);
-    _victoryPending = false;
+  Future<void> _generatePuzzle() async {
+    _resetRoundEffects();
+    final round = _round;
     beginPuzzleSession();
     if (kDebugMode) debugPrint("🧱 _generatePuzzle() - Starting puzzle generation");
     
@@ -213,11 +280,11 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
       final puzzle = await compute(NumberWallPuzzle.generate, puzzleArgs);
       
-      if (mounted) {
+      if (mounted && identical(round, _round)) {
         setState(() {
           currentPuzzle = puzzle;
           userAnswers = List.generate(currentPuzzle!.hiddenCells.length, (_) => null);
-          numberPool = List.from(currentPuzzle!.numberPool);
+          _syncNumberPool();
 
           // Calculate max moves: 2x hidden cells (generous safety net)
           final hiddenCount = currentPuzzle!.hiddenCells.length;
@@ -286,11 +353,12 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     }
     StrategyHintDialog.show(context, focus: s.hintWallFocus, strategy: s.hintWallStrategy,
       working: compatible ? '$equation\n${s.hintPossibleMove(value!)}' : s.hintCheckPlacements,
-      demonstrate: compatible ? () { if (mounted) _placeNumber(value!, cell); } : null);
+      demonstrate: compatible ? () { if (mounted) _placeNumber((number: value!, round: _round), cell, _round); } : null);
   }
 
-  void _placeNumber(int number, int hiddenCellIndex) {
-    if (_victoryPending || puzzleSessionFinished) return;
+  void _placeNumber(NumberWallsDrag drag, int hiddenCellIndex, Object round) {
+    if (!_canPlace(drag, hiddenCellIndex, round)) return;
+    final number = drag.number;
     final answerIndex = currentPuzzle!.getAnswerIndexForCell(hiddenCellIndex);
     if (answerIndex == -1 || userAnswers[answerIndex] != null) {
       return;
@@ -300,7 +368,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       userAnswers[answerIndex] = number;
       numberPool.remove(number);
       _lastPlacedCellIndex = hiddenCellIndex;
-      _dropController.forward(from: 0.0);
+      _dropController.reset();
+      playOneShotMotion(_dropController, () {});
 
       // Decrement moves on placement
       _movesRemaining--;
@@ -316,8 +385,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     _checkIfComplete();
   }
 
-  void _removeNumber(int answerIndex) {
-    if (_victoryPending || puzzleSessionFinished) return;
+  void _removeNumber(int answerIndex, int? expected, Object round) {
+    if (!_canInteract(round) || answerIndex < 0 || answerIndex >= userAnswers.length || expected == null || userAnswers[answerIndex] != expected) return;
     setState(() {
       final number = userAnswers[answerIndex];
       if (number != null) {
@@ -329,7 +398,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _checkIfComplete() {
-    if (_victoryPending || puzzleSessionFinished) return;
+    if (!_canInteract(_round)) return;
     if (userAnswers.every((answer) => answer != null)) {
       final isValid = currentPuzzle!.validateSolution(userAnswers.cast<int>());
       
@@ -338,7 +407,6 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       
       // 2. Report the outcome to the central GameProvider.
       if (isValid) {
-        _victoryPending = true;
         finishPuzzleSession();
         // On SUCCESS, calculate the score and report it.
         int baseScore = 120 * widget.grade;
@@ -437,18 +505,33 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     return problemsToLog;
   }
 
+  int _successBonus() {
+    if (currentPuzzle == null) return 0;
+    return (120 * widget.grade * (currentPuzzle!.wallHeight / 3.0)).round() + _getOperationBonus(currentPuzzle!.operation);
+  }
+
   void _handleSuccess(int totalScoreGained) {
+    if (!_canInteract(_round) || !_isSolved()) return;
+    _won = true;
+    _victoryPending = true;
     AppHaptics.lightImpact();
     playOneShotMotion(_warpController, () {
-      successController.forward(from: 0.0);
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) =>
-            _buildSuccessDialog(totalScoreGained - (120 * widget.grade)),
-      );
+      _showSuccessDialog(totalScoreGained - (120 * widget.grade), _round);
     });
   }
+
+  void _showSuccessDialog(int bonus, Object round) {
+    if (!mounted || !identical(round, _round) || !_won || currentPuzzle == null) return;
+    playOneShotMotion(successController, () {});
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildSuccessDialog(bonus, round, dialogContext),
+    );
+  }
+
+  bool _canUseDialog(Object round, BuildContext dialogContext) =>
+      mounted && identical(round, _round) && _won && dialogContext.mounted && ModalRoute.of(dialogContext)?.isCurrent == true;
 
   int _getOperationBonus(WallOperation operation) {
     switch (operation) {
@@ -460,6 +543,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _handleIncorrect() {
+    if (!_canInteract(_round)) return;
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -491,20 +575,27 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _handleOutOfMoves() {
-    finishPuzzleSession();
+    if (_won || _isGenerating) return;
+    if (!_canInteract(_round)) return;
+    _resetRoundEffects();
+    setState(() => _won = true);
     if (kDebugMode) debugPrint("🧱 Out of moves! Game over.");
+    final round = _round;
+    finishPuzzleSession();
     _handleFailure();
-
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildOutOfMovesDialog(),
-      );
-    }
+    _showOutOfMovesDialog(round);
   }
 
-  Widget _buildOutOfMovesDialog() {
+  void _showOutOfMovesDialog(Object round) {
+    if (!mounted || !identical(round, _round) || !_won || currentPuzzle == null) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildOutOfMovesDialog(round, dialogContext),
+    );
+  }
+
+  Widget _buildOutOfMovesDialog(Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
@@ -531,13 +622,17 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            OverflowBar(
+              alignment: MainAxisAlignment.spaceEvenly,
+              overflowAlignment: OverflowBarAlignment.center,
+              spacing: 16,
+              overflowSpacing: 12,
               children: [
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) return;
+                    Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
@@ -545,8 +640,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) return;
+                    Navigator.of(dialogContext).pop();
+                    if (mounted) Navigator.of(context).pop();
                   },
                   style: SpaceTheme.primaryButtonStyle,
                   child: Text(s.backToMenu),
@@ -595,6 +691,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   @override
   Widget build(BuildContext context) {
+    if (_reducedMotion) {}
     if (currentPuzzle == null || _isGenerating) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -929,10 +1026,11 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         final size = math.min(constraints.maxWidth, constraints.maxHeight);
         
         return Center(
-          child: DragTarget<int>(
-            key: _dragTargetKey,
+          child: DragTarget<NumberWallsDrag>(
+            key: ValueKey(('numberwalls-target', _round)),
             builder: (context, candidateData, rejectedData) {
               return SizedBox(
+                key: _dragTargetKey,
                 width: size,
                 height: size,
                 child: Stack(
@@ -957,7 +1055,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 ),
               );
             },
-            onWillAcceptWithDetails: (data) {
+            onWillAcceptWithDetails: (details) {
+              if (!_canInteract(details.data.round) || !identical(details.data.round, _round)) return false;
               setState(() => _isDraggingOver = true);
               return true;
             },
@@ -965,6 +1064,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               setState(() => _isDraggingOver = false);
             },
             onAcceptWithDetails: (details) {
+              if (!_canInteract(details.data.round) || !identical(details.data.round, _round)) return;
               setState(() => _isDraggingOver = false);
               
               final RenderBox? renderBox = _dragTargetKey.currentContext?.findRenderObject() as RenderBox?;
@@ -976,7 +1076,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               int? closestCellIndex = _findClosestEmptyCell(localDropPosition, size);
 
               if (closestCellIndex != null) {
-                _placeNumber(droppedNumber, closestCellIndex);
+                _placeNumber(droppedNumber, closestCellIndex, droppedNumber.round);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -998,7 +1098,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
     final cellPositions = currentPuzzle!.getCellPositions(containerSize);
     final cellSize = containerSize * 0.12;
-    final double acceptanceRadius = cellSize * 1.2;
+    final double acceptanceRadius = cellSize * 1.9;
 
     double minDistance = double.infinity;
     int? closestEmptyCellIndex;
@@ -1149,7 +1249,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
           ? 'Placed value $value, tap to remove'
           : 'Empty brick, drop a number here',
       child: GestureDetector(
-        onTap: value != null ? () => _removeNumber(answerIndex) : null,
+        onTap: value != null ? () { final round = _round; final exp = userAnswers[answerIndex]; _removeNumber(answerIndex, exp, round); } : null,
         child: _buildBrickCell(
           value: value,
           isSelected: (_isDraggingOver && value == null) || (currentPuzzle != null && _hintCell != null && currentPuzzle!.getAnswerIndexForCell(_hintCell!) == answerIndex),
@@ -1225,10 +1325,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               itemBuilder: (context, index) {
                 if (index >= numberPool.length) return Container();
                 final number = numberPool[index];
-                // Semantics goes on the visual child — see note in
-                // word_sort_game / codebreaker_game.
-                return Draggable<int>(
-                  data: number,
+                return Draggable<NumberWallsDrag>(
+                  key: ValueKey(('numberwalls-drag', _round, number)),
+                  data: (number: number, round: _round),
                   feedback: _buildDraggableFeedback(number),
                   childWhenDragging: Opacity(opacity: 0.3, child: _buildCompactBrick(number)),
                   child: Semantics(
@@ -1284,7 +1383,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     ];
   }
 
-  Widget _buildSuccessDialog(int bonusScore) {
+  Widget _buildSuccessDialog(int bonusScore, Object round, BuildContext dialogContext) {
     return AnimatedBuilder(
       animation: successAnimation,
       builder: (context, child) {
@@ -1305,13 +1404,17 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                   const SizedBox(height: 16),
                   Text(S.of(context)!.numberWallsWinDesc(bonusScore), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
                         style: SpaceTheme.primaryButtonStyle,
@@ -1319,8 +1422,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
+                          if (mounted) Navigator.of(context).pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.toTheBridge),

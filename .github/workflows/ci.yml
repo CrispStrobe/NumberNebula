@@ -105,11 +105,26 @@ jobs:
       - name: Check Arithmetic Square round effects
         run: flutter test test/widgets/arithmatic_square_round_test.dart --concurrency=1 --reporter expanded
 
+      - name: Check Number Walls round effects
+        run: flutter test test/widgets/number_walls_round_test.dart --concurrency=1 --reporter expanded
+
+      - name: Check Magic Triangles round effects
+        run: flutter test test/widgets/magic_triangles_round_test.dart --concurrency=1 --reporter expanded
+
+      - name: Check Kenken round effects
+        run: flutter test test/widgets/kenken_round_test.dart --concurrency=1 --reporter expanded
+
+      - name: Check Arithmancer Crosswords round effects
+        run: flutter test test/widgets/arithmancer_crosswords_round_test.dart --concurrency=1 --reporter expanded
+
       - name: Check Orbital Towers round effects
         run: flutter test test/widgets/orbital_towers_round_test.dart --concurrency=1 --reporter expanded
 
       - name: Check Alien Tribunal round effects
         run: flutter test test/widgets/alien_tribunal_round_test.dart --concurrency=1 --reporter expanded
+
+      - name: Check Hive Station round effects
+        run: flutter test test/widgets/hive_station_round_test.dart --concurrency=1 --reporter expanded
 
       - name: Check cached wormhole rendering
         run: flutter test test/widgets/wormhole_rendering_test.dart --concurrency=1 --reporter expanded

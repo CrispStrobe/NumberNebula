@@ -17,6 +17,8 @@ import '../widgets/magic_triangle_painters.dart';
 import '../widgets/space_background.dart';
 import '../../../shared/widgets/onboarding_overlay.dart';
 
+typedef MagicTrianglesDrag = ({int number, Object round});
+
 class MagicTrianglesGame extends StatefulWidget {
   final int grade;
   final int level;
@@ -48,6 +50,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       WormholeRenderPath.cached;
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
+    _reducedMotion = reduced;
     updateDecorativeMotion([_timeController], reduced, reverse: false);
     updateOneShotMotion(_warpController, reduced,
         duration: const Duration(milliseconds: 1500));
@@ -57,7 +60,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   @override int get sessionGrade => widget.grade;
   @override int get sessionLevel => widget.level;
   @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+    if (!_sessionReady || _isGenerating || _won || currentPuzzle == null) return null;
     return {
       'currentPuzzle': (currentPuzzle?.toJson()),
       'userAnswers': userAnswers.map((v0) => (v0)).toList(),
@@ -68,9 +71,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     };
   }
   @override void applyPuzzleSession(Map<String, dynamic> state) {
-    cancelOneShotMotion(_warpController);
-    _warpController.reset();
-    _victoryPending = false;
+    _resetRoundEffects();
     currentPuzzle = (state["currentPuzzle"] == null ? null : MagicTrianglePuzzle.fromJson(Map<String, dynamic>.from(state["currentPuzzle"] as Map)));
     userAnswers = (state["userAnswers"] as List).map((v0) => (v0 == null ? null : v0 as int)).toList();
     numberPool = (state["numberPool"] as List).map((v0) => v0 as int).toList();
@@ -78,6 +79,26 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     _maxMoves = state["_maxMoves"] as int;
     _optimalMoves = state["_optimalMoves"] as int;
     _isGenerating = false;
+    _won = false;
+    _victoryPending = false;
+    _warpController.reset();
+    _syncNumberPool();
+    final solved = _isSolved();
+    final exhausted = _isExhausted();
+    if (solved || exhausted) {
+      _won = true;
+      finishPuzzleSession();
+      final round = _round;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !identical(round, _round) || _isGenerating) return;
+        if (solved) {
+          _showSuccessDialog(_successBonus(), round);
+        } else {
+          _showOutOfMovesDialog(round);
+        }
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
@@ -107,6 +128,43 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   /// Cells the player has to fill — a flawless solve places each exactly
   /// once, so it doubles as the optimal move count for the performance grade.
   int _optimalMoves = 0;
+
+  Object _round = Object();
+  bool _won = false;
+  bool _reducedMotion = false;
+  bool _canInteract(Object round) => mounted && identical(round, _round) && !_isGenerating && !_won && currentPuzzle != null && !_victoryPending;
+  bool _canPlace(MagicTrianglesDrag drag, int answerIndex, Object round) => _canInteract(round) && identical(drag.round, _round) && currentPuzzle!.numberPool.contains(drag.number) && answerIndex >= 0 && answerIndex < userAnswers.length && userAnswers[answerIndex] == null;
+  bool _isSolved() => currentPuzzle != null && userAnswers.every((a) => a != null) && currentPuzzle!.checkSolution(userAnswers.cast<int>()).isValid;
+  bool _isExhausted() => currentPuzzle != null && _movesRemaining <= 0 && userAnswers.any((a) => a == null);
+  List<int> _remainingPool() {
+    if (currentPuzzle == null) return [];
+    final used = userAnswers.whereType<int>().toSet();
+    final pool = List<int>.from(currentPuzzle!.numberPool);
+    for (final v in used) {
+      pool.remove(v);
+    }
+    return pool;
+  }
+  void _syncNumberPool() => numberPool = _remainingPool();
+  void _resetRoundEffects() {
+    _round = Object();
+    cancelOneShotMotion(_warpController);
+    cancelOneShotMotion(_dropController);
+    cancelOneShotMotion(successController);
+    _clearFeedback();
+  }
+  void _clearFeedback() {
+    final m = ScaffoldMessenger.maybeOf(context);
+    m?.clearSnackBars();
+    m?.removeCurrentSnackBar();
+  }
+  @visibleForTesting
+  Object get testRound => _round;
+  @visibleForTesting
+  void rebuildForTesting() => setState(() {});
+  @visibleForTesting
+  void placeForTesting(int number, int answerIndex, int globalIdx, Object round) => _placeNumber((number: number, round: round), answerIndex, globalIdx, round);
+
 
   @override
   void initState() {
@@ -158,31 +216,21 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   @override
   void dispose() {
     disposePuzzleSession();
-    if (kDebugMode) debugPrint("🚀 [UI] MagicTrianglesGame.dispose() - Cleaning up controllers");
-    
-    glowController.stop();
-    successController.stop();
-    _timeController.stop();
-    _dropController.stop();
-    _warpController.stop();
-
+    _round = Object();
+    cancelOneShotMotion(successController);
+    cancelOneShotMotion(_dropController);
+    cancelOneShotMotion(_warpController);
     _timeController.dispose();
     _dropController.dispose();
     _warpController.dispose();
     _wormholeCache.dispose();
-    
-    currentPuzzle = null;
-    userAnswers.clear();
-    numberPool.clear();
-    
-    if (kDebugMode) debugPrint("🚀 [UI] All controllers disposed and data cleared");
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
   Future<void> _generatePuzzle() async {
-    cancelOneShotMotion(_warpController);
-    _victoryPending = false;
+    _resetRoundEffects();
+    final round = _round;
     beginPuzzleSession();
     if (kDebugMode) debugPrint("🚀 [UI] _generatePuzzle() - Starting puzzle generation");
     debugPrint("🚀 [UI] Current mounted state: $mounted");
@@ -204,12 +252,12 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       debugPrint("🚀 [UI] Puzzle details: hiddenIndices=${puzzle.hiddenIndices}, numberPool=${puzzle.numberPool}");
       debugPrint("🚀 [UI] mounted state after compute: $mounted");
       
-      if (mounted) {
+      if (mounted && identical(round, _round)) {
         if (kDebugMode) debugPrint("🚀 [UI] Widget still mounted, updating state");
         setState(() {
           currentPuzzle = puzzle;
           userAnswers = List.generate(currentPuzzle!.hiddenIndices.length, (_) => null, growable: true);
-          numberPool = List.from(currentPuzzle!.numberPool);
+          _syncNumberPool();
 
           // Calculate max moves: 2x hidden positions (generous safety net)
           final hiddenCount = currentPuzzle!.hiddenIndices.length;
@@ -236,19 +284,17 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     if (kDebugMode) debugPrint("🚀 [UI] _generatePuzzle() completed");
   }
   
-  void _placeNumber(int number, int answerIndex, int globalNodeIndex) {
-    if (_victoryPending) return;
+  void _placeNumber(MagicTrianglesDrag drag, int answerIndex, int globalNodeIndex, Object round) {
+    if (!_canPlace(drag, answerIndex, round)) return;
+    final number = drag.number;
     if (kDebugMode) debugPrint("🎯 [UI] _placeNumber($number, $answerIndex, $globalNodeIndex)");
-    if (userAnswers[answerIndex] != null) {
-      debugPrint("🎯 [UI] Position already filled, ignoring");
-      return;
-    }
 
     setState(() {
       userAnswers[answerIndex] = number;
       numberPool.remove(number);
       _lastPlacedNodeIndex = globalNodeIndex;
-      _dropController.forward(from: 0.0);
+      _dropController.reset();
+      playOneShotMotion(_dropController, () {});
 
       // Decrement moves on placement
       _movesRemaining--;
@@ -265,8 +311,8 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     _checkIfComplete();
   }
 
-  void _removeNumber(int answerIndex) {
-    if (_victoryPending) return;
+  void _removeNumber(int answerIndex, int? expected, Object round) {
+    if (!_canInteract(round) || answerIndex < 0 || answerIndex >= userAnswers.length || expected == null || userAnswers[answerIndex] != expected) return;
     if (kDebugMode) debugPrint("🗑️ [UI] _removeNumber($answerIndex)");
     setState(() {
       final number = userAnswers[answerIndex];
@@ -280,7 +326,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   }
 
   void _checkIfComplete() {
-    if (_victoryPending) return;
+    if (!_canInteract(_round)) return;
     if (kDebugMode) debugPrint("✅ [UI] _checkIfComplete() - userAnswers: $userAnswers");
     if (userAnswers.every((answer) => answer != null)) {
       debugPrint("✅ [UI] All answers filled, checking solution");
@@ -296,13 +342,23 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     }
   }
 
+  int _successBonus() {
+    if (currentPuzzle == null) return 0;
+    return (150 * widget.grade * (currentPuzzle!.circlesPerSide / 3.0)).round();
+  }
+
   void _handleSuccess() {
-    if (_victoryPending) return;
+    if (!_canInteract(_round) || !_isSolved()) return;
+    _won = true;
     _victoryPending = true;
     AppHaptics.lightImpact();
     playOneShotMotion(_warpController, () {
-      int baseScore = 150 * widget.grade;
-      int bonusScore = (baseScore * (currentPuzzle!.circlesPerSide / 3.0)).round();
+      final baseScore = 150 * widget.grade;
+      final bonusScore = _successBonus();
+      _resetRoundEffects();
+      _clearFeedback();
+      setState(() => _won = true);
+      final round = _round;
       finishPuzzleSession();
       context.read<GameProvider>().reportOutcome(GameOutcome.win(
         skillLevel: widget.grade,
@@ -313,14 +369,22 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         movesUsed: _maxMoves - _movesRemaining,
         optimalMoves: _optimalMoves,
       ));
-      successController.forward(from: 0.0);
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildSuccessDialog(bonusScore),
-      );
+      _showSuccessDialog(bonusScore, round);
     });
   }
+
+  void _showSuccessDialog(int bonus, Object round) {
+    if (!mounted || !identical(round, _round) || !_won || currentPuzzle == null) return;
+    playOneShotMotion(successController, () {});
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildSuccessDialog(bonus, round, dialogContext),
+    );
+  }
+
+  bool _canUseDialog(Object round, BuildContext dialogContext) =>
+      mounted && identical(round, _round) && _won && dialogContext.mounted && ModalRoute.of(dialogContext)?.isCurrent == true;
 
   void _handleIncorrect() {
     if (kDebugMode) debugPrint("❌ [UI] _handleIncorrect() - Showing failure message");
@@ -354,19 +418,26 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   }
 
   void _handleOutOfMoves() {
+    if (_won || _isGenerating) return;
+    if (!_canInteract(_round)) return;
+    _resetRoundEffects();
+    setState(() => _won = true);
     if (kDebugMode) debugPrint("❌ [UI] Out of moves! Game over.");
+    final round = _round;
     _handleFailure();
-
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _buildOutOfMovesDialog(),
-      );
-    }
+    _showOutOfMovesDialog(round);
   }
 
-  Widget _buildOutOfMovesDialog() {
+  void _showOutOfMovesDialog(Object round) {
+    if (!mounted || !identical(round, _round) || !_won || currentPuzzle == null) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _buildOutOfMovesDialog(round, dialogContext),
+    );
+  }
+
+  Widget _buildOutOfMovesDialog(Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return ScrollableRoundDialog(
       backgroundColor: Colors.transparent,
@@ -393,13 +464,17 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            OverflowBar(
+              alignment: MainAxisAlignment.spaceEvenly,
+              overflowAlignment: OverflowBarAlignment.center,
+              spacing: 16,
+              overflowSpacing: 12,
               children: [
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) return;
+                    Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
                   style: SpaceTheme.secondaryButtonStyle,
@@ -407,8 +482,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
+                    if (!_canUseDialog(round, dialogContext)) return;
+                    Navigator.of(dialogContext).pop();
+                    if (mounted) Navigator.of(context).pop();
                   },
                   style: SpaceTheme.primaryButtonStyle,
                   child: Text(s.backToMenu),
@@ -461,6 +537,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   @override
   Widget build(BuildContext context) {
     if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (_reducedMotion) {}
     if (kDebugMode) debugPrint("🏗️ [UI] build() called - _isGenerating: $_isGenerating, currentPuzzle: ${currentPuzzle != null}");
     
     final screenSize = MediaQuery.of(context).size;
@@ -804,11 +881,12 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         debugPrint("🔺 [UI] Generated ${nodePoints.length} node points");
 
         return Center(
-          child: DragTarget<int>(
-            key: _triangleAreaKey,
+          child: DragTarget<MagicTrianglesDrag>(
+            key: ValueKey(('magic-target', _round)),
             builder: (context, candidateData, rejectedData) {
               if (kDebugMode) debugPrint("🔺 [UI] DragTarget builder called");
               return SizedBox(
+                key: _triangleAreaKey,
                 width: size,
                 height: size,
                 child: Stack(
@@ -845,8 +923,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                 ),
               );
             },
-            onWillAcceptWithDetails: (data) {
-              if (kDebugMode) debugPrint("🎯 [UI] DragTarget.onWillAccept: $data");
+            onWillAcceptWithDetails: (details) {
+              if (!_canInteract(details.data.round) || !identical(details.data.round, _round)) return false;
+              if (kDebugMode) debugPrint("🎯 [UI] DragTarget.onWillAccept: ${details.data}");
               setState(() => _isDraggingOver = true);
               return true;
             },
@@ -855,6 +934,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               setState(() => _isDraggingOver = false);
             },
             onAcceptWithDetails: (details) {
+              if (!_canInteract(details.data.round) || !identical(details.data.round, _round)) return;
               if (kDebugMode) debugPrint("🎯 [UI] DragTarget.onAcceptWithDetails: ${details.data} at ${details.offset}");
               setState(() => _isDraggingOver = false);
               
@@ -875,7 +955,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               if (closestGlobalIndex != null) {
                   final answerIndex = currentPuzzle!.getAnswerIndex(closestGlobalIndex);
                   if (kDebugMode) debugPrint("🎯 [UI] Answer index: $answerIndex");
-                  _placeNumber(droppedNumber, answerIndex, closestGlobalIndex);
+                  _placeNumber(droppedNumber, answerIndex, closestGlobalIndex, droppedNumber.round);
               } else {
                   debugPrint("🎯 [UI] No valid drop target found");
               }
@@ -914,7 +994,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       
       if (kDebugMode) debugPrint("🔍 [UI] Minimum distance: $minDistance, target: $targetNodeIndex");
       
-      final dropRadius = (triangleSize * 0.15).clamp(60.0, 120.0);
+      final dropRadius = (triangleSize * 0.32).clamp(90.0, 180.0);
       debugPrint("🔍 [UI] Using drop radius: $dropRadius");
       
       if (minDistance < dropRadius) {
@@ -994,7 +1074,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
           ? 'Placed value $value, tap to remove'
           : 'Empty triangle node, drop a number here',
       child: GestureDetector(
-        onTap: value != null ? () => _removeNumber(answerIndex) : null,
+        onTap: value != null ? () { final round = _round; final exp = userAnswers[answerIndex]; _removeNumber(answerIndex, exp, round); } : null,
         child: _buildStargateNode(
           value: value,
           isSelected: _isDraggingOver && value == null,
@@ -1074,9 +1154,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                 return Container(); 
               }
               final number = numberPool[index];
-              // Semantics on visual child — see note in word_sort_game.
-              return Draggable<int>(
-                data: number,
+              return Draggable<MagicTrianglesDrag>(
+                key: ValueKey(('magic-drag', _round, number)),
+                data: (number: number, round: _round),
                 feedback: _buildDraggableFeedback(number, isSmallScreen),
                 childWhenDragging: Opacity(
                   opacity: 0.3,
@@ -1155,7 +1235,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     ];
   }
 
-  Widget _buildSuccessDialog(int bonusScore) {
+  Widget _buildSuccessDialog(int bonusScore, Object round, BuildContext dialogContext) {
     return AnimatedBuilder(
       animation: successAnimation,
       builder: (context, child) {
@@ -1179,13 +1259,17 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                     style: SpaceTheme.bodyStyle, textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
                         style: SpaceTheme.secondaryButtonStyle,
@@ -1193,8 +1277,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
+                          if (mounted) Navigator.of(context).pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.toTheBridge),

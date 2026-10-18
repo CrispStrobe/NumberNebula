@@ -349,7 +349,7 @@ void main() {
           _ => 21,
         };
         final source = find.byWidgetPredicate(
-            (widget) => widget is Draggable<int> && widget.data == number);
+            (widget) => (widget is Draggable<int> && widget.data == number) || (widget is Draggable && (widget.data as dynamic).number == number));
         final target = find.byWidgetPredicate((widget) =>
             widget is Semantics &&
             (widget.properties.label ?? '').startsWith('Empty ') &&
