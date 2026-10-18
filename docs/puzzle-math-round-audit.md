@@ -36,6 +36,13 @@ the setting replaces its implicit animation state so the rendered gradient snaps
 immediately, rather than merely changing the configured duration.
 Physical rotation remains a gameplay action.
 
+The build wrapper also accepts the pinned SDK's first-run bootstrap text before
+its machine JSON while still rejecting malformed metadata, SDK mismatch and SDK
+command failure. It resolves and validates source identity before building; an
+archive must supply its full commit through `SOURCE_COMMIT`. Missing provenance
+must fail rather than producing a release with an empty source marker. A small
+fake-SDK regression checks these wrapper contracts without compiling Flutter.
+
 ## Validation contract
 
 The 39-case focused suite is `test/widgets/puzzle_math_round_test.dart`. It exercises actual
@@ -48,6 +55,7 @@ board image widgets. Arithmetic fixture answers are checked independently.
 Run remotely with the pinned SDK:
 
 ```sh
+python3 tool/test_build_web.py
 flutter pub get
 flutter analyze --fatal-infos
 flutter test test/widgets/puzzle_math_round_test.dart test/games/puzzle_math_clock_test.dart test/games/puzzle_math_game_test.dart --concurrency=1 --reporter expanded

@@ -20,6 +20,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check build wrapper and source identity
+        run: python3 tool/test_build_web.py
+
       - name: Read Flutter SDK pin
         run: echo "FLUTTER_VERSION=$(cat .flutter-version)" >> "$GITHUB_ENV"
 
