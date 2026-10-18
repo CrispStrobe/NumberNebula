@@ -265,6 +265,7 @@ void registerGridRoundChecks({
             of: roundDialogs, matching: find.byType(ElevatedButton)))
         .first;
     Navigator.of(t.element(roundDialogs)).pop();
+    await t.pump();
     await t.pump(const Duration(milliseconds: 400));
     retry.onPressed!();
     await t.pump();

@@ -46,7 +46,21 @@ Review of `47c5351` found gaps after the first repair:
 
 The expanded tests must also run against the previous implementations as negative
 controls, so passing assertions cannot be mistaken for tests that never exercise
-the defect. Full-suite and build evidence will be added after validation.
+the defect. The [published build evidence](https://numbernebula.vercel.app/audit-proof.json)
+records the exact tested source, before-fix failing cases, full-suite summaries,
+generation/capture counts and changed-line coverage. That report is generated
+only after all configured validation steps pass; verify its source commit before
+using it as evidence. Coverage lists unexecuted changed lines and is not a claim
+that every possible interaction or error path has been exercised.
+
+To reproduce, use the pinned SDK and an isolated checkout. Run the eleven focused
+round suites listed above, then `flutter test --coverage --concurrency=1` and the
+commands in [pure Dart calibration](pure-dart-calibration.md). For negative
+controls retain the new tests while substituting the corresponding screen files
+from `47c5351`; require behavioral assertion failures, not compilation failures.
+Restore the repaired screens and require the same tests to pass. The browser
+suite includes `tool/web_live_test/tests/audited-games.spec.mjs` and opens each
+changed screen in Chromium/WASM and Firefox/JavaScript.
 
 ## Limits
 

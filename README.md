@@ -2,7 +2,7 @@
 
 ## Project status and next work
 
-The integrated version is **1.5.32+48** ([PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)):
+The integrated version is **1.5.33+49** ([PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)):
 48 registered games, 31 focused round suites and retained all-game calibration.
 Consult the exact-head PR checks for the current validation/merge state.
 Start with [HANDOVER.md](HANDOVER.md) for evidence and boundaries, then

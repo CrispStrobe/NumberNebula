@@ -1,6 +1,6 @@
 # Automated game testing and calibration
 
-Current integration: **1.5.32+48**, [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58).
+Current integration: **1.5.33+49**, [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58).
 It repairs restored rounds and acceptance coverage, retaining all generator and
 rendering A/B paths. See [handover](../HANDOVER.md) and the exact-head PR checks
 for validation/merge state. Dated runs below are historical evidence; they do

@@ -5,7 +5,7 @@ Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
 ## October 18 integration
 
-Current implemented version: **1.5.32+48**. [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)
+Current implemented version: **1.5.33+49**. [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)
 repairs the October 17 audits and integrates the work originally proposed in
 #55, #56 and #57. Use that PR's exact-head checks and merge state to verify
 publication; historical green runs below do not stand in for its validation.
@@ -34,6 +34,23 @@ Plating and Relic Assembly (C), followed by the unchanged D/E/F lanes. H has a
 [prepared playtest protocol](docs/human-playtest-protocol.md); R has a
 [draft readiness document](docs/release-readiness.md). Neither claims device
 measurements or a new store release.
+
+## Second-pass regression audit
+
+The [change-by-change audit](docs/october-17-regression-audit.md) records additional
+missed defects in retry flags, retained controls, restored drop effects and Star
+Forge rendering. Its expanded tests require exact state and outcome assertions,
+and run against the previous implementations as negative controls. Browser smoke
+coverage opens all eleven changed games in both release engines. Passing totals
+are evidence for those contracts, not proof that every possible defect is absent.
+
+The [published build evidence](https://numbernebula.vercel.app/audit-proof.json)
+identifies the tested source, negative controls, full-suite results, all-game
+samples and changed-line coverage. It is generated only after all validation
+steps pass. An older deployed version or a missing report does not validate the
+current source. When GitHub's runner queue is excessive, reuse a tested artifact
+or use a configured remote validation container; do not wait indefinitely or run
+large jobs on a busy shared host.
 
 ## Start here
 

@@ -29,7 +29,12 @@ class _App {
       cognitiveProfileService: cognitive);
   final double textScale;
   final Locale? locale;
-  _App({bool reduced = false, this.textScale = 1, this.locale})
+  final bool pushed;
+  _App(
+      {bool reduced = false,
+      this.textScale = 1,
+      this.locale,
+      this.pushed = false})
       : motion = ValueNotifier(reduced);
 
   Widget build() => MultiProvider(
@@ -53,7 +58,13 @@ class _App {
               child: child!,
             ),
           ),
-          home: const StarForgeGame(grade: 1, level: 1),
+          initialRoute: pushed ? '/audit-game' : null,
+          routes: pushed
+              ? {'/audit-game': (_) => const StarForgeGame(grade: 1, level: 1)}
+              : const {},
+          home: pushed
+              ? const Scaffold(body: Text('audit root'))
+              : const StarForgeGame(grade: 1, level: 1),
         ),
       );
 }
@@ -142,10 +153,12 @@ Future<void> _restore(
 
 Future<_App> _mount(WidgetTester tester,
     {bool reduced = false,
+    bool pushed = false,
     double textScale = 1,
     Locale? locale,
     Map<String, dynamic>? board}) async {
-  final app = _App(reduced: reduced, textScale: textScale, locale: locale);
+  final app = _App(
+      reduced: reduced, textScale: textScale, locale: locale, pushed: pushed);
   tester.view.physicalSize = const Size(1400, 1100);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -289,7 +302,7 @@ void main() {
 
   testWidgets('adversarial: retained back callback rejects restored round',
       (t) async {
-    await _mount(t, reduced: true);
+    await _mount(t, reduced: true, pushed: true);
     final old = t.widget<GameUI>(find.byType(GameUI)).onBack;
     final dynamic session = _session(t);
     final before = jsonDecode(jsonEncode(session.capturePuzzleSession()))
@@ -306,7 +319,7 @@ void main() {
   });
   testWidgets('adversarial: back callback cannot dismiss a covering route',
       (t) async {
-    await _mount(t, reduced: true);
+    await _mount(t, reduced: true, pushed: true);
     final back = t.widget<GameUI>(find.byType(GameUI)).onBack;
     final context = t.element(_screen);
     showDialog<void>(
@@ -315,6 +328,7 @@ void main() {
     await t.pump();
     await t.pump(const Duration(milliseconds: 400));
     back();
+    await t.pump();
     await t.pump(const Duration(milliseconds: 400));
     expect(find.text('audit route probe'), findsOneWidget);
     Navigator.of(context).pop();
