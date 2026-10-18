@@ -59,6 +59,38 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+  for (final disposed in [false, true]) {
+    testWidgets(
+        'suggested challenge ignores ${disposed ? 'disposed context' : 'covering route'}',
+        (tester) async {
+      final gp = provider()
+        ..reportOutcome(
+            GameOutcome.win(gameType: 'star_forge', difficulty: 1, score: 100));
+      await tester.pumpWidget(ChangeNotifierProvider.value(
+          value: gp,
+          child: MaterialApp(
+              localizationsDelegates: S.localizationsDelegates,
+              supportedLocales: S.supportedLocales,
+              home:
+                  const Scaffold(body: RoundSummary(gameKey: 'star_forge')))));
+      final callback =
+          tester.widget<TextButton>(find.byType(TextButton)).onPressed!;
+      if (disposed) {
+        await tester.pumpWidget(const SizedBox.shrink());
+      } else {
+        showDialog<void>(
+            context: tester.element(find.byType(RoundSummary)),
+            builder: (_) => const AlertDialog(content: Text('Covering route')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+      }
+      expect(callback, returnsNormally);
+      await tester.pump();
+      if (!disposed) expect(find.text('Covering route'), findsOneWidget);
+      expect(gp.outcomeCount, 1);
+      expect(tester.takeException(), isNull);
+    });
+  }
   testWidgets('unmeasured outcomes do not invent accuracy or hint counts',
       (tester) async {
     final gp = provider()
