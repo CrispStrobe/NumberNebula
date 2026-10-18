@@ -39,6 +39,22 @@ jobs:
       - name: Static analysis
         run: flutter analyze --fatal-infos
 
+      - name: Check repaired round, input, restore and phone contracts
+        run: >-
+          flutter test
+          test/widgets/star_forge_round_test.dart
+          test/widgets/chrono_repair_round_test.dart
+          test/widgets/arithmatic_square_round_test.dart
+          test/widgets/orbital_towers_round_test.dart
+          test/widgets/alien_tribunal_round_test.dart
+          test/widgets/arithmancer_crosswords_round_test.dart
+          test/widgets/kenken_round_test.dart
+          test/widgets/magic_triangles_round_test.dart
+          test/widgets/number_walls_round_test.dart
+          test/widgets/hive_station_round_test.dart
+          test/widgets/xenobiology_lab_round_test.dart
+          --concurrency=2 --reporter expanded
+
       - name: Check victory completion and motion settings
         run: flutter test test/widgets/victory_motion_test.dart --concurrency=1 --reporter expanded
 
@@ -95,38 +111,6 @@ jobs:
 
       - name: Check Dark Matter Grid round effects
         run: flutter test test/widgets/dark_matter_grid_round_test.dart --concurrency=1 --reporter expanded
-
-      - name: Check Star Forge round effects
-        run: flutter test test/widgets/star_forge_round_test.dart --concurrency=1 --reporter expanded
-
-      - name: Check Chrono Repair round effects
-        run: flutter test test/widgets/chrono_repair_round_test.dart --concurrency=1 --reporter expanded
-
-      - name: Check Arithmetic Square round effects
-        run: flutter test test/widgets/arithmatic_square_round_test.dart --concurrency=1 --reporter expanded
-
-      - name: Check Number Walls round effects
-        run: flutter test test/widgets/number_walls_round_test.dart --concurrency=1 --reporter expanded
-
-      - name: Check Magic Triangles round effects
-        run: flutter test test/widgets/magic_triangles_round_test.dart --concurrency=1 --reporter expanded
-
-      - name: Check Kenken round effects
-        run: flutter test test/widgets/kenken_round_test.dart --concurrency=1 --reporter expanded
-
-      - name: Check Arithmancer Crosswords round effects
-        run: flutter test test/widgets/arithmancer_crosswords_round_test.dart --concurrency=1 --reporter expanded
-
-      - name: Check Orbital Towers round effects
-        run: flutter test test/widgets/orbital_towers_round_test.dart --concurrency=1 --reporter expanded
-
-      - name: Check Alien Tribunal round effects
-        run: flutter test test/widgets/alien_tribunal_round_test.dart --concurrency=1 --reporter expanded
-
-      - name: Check Hive Station round effects
-        run: flutter test test/widgets/hive_station_round_test.dart --concurrency=1 --reporter expanded
-      - name: Check Xenobiology Lab round effects
-        run: flutter test test/widgets/xenobiology_lab_round_test.dart --concurrency=1 --reporter expanded
 
       - name: Check cached wormhole rendering
         run: flutter test test/widgets/wormhole_rendering_test.dart --concurrency=1 --reporter expanded

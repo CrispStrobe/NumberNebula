@@ -19,10 +19,14 @@ class _App {
   final sri = SriService();
   final cognitive = CognitiveProfileService();
   final debug = DebugProvider();
-  late final gp = GameProvider(progressService: ProgressService(), sriService: sri, cognitiveProfileService: cognitive);
+  late final gp = GameProvider(
+      progressService: ProgressService(),
+      sriService: sri,
+      cognitiveProfileService: cognitive);
   final double textScale;
   final Locale? locale;
-  _App({bool reduced = false, this.textScale = 1, this.locale}) : motion = ValueNotifier(reduced);
+  _App({bool reduced = false, this.textScale = 1, this.locale})
+      : motion = ValueNotifier(reduced);
   Widget build() => MultiProvider(
         providers: [
           ChangeNotifierProvider.value(value: gp),
@@ -37,7 +41,11 @@ class _App {
           supportedLocales: S.supportedLocales,
           builder: (context, child) => ValueListenableBuilder<bool>(
             valueListenable: motion,
-            builder: (_, reduced, __) => MediaQuery(data: MediaQuery.of(context).copyWith(disableAnimations: reduced, textScaler: TextScaler.linear(textScale)), child: child!),
+            builder: (_, reduced, __) => MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                    disableAnimations: reduced,
+                    textScaler: TextScaler.linear(textScale)),
+                child: child!),
           ),
           home: const ChronoRepairGame(grade: 1, level: 1),
         ),
@@ -45,10 +53,12 @@ class _App {
 }
 
 final _screen = find.byType(ChronoRepairGame);
-final _dialog = find.byWidgetPredicate((w) => w is Dialog);
+final _dialog = find.byType(Dialog);
 dynamic _session(WidgetTester tester) => tester.state(_screen);
 S _strings(WidgetTester tester) => S.of(tester.element(_screen))!;
-Map<String, dynamic> _snapshot(WidgetTester tester) => jsonDecode(jsonEncode(_session(tester).capturePuzzleSession())) as Map<String, dynamic>;
+Map<String, dynamic> _snapshot(WidgetTester tester) =>
+    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession()))
+        as Map<String, dynamic>;
 
 Map<String, dynamic> _board({
   int correctHour = 3,
@@ -79,7 +89,8 @@ Map<String, dynamic> _board({
   };
 }
 
-Future<void> _restore(WidgetTester tester, _App app, Map<String, dynamic> board) async {
+Future<void> _restore(
+    WidgetTester tester, _App app, Map<String, dynamic> board) async {
   final dynamic session = _session(tester);
   session.beginPuzzleSession();
   session.applyPuzzleSession(board);
@@ -88,17 +99,25 @@ Future<void> _restore(WidgetTester tester, _App app, Map<String, dynamic> board)
   await tester.pump();
 }
 
-Future<_App> _mount(WidgetTester tester, {bool reduced = false, double textScale = 1, Locale? locale, Map<String, dynamic>? board}) async {
+Future<_App> _mount(WidgetTester tester,
+    {bool reduced = false,
+    double textScale = 1,
+    Locale? locale,
+    Map<String, dynamic>? board}) async {
   final app = _App(reduced: reduced, textScale: textScale, locale: locale);
   tester.view.physicalSize = const Size(1400, 1100);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   addTearDown(app.motion.dispose);
-  addTearDown(() async { await tester.pumpWidget(const SizedBox.shrink()); await tester.pump(); });
+  addTearDown(() async {
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
   await tester.pumpWidget(app.build());
   for (var attempt = 0; attempt < 150; attempt++) {
     await tester.pump(const Duration(milliseconds: 20));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
     if (_session(tester).capturePuzzleSession() != null) break;
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
@@ -107,8 +126,12 @@ Future<_App> _mount(WidgetTester tester, {bool reduced = false, double textScale
 }
 
 Future<void> _tapSubmit(WidgetTester tester) async {
-  final btn = find.byWidgetPredicate((w) => w is ElevatedButton && w.key is ValueKey && (w.key as ValueKey).value.toString().contains('chrono-submit'));
+  final btn = find.byWidgetPredicate((w) =>
+      w is ElevatedButton &&
+      w.key is ValueKey &&
+      (w.key as ValueKey).value.toString().contains('chrono-submit'));
   expect(btn, findsOneWidget);
+  await tester.ensureVisible(btn);
   await tester.tap(btn);
   await tester.pump();
 }
@@ -121,7 +144,10 @@ Future<void> _setHour(WidgetTester tester, int target) async {
   // Hour is first stepper
   for (int i = 0; i < 20; i++) {
     final snap = _snapshot(tester);
-    if (snap['_selectedHour'] == target) { break; }
+    if (snap['_selectedHour'] == target) {
+      break;
+    }
+    await tester.ensureVisible(upButtons.at(0));
     await tester.tap(upButtons.at(0));
     await tester.pump();
   }
@@ -133,7 +159,10 @@ Future<void> _setMinute(WidgetTester tester, int target) async {
   expect(upButtons, findsAtLeastNWidgets(2));
   for (int i = 0; i < 20; i++) {
     final snap = _snapshot(tester);
-    if (snap['_selectedMinute'] == target) { break; }
+    if (snap['_selectedMinute'] == target) {
+      break;
+    }
+    await tester.ensureVisible(upButtons.at(1));
     await tester.tap(upButtons.at(1));
     await tester.pump();
   }
@@ -141,7 +170,7 @@ Future<void> _setMinute(WidgetTester tester, int target) async {
 }
 
 void _gradeWin(_App app, {int wrong = 0}) {
-  expect(app.gp.outcomeCount, 1);
+  expect(app.gp.outcomeCount, wrong + 1);
   expect(app.gp.lastOutcome!.wasSuccessful, isTrue);
   expect(app.gp.lastOutcome!.performance, Perf.fromMistakes(wrong));
 }
@@ -153,7 +182,8 @@ Future<void> _retry(WidgetTester tester) async {
   await tester.tap(btn);
   for (var attempt = 0; attempt < 150; attempt++) {
     await tester.pump(const Duration(milliseconds: 20));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
     if (_session(tester).capturePuzzleSession() != null) break;
   }
   await tester.pump(const Duration(milliseconds: 300));
@@ -164,8 +194,13 @@ Future<void> _retry(WidgetTester tester) async {
 Future<Map<String, dynamic>?> _stored(WidgetTester tester) async {
   var complete = false;
   Map<String, dynamic>? saved;
-  PuzzleSessionStore.instance.load('chrono_repair', 1, 1).then((v) { saved = v; complete = true; });
-  for (var frame = 0; frame < 100 && !complete; frame++) { await tester.pump(const Duration(milliseconds: 20)); }
+  PuzzleSessionStore.instance.load('chrono_repair', 1, 1).then((v) {
+    saved = v;
+    complete = true;
+  });
+  for (var frame = 0; frame < 100 && !complete; frame++) {
+    await tester.pump(const Duration(milliseconds: 20));
+  }
   expect(complete, isTrue);
   return saved;
 }
@@ -175,11 +210,13 @@ void main() {
   setUp(() {
     final id = 'chrono_rounds_${profile++}';
     ProfilePreferences.activeId = id;
-    SharedPreferences.setMockInitialValues({'player_${id}_onboarding_seen_chrono_repair': true});
+    SharedPreferences.setMockInitialValues(
+        {'player_${id}_onboarding_seen_chrono_repair': true});
     PuzzleSessionStore.resetForTesting();
   });
 
-  testWidgets('correct submission wins once with performance and retry', (tester) async {
+  testWidgets('correct submission wins once with performance and retry',
+      (tester) async {
     final app = await _mount(tester, reduced: true);
     await _setHour(tester, 3);
     await _setMinute(tester, 15);
@@ -193,7 +230,9 @@ void main() {
     expect(_session(tester).capturePuzzleSession(), isNotNull);
   });
 
-  testWidgets('wrong submission shows snackbar, increments wrongChecks and remains playable', skip: true, (tester) async {
+  testWidgets(
+      'wrong submission shows snackbar, increments wrongChecks and remains playable',
+      (tester) async {
     final app = await _mount(tester, reduced: true);
     await _setHour(tester, 5); // wrong
     await _tapSubmit(tester);
@@ -203,7 +242,8 @@ void main() {
     expect(_snapshot(tester)['_selectedHour'], 5);
     expect(app.gp.outcomeCount, 1);
     expect(app.gp.lastOutcome!.wasSuccessful, isFalse);
-    expect(_session(tester).capturePuzzleSession(), isNotNull); // still playable
+    expect(
+        _session(tester).capturePuzzleSession(), isNotNull); // still playable
     await tester.pump(const Duration(milliseconds: 1000));
     final saved = await _stored(tester);
     expect(saved!['_wrongChecks'], 1);
@@ -217,11 +257,23 @@ void main() {
     _gradeWin(app, wrong: 1);
   });
 
-  testWidgets('old stepper callbacks cannot affect new board', skip: true, (tester) async {
+  testWidgets('old stepper callbacks cannot affect new board', (tester) async {
     final app = await _mount(tester);
-    final oldUp = tester.widget<IconButton>(find.byIcon(Icons.keyboard_arrow_up).first);
-    final oldSubmit = tester.widget<ElevatedButton>(find.byWidgetPredicate((w) => w is ElevatedButton && w.key is ValueKey && (w.key as ValueKey).value.toString().contains('chrono-submit')));
-    await _restore(tester, app, _board(correctHour: 7, correctMinute: 30, displayedHour: 9, displayedMinute: 30));
+    final oldUp =
+        tester.widget<IconButton>(find.byIcon(Icons.keyboard_arrow_up).first);
+    final oldSubmit = tester.widget<ElevatedButton>(find.byWidgetPredicate(
+        (w) =>
+            w is ElevatedButton &&
+            w.key is ValueKey &&
+            (w.key as ValueKey).value.toString().contains('chrono-submit')));
+    await _restore(
+        tester,
+        app,
+        _board(
+            correctHour: 7,
+            correctMinute: 30,
+            displayedHour: 9,
+            displayedMinute: 30));
     final before = _snapshot(tester);
     oldUp.onPressed!();
     oldSubmit.onPressed!();
@@ -231,9 +283,11 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('active press before restore cannot submit to new board', skip: true, (tester) async {
+  testWidgets('active press before restore cannot submit to new board',
+      (tester) async {
     final app = await _mount(tester, reduced: true);
-    final gesture = await tester.startGesture(tester.getCenter(find.byWidgetPredicate((w) => w is ElevatedButton && w.key is ValueKey)));
+    final gesture = await tester.startGesture(tester.getCenter(find
+        .byWidgetPredicate((w) => w is ElevatedButton && w.key is ValueKey)));
     await _restore(tester, app, _board(correctHour: 7, correctMinute: 30));
     await gesture.up();
     await tester.pump();
@@ -241,10 +295,12 @@ void main() {
     expect(app.gp.outcomeCount, 0);
   });
 
-  testWidgets('disposal rejects retained callbacks', skip: true, (tester) async {
+  testWidgets('disposal rejects retained callbacks', (tester) async {
     final app = await _mount(tester);
-    final oldUp = tester.widget<IconButton>(find.byIcon(Icons.keyboard_arrow_up).first);
-    final oldSubmit = tester.widget<ElevatedButton>(find.byWidgetPredicate((w) => w is ElevatedButton && w.key is ValueKey));
+    final oldUp =
+        tester.widget<IconButton>(find.byIcon(Icons.keyboard_arrow_up).first);
+    final oldSubmit = tester.widget<ElevatedButton>(find
+        .byWidgetPredicate((w) => w is ElevatedButton && w.key is ValueKey));
     await tester.pumpWidget(const SizedBox.shrink());
     oldUp.onPressed!();
     oldSubmit.onPressed!();
@@ -253,25 +309,28 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('win dialog buttons cannot be reused after close or replacement', skip: true, (tester) async {
+  testWidgets('win dialog buttons cannot be reused after close or replacement',
+      (tester) async {
     final app = await _mount(tester, reduced: true);
     await _setHour(tester, 3);
     await _setMinute(tester, 15);
     await _tapSubmit(tester);
     await tester.pump(const Duration(milliseconds: 700));
-    final retry = tester.widget<ElevatedButton>(find.widgetWithText(ElevatedButton, _strings(tester).playAgain));
-    final exit = tester.widget<ElevatedButton>(find.widgetWithText(ElevatedButton, _strings(tester).backToMenu));
+    final retry = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, _strings(tester).playAgain));
+    final exit = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, _strings(tester).backToMenu));
     Navigator.of(tester.element(_screen)).pop();
     await tester.pump();
     retry.onPressed!();
     exit.onPressed!();
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(_screen, findsOneWidget);
     expect(_dialog, findsNothing);
     _gradeWin(app);
   });
 
-  testWidgets('reduced motion completes win immediately', skip: true, (tester) async {
+  testWidgets('reduced motion completes win immediately', (tester) async {
     final app = await _mount(tester, reduced: true);
     await _setHour(tester, 3);
     await _setMinute(tester, 15);
@@ -284,8 +343,9 @@ void main() {
   });
 
   for (final lang in ['en', 'de']) {
-    testWidgets('phone doubled text still allows win in $lang', skip: true, (tester) async {
-      final app = await _mount(tester, reduced: true, textScale: 2, locale: Locale(lang));
+    testWidgets('phone doubled text still allows win in $lang', (tester) async {
+      final app = await _mount(tester,
+          reduced: true, textScale: 2, locale: Locale(lang));
       tester.view.physicalSize = const Size(390, 844);
       await tester.pump();
       expect(tester.takeException(), isNull);
@@ -295,19 +355,37 @@ void main() {
       await tester.pump(const Duration(milliseconds: 700));
       expect(_dialog, findsOneWidget);
       _gradeWin(app);
-      await tester.ensureVisible(find.widgetWithText(ElevatedButton, _strings(tester).playAgain));
+      await tester.ensureVisible(
+          find.widgetWithText(ElevatedButton, _strings(tester).playAgain));
       await _retry(tester);
     });
   }
 
-  testWidgets('short viewport still shows clock and submit', skip: true, (tester) async {
-    await _mount(tester, reduced: true, textScale: 1, locale: const Locale('en'));
+  testWidgets(
+      'short doubled-text viewport scrolls to actual clock controls and win',
+      (tester) async {
+    final app = await _mount(tester,
+        reduced: true, textScale: 2, locale: const Locale('de'));
     tester.view.physicalSize = const Size(390, 500);
     await tester.pump();
-    // Short viewport may overflow in compact layout; we just ensure no crash and submit is still reachable via scroll
     expect(tester.takeException(), isNull);
-    // If overflow occurs, we consider it a known layout limitation to be fixed in UI, not a hard failure for this audit
+    await _setHour(tester, 3);
+    await _setMinute(tester, 15);
+    await _tapSubmit(tester);
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(_dialog, findsOneWidget);
+    _gradeWin(app);
     expect(tester.takeException(), isNull);
-    expect(find.byType(CustomPaint), findsWidgets);
+  });
+  testWidgets('restoring correct unsubmitted clock input preserves submission',
+      (tester) async {
+    final app = await _mount(tester,
+        reduced: true, board: _board(selectedHour: 3, selectedMinute: 15));
+    expect(_session(tester).capturePuzzleSession(), isNotNull);
+    expect(_dialog, findsNothing);
+    expect(app.gp.outcomeCount, 0);
+    await _tapSubmit(tester);
+    await tester.pump(const Duration(milliseconds: 700));
+    _gradeWin(app);
   });
 }

@@ -20,14 +20,18 @@ import '../constants/difficulty_manager.dart';
 class XenobiologyLabGame extends StatefulWidget {
   final int grade;
   final int level;
-  const XenobiologyLabGame({super.key, required this.grade, required this.level});
+  const XenobiologyLabGame(
+      {super.key, required this.grade, required this.level});
 
   @override
   State<XenobiologyLabGame> createState() => _XenobiologyLabGameState();
 }
 
 class _XenobiologyLabGameState extends State<XenobiologyLabGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<XenobiologyLabGame>, PuzzleSessionMixin<XenobiologyLabGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<XenobiologyLabGame>,
+        PuzzleSessionMixin<XenobiologyLabGame> {
   bool _sessionReady = false;
   Object _round = Object();
   bool _won = false;
@@ -54,7 +58,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
-    updateOneShotMotion(successController, reduced, duration: const Duration(milliseconds: 600));
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
   }
 
   @visibleForTesting
@@ -62,7 +67,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
   @visibleForTesting
   void rebuildForTesting() => setState(() {});
   @visibleForTesting
-  void setSliderForTesting(int which, int value, Object round) => _setSlider(which, value, round);
+  void setSliderForTesting(int which, int value, Object round) =>
+      _setSlider(which, value, round);
   @visibleForTesting
   void checkForTesting(Object round) => _checkSolution(round);
   @visibleForTesting
@@ -129,42 +135,15 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     _mathProblems
       ..clear()
       ..addAll((state['_mathProblems'] as List)
-          .map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map)))
+          .map((v0) =>
+              MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map)))
           .toList());
     _wrongChecks = state['_wrongChecks'] as int;
     _isGenerating = false;
     _gameOver = false;
     _won = false;
-    // If the restored snapshot is already solved, treat it as a won terminal
-    // state: show the win dialog once rather than leaving the board stuck
-    // in a finished-but-not-reported loop.
-    final isSolved = matchesCensusTotals({
-      '_maxSliderValue': _maxSliderValue,
-      '_hasThirdType': _hasThirdType,
-      '_eyesA': _eyesA,
-      '_eyesB': _eyesB,
-      '_eyesC': _eyesC,
-      '_legsA': _legsA,
-      '_legsB': _legsB,
-      '_legsC': _legsC,
-      '_totalEyes': _totalEyes,
-      '_totalLegs': _totalLegs,
-      '_countA': _countA,
-      '_countB': _countB,
-      '_countC': _countC,
-    }, _sliderA, _sliderB, _sliderC);
-    if (isSolved) {
-      _gameOver = true;
-      _won = true;
-      finishPuzzleSession();
-      final round = _round;
-      final score = _winScore();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !identical(round, _round) || !_won) return;
-        _showWinDialog(score, round);
-      });
-      WidgetsBinding.instance.ensureVisualUpdate();
-    }
+    // Sliders are saved before manual submission. Keep correct input playable;
+    // completed rounds already clear their session at the outcome boundary.
   }
 
   Future<void> _restoreOrGenerate() async {
@@ -216,7 +195,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -249,7 +229,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     });
 
     final grade = currentDifficulty!.grade;
-    final generated = generateXenobiologyLab(grade, widget.level, random: _random);
+    final generated =
+        generateXenobiologyLab(grade, widget.level, random: _random);
     if (!mounted || !identical(round, _round)) return;
     _countA = generated['_countA'] as int;
     _countB = generated['_countB'] as int;
@@ -279,9 +260,13 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
   // Computed totals based on slider values
   int get _computedEyes =>
-      _sliderA * _eyesA + _sliderB * _eyesB + (_hasThirdType ? _sliderC * _eyesC : 0);
+      _sliderA * _eyesA +
+      _sliderB * _eyesB +
+      (_hasThirdType ? _sliderC * _eyesC : 0);
   int get _computedLegs =>
-      _sliderA * _legsA + _sliderB * _legsB + (_hasThirdType ? _sliderC * _legsC : 0);
+      _sliderA * _legsA +
+      _sliderB * _legsB +
+      (_hasThirdType ? _sliderC * _legsC : 0);
 
   bool get _eyesMatch => _computedEyes == _totalEyes;
   bool get _legsMatch => _computedLegs == _totalLegs;
@@ -360,7 +345,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => _buildWinDialog(totalScore, round, dialogContext),
+      builder: (dialogContext) =>
+          _buildWinDialog(totalScore, round, dialogContext),
     );
   }
 
@@ -406,7 +392,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_isGenerating || currentDifficulty == null) {
@@ -449,7 +436,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
                     if (isShort) {
                       return SingleChildScrollView(
                         child: ConstrainedBox(
-                          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                          constraints:
+                              BoxConstraints(minHeight: constraints.maxHeight),
                           child: content,
                         ),
                       );
@@ -522,11 +510,13 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+        border:
+            Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline, color: SpaceTheme.starYellow, size: 20),
+          const Icon(Icons.info_outline,
+              color: SpaceTheme.starYellow, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -577,7 +567,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(name,
-                        style: SpaceTheme.titleStyle.copyWith(color: color, fontSize: 16),
+                        style: SpaceTheme.titleStyle
+                            .copyWith(color: color, fontSize: 16),
                         overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4),
                     _buildTraitRow(Icons.visibility, '$eyes eyes', color),
@@ -599,7 +590,9 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
         Icon(icon, color: color.withValues(alpha: 0.7), size: 16),
         const SizedBox(width: 6),
         Expanded(
-          child: Text(text, style: SpaceTheme.bodyStyle.copyWith(fontSize: 13), overflow: TextOverflow.ellipsis),
+          child: Text(text,
+              style: SpaceTheme.bodyStyle.copyWith(fontSize: 13),
+              overflow: TextOverflow.ellipsis),
         ),
       ],
     );
@@ -616,7 +609,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     );
   }
 
-  int get _computedCreatures => _sliderA + _sliderB + (_hasThirdType ? _sliderC : 0);
+  int get _computedCreatures =>
+      _sliderA + _sliderB + (_hasThirdType ? _sliderC : 0);
   int get _totalCreatures => _countA + _countB + (_hasThirdType ? _countC : 0);
   bool get _creaturesMatch => _computedCreatures == _totalCreatures;
 
@@ -630,14 +624,16 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
             color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3 + glowAnimation.value * 0.3),
+              color: SpaceTheme.nebulaPurple
+                  .withValues(alpha: 0.3 + glowAnimation.value * 0.3),
               width: 2,
             ),
           ),
           child: Column(
             children: [
               Text(S.of(context)!.xenoCensusReport,
-                  style: SpaceTheme.titleStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 18)),
+                  style: SpaceTheme.titleStyle
+                      .copyWith(color: SpaceTheme.starYellow, fontSize: 18)),
               const SizedBox(height: 12),
               // FIX: Row overflow -> Wrap with spacing so the two (or three)
               // census cards never overflow on 390w or at textScale 2.0.
@@ -703,7 +699,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
           Icon(icon, color: SpaceTheme.starYellow, size: 22),
           const SizedBox(height: 4),
           Text(label,
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 13, color: Colors.white70),
+              style: SpaceTheme.bodyStyle
+                  .copyWith(fontSize: 13, color: Colors.white70),
               textAlign: TextAlign.center),
           const SizedBox(height: 6),
           // Target row — FIX: use Wrap so long German labels don't overflow.
@@ -712,7 +709,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
             spacing: 4,
             children: [
               Text(S.of(context)!.xenoTarget,
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white54)),
+                  style: SpaceTheme.bodyStyle
+                      .copyWith(fontSize: 12, color: Colors.white54)),
               Text('$target',
                   style: SpaceTheme.headlineStyle.copyWith(
                     fontSize: 22,
@@ -727,13 +725,15 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
             spacing: 4,
             children: [
               Text(S.of(context)!.xenoYours,
-                  style: SpaceTheme.bodyStyle.copyWith(fontSize: 12, color: Colors.white54)),
+                  style: SpaceTheme.bodyStyle
+                      .copyWith(fontSize: 12, color: Colors.white54)),
               Text('$current',
                   style: SpaceTheme.headlineStyle.copyWith(
                     fontSize: 22,
                     color: statusColor,
                   )),
-              if (matches) const Icon(Icons.check_circle, color: matchColor, size: 16),
+              if (matches)
+                const Icon(Icons.check_circle, color: matchColor, size: 16),
             ],
           ),
         ],
@@ -766,7 +766,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
               key: ValueKey(('xeno-submit', round)),
               onPressed: () => _checkSolution(round),
               icon: const Icon(Icons.check, size: 28),
-              label: Text(S.of(context)!.xenobiologySubmitCensus, style: const TextStyle(fontSize: 16)),
+              label: Text(S.of(context)!.xenobiologySubmitCensus,
+                  style: const TextStyle(fontSize: 16)),
               style: SpaceTheme.primaryButtonStyle,
             ),
           ),
@@ -774,7 +775,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     );
   }
 
-  Widget _buildSlider(String name, int value, Color color, ValueChanged<int> onChanged, Object round, int index) {
+  Widget _buildSlider(String name, int value, Color color,
+      ValueChanged<int> onChanged, Object round, int index) {
     return Container(
       key: ValueKey(('xeno-slider', round, index)),
       padding: const EdgeInsets.all(16),
@@ -789,13 +791,15 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
             children: [
               Expanded(
                 child: Text(name,
-                    style: SpaceTheme.titleStyle.copyWith(color: color, fontSize: 14),
+                    style: SpaceTheme.titleStyle
+                        .copyWith(color: color, fontSize: 14),
                     overflow: TextOverflow.ellipsis),
               ),
               const SizedBox(width: 8),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
@@ -803,7 +807,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
                 ),
                 child: Text(
                   '$value',
-                  style: SpaceTheme.headlineStyle.copyWith(fontSize: 20, color: color),
+                  style: SpaceTheme.headlineStyle
+                      .copyWith(fontSize: 20, color: color),
                 ),
               ),
             ],
@@ -816,7 +821,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
               thumbColor: color,
               overlayColor: color.withValues(alpha: 0.2),
               valueIndicatorColor: color,
-              valueIndicatorTextStyle: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+              valueIndicatorTextStyle: const TextStyle(
+                  color: Colors.black, fontWeight: FontWeight.bold),
             ),
             child: Slider(
               value: value.toDouble(),
@@ -832,7 +838,8 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     );
   }
 
-  Widget _buildWinDialog(int totalScore, Object round, BuildContext dialogContext) {
+  Widget _buildWinDialog(
+      int totalScore, Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -848,9 +855,12 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'xenobiology_lab'),
-                  const Icon(Icons.biotech, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.biotech,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  Text(s.xenobiologyLabWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(s.xenobiologyLabWinTitle,
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(s.xenobiologyLabWinDesc(totalScore),
                       style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
@@ -961,5 +971,7 @@ class _AlienPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _AlienPainter oldDelegate) =>
-      oldDelegate.eyes != eyes || oldDelegate.legs != legs || oldDelegate.color != color;
+      oldDelegate.eyes != eyes ||
+      oldDelegate.legs != legs ||
+      oldDelegate.color != color;
 }

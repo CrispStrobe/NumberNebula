@@ -326,7 +326,7 @@ void main() {
         await tester.pumpWidget(app.build());
         final dialog = game == 'solarpanel_game'
             ? find.text(S.of(tester.element(screen))!.solarPanelWinTitle)
-            : find.byWidgetPredicate((widget) => widget is Dialog);
+            : find.byType(Dialog);
         dynamic session = tester.state(screen);
         for (var attempt = 0; attempt < 150; attempt++) {
           await tester.pump(const Duration(milliseconds: 20));
@@ -348,8 +348,12 @@ void main() {
           'number_walls' => 5,
           _ => 21,
         };
-        final source = find.byWidgetPredicate(
-            (widget) => (widget is Draggable<int> && widget.data == number) || (widget is Draggable && (widget.data as dynamic).number == number));
+        final source = find.byWidgetPredicate((widget) =>
+            (widget is Draggable<int> && widget.data == number) ||
+            (widget is Draggable<MagicTrianglesDrag> &&
+                widget.data?.number == number) ||
+            (widget is Draggable<NumberWallsDrag> &&
+                widget.data?.number == number));
         final target = find.byWidgetPredicate((widget) =>
             widget is Semantics &&
             (widget.properties.label ?? '').startsWith('Empty ') &&

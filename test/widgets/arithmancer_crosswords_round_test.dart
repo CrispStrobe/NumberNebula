@@ -21,7 +21,9 @@ class _App {
   final cognitive = CognitiveProfileService();
   final debug = DebugProvider();
   late final gp = GameProvider(
-      progressService: ProgressService(), sriService: sri, cognitiveProfileService: cognitive);
+      progressService: ProgressService(),
+      sriService: sri,
+      cognitiveProfileService: cognitive);
   _App({bool reduced = false}) : motion = ValueNotifier(reduced);
 
   Widget build() => MultiProvider(
@@ -48,11 +50,13 @@ class _App {
 }
 
 final _screen = find.byType(ArithmancerCrosswordsGame);
-Finder get _dialog => find.byWidgetPredicate((w) => w is Dialog);
+Finder get _dialog => find.byType(Dialog);
 dynamic _session(WidgetTester tester) => tester.state(_screen);
-S _strings(WidgetTester tester) => S.of(tester.element(_screen))!; // ignore: unused_element
+S _strings(WidgetTester tester) =>
+    S.of(tester.element(_screen))!; // ignore: unused_element
 Map<String, dynamic> _snapshot(WidgetTester tester) =>
-    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession())) as Map<String, dynamic>;
+    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession()))
+        as Map<String, dynamic>;
 
 Future<void> _restoreFromSessionPuzzle(WidgetTester tester) async {
   final dynamic session = _session(tester);
@@ -95,7 +99,8 @@ Future<_App> _mount(WidgetTester tester, {bool reduced = false}) async {
   await tester.pumpWidget(app.build());
   for (var attempt = 0; attempt < 150; attempt++) {
     await tester.pump(const Duration(milliseconds: 20));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
     if (_session(tester).capturePuzzleSession() != null) break;
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
@@ -103,24 +108,33 @@ Future<_App> _mount(WidgetTester tester, {bool reduced = false}) async {
   return app;
 }
 
-final _targets = find.byWidgetPredicate((w) => w is DragTarget<ArithmancerCrosswordsDrag>);
-Finder _draggable(int n) =>
-    find.byWidgetPredicate((w) => w is Draggable<ArithmancerCrosswordsDrag> && w.data!.number == n);
-DragTarget<ArithmancerCrosswordsDrag> _target(WidgetTester tester, [int idx = 0]) =>
+final _targets =
+    find.byWidgetPredicate((w) => w is DragTarget<ArithmancerCrosswordsDrag>);
+Finder _draggable(int n) => find.byWidgetPredicate(
+    (w) => w is Draggable<ArithmancerCrosswordsDrag> && w.data!.number == n);
+DragTarget<ArithmancerCrosswordsDrag> _target(WidgetTester tester,
+        [int idx = 0]) =>
     tester.widget<DragTarget<ArithmancerCrosswordsDrag>>(_targets.at(idx));
 ArithmancerCrosswordsDrag _payload(WidgetTester tester, int n) {
-  final list = tester.widgetList<Draggable<ArithmancerCrosswordsDrag>>(_draggable(n)).toList();
+  final list = tester
+      .widgetList<Draggable<ArithmancerCrosswordsDrag>>(_draggable(n))
+      .toList();
   expect(list, isNotEmpty, reason: 'No draggable for $n');
   return list.first.data!;
 }
-void _deliver(DragTarget<ArithmancerCrosswordsDrag> t, ArithmancerCrosswordsDrag d) =>
-    t.onAcceptWithDetails!(DragTargetDetails<ArithmancerCrosswordsDrag>(data: d, offset: Offset.zero));
-Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async { // ignore: unused_element
+
+void _deliver(
+        DragTarget<ArithmancerCrosswordsDrag> t, ArithmancerCrosswordsDrag d) =>
+    t.onAcceptWithDetails!(DragTargetDetails<ArithmancerCrosswordsDrag>(
+        data: d, offset: Offset.zero));
+Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async {
+  // ignore: unused_element
   final draggableFinder = _draggable(value);
   // If multiple draggables share the same number (duplicate pool entries),
   // pick the first one to avoid \"Too many elements\".
   final src = draggableFinder.at(0);
-  await tester.drag(src, tester.getCenter(_targets.at(targetIdx)) - tester.getCenter(src));
+  await tester.drag(
+      src, tester.getCenter(_targets.at(targetIdx)) - tester.getCenter(src));
   await tester.pump();
 }
 
@@ -129,7 +143,8 @@ void main() {
   setUp(() {
     final id = 'crosswords_rounds_${profile++}';
     ProfilePreferences.activeId = id;
-    SharedPreferences.setMockInitialValues({'player_${id}_onboarding_seen_arithmancer_crosswords': true});
+    SharedPreferences.setMockInitialValues(
+        {'player_${id}_onboarding_seen_arithmancer_crosswords': true});
     PuzzleSessionStore.resetForTesting();
   });
 
@@ -146,10 +161,12 @@ void main() {
     sess.placeForTesting(correctNumber, cellId, round);
     await tester.pump();
     final sol = _snapshot(tester)['userSolution'] as List;
-    expect(sol.any((e) => (e as List)[0] == cellId && e[1] == correctNumber), isTrue);
+    expect(sol.any((e) => (e as List)[0] == cellId && e[1] == correctNumber),
+        isTrue);
   });
 
-  testWidgets('old payload cannot mutate new board after restore', (tester) async {
+  testWidgets('old payload cannot mutate new board after restore',
+      (tester) async {
     final app = await _mount(tester);
     final snapBefore = _snapshot(tester);
     final List poolBefore = snapBefore['numberPool'] as List;

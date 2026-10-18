@@ -27,14 +27,18 @@ typedef OrbitalTowersDrag = ({int number, Object round});
 class OrbitalTowersGame extends StatefulWidget {
   final int grade;
   final int level;
-  const OrbitalTowersGame({super.key, required this.grade, required this.level});
+  const OrbitalTowersGame(
+      {super.key, required this.grade, required this.level});
 
   @override
   State<OrbitalTowersGame> createState() => _OrbitalTowersGameState();
 }
 
 class _OrbitalTowersGameState extends State<OrbitalTowersGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<OrbitalTowersGame>, PuzzleSessionMixin<OrbitalTowersGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<OrbitalTowersGame>,
+        PuzzleSessionMixin<OrbitalTowersGame> {
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;
 
@@ -89,8 +93,10 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
 
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
-    updateOneShotMotion(_dropController, reduced, duration: const Duration(milliseconds: 500));
-    updateOneShotMotion(successController, reduced, duration: const Duration(milliseconds: 600));
+    updateOneShotMotion(_dropController, reduced,
+        duration: const Duration(milliseconds: 500));
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
   }
 
   @visibleForTesting
@@ -100,12 +106,17 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   void rebuildForTesting() => setState(() {});
 
   @visibleForTesting
-  void placeForTesting(int number, String cellId, Object round) => _placeNumber(number, cellId, round);
+  void placeForTesting(int number, String cellId, Object round) =>
+      _placeNumber(number, cellId, round);
 
-  @override String get sessionGameKey => 'orbital_towers';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
+  @override
+  String get sessionGameKey => 'orbital_towers';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
     if (puzzle == null || _isGenerating || _won || _outOfMoves) return null;
     return {
       'puzzle': puzzle!.toJson(),
@@ -116,9 +127,12 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
       'hints': _hintsUsed,
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
     _resetRoundEffects();
-    puzzle = OrbitalTowersPuzzle.fromJson(Map<String, dynamic>.from(state['puzzle'] as Map));
+    puzzle = OrbitalTowersPuzzle.fromJson(
+        Map<String, dynamic>.from(state['puzzle'] as Map));
     userSolution = Map<String, int>.from(state['answers'] as Map);
     _movesRemaining = state['moves'] as int;
     _maxMoves = state['maxMoves'] as int;
@@ -130,7 +144,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     _validatedLines.clear();
     // Handle older terminal snapshots
     final solved = _isSolved();
-    final exhausted = !solved && _movesRemaining <= 0 && userSolution.length < puzzle!.emptyCells.length;
+    final exhausted = !solved && _movesRemaining <= 0 && !_isSolved();
     if (solved || exhausted) {
       _won = solved;
       _outOfMoves = exhausted;
@@ -147,6 +161,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
       WidgetsBinding.instance.ensureVisualUpdate();
     }
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) _generatePuzzle();
   }
@@ -156,18 +171,18 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     super.initState();
     initGameAnimations();
 
-
     _dropController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
-
+    _dropAnimation =
+        CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         await _restoreOrGenerate();
         if (!mounted) return;
         _showOnboarding(onlyIfUnseen: true);
@@ -237,11 +252,20 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     super.dispose();
   }
 
-  int _getGridSize() => OrbitalTowersGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getGridSize();
+  int _getGridSize() => OrbitalTowersGenerationConfig(
+          currentDifficulty?.grade ?? widget.grade,
+          currentDifficulty?.level ?? widget.level)
+      .getGridSize();
 
-  int _getEdgeClueCount() => OrbitalTowersGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getEdgeClueCount();
+  int _getEdgeClueCount() => OrbitalTowersGenerationConfig(
+          currentDifficulty?.grade ?? widget.grade,
+          currentDifficulty?.level ?? widget.level)
+      .getEdgeClueCount();
 
-  int _getCellClueCount() => OrbitalTowersGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getCellClueCount();
+  int _getCellClueCount() => OrbitalTowersGenerationConfig(
+          currentDifficulty?.grade ?? widget.grade,
+          currentDifficulty?.level ?? widget.level)
+      .getCellClueCount();
 
   void _generatePuzzle() async {
     _resetRoundEffects();
@@ -278,7 +302,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
 
           _isGenerating = false;
         });
-        if (kDebugMode) debugPrint('[OrbitalTowers] Max moves allowed: $_maxMoves for ${p.emptyCells.length} empty cells');
+        if (kDebugMode)
+          debugPrint(
+              '[OrbitalTowers] Max moves allowed: $_maxMoves for ${p.emptyCells.length} empty cells');
       }
     } catch (e) {
       debugPrint('[OrbitalTowers] Error generating puzzle: $e');
@@ -289,13 +315,17 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     if (_hintLoading || puzzleSessionFinished) return;
     final p = puzzle;
     if (p == null) return;
-    final missing = p.emptyCells.where((i) => !userSolution.containsKey(i)).toList();
+    final missing =
+        p.emptyCells.where((i) => !userSolution.containsKey(i)).toList();
     if (missing.isEmpty) return;
     final cell = missing.first;
     final parts = cell.substring(1).split('c');
     final row = int.parse(parts[0]);
     final column = int.parse(parts[1]);
-    setState(() { _hintCell = cell; _hintsUsed++; });
+    setState(() {
+      _hintCell = cell;
+      _hintsUsed++;
+    });
     final s = S.of(context)!;
     final initial = Map<String, int>.from(userSolution);
     _hintLoading = true;
@@ -305,42 +335,63 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     ];
     final completion = await compute(findHintCompletion, {
       'values': {...p.clues, ...initial},
-      'domains': {for (final i in p.emptyCells) i: p.numberPool}, 'groups': groups,
+      'domains': {for (final i in p.emptyCells) i: p.numberPool},
+      'groups': groups,
       'sightlines': p.edgeClues.entries.map((e) {
-        final parts = e.key.split('_'); final index = int.parse(parts[1]);
-        final cells = List.generate(p.size, (i) => switch (parts[0]) {
-          'top' => 'r${i}c$index', 'bottom' => 'r${p.size - 1 - i}c$index',
-          'left' => 'r${index}c$i', _ => 'r${index}c${p.size - 1 - i}',
-        });
+        final parts = e.key.split('_');
+        final index = int.parse(parts[1]);
+        final cells = List.generate(
+            p.size,
+            (i) => switch (parts[0]) {
+                  'top' => 'r${i}c$index',
+                  'bottom' => 'r${p.size - 1 - i}c$index',
+                  'left' => 'r${index}c$i',
+                  _ => 'r${index}c${p.size - 1 - i}',
+                });
         return {'cells': cells, 'target': e.value};
       }).toList(),
     });
     _hintLoading = false;
     if (mounted) setState(() {});
-    if (!mounted || !identical(p, puzzle) || !mapEquals(initial, userSolution)) return;
+    if (!mounted || !identical(p, puzzle) || !mapEquals(initial, userSolution))
+      return;
     final compatible = completion != null;
     final value = completion?[cell];
     final line = List.generate(p.size, (c) => completion?['r${row}c$c'] ?? 0);
-    final visible = OrbitalTowersPuzzle.visibilityAlongLine(line).where((v) => v).length;
-    StrategyHintDialog.show(context, focus: s.hintTowerFocus(row + 1, column + 1),
-      strategy: s.hintTowerStrategy,
-      working: compatible ? '${line.join(' → ')} · 📷 $visible\n${s.hintPossibleMove(value!)}' : s.hintCheckPlacements,
-      demonstrate: compatible ? () { if (mounted) _placeNumber(value!, cell, _round); } : null);
+    final visible =
+        OrbitalTowersPuzzle.visibilityAlongLine(line).where((v) => v).length;
+    StrategyHintDialog.show(context,
+        focus: s.hintTowerFocus(row + 1, column + 1),
+        strategy: s.hintTowerStrategy,
+        working: compatible
+            ? '${line.join(' → ')} · 📷 $visible\n${s.hintPossibleMove(value!)}'
+            : s.hintCheckPlacements,
+        demonstrate: compatible
+            ? () {
+                if (mounted) _placeNumber(value!, cell, _round);
+              }
+            : null);
   }
 
   void _placeNumber(int number, String cellId, Object round) {
-    if (!_canInteract(round) || puzzle!.clues.containsKey(cellId) || !puzzle!.emptyCells.contains(cellId) || !puzzle!.numberPool.contains(number)) return;
+    if (_movesRemaining <= 0 ||
+        !_canInteract(round) ||
+        puzzle!.clues.containsKey(cellId) ||
+        !puzzle!.emptyCells.contains(cellId) ||
+        !puzzle!.numberPool.contains(number)) return;
     if (_won || _outOfMoves) return;
     setState(() {
       userSolution[cellId] = number;
       _lastDroppedCell = cellId;
       _movesRemaining--;
-      if (kDebugMode) debugPrint('[OrbitalTowers] Moves remaining: $_movesRemaining/$_maxMoves');
+      if (kDebugMode)
+        debugPrint(
+            '[OrbitalTowers] Moves remaining: $_movesRemaining/$_maxMoves');
     });
     _dropController.forward(from: 0.0);
     playOneShotMotion(_dropController, () {});
     _checkLineCompletion(cellId);
-    if (_movesRemaining <= 0 && userSolution.length < puzzle!.emptyCells.length) {
+    if (_movesRemaining <= 0 && !_isSolved()) {
       _handleOutOfMoves();
       return;
     }
@@ -348,7 +399,10 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   }
 
   void _removeNumber(String cellId, int? expected, Object round) {
-    if (!_canInteract(round) || !puzzle!.emptyCells.contains(cellId) || expected == null || userSolution[cellId] != expected) return;
+    if (!_canInteract(round) ||
+        !puzzle!.emptyCells.contains(cellId) ||
+        expected == null ||
+        userSolution[cellId] != expected) return;
     setState(() {
       userSolution.remove(cellId);
     });
@@ -370,7 +424,10 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     final rowVals = <int>{};
     for (int c = 0; c < size; c++) {
       final v = complete['r${row}c$c'];
-      if (v == null) { rowComplete = false; break; }
+      if (v == null) {
+        rowComplete = false;
+        break;
+      }
       rowVals.add(v);
     }
     if (rowComplete && rowVals.length == size) {
@@ -382,7 +439,10 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     final colVals = <int>{};
     for (int r = 0; r < size; r++) {
       final v = complete['r${r}c$col'];
-      if (v == null) { colComplete = false; break; }
+      if (v == null) {
+        colComplete = false;
+        break;
+      }
       colVals.add(v);
     }
     if (colComplete && colVals.length == size) {
@@ -401,7 +461,8 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     }
   }
 
-  int _winScore() => 100 * widget.grade + widget.level * 25 + puzzle!.size * puzzle!.size * 15;
+  int _winScore() =>
+      100 * widget.grade + widget.level * 25 + puzzle!.size * puzzle!.size * 15;
 
   void _handleWin() {
     if (!_canInteract(_round) || !_isSolved()) return;
@@ -412,29 +473,39 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     AppHaptics.lightImpact();
     final totalScore = _winScore();
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'orbital_towers',
-      difficulty: widget.level,
-      score: totalScore,
-      performance: Perf.penalize(Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves), hints: _hintsUsed),
-      hintsUsed: _hintsUsed,
-      movesUsed: _maxMoves - _movesRemaining,
-      optimalMoves: _optimalMoves,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'orbital_towers',
+          difficulty: widget.level,
+          score: totalScore,
+          performance: Perf.penalize(
+              Perf.fromMoves(_maxMoves - _movesRemaining, _optimalMoves),
+              hints: _hintsUsed),
+          hintsUsed: _hintsUsed,
+          movesUsed: _maxMoves - _movesRemaining,
+          optimalMoves: _optimalMoves,
+        ));
     _showWinDialog(totalScore, round);
   }
 
   void _showWinDialog(int score, Object round) {
-    if (!mounted || !identical(round, _round) || !_won || puzzle == null) return;
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null)
+      return;
     playOneShotMotion(successController, () {});
-    showDialog(context: context, barrierDismissible: false, builder: (dialogContext) => _buildWinDialog(score, round, dialogContext));
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) =>
+            _buildWinDialog(score, round, dialogContext));
   }
 
   bool _canUseDialog(Object round, BuildContext dialogContext) =>
-      mounted && identical(round, _round) && (_won || _outOfMoves) && dialogContext.mounted && ModalRoute.of(dialogContext)?.isCurrent == true;
+      mounted &&
+      identical(round, _round) &&
+      (_won || _outOfMoves) &&
+      dialogContext.mounted &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
 
   void _handleIncorrect() {
-
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -454,11 +525,12 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   void _handleFailure() {
     if (kDebugMode) debugPrint('[OrbitalTowers] FAILURE - recording loss');
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'orbital_towers',
-      difficulty: widget.level,
-        progress: _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'orbital_towers',
+          difficulty: widget.level,
+          progress:
+              _optimalMoves == 0 ? 0.0 : userSolution.length / _optimalMoves,
+        ));
   }
 
   void _handleOutOfMoves() {
@@ -474,8 +546,13 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   }
 
   void _showOutOfMovesDialog(Object round) {
-    if (!mounted || !identical(round, _round) || !_outOfMoves || puzzle == null) return;
-    showDialog(context: context, barrierDismissible: false, builder: (dialogContext) => _buildOutOfMovesDialog(round, dialogContext));
+    if (!mounted || !identical(round, _round) || !_outOfMoves || puzzle == null)
+      return;
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) =>
+            _buildOutOfMovesDialog(round, dialogContext));
   }
 
   Widget _buildOutOfMovesDialog(Object round, BuildContext dialogContext) {
@@ -490,12 +567,13 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-                  RoundSummary(gameKey: 'orbital_towers'),
+            RoundSummary(gameKey: 'orbital_towers'),
             const Icon(Icons.timer_off, size: 64, color: SpaceTheme.rocketRed),
             const SizedBox(height: 16),
             Text(
               s.orbitalTowersOutOfMoves,
-              style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.rocketRed),
+              style: SpaceTheme.headlineStyle
+                  .copyWith(color: SpaceTheme.rocketRed),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -607,13 +685,20 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                 },
               ),
               Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                Flexible(child: TextButton.icon(onPressed: _hintLoading ? null : _showStrategyHint,
-                  icon: const Icon(Icons.lightbulb_outline), label: Text(s.strategyHint))),
-                Flexible(child: TextButton.icon(onPressed: _showOnboarding,
-                  icon: const Icon(Icons.help_outline), label: Text(s.howToPlay))),
+                Flexible(
+                    child: TextButton.icon(
+                        onPressed: _hintLoading ? null : _showStrategyHint,
+                        icon: const Icon(Icons.lightbulb_outline),
+                        label: Text(s.strategyHint))),
+                Flexible(
+                    child: TextButton.icon(
+                        onPressed: _showOnboarding,
+                        icon: const Icon(Icons.help_outline),
+                        label: Text(s.howToPlay))),
               ]),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -700,13 +785,15 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.rocketRed.withValues(alpha: 0.1 * glowAnimation.value),
+                  SpaceTheme.rocketRed
+                      .withValues(alpha: 0.1 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.rocketRed.withValues(alpha: glowAnimation.value),
+                color:
+                    SpaceTheme.rocketRed.withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
@@ -725,11 +812,14 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SizedBox(width: clueSize), // spacer for left clue column
+                        SizedBox(
+                            width: clueSize), // spacer for left clue column
                         ...List.generate(size, (c) {
-                          return _buildEdgeClue(puzzle!.edgeClues['top_$c'], cellSize, clueSize);
+                          return _buildEdgeClue(
+                              puzzle!.edgeClues['top_$c'], cellSize, clueSize);
                         }),
-                        SizedBox(width: clueSize), // spacer for right clue column
+                        SizedBox(
+                            width: clueSize), // spacer for right clue column
                       ],
                     ),
                     // Grid rows with left/right clues — height matches grid rows
@@ -737,12 +827,14 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                       return Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildEdgeClue(puzzle!.edgeClues['left_$r'], clueSize, cellSize),
+                          _buildEdgeClue(
+                              puzzle!.edgeClues['left_$r'], clueSize, cellSize),
                           ...List.generate(size, (c) {
                             final cellId = 'r${r}c$c';
                             return _buildCell(cellId, r, c, cellSize);
                           }),
-                          _buildEdgeClue(puzzle!.edgeClues['right_$r'], clueSize, cellSize),
+                          _buildEdgeClue(puzzle!.edgeClues['right_$r'],
+                              clueSize, cellSize),
                         ],
                       );
                     }),
@@ -750,11 +842,14 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SizedBox(width: clueSize), // spacer for left clue column
+                        SizedBox(
+                            width: clueSize), // spacer for left clue column
                         ...List.generate(size, (c) {
-                          return _buildEdgeClue(puzzle!.edgeClues['bottom_$c'], cellSize, clueSize);
+                          return _buildEdgeClue(puzzle!.edgeClues['bottom_$c'],
+                              cellSize, clueSize);
                         }),
-                        SizedBox(width: clueSize), // spacer for right clue column
+                        SizedBox(
+                            width: clueSize), // spacer for right clue column
                       ],
                     ),
                   ],
@@ -811,8 +906,14 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isHighlighted
-                ? [SpaceTheme.alienGreen, SpaceTheme.alienGreen.withValues(alpha: 0.6)]
-                : [SpaceTheme.alienGreen.withValues(alpha: 0.4), SpaceTheme.deepSpace],
+                ? [
+                    SpaceTheme.alienGreen,
+                    SpaceTheme.alienGreen.withValues(alpha: 0.6)
+                  ]
+                : [
+                    SpaceTheme.alienGreen.withValues(alpha: 0.4),
+                    SpaceTheme.deepSpace
+                  ],
           ),
           border: Border.all(color: Colors.grey.shade600, width: 1),
         ),
@@ -830,7 +931,10 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isHighlighted
-                ? [SpaceTheme.alienGreen.withValues(alpha: 0.3), SpaceTheme.deepSpace]
+                ? [
+                    SpaceTheme.alienGreen.withValues(alpha: 0.3),
+                    SpaceTheme.deepSpace
+                  ]
                 : [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple],
           ),
           border: Border.all(
@@ -849,7 +953,10 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
 
       final round2 = _round;
       final expected2 = userSolution[cellId];
-      return GestureDetector(key: ValueKey(('orbital-filled2', round2, cellId)), onTap: () => _removeNumber(cellId, expected2, round2), child: cell);
+      return GestureDetector(
+          key: ValueKey(('orbital-filled2', round2, cellId)),
+          onTap: () => _removeNumber(cellId, expected2, round2),
+          child: cell);
     }
 
     // Empty cell -- DragTarget
@@ -864,18 +971,24 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
           height: cellSize,
           decoration: BoxDecoration(
             gradient: isHovering
-                ? const LinearGradient(colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
-                : const LinearGradient(colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
+                ? const LinearGradient(
+                    colors: [SpaceTheme.starYellow, SpaceTheme.planetOrange])
+                : const LinearGradient(
+                    colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple]),
             border: Border.all(
-              color: isHovering || cellId == _hintCell ? SpaceTheme.starYellow : Colors.grey.shade600,
+              color: isHovering || cellId == _hintCell
+                  ? SpaceTheme.starYellow
+                  : Colors.grey.shade600,
               width: isHovering ? 3 : 1,
             ),
             boxShadow: isHovering
-                ? [BoxShadow(
-                    color: SpaceTheme.starYellow.withValues(alpha: 0.6),
-                    blurRadius: 8,
-                    spreadRadius: 2,
-                  )]
+                ? [
+                    BoxShadow(
+                      color: SpaceTheme.starYellow.withValues(alpha: 0.6),
+                      blurRadius: 8,
+                      spreadRadius: 2,
+                    )
+                  ]
                 : null,
           ),
           child: AnimatedBuilder(
@@ -884,15 +997,18 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
               return Transform.scale(
                 scale: pulseAnimation.value,
                 child: Center(
-                  child: Icon(Icons.add, color: SpaceTheme.nebulaPurple, size: cellSize * 0.3),
+                  child: Icon(Icons.add,
+                      color: SpaceTheme.nebulaPurple, size: cellSize * 0.3),
                 ),
               );
             },
           ),
         );
       },
-      onWillAcceptWithDetails: (details) => _canInteract(details.data.round) && details.data.round == round4,
-      onAcceptWithDetails: (details) => _placeNumber(details.data.number, cellId, details.data.round),
+      onWillAcceptWithDetails: (details) =>
+          _canInteract(details.data.round) && details.data.round == round4,
+      onAcceptWithDetails: (details) =>
+          _placeNumber(details.data.number, cellId, details.data.round),
     );
   }
 
@@ -906,36 +1022,37 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
       fit: BoxFit.scaleDown,
       alignment: Alignment.bottomCenter,
       child: Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        // Number label on top
-        Text(
-          height.toString(),
-          style: SpaceTheme.headlineStyle.copyWith(
-            fontSize: cellSize * 0.22,
-            color: SpaceTheme.starYellow,
-          ),
-        ),
-        // Stacked blocks
-        ...List.generate(height, (i) {
-          final shade = (i + 1) / size;
-          return Container(
-            width: blockWidth,
-            height: blockHeight.clamp(2.0, 10.0),
-            margin: const EdgeInsets.only(top: 1),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  SpaceTheme.planetOrange.withValues(alpha: 0.5 + shade * 0.5),
-                  SpaceTheme.rocketRed.withValues(alpha: 0.3 + shade * 0.4),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(2),
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          // Number label on top
+          Text(
+            height.toString(),
+            style: SpaceTheme.headlineStyle.copyWith(
+              fontSize: cellSize * 0.22,
+              color: SpaceTheme.starYellow,
             ),
-          );
-        }).toList().reversed,
-      ],
+          ),
+          // Stacked blocks
+          ...List.generate(height, (i) {
+            final shade = (i + 1) / size;
+            return Container(
+              width: blockWidth,
+              height: blockHeight.clamp(2.0, 10.0),
+              margin: const EdgeInsets.only(top: 1),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    SpaceTheme.planetOrange
+                        .withValues(alpha: 0.5 + shade * 0.5),
+                    SpaceTheme.rocketRed.withValues(alpha: 0.3 + shade * 0.4),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            );
+          }).toList().reversed,
+        ],
       ),
     );
   }
@@ -962,22 +1079,28 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                 feedback: Material(
                   color: Colors.transparent,
                   child: Container(
-                    width: 60, height: 60,
+                    width: 60,
+                    height: 60,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       gradient: SpaceTheme.starGradient,
-                      boxShadow: [BoxShadow(
-                        color: SpaceTheme.starYellow.withValues(alpha: 0.8),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      )],
+                      boxShadow: [
+                        BoxShadow(
+                          color: SpaceTheme.starYellow.withValues(alpha: 0.8),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        )
+                      ],
                     ),
                     child: Center(
-                      child: Text(n.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 22)),
+                      child: Text(n.toString(),
+                          style:
+                              SpaceTheme.headlineStyle.copyWith(fontSize: 22)),
                     ),
                   ),
                 ),
-                childWhenDragging: Opacity(opacity: 0.3, child: _buildTrayTile(n)),
+                childWhenDragging:
+                    Opacity(opacity: 0.3, child: _buildTrayTile(n)),
                 child: _buildTrayTile(n),
               );
             }).toList(),
@@ -989,14 +1112,17 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
 
   Widget _buildTrayTile(int number) {
     return Container(
-      width: 50, height: 50,
+      width: 50,
+      height: 50,
       decoration: BoxDecoration(
         gradient: SpaceTheme.starGradient,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
+        border: Border.all(
+            color: SpaceTheme.starYellow.withValues(alpha: 0.7), width: 2),
       ),
       child: Center(
-        child: Text(number.toString(), style: SpaceTheme.headlineStyle.copyWith(fontSize: 18)),
+        child: Text(number.toString(),
+            style: SpaceTheme.headlineStyle.copyWith(fontSize: 18)),
       ),
     );
   }
@@ -1017,11 +1143,15 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'orbital_towers'),
-                  const Icon(Icons.location_city, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.location_city,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
-                  Text(s.orbitalTowersWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(s.orbitalTowersWinTitle,
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
-                  Text(s.orbitalTowersWinDesc(score), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  Text(s.orbitalTowersWinDesc(score),
+                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
                   OverflowBar(
                     alignment: MainAxisAlignment.spaceEvenly,
@@ -1040,7 +1170,10 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                         child: Text(s.playAgain),
                       ),
                       ElevatedButton(
-                        onPressed: () { Navigator.of(context).pop(); Navigator.of(context).pop(); },
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop();
+                        },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(s.backToMenu),
                       ),

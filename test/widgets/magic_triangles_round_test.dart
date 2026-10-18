@@ -21,7 +21,9 @@ class _App {
   final cognitive = CognitiveProfileService();
   final debug = DebugProvider();
   late final gp = GameProvider(
-      progressService: ProgressService(), sriService: sri, cognitiveProfileService: cognitive);
+      progressService: ProgressService(),
+      sriService: sri,
+      cognitiveProfileService: cognitive);
   _App({bool reduced = false}) : motion = ValueNotifier(reduced);
 
   Widget build() => MultiProvider(
@@ -48,11 +50,13 @@ class _App {
 }
 
 final _screen = find.byType(MagicTrianglesGame);
-Finder get _dialog => find.byWidgetPredicate((w) => w is Dialog);
+Finder get _dialog => find.byType(Dialog);
 dynamic _session(WidgetTester tester) => tester.state(_screen);
-S _strings(WidgetTester tester) => S.of(tester.element(_screen))!; // ignore: unused_element
+S _strings(WidgetTester tester) =>
+    S.of(tester.element(_screen))!; // ignore: unused_element
 Map<String, dynamic> _snapshot(WidgetTester tester) =>
-    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession())) as Map<String, dynamic>;
+    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession()))
+        as Map<String, dynamic>;
 
 Future<void> _restoreFromSessionPuzzle(WidgetTester tester) async {
   final dynamic session = _session(tester);
@@ -86,7 +90,8 @@ Future<_App> _mount(WidgetTester tester, {bool reduced = false}) async {
   await tester.pumpWidget(app.build());
   for (var attempt = 0; attempt < 150; attempt++) {
     await tester.pump(const Duration(milliseconds: 20));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
     if (_session(tester).capturePuzzleSession() != null) break;
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
@@ -94,18 +99,22 @@ Future<_App> _mount(WidgetTester tester, {bool reduced = false}) async {
   return app;
 }
 
-final _targets = find.byWidgetPredicate((w) => w is DragTarget<MagicTrianglesDrag>);
-Finder _draggable(int n) =>
-    find.byWidgetPredicate((w) => w is Draggable<MagicTrianglesDrag> && w.data!.number == n);
+final _targets =
+    find.byWidgetPredicate((w) => w is DragTarget<MagicTrianglesDrag>);
+Finder _draggable(int n) => find.byWidgetPredicate(
+    (w) => w is Draggable<MagicTrianglesDrag> && w.data!.number == n);
 DragTarget<MagicTrianglesDrag> _target(WidgetTester tester, [int idx = 0]) =>
     tester.widget<DragTarget<MagicTrianglesDrag>>(_targets.at(idx));
 MagicTrianglesDrag _payload(WidgetTester tester, int n) =>
     tester.widget<Draggable<MagicTrianglesDrag>>(_draggable(n)).data!;
 void _deliver(DragTarget<MagicTrianglesDrag> t, MagicTrianglesDrag d) =>
-    t.onAcceptWithDetails!(DragTargetDetails<MagicTrianglesDrag>(data: d, offset: Offset.zero));
+    t.onAcceptWithDetails!(
+        DragTargetDetails<MagicTrianglesDrag>(data: d, offset: Offset.zero));
 Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async {
   await tester.drag(
-      _draggable(value), tester.getCenter(_targets.at(targetIdx)) - tester.getCenter(_draggable(value)));
+      _draggable(value),
+      tester.getCenter(_targets.at(targetIdx)) -
+          tester.getCenter(_draggable(value).first));
   await tester.pump();
 }
 
@@ -135,10 +144,12 @@ void main() {
     expect((snap['userAnswers'] as List).where((e) => e != null).length, 1);
   });
 
-  testWidgets('old payload cannot mutate new board after restore', (tester) async {
+  testWidgets('old payload cannot mutate new board after restore',
+      (tester) async {
     final app = await _mount(tester);
     final snapBefore = _snapshot(tester);
-    final List<int> poolBefore = List<int>.from(snapBefore['numberPool'] as List);
+    final List<int> poolBefore =
+        List<int>.from(snapBefore['numberPool'] as List);
     final int poolNumber = poolBefore.first;
     final oldTarget = _target(tester);
     final oldPayload = _payload(tester, poolNumber);

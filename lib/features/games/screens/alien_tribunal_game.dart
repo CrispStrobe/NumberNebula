@@ -21,14 +21,18 @@ import '../services/alien_tribunal_logic.dart';
 class AlienTribunalGame extends StatefulWidget {
   final int grade;
   final int level;
-  const AlienTribunalGame({super.key, required this.grade, required this.level});
+  const AlienTribunalGame(
+      {super.key, required this.grade, required this.level});
 
   @override
   State<AlienTribunalGame> createState() => _AlienTribunalGameState();
 }
 
 class _AlienTribunalGameState extends State<AlienTribunalGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<AlienTribunalGame>, PuzzleSessionMixin<AlienTribunalGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<AlienTribunalGame>,
+        PuzzleSessionMixin<AlienTribunalGame> {
   bool _sessionReady = false;
 
   Object _round = Object();
@@ -57,7 +61,8 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
 
   @override
   void onPuzzleSessionMotionChanged(bool reduced) {
-    updateOneShotMotion(successController, reduced, duration: const Duration(milliseconds: 600));
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
   }
 
   @visibleForTesting
@@ -67,56 +72,53 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
   void rebuildForTesting() => setState(() {});
 
   @visibleForTesting
-  void toggleForTesting(int index, Object round) => _toggleAssignment(index, round);
+  void toggleForTesting(int index, Object round) =>
+      _toggleAssignment(index, round);
 
   @visibleForTesting
   Future<void> generateForTesting() => _generatePuzzle();
 
-  bool _isSolvedWith(Map<int, bool?> assignment) {
-    if (puzzle == null) return false;
-    if (assignment.length < puzzle!.personCount) return false;
-    if (assignment.values.any((v) => v == null)) return false;
-    final userMap = assignment.map((k, v) => MapEntry(k, v!));
-    return puzzle!.checkSolution(userMap);
-  }
-
-  @override String get sessionGameKey => 'alien_tribunal';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
+  @override
+  String get sessionGameKey => 'alien_tribunal';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
     if (!_sessionReady || _isGenerating || _won || _gameOver) return null;
     return {
       'puzzle': (puzzle?.toJson()),
-      '_userAssignment': _userAssignment.entries.map((v0) => [v0.key, (v0.value)]).toList(),
+      '_userAssignment':
+          _userAssignment.entries.map((v0) => [v0.key, (v0.value)]).toList(),
       '_wrongVerdicts': _wrongVerdicts
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
     _resetRoundEffects();
-    puzzle = (state["puzzle"] == null ? null : AlienTribunalPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
-    _userAssignment = Map<int, bool?>.fromEntries((state["_userAssignment"] as List).map((v0) => MapEntry(v0[0] as int, (v0[1] == null ? null : v0[1] as bool))));
+    puzzle = (state["puzzle"] == null
+        ? null
+        : AlienTribunalPuzzle.fromJson(
+            Map<String, dynamic>.from(state["puzzle"] as Map)));
+    _userAssignment = Map<int, bool?>.fromEntries(
+        (state["_userAssignment"] as List).map((v0) =>
+            MapEntry(v0[0] as int, (v0[1] == null ? null : v0[1] as bool))));
     _wrongVerdicts = state["_wrongVerdicts"] as int;
-    _isGenerating = false; _gameOver = false; _won = false;
-    final solved = _isSolvedWith(_userAssignment);
-    if (solved) {
-      _gameOver = true;
-      _won = true;
-      finishPuzzleSession();
-      final round = _round;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !identical(round, _round) || !_won || puzzle == null) return;
-        _showWinDialog(_winScore(), round);
-      });
-      WidgetsBinding.instance.ensureVisualUpdate();
-    }
+    _isGenerating = false;
+    _gameOver = false;
+    _won = false;
+    // A correct assignment may have been saved before Submit was pressed.
+    // Terminal rounds clear their save; restoring input must not consume a win.
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
     if (mounted) setState(() => _sessionReady = true);
   }
-
 
   AlienTribunalPuzzle? puzzle;
   DifficultyConfig? currentDifficulty;
@@ -141,7 +143,8 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -212,15 +215,21 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
         final name = puzzle!.people[person.targetIndex].name;
         if (person.claimsTruthTeller) {
           switch (person.statementStyle) {
-            case 0: return s.alienTribunalClaimTruth1(name);
-            case 1: return s.alienTribunalClaimTruth2(name);
-            default: return s.alienTribunalClaimTruth3(name);
+            case 0:
+              return s.alienTribunalClaimTruth1(name);
+            case 1:
+              return s.alienTribunalClaimTruth2(name);
+            default:
+              return s.alienTribunalClaimTruth3(name);
           }
         }
         switch (person.statementStyle) {
-          case 0: return s.alienTribunalClaimLiar1(name);
-          case 1: return s.alienTribunalClaimLiar2(name);
-          default: return s.alienTribunalClaimLiar3(name);
+          case 0:
+            return s.alienTribunalClaimLiar1(name);
+          case 1:
+            return s.alienTribunalClaimLiar2(name);
+          default:
+            return s.alienTribunalClaimLiar3(name);
         }
       case TribunalClaimKind.pair:
         final first = puzzle!.people[person.targetIndex].name;
@@ -255,7 +264,8 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     }
   }
 
-  void _checkSolution() {
+  void _checkSolution([Object? requestedRound]) {
+    if (requestedRound != null && !identical(requestedRound, _round)) return;
     if (!_canInteract(_round)) return;
     if (puzzle == null || _gameOver) return;
 
@@ -312,23 +322,25 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'alien_tribunal',
-      difficulty: widget.level,
-      score: _winScore(),
-      performance: Perf.fromMistakes(_wrongVerdicts),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'alien_tribunal',
+          difficulty: widget.level,
+          score: _winScore(),
+          performance: Perf.fromMistakes(_wrongVerdicts),
+        ));
 
     _showWinDialog(_winScore(), round);
   }
 
   void _showWinDialog(int totalScore, Object round) {
-    if (!mounted || !identical(round, _round) || !_won || puzzle == null) return;
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null)
+      return;
     playOneShotMotion(successController, () {});
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => _buildWinDialog(totalScore, round, dialogContext),
+      builder: (dialogContext) =>
+          _buildWinDialog(totalScore, round, dialogContext),
     );
   }
 
@@ -339,11 +351,11 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     // Recoverable mistake: keep board editable and save snapshot
     // Report loss for analytics but remain playable for retry
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'alien_tribunal',
-      difficulty: widget.level,
-      progress: _correctlyJudgedFraction(),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'alien_tribunal',
+          difficulty: widget.level,
+          progress: _correctlyJudgedFraction(),
+        ));
     // Keep session alive for retry: finish then immediately begin new session
     finishPuzzleSession();
     beginPuzzleSession();
@@ -372,7 +384,8 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (puzzle == null || _isGenerating) {
@@ -451,9 +464,10 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                     height: 50,
                     child: ElevatedButton.icon(
                       key: ValueKey(('alien-submit', _round)),
-                      onPressed: _checkSolution,
+                      onPressed: () => _checkSolution(round),
                       icon: const Icon(Icons.gavel, size: 24),
-                      label: Text(S.of(context)!.alienTribunalSubmit, style: const TextStyle(fontSize: 18)),
+                      label: Text(S.of(context)!.alienTribunalSubmit,
+                          style: const TextStyle(fontSize: 18)),
                       style: SpaceTheme.primaryButtonStyle,
                     ),
                   ),
@@ -509,30 +523,31 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
             key: ValueKey(('alien-tap', _round, index)),
             behavior: HitTestBehavior.opaque,
             onTap: () => _toggleAssignment(index, round),
-            child: child,
+            child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: SpaceTheme.deepSpace.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: borderColor.withValues(
+                      alpha: assignment == null ? glowAnimation.value : 0.9,
+                    ),
+                    width: 2,
+                  ),
+                  boxShadow: assignment != null
+                      ? [
+                          BoxShadow(
+                            color: borderColor.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          )
+                        ]
+                      : null,
+                ),
+                child: child!),
           );
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-          decoration: BoxDecoration(
-            color: SpaceTheme.deepSpace.withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: borderColor.withValues(
-                alpha: assignment == null ? glowAnimation.value : 0.9,
-              ),
-              width: 2,
-            ),
-            boxShadow: assignment != null
-                ? [
-                    BoxShadow(
-                      color: borderColor.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      spreadRadius: 1,
-                    )
-                  ]
-                : null,
-          ),
           child: Row(
             children: [
               // Avatar
@@ -597,7 +612,8 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     );
   }
 
-  Widget _buildWinDialog(int totalScore, Object round, BuildContext dialogContext) {
+  Widget _buildWinDialog(
+      int totalScore, Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -613,17 +629,20 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'alien_tribunal'),
-                  const Icon(Icons.gavel, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.gavel,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.alienTribunalWinTitle,
-                      style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(s.alienTribunalWinDesc(totalScore),
                       style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   if (dialogContext.read<DebugProvider>().isDebugMenuEnabled)
                     DebugPuzzleRating(
                       gameType: 'alien_tribunal',
-                      puzzleId: 'at_g${widget.grade}_l${widget.level}_${DateTime.now().millisecondsSinceEpoch}',
+                      puzzleId:
+                          'at_g${widget.grade}_l${widget.level}_${DateTime.now().millisecondsSinceEpoch}',
                       grade: widget.grade,
                       level: widget.level,
                     ),

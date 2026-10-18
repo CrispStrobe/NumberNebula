@@ -57,7 +57,7 @@ class _App {
 }
 
 final _screen = find.byType(XenobiologyLabGame);
-final _dialog = find.byWidgetPredicate((widget) => widget is Dialog);
+final _dialog = find.byType(Dialog);
 dynamic _session(WidgetTester tester) => tester.state(_screen);
 S _strings(WidgetTester tester) => S.of(tester.element(_screen))!;
 Map<String, dynamic> _snapshot(WidgetTester tester) =>
@@ -93,7 +93,8 @@ Map<String, dynamic> _board({int grade = 2, int level = 1, int seed = 42}) {
   };
 }
 
-Future<void> _restore(WidgetTester tester, _App app, Map<String, dynamic> board) async {
+Future<void> _restore(
+    WidgetTester tester, _App app, Map<String, dynamic> board) async {
   final dynamic session = _session(tester);
   session.beginPuzzleSession();
   session.applyPuzzleSession(board);
@@ -122,7 +123,8 @@ Future<_App> _mount(WidgetTester tester,
   await tester.pumpWidget(app.build());
   for (var attempt = 0; attempt < 150; attempt++) {
     await tester.pump(const Duration(milliseconds: 20));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
     if (_session(tester).capturePuzzleSession() != null) break;
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
@@ -160,7 +162,8 @@ Future<void> _retry(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 300));
   for (var i = 0; i < 100; i++) {
     await tester.pump(const Duration(milliseconds: 20));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
     if (_session(tester).capturePuzzleSession() != null) break;
   }
   expect(_dialog, findsNothing);
@@ -191,7 +194,9 @@ void main() {
     PuzzleSessionStore.resetForTesting();
   });
 
-  testWidgets('correct census wins once and terminal session is captured as null', (tester) async {
+  testWidgets(
+      'correct census wins once and terminal session is captured as null',
+      (tester) async {
     final app = await _mount(tester, reduced: true);
     final board = _board(seed: 1);
     await _restore(tester, app, board);
@@ -212,7 +217,8 @@ void main() {
     expect(app.gp.outcomeCount, before);
   });
 
-  testWidgets('wrong census increments counter, stays editable and saved', (tester) async {
+  testWidgets('wrong census increments counter, stays editable and saved',
+      (tester) async {
     final app = await _mount(tester, reduced: true);
     final board = _board(seed: 2);
     await _restore(tester, app, board);
@@ -249,7 +255,8 @@ void main() {
     _session(tester).setSliderForTesting(0, 5, oldRound);
     await tester.pump();
     expect(_snapshot(tester), newSnapBefore);
-    expect(_snapshot(tester)['sliderA'], isNot(newSnapBefore['sliderA'] == 5 ? oldSnap['sliderA'] : 5));
+    expect(_snapshot(tester)['sliderA'],
+        isNot(newSnapBefore['sliderA'] == 5 ? oldSnap['sliderA'] : 5));
     // New round does mutate
     final newRound = _session(tester).testRound as Object;
     _session(tester).setSliderForTesting(0, 3, newRound);
@@ -257,7 +264,8 @@ void main() {
     expect(_snapshot(tester)['_sliderA'], 3);
   });
 
-  testWidgets('retry after win resets board and allows new win', (tester) async {
+  testWidgets('retry after win resets board and allows new win',
+      (tester) async {
     final app = await _mount(tester, reduced: true);
     final board = _board(seed: 3);
     await _restore(tester, app, board);
@@ -282,7 +290,8 @@ void main() {
     expect(app.gp.lastOutcome!.wasSuccessful, isTrue);
   });
 
-  testWidgets('restored solved board shows win dialog and is terminal', (tester) async {
+  testWidgets('correct unsubmitted census stays playable and earns its win',
+      (tester) async {
     final app = await _mount(tester, reduced: true);
     final board = _board(seed: 5);
     final solvedBoard = Map<String, dynamic>.from(board);
@@ -292,12 +301,18 @@ void main() {
     await _restore(tester, app, solvedBoard);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
-    expect(_session(tester).capturePuzzleSession(), isNull);
-    expect(_dialog, findsOneWidget);
-    expect(app.gp.outcomeCount, 0); // No duplicate reward on restore
+    expect(_session(tester).capturePuzzleSession(), isNotNull);
+    expect(_dialog, findsNothing);
+    expect(app.gp.outcomeCount, 0);
+    await _submit(tester);
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(app.gp.outcomeCount, 1);
+    expect(app.gp.lastOutcome!.wasSuccessful, isTrue);
   });
 
-  testWidgets('pointer down before restore and up afterward does not corrupt new round', (tester) async {
+  testWidgets(
+      'pointer down before restore and up afterward does not corrupt new round',
+      (tester) async {
     final app = await _mount(tester, reduced: true);
     final board1 = _board(seed: 11);
     await _restore(tester, app, board1);
@@ -319,26 +334,29 @@ void main() {
     expect(app.gp.outcomeCount, 0);
   });
 
-  testWidgets('reduced motion respects initial and mid-animation toggle', (tester) async {
-    final app = await _mount(tester, reduced: true);
+  testWidgets('mid-success reduced motion completes its controller immediately',
+      (tester) async {
+    final app = await _mount(tester, reduced: false);
     final board = _board(seed: 6);
     await _restore(tester, app, board);
     await _setSlider(tester, 0, board['_countA'] as int);
     await _setSlider(tester, 1, board['_countB'] as int);
     await _submit(tester);
-    await tester.pump();
-    // With reduced motion, animation should complete immediately
     await tester.pump(const Duration(milliseconds: 100));
-    expect(_dialog, findsOneWidget);
-    // Toggle motion mid-way
-    app.motion.value = false;
-    await tester.pump();
+    expect(_session(tester).successController.isAnimating, isTrue);
     app.motion.value = true;
     await tester.pump();
+    await tester.pump();
+    expect(_session(tester).successController.isAnimating, isFalse);
+    expect(_session(tester).successController.value, 1);
+    await tester.pump(const Duration(milliseconds: 650));
     expect(_dialog, findsOneWidget);
+    expect(app.gp.outcomeCount, 1);
   });
 
-  testWidgets('phone layout 390x844 and short 390x500 with textScale 2 have no overflow', (tester) async {
+  testWidgets(
+      'phone layout 390x844 and short 390x500 with textScale 2 have no overflow',
+      (tester) async {
     for (final size in [const Size(390, 844), const Size(390, 500)]) {
       for (final scale in [1.0, 2.0]) {
         tester.view.physicalSize = size;
@@ -348,17 +366,21 @@ void main() {
         await tester.pumpWidget(app.build());
         for (var attempt = 0; attempt < 150; attempt++) {
           await tester.pump(const Duration(milliseconds: 20));
-          await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+          await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 20)));
           if (_session(tester).capturePuzzleSession() != null) break;
         }
         await _restore(tester, app, _board(seed: size.height.toInt()));
         await tester.pump();
         expect(tester.takeException(), isNull);
         // Also test German locale
-        await tester.pumpWidget(_App(reduced: false, textScale: scale, locale: const Locale('de')).build());
+        await tester.pumpWidget(
+            _App(reduced: false, textScale: scale, locale: const Locale('de'))
+                .build());
         for (var attempt = 0; attempt < 150; attempt++) {
           await tester.pump(const Duration(milliseconds: 20));
-          await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+          await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 20)));
           if (_session(tester).capturePuzzleSession() != null) break;
         }
         await _restore(tester, app, _board(seed: 99));
@@ -368,7 +390,9 @@ void main() {
     }
   });
 
-  testWidgets('exhausted saves do not replay rewards', (tester) async {
+  testWidgets(
+      'completed census rejects duplicate submissions and captures no save',
+      (tester) async {
     final app = await _mount(tester, reduced: true);
     final board = _board(seed: 7);
     await _restore(tester, app, board);
@@ -378,12 +402,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(app.gp.outcomeCount, 1);
     expect(_session(tester).capturePuzzleSession(), isNull);
-    // Simulate app restart with terminal state: apply same solved board should not replay
-    final terminalBoard = Map<String, dynamic>.from(board);
-    terminalBoard['_sliderA'] = board['_countA'];
-    terminalBoard['_sliderB'] = board['_countB'];
-    // Apply should detect solved and show dialog but not report outcome again
-    await _restore(tester, app, terminalBoard);
+    final round = _session(tester).testRound as Object;
+    _session(tester).checkForTesting(round);
     await tester.pump();
     expect(app.gp.outcomeCount, 1);
   });
@@ -402,7 +422,8 @@ void main() {
     await tester.pumpWidget(deApp.build());
     for (var attempt = 0; attempt < 150; attempt++) {
       await tester.pump(const Duration(milliseconds: 20));
-      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)));
       if (_session(tester).capturePuzzleSession() != null) break;
     }
     await _restore(tester, deApp, _board());

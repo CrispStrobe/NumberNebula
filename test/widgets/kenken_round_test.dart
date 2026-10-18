@@ -50,11 +50,13 @@ class _App {
 }
 
 final _screen = find.byType(KenkenGame);
-Finder get _dialog => find.byWidgetPredicate((w) => w is Dialog);
+Finder get _dialog => find.byType(Dialog);
 dynamic _session(WidgetTester tester) => tester.state(_screen);
-S _strings(WidgetTester tester) => S.of(tester.element(_screen))!; // ignore: unused_element
+S _strings(WidgetTester tester) =>
+    S.of(tester.element(_screen))!; // ignore: unused_element
 Map<String, dynamic> _snapshot(WidgetTester tester) =>
-    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession())) as Map<String, dynamic>;
+    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession()))
+        as Map<String, dynamic>;
 
 Future<void> _restoreFromSessionPuzzle(WidgetTester tester) async {
   final dynamic session = _session(tester);
@@ -88,7 +90,8 @@ Future<_App> _mount(WidgetTester tester, {bool reduced = false}) async {
   await tester.pumpWidget(app.build());
   for (var attempt = 0; attempt < 150; attempt++) {
     await tester.pump(const Duration(milliseconds: 20));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
     if (_session(tester).capturePuzzleSession() != null) break;
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
@@ -97,21 +100,22 @@ Future<_App> _mount(WidgetTester tester, {bool reduced = false}) async {
 }
 
 final _targets = find.byWidgetPredicate((w) => w is DragTarget<KenkenDrag>);
-Finder _draggable(int n) =>
-    find.byWidgetPredicate((w) => w is Draggable<KenkenDrag> && w.data!.number == n);
+Finder _draggable(int n) => find.byWidgetPredicate(
+    (w) => w is Draggable<KenkenDrag> && w.data!.number == n);
 DragTarget<KenkenDrag> _target(WidgetTester tester, [int idx = 0]) =>
     tester.widget<DragTarget<KenkenDrag>>(_targets.at(idx));
 KenkenDrag _payload(WidgetTester tester, int n) =>
     tester.widget<Draggable<KenkenDrag>>(_draggable(n)).data!;
-void _deliver(DragTarget<KenkenDrag> t, KenkenDrag d) =>
-    t.onAcceptWithDetails!(DragTargetDetails<KenkenDrag>(data: d, offset: Offset.zero));
+void _deliver(DragTarget<KenkenDrag> t, KenkenDrag d) => t.onAcceptWithDetails!(
+    DragTargetDetails<KenkenDrag>(data: d, offset: Offset.zero));
 
 void main() {
   var profile = 0;
   setUp(() {
     final id = 'kenken_rounds_${profile++}';
     ProfilePreferences.activeId = id;
-    SharedPreferences.setMockInitialValues({'player_${id}_onboarding_seen_kenken': true});
+    SharedPreferences.setMockInitialValues(
+        {'player_${id}_onboarding_seen_kenken': true});
     PuzzleSessionStore.resetForTesting();
   });
 
@@ -152,7 +156,8 @@ void main() {
     expect(_dialog, findsOneWidget);
   });
 
-  testWidgets('old payload cannot mutate new board after restore', (tester) async {
+  testWidgets('old payload cannot mutate new board after restore',
+      (tester) async {
     final app = await _mount(tester);
     final snapBefore = _snapshot(tester);
     final List poolBefore = snapBefore['pool'] as List;

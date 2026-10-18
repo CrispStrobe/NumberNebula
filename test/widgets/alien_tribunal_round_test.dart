@@ -57,11 +57,12 @@ class _App {
 }
 
 final _screen = find.byType(AlienTribunalGame);
-final _dialog = find.byWidgetPredicate((widget) => widget is Dialog);
+final _dialog = find.byType(Dialog);
 dynamic _session(WidgetTester tester) => tester.state(_screen);
 S _strings(WidgetTester tester) => S.of(tester.element(_screen))!;
 Map<String, dynamic> _snapshot(WidgetTester tester) =>
-    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession())) as Map<String, dynamic>;
+    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession()))
+        as Map<String, dynamic>;
 
 Map<String, dynamic> _board({
   int personCount = 3,
@@ -176,7 +177,8 @@ Future<void> _retry(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 300));
   for (var i = 0; i < 100; i++) {
     await tester.pump(const Duration(milliseconds: 20));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
     if (_session(tester).capturePuzzleSession() != null) break;
   }
   expect(_dialog, findsNothing);
@@ -400,5 +402,19 @@ void main() {
     await tester.ensureVisible(_submitBtn());
     await tester.pump();
     expect(tester.takeException(), isNull);
+  });
+  testWidgets(
+      'correct unsubmitted saved verdict remains playable and earns its win',
+      (tester) async {
+    final app = await _mount(tester,
+        reduced: true, board: _board(assignment: {0: true, 1: false, 2: true}));
+    expect(_session(tester).capturePuzzleSession(), isNotNull);
+    expect(_dialog, findsNothing);
+    expect(app.gp.outcomeCount, 0);
+    await _submitExpect(tester);
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(app.gp.outcomeCount, 1);
+    expect(app.gp.lastOutcome!.wasSuccessful, isTrue);
+    expect(_session(tester).capturePuzzleSession(), isNull);
   });
 }

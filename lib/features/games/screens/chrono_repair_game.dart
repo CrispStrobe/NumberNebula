@@ -27,10 +27,11 @@ class ChronoRepairGame extends StatefulWidget {
   State<ChronoRepairGame> createState() => _ChronoRepairGameState();
 }
 
-
-
 class _ChronoRepairGameState extends State<ChronoRepairGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<ChronoRepairGame>, PuzzleSessionMixin<ChronoRepairGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<ChronoRepairGame>,
+        PuzzleSessionMixin<ChronoRepairGame> {
   bool _sessionReady = false;
   Object _round = Object();
   bool _won = false;
@@ -52,9 +53,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   }
 
   @override
-  @override
   void onPuzzleSessionMotionChanged(bool reduced) {
-    updateOneShotMotion(successController, reduced, duration: const Duration(milliseconds: 600));
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
   }
 
   @visibleForTesting
@@ -63,10 +64,14 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   @visibleForTesting
   void rebuildForTesting() => setState(() {});
 
-  @override String get sessionGameKey => 'chrono_repair';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
+  @override
+  String get sessionGameKey => 'chrono_repair';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
     if (!_sessionReady || _isGenerating || _won) return null;
     return {
       '_correctHour': _correctHour,
@@ -83,28 +88,39 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       '_wrongChecks': _wrongChecks
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRoundEffects();
+    _won = false;
     _correctHour = state["_correctHour"] as int;
     _correctMinute = state["_correctMinute"] as int;
     _displayedHour = state["_displayedHour"] as int;
     _displayedMinute = state["_displayedMinute"] as int;
-    _malfunction = ClockMalfunction.values.byName(state["_malfunction"] as String);
+    _malfunction =
+        ClockMalfunction.values.byName(state["_malfunction"] as String);
     _offsetHours = state["_offsetHours"] as int;
     _offsetMinutes = state["_offsetMinutes"] as int;
     _malfunctionHint = state["_malfunctionHint"] as String;
     _selectedHour = state["_selectedHour"] as int;
     _selectedMinute = state["_selectedMinute"] as int;
-    _mathProblems..clear()..addAll((state["_mathProblems"] as List).map((v0) => MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map))).toList());
+    _mathProblems
+      ..clear()
+      ..addAll((state["_mathProblems"] as List)
+          .map((v0) =>
+              MathProblem.fromJson(Map<String, dynamic>.from(v0 as Map)))
+          .toList());
     _wrongChecks = state["_wrongChecks"] as int;
-    _isGenerating = false; _gameOver = false;
+    _isGenerating = false;
+    _gameOver = false;
   }
+
   Future<void> _restoreOrGenerate() async {
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
     if (mounted) setState(() => _sessionReady = true);
   }
-
 
   DifficultyConfig? currentDifficulty;
   bool _isGenerating = true;
@@ -137,15 +153,11 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
     super.initState();
     initGameAnimations();
 
-    
-    
-
-
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -177,26 +189,28 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
 
     final grade = currentDifficulty!.grade;
 
-    final generated=generateChronoRepair(grade, widget.level, random: _random);
+    final generated =
+        generateChronoRepair(grade, widget.level, random: _random);
     if (!mounted || !identical(round, _round)) return;
-    _correctHour=generated['_correctHour'] as int;
-_correctMinute=generated['_correctMinute'] as int;
-_displayedHour=generated['_displayedHour'] as int;
-_displayedMinute=generated['_displayedMinute'] as int;
-_malfunction=ClockMalfunction.values.byName(generated['_malfunction'] as String);
-_mathProblems.addAll((generated['_mathProblems'] as List).map((p)=>MathProblem.fromJson(Map<String,dynamic>.from(p as Map))));
-_offsetHours=generated['_offsetHours'] as int;
-_offsetMinutes=generated['_offsetMinutes'] as int;
-_malfunctionHint = switch (_malfunction) {
- ClockMalfunction.offset => S.of(context)!.chronoClockRunsFast(_offsetHours),
- ClockMalfunction.mirror => S.of(context)!.chronoClockMirrored,
- ClockMalfunction.combined => S.of(context)!.chronoClockRunsFastCombined(_offsetHours, _offsetMinutes),
- };
+    _correctHour = generated['_correctHour'] as int;
+    _correctMinute = generated['_correctMinute'] as int;
+    _displayedHour = generated['_displayedHour'] as int;
+    _displayedMinute = generated['_displayedMinute'] as int;
+    _malfunction =
+        ClockMalfunction.values.byName(generated['_malfunction'] as String);
+    _mathProblems.addAll((generated['_mathProblems'] as List)
+        .map((p) => MathProblem.fromJson(Map<String, dynamic>.from(p as Map))));
+    _offsetHours = generated['_offsetHours'] as int;
+    _offsetMinutes = generated['_offsetMinutes'] as int;
+    _malfunctionHint = switch (_malfunction) {
+      ClockMalfunction.offset =>
+        S.of(context)!.chronoClockRunsFast(_offsetHours),
+      ClockMalfunction.mirror => S.of(context)!.chronoClockMirrored,
+      ClockMalfunction.combined => S
+          .of(context)!
+          .chronoClockRunsFastCombined(_offsetHours, _offsetMinutes),
+    };
     // Reset scroll controllers
-    
-    
-    
-    
 
     if (mounted && identical(round, _round)) {
       setState(() {
@@ -205,8 +219,7 @@ _malfunctionHint = switch (_malfunction) {
     }
   }
 
-  void _checkAnswer() {
-    final round = _round;
+  void _checkAnswer(Object round) {
     if (!_canInteract(round)) return;
     if (_selectedHour == _correctHour && _selectedMinute == _correctMinute) {
       _handleWin(round);
@@ -230,7 +243,8 @@ _malfunctionHint = switch (_malfunction) {
         // Up button
         IconButton(
           key: ValueKey(('chrono-step-up', currentRound, value, min, max)),
-          icon: const Icon(Icons.keyboard_arrow_up, color: SpaceTheme.starYellow, size: 32),
+          icon: const Icon(Icons.keyboard_arrow_up,
+              color: SpaceTheme.starYellow, size: 32),
           onPressed: () {
             if (!_canInteract(currentRound)) return;
             AppHaptics.selectionClick();
@@ -239,7 +253,8 @@ _malfunctionHint = switch (_malfunction) {
         ),
         // Value display
         Container(
-          width: 70, height: 60,
+          width: 70,
+          height: 60,
           decoration: BoxDecoration(
             color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(12),
@@ -255,7 +270,8 @@ _malfunctionHint = switch (_malfunction) {
         // Down button
         IconButton(
           key: ValueKey(('chrono-step-down', currentRound, value, min, max)),
-          icon: const Icon(Icons.keyboard_arrow_down, color: SpaceTheme.starYellow, size: 32),
+          icon: const Icon(Icons.keyboard_arrow_down,
+              color: SpaceTheme.starYellow, size: 32),
           onPressed: () {
             if (!_canInteract(currentRound)) return;
             AppHaptics.selectionClick();
@@ -283,13 +299,13 @@ _malfunctionHint = switch (_malfunction) {
     int totalScore = baseScore + levelBonus + complexityBonus;
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'chrono_repair',
-      difficulty: widget.level,
-      score: totalScore,
-      mathProblems: _mathProblems,
-      performance: Perf.fromMistakes(_wrongChecks),
-    ));
+          skillLevel: widget.grade,
+          gameType: 'chrono_repair',
+          difficulty: widget.level,
+          score: totalScore,
+          mathProblems: List<MathProblem>.unmodifiable(_mathProblems),
+          performance: Perf.fromMistakes(_wrongChecks),
+        ));
 
     _showWinDialog(totalScore, winRound);
   }
@@ -300,7 +316,8 @@ _malfunctionHint = switch (_malfunction) {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => _buildWinDialog(totalScore, round, dialogContext),
+      builder: (dialogContext) =>
+          _buildWinDialog(totalScore, round, dialogContext),
     );
   }
 
@@ -319,11 +336,11 @@ _malfunctionHint = switch (_malfunction) {
     // Do not finishPuzzleSession on wrong; keep board editable and save updated wrongChecks
     // Report loss for SRI but keep session open for retry
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'chrono_repair',
-      difficulty: widget.level,
-      mathProblems: _mathProblems,
-    ));
+          skillLevel: widget.grade,
+          gameType: 'chrono_repair',
+          difficulty: widget.level,
+          mathProblems: List<MathProblem>.unmodifiable(_mathProblems),
+        ));
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -341,7 +358,8 @@ _malfunctionHint = switch (_malfunction) {
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = S.of(context)!;
 
     if (_isGenerating || currentDifficulty == null) {
@@ -377,7 +395,8 @@ _malfunctionHint = switch (_malfunction) {
                 },
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Text(
                   s.chronoRepairInstructions,
                   style: SpaceTheme.bodyStyle.copyWith(fontSize: 12),
@@ -413,26 +432,22 @@ _malfunctionHint = switch (_malfunction) {
   }
 
   Widget _buildCompactLayout(BoxConstraints constraints) {
-    // Do NOT use SingleChildScrollView here -- it steals scroll
-    // gestures from the ListWheelScrollView rollers inside _buildRollerInput.
-    return Padding(
+    // Steppers have no competing wheel gestures. Let all instructions and
+    // controls grow naturally at large text scales and on short phones.
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           _buildMalfunctionHint(),
           const SizedBox(height: 10),
-          Expanded(
-            flex: 3,
-            child: _buildClockDisplay(constraints),
-          ),
+          SizedBox(
+              height: constraints.maxWidth.clamp(140.0, 240.0),
+              child: _buildClockDisplay(constraints)),
           const SizedBox(height: 6),
           _buildDigitalDisplay(),
           const SizedBox(height: 10),
-          if (!_gameOver)
-            Expanded(
-              flex: 4,
-              child: _buildRollerInput(),
-            ),
+          if (!_gameOver) _buildRollerInput(),
           const SizedBox(height: 8),
         ],
       ),
@@ -478,17 +493,20 @@ _malfunctionHint = switch (_malfunction) {
             color: SpaceTheme.starYellow.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: SpaceTheme.starYellow.withValues(alpha: glowAnimation.value * 0.7),
+              color: SpaceTheme.starYellow
+                  .withValues(alpha: glowAnimation.value * 0.7),
             ),
           ),
           child: Row(
             children: [
-              const Icon(Icons.warning_amber, color: SpaceTheme.starYellow, size: 24),
+              const Icon(Icons.warning_amber,
+                  color: SpaceTheme.starYellow, size: 24),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   _malfunctionHint,
-                  style: SpaceTheme.bodyStyle.copyWith(color: SpaceTheme.starYellow, fontSize: 13),
+                  style: SpaceTheme.bodyStyle
+                      .copyWith(color: SpaceTheme.starYellow, fontSize: 13),
                 ),
               ),
             ],
@@ -545,6 +563,7 @@ _malfunctionHint = switch (_malfunction) {
   }
 
   Widget _buildRollerInput() {
+    final round = _round;
     return Column(
       children: [
         Text(S.of(context)!.chronoWhatIsCorrectTime,
@@ -555,7 +574,8 @@ _malfunctionHint = switch (_malfunction) {
           decoration: BoxDecoration(
             color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+            border: Border.all(
+                color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
           ),
           child: Column(
             children: [
@@ -566,7 +586,8 @@ _malfunctionHint = switch (_malfunction) {
                   // Hour stepper
                   _buildStepper(
                     value: _selectedHour,
-                    min: 1, max: 12,
+                    min: 1,
+                    max: 12,
                     onChanged: (v) {
                       if (!_canInteract(_round)) return;
                       setState(() => _selectedHour = v);
@@ -576,16 +597,20 @@ _malfunctionHint = switch (_malfunction) {
                   // Colon
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(':',
+                    child: Text(
+                      ':',
                       style: SpaceTheme.headlineStyle.copyWith(
-                        fontSize: 40, color: SpaceTheme.starYellow,
+                        fontSize: 40,
+                        color: SpaceTheme.starYellow,
                       ),
                     ),
                   ),
                   // Minute stepper
                   _buildStepper(
                     value: _selectedMinute,
-                    min: 0, max: 55, step: 5,
+                    min: 0,
+                    max: 55,
+                    step: 5,
                     onChanged: (v) {
                       if (!_canInteract(_round)) return;
                       setState(() => _selectedMinute = v);
@@ -597,9 +622,10 @@ _malfunctionHint = switch (_malfunction) {
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 key: ValueKey(('chrono-submit', _round)),
-                onPressed: _checkAnswer,
+                onPressed: () => _checkAnswer(round),
                 icon: const Icon(Icons.check, size: 24),
-                label: Text(S.of(context)!.chronoRepairSubmit, style: const TextStyle(fontSize: 16)),
+                label: Text(S.of(context)!.chronoRepairSubmit,
+                    style: const TextStyle(fontSize: 16)),
                 style: SpaceTheme.primaryButtonStyle,
               ),
             ],
@@ -611,7 +637,8 @@ _malfunctionHint = switch (_malfunction) {
 
   // Stepper widget is defined above in _buildStepper()
 
-  Widget _buildWinDialog(int totalScore, Object round, BuildContext dialogContext) {
+  Widget _buildWinDialog(
+      int totalScore, Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -627,10 +654,12 @@ _malfunctionHint = switch (_malfunction) {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'chrono_repair'),
-                  const Icon(Icons.watch_later, size: 64, color: SpaceTheme.starYellow),
+                  const Icon(Icons.watch_later,
+                      size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
                   Text(s.chronoRepairWinTitle,
-                      style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                      style: SpaceTheme.headlineStyle,
+                      textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(s.chronoRepairWinDesc(totalScore),
                       style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
@@ -677,7 +706,8 @@ class _ClockPainter extends CustomPainter {
   final int minute;
   final bool isMirrored;
 
-  _ClockPainter({required this.hour, required this.minute, this.isMirrored = false});
+  _ClockPainter(
+      {required this.hour, required this.minute, this.isMirrored = false});
 
   @override
   void paint(Canvas canvas, Size size) {

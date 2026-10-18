@@ -21,22 +21,47 @@ class _App {
   final sri = SriService();
   final cognitive = CognitiveProfileService();
   final debug = DebugProvider();
-  late final gp = GameProvider(progressService: ProgressService(), sriService: sri, cognitiveProfileService: cognitive);
+  late final gp = GameProvider(
+      progressService: ProgressService(),
+      sriService: sri,
+      cognitiveProfileService: cognitive);
   final double textScale;
   final Locale? locale;
-  _App({bool reduced = false, this.textScale = 1, this.locale}) : motion = ValueNotifier(reduced);
+  _App({bool reduced = false, this.textScale = 1, this.locale})
+      : motion = ValueNotifier(reduced);
   Widget build() => MultiProvider(
-        providers: [ChangeNotifierProvider.value(value: gp), ChangeNotifierProvider<SriService>.value(value: sri), ChangeNotifierProvider.value(value: cognitive), ChangeNotifierProvider<DebugProvider>.value(value: debug)],
-        child: MaterialApp(locale: locale, theme: ThemeData(platform: TargetPlatform.android), localizationsDelegates: S.localizationsDelegates, supportedLocales: S.supportedLocales, builder: (context, child) => ValueListenableBuilder<bool>(valueListenable: motion, builder: (_, reduced, __) => MediaQuery(data: MediaQuery.of(context).copyWith(disableAnimations: reduced, textScaler: TextScaler.linear(textScale)), child: child!)), home: const OrbitalTowersGame(grade: 1, level: 1)),
+        providers: [
+          ChangeNotifierProvider.value(value: gp),
+          ChangeNotifierProvider<SriService>.value(value: sri),
+          ChangeNotifierProvider.value(value: cognitive),
+          ChangeNotifierProvider<DebugProvider>.value(value: debug)
+        ],
+        child: MaterialApp(
+            locale: locale,
+            theme: ThemeData(platform: TargetPlatform.android),
+            localizationsDelegates: S.localizationsDelegates,
+            supportedLocales: S.supportedLocales,
+            builder: (context, child) => ValueListenableBuilder<bool>(
+                valueListenable: motion,
+                builder: (_, reduced, __) => MediaQuery(
+                    data: MediaQuery.of(context).copyWith(
+                        disableAnimations: reduced,
+                        textScaler: TextScaler.linear(textScale)),
+                    child: child!)),
+            home: const OrbitalTowersGame(grade: 1, level: 1)),
       );
 }
+
 final _screen = find.byType(OrbitalTowersGame);
-final _dialog = find.byWidgetPredicate((w) => w is Dialog);
+final _dialog = find.byType(Dialog);
 dynamic _session(WidgetTester tester) => tester.state(_screen);
 S _strings(WidgetTester tester) => S.of(tester.element(_screen))!;
-Map<String, dynamic> _snapshot(WidgetTester tester) => jsonDecode(jsonEncode(_session(tester).capturePuzzleSession())) as Map<String, dynamic>;
+Map<String, dynamic> _snapshot(WidgetTester tester) =>
+    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession()))
+        as Map<String, dynamic>;
 
-OrbitalTowersPuzzle _testPuzzle({int size = 4, Set<String> empty = const {'r0c0', 'r0c1'}}) {
+OrbitalTowersPuzzle _testPuzzle(
+    {int size = 4, Set<String> empty = const {'r0c0', 'r0c1'}}) {
   // Simple Latin square solution for size 4
   final solution = <String, int>{};
   for (int r = 0; r < size; r++) {
@@ -45,58 +70,143 @@ OrbitalTowersPuzzle _testPuzzle({int size = 4, Set<String> empty = const {'r0c0'
     }
   }
   final clues = <String, int>{};
-  for (final e in solution.entries) if (!empty.contains(e.key)) clues[e.key] = e.value;
-  return OrbitalTowersPuzzle(size: size, solution: solution, clues: clues, emptyCells: empty, numberPool: List.generate(size, (i) => i + 1), edgeClues: {});
+  for (final e in solution.entries)
+    if (!empty.contains(e.key)) clues[e.key] = e.value;
+  return OrbitalTowersPuzzle(
+      size: size,
+      solution: solution,
+      clues: clues,
+      emptyCells: empty,
+      numberPool: List.generate(size, (i) => i + 1),
+      edgeClues: {});
 }
-Map<String, dynamic> _board({int size = 4, Set<String> empty = const {'r0c0', 'r0c1'}, Map<String, int> answers = const {}, int? moves, int? maxMoves, int? optimal}) {
+
+Map<String, dynamic> _board(
+    {int size = 4,
+    Set<String> empty = const {'r0c0', 'r0c1'},
+    Map<String, int> answers = const {},
+    int? moves,
+    int? maxMoves,
+    int? optimal}) {
   final puzzle = _testPuzzle(size: size, empty: empty);
   final emptyCount = empty.length;
-  return {'puzzle': puzzle.toJson(), 'answers': Map.of(answers), 'moves': moves ?? emptyCount * 2, 'maxMoves': maxMoves ?? emptyCount * 2, 'optimal': optimal ?? emptyCount, 'hints': 0};
+  return {
+    'puzzle': puzzle.toJson(),
+    'answers': Map.of(answers),
+    'moves': moves ?? emptyCount * 2,
+    'maxMoves': maxMoves ?? emptyCount * 2,
+    'optimal': optimal ?? emptyCount,
+    'hints': 0
+  };
 }
-Future<void> _restore(WidgetTester tester, _App app, Map<String, dynamic> board) async {
+
+Future<void> _restore(
+    WidgetTester tester, _App app, Map<String, dynamic> board) async {
   final dynamic session = _session(tester);
   session.beginPuzzleSession();
   session.applyPuzzleSession(board);
   session.rebuildForTesting();
-  await tester.pump(); await tester.pump();
+  await tester.pump();
+  await tester.pump();
 }
-Future<_App> _mount(WidgetTester tester, {bool reduced = false, double textScale = 1, Locale? locale, Map<String, dynamic>? board}) async {
+
+Future<_App> _mount(WidgetTester tester,
+    {bool reduced = false,
+    double textScale = 1,
+    Locale? locale,
+    Map<String, dynamic>? board}) async {
   final app = _App(reduced: reduced, textScale: textScale, locale: locale);
   tester.view.physicalSize = const Size(1400, 1100);
   tester.view.devicePixelRatio = 1;
-  addTearDown(tester.view.reset); addTearDown(app.motion.dispose);
-  addTearDown(() async { await tester.pumpWidget(const SizedBox.shrink()); await tester.pump(); });
+  addTearDown(tester.view.reset);
+  addTearDown(app.motion.dispose);
+  addTearDown(() async {
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
   await tester.pumpWidget(app.build());
   for (var attempt = 0; attempt < 150; attempt++) {
     await tester.pump(const Duration(milliseconds: 20));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
     if (_session(tester).capturePuzzleSession() != null) break;
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
   await _restore(tester, app, board ?? _board());
   return app;
 }
-final _targets = find.byWidgetPredicate((w) => w is DragTarget<OrbitalTowersDrag>);
-Finder _draggable(int n) => find.byWidgetPredicate((w) => w is Draggable<OrbitalTowersDrag> && w.data!.number == n);
-DragTarget<OrbitalTowersDrag> _target(WidgetTester tester, [int idx = 0]) => tester.widget<DragTarget<OrbitalTowersDrag>>(_targets.at(idx));
-OrbitalTowersDrag _payload(WidgetTester tester, int n) => tester.widget<Draggable<OrbitalTowersDrag>>(_draggable(n)).data!;
-void _deliver(DragTarget<OrbitalTowersDrag> t, OrbitalTowersDrag d) => t.onAcceptWithDetails!(DragTargetDetails<OrbitalTowersDrag>(data: d, offset: Offset.zero));
-Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async { await tester.drag(_draggable(value), tester.getCenter(_targets.at(targetIdx)) - tester.getCenter(_draggable(value))); await tester.pump(); }
-final _filled = find.byWidgetPredicate((w) => w is GestureDetector && w.key is ValueKey && (w.key as ValueKey).value.toString().contains('orbital-filled'));
-void _grade(_App app, {int moves = 2, int optimal = 2}) { expect(app.gp.outcomeCount, 1); expect(app.gp.lastOutcome!.wasSuccessful, isTrue); expect(app.gp.lastOutcome!.movesUsed, moves); expect(app.gp.lastOutcome!.optimalMoves, optimal); }
-Future<void> _retry(WidgetTester tester) async { final btn = find.widgetWithText(ElevatedButton, _strings(tester).playAgain); await tester.ensureVisible(btn); await tester.pump(); await tester.tap(btn); for (var attempt = 0; attempt < 150; attempt++) {
+
+final _targets =
+    find.byWidgetPredicate((w) => w is DragTarget<OrbitalTowersDrag>);
+Finder _draggable(int n) => find.byWidgetPredicate(
+    (w) => w is Draggable<OrbitalTowersDrag> && w.data!.number == n);
+DragTarget<OrbitalTowersDrag> _target(WidgetTester tester, [int idx = 0]) =>
+    tester.widget<DragTarget<OrbitalTowersDrag>>(_targets.at(idx));
+OrbitalTowersDrag _payload(WidgetTester tester, int n) =>
+    tester.widget<Draggable<OrbitalTowersDrag>>(_draggable(n)).data!;
+void _deliver(DragTarget<OrbitalTowersDrag> t, OrbitalTowersDrag d) =>
+    t.onAcceptWithDetails!(
+        DragTargetDetails<OrbitalTowersDrag>(data: d, offset: Offset.zero));
+Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async {
+  await tester.drag(
+      _draggable(value),
+      tester.getCenter(_targets.at(targetIdx)) -
+          tester.getCenter(_draggable(value)));
+  await tester.pump();
+}
+
+final _filled = find.byWidgetPredicate((w) =>
+    w is GestureDetector &&
+    w.key is ValueKey &&
+    (w.key as ValueKey).value.toString().contains('orbital-filled'));
+void _grade(_App app, {int moves = 2, int optimal = 2}) {
+  expect(app.gp.outcomeCount, 1);
+  expect(app.gp.lastOutcome!.wasSuccessful, isTrue);
+  expect(app.gp.lastOutcome!.movesUsed, moves);
+  expect(app.gp.lastOutcome!.optimalMoves, optimal);
+}
+
+Future<void> _retry(WidgetTester tester) async {
+  final btn = find.widgetWithText(ElevatedButton, _strings(tester).playAgain);
+  await tester.ensureVisible(btn);
+  await tester.pump();
+  await tester.tap(btn);
+  for (var attempt = 0; attempt < 150; attempt++) {
     await tester.pump(const Duration(milliseconds: 20));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
     if (_session(tester).capturePuzzleSession() != null) {
       break;
     }
-  } await tester.pump(const Duration(milliseconds: 300)); expect(_dialog, findsNothing); }
-Future<Map<String, dynamic>?> _stored(WidgetTester tester) async { var complete = false; Map<String, dynamic>? saved; PuzzleSessionStore.instance.load('orbital_towers', 1, 1).then((v) { saved = v; complete = true; }); for (var frame = 0; frame < 100 && !complete; frame++) await tester.pump(const Duration(milliseconds: 20)); expect(complete, isTrue); return saved; }
+  }
+  await tester.pump(const Duration(milliseconds: 300));
+  expect(_dialog, findsNothing);
+}
+
+Future<Map<String, dynamic>?> _stored(WidgetTester tester) async {
+  var complete = false;
+  Map<String, dynamic>? saved;
+  PuzzleSessionStore.instance.load('orbital_towers', 1, 1).then((v) {
+    saved = v;
+    complete = true;
+  });
+  for (var frame = 0; frame < 100 && !complete; frame++)
+    await tester.pump(const Duration(milliseconds: 20));
+  expect(complete, isTrue);
+  return saved;
+}
 
 void main() {
   var profile = 0;
-  setUp(() { final id = 'orbital_towers_rounds_${profile++}'; ProfilePreferences.activeId = id; SharedPreferences.setMockInitialValues({'player_${id}_onboarding_seen_orbital_towers_guided_v1': true}); PuzzleSessionStore.resetForTesting(); });
-  testWidgets('real drop consumes one move and removal is free', (tester) async {
+  setUp(() {
+    final id = 'orbital_towers_rounds_${profile++}';
+    ProfilePreferences.activeId = id;
+    SharedPreferences.setMockInitialValues(
+        {'player_${id}_onboarding_seen_orbital_towers_guided_v1': true});
+    PuzzleSessionStore.resetForTesting();
+  });
+  testWidgets('real drop consumes one move and removal is free',
+      (tester) async {
     final app = await _mount(tester, reduced: true);
     await _drag(tester, 1);
     expect(_snapshot(tester)['answers'], containsPair('r0c0', 1));
@@ -110,7 +220,9 @@ void main() {
     expect(app.gp.outcomeCount, 0);
   });
   for (final reduced in [false, true]) {
-    testWidgets('actual final correct drop wins once and retry (reduced:$reduced)', skip: true, (tester) async {
+    testWidgets(
+        'actual final correct drop wins once and retry (reduced:$reduced)',
+        (tester) async {
       final app = await _mount(tester, reduced: reduced);
       dynamic session = _session(tester);
       var round = session.testRound as Object;
@@ -139,7 +251,7 @@ void main() {
     await tester.pump();
     expect(_snapshot(tester), before);
     expect(app.gp.outcomeCount, 0);
-  }, skip: true);
+  });
   testWidgets('reduced motion completes immediately', (tester) async {
     final app = await _mount(tester, reduced: true);
     await _drag(tester, 1);
@@ -148,10 +260,11 @@ void main() {
     app.motion.value = false;
     await tester.pump();
     expect(app.gp.outcomeCount, 0);
-  }, skip: true);
+  });
   for (final lang in ['en', 'de']) {
     testWidgets('phone doubled text win in $lang', (tester) async {
-      final app = await _mount(tester, reduced: true, textScale: 2, locale: Locale(lang));
+      final app = await _mount(tester,
+          reduced: true, textScale: 2, locale: Locale(lang));
       tester.view.physicalSize = const Size(390, 844);
       await tester.pump();
       dynamic session = _session(tester);
@@ -164,6 +277,6 @@ void main() {
       await tester.pump(const Duration(milliseconds: 700));
       expect(_dialog, findsOneWidget);
       _grade(app);
-    }, skip: true);
+    });
   }
 }

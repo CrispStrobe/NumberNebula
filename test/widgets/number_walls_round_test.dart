@@ -21,7 +21,9 @@ class _App {
   final cognitive = CognitiveProfileService();
   final debug = DebugProvider();
   late final gp = GameProvider(
-      progressService: ProgressService(), sriService: sri, cognitiveProfileService: cognitive);
+      progressService: ProgressService(),
+      sriService: sri,
+      cognitiveProfileService: cognitive);
   _App({bool reduced = false}) : motion = ValueNotifier(reduced);
 
   Widget build() => MultiProvider(
@@ -48,11 +50,13 @@ class _App {
 }
 
 final _screen = find.byType(NumberWallsGame);
-Finder get _dialog => find.byWidgetPredicate((w) => w is Dialog);
+Finder get _dialog => find.byType(Dialog);
 dynamic _session(WidgetTester tester) => tester.state(_screen);
-S _strings(WidgetTester tester) => S.of(tester.element(_screen))!; // ignore: unused_element
+S _strings(WidgetTester tester) =>
+    S.of(tester.element(_screen))!; // ignore: unused_element
 Map<String, dynamic> _snapshot(WidgetTester tester) =>
-    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession())) as Map<String, dynamic>;
+    jsonDecode(jsonEncode(_session(tester).capturePuzzleSession()))
+        as Map<String, dynamic>;
 
 Future<void> _restoreFromSessionPuzzle(WidgetTester tester) async {
   final dynamic session = _session(tester);
@@ -87,7 +91,8 @@ Future<_App> _mount(WidgetTester tester, {bool reduced = false}) async {
   await tester.pumpWidget(app.build());
   for (var attempt = 0; attempt < 150; attempt++) {
     await tester.pump(const Duration(milliseconds: 20));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
     if (_session(tester).capturePuzzleSession() != null) break;
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
@@ -95,15 +100,17 @@ Future<_App> _mount(WidgetTester tester, {bool reduced = false}) async {
   return app;
 }
 
-final _targets = find.byWidgetPredicate((w) => w is DragTarget<NumberWallsDrag>);
-Finder _draggable(int n) =>
-    find.byWidgetPredicate((w) => w is Draggable<NumberWallsDrag> && w.data!.number == n);
+final _targets =
+    find.byWidgetPredicate((w) => w is DragTarget<NumberWallsDrag>);
+Finder _draggable(int n) => find.byWidgetPredicate(
+    (w) => w is Draggable<NumberWallsDrag> && w.data!.number == n);
 DragTarget<NumberWallsDrag> _target(WidgetTester tester, [int idx = 0]) =>
     tester.widget<DragTarget<NumberWallsDrag>>(_targets.at(idx));
 NumberWallsDrag _payload(WidgetTester tester, int n) =>
     tester.widget<Draggable<NumberWallsDrag>>(_draggable(n)).data!;
 void _deliver(DragTarget<NumberWallsDrag> t, NumberWallsDrag d) =>
-    t.onAcceptWithDetails!(DragTargetDetails<NumberWallsDrag>(data: d, offset: Offset.zero));
+    t.onAcceptWithDetails!(
+        DragTargetDetails<NumberWallsDrag>(data: d, offset: Offset.zero));
 
 void main() {
   var profile = 0;
@@ -137,7 +144,8 @@ void main() {
     expect((snap['answers'] as List).where((e) => e != null).length, 1);
   });
 
-  testWidgets('old payload cannot mutate new board after restore', (tester) async {
+  testWidgets('old payload cannot mutate new board after restore',
+      (tester) async {
     final app = await _mount(tester);
     final snapBefore = _snapshot(tester);
     final List<int> poolBefore = List<int>.from(snapBefore['pool'] as List);
@@ -171,7 +179,8 @@ void main() {
       final int cellIdx = sortedHidden[ansIdx] as int;
       final int correctValue = fullSolution[cellIdx] as int;
       // Data-driven: correctValue must be in numberPool
-      expect(pool.contains(correctValue), isTrue, reason: 'correct $correctValue should be in pool $pool');
+      expect(pool.contains(correctValue), isTrue,
+          reason: 'correct $correctValue should be in pool $pool');
       sess = _session(tester);
       final round = sess.testRound as Object;
       sess.placeForTesting(correctValue, cellIdx, round);
