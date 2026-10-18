@@ -3,7 +3,7 @@ import {
 } from './helpers.mjs';
 
 test.describe('first visit', () => {
-  test('shows the splash at once, then the app, with no errors', async ({ page }) => {
+  test('shows the splash at once, then the app, with no errors', async ({ page }, testInfo) => {
     const log = watch(page);
     await page.goto('./', { waitUntil: 'domcontentloaded' });
     // Painted from inline CSS before any script has loaded.
@@ -12,6 +12,13 @@ test.describe('first visit', () => {
     await expect(page.locator('flutter-view')).toHaveCount(1);
     await enableSemantics(page);
     await expect(page.getByRole('button', { name: /Start Your Math Adventure/i })).toBeVisible();
+    if (testInfo.project.name === 'chromium-wasm') {
+      // Assert the renderer actually received the mitigation, rather than only
+      // checking a bootstrap string while accidentally running JavaScript.
+      expect(await page.evaluate(() =>
+        window._flutter_skwasmInstance?.skwasmSingleThreaded)).toBe(true);
+    }
+
 
     expect(log.errors).toEqual([]);
     expect(log.failures).toEqual([]);

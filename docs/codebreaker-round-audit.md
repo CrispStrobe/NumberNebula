@@ -81,3 +81,19 @@ This raises dedicated round-suite coverage to 32 registered games, leaving 16
 for the [remaining lanes](../REMAINING_WORK.md). Passing automation does not prove
 that every interaction or device-specific defect is absent. Physical-device and
 child playtest evidence remain unavailable; no store release is claimed.
+
+## Browser validation blocker and mitigation
+
+Mixed Chromium runs exposed Skwasm memory traps in paragraph/glyph rendering,
+including unaligned access and an out-of-bounds glyph image read. Flutter's
+[confirmed shared glyph-cache race](https://github.com/flutter/flutter/issues/190039)
+was repaired after the pinned SDK. The web bootstrap now requests single-thread
+Skwasm; the existing JavaScript fallback and cross-origin isolation remain.
+`?skwasmThreads=multi` explicitly selects the original worker path for controlled
+comparisons. It is not the default while this SDK remains pinned.
+
+The first-visit browser check asserts the actual Skwasm instance uses one thread.
+Unexpected browser errors retain their stacks and still fail the suite. Treat
+this as a mitigation under validation until the repair PR records exact-head
+mixed-game, both-engine and hosted results. A matching upstream issue does not
+prove that every observed browser failure has the same cause.

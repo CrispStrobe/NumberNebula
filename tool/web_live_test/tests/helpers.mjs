@@ -83,7 +83,7 @@ export function watch(page) {
       log.toleratedEngineRace = (log.toleratedEngineRace ?? 0) + 1;
       return;
     }
-    log.errors.push(text);
+    log.errors.push(error.stack || text);
   });
   page.on('console', (msg) => {
     if (/Falling back to CPU-only rendering/.test(msg.text())) log.cpuOnly = true;
