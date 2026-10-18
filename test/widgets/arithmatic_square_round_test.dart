@@ -212,6 +212,40 @@ void main() {
     expect(_snap(t)['_movesRemaining'], 3);
     expect(app.gp.outcomeCount, 0);
   });
+  for (final replace in [false, true]) {
+    testWidgets(
+        'closed success controls cannot affect another round ($replace)',
+        (t) async {
+      final app = await _mount(t, board: _board(moves: 2));
+      await _drag(t, 1);
+      await _drag(t, 1);
+      await t.pump(const Duration(milliseconds: 700));
+      final strings = S.of(t.element(_screen))!;
+      final retry = t.widget<ElevatedButton>(
+          find.widgetWithText(ElevatedButton, strings.playAgain));
+      final exit = t.widget<ElevatedButton>(
+          find.widgetWithText(ElevatedButton, strings.backToMenu));
+      Navigator.of(t.element(_screen)).pop();
+      await t.pump();
+      await t.pump(const Duration(milliseconds: 400));
+      if (replace) {
+        await _restore(t, _board());
+      }
+      final before = replace ? _snap(t) : null;
+      retry.onPressed!();
+      exit.onPressed!();
+      await t.pump(const Duration(milliseconds: 400));
+      expect(_screen, findsOneWidget);
+      expect(_dialog, findsNothing);
+      if (replace) {
+        expect(_snap(t), before);
+      } else {
+        expect(_session(t).capturePuzzleSession(), isNull);
+      }
+      expect(app.gp.outcomeCount, 1);
+      expect(t.takeException(), isNull);
+    });
+  }
   testWidgets(
       'duplicate placed numbers consume two inventory copies after restore',
       (t) async {
@@ -297,6 +331,16 @@ void main() {
         await _drag(t, 1);
         await t.pump(const Duration(milliseconds: 700));
         expect(_dialog, findsOneWidget);
+        expect(app.gp.outcomeCount, 1);
+        expect(t.takeException(), isNull);
+        final retry = find.widgetWithText(
+            ElevatedButton, S.of(t.element(_screen))!.playAgain);
+        await t.ensureVisible(retry);
+        await t.pump();
+        await t.tap(retry);
+        await t.pump();
+        await t.pump(const Duration(milliseconds: 300));
+        expect(_dialog, findsNothing);
         expect(app.gp.outcomeCount, 1);
         expect(t.takeException(), isNull);
       });

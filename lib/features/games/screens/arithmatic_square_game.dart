@@ -1470,13 +1470,19 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
                       level: widget.level,
                     ),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  OverflowBar(
+                    alignment: MainAxisAlignment.spaceEvenly,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
+                          Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
                         style: SpaceTheme.secondaryButtonStyle,
@@ -1484,8 +1490,12 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop(); // Close the dialog
-                          Navigator.of(context).pop(); // Close the game screen
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
+                          final navigator = Navigator.of(dialogContext);
+                          navigator.pop();
+                          navigator.pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.backToMenu),
