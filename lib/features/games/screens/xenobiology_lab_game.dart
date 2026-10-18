@@ -34,6 +34,18 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
         PuzzleSessionMixin<XenobiologyLabGame> {
   bool _sessionReady = false;
   Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
+  }
+
   bool _won = false;
   bool _canInteract(Object round) =>
       mounted &&
@@ -452,7 +464,7 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
                 key: ValueKey(('xeno-header', round)),
                 title: s.xenobiologyLabTitle,
                 level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: _backForRound(),
               ),
               Expanded(
                 child: LayoutBuilder(

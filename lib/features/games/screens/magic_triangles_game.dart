@@ -150,6 +150,18 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
   int _optimalMoves = 0;
 
   Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
+  }
+
   bool _won = false;
   bool _canInteract(Object round) =>
       mounted &&
@@ -772,7 +784,8 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         children: [
           // Back Button
           IconButton(
-            onPressed: () => Navigator.of(context).pop(),
+            key: ValueKey(('magic_triangles-back', _round)),
+            onPressed: _backForRound(),
             icon: Icon(
               Icons.arrow_back_ios,
               color: Colors.white,

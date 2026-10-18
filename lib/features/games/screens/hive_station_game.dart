@@ -41,6 +41,18 @@ class _HiveStationGameState extends State<HiveStationGame>
   int get sessionLevel => widget.level;
 
   Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
+  }
+
   bool _won = false;
 
   bool _canInteract(Object round) =>
@@ -420,7 +432,7 @@ class _HiveStationGameState extends State<HiveStationGame>
                     key: ValueKey(('hive-header', _round)),
                     title: s.hiveStationTitle,
                     level: widget.level,
-                    onBack: () => Navigator.of(context).pop(),
+                    onBack: _backForRound(),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(

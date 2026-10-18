@@ -116,6 +116,24 @@ void _deliver(DragTarget<NumberWallsDrag> t, NumberWallsDrag d) =>
         DragTargetDetails<NumberWallsDrag>(data: d, offset: Offset.zero));
 
 void main() {
+  testWidgets('back press from a replaced round cannot navigate',
+      (tester) async {
+    await _mount(tester);
+    final back = find.byIcon(Icons.arrow_back);
+    expect(back, findsOneWidget);
+    final gesture = await tester.startGesture(tester.getCenter(back));
+    final dynamic session = _session(tester);
+    final before = _snapshot(tester);
+    session.beginPuzzleSession();
+    session.applyPuzzleSession(before);
+    session.rebuildForTesting();
+    await tester.pump();
+    await gesture.up();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(_screen, findsOneWidget);
+    expect(_snapshot(tester), before);
+    expect(tester.takeException(), isNull);
+  });
   var profile = 0;
   setUp(() {
     final id = 'number_walls_rounds_${profile++}';

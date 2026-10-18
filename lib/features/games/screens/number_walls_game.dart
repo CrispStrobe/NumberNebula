@@ -70,6 +70,18 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   int _optimalMoves = 0;
 
   Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
+  }
+
   bool _won = false;
   bool _canInteract(Object round) =>
       mounted &&
@@ -1033,7 +1045,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       child: Row(
         children: [
           IconButton(
-            onPressed: () => Navigator.of(context).pop(),
+            key: ValueKey(('number_walls-back', _round)),
+            onPressed: _backForRound(),
             icon: const Icon(Icons.arrow_back, color: Colors.white),
           ),
           Expanded(

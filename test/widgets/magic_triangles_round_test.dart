@@ -122,6 +122,24 @@ Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async {
 }
 
 void main() {
+  testWidgets('back press from a replaced round cannot navigate',
+      (tester) async {
+    await _mount(tester);
+    final back = find.byIcon(Icons.arrow_back_ios);
+    expect(back, findsOneWidget);
+    final gesture = await tester.startGesture(tester.getCenter(back));
+    final dynamic session = _session(tester);
+    final before = _snapshot(tester);
+    session.beginPuzzleSession();
+    session.applyPuzzleSession(before);
+    session.rebuildForTesting();
+    await tester.pump();
+    await gesture.up();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(_screen, findsOneWidget);
+    expect(_snapshot(tester), before);
+    expect(tester.takeException(), isNull);
+  });
   var profile = 0;
   setUp(() {
     final id = 'magic_triangles_rounds_${profile++}';

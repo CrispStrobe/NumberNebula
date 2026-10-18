@@ -43,6 +43,18 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         PuzzleSessionMixin<ArithmancerCrosswordsGame> {
   bool _sessionReady = false;
   Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
+  }
+
   bool _won = false;
   bool _reducedMotion = false;
   bool _canInteract(Object round) =>
@@ -939,9 +951,10 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       return Column(
         children: [
           GameUI(
+            key: ValueKey(('arithmancer_crosswords-header', _round)),
             title: S.of(context)!.arithmancerCrosswords,
             level: widget.level,
-            onBack: () => Navigator.of(context).pop(),
+            onBack: _backForRound(),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -975,8 +988,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       child: Row(
         children: [
           IconButton(
+            key: ValueKey(('arithmancer_crosswords-back', _round)),
             icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: _backForRound(),
           ),
           Expanded(
             child: FittedBox(

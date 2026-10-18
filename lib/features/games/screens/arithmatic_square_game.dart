@@ -131,6 +131,18 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   int _optimalMoves = 0;
 
   Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
+  }
+
   bool _won = false;
   bool _reducedMotion = false;
   bool _canInteract(Object round) =>
@@ -815,9 +827,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
                     _buildAdaptiveHeader(isCompact: isCompact)
                   else
                     GameUI(
+                      key: ValueKey(('arithmatic_square-header', _round)),
                       title: S.of(context)!.arithmeticSquare,
                       level: widget.level,
-                      onBack: () => Navigator.of(context).pop(),
+                      onBack: _backForRound(),
                     ),
                   Expanded(
                     child: isWide
@@ -838,9 +851,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       return Column(
         children: [
           GameUI(
+            key: ValueKey(('arithmatic_square-header', _round)),
             title: S.of(context)!.arithmeticSquare,
             level: widget.level,
-            onBack: () => Navigator.of(context).pop(),
+            onBack: _backForRound(),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -859,8 +873,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       child: Row(
         children: [
           IconButton(
+            key: ValueKey(('arithmatic_square-back', _round)),
             icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: _backForRound(),
           ),
           Expanded(
             child: Column(

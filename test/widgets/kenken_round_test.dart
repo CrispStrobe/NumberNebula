@@ -113,6 +113,24 @@ void _deliver(DragTarget<KenkenDrag> t, KenkenDrag d) => t.onAcceptWithDetails!(
     DragTargetDetails<KenkenDrag>(data: d, offset: Offset.zero));
 
 void main() {
+  testWidgets('back press from a replaced round cannot navigate',
+      (tester) async {
+    await _mount(tester);
+    final back = find.byIcon(Icons.arrow_back_ios);
+    expect(back, findsOneWidget);
+    final gesture = await tester.startGesture(tester.getCenter(back));
+    final dynamic session = _session(tester);
+    final before = _snapshot(tester);
+    session.beginPuzzleSession();
+    session.applyPuzzleSession(before);
+    session.rebuildForTesting();
+    await tester.pump();
+    await gesture.up();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(_screen, findsOneWidget);
+    expect(_snapshot(tester), before);
+    expect(tester.takeException(), isNull);
+  });
   var profile = 0;
   setUp(() {
     final id = 'kenken_rounds_${profile++}';

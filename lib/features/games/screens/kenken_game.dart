@@ -60,6 +60,18 @@ class _KenkenGameState extends State<KenkenGame>
   int _optimalMoves = 0;
 
   Object _round = Object();
+  VoidCallback _backForRound() {
+    final round = _round;
+    return () {
+      if (mounted &&
+          identical(round, _round) &&
+          !_isGenerating &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
+    };
+  }
+
   bool _won = false;
   bool _canInteract(Object round) =>
       mounted &&
@@ -799,9 +811,10 @@ class _KenkenGameState extends State<KenkenGame>
       return Column(
         children: [
           GameUI(
+            key: ValueKey(('kenken-header', _round)),
             title: S.of(context)!.kenken,
             level: widget.level,
-            onBack: () => Navigator.of(context).pop(),
+            onBack: _backForRound(),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -832,8 +845,9 @@ class _KenkenGameState extends State<KenkenGame>
       child: Row(
         children: [
           IconButton(
+            key: ValueKey(('kenken-back', _round)),
             icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: _backForRound(),
           ),
           Expanded(
             child: Column(
