@@ -110,7 +110,7 @@ Finder _draggable(int n) => find.byWidgetPredicate(
 DragTarget<NumberWallsDrag> _target(WidgetTester tester, [int idx = 0]) =>
     tester.widget<DragTarget<NumberWallsDrag>>(_targets.at(idx));
 NumberWallsDrag _payload(WidgetTester tester, int n) =>
-    tester.widget<Draggable<NumberWallsDrag>>(_draggable(n)).data!;
+    tester.widget<Draggable<NumberWallsDrag>>(_draggable(n).first).data!;
 void _deliver(DragTarget<NumberWallsDrag> t, NumberWallsDrag d) =>
     t.onAcceptWithDetails!(
         DragTargetDetails<NumberWallsDrag>(data: d, offset: Offset.zero));

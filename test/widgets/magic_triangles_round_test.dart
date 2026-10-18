@@ -15,6 +15,7 @@ import 'package:space_math_academy/features/games/models/performance.dart'; // i
 import 'package:space_math_academy/features/games/providers/game_provider.dart';
 import 'package:space_math_academy/features/games/screens/magic_triangles_game.dart';
 import 'package:space_math_academy/generated/l10n.dart';
+import 'package:space_math_academy/features/games/services/magic_triangle_puzzle.dart';
 
 class _App {
   final ValueNotifier<bool> motion;
@@ -109,15 +110,22 @@ Finder _draggable(int n) => find.byWidgetPredicate(
 DragTarget<MagicTrianglesDrag> _target(WidgetTester tester, [int idx = 0]) =>
     tester.widget<DragTarget<MagicTrianglesDrag>>(_targets.at(idx));
 MagicTrianglesDrag _payload(WidgetTester tester, int n) =>
-    tester.widget<Draggable<MagicTrianglesDrag>>(_draggable(n)).data!;
+    tester.widget<Draggable<MagicTrianglesDrag>>(_draggable(n).first).data!;
 void _deliver(DragTarget<MagicTrianglesDrag> t, MagicTrianglesDrag d) =>
     t.onAcceptWithDetails!(
         DragTargetDetails<MagicTrianglesDrag>(data: d, offset: Offset.zero));
 Future<void> _drag(WidgetTester tester, int value, [int targetIdx = 0]) async {
+  final source = _draggable(value).first;
+  final node = find.byWidgetPredicate((w) =>
+      w is Semantics &&
+      (w.properties.label ?? '').startsWith('Empty triangle node'));
+  final target = node.at(targetIdx);
+  await tester.ensureVisible(source);
+  await tester.ensureVisible(target);
+  await tester.pump();
+  // The board receives the feedback's top-left position, as in victory tests.
   await tester.drag(
-      _draggable(value),
-      tester.getCenter(_targets.at(targetIdx)) -
-          tester.getCenter(_draggable(value).first));
+      source, tester.getCenter(target) - tester.getTopLeft(source));
   await tester.pump();
 }
 
@@ -149,21 +157,47 @@ void main() {
     PuzzleSessionStore.resetForTesting();
   });
 
-  testWidgets('real drop consumes one move', (tester) async {
-    await _mount(tester, reduced: true);
-    final dynamic sess = _session(tester);
-    final puzzle = sess.currentPuzzle;
-    expect(puzzle, isNotNull);
-    // Data-driven: number to place is derived from puzzle.numberPool
-    final List<int> pool = List<int>.from(puzzle.numberPool as List);
-    expect(pool, isNotEmpty);
-    final int poolNumber = pool.first;
-    await _drag(tester, poolNumber);
-    // After drag, pool number should be consumed from snapshot
-    final snap = _snapshot(tester);
-    // At least one answer slot filled
-    expect((snap['userAnswers'] as List).where((e) => e != null).length, 1);
-  });
+  for (final corners in [true, false]) {
+    testWidgets(
+        'real drop on ${corners ? "corner" : "midpoint"} nodes consumes one move',
+        (tester) async {
+      final app = await _mount(tester, reduced: true);
+      const solution = [1, 4, 5, 2, 3, 6];
+      final hidden = corners ? <int>{0, 2} : <int>{1, 5};
+      final answers = [for (final i in hidden) solution[i]];
+      final pool = [...answers, 7, 8];
+      final puzzle = MagicTrianglePuzzle(
+          circlesPerSide: 3,
+          warpFrequency: 10,
+          hiddenIndices: hidden,
+          visibleValues: {
+            for (var i = 0; i < solution.length; i++)
+              if (!hidden.contains(i)) i: solution[i]
+          },
+          allNumbers: solution,
+          numberPool: pool);
+      expect(puzzle.checkSolution(answers).isPerfect, isTrue);
+      final dynamic session = _session(tester);
+      session.beginPuzzleSession();
+      session.applyPuzzleSession({
+        'currentPuzzle': puzzle.toJson(),
+        'userAnswers': [null, null],
+        'numberPool': pool,
+        '_movesRemaining': 4,
+        '_maxMoves': 4,
+        '_optimalMoves': 2,
+      });
+      session.rebuildForTesting();
+      await tester.pump();
+      await _drag(tester, answers.first);
+      final snap = _snapshot(tester);
+      expect(snap['userAnswers'], [answers.first, null]);
+      expect(snap['_movesRemaining'], 3);
+      expect(snap['numberPool'], unorderedEquals(pool.skip(1)));
+      expect(app.gp.outcomeCount, 0);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('old payload cannot mutate new board after restore',
       (tester) async {
