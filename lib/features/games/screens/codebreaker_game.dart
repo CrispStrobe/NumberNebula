@@ -177,8 +177,10 @@ class _CodebreakerGameState extends State<CodebreakerGame>
       debugPrint(
           "🚀 [CODEBREAKER UI] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
     }
-    debugPrint(
-        "🚀 [CODEBREAKER UI] Using ${USE_CSP_GENERATION ? 'CSP' : 'ORIGINAL'} generation algorithm");
+    if (kDebugMode) {
+      debugPrint(
+          "🚀 [CODEBREAKER UI] Using ${USE_CSP_GENERATION ? 'CSP' : 'ORIGINAL'} generation algorithm");
+    }
 
     _dropController = AnimationController(
         duration: const Duration(milliseconds: 500), vsync: this);
@@ -266,8 +268,10 @@ class _CodebreakerGameState extends State<CodebreakerGame>
       final generatedPuzzle = await (pending ??
           compute(AdvancedCodebreakerPuzzle.generate, puzzleArgs));
 
-      debugPrint(
-          "🎯 [CODEBREAKER UI] Puzzle generation completed successfully");
+      if (kDebugMode) {
+        debugPrint(
+            "🎯 [CODEBREAKER UI] Puzzle generation completed successfully");
+      }
 
       if (mounted && identical(round, _round)) {
         setState(() {
@@ -285,17 +289,26 @@ class _CodebreakerGameState extends State<CodebreakerGame>
         if (kDebugMode) {
           debugPrint("🎯 [CODEBREAKER UI] UI state updated with new puzzle");
         }
-        debugPrint(
-            "🎯 [CODEBREAKER UI] Max moves allowed: $_maxMoves for ${generatedPuzzle.hiddenSymbols.length} hidden symbols");
-        debugPrint("🎯 [CODEBREAKER UI] Number pool: ${numberPool.join(', ')}");
-        debugPrint(
-            "🎯 [CODEBREAKER UI] Hidden symbols: ${generatedPuzzle.hiddenSymbols.join(', ')}");
+        if (kDebugMode) {
+          debugPrint(
+              "🎯 [CODEBREAKER UI] Max moves allowed: $_maxMoves for ${generatedPuzzle.hiddenSymbols.length} hidden symbols");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "🎯 [CODEBREAKER UI] Number pool: ${numberPool.join(', ')}");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "🎯 [CODEBREAKER UI] Hidden symbols: ${generatedPuzzle.hiddenSymbols.join(', ')}");
+        }
       }
     } catch (e, stackTrace) {
       if (kDebugMode) {
         debugPrint("❌ [CODEBREAKER UI] Error generating puzzle: $e");
       }
-      debugPrint("❌ [CODEBREAKER UI] StackTrace: $stackTrace");
+      if (kDebugMode) {
+        debugPrint("❌ [CODEBREAKER UI] StackTrace: $stackTrace");
+      }
 
       // CRITICAL: Never crash - always provide graceful fallback
       if (mounted && identical(round, _round)) {
