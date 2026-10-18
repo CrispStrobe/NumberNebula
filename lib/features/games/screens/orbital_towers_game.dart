@@ -312,6 +312,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   }
 
   Future<void> _showStrategyHint() async {
+    final round = _round;
     if (_hintLoading || puzzleSessionFinished) return;
     final p = puzzle;
     if (p == null) return;
@@ -351,6 +352,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
         return {'cells': cells, 'target': e.value};
       }).toList(),
     });
+    if (!mounted || !identical(round, _round)) return;
     _hintLoading = false;
     if (mounted) setState(() {});
     if (!mounted || !identical(p, puzzle) || !mapEquals(initial, userSolution))
@@ -368,7 +370,7 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
             : s.hintCheckPlacements,
         demonstrate: compatible
             ? () {
-                if (mounted) _placeNumber(value!, cell, _round);
+                if (mounted) _placeNumber(value!, cell, round);
               }
             : null);
   }

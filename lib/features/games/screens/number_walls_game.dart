@@ -345,6 +345,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   Future<void> _showStrategyHint() async {
+    final round = _round;
     if (_hintLoading || puzzleSessionFinished) return;
     final p = currentPuzzle;
     if (p == null) return;
@@ -382,6 +383,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       'pool': p.numberPool,
       'equations': equations,
     });
+    if (!mounted || !identical(round, _round)) return;
     _hintLoading = false;
     if (mounted) setState(() {});
     if (!mounted ||
@@ -416,7 +418,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         demonstrate: compatible
             ? () {
                 if (mounted)
-                  _placeNumber((number: value!, round: _round), cell, _round);
+                  _placeNumber((number: value!, round: round), cell, round);
               }
             : null);
   }

@@ -343,6 +343,7 @@ class _StarForgeGameState extends State<StarForgeGame>
   }
 
   Future<void> _showStrategyHint() async {
+    final round = _round;
     if (_hintLoading || puzzleSessionFinished) return;
     final p = puzzle;
     if (p == null) return;
@@ -372,6 +373,7 @@ class _StarForgeGameState extends State<StarForgeGame>
           .toList(),
       'pool': p.numberPool,
     });
+    if (!mounted || !identical(round, _round)) return;
     _hintLoading = false;
     if (mounted) setState(() {});
     if (!mounted || !identical(p, puzzle) || !mapEquals(initial, userSolution))
@@ -389,7 +391,7 @@ class _StarForgeGameState extends State<StarForgeGame>
             : s.hintCheckPlacements,
         demonstrate: compatible
             ? () {
-                if (mounted) _placeNumber(value!, node, _round);
+                if (mounted) _placeNumber(value!, node, round);
               }
             : null);
   }

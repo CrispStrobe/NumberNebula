@@ -1108,11 +1108,8 @@ class _KenkenGameState extends State<KenkenGame>
         button: true,
         label: S.of(context)!.a11yPlacedValueTapRemove,
         child: GestureDetector(
-          onTap: () {
-            final round = _round;
-            final exp = userSolution[cellId];
-            _removeNumber(cellId, exp, round);
-          },
+          key: ValueKey(('kenken-filled', round, cellId, value)),
+          onTap: () => _removeNumber(cellId, value, round),
           child: cellWidget,
         ),
       );

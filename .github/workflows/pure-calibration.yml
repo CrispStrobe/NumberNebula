@@ -52,6 +52,9 @@ jobs:
       - name: Candidate and baseline correctness regressions
         if: matrix.grade_group == 'all' || matrix.grade_group == '1'
         run: dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/test_algorithm_paths.dart
+      - name: Lane G bounded Robot replay and report integrity
+        if: matrix.grade_group == 'all' || matrix.grade_group == '1'
+        run: dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/structural_review_g_regression.dart
       - name: Cargo reachable-row regressions
         if: matrix.grade_group == 'all' || matrix.grade_group == '1'
         run: dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/test_cargo_rows.dart

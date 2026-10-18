@@ -81,7 +81,7 @@ These notes describe what a tester would see if build `38` were distributed via 
 
 > **NumberNebula 1.5.22 — stability, accessibility, and learning feedback**
 >
-> * Across all 48 mini-games: puzzles now resume correctly after interruptions — restored boards keep your progress, timers pause during hints and coaching, and a finished board clears its saved snapshot so it does not replay rewards. Reduced-motion and mid-animation settings are respected, and English/German layouts remain reachable on phone screens including 390×500 with large text.
+> * Across the games with completed focused audits: puzzles resume after interruptions — restored boards keep your progress, timers pause during hints and coaching, and a finished board clears its saved snapshot so it does not replay rewards. Focused tests cover initial and mid-animation reduced motion and selected English/German phone layouts, including short screens with large text. This is not a claim of exhaustive layout coverage for every board in all 48 games.
 > * Smoother practice flow: sibling profiles keep each learner’s progress, spaced-review and cognitive-profile data, missions, and saved boards separate. The parent dashboard shows weekly progress from comparable completed rounds and offers a practice suggestion — no new data leaves the device.
 > * Learning feedback: every completed round now records a measured performance signal and shows a result summary with moves/hints where applicable. Coaching is available from the current board across all 48 games.
 > * Under the hood: expanded headless generation checks (60,400 boards across all 48 games, six grades, all 20 levels) and WASM/JS web verification remain green. No new in-app purchase or network collection has been added.
