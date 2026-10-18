@@ -258,8 +258,10 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
     }
 
     if (kDebugMode) debugPrint("--- GAME END ---");
-    debugPrint(
-        "Result: ${wasSuccessful ? 'WIN' : 'LOSS'} | Final Score: $finalScore");
+    if (kDebugMode) {
+      debugPrint(
+          "Result: ${wasSuccessful ? 'WIN' : 'LOSS'} | Final Score: $finalScore");
+    }
 
     // 3. Make the single, unified call to the GameProvider.
     if (wasSuccessful) {
@@ -456,8 +458,10 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
                       debugPrint(
                           "==================== LAYOUT REBUILD ====================");
                     }
-                    debugPrint(
-                        "LAYOUT: Available constraints: MaxW=${constraints.maxWidth.toStringAsFixed(1)}, MaxH=${constraints.maxHeight.toStringAsFixed(1)}");
+                    if (kDebugMode) {
+                      debugPrint(
+                          "LAYOUT: Available constraints: MaxW=${constraints.maxWidth.toStringAsFixed(1)}, MaxH=${constraints.maxHeight.toStringAsFixed(1)}");
+                    }
                     return Row(
                       children: [
                         Expanded(
@@ -584,12 +588,18 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
 
     // REFACTORED: Verbose logging
     if (kDebugMode) debugPrint("SIZING: Calculating piece size...");
-    debugPrint(
-        "SIZING:   -> Available for board: W=${availableWidth.toStringAsFixed(1)}, H=${availableHeight.toStringAsFixed(1)}");
-    debugPrint(
-        "SIZING:   -> Using constraints: W=${boardConstraints.maxWidth.toStringAsFixed(1)}, H=${boardConstraints.maxHeight.toStringAsFixed(1)}");
-    debugPrint(
-        "SIZING:   -> Calculated side length: ${pieceSide.toStringAsFixed(2)}");
+    if (kDebugMode) {
+      debugPrint(
+          "SIZING:   -> Available for board: W=${availableWidth.toStringAsFixed(1)}, H=${availableHeight.toStringAsFixed(1)}");
+    }
+    if (kDebugMode) {
+      debugPrint(
+          "SIZING:   -> Using constraints: W=${boardConstraints.maxWidth.toStringAsFixed(1)}, H=${boardConstraints.maxHeight.toStringAsFixed(1)}");
+    }
+    if (kDebugMode) {
+      debugPrint(
+          "SIZING:   -> Calculated side length: ${pieceSide.toStringAsFixed(2)}");
+    }
 
     return Size(pieceSide, pieceSide);
   }
@@ -609,11 +619,17 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
       debugPrint(
           "-------------------- Puzzle Board Build --------------------");
     }
-    debugPrint(
-        "BOARD: Piece Size (Core): ${pieceSize.width.toStringAsFixed(1)} x ${pieceSize.height.toStringAsFixed(1)}");
-    debugPrint("BOARD: Bump Size: ${bumpSize.toStringAsFixed(1)}");
-    debugPrint(
-        "BOARD: Core Grid Dimensions: ${coreWidth.toStringAsFixed(1)} x ${coreHeight.toStringAsFixed(1)}");
+    if (kDebugMode) {
+      debugPrint(
+          "BOARD: Piece Size (Core): ${pieceSize.width.toStringAsFixed(1)} x ${pieceSize.height.toStringAsFixed(1)}");
+    }
+    if (kDebugMode) {
+      debugPrint("BOARD: Bump Size: ${bumpSize.toStringAsFixed(1)}");
+    }
+    if (kDebugMode) {
+      debugPrint(
+          "BOARD: Core Grid Dimensions: ${coreWidth.toStringAsFixed(1)} x ${coreHeight.toStringAsFixed(1)}");
+    }
     if (kDebugMode) {
       debugPrint("----------------------------------------------------------");
     }
