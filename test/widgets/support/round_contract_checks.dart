@@ -104,6 +104,7 @@ void registerGridRoundChecks({
     final app = await mount(t, true);
     final all = solution(state(t));
     final last = all.entries.last;
+    expect(valid(state(t), all), isTrue);
     await restore(t, prepared(t, 1, 1));
     await dragLast(t, last.key, last.value);
     await t.pump(const Duration(milliseconds: 1700));
@@ -139,49 +140,56 @@ void registerGridRoundChecks({
     expect(t.takeException(), isNull);
   });
 
-  for (final win in [false, true]) {
-    testWidgets(
-        'adversarial: real ${win ? "win" : "loss"} retry generates a playable round',
-        (t) async {
-      final app = await mount(t, true);
-      final all = solution(state(t));
-      final last = all.entries.last;
-      await restore(t, prepared(t, 1, 1));
-      final pool = List<int>.from(snapshot(t)[poolKey] as List);
-      final value = win
-          ? last.value
-          : pool.firstWhere((n) =>
-              n != last.value && !valid(state(t), {...all, last.key: n}));
-      await dragLast(t, last.key, value);
-      await t.pump(const Duration(milliseconds: 1700));
-      expect(app.gp.outcomeCount, 1);
-      expect(app.gp.lastOutcome!.wasSuccessful, win);
-      final retry = find
-          .descendant(of: roundDialogs, matching: find.byType(ElevatedButton))
-          .first;
-      await t.ensureVisible(retry);
-      await t.pump();
-      await t.tap(retry);
-      for (var i = 0; i < 200; i++) {
-        await t.pump(const Duration(milliseconds: 20));
-        await t.runAsync(
-            () => Future<void>.delayed(const Duration(milliseconds: 20)));
-        if (state(t).capturePuzzleSession() != null) {
-          break;
+  for (final reduced in [false, true]) {
+    for (final win in [false, true]) {
+      testWidgets(
+          'adversarial: real ${win ? "win" : "loss"} retry generates a playable round (reduced:$reduced)',
+          (t) async {
+        final app = await mount(t, reduced);
+        final all = solution(state(t));
+        final last = all.entries.last;
+        expect(valid(state(t), all), isTrue);
+        await restore(t, prepared(t, 1, 1));
+        final pool = List<int>.from(snapshot(t)[poolKey] as List);
+        final value = win
+            ? last.value
+            : pool.firstWhere((n) =>
+                n != last.value && !valid(state(t), {...all, last.key: n}));
+        await dragLast(t, last.key, value);
+        await t.pump(const Duration(milliseconds: 1700));
+        expect(app.gp.outcomeCount, 1);
+        expect(app.gp.lastOutcome!.wasSuccessful, win);
+        final retry = find
+            .descendant(of: roundDialogs, matching: find.byType(ElevatedButton))
+            .first;
+        await t.ensureVisible(retry);
+        await t.pump();
+        await t.tap(retry);
+        for (var i = 0; i < 200; i++) {
+          await t.pump(const Duration(milliseconds: 20));
+          await t.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 20)));
+          if (state(t).capturePuzzleSession() != null) {
+            break;
+          }
         }
-      }
-      await t.pump(const Duration(milliseconds: 400));
-      expect(roundDialogs, findsNothing);
-      expect(state(t).capturePuzzleSession(), isNotNull);
-      final fresh = snapshot(t);
-      expect(fresh[movesKey], fresh[maxMovesKey]);
-      final first = solution(state(t)).keys.first;
-      final nextValue = (fresh[poolKey] as List).first as int;
-      await dragLast(t, first, nextValue);
-      expect(snapshot(t)[movesKey], (fresh[movesKey] as int) - 1);
-      expect(app.gp.outcomeCount, 1);
-      expect(t.takeException(), isNull);
-    });
+        await t.pump(const Duration(milliseconds: 400));
+        expect(roundDialogs, findsNothing);
+        expect(state(t).capturePuzzleSession(), isNotNull);
+        final fresh = snapshot(t);
+        expect(fresh[movesKey], fresh[maxMovesKey]);
+        expect(find.byType(ScaleTransition), findsNothing,
+            reason: 'A new board cannot retain the previous drop marker');
+        final first = solution(state(t)).keys.first;
+        final nextValue = (fresh[poolKey] as List).first as int;
+        await dragLast(t, first, nextValue);
+        expect(snapshot(t)[movesKey], (fresh[movesKey] as int) - 1,
+            reason:
+                'Real pointer input must reach new cell $first with tile $nextValue');
+        expect(app.gp.outcomeCount, 1);
+        expect(t.takeException(), isNull);
+      });
+    }
   }
 
   testWidgets('adversarial: stale filled control cannot remove restored input',

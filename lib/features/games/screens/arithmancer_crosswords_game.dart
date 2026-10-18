@@ -328,6 +328,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
 
     setState(() {
       _isGenerating = true;
+      _lastDroppedPosition = '';
       _won = false;
       _successController.reset();
       userSolution.clear();

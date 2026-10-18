@@ -232,6 +232,7 @@ class _KenkenGameState extends State<KenkenGame>
 
     setState(() {
       _isGenerating = true;
+      _lastDroppedPosition = '';
       _won = false;
       successController.reset();
       userSolution.clear();
