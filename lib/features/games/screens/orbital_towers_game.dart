@@ -117,7 +117,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   int get sessionLevel => widget.level;
   @override
   Map<String, dynamic>? capturePuzzleSession() {
-    if (puzzle == null || _isGenerating || _won || _outOfMoves) return null;
+    if (puzzle == null || _isGenerating || _won || _outOfMoves) {
+      return null;
+    }
     return {
       'puzzle': puzzle!.toJson(),
       'answers': userSolution,
@@ -131,6 +133,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   @override
   void applyPuzzleSession(Map<String, dynamic> state) {
     _resetRoundEffects();
+    _lastDroppedCell = '';
+    _hintCell = null;
+    _hintLoading = false;
     puzzle = OrbitalTowersPuzzle.fromJson(
         Map<String, dynamic>.from(state['puzzle'] as Map));
     userSolution = Map<String, int>.from(state['answers'] as Map);
@@ -151,7 +156,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
       finishPuzzleSession();
       final round = _round;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !identical(round, _round) || _isGenerating) return;
+        if (!mounted || !identical(round, _round) || _isGenerating) {
+          return;
+        }
         if (solved && _won) {
           _showWinDialog(_winScore(), round);
         } else if (exhausted && _outOfMoves) {
@@ -163,7 +170,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   }
 
   Future<void> _restoreOrGenerate() async {
-    if (!await restorePuzzleSession() && mounted) _generatePuzzle();
+    if (!await restorePuzzleSession() && mounted) {
+      _generatePuzzle();
+    }
   }
 
   @override
@@ -184,7 +193,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
         currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
             gradeOverride: widget.grade);
         await _restoreOrGenerate();
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
         _showOnboarding(onlyIfUnseen: true);
       }
     });
@@ -302,9 +313,10 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
 
           _isGenerating = false;
         });
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint(
               '[OrbitalTowers] Max moves allowed: $_maxMoves for ${p.emptyCells.length} empty cells');
+        }
       }
     } catch (e) {
       debugPrint('[OrbitalTowers] Error generating puzzle: $e');
@@ -313,12 +325,18 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
 
   Future<void> _showStrategyHint() async {
     final round = _round;
-    if (_hintLoading || puzzleSessionFinished) return;
+    if (_hintLoading || puzzleSessionFinished) {
+      return;
+    }
     final p = puzzle;
-    if (p == null) return;
+    if (p == null) {
+      return;
+    }
     final missing =
         p.emptyCells.where((i) => !userSolution.containsKey(i)).toList();
-    if (missing.isEmpty) return;
+    if (missing.isEmpty) {
+      return;
+    }
     final cell = missing.first;
     final parts = cell.substring(1).split('c');
     final row = int.parse(parts[0]);
@@ -352,11 +370,18 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
         return {'cells': cells, 'target': e.value};
       }).toList(),
     });
-    if (!mounted || !identical(round, _round)) return;
-    _hintLoading = false;
-    if (mounted) setState(() {});
-    if (!mounted || !identical(p, puzzle) || !mapEquals(initial, userSolution))
+    if (!mounted || !identical(round, _round)) {
       return;
+    }
+    _hintLoading = false;
+    if (mounted) {
+      setState(() {});
+    }
+    if (!mounted ||
+        !identical(p, puzzle) ||
+        !mapEquals(initial, userSolution)) {
+      return;
+    }
     final compatible = completion != null;
     final value = completion?[cell];
     final line = List.generate(p.size, (c) => completion?['r${row}c$c'] ?? 0);
@@ -370,7 +395,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
             : s.hintCheckPlacements,
         demonstrate: compatible
             ? () {
-                if (mounted) _placeNumber(value!, cell, round);
+                if (mounted) {
+                  _placeNumber(value!, cell, round);
+                }
               }
             : null);
   }
@@ -380,15 +407,20 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
         !_canInteract(round) ||
         puzzle!.clues.containsKey(cellId) ||
         !puzzle!.emptyCells.contains(cellId) ||
-        !puzzle!.numberPool.contains(number)) return;
-    if (_won || _outOfMoves) return;
+        !puzzle!.numberPool.contains(number)) {
+      return;
+    }
+    if (_won || _outOfMoves) {
+      return;
+    }
     setState(() {
       userSolution[cellId] = number;
       _lastDroppedCell = cellId;
       _movesRemaining--;
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
             '[OrbitalTowers] Moves remaining: $_movesRemaining/$_maxMoves');
+      }
     });
     _dropController.forward(from: 0.0);
     playOneShotMotion(_dropController, () {});
@@ -404,14 +436,18 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     if (!_canInteract(round) ||
         !puzzle!.emptyCells.contains(cellId) ||
         expected == null ||
-        userSolution[cellId] != expected) return;
+        userSolution[cellId] != expected) {
+      return;
+    }
     setState(() {
       userSolution.remove(cellId);
     });
   }
 
   void _checkLineCompletion(String cellId) {
-    if (puzzle == null) return;
+    if (puzzle == null) {
+      return;
+    }
     final size = puzzle!.size;
     // Parse row/col from cellId
     final parts = cellId.split('c');
@@ -453,8 +489,12 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   }
 
   void _checkSolution() {
-    if (!_canInteract(_round)) return;
-    if (userSolution.length != puzzle!.emptyCells.length) return;
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (userSolution.length != puzzle!.emptyCells.length) {
+      return;
+    }
 
     if (puzzle!.validateSolution(userSolution)) {
       _handleWin();
@@ -467,7 +507,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
       100 * widget.grade + widget.level * 25 + puzzle!.size * puzzle!.size * 15;
 
   void _handleWin() {
-    if (!_canInteract(_round) || !_isSolved()) return;
+    if (!_canInteract(_round) || !_isSolved()) {
+      return;
+    }
     _resetRoundEffects();
     setState(() => _won = true);
     final round = _round;
@@ -490,8 +532,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   }
 
   void _showWinDialog(int score, Object round) {
-    if (!mounted || !identical(round, _round) || !_won || puzzle == null)
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
       return;
+    }
     playOneShotMotion(successController, () {});
     showDialog(
         context: context,
@@ -525,7 +568,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   }
 
   void _handleFailure() {
-    if (kDebugMode) debugPrint('[OrbitalTowers] FAILURE - recording loss');
+    if (kDebugMode) {
+      debugPrint('[OrbitalTowers] FAILURE - recording loss');
+    }
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
           skillLevel: widget.grade,
           gameType: 'orbital_towers',
@@ -536,20 +581,30 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
   }
 
   void _handleOutOfMoves() {
-    if (_outOfMoves || _won) return;
-    if (!_canInteract(_round)) return;
+    if (_outOfMoves || _won) {
+      return;
+    }
+    if (!_canInteract(_round)) {
+      return;
+    }
     _resetRoundEffects();
     setState(() => _outOfMoves = true);
     final round = _round;
     finishPuzzleSession();
-    if (kDebugMode) debugPrint('[OrbitalTowers] Out of moves! Game over.');
+    if (kDebugMode) {
+      debugPrint('[OrbitalTowers] Out of moves! Game over.');
+    }
     _handleFailure();
     _showOutOfMovesDialog(round);
   }
 
   void _showOutOfMovesDialog(Object round) {
-    if (!mounted || !identical(round, _round) || !_outOfMoves || puzzle == null)
+    if (!mounted ||
+        !identical(round, _round) ||
+        !_outOfMoves ||
+        puzzle == null) {
       return;
+    }
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -1164,7 +1219,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          if (!_canUseDialog(round, dialogContext)) return;
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },

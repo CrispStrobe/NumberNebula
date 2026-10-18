@@ -79,24 +79,38 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       currentPuzzle != null &&
       !_victoryPending;
   bool _canPlace(NumberWallsDrag drag, int hiddenCellIndex, Object round) {
-    if (!_canInteract(round) || !identical(drag.round, _round)) return false;
-    if (!numberPool.contains(drag.number)) return false;
-    if (!currentPuzzle!.hiddenCells.contains(hiddenCellIndex)) return false;
+    if (!_canInteract(round) || !identical(drag.round, _round)) {
+      return false;
+    }
+    if (!numberPool.contains(drag.number)) {
+      return false;
+    }
+    if (!currentPuzzle!.hiddenCells.contains(hiddenCellIndex)) {
+      return false;
+    }
     final answerIndex = currentPuzzle!.getAnswerIndexForCell(hiddenCellIndex);
-    if (answerIndex == -1 || userAnswers[answerIndex] != null) return false;
+    if (answerIndex == -1 || userAnswers[answerIndex] != null) {
+      return false;
+    }
     return true;
   }
 
   bool _isSolved() {
-    if (currentPuzzle == null) return false;
-    if (userAnswers.any((a) => a == null)) return false;
+    if (currentPuzzle == null) {
+      return false;
+    }
+    if (userAnswers.any((a) => a == null)) {
+      return false;
+    }
     return currentPuzzle!.validateSolution(userAnswers.cast<int>());
   }
 
   bool _isExhausted() =>
       currentPuzzle != null && _movesRemaining <= 0 && !_isSolved();
   List<int> _remainingPool() {
-    if (currentPuzzle == null) return [];
+    if (currentPuzzle == null) {
+      return [];
+    }
     final used = userAnswers.whereType<int>();
     final pool = List<int>.from(currentPuzzle!.numberPool);
     for (final v in used) {
@@ -108,6 +122,8 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   void _syncNumberPool() => numberPool = _remainingPool();
   void _resetRoundEffects() {
     _round = Object();
+    _fadeTimer?.cancel();
+    _fadeController.stop();
     cancelOneShotMotion(_warpController);
     cancelOneShotMotion(_dropController);
     cancelOneShotMotion(successController);
@@ -148,8 +164,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   int get sessionLevel => widget.level;
   @override
   Map<String, dynamic>? capturePuzzleSession() {
-    if (currentPuzzle == null || _isGenerating || _won || _victoryPending)
+    if (currentPuzzle == null || _isGenerating || _won || _victoryPending) {
       return null;
+    }
     return {
       'puzzle': currentPuzzle!.toJson(),
       'answers': userAnswers,
@@ -184,7 +201,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       finishPuzzleSession();
       final round = _round;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !identical(round, _round) || _isGenerating) return;
+        if (!mounted || !identical(round, _round) || _isGenerating) {
+          return;
+        }
         if (solved) {
           _showSuccessDialog(_successBonus(), round);
         } else {
@@ -196,16 +215,19 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   Future<void> _restoreOrGenerate() async {
-    if (!await restorePuzzleSession() && mounted) _generatePuzzle();
+    if (!await restorePuzzleSession() && mounted) {
+      _generatePuzzle();
+    }
   }
 
   @override
   void initState() {
     super.initState();
     initGameAnimations(usePulse: false);
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint(
           "🧱 NumberWallsGame.initState() - Grade ${widget.grade}, Level ${widget.level}");
+    }
 
     _dropController = AnimationController(
         duration: const Duration(milliseconds: 500), vsync: this);
@@ -229,7 +251,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _restoreOrGenerate();
-      if (mounted) _showTutorial(onlyIfUnseen: true);
+      if (mounted) {
+        _showTutorial(onlyIfUnseen: true);
+      }
     });
 
     // Start the fade timer
@@ -263,8 +287,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
   void _startFadeTimer() {
     _fadeTimer?.cancel();
+    final round = _round;
     _fadeTimer = Timer(const Duration(seconds: 15), () {
-      if (mounted && _shouldShowOperationHint) {
+      if (_canInteract(round) && _shouldShowOperationHint) {
         setState(() {
           _shouldShowOperationHint = false;
         });
@@ -291,8 +316,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
     _resetRoundEffects();
     final round = _round;
     beginPuzzleSession();
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint("🧱 _generatePuzzle() - Starting puzzle generation");
+    }
 
     setState(() {
       _isGenerating = true;
@@ -331,27 +357,36 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
           _isGenerating = false;
         });
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint(
               "🧱 Puzzle generated: ${currentPuzzle!.operation.name} wall, height ${currentPuzzle!.wallHeight}");
+        }
         debugPrint(
             "🧱 Max moves allowed: $_maxMoves for ${currentPuzzle!.hiddenCells.length} hidden cells");
         _startFadeTimer(); // Restart the timer for new puzzle
       }
     } catch (e, stackTrace) {
-      if (kDebugMode) debugPrint("❌ Error in _generatePuzzle: $e");
+      if (kDebugMode) {
+        debugPrint("❌ Error in _generatePuzzle: $e");
+      }
       debugPrint("❌ StackTrace: $stackTrace");
     }
   }
 
   Future<void> _showStrategyHint() async {
     final round = _round;
-    if (_hintLoading || puzzleSessionFinished) return;
+    if (_hintLoading || puzzleSessionFinished) {
+      return;
+    }
     final p = currentPuzzle;
-    if (p == null) return;
+    if (p == null) {
+      return;
+    }
     final hidden = p.hiddenCells.toList()..sort();
     final answer = userAnswers.indexWhere((v) => v == null);
-    if (answer < 0) return;
+    if (answer < 0) {
+      return;
+    }
     final cell = hidden[answer];
     setState(() {
       _hintCell = cell;
@@ -383,12 +418,18 @@ class _NumberWallsGameState extends State<NumberWallsGame>
       'pool': p.numberPool,
       'equations': equations,
     });
-    if (!mounted || !identical(round, _round)) return;
+    if (!mounted || !identical(round, _round)) {
+      return;
+    }
     _hintLoading = false;
-    if (mounted) setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
     if (!mounted ||
         !identical(p, currentPuzzle) ||
-        !listEquals(initial, userAnswers)) return;
+        !listEquals(initial, userAnswers)) {
+      return;
+    }
     final compatible = completion != null;
     final value = completion?[cell.toString()];
     String equation = '';
@@ -397,7 +438,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         final parent = row * (row + 1) ~/ 2 + col;
         final left = (row + 1) * (row + 2) ~/ 2 + col;
         final right = left + 1;
-        if (![parent, left, right].contains(cell)) continue;
+        if (![parent, left, right].contains(cell)) {
+          continue;
+        }
         final a = completion?[left.toString()] ?? 0,
             b = completion?[right.toString()] ?? 0;
         final symbol = ['+', '−', '×', '÷'][p.operation.index];
@@ -407,7 +450,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
             : '$a $symbol $b = ${completion?[parent.toString()]}';
         break;
       }
-      if (equation.isNotEmpty) break;
+      if (equation.isNotEmpty) {
+        break;
+      }
     }
     StrategyHintDialog.show(context,
         focus: s.hintWallFocus,
@@ -417,15 +462,17 @@ class _NumberWallsGameState extends State<NumberWallsGame>
             : s.hintCheckPlacements,
         demonstrate: compatible
             ? () {
-                if (mounted)
+                if (mounted) {
                   _placeNumber((number: value!, round: round), cell, round);
+                }
               }
             : null);
   }
 
   void _placeNumber(NumberWallsDrag drag, int hiddenCellIndex, Object round) {
-    if (_movesRemaining <= 0 || !_canPlace(drag, hiddenCellIndex, round))
+    if (_movesRemaining <= 0 || !_canPlace(drag, hiddenCellIndex, round)) {
       return;
+    }
     final number = drag.number;
     final answerIndex = currentPuzzle!.getAnswerIndexForCell(hiddenCellIndex);
     if (answerIndex == -1 || userAnswers[answerIndex] != null) {
@@ -441,8 +488,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
       // Decrement moves on placement
       _movesRemaining--;
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint("🧱 Moves remaining: $_movesRemaining/$_maxMoves");
+      }
     });
 
     // Check if out of moves BEFORE checking solution
@@ -459,7 +507,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         answerIndex < 0 ||
         answerIndex >= userAnswers.length ||
         expected == null ||
-        userAnswers[answerIndex] != expected) return;
+        userAnswers[answerIndex] != expected) {
+      return;
+    }
     setState(() {
       final number = userAnswers[answerIndex];
       if (number != null) {
@@ -471,7 +521,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _checkIfComplete() {
-    if (!_canInteract(_round)) return;
+    if (!_canInteract(_round)) {
+      return;
+    }
     if (userAnswers.every((answer) => answer != null)) {
       final isValid = currentPuzzle!.validateSolution(userAnswers.cast<int>());
 
@@ -523,8 +575,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   List<MathProblem> _getSolvedProblems() {
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint("🧱 Gathering all solved problems for the completed wall...");
+    }
     // REMOVED: Direct access to sriService.
     final puzzle = currentPuzzle!;
     final List<MathProblem> problemsToLog = [];
@@ -577,8 +630,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
             if (problem != null) {
               // CHANGED: Instead of calling sriService, add to our list.
               problemsToLog.add(problem);
-              if (kDebugMode)
+              if (kDebugMode) {
                 debugPrint("🧱 Found problem to log -> ${problem.expression}");
+              }
             }
           }
         }
@@ -589,13 +643,17 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   int _successBonus() {
-    if (currentPuzzle == null) return 0;
+    if (currentPuzzle == null) {
+      return 0;
+    }
     return (120 * widget.grade * (currentPuzzle!.wallHeight / 3.0)).round() +
         _getOperationBonus(currentPuzzle!.operation);
   }
 
   void _handleSuccess(int totalScoreGained) {
-    if (!_canInteract(_round) || !_isSolved()) return;
+    if (!_canInteract(_round) || !_isSolved()) {
+      return;
+    }
     _won = true;
     _victoryPending = true;
     AppHaptics.lightImpact();
@@ -605,8 +663,12 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _showSuccessDialog(int bonus, Object round) {
-    if (!mounted || !identical(round, _round) || !_won || currentPuzzle == null)
+    if (!mounted ||
+        !identical(round, _round) ||
+        !_won ||
+        currentPuzzle == null) {
       return;
+    }
     playOneShotMotion(successController, () {});
     showDialog(
       context: context,
@@ -637,7 +699,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _handleIncorrect() {
-    if (!_canInteract(_round)) return;
+    if (!_canInteract(_round)) {
+      return;
+    }
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -655,7 +719,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _handleFailure() {
-    if (kDebugMode) debugPrint("🧱 FAILURE - recording loss");
+    if (kDebugMode) {
+      debugPrint("🧱 FAILURE - recording loss");
+    }
     final attemptedProblems = _getSolvedProblems();
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
           skillLevel: widget.grade,
@@ -669,11 +735,17 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _handleOutOfMoves() {
-    if (_won || _isGenerating) return;
-    if (!_canInteract(_round)) return;
+    if (_won || _isGenerating) {
+      return;
+    }
+    if (!_canInteract(_round)) {
+      return;
+    }
     _resetRoundEffects();
     setState(() => _won = true);
-    if (kDebugMode) debugPrint("🧱 Out of moves! Game over.");
+    if (kDebugMode) {
+      debugPrint("🧱 Out of moves! Game over.");
+    }
     final round = _round;
     finishPuzzleSession();
     _handleFailure();
@@ -681,8 +753,12 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   void _showOutOfMovesDialog(Object round) {
-    if (!mounted || !identical(round, _round) || !_won || currentPuzzle == null)
+    if (!mounted ||
+        !identical(round, _round) ||
+        !_won ||
+        currentPuzzle == null) {
       return;
+    }
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -727,7 +803,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    if (!_canUseDialog(round, dialogContext)) return;
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
@@ -736,9 +814,13 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    if (!_canUseDialog(round, dialogContext)) return;
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
-                    if (mounted) Navigator.of(context).pop();
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
                   },
                   style: SpaceTheme.primaryButtonStyle,
                   child: Text(s.backToMenu),
@@ -1190,8 +1272,10 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               );
             },
             onWillAcceptWithDetails: (details) {
-              if (!_canInteract(round) || !identical(details.data.round, round))
+              if (!_canInteract(round) ||
+                  !identical(details.data.round, round)) {
                 return false;
+              }
               setState(() => _isDraggingOver = true);
               return true;
             },
@@ -1199,13 +1283,17 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               setState(() => _isDraggingOver = false);
             },
             onAcceptWithDetails: (details) {
-              if (!_canInteract(round) || !identical(details.data.round, round))
+              if (!_canInteract(round) ||
+                  !identical(details.data.round, round)) {
                 return;
+              }
               setState(() => _isDraggingOver = false);
 
               final RenderBox? renderBox = _dragTargetKey.currentContext
                   ?.findRenderObject() as RenderBox?;
-              if (renderBox == null) return;
+              if (renderBox == null) {
+                return;
+              }
 
               final localDropPosition = renderBox.globalToLocal(details.offset);
               final droppedNumber = details.data;
@@ -1233,7 +1321,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   int? _findClosestEmptyCell(Offset dropPosition, double containerSize) {
-    if (currentPuzzle == null) return null;
+    if (currentPuzzle == null) {
+      return null;
+    }
 
     final cellPositions = currentPuzzle!.getCellPositions(containerSize);
     final cellSize = containerSize * 0.12;
@@ -1264,7 +1354,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   List<Widget> _buildWallCells(double containerSize) {
-    if (currentPuzzle == null) return [];
+    if (currentPuzzle == null) {
+      return [];
+    }
 
     List<Widget> cells = [];
     final cellPositions = currentPuzzle!.getCellPositions(containerSize);
@@ -1303,7 +1395,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
   }
 
   List<Widget> _buildOperationSymbols(double containerSize) {
-    if (currentPuzzle == null) return [];
+    if (currentPuzzle == null) {
+      return [];
+    }
 
     final gameProvider = context.read<GameProvider>();
     List<Widget> symbols = [];
@@ -1499,7 +1593,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
               ),
               itemCount: numberPool.length,
               itemBuilder: (context, index) {
-                if (index >= numberPool.length) return Container();
+                if (index >= numberPool.length) {
+                  return Container();
+                }
                 final number = numberPool[index];
                 return Draggable<NumberWallsDrag>(
                   key: ValueKey(('numberwalls-drag', _round, number)),
@@ -1604,7 +1700,9 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          if (!_canUseDialog(round, dialogContext)) return;
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
@@ -1613,9 +1711,13 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          if (!_canUseDialog(round, dialogContext)) return;
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
-                          if (mounted) Navigator.of(context).pop();
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
                         },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.toTheBridge),

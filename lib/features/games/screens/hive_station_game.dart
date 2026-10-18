@@ -86,7 +86,9 @@ class _HiveStationGameState extends State<HiveStationGame>
 
   @override
   Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating || _won || puzzle == null) return null;
+    if (!_sessionReady || _isGenerating || _won || puzzle == null) {
+      return null;
+    }
     return {
       'puzzle': (puzzle?.toJson()),
       'userMarked': userMarked.map((v0) => v0.toJson()).toList(),
@@ -114,7 +116,9 @@ class _HiveStationGameState extends State<HiveStationGame>
       finishPuzzleSession();
       final round = _round;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && identical(round, _round) && _won) _showLossDialog(round);
+        if (mounted && identical(round, _round) && _won) {
+          _showLossDialog(round);
+        }
       });
       WidgetsBinding.instance.ensureVisualUpdate();
     }
@@ -124,7 +128,9 @@ class _HiveStationGameState extends State<HiveStationGame>
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
-    if (mounted) setState(() => _sessionReady = true);
+    if (mounted) {
+      setState(() => _sessionReady = true);
+    }
   }
 
   HiveStationPuzzle? puzzle;
@@ -219,15 +225,21 @@ class _HiveStationGameState extends State<HiveStationGame>
         });
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('[HiveStation] Error generating puzzle: $e');
+      if (kDebugMode) {
+        debugPrint('[HiveStation] Error generating puzzle: $e');
+      }
     }
   }
 
   void _toggleCell(HexCoord coord, [Object? round]) {
     final r = round ?? _round;
-    if (!_canInteract(r) || !puzzle!.allCells.contains(coord)) return;
+    if (!_canInteract(r) || !puzzle!.allCells.contains(coord)) {
+      return;
+    }
     // Don't toggle cells that show a hint
-    if (puzzle!.revealedHints.contains(coord)) return;
+    if (puzzle!.revealedHints.contains(coord)) {
+      return;
+    }
 
     setState(() {
       if (userMarked.contains(coord)) {
@@ -242,8 +254,12 @@ class _HiveStationGameState extends State<HiveStationGame>
 
   void _checkSolution([Object? round]) {
     final r = round ?? _round;
-    if (!_canInteract(r)) return;
-    if (_gameOver || _won) return;
+    if (!_canInteract(r)) {
+      return;
+    }
+    if (_gameOver || _won) {
+      return;
+    }
     if (puzzle!.validateSolution(userMarked)) {
       _handleWin(r);
     } else {
@@ -260,7 +276,9 @@ class _HiveStationGameState extends State<HiveStationGame>
   }
 
   void _handleWrongAttempt(Object round) {
-    if (!mounted || !identical(round, _round) || _won) return;
+    if (!mounted || !identical(round, _round) || _won) {
+      return;
+    }
     AppHaptics.heavyImpact();
     _clearFeedback();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -282,8 +300,12 @@ class _HiveStationGameState extends State<HiveStationGame>
   }
 
   void _handleFinalLoss(Object round) {
-    if (_won) return;
-    if (!identical(round, _round)) return;
+    if (_won) {
+      return;
+    }
+    if (!identical(round, _round)) {
+      return;
+    }
     _won = true;
     _clearFeedback();
     AppHaptics.heavyImpact();
@@ -299,8 +321,9 @@ class _HiveStationGameState extends State<HiveStationGame>
   }
 
   void _showLossDialog(Object round) {
-    if (!mounted || !identical(round, _round) || !_won || puzzle == null)
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
       return;
+    }
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -309,11 +332,19 @@ class _HiveStationGameState extends State<HiveStationGame>
   }
 
   void _handleWin(Object round) {
-    if (_won) return;
-    if (!identical(round, _round)) return;
-    if (!mounted) return;
+    if (_won) {
+      return;
+    }
+    if (!identical(round, _round)) {
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
     // Validate still correct at call time
-    if (puzzle == null || !puzzle!.validateSolution(userMarked)) return;
+    if (puzzle == null || !puzzle!.validateSolution(userMarked)) {
+      return;
+    }
     _won = true;
     _gameOver = true;
     _clearFeedback();
@@ -340,8 +371,9 @@ class _HiveStationGameState extends State<HiveStationGame>
   }
 
   void _showWinDialog(int totalScore, Object round) {
-    if (!mounted || !identical(round, _round) || !_won || puzzle == null)
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
       return;
+    }
     playOneShotMotion(successController, () {});
     showDialog(
       context: context,
@@ -353,8 +385,9 @@ class _HiveStationGameState extends State<HiveStationGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady)
+    if (!_sessionReady) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
 
     if (puzzle == null || _isGenerating) {
@@ -682,7 +715,9 @@ class _HiveStationGameState extends State<HiveStationGame>
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    if (!_canUseDialog(round, dialogContext)) return;
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
@@ -740,7 +775,9 @@ class _HiveStationGameState extends State<HiveStationGame>
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          if (!_canUseDialog(round, dialogContext)) return;
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },

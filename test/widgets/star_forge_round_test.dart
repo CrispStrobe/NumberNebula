@@ -83,7 +83,9 @@ StarForgePuzzle _testPuzzle(
   final nodeCount = points * 2;
   final clues = <int, int>{};
   for (int i = 0; i < nodeCount; i++) {
-    if (!emptyNodes.contains(i)) clues[i] = solution[i]!;
+    if (!emptyNodes.contains(i)) {
+      clues[i] = solution[i]!;
+    }
   }
   final clueValues = clues.values.toSet();
   final numberPool = List<int>.generate(nodeCount, (i) => i + 1)
@@ -155,7 +157,9 @@ Future<_App> _mount(WidgetTester tester,
     await tester.pump(const Duration(milliseconds: 20));
     await tester
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
   await _restore(tester, app, board ?? _board());
@@ -207,7 +211,9 @@ Future<void> _retry(WidgetTester tester, {bool loss = false}) async {
     await tester.pump(const Duration(milliseconds: 20));
     await tester
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   await tester.pump(const Duration(milliseconds: 300));
   final board = _snapshot(tester);
@@ -599,4 +605,25 @@ void main() {
     expect(app.gp.outcomeCount, 0);
     expect(tester.takeException(), isNull);
   });
+  for (final win in [false, true]) {
+    testWidgets('partial restore clears prior terminal flags (win:$win)',
+        (tester) async {
+      final app = await _mount(tester,
+          reduced: true,
+          board: win
+              ? _board(answers: {7: 8}, movesRemaining: 1)
+              : _board(movesRemaining: 1));
+      await _drag(tester, win ? 4 : 2);
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(_dialog, findsOneWidget);
+      Navigator.of(tester.element(_screen)).pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await _restore(tester, app, _board());
+      expect(_session(tester).capturePuzzleSession(), isNotNull);
+      await _drag(tester, 8);
+      expect(_snapshot(tester)['answers'], containsPair('7', 8));
+      expect(app.gp.outcomeCount, 1);
+    });
+  }
 }

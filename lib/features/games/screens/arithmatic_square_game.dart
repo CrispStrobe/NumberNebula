@@ -53,7 +53,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   int get sessionLevel => widget.level;
   @override
   Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating || _won || puzzle == null) return null;
+    if (!_sessionReady || _isGenerating || _won || puzzle == null) {
+      return null;
+    }
     return {
       'puzzle': puzzle?.toJson(),
       'userSolution':
@@ -68,6 +70,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   @override
   void applyPuzzleSession(Map<String, dynamic> state) {
     _resetRoundEffects();
+    _lastDroppedPosition = '';
     puzzle = (state["puzzle"] == null
         ? null
         : ArithmeticSquarePuzzle.fromJson(
@@ -104,7 +107,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
-    if (mounted) setState(() => _sessionReady = true);
+    if (mounted) {
+      setState(() => _sessionReady = true);
+    }
   }
 
   late AnimationController _dropController;
@@ -202,9 +207,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   void initState() {
     super.initState();
     initGameAnimations();
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint(
           "🔢 [ARITHMETIC SQUARE] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
+    }
 
     _dropController = AnimationController(
         duration: const Duration(milliseconds: 500), vsync: this);
@@ -226,9 +232,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         currentDifficulty = DifficultyManager.getDifficulty(
             gameProvider, widget.level,
             gradeOverride: widget.grade);
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint(
               "🔢 [ARITHMETIC SQUARE] Difficulty initialized: ${currentDifficulty?.grade}");
+        }
         _restoreOrGenerate();
       }
     });
@@ -250,7 +257,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     _resetRoundEffects();
     final round = _round;
     beginPuzzleSession();
-    if (currentDifficulty == null) return;
+    if (currentDifficulty == null) {
+      return;
+    }
     setState(() {
       _isGenerating = true;
       _won = false;
@@ -271,9 +280,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         'customMax': gameProvider.customRangeMax,
       };
 
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
             "🎯 [ARITHMETIC SQUARE] Calling compute function with args: $puzzleArgs");
+      }
       final generatedPuzzle =
           await compute(ArithmeticSquarePuzzle.generate, puzzleArgs);
 
@@ -293,31 +303,37 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
 
           _isGenerating = false;
 
-          if (kDebugMode)
+          if (kDebugMode) {
             debugPrint(
                 "🎯 [ARITHMETIC SQUARE] Max moves allowed: $_maxMoves for $emptyCount empty cells");
+          }
         });
         debugPrint("🎯 [ARITHMETIC SQUARE] UI state updated with new puzzle");
         debugPrint(
             "🎯 [ARITHMETIC SQUARE] Number pool (sorted): ${numberPool.join(', ')}");
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint(
               "🎯 [ARITHMETIC SQUARE] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+        }
         debugPrint(
             "🎯 [ARITHMETIC SQUARE] Player hints: ${generatedPuzzle.playerHints.keys.join(', ')}");
       }
     } catch (e, stackTrace) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint("❌ [ARITHMETIC SQUARE] Error generating puzzle: $e");
+      }
       debugPrint("❌ [ARITHMETIC SQUARE] StackTrace: $stackTrace");
     }
   }
 
   void _placeNumber(ArithmeticSquareDrag drag, String cellId, Object round) {
-    if (_movesRemaining <= 0 || !_canPlace(drag, cellId, round)) return;
+    if (_movesRemaining <= 0 || !_canPlace(drag, cellId, round)) {
+      return;
+    }
     final number = drag.number;
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
+    }
 
     setState(() {
       userSolution[cellId] = number;
@@ -328,19 +344,23 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
 
       // Decrement moves
       _movesRemaining--;
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
+      }
 
       // Warning animation when low on moves
       if (!_reducedMotion && _movesRemaining <= 3 && _movesRemaining > 0) {
         _moveWarningController.forward(from: 0.0).then((_) {
-          if (_canInteract(round) && !_reducedMotion)
+          if (_canInteract(round) && !_reducedMotion) {
             _moveWarningController.reverse();
+          }
         });
       }
     });
 
-    if (kDebugMode) debugPrint("🎮 [PLACE] User solution after: $userSolution");
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] User solution after: $userSolution");
+    }
     debugPrint("🎮 [PLACE] Number pool after: $numberPool");
 
     // Check if out of moves BEFORE checking solution
@@ -353,12 +373,17 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   void _handleOutOfMoves() {
-    if (_won || _isGenerating) return;
-    if (!_canInteract(_round)) return;
+    if (_won || _isGenerating) {
+      return;
+    }
+    if (!_canInteract(_round)) {
+      return;
+    }
     _resetRoundEffects();
     setState(() => _won = true);
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint("❌ [ARITHMETIC SQUARE] Out of moves! Game over.");
+    }
     final round = _round;
     _handleFailure();
     _showOutOfMovesDialog(round);
@@ -418,7 +443,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    if (!_canUseDialog(round, dialogContext)) return;
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
@@ -427,7 +454,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    if (!_canUseDialog(round, dialogContext)) return;
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
                     Navigator.of(context).pop();
                   },
@@ -446,9 +475,12 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     if (!_canInteract(round) ||
         !puzzle!.emptyCells.contains(cellId) ||
         expected == null ||
-        userSolution[cellId] != expected) return;
-    if (kDebugMode)
+        userSolution[cellId] != expected) {
+      return;
+    }
+    if (kDebugMode) {
       debugPrint("🗑️ [ARITHMETIC SQUARE] Removing number from cell $cellId");
+    }
 
     setState(() {
       final number = userSolution[cellId];
@@ -459,16 +491,21 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
 
         // IMPORTANT: Removing doesn't restore moves (prevents abuse)
         // Player learns to think before placing
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint(
               "🗑️ [ARITHMETIC SQUARE] Removed $number (moves not restored)");
+        }
       }
     });
   }
 
   void _checkSolution() {
-    if (!_canInteract(_round)) return;
-    if (kDebugMode) debugPrint("✅ [ARITHMETIC SQUARE] Checking solution...");
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint("✅ [ARITHMETIC SQUARE] Checking solution...");
+    }
     debugPrint("✅ [ARITHMETIC SQUARE] User solution: $userSolution");
     debugPrint(
         "✅ [ARITHMETIC SQUARE] Required cells: ${puzzle!.emptyCells.length}");
@@ -477,9 +514,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     _checkAndLogCompletedEquations();
 
     if (userSolution.length == puzzle!.emptyCells.length) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
             "✅ [ARITHMETIC SQUARE] All cells filled, validating solution");
+      }
 
       final isValid = puzzle!.validateSolution(userSolution);
       debugPrint("✅ [ARITHMETIC SQUARE] Solution validation result: $isValid");
@@ -490,9 +528,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         _handleIncorrect();
       }
     } else {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
             "✅ [ARITHMETIC SQUARE] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
+      }
     }
   }
 
@@ -510,7 +549,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     // Check each row equation
     for (int r = 0; r < puzzle!.gridSize; r++) {
       final equationId = 'row_$r';
-      if (_loggedEquations.contains(equationId)) continue;
+      if (_loggedEquations.contains(equationId)) {
+        continue;
+      }
 
       // Check if all cells in this row are filled
       bool rowComplete = true;
@@ -539,9 +580,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
             final isCorrect =
                 puzzle!.validateSingleEquation(currentGrid, r, true);
             sriService.recordResponse(problem, isCorrect);
-            if (kDebugMode)
+            if (kDebugMode) {
               debugPrint(
                   "🔢 SRI: Logged row $r problem -> ${problem.expression} (correct: $isCorrect)");
+            }
           }
         }
         _loggedEquations.add(equationId);
@@ -551,7 +593,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     // Check each column equation
     for (int c = 0; c < puzzle!.gridSize; c++) {
       final equationId = 'col_$c';
-      if (_loggedEquations.contains(equationId)) continue;
+      if (_loggedEquations.contains(equationId)) {
+        continue;
+      }
 
       // Check if all cells in this column are filled
       bool colComplete = true;
@@ -580,9 +624,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
             final isCorrect =
                 puzzle!.validateSingleEquation(currentGrid, c, false);
             sriService.recordResponse(problem, isCorrect);
-            if (kDebugMode)
+            if (kDebugMode) {
               debugPrint(
                   "🔢 SRI: Logged column $c problem -> ${problem.expression} (correct: $isCorrect)");
+            }
           }
         }
         _loggedEquations.add(equationId);
@@ -615,7 +660,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   int _successBonus() {
-    if (puzzle == null) return 0;
+    if (puzzle == null) {
+      return 0;
+    }
     final complexityBonus = puzzle!.gridSize * puzzle!.gridSize * 10;
     final operationBonus = puzzle!
         .getAllOperators()
@@ -625,17 +672,21 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   void _handleSuccess() {
-    if (!_canInteract(_round) || !_isSolved()) return;
+    if (!_canInteract(_round) || !_isSolved()) {
+      return;
+    }
     AppHaptics.lightImpact();
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint("🎉 [ARITHMETIC SQUARE] SUCCESS! Player solved the puzzle!");
+    }
 
     final baseScore = 200 * widget.grade;
     final bonus = _successBonus();
     final totalScore = baseScore + bonus;
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint(
           "🎉 [ARITHMETIC SQUARE] Score calculation: base=$baseScore, bonus=$bonus, total=$totalScore");
+    }
 
     _resetRoundEffects();
     _clearFeedback();
@@ -670,8 +721,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   void _handleFailure() {
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint("❌ [ARITHMETIC SQUARE] Player gave up or failed");
+    }
 
     // Record the failure - equations were already tracked via SRI as they were completed
     finishPuzzleSession();
@@ -703,10 +755,13 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   void _handleIncorrect() {
-    if (!_canInteract(_round)) return;
-    if (kDebugMode)
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (kDebugMode) {
       debugPrint(
           "❌ [ARITHMETIC SQUARE] Incorrect solution - showing error message");
+    }
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -725,8 +780,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady)
+    if (!_sessionReady) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     if (puzzle == null || _isGenerating) {
       return Scaffold(
         body: SpaceBackground(
@@ -1224,7 +1280,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
             ),
             itemCount: numberPool.length,
             itemBuilder: (context, index) {
-              if (index >= numberPool.length) return Container();
+              if (index >= numberPool.length) {
+                return Container();
+              }
               final number = numberPool[index];
               // Semantics on visual child — see note in word_sort_game.
               return Draggable<ArithmeticSquareDrag>(

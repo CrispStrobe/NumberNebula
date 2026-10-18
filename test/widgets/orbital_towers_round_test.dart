@@ -70,8 +70,11 @@ OrbitalTowersPuzzle _testPuzzle(
     }
   }
   final clues = <String, int>{};
-  for (final e in solution.entries)
-    if (!empty.contains(e.key)) clues[e.key] = e.value;
+  for (final e in solution.entries) {
+    if (!empty.contains(e.key)) {
+      clues[e.key] = e.value;
+    }
+  }
   return OrbitalTowersPuzzle(
       size: size,
       solution: solution,
@@ -129,7 +132,9 @@ Future<_App> _mount(WidgetTester tester,
     await tester.pump(const Duration(milliseconds: 20));
     await tester
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
   await _restore(tester, app, board ?? _board());
@@ -190,8 +195,9 @@ Future<Map<String, dynamic>?> _stored(WidgetTester tester) async {
     saved = v;
     complete = true;
   });
-  for (var frame = 0; frame < 100 && !complete; frame++)
+  for (var frame = 0; frame < 100 && !complete; frame++) {
     await tester.pump(const Duration(milliseconds: 20));
+  }
   expect(complete, isTrue);
   return saved;
 }
@@ -224,13 +230,8 @@ void main() {
         'actual final correct drop wins once and retry (reduced:$reduced)',
         (tester) async {
       final app = await _mount(tester, reduced: reduced);
-      dynamic session = _session(tester);
-      var round = session.testRound as Object;
-      session.placeForTesting(1, 'r0c0', round);
-      await tester.pump();
-      session = _session(tester);
-      round = session.testRound as Object;
-      session.placeForTesting(2, 'r0c1', round);
+      await _drag(tester, 1);
+      await _drag(tester, 2);
       await tester.pump(const Duration(milliseconds: 700));
       _grade(app, moves: 2, optimal: 2);
       expect(_session(tester).capturePuzzleSession(), isNull);
@@ -267,16 +268,33 @@ void main() {
           reduced: true, textScale: 2, locale: Locale(lang));
       tester.view.physicalSize = const Size(390, 844);
       await tester.pump();
-      dynamic session = _session(tester);
-      var round = session.testRound as Object;
-      session.placeForTesting(1, 'r0c0', round);
-      await tester.pump();
-      session = _session(tester);
-      round = session.testRound as Object;
-      session.placeForTesting(2, 'r0c1', round);
+      await _drag(tester, 1);
+      await _drag(tester, 2);
       await tester.pump(const Duration(milliseconds: 700));
       expect(_dialog, findsOneWidget);
       _grade(app);
     });
   }
+  testWidgets(
+      'full incorrect final move loses once without a negative-budget escape',
+      (tester) async {
+    final app = await _mount(tester,
+        reduced: true, board: _board(answers: {'r0c0': 1}, moves: 1));
+    await _drag(tester, 1);
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(_dialog, findsOneWidget);
+    expect(app.gp.outcomeCount, 1);
+    expect(app.gp.lastOutcome!.wasSuccessful, isFalse);
+    expect(_session(tester).capturePuzzleSession(), isNull);
+  });
+  testWidgets('older full wrong zero-move snapshot offers retry without replay',
+      (tester) async {
+    final app = await _mount(tester, reduced: true);
+    await _restore(
+        tester, app, _board(answers: {'r0c0': 1, 'r0c1': 1}, moves: 0));
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(_dialog, findsOneWidget);
+    expect(app.gp.outcomeCount, 0);
+    expect(_session(tester).capturePuzzleSession(), isNull);
+  });
 }

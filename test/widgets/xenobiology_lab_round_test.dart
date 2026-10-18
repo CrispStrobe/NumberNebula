@@ -125,7 +125,9 @@ Future<_App> _mount(WidgetTester tester,
     await tester.pump(const Duration(milliseconds: 20));
     await tester
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
   await _restore(tester, app, board ?? _board());
@@ -146,7 +148,9 @@ Future<void> _setSlider(WidgetTester tester, int which, int value) async {
 
 Future<void> _submit(WidgetTester tester) async {
   final btn = _submitBtn();
-  if (btn.evaluate().isEmpty) return;
+  if (btn.evaluate().isEmpty) {
+    return;
+  }
   await tester.ensureVisible(btn);
   await tester.pump();
   await tester.tap(btn);
@@ -164,7 +168,9 @@ Future<void> _retry(WidgetTester tester) async {
     await tester.pump(const Duration(milliseconds: 20));
     await tester
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   expect(_dialog, findsNothing);
   expect(_session(tester).capturePuzzleSession(), isNotNull);
@@ -368,7 +374,9 @@ void main() {
           await tester.pump(const Duration(milliseconds: 20));
           await tester.runAsync(
               () => Future<void>.delayed(const Duration(milliseconds: 20)));
-          if (_session(tester).capturePuzzleSession() != null) break;
+          if (_session(tester).capturePuzzleSession() != null) {
+            break;
+          }
         }
         await _restore(tester, app, _board(seed: size.height.toInt()));
         await tester.pump();
@@ -381,7 +389,9 @@ void main() {
           await tester.pump(const Duration(milliseconds: 20));
           await tester.runAsync(
               () => Future<void>.delayed(const Duration(milliseconds: 20)));
-          if (_session(tester).capturePuzzleSession() != null) break;
+          if (_session(tester).capturePuzzleSession() != null) {
+            break;
+          }
         }
         await _restore(tester, app, _board(seed: 99));
         await tester.pump();
@@ -424,7 +434,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 20));
       await tester.runAsync(
           () => Future<void>.delayed(const Duration(milliseconds: 20)));
-      if (_session(tester).capturePuzzleSession() != null) break;
+      if (_session(tester).capturePuzzleSession() != null) {
+        break;
+      }
     }
     await _restore(tester, deApp, _board());
     await tester.pump();

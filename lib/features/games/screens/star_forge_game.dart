@@ -116,7 +116,9 @@ class _StarForgeGameState extends State<StarForgeGame>
   int get sessionLevel => widget.level;
   @override
   Map<String, dynamic>? capturePuzzleSession() {
-    if (puzzle == null || _isGenerating || _won || _outOfMoves) return null;
+    if (puzzle == null || _isGenerating || _won || _outOfMoves) {
+      return null;
+    }
     return {
       'puzzle': puzzle!.toJson(),
       'answers': userSolution.map((k, v) => MapEntry(k.toString(), v)),
@@ -168,7 +170,9 @@ class _StarForgeGameState extends State<StarForgeGame>
   }
 
   Future<void> _restoreOrGenerate() async {
-    if (!await restorePuzzleSession() && mounted) _generatePuzzle();
+    if (!await restorePuzzleSession() && mounted) {
+      _generatePuzzle();
+    }
   }
 
   @override
@@ -191,7 +195,9 @@ class _StarForgeGameState extends State<StarForgeGame>
         currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
             gradeOverride: widget.grade);
         await _restoreOrGenerate();
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
         _showOnboarding(onlyIfUnseen: true);
       }
     });
@@ -331,25 +337,34 @@ class _StarForgeGameState extends State<StarForgeGame>
 
           _isGenerating = false;
         });
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint(
               '[StarForge] Max moves allowed: $_maxMoves for ${p.emptyNodes.length} empty nodes');
+        }
       }
     } catch (e) {
       if (mounted && identical(round, _round)) {
-        if (kDebugMode) debugPrint('[StarForge] Error generating puzzle: $e');
+        if (kDebugMode) {
+          debugPrint('[StarForge] Error generating puzzle: $e');
+        }
       }
     }
   }
 
   Future<void> _showStrategyHint() async {
     final round = _round;
-    if (_hintLoading || puzzleSessionFinished) return;
+    if (_hintLoading || puzzleSessionFinished) {
+      return;
+    }
     final p = puzzle;
-    if (p == null) return;
+    if (p == null) {
+      return;
+    }
     final missing =
         p.emptyNodes.where((i) => !userSolution.containsKey(i)).toList();
-    if (missing.isEmpty) return;
+    if (missing.isEmpty) {
+      return;
+    }
     final node = missing.first;
     final arm = p.lines.indexWhere((line) => line.contains(node));
     setState(() {
@@ -373,11 +388,18 @@ class _StarForgeGameState extends State<StarForgeGame>
           .toList(),
       'pool': p.numberPool,
     });
-    if (!mounted || !identical(round, _round)) return;
-    _hintLoading = false;
-    if (mounted) setState(() {});
-    if (!mounted || !identical(p, puzzle) || !mapEquals(initial, userSolution))
+    if (!mounted || !identical(round, _round)) {
       return;
+    }
+    _hintLoading = false;
+    if (mounted) {
+      setState(() {});
+    }
+    if (!mounted ||
+        !identical(p, puzzle) ||
+        !mapEquals(initial, userSolution)) {
+      return;
+    }
     final compatible = completion != null;
     final value = completion?[node.toString()];
     final line = p.lines[arm];
@@ -391,7 +413,9 @@ class _StarForgeGameState extends State<StarForgeGame>
             : s.hintCheckPlacements,
         demonstrate: compatible
             ? () {
-                if (mounted) _placeNumber(value!, node, round);
+                if (mounted) {
+                  _placeNumber(value!, node, round);
+                }
               }
             : null);
   }
@@ -405,15 +429,18 @@ class _StarForgeGameState extends State<StarForgeGame>
       return;
     }
     // Prevent duplicate reporting after win/outOfMoves
-    if (_won || _outOfMoves) return;
+    if (_won || _outOfMoves) {
+      return;
+    }
     setState(() {
       // Remove number from any other node that has it
       userSolution.removeWhere((k, v) => v == number);
       userSolution[nodeIdx] = number;
       _lastDroppedNode = nodeIdx;
       _movesRemaining--;
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('[StarForge] Moves remaining: $_movesRemaining/$_maxMoves');
+      }
     });
     _dropController.forward(from: 0.0);
     playOneShotMotion(_dropController, () {});
@@ -440,8 +467,12 @@ class _StarForgeGameState extends State<StarForgeGame>
   }
 
   void _checkSolution() {
-    if (!_canInteract(_round)) return;
-    if (userSolution.length != puzzle!.emptyNodes.length) return;
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (userSolution.length != puzzle!.emptyNodes.length) {
+      return;
+    }
 
     if (puzzle!.validateSolution(userSolution)) {
       _handleWin();
@@ -453,7 +484,9 @@ class _StarForgeGameState extends State<StarForgeGame>
   int _winScore() => 100 * widget.grade + widget.level * 25;
 
   void _handleWin() {
-    if (!_canInteract(_round) || !_isSolved()) return;
+    if (!_canInteract(_round) || !_isSolved()) {
+      return;
+    }
     _resetRoundEffects();
     setState(() => _won = true);
     final round = _round;
@@ -478,8 +511,9 @@ class _StarForgeGameState extends State<StarForgeGame>
   }
 
   void _showWinDialog(int score, Object round) {
-    if (!mounted || !identical(round, _round) || !_won || puzzle == null)
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
       return;
+    }
     playOneShotMotion(successController, () {});
     showDialog(
       context: context,
@@ -496,7 +530,9 @@ class _StarForgeGameState extends State<StarForgeGame>
       ModalRoute.of(dialogContext)?.isCurrent == true;
 
   void _handleIncorrect() {
-    if (!_canInteract(_round)) return;
+    if (!_canInteract(_round)) {
+      return;
+    }
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -514,7 +550,9 @@ class _StarForgeGameState extends State<StarForgeGame>
   }
 
   void _handleFailure() {
-    if (kDebugMode) debugPrint('[StarForge] FAILURE - recording loss');
+    if (kDebugMode) {
+      debugPrint('[StarForge] FAILURE - recording loss');
+    }
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
           skillLevel: widget.grade,
           gameType: 'star_forge',
@@ -525,20 +563,30 @@ class _StarForgeGameState extends State<StarForgeGame>
   }
 
   void _handleOutOfMoves() {
-    if (_outOfMoves || _won) return;
-    if (!_canInteract(_round)) return;
+    if (_outOfMoves || _won) {
+      return;
+    }
+    if (!_canInteract(_round)) {
+      return;
+    }
     _resetRoundEffects();
     setState(() => _outOfMoves = true);
     final round = _round;
     finishPuzzleSession();
-    if (kDebugMode) debugPrint('[StarForge] Out of moves! Game over.');
+    if (kDebugMode) {
+      debugPrint('[StarForge] Out of moves! Game over.');
+    }
     _handleFailure();
     _showOutOfMovesDialog(round);
   }
 
   void _showOutOfMovesDialog(Object round) {
-    if (!mounted || !identical(round, _round) || !_outOfMoves || puzzle == null)
+    if (!mounted ||
+        !identical(round, _round) ||
+        !_outOfMoves ||
+        puzzle == null) {
       return;
+    }
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -583,7 +631,9 @@ class _StarForgeGameState extends State<StarForgeGame>
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    if (!_canUseDialog(round, dialogContext)) return;
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
@@ -592,7 +642,9 @@ class _StarForgeGameState extends State<StarForgeGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    if (!_canUseDialog(round, dialogContext)) return;
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
                     Navigator.of(context).pop();
                   },
@@ -910,7 +962,9 @@ class _StarForgeGameState extends State<StarForgeGame>
             button: true,
             child: GestureDetector(
               onTap: () {
-                if (!mounted || _isGenerating) return;
+                if (!mounted || _isGenerating) {
+                  return;
+                }
                 setState(() => _highlightedArm = isLit ? null : arm);
               },
               child: AnimatedContainer(
@@ -1171,7 +1225,9 @@ class _StarForgeGameState extends State<StarForgeGame>
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          if (!_canUseDialog(round, dialogContext)) return;
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
@@ -1180,7 +1236,9 @@ class _StarForgeGameState extends State<StarForgeGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          if (!_canUseDialog(round, dialogContext)) return;
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
                           Navigator.of(context).pop();
                         },

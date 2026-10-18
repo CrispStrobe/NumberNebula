@@ -52,8 +52,6 @@ class _App {
 final _screen = find.byType(MagicTrianglesGame);
 Finder get _dialog => find.byType(Dialog);
 dynamic _session(WidgetTester tester) => tester.state(_screen);
-S _strings(WidgetTester tester) =>
-    S.of(tester.element(_screen))!; // ignore: unused_element
 Map<String, dynamic> _snapshot(WidgetTester tester) =>
     jsonDecode(jsonEncode(_session(tester).capturePuzzleSession()))
         as Map<String, dynamic>;
@@ -61,7 +59,9 @@ Map<String, dynamic> _snapshot(WidgetTester tester) =>
 Future<void> _restoreFromSessionPuzzle(WidgetTester tester) async {
   final dynamic session = _session(tester);
   final puzzle = session.currentPuzzle;
-  if (puzzle == null) return;
+  if (puzzle == null) {
+    return;
+  }
   final board = {
     'currentPuzzle': puzzle.toJson(),
     'userAnswers': List.filled((puzzle.hiddenIndices as Set).length, null),
@@ -92,7 +92,9 @@ Future<_App> _mount(WidgetTester tester, {bool reduced = false}) async {
     await tester.pump(const Duration(milliseconds: 20));
     await tester
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
   await _restoreFromSessionPuzzle(tester);

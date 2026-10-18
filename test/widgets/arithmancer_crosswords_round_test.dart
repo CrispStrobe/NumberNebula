@@ -52,8 +52,6 @@ class _App {
 final _screen = find.byType(ArithmancerCrosswordsGame);
 Finder get _dialog => find.byType(Dialog);
 dynamic _session(WidgetTester tester) => tester.state(_screen);
-S _strings(WidgetTester tester) =>
-    S.of(tester.element(_screen))!; // ignore: unused_element
 Map<String, dynamic> _snapshot(WidgetTester tester) =>
     jsonDecode(jsonEncode(_session(tester).capturePuzzleSession()))
         as Map<String, dynamic>;
@@ -61,7 +59,9 @@ Map<String, dynamic> _snapshot(WidgetTester tester) =>
 Future<void> _restoreFromSessionPuzzle(WidgetTester tester) async {
   final dynamic session = _session(tester);
   final puzzle = session.puzzle;
-  if (puzzle == null) return;
+  if (puzzle == null) {
+    return;
+  }
   final Set emptyCells = puzzle.emptyCells as Set;
   final correctNumbers = <int>{};
   for (final cellId in emptyCells) {
@@ -101,7 +101,9 @@ Future<_App> _mount(WidgetTester tester, {bool reduced = false}) async {
     await tester.pump(const Duration(milliseconds: 20));
     await tester
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
   await _restoreFromSessionPuzzle(tester);
@@ -157,8 +159,7 @@ void main() {
     final String cellId = emptyCells.first as String;
     final int correctNumber = (puzzle.fullSolution as Map)[cellId] as int;
     expect((puzzle.numberPool as List).contains(correctNumber), isTrue);
-    final round = sess.testRound as Object;
-    sess.placeForTesting(correctNumber, cellId, round);
+    await _drag(tester, correctNumber);
     await tester.pump();
     final sol = _snapshot(tester)['userSolution'] as List;
     expect(sol.any((e) => (e as List)[0] == cellId && e[1] == correctNumber),

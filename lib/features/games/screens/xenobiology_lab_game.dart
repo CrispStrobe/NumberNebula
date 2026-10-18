@@ -84,7 +84,9 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
   int get sessionLevel => widget.level;
   @override
   Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating || _won || _gameOver) return null;
+    if (!_sessionReady || _isGenerating || _won || _gameOver) {
+      return null;
+    }
     return {
       '_eyesA': _eyesA,
       '_legsA': _legsA,
@@ -150,7 +152,9 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
-    if (mounted) setState(() => _sessionReady = true);
+    if (mounted) {
+      setState(() => _sessionReady = true);
+    }
   }
 
   DifficultyConfig? currentDifficulty;
@@ -214,7 +218,9 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     _resetRoundEffects();
     final round = _round;
     beginPuzzleSession();
-    if (currentDifficulty == null) return;
+    if (currentDifficulty == null) {
+      return;
+    }
 
     setState(() {
       _isGenerating = true;
@@ -231,7 +237,9 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     final grade = currentDifficulty!.grade;
     final generated =
         generateXenobiologyLab(grade, widget.level, random: _random);
-    if (!mounted || !identical(round, _round)) return;
+    if (!mounted || !identical(round, _round)) {
+      return;
+    }
     _countA = generated['_countA'] as int;
     _countB = generated['_countB'] as int;
     _countC = generated['_countC'] as int;
@@ -297,17 +305,27 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
   }
 
   void _setSlider(int which, int value, Object round) {
-    if (!_canInteract(round)) return;
+    if (!_canInteract(round)) {
+      return;
+    }
     setState(() {
-      if (which == 0) _sliderA = value;
-      if (which == 1) _sliderB = value;
-      if (which == 2) _sliderC = value;
+      if (which == 0) {
+        _sliderA = value;
+      }
+      if (which == 1) {
+        _sliderB = value;
+      }
+      if (which == 2) {
+        _sliderC = value;
+      }
     });
   }
 
   void _checkSolution([Object? round]) {
     final currentRound = round ?? _round;
-    if (!_canInteract(currentRound)) return;
+    if (!_canInteract(currentRound)) {
+      return;
+    }
     final correct = _isCorrect();
     if (correct) {
       _handleWin(currentRound);
@@ -317,8 +335,12 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
   }
 
   void _handleWin(Object round) {
-    if (!_canInteract(round)) return;
-    if (!_isCorrect()) return;
+    if (!_canInteract(round)) {
+      return;
+    }
+    if (!_isCorrect()) {
+      return;
+    }
     _clearFeedback();
     setState(() {
       _gameOver = true;
@@ -340,7 +362,9 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
   }
 
   void _showWinDialog(int totalScore, Object round) {
-    if (!mounted || !identical(round, _round) || !_won) return;
+    if (!mounted || !identical(round, _round) || !_won) {
+      return;
+    }
     playOneShotMotion(successController, () {});
     showDialog(
       context: context,
@@ -358,7 +382,9 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
       ModalRoute.of(dialogContext)?.isCurrent == true;
 
   void _handleLoss(Object round) {
-    if (!_canInteract(round)) return;
+    if (!_canInteract(round)) {
+      return;
+    }
     AppHaptics.heavyImpact();
     setState(() => _wrongChecks++);
 
@@ -374,7 +400,9 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
     beginPuzzleSession();
     savePuzzleSession();
 
-    if (!mounted || !identical(round, _round)) return;
+    if (!mounted || !identical(round, _round)) {
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -392,8 +420,9 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady)
+    if (!_sessionReady) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
 
     if (_isGenerating || currentDifficulty == null) {
@@ -874,7 +903,9 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          if (!_canUseDialog(dialogContext, round)) return;
+                          if (!_canUseDialog(dialogContext, round)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
@@ -883,7 +914,9 @@ class _XenobiologyLabGameState extends State<XenobiologyLabGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          if (!_canUseDialog(dialogContext, round)) return;
+                          if (!_canUseDialog(dialogContext, round)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
                           Navigator.of(context).pop();
                         },

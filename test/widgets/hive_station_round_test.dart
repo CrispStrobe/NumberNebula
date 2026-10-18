@@ -63,7 +63,9 @@ Set<HexCoord> _allCellsFor(int radius) {
   final s = <HexCoord>{};
   for (int q = -radius; q <= radius; q++) {
     for (int r = -radius; r <= radius; r++) {
-      if ((q + r).abs() <= radius) s.add(HexCoord(q, r));
+      if ((q + r).abs() <= radius) {
+        s.add(HexCoord(q, r));
+      }
     }
   }
   return s;
@@ -78,7 +80,11 @@ HiveStationPuzzle _testPuzzle(
   for (final c in allCells) {
     if (!energyCells.contains(c)) {
       int cnt = 0;
-      for (final n in c.neighbors) if (energyCells.contains(n)) cnt++;
+      for (final n in c.neighbors) {
+        if (energyCells.contains(n)) {
+          cnt++;
+        }
+      }
       hints[c] = cnt;
     }
   }
@@ -137,7 +143,9 @@ Future<_App> _mount(WidgetTester tester,
     await tester.pump(const Duration(milliseconds: 20));
     await tester
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
   await _restore(tester, app, board ?? _board());
@@ -155,7 +163,9 @@ Future<void> _retry(WidgetTester tester) async {
     await tester.pump(const Duration(milliseconds: 20));
     await tester
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   await tester.pump(const Duration(milliseconds: 300));
   expect(_dialog, findsNothing);
@@ -168,8 +178,9 @@ Future<Map<String, dynamic>?> _stored(WidgetTester tester) async {
     saved = v;
     complete = true;
   });
-  for (var frame = 0; frame < 100 && !complete; frame++)
+  for (var frame = 0; frame < 100 && !complete; frame++) {
     await tester.pump(const Duration(milliseconds: 20));
+  }
   expect(complete, isTrue);
   return saved;
 }
@@ -375,5 +386,16 @@ void main() {
     await tester.pump();
     // No overflow exception
     expect(tester.takeException(), isNull);
+  });
+  testWidgets('older exhausted snapshot offers retry without replaying loss',
+      (tester) async {
+    final app = await _mount(tester, reduced: true);
+    final state = _snapshot(tester);
+    state['_attemptsLeft'] = 0;
+    await _restore(tester, app, state);
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(_dialog, findsOneWidget);
+    expect(app.gp.outcomeCount, 0);
+    expect(_session(tester).capturePuzzleSession(), isNull);
   });
 }

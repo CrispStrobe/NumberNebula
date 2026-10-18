@@ -127,8 +127,9 @@ void main() {
       final commands = solveRobotCommands(board);
       check(commands != null,
           'Robot g2 l$level ${path.name} seed $seed has a command solution');
+      final solution = commands!;
       var state = RobotCommandState.start(board);
-      for (final command in commands!) {
+      for (final command in solution) {
         final next = stepRobotCommand(state, command);
         check(next != null, 'Robot command can execute: $command');
         state = next!;
@@ -140,10 +141,10 @@ void main() {
       check(jsonEncode(PathLevel.fromJson(board.toJson()).toJson()) == before,
           'Robot JSON round trip');
       if (path == AlgorithmPath.candidate) {
-        check(board.optimalMoves == commands.length,
+        check(board.optimalMoves == solution.length,
             'candidate reference equals command BFS length');
         final allowance = withAlgorithmPath(path, () => board.commandAllowance);
-        check(allowance >= commands.length,
+        check(allowance >= solution.length,
             'candidate allowance covers the proved command sequence');
       }
       generatedBoards++;

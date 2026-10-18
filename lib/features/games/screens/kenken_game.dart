@@ -116,7 +116,9 @@ class _KenkenGameState extends State<KenkenGame>
   int get sessionLevel => widget.level;
   @override
   Map<String, dynamic>? capturePuzzleSession() {
-    if (puzzle == null || _isGenerating || _won) return null;
+    if (puzzle == null || _isGenerating || _won) {
+      return null;
+    }
     return {
       'puzzle': puzzle!.toJson(),
       'answers': userSolution,
@@ -147,7 +149,9 @@ class _KenkenGameState extends State<KenkenGame>
       finishPuzzleSession();
       final round = _round;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !identical(round, _round) || _isGenerating) return;
+        if (!mounted || !identical(round, _round) || _isGenerating) {
+          return;
+        }
         if (solved) {
           _showSuccessDialog(_successBonus(), round);
         } else {
@@ -159,16 +163,19 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   Future<void> _restoreOrGenerate() async {
-    if (!await restorePuzzleSession() && mounted) _generatePuzzle();
+    if (!await restorePuzzleSession() && mounted) {
+      _generatePuzzle();
+    }
   }
 
   @override
   void initState() {
     super.initState();
     initGameAnimations();
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint(
           "🔲 [KENKEN] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
+    }
 
     _dropController = AnimationController(
         duration: const Duration(milliseconds: 500), vsync: this);
@@ -182,9 +189,10 @@ class _KenkenGameState extends State<KenkenGame>
         currentDifficulty = DifficultyManager.getDifficulty(
             gameProvider, widget.level,
             gradeOverride: widget.grade);
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint(
               "🔲 [KENKEN] Difficulty initialized: ${currentDifficulty?.grade}");
+        }
         _restoreOrGenerate();
       }
     });
@@ -205,7 +213,9 @@ class _KenkenGameState extends State<KenkenGame>
     _resetRoundEffects();
     final round = _round;
     beginPuzzleSession();
-    if (currentDifficulty == null) return;
+    if (currentDifficulty == null) {
+      return;
+    }
 
     setState(() {
       _isGenerating = true;
@@ -226,9 +236,10 @@ class _KenkenGameState extends State<KenkenGame>
         'customMax': gameProvider.customRangeMax,
       };
 
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
             "🎯 [KENKEN] Calling compute function with args: $puzzleArgs");
+      }
       final generatedPuzzle = await compute(KenkenPuzzle.generate, puzzleArgs);
 
       debugPrint("🎯 [KENKEN] Puzzle generation completed successfully");
@@ -246,8 +257,9 @@ class _KenkenGameState extends State<KenkenGame>
 
           _isGenerating = false;
         });
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint("🎯 [KENKEN] UI state updated with new puzzle");
+        }
         debugPrint(
             "🎯 [KENKEN] Max moves allowed: $_maxMoves for ${generatedPuzzle.emptyCells.length} empty cells");
         debugPrint("🎯 [KENKEN] Number pool: ${numberPool.join(', ')}");
@@ -255,16 +267,21 @@ class _KenkenGameState extends State<KenkenGame>
             "🎯 [KENKEN] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
       }
     } catch (e, stackTrace) {
-      if (kDebugMode) debugPrint("❌ [KENKEN] Error generating puzzle: $e");
+      if (kDebugMode) {
+        debugPrint("❌ [KENKEN] Error generating puzzle: $e");
+      }
       debugPrint("❌ [KENKEN] StackTrace: $stackTrace");
     }
   }
 
   void _placeNumber(KenkenDrag drag, String cellId, Object round) {
-    if (_movesRemaining <= 0 || !_canPlace(drag, cellId, round)) return;
+    if (_movesRemaining <= 0 || !_canPlace(drag, cellId, round)) {
+      return;
+    }
     final number = drag.number;
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
+    }
 
     setState(() {
       userSolution[cellId] = number;
@@ -274,12 +291,15 @@ class _KenkenGameState extends State<KenkenGame>
 
       // Decrement moves on placement
       _movesRemaining--;
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
+      }
     });
 
     debugPrint("🎮 [PLACE] User solution after: $userSolution");
-    if (kDebugMode) debugPrint("🎮 [PLACE] Number pool remains: $numberPool");
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] Number pool remains: $numberPool");
+    }
 
     // Check if out of moves BEFORE checking solution
     if (_movesRemaining <= 0 && !_isSolved()) {
@@ -294,9 +314,12 @@ class _KenkenGameState extends State<KenkenGame>
     if (!_canInteract(round) ||
         !puzzle!.emptyCells.contains(cellId) ||
         expected == null ||
-        userSolution[cellId] != expected) return;
-    if (kDebugMode)
+        userSolution[cellId] != expected) {
+      return;
+    }
+    if (kDebugMode) {
       debugPrint("🗑️ [KENKEN] Removing number from cell $cellId");
+    }
 
     setState(() {
       userSolution.remove(cellId);
@@ -304,14 +327,19 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   void _checkSolution() {
-    if (!_canInteract(_round)) return;
-    if (kDebugMode) debugPrint("✅ [KENKEN] Checking solution...");
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (kDebugMode) {
+      debugPrint("✅ [KENKEN] Checking solution...");
+    }
     debugPrint("✅ [KENKEN] User solution: $userSolution");
     debugPrint("✅ [KENKEN] Required cells: ${puzzle!.emptyCells.length}");
 
     if (userSolution.length == puzzle!.emptyCells.length) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint("✅ [KENKEN] All cells filled, validating solution");
+      }
 
       final isValid = puzzle!.validateSolution(userSolution);
       debugPrint("✅ [KENKEN] Solution validation result: $isValid");
@@ -324,16 +352,18 @@ class _KenkenGameState extends State<KenkenGame>
         _handleIncorrect();
       }
     } else {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
             "✅ [KENKEN] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
+      }
     }
   }
 
   List<MathProblem> _extractMathProblems(Map<String, int> solution) {
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint(
           "🔲 [KENKEN] Extracting math problems from completed puzzle...");
+    }
     final problems = <MathProblem>[];
 
     // Create the complete grid with user solutions
@@ -349,12 +379,15 @@ class _KenkenGameState extends State<KenkenGame>
 
       final values =
           cage.cells.map((cell) => completeGrid[cell.id] ?? 0).toList();
-      if (values.contains(0)) continue; // skip cage with missing data
+      if (values.contains(0)) {
+        continue;
+      } // skip cage with missing data
       final operation = cage.operation!;
 
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
             "🔲 [KENKEN] Processing cage: ${cage.clue} with ${values.length} cells = $values");
+      }
 
       switch (operation.symbol) {
         case '+':
@@ -372,9 +405,10 @@ class _KenkenGameState extends State<KenkenGame>
                 difficulty: widget.grade,
               );
               problems.add(problem);
-              if (kDebugMode)
+              if (kDebugMode) {
                 debugPrint(
                     "🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+              }
               accumulator = problem.answer;
             }
           }
@@ -394,9 +428,10 @@ class _KenkenGameState extends State<KenkenGame>
               difficulty: widget.grade,
             );
             problems.add(problem);
-            if (kDebugMode)
+            if (kDebugMode) {
               debugPrint(
                   "🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+            }
           }
           break;
 
@@ -415,9 +450,10 @@ class _KenkenGameState extends State<KenkenGame>
                 difficulty: widget.grade,
               );
               problems.add(problem);
-              if (kDebugMode)
+              if (kDebugMode) {
                 debugPrint(
                     "🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+              }
               accumulator = problem.answer;
             }
           }
@@ -438,33 +474,39 @@ class _KenkenGameState extends State<KenkenGame>
                 difficulty: widget.grade,
               );
               problems.add(problem);
-              if (kDebugMode)
+              if (kDebugMode) {
                 debugPrint(
                     "🔲 [KENKEN] Extracted: ${problem.expression} = ${problem.answer}");
+              }
             }
           }
           break;
       }
     }
 
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint(
           "🔲 [KENKEN] Extracted ${problems.length} math problems total");
+    }
     return problems;
   }
 
   void _handleSuccess(List<MathProblem> mathProblems) {
-    if (!_canInteract(_round) || !_isSolved()) return;
-    if (kDebugMode)
+    if (!_canInteract(_round) || !_isSolved()) {
+      return;
+    }
+    if (kDebugMode) {
       debugPrint("🎉 [KENKEN] SUCCESS! Player solved the puzzle!");
+    }
     AppHaptics.lightImpact();
 
     final baseScore = 300 * widget.grade;
     final bonus = _successBonus();
     final totalScore = baseScore + bonus;
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint(
           "🎉 [KENKEN] Score calculation: base=$baseScore, bonus=$bonus, total=$totalScore");
+    }
 
     _resetRoundEffects();
     _clearFeedback();
@@ -487,7 +529,9 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   int _successBonus() {
-    if (puzzle == null) return 0;
+    if (puzzle == null) {
+      return 0;
+    }
     final complexityBonus =
         puzzle!.size * puzzle!.size * 15 + puzzle!.cages.length * 20;
     final operationBonus = puzzle!
@@ -498,8 +542,9 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   void _showSuccessDialog(int bonus, Object round) {
-    if (!mounted || !identical(round, _round) || !_won || puzzle == null)
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
       return;
+    }
     playOneShotMotion(successController, () {});
     showDialog(
       context: context,
@@ -532,9 +577,12 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   void _handleIncorrect() {
-    if (!_canInteract(_round)) return;
-    if (kDebugMode)
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (kDebugMode) {
       debugPrint("❌ [KENKEN] Incorrect solution - showing error message");
+    }
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -552,7 +600,9 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   void _handleFailure() {
-    if (kDebugMode) debugPrint("❌ [KENKEN] FAILURE - recording loss");
+    if (kDebugMode) {
+      debugPrint("❌ [KENKEN] FAILURE - recording loss");
+    }
     final mathProblems = _extractMathProblems(userSolution);
     context.read<GameProvider>().reportOutcome(GameOutcome.loss(
           skillLevel: widget.grade,
@@ -565,19 +615,26 @@ class _KenkenGameState extends State<KenkenGame>
   }
 
   void _handleOutOfMoves() {
-    if (_won || _isGenerating) return;
-    if (!_canInteract(_round)) return;
+    if (_won || _isGenerating) {
+      return;
+    }
+    if (!_canInteract(_round)) {
+      return;
+    }
     _resetRoundEffects();
     setState(() => _won = true);
-    if (kDebugMode) debugPrint("❌ [KENKEN] Out of moves! Game over.");
+    if (kDebugMode) {
+      debugPrint("❌ [KENKEN] Out of moves! Game over.");
+    }
     final round = _round;
     _handleFailure();
     _showOutOfMovesDialog(round);
   }
 
   void _showOutOfMovesDialog(Object round) {
-    if (!mounted || !identical(round, _round) || !_won || puzzle == null)
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
       return;
+    }
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -622,7 +679,9 @@ class _KenkenGameState extends State<KenkenGame>
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    if (!_canUseDialog(round, dialogContext)) return;
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
@@ -631,9 +690,13 @@ class _KenkenGameState extends State<KenkenGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    if (!_canUseDialog(round, dialogContext)) return;
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
-                    if (mounted) Navigator.of(context).pop();
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
                   },
                   style: SpaceTheme.primaryButtonStyle,
                   child: Text(s.backToMenu),
@@ -1378,7 +1441,9 @@ class _KenkenGameState extends State<KenkenGame>
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          if (!_canUseDialog(round, dialogContext)) return;
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
@@ -1387,9 +1452,13 @@ class _KenkenGameState extends State<KenkenGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          if (!_canUseDialog(round, dialogContext)) return;
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
-                          if (mounted) Navigator.of(context).pop();
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
                         },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(S.of(context)!.backToMenu),

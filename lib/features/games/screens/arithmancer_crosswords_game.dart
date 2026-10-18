@@ -63,7 +63,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       puzzle!.validateSolution(userSolution);
   bool _isExhausted() => puzzle != null && _movesRemaining <= 0 && !_isSolved();
   List<int> _remainingPool() {
-    if (puzzle == null) return [];
+    if (puzzle == null) {
+      return [];
+    }
     final solutionCounts = <int, int>{};
     for (final cellId in puzzle!.emptyCells) {
       final number = puzzle!.fullSolution[cellId]!;
@@ -135,7 +137,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   int get sessionLevel => widget.level;
   @override
   Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating || _won || puzzle == null) return null;
+    if (!_sessionReady || _isGenerating || _won || puzzle == null) {
+      return null;
+    }
     return {
       'puzzle': (puzzle?.toJson()),
       'userSolution':
@@ -152,6 +156,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   @override
   void applyPuzzleSession(Map<String, dynamic> state) {
     _resetRoundEffects();
+    _lastDroppedPosition = '';
     puzzle = (state["puzzle"] == null
         ? null
         : CrosswordPuzzle.fromJson(
@@ -175,7 +180,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       finishPuzzleSession();
       final round = _round;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !identical(round, _round) || _isGenerating) return;
+        if (!mounted || !identical(round, _round) || _isGenerating) {
+          return;
+        }
         if (solved) {
           _showSuccessDialog(_successBonus(), round);
         } else {
@@ -190,7 +197,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
-    if (mounted) setState(() => _sessionReady = true);
+    if (mounted) {
+      setState(() => _sessionReady = true);
+    }
   }
 
   late AnimationController _glowController;
@@ -225,9 +234,10 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   @override
   void initState() {
     super.initState();
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint(
           "🔤 [ARITHMANCER CROSSWORDS] Starting game initialization for Grade ${widget.grade}, Level ${widget.level}");
+    }
 
     _glowController = AnimationController(
         duration: const Duration(milliseconds: 2000), vsync: this)
@@ -268,9 +278,10 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         currentDifficulty = DifficultyManager.getDifficulty(
             gameProvider, widget.level,
             gradeOverride: widget.grade);
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint(
               "🔤 [ARITHMANCER CROSSWORDS] Difficulty initialized: ${currentDifficulty?.grade}");
+        }
         _restoreOrGenerate();
       }
     });
@@ -294,11 +305,14 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     _resetRoundEffects();
     final round = _round;
     beginPuzzleSession();
-    if (currentDifficulty == null) return;
+    if (currentDifficulty == null) {
+      return;
+    }
 
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint(
           "🎯 [ARITHMANCER CROSSWORDS] Starting puzzle generation process");
+    }
 
     setState(() {
       _isGenerating = true;
@@ -319,20 +333,24 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         'customMax': gameProvider.customRangeMax,
       };
 
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint("🎯 [ARITHMANCER CROSSWORDS] Calling compute function");
+      }
 
       // STEP 1: Generate the puzzle (this is where the variable is declared and assigned)
       CrosswordPuzzle? generatedPuzzle =
           await compute(CrosswordPuzzle.generate, puzzleArgs);
 
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
             "🎯 [GEN-RESULT] Generation complete. Result: ${generatedPuzzle != null ? 'SUCCESS' : 'FAILURE'}");
+      }
 
       // STEP 2: Now we can use generatedPuzzle
       if (generatedPuzzle != null) {
-        if (kDebugMode) debugPrint("✅ [GEN-RESULT] Puzzle details:");
+        if (kDebugMode) {
+          debugPrint("✅ [GEN-RESULT] Puzzle details:");
+        }
         debugPrint("✅ [GEN-RESULT]   - Clues: ${generatedPuzzle.clues.length}");
         debugPrint(
             "✅ [GEN-RESULT]   - Empty cells: ${generatedPuzzle.emptyCells.length}");
@@ -356,9 +374,10 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
             _maxMoves = (emptyCount * 1.6).ceil();
             _movesRemaining = _maxMoves;
             _isGenerating = false;
-            if (kDebugMode)
+            if (kDebugMode) {
               debugPrint(
                   "🎯 [ARITHMANCER CROSSWORDS] Max moves allowed: $_maxMoves for $emptyCount empty cells");
+            }
             debugPrint(
                 "🎯 [ARITHMANCER CROSSWORDS] UI state updated with new puzzle");
             debugPrint(
@@ -371,8 +390,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         throw Exception("Puzzle generation returned null");
       }
     } catch (e, stackTrace) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint("❌ [ARITHMANCER CROSSWORDS] Error generating puzzle: $e");
+      }
       debugPrint("❌ [ARITHMANCER CROSSWORDS] StackTrace: $stackTrace");
 
       if (mounted) {
@@ -409,10 +429,13 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
 
   void _placeNumber(
       ArithmancerCrosswordsDrag drag, String cellId, Object round) {
-    if (_movesRemaining <= 0 || !_canPlace(drag, cellId, round)) return;
+    if (_movesRemaining <= 0 || !_canPlace(drag, cellId, round)) {
+      return;
+    }
     final number = drag.number;
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint("🎮 [PLACE] === PLACING NUMBER $number AT CELL $cellId ===");
+    }
     setState(() {
       userSolution[cellId] = number;
       _lastDroppedPosition = cellId;
@@ -422,18 +445,22 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       _syncNumberPool();
       // Decrement moves
       _movesRemaining--;
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint("🎮 [PLACE] Moves remaining: $_movesRemaining/$_maxMoves");
+      }
       // Warning animation when low on moves
       if (!_reducedMotion && _movesRemaining <= 3 && _movesRemaining > 0) {
         _moveWarningController.forward(from: 0.0).then((_) {
-          if (_canInteract(round) && !_reducedMotion)
+          if (_canInteract(round) && !_reducedMotion) {
             _moveWarningController.reverse();
+          }
         });
       }
     });
 
-    if (kDebugMode) debugPrint("🎮 [PLACE] User solution after: $userSolution");
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] User solution after: $userSolution");
+    }
     debugPrint("🎮 [PLACE] Updated pool: $numberPool");
 
     // Check if out of moves BEFORE checking solution
@@ -449,9 +476,12 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     if (!_canInteract(round) ||
         !puzzle!.emptyCells.contains(cellId) ||
         expected == null ||
-        userSolution[cellId] != expected) return;
-    if (kDebugMode)
+        userSolution[cellId] != expected) {
+      return;
+    }
+    if (kDebugMode) {
       debugPrint("🗑️ [REMOVE] Removing number from cell $cellId");
+    }
     setState(() {
       final number = userSolution[cellId];
       if (number != null) {
@@ -461,21 +491,27 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         _syncNumberPool();
       }
     });
-    if (kDebugMode) debugPrint("🗑️ [REMOVE] Updated pool: $numberPool");
+    if (kDebugMode) {
+      debugPrint("🗑️ [REMOVE] Updated pool: $numberPool");
+    }
   }
 
   void _checkSolution() {
-    if (!_canInteract(_round)) return;
-    if (kDebugMode)
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (kDebugMode) {
       debugPrint("✅ [ARITHMANCER CROSSWORDS] Checking solution...");
+    }
     debugPrint("✅ [ARITHMANCER CROSSWORDS] User solution: $userSolution");
     debugPrint(
         "✅ [ARITHMANCER CROSSWORDS] Required cells: ${puzzle!.emptyCells.length}");
 
     if (userSolution.length == puzzle!.emptyCells.length) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
             "✅ [ARITHMANCER CROSSWORDS] All cells filled, validating solution");
+      }
 
       final isValid = puzzle!.validateSolution(userSolution);
       debugPrint(
@@ -487,16 +523,18 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         _handleIncorrect(); // We keep this! ==> Error message...
       }
     } else {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint(
             "✅ [ARITHMANCER CROSSWORDS] Solution incomplete: ${userSolution.length}/${puzzle!.emptyCells.length} cells filled");
+      }
     }
   }
 
   List<MathProblem> _extractMathProblems(Map<String, int> solution) {
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint(
           "📤 [CROSSWORDS] Extracting all math problems from completed crossword...");
+    }
 
     final problems = <MathProblem>[];
 
@@ -539,18 +577,22 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
 
       if (problem != null) {
         problems.add(problem);
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint("📤 [CROSSWORDS] Extracted: ${problem.expression}");
+        }
       }
     }
 
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint("📤 [CROSSWORDS] Extracted ${problems.length} problems total");
+    }
     return problems;
   }
 
   int _successBonus() {
-    if (puzzle == null) return 0;
+    if (puzzle == null) {
+      return 0;
+    }
     final complexityBonus =
         puzzle!.equations.length * 15 + puzzle!.emptyCells.length * 5;
     final operationBonus = puzzle!
@@ -561,21 +603,26 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   void _handleSuccess(Map<String, int> userSolution) {
-    if (!_canInteract(_round) || !_isSolved()) return;
-    if (kDebugMode)
+    if (!_canInteract(_round) || !_isSolved()) {
+      return;
+    }
+    if (kDebugMode) {
       debugPrint(
           "🎉 [ARITHMANCER CROSSWORDS] SUCCESS! Player solved the puzzle!");
+    }
     AppHaptics.lightImpact();
     final baseScore = 250 * widget.grade;
     final bonus = _successBonus();
     final totalScore = baseScore + bonus;
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint(
           "🎉 [ARITHMANCER CROSSWORDS] Score calculation: base=$baseScore, bonus=$bonus, total=$totalScore");
+    }
     final mathProblems = _extractMathProblems(userSolution);
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint(
           "🎉 [ARITHMANCER CROSSWORDS] Extracted ${mathProblems.length} math problems for tracking");
+    }
     _resetRoundEffects();
     _clearFeedback();
     setState(() => _won = true);
@@ -596,8 +643,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   void _showSuccessDialog(int bonus, Object round) {
-    if (!mounted || !identical(round, _round) || !_won || puzzle == null)
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
       return;
+    }
     playOneShotMotion(_successController, () {});
     showDialog(
       context: context,
@@ -633,10 +681,13 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   void _handleIncorrect() {
-    if (!_canInteract(_round)) return;
-    if (kDebugMode)
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (kDebugMode) {
       debugPrint(
           "❌ [ARITHMANCER CROSSWORDS] Incorrect solution - showing error message");
+    }
     AppHaptics.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -654,20 +705,26 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   void _handleOutOfMoves() {
-    if (_won || _isGenerating) return;
-    if (!_canInteract(_round)) return;
+    if (_won || _isGenerating) {
+      return;
+    }
+    if (!_canInteract(_round)) {
+      return;
+    }
     _resetRoundEffects();
     setState(() => _won = true);
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint("❌ [ARITHMANCER CROSSWORDS] Out of moves! Game over.");
+    }
     final round = _round;
     _handleFailure();
     _showOutOfMovesDialog(round);
   }
 
   void _showOutOfMovesDialog(Object round) {
-    if (!mounted || !identical(round, _round) || !_won || puzzle == null)
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
       return;
+    }
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -712,7 +769,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
                 ElevatedButton(
                   autofocus: true,
                   onPressed: () {
-                    if (!_canUseDialog(round, dialogContext)) return;
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
                     _generatePuzzle();
                   },
@@ -721,7 +780,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    if (!_canUseDialog(round, dialogContext)) return;
+                    if (!_canUseDialog(round, dialogContext)) {
+                      return;
+                    }
                     Navigator.of(dialogContext).pop();
                     Navigator.of(context).pop();
                   },
@@ -797,8 +858,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   void _handleFailure() {
-    if (kDebugMode)
+    if (kDebugMode) {
       debugPrint("❌ [ARITHMANCER CROSSWORDS] FAILURE! Player gave up");
+    }
 
     // Extract problems for learning purposes (using partial solution if any)
     final mathProblems = userSolution.isNotEmpty
@@ -819,8 +881,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady)
+    if (!_sessionReady) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     if (puzzle == null || _isGenerating) {
       return Scaffold(
         body: SpaceBackground(
@@ -1012,7 +1075,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
   }
 
   Widget _buildCrossword({required bool isCompact}) {
-    if (puzzle == null) return Container();
+    if (puzzle == null) {
+      return Container();
+    }
 
     // Calculate the bounding box of all cells in *grid units*
     final allPositions = <math.Point<int>>[
@@ -1020,7 +1085,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       ...puzzle!.operatorCells.keys,
     ];
 
-    if (allPositions.isEmpty) return Container();
+    if (allPositions.isEmpty) {
+      return Container();
+    }
 
     final minX = allPositions.map((p) => p.x).reduce(math.min);
     final maxX = allPositions.map((p) => p.x).reduce(math.max);
@@ -1208,11 +1275,8 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         button: true,
         label: S.of(context)!.a11yPlacedValueTapRemove,
         child: GestureDetector(
-          onTap: () {
-            final round = _round;
-            final exp = userSolution[cellId];
-            _removeNumber(cellId, exp, round);
-          },
+          key: ValueKey(('crossword-filled', round, cellId, value)),
+          onTap: () => _removeNumber(cellId, value, round),
           child: cell,
         ),
       );
@@ -1305,7 +1369,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
               ),
               itemCount: numberPool.length,
               itemBuilder: (context, index) {
-                if (index >= numberPool.length) return Container();
+                if (index >= numberPool.length) {
+                  return Container();
+                }
                 final number = numberPool[index];
                 // Semantics on visual child — see note in word_sort_game.
                 return Draggable<ArithmancerCrosswordsDrag>(
@@ -1494,7 +1560,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          if (!_canUseDialog(round, dialogContext)) return;
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
@@ -1503,7 +1571,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          if (!_canUseDialog(round, dialogContext)) return;
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
                           Navigator.of(context).pop();
                         },

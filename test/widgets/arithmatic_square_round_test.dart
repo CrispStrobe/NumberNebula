@@ -11,7 +11,6 @@ import 'package:space_math_academy/core/services/puzzle_session_store.dart';
 import 'package:space_math_academy/core/services/sri_service.dart';
 import 'package:space_math_academy/features/games/providers/game_provider.dart';
 import 'package:space_math_academy/features/games/screens/arithmatic_square_game.dart';
-import 'package:space_math_academy/features/games/services/arithmetic_square_logic.dart';
 import 'package:space_math_academy/generated/l10n.dart';
 
 class _App {
@@ -122,7 +121,9 @@ Future<_App> _mount(WidgetTester t,
     await t.pump(const Duration(milliseconds: 20));
     await t
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(t).capturePuzzleSession() != null) break;
+    if (_session(t).capturePuzzleSession() != null) {
+      break;
+    }
   }
   expect(_session(t).capturePuzzleSession(), isNotNull);
   await _restore(t, board ?? _board());

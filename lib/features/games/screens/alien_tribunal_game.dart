@@ -86,7 +86,9 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
   int get sessionLevel => widget.level;
   @override
   Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating || _won || _gameOver) return null;
+    if (!_sessionReady || _isGenerating || _won || _gameOver) {
+      return null;
+    }
     return {
       'puzzle': (puzzle?.toJson()),
       '_userAssignment':
@@ -117,7 +119,9 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
-    if (mounted) setState(() => _sessionReady = true);
+    if (mounted) {
+      setState(() => _sessionReady = true);
+    }
   }
 
   AlienTribunalPuzzle? puzzle;
@@ -165,7 +169,9 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
     _resetRoundEffects();
     final round = _round;
     beginPuzzleSession();
-    if (currentDifficulty == null) return;
+    if (currentDifficulty == null) {
+      return;
+    }
 
     setState(() {
       _isGenerating = true;
@@ -182,7 +188,9 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
       'difficulty': currentDifficulty!,
     });
 
-    if (!mounted || !identical(round, _round)) return;
+    if (!mounted || !identical(round, _round)) {
+      return;
+    }
     if (mounted) {
       setState(() {
         puzzle = generated;
@@ -194,7 +202,9 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
 
   void _toggleAssignment(int index, [Object? round]) {
     final currentRound = round ?? _round;
-    if (!_canInteract(currentRound)) return;
+    if (!_canInteract(currentRound)) {
+      return;
+    }
     setState(() {
       final current = _userAssignment[index];
       if (current == null) {
@@ -254,20 +264,34 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
             : s.alienTribunalPairAnyLiar2(first, second);
       case TribunalClaimKind.count:
         if (person.countsTruthTellers) {
-          if (person.countValue == 0) return s.alienTribunalCountTruthNone;
-          if (person.countValue == 1) return s.alienTribunalCountTruthOne;
+          if (person.countValue == 0) {
+            return s.alienTribunalCountTruthNone;
+          }
+          if (person.countValue == 1) {
+            return s.alienTribunalCountTruthOne;
+          }
           return s.alienTribunalCountTruthMany(person.countValue);
         }
-        if (person.countValue == 0) return s.alienTribunalCountLiarsNone;
-        if (person.countValue == 1) return s.alienTribunalCountLiarsOne;
+        if (person.countValue == 0) {
+          return s.alienTribunalCountLiarsNone;
+        }
+        if (person.countValue == 1) {
+          return s.alienTribunalCountLiarsOne;
+        }
         return s.alienTribunalCountLiarsMany(person.countValue);
     }
   }
 
   void _checkSolution([Object? requestedRound]) {
-    if (requestedRound != null && !identical(requestedRound, _round)) return;
-    if (!_canInteract(_round)) return;
-    if (puzzle == null || _gameOver) return;
+    if (requestedRound != null && !identical(requestedRound, _round)) {
+      return;
+    }
+    if (!_canInteract(_round)) {
+      return;
+    }
+    if (puzzle == null || _gameOver) {
+      return;
+    }
 
     // All must be assigned
     if (_userAssignment.length < puzzle!.personCount ||
@@ -292,10 +316,14 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
   /// Share of aliens the player judged correctly in the submitted verdict.
   double _correctlyJudgedFraction() {
     final p = puzzle;
-    if (p == null || p.personCount == 0) return 0;
+    if (p == null || p.personCount == 0) {
+      return 0;
+    }
     int correct = 0;
     for (int i = 0; i < p.personCount; i++) {
-      if (_userAssignment[i] == p.people[i].isTruthTeller) correct++;
+      if (_userAssignment[i] == p.people[i].isTruthTeller) {
+        correct++;
+      }
     }
     return correct / p.personCount;
   }
@@ -308,12 +336,18 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
   }
 
   void _handleWin() {
-    if (!_canInteract(_round)) return;
+    if (!_canInteract(_round)) {
+      return;
+    }
     final round = _round;
-    if (puzzle == null) return;
+    if (puzzle == null) {
+      return;
+    }
     // Verify solution still correct for current assignment
     final userMap = _userAssignment.map((k, v) => MapEntry(k, v!));
-    if (!puzzle!.checkSolution(userMap)) return;
+    if (!puzzle!.checkSolution(userMap)) {
+      return;
+    }
     _clearFeedback();
     setState(() {
       _gameOver = true;
@@ -333,8 +367,9 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
   }
 
   void _showWinDialog(int totalScore, Object round) {
-    if (!mounted || !identical(round, _round) || !_won || puzzle == null)
+    if (!mounted || !identical(round, _round) || !_won || puzzle == null) {
       return;
+    }
     playOneShotMotion(successController, () {});
     showDialog(
       context: context,
@@ -345,7 +380,9 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
   }
 
   void _handleLoss() {
-    if (!_canInteract(_round)) return;
+    if (!_canInteract(_round)) {
+      return;
+    }
     AppHaptics.heavyImpact();
     setState(() => _wrongVerdicts++);
     // Recoverable mistake: keep board editable and save snapshot
@@ -384,8 +421,9 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady)
+    if (!_sessionReady) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
 
     if (puzzle == null || _isGenerating) {
@@ -653,7 +691,9 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          if (!_canUseDialog(dialogContext, round)) return;
+                          if (!_canUseDialog(dialogContext, round)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
@@ -662,7 +702,9 @@ class _AlienTribunalGameState extends State<AlienTribunalGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          if (!_canUseDialog(dialogContext, round)) return;
+                          if (!_canUseDialog(dialogContext, round)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
                           Navigator.of(context).pop();
                         },

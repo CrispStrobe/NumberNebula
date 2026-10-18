@@ -2,8 +2,9 @@
 
 ## Project status and next work
 
-The verified code baseline is **1.5.22+38** (2026-10-05): 48 registered games,
-60,400 pure Dart cases with zero failures, and passing Flutter/web/deployment CI.
+The integrated version is **1.5.32+48** ([PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)):
+48 registered games, 31 focused round suites and retained all-game calibration.
+Consult the exact-head PR checks for the current validation/merge state.
 Start with [HANDOVER.md](HANDOVER.md) for evidence and boundaries, then
 [REMAINING_WORK.md](REMAINING_WORK.md) for scoped tasks. Automated workload
 estimates remain untrained; physical-device and child playtest evidence is pending.

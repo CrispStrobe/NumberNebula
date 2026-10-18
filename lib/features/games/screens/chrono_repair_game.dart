@@ -72,7 +72,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   int get sessionLevel => widget.level;
   @override
   Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating || _won) return null;
+    if (!_sessionReady || _isGenerating || _won) {
+      return null;
+    }
     return {
       '_correctHour': _correctHour,
       '_correctMinute': _correctMinute,
@@ -119,7 +121,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
     if (!await restorePuzzleSession() && mounted) {
       await Future<void>.sync(_generatePuzzle);
     }
-    if (mounted) setState(() => _sessionReady = true);
+    if (mounted) {
+      setState(() => _sessionReady = true);
+    }
   }
 
   DifficultyConfig? currentDifficulty;
@@ -176,7 +180,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
     _resetRoundEffects();
     final round = _round;
     beginPuzzleSession();
-    if (currentDifficulty == null) return;
+    if (currentDifficulty == null) {
+      return;
+    }
 
     setState(() {
       _isGenerating = true;
@@ -191,7 +197,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
 
     final generated =
         generateChronoRepair(grade, widget.level, random: _random);
-    if (!mounted || !identical(round, _round)) return;
+    if (!mounted || !identical(round, _round)) {
+      return;
+    }
     _correctHour = generated['_correctHour'] as int;
     _correctMinute = generated['_correctMinute'] as int;
     _displayedHour = generated['_displayedHour'] as int;
@@ -220,7 +228,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   }
 
   void _checkAnswer(Object round) {
-    if (!_canInteract(round)) return;
+    if (!_canInteract(round)) {
+      return;
+    }
     if (_selectedHour == _correctHour && _selectedMinute == _correctMinute) {
       _handleWin(round);
     } else {
@@ -246,7 +256,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
           icon: const Icon(Icons.keyboard_arrow_up,
               color: SpaceTheme.starYellow, size: 32),
           onPressed: () {
-            if (!_canInteract(currentRound)) return;
+            if (!_canInteract(currentRound)) {
+              return;
+            }
             AppHaptics.selectionClick();
             onChanged(value + step > max ? min : value + step);
           },
@@ -273,7 +285,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
           icon: const Icon(Icons.keyboard_arrow_down,
               color: SpaceTheme.starYellow, size: 32),
           onPressed: () {
-            if (!_canInteract(currentRound)) return;
+            if (!_canInteract(currentRound)) {
+              return;
+            }
             AppHaptics.selectionClick();
             onChanged(value - step < min ? max : value - step);
           },
@@ -283,7 +297,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   }
 
   void _handleWin(Object round) {
-    if (!_canInteract(round)) return;
+    if (!_canInteract(round)) {
+      return;
+    }
     _resetRoundEffects();
     setState(() {
       _gameOver = true;
@@ -311,7 +327,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
   }
 
   void _showWinDialog(int totalScore, Object round) {
-    if (!mounted || !identical(round, _round) || !_won) return;
+    if (!mounted || !identical(round, _round) || !_won) {
+      return;
+    }
     playOneShotMotion(successController, () {});
     showDialog(
       context: context,
@@ -329,7 +347,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
       ModalRoute.of(dialogContext)?.isCurrent == true;
 
   void _handleLoss(Object round) {
-    if (!_canInteract(round)) return;
+    if (!_canInteract(round)) {
+      return;
+    }
     setState(() => _wrongChecks++);
     AppHaptics.heavyImpact();
 
@@ -358,8 +378,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady)
+    if (!_sessionReady) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
 
     if (_isGenerating || currentDifficulty == null) {
@@ -589,7 +610,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
                     min: 1,
                     max: 12,
                     onChanged: (v) {
-                      if (!_canInteract(_round)) return;
+                      if (!_canInteract(_round)) {
+                        return;
+                      }
                       setState(() => _selectedHour = v);
                     },
                     round: _round,
@@ -612,7 +635,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
                     max: 55,
                     step: 5,
                     onChanged: (v) {
-                      if (!_canInteract(_round)) return;
+                      if (!_canInteract(_round)) {
+                        return;
+                      }
                       setState(() => _selectedMinute = v);
                     },
                     round: _round,
@@ -673,7 +698,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          if (!_canUseDialog(round, dialogContext)) return;
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
@@ -682,7 +709,9 @@ class _ChronoRepairGameState extends State<ChronoRepairGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          if (!_canUseDialog(round, dialogContext)) return;
+                          if (!_canUseDialog(round, dialogContext)) {
+                            return;
+                          }
                           Navigator.of(dialogContext).pop();
                           Navigator.of(context).pop();
                         },

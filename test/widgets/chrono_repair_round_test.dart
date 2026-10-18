@@ -118,7 +118,9 @@ Future<_App> _mount(WidgetTester tester,
     await tester.pump(const Duration(milliseconds: 20));
     await tester
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   expect(_session(tester).capturePuzzleSession(), isNotNull);
   await _restore(tester, app, board ?? _board());
@@ -184,7 +186,9 @@ Future<void> _retry(WidgetTester tester) async {
     await tester.pump(const Duration(milliseconds: 20));
     await tester
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
-    if (_session(tester).capturePuzzleSession() != null) break;
+    if (_session(tester).capturePuzzleSession() != null) {
+      break;
+    }
   }
   await tester.pump(const Duration(milliseconds: 300));
   expect(_dialog, findsNothing);
@@ -387,5 +391,21 @@ void main() {
     await _tapSubmit(tester);
     await tester.pump(const Duration(milliseconds: 700));
     _gradeWin(app);
+  });
+  testWidgets('partial restore clears prior win and old result callbacks',
+      (tester) async {
+    final app = await _mount(tester,
+        reduced: true, board: _board(selectedHour: 3, selectedMinute: 15));
+    await _tapSubmit(tester);
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(_dialog, findsOneWidget);
+    Navigator.of(tester.element(_screen)).pop();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await _restore(tester, app, _board());
+    expect(_session(tester).capturePuzzleSession(), isNotNull);
+    await _setHour(tester, 2);
+    expect(_snapshot(tester)['_selectedHour'], 2);
+    expect(app.gp.outcomeCount, 1);
   });
 }
