@@ -12,6 +12,8 @@ import 'package:space_math_academy/core/services/puzzle_image_service.dart';
 import 'package:space_math_academy/core/services/puzzle_session_store.dart';
 import 'package:space_math_academy/core/services/sri_service.dart';
 import 'package:space_math_academy/features/games/models/math_problem.dart';
+import 'package:space_math_academy/features/games/game_registry.dart';
+import 'package:space_math_academy/shared/widgets/onboarding_overlay.dart';
 import 'package:space_math_academy/features/games/models/performance.dart';
 import 'package:space_math_academy/features/games/providers/game_provider.dart';
 import 'package:space_math_academy/features/games/screens/puzzle_math_game.dart';
@@ -550,15 +552,23 @@ void main() {
       (t) async {
     final app = await _mount(t);
     await _finish(t);
+    await t.runAsync(
+        () => OnboardingOverlay.markSeen('puzzle_math_all_games_guided_v1'));
+    await t.runAsync(() => loadGameLibrary('puzzle_math'));
+    final original = _state(t);
     await t.ensureVisible(suggestion());
     await t.tap(suggestion());
     await t.pump();
     await t.pump(const Duration(milliseconds: 400));
-    for (var i = 0; i < 30 && _state(t).capturePuzzleSession() == null; i++) {
+    for (var i = 0; i < 30; i++) {
       await t.runAsync(
           () => Future<void>.delayed(const Duration(milliseconds: 10)));
       await t.pump();
+      if (_screen.evaluate().length == 1 &&
+          !identical(_state(t), original) &&
+          _state(t).capturePuzzleSession() != null) break;
     }
+    expect(identical(_state(t), original), isFalse);
     expect(roundDialogs, findsNothing);
     expect(_snapshot(t)['placedPieces'], isEmpty);
     expect(app.gp.outcomeCount, 1);
