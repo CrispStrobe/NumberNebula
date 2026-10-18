@@ -299,6 +299,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
       _won = false;
       _outOfMoves = false;
       _hintsUsed = 0;
+      _hintLoading = false;
+      _lastDroppedCell = '';
+      _hintCell = null;
       userSolution.clear();
       _validatedLines.clear();
       successController.reset();

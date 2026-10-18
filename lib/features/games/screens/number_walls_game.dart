@@ -340,6 +340,12 @@ class _NumberWallsGameState extends State<NumberWallsGame>
 
     setState(() {
       _isGenerating = true;
+      _won = false;
+      _victoryPending = false;
+      _isDraggingOver = false;
+      _lastPlacedCellIndex = -1;
+      _hintLoading = false;
+      _hintCell = null;
       _hintsUsed = 0;
       _shouldShowOperationHint = true;
       _warpController.reset();

@@ -324,6 +324,8 @@ class _StarForgeGameState extends State<StarForgeGame>
       _won = false;
       _outOfMoves = false;
       _hintsUsed = 0;
+      _hintLoading = false;
+      _lastDroppedNode = -1;
       userSolution.clear();
       _highlightedArm = null;
       successController.reset();

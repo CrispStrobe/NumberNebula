@@ -37,6 +37,9 @@ Review of `47c5351` found gaps after the first repair:
 - KenKen/triangle/wall restoration left the previous drop marker attached to the
   new board. Triangle/wall drop controllers did not honor initial or mid-effect
   reduced motion, and retained hover callbacks could call state after disposal.
+- Triangle/wall retry generation retained terminal and pending-victory flags,
+  leaving the next board unplayable. Real win/loss retry must generate a fresh,
+  interactable round. Pending hint/loading and last-drop state must reset too.
 - Several stale-drag tests checked only outcome counts, allowing silent board or
   inventory mutation. The triangle win test accepted an unsuccessful outcome.
   Assert exact unchanged snapshots and require a validated solution and a win.

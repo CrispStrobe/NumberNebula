@@ -1,5 +1,4 @@
 import 'support/round_contract_checks.dart';
-import 'support/round_dialog_finder.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -53,7 +52,6 @@ class _App {
 }
 
 final _screen = find.byType(MagicTrianglesGame);
-Finder get _dialog => roundDialogs;
 dynamic _session(WidgetTester tester) => tester.state(_screen);
 Map<String, dynamic> _snapshot(WidgetTester tester) =>
     jsonDecode(jsonEncode(_session(tester).capturePuzzleSession()))
@@ -151,8 +149,8 @@ void main() {
     },
     valid: (s, answers) =>
         s.currentPuzzle.checkSolution(answers.values.toList()).isValid,
-    place: (s, cell, value) => s.placeForTesting(value,
-        s.currentPuzzle.getAnswerIndex(cell as int), cell as int, s.testRound),
+    place: (s, cell, value) => s.placeForTesting(
+        value, s.currentPuzzle.getAnswerIndex(cell as int), cell, s.testRound),
     answersKey: 'userAnswers',
     movesKey: '_movesRemaining',
     poolKey: 'numberPool',

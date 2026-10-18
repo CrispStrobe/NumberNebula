@@ -309,6 +309,10 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
 
     setState(() {
       _isGenerating = true;
+      _won = false;
+      _victoryPending = false;
+      _isDraggingOver = false;
+      _lastPlacedNodeIndex = -1;
       _warpController.reset();
       successController.reset();
     });
