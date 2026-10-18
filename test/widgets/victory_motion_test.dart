@@ -1,3 +1,4 @@
+import 'support/round_dialog_finder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -326,7 +327,7 @@ void main() {
         await tester.pumpWidget(app.build());
         final dialog = game == 'solarpanel_game'
             ? find.text(S.of(tester.element(screen))!.solarPanelWinTitle)
-            : find.byType(Dialog);
+            : roundDialogs;
         dynamic session = tester.state(screen);
         for (var attempt = 0; attempt < 150; attempt++) {
           await tester.pump(const Duration(milliseconds: 20));

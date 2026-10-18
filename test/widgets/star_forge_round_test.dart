@@ -1,3 +1,4 @@
+import 'support/round_dialog_finder.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -57,7 +58,7 @@ class _App {
 }
 
 final _screen = find.byType(StarForgeGame);
-final _dialog = find.byType(Dialog);
+final _dialog = roundDialogs;
 dynamic _session(WidgetTester tester) => tester.state(_screen);
 S _strings(WidgetTester tester) => S.of(tester.element(_screen))!;
 Map<String, dynamic> _snapshot(WidgetTester tester) =>
@@ -299,8 +300,8 @@ void main() {
   testWidgets('full wrong last-budget drop loses once and offers retry',
       (tester) async {
     final app = await _mount(tester,
-        reduced: true, board: _board(answers: {7: 8}, movesRemaining: 1));
-    await _drag(tester, 2);
+        reduced: true, board: _board(answers: {7: 4}, movesRemaining: 1));
+    await _drag(tester, 8);
     await tester.pump(const Duration(milliseconds: 700));
     expect(app.gp.outcomeCount, 1);
     expect(app.gp.lastOutcome!.wasSuccessful, isFalse);
@@ -338,7 +339,7 @@ void main() {
         tester, app, _board(empty: {3, 7}, answers: {}, movesRemaining: 4));
     final before = _snapshot(tester);
     final current = _target(tester);
-    final fresh = _payload(tester, 4);
+    final fresh = _payload(tester, 7);
     _deliver(target, fresh);
     _deliver(target, old);
     _deliver(current, old);
@@ -423,8 +424,8 @@ void main() {
   testWidgets('restore clears pending incorrect feedback and last-drop visuals',
       (tester) async {
     final app = await _mount(tester, reduced: true);
-    await _drag(tester, 2);
     await _drag(tester, 4);
+    await _drag(tester, 8);
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byType(SnackBar), findsOneWidget);
     ScaffoldMessenger.of(tester.element(_screen)).showSnackBar(const SnackBar(
@@ -449,11 +450,13 @@ void main() {
     await _drag(tester, 8);
     await tester.pump(const Duration(milliseconds: 100));
     final before = _snapshot(tester);
+    final scaleFinder = find.descendant(
+        of: _filled.first, matching: find.byType(ScaleTransition));
+    final scale = tester.widget<ScaleTransition>(scaleFinder);
     app.motion.value = true;
     await tester.pump();
     await tester.pump();
-    final scale = tester.widget<ScaleTransition>(find.descendant(
-        of: _filled.first, matching: find.byType(ScaleTransition)));
+    expect(scaleFinder, findsNothing);
     expect(scale.scale.value, 1);
     expect(tester.binding.transientCallbackCount, 0);
     expect(_snapshot(tester), before);
@@ -613,7 +616,7 @@ void main() {
           board: win
               ? _board(answers: {7: 8}, movesRemaining: 1)
               : _board(movesRemaining: 1));
-      await _drag(tester, win ? 4 : 2);
+      await _drag(tester, win ? 4 : 8);
       await tester.pump(const Duration(milliseconds: 700));
       expect(_dialog, findsOneWidget);
       Navigator.of(tester.element(_screen)).pop();

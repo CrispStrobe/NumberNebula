@@ -1,3 +1,4 @@
+import 'support/round_dialog_finder.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -50,7 +51,7 @@ class _App {
 }
 
 final _screen = find.byType(ArithmancerCrosswordsGame);
-Finder get _dialog => find.byType(Dialog);
+Finder get _dialog => roundDialogs;
 dynamic _session(WidgetTester tester) => tester.state(_screen);
 Map<String, dynamic> _snapshot(WidgetTester tester) =>
     jsonDecode(jsonEncode(_session(tester).capturePuzzleSession()))

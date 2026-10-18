@@ -1,3 +1,4 @@
+import 'support/round_dialog_finder.dart';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -57,7 +58,7 @@ class _App {
 }
 
 final _screen = find.byType(XenobiologyLabGame);
-final _dialog = find.byType(Dialog);
+final _dialog = roundDialogs;
 dynamic _session(WidgetTester tester) => tester.state(_screen);
 S _strings(WidgetTester tester) => S.of(tester.element(_screen))!;
 Map<String, dynamic> _snapshot(WidgetTester tester) =>

@@ -955,20 +955,18 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
 
   Widget _buildCompactLayout({required bool isCompact}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        children: [
-          Expanded(
-            flex: 3,
-            child: _buildGridArea(isCompact: isCompact),
-          ),
-          SizedBox(height: isCompact ? 8 : 16),
-          Expanded(
-            flex: 2,
-            child: _buildNumberPad(isCompact: isCompact),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(children: [
+        Expanded(
+            child: SingleChildScrollView(
+                child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: _buildGridArea(isCompact: isCompact)))),
+        const SizedBox(height: 8),
+        ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 160),
+            child: _buildNumberPad(isCompact: isCompact)),
+      ]),
     );
   }
 
@@ -1262,14 +1260,15 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
             child: Text(S.of(context)!.arithmeticSquareSelectNumbers,
                 style: SpaceTheme.bodyStyle),
           ),
-        Container(
+        Flexible(
+            child: Container(
           padding: EdgeInsets.all(isCompact ? 8 : 12),
           decoration: SpaceTheme.cardDecoration.copyWith(
             border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
           ),
           child: GridView.builder(
             shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: isCompact ? 5 : 4,
               crossAxisSpacing: 8,
@@ -1298,7 +1297,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
               );
             },
           ),
-        ),
+        )),
       ],
     );
   }

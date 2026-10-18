@@ -1,3 +1,4 @@
+import 'support/round_dialog_finder.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,7 +54,7 @@ class _App {
 }
 
 final _screen = find.byType(ChronoRepairGame);
-final _dialog = find.byType(Dialog);
+final _dialog = roundDialogs;
 dynamic _session(WidgetTester tester) => tester.state(_screen);
 S _strings(WidgetTester tester) => S.of(tester.element(_screen))!;
 Map<String, dynamic> _snapshot(WidgetTester tester) =>
@@ -263,8 +264,8 @@ void main() {
 
   testWidgets('old stepper callbacks cannot affect new board', (tester) async {
     final app = await _mount(tester);
-    final oldUp =
-        tester.widget<IconButton>(find.byIcon(Icons.keyboard_arrow_up).first);
+    final oldUp = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.keyboard_arrow_up).first);
     final oldSubmit = tester.widget<ElevatedButton>(find.byWidgetPredicate(
         (w) =>
             w is ElevatedButton &&
@@ -301,8 +302,8 @@ void main() {
 
   testWidgets('disposal rejects retained callbacks', (tester) async {
     final app = await _mount(tester);
-    final oldUp =
-        tester.widget<IconButton>(find.byIcon(Icons.keyboard_arrow_up).first);
+    final oldUp = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.keyboard_arrow_up).first);
     final oldSubmit = tester.widget<ElevatedButton>(find
         .byWidgetPredicate((w) => w is ElevatedButton && w.key is ValueKey));
     await tester.pumpWidget(const SizedBox.shrink());

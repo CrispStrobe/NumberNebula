@@ -1104,8 +1104,12 @@ class _StarForgeGameState extends State<StarForgeGame>
       },
       onWillAcceptWithDetails: (details) =>
           _canInteract(details.data.round) && details.data.round == round,
-      onAcceptWithDetails: (details) =>
-          _placeNumber(details.data.number, nodeIdx, details.data.round),
+      onAcceptWithDetails: (details) {
+        if (!identical(details.data.round, round)) {
+          return;
+        }
+        _placeNumber(details.data.number, nodeIdx, round);
+      },
     );
   }
 

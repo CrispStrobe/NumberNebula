@@ -1,3 +1,4 @@
+import 'support/round_dialog_finder.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -48,7 +49,7 @@ class _App {
 }
 
 final _screen = find.byType(ArithmeticSquareGame);
-final _dialog = find.byType(Dialog);
+final _dialog = roundDialogs;
 final _targets = find.byType(DragTarget<ArithmeticSquareDrag>);
 dynamic _session(WidgetTester t) => t.state(_screen);
 Map<String, dynamic> _snap(WidgetTester t) =>
