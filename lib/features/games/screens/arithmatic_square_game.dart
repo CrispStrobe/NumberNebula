@@ -1095,6 +1095,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
   }
 
   Widget _buildNumberCell(String cellId, double cellSize, bool isCompact) {
+    final round = _round;
     final bool isEmpty = puzzle!.emptyCells.contains(cellId);
     final bool hasUserValue = userSolution.containsKey(cellId);
     final bool isPlayerHint = puzzle!.playerHints.containsKey(cellId);
@@ -1207,9 +1208,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
           );
         },
         onWillAcceptWithDetails: (details) =>
-            _canPlace(details.data, cellId, details.data.round),
+            _canPlace(details.data, cellId, round),
         onAcceptWithDetails: (details) =>
-            _placeNumber(details.data, cellId, details.data.round),
+            _placeNumber(details.data, cellId, round),
       );
     }
 
@@ -1218,11 +1219,8 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
         button: true,
         label: S.of(context)!.a11yPlacedValueTapRemove,
         child: GestureDetector(
-          onTap: () {
-            final round = _round;
-            final exp = userSolution[cellId];
-            _removeNumber(cellId, exp, round);
-          },
+          key: ValueKey(('arith-filled', round, cellId, value)),
+          onTap: () => _removeNumber(cellId, value, round),
           child: cell,
         ),
       );
@@ -1286,6 +1284,7 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
               final number = numberPool[index];
               // Semantics on visual child — see note in word_sort_game.
               return Draggable<ArithmeticSquareDrag>(
+                key: ValueKey(('arith-source', _round, index, number)),
                 data: (number: number, round: _round),
                 feedback: _buildDraggableFeedback(number),
                 childWhenDragging: Opacity(

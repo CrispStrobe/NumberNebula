@@ -1393,7 +1393,7 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               }
               final number = numberPool[index];
               return Draggable<MagicTrianglesDrag>(
-                key: ValueKey(('magic-drag', _round, number)),
+                key: ValueKey(('magic-drag', _round, index, number)),
                 data: (number: number, round: _round),
                 feedback: _buildDraggableFeedback(number, isSmallScreen),
                 childWhenDragging: Opacity(

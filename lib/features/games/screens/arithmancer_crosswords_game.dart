@@ -1375,6 +1375,7 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
                 final number = numberPool[index];
                 // Semantics on visual child — see note in word_sort_game.
                 return Draggable<ArithmancerCrosswordsDrag>(
+                  key: ValueKey(('crossword-source', _round, index, number)),
                   data: (number: number, round: _round),
                   feedback: _buildDraggableFeedback(number),
                   childWhenDragging: Opacity(

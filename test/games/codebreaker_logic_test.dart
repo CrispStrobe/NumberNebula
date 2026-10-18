@@ -55,6 +55,13 @@ void main() {
         () {
       expect(buildCodebreakerNumberPool([1, 1], maxValue: 1), [1, 1]);
     });
+    test('large custom ranges do not require enumerating the numeric domain',
+        () {
+      final pool = buildCodebreakerNumberPool([1, 1], maxValue: 1073741824);
+      expect(pool, hasLength(8));
+      expect(pool.where((v) => v == 1), hasLength(2));
+      expect(pool.every((v) => v >= 1 && v <= 1073741824), isTrue);
+    });
     test('padding retains duplicate answers and adds distinct in-range decoys',
         () {
       final pool = buildCodebreakerNumberPool([5, 5], maxValue: 10);

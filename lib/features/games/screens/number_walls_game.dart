@@ -1598,7 +1598,7 @@ class _NumberWallsGameState extends State<NumberWallsGame>
                 }
                 final number = numberPool[index];
                 return Draggable<NumberWallsDrag>(
-                  key: ValueKey(('numberwalls-drag', _round, number)),
+                  key: ValueKey(('numberwalls-drag', _round, index, number)),
                   data: (number: number, round: _round),
                   feedback: _buildDraggableFeedback(number),
                   childWhenDragging:

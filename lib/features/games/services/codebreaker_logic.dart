@@ -1571,13 +1571,21 @@ List<int> buildCodebreakerNumberPool(List<int> correctNumbers,
   // Keep randomized padding, but never spin forever on a saturated domain or
   // allocate a list proportional to a possibly large custom numeric range.
   for (var attempt = 0;
-      maxValue > 0 && attempt < requiredDecoys * 8 && decoys.length < requiredDecoys;
+      maxValue > 0 &&
+          attempt < requiredDecoys * 8 &&
+          decoys.length < requiredDecoys;
       attempt++) {
     final value = rng.nextInt(maxValue) + 1;
-    if (!correct.contains(value)) decoys.add(value);
+    if (!correct.contains(value)) {
+      decoys.add(value);
+    }
   }
-  for (var value = 1; value <= maxValue && decoys.length < requiredDecoys; value++) {
-    if (!correct.contains(value)) decoys.add(value);
+  for (var value = 1;
+      value <= maxValue && decoys.length < requiredDecoys;
+      value++) {
+    if (!correct.contains(value)) {
+      decoys.add(value);
+    }
   }
   return [...correctNumbers, ...decoys.take(requiredDecoys)]..shuffle(rng);
 }
