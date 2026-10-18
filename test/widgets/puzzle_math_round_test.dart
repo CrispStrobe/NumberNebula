@@ -566,7 +566,9 @@ void main() {
       await t.pump();
       if (_screen.evaluate().length == 1 &&
           !identical(_state(t), original) &&
-          _state(t).capturePuzzleSession() != null) break;
+          _state(t).capturePuzzleSession() != null) {
+        break;
+      }
     }
     expect(identical(_state(t), original), isFalse);
     expect(roundDialogs, findsNothing);

@@ -75,7 +75,9 @@ class RoundSummary extends StatelessWidget {
                 onPressed: () {
                   if (!context.mounted ||
                       ModalRoute.of(context)?.isCurrent != true ||
-                      (canNavigate != null && !canNavigate!())) return;
+                      (canNavigate != null && !canNavigate!())) {
+                    return;
+                  }
                   final builder = gameBuilderFor(gameKey);
                   if (builder == null) return;
                   final navigator = Navigator.of(context);
