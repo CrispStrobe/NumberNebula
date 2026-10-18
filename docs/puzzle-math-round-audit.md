@@ -18,6 +18,10 @@ ignored. Retry and Back check the actual route before dismissing anything. The s
 result card checks mounted/current route before suggested-challenge navigation;
 Puzzle Math additionally supplies a round guard. Normal suggestion input remains
 covered, alongside covering-route and restored-round rejection.
+Restoration also removes the exact result route owned by the old round, including
+before its first build and beneath an unrelated covering dialog. The covering
+route remains in place; after it closes, actual input reaches the restored board.
+Guarding stale callbacks alone did not prevent an obsolete modal blocking play.
 
 The timer formerly waited an extra tick after reaching zero. It now expires on the
 one-to-zero tick, stops on completion, respects pause and replaces its previous timer
@@ -34,7 +38,7 @@ Physical rotation remains a gameplay action.
 
 ## Validation contract
 
-The 36-case focused suite is `test/widgets/puzzle_math_round_test.dart`. It exercises actual
+The 39-case focused suite is `test/widgets/puzzle_math_round_test.dart`. It exercises actual
 drag, rotate, remove and retry input, equal-answer conservation, stale callbacks and
 pointer gestures across restore, terminal outcomes, persisted mistakes, pause and
 timer replacement, English/German 390×500/844 phones at text scale 2, and reduced motion.
@@ -54,7 +58,11 @@ bash tool/build_web.sh
 For before-fix negative controls, retain the focused tests and substitute only
 `lib/features/games/screens/puzzle_math_game.dart` from the preceding main commit
 `365cc8f`. Require behavioral assertion failures, not compilation errors. Restore
-the repair and require all focused cases plus reordered runs to pass. All-game
+the repair and require all focused cases plus reordered runs to pass. The bounded
+old-screen comparison excludes only `actual suggested challenge opens a playable game`:
+an obsolete navigation failure stalls its later loader check in that comparison.
+Require all other 38 cases to complete without skips or timeouts, and all 39 cases,
+including normal suggestion navigation, to pass on the repaired screen. All-game
 native and pure generation, capture/replay, retained render fallbacks, WASM and
 JavaScript builds and both-engine hosted checks remain required.
 

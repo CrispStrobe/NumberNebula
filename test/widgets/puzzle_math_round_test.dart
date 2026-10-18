@@ -542,11 +542,82 @@ void main() {
     await _finish(t);
     final callback = t.widget<ButtonStyleButton>(suggestion()).onPressed!;
     await _restore(t, _board(time: 80));
+    await t.pump(const Duration(milliseconds: 400));
+    expect(roundDialogs, findsNothing);
     final before = _snapshot(t);
     callback();
     await t.pump();
-    expect(roundDialogs, findsOneWidget);
+    expect(roundDialogs, findsNothing);
     expect(_snapshot(t), before);
+    await _drop(t, 0, 0);
+    expect(_snapshot(t)['placedPieces'], [
+      [0, 0]
+    ]);
+  });
+  testWidgets('contract: restore clears a loss dialog and accepts new input',
+      (t) async {
+    final app = await _mount(t);
+    await _restore(t, _board(time: 1));
+    await t.pump(const Duration(seconds: 1));
+    await _dialog(t);
+    final retry = _retryCallback(t);
+    final outcome = app.gp.lastOutcome;
+    await _restore(t, _board(time: 80));
+    await t.pump(const Duration(milliseconds: 400));
+    expect(roundDialogs, findsNothing);
+    retry();
+    await t.pump();
+    expect(_snapshot(t)['_time'], 80);
+    await _drop(t, 0, 0);
+    expect(_snapshot(t)['placedPieces'], [
+      [0, 0]
+    ]);
+    expect(app.gp.outcomeCount, 1);
+    expect(identical(app.gp.lastOutcome, outcome), isTrue);
+  });
+  testWidgets('contract: restore removes a result route before its first build',
+      (t) async {
+    final app = await _mount(t);
+    await _restore(t, _board(placed: {0: 0, 1: 1, 2: 2}));
+    final dynamic target = t.widget(_slot(3));
+    final dynamic source = t.widget(_source(3));
+    _deliver(target, source.data);
+    expect(app.gp.outcomeCount, 1);
+    // Do not pump the just-pushed result route before replacing the round.
+    await _restore(t, _board(time: 80));
+    await t.pump(const Duration(milliseconds: 400));
+    expect(roundDialogs, findsNothing);
+    await _drop(t, 0, 0);
+    expect(_snapshot(t)['placedPieces'], [
+      [0, 0]
+    ]);
+    expect(app.gp.outcomeCount, 1);
+    expect(t.takeException(), isNull);
+  });
+  testWidgets(
+      'contract: restore removes only its result beneath a covering route',
+      (t) async {
+    final app = await _mount(t);
+    await _finish(t);
+    final retry = _retryCallback(t);
+    await _cover(t);
+    await _restore(t, _board(time: 80));
+    await t.pump(const Duration(milliseconds: 400));
+    expect(find.text('Covering route'), findsOneWidget);
+    // Include offstage routes: an obsolete result must not remain underneath.
+    expect(find.byType(RoundSummary, skipOffstage: false), findsNothing);
+    retry();
+    await t.pump();
+    expect(find.text('Covering route'), findsOneWidget);
+    await t.tapAt(const Offset(10, 10));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 400));
+    expect(roundDialogs, findsNothing);
+    await _drop(t, 0, 0);
+    expect(_snapshot(t)['placedPieces'], [
+      [0, 0]
+    ]);
+    expect(app.gp.outcomeCount, 1);
   });
   testWidgets('contract: actual suggested challenge opens a playable game',
       (t) async {

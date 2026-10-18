@@ -38,6 +38,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
   bool _sessionReady = false;
   bool _terminal = false;
   Object _round = Object();
+  DialogRoute<void>? _resultRoute;
 
   bool _canInteract(Object round) =>
       mounted && identical(round, _round) && _sessionReady && !_terminal;
@@ -70,6 +71,13 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
     _timer?.cancel();
     _round = Object();
     _terminal = false;
+    // Remove only this round's result, including before its builder runs or
+    // while another route covers it. Popping would dismiss the covering route.
+    final resultRoute = _resultRoute;
+    _resultRoute = null;
+    if (resultRoute != null && resultRoute.isActive) {
+      resultRoute.navigator?.removeRoute(resultRoute);
+    }
     final messenger = ScaffoldMessenger.maybeOf(context);
     messenger?.clearSnackBars();
     messenger?.removeCurrentSnackBar();
@@ -80,6 +88,7 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
       identical(round, _round) &&
       _terminal &&
       dialogContext.mounted &&
+      identical(ModalRoute.of(dialogContext), _resultRoute) &&
       ModalRoute.of(dialogContext)?.isCurrent == true;
   void _back(Object round) {
     if (mounted &&
@@ -905,15 +914,33 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
     _initializeGame();
   }
 
+  void _showResultDialog(Object round, WidgetBuilder builder) {
+    if (!mounted || !identical(round, _round) || !_terminal) return;
+    if (_resultRoute?.isActive ?? false) return;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final route = DialogRoute<void>(
+      context: context,
+      builder: builder,
+      barrierDismissible: false,
+      barrierColor: DialogTheme.of(context).barrierColor ?? Colors.black54,
+      themes: InheritedTheme.capture(from: context, to: navigator.context),
+      traversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
+    );
+    // Own the route before push: a reset need not wait for its builder.
+    _resultRoute = route;
+    unawaited(navigator.push<void>(route).then((_) {
+      if (identical(_resultRoute, route)) _resultRoute = null;
+    }));
+  }
+
   void _showWinDialog(int scoreGained, Object round) {
     String message = scoreGained > 100
         ? S.of(context)!.puzzleMathWinBonus(scoreGained - 100)
         : S.of(context)!.puzzleMathWin;
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
+    _showResultDialog(
+      round,
+      (ctx) => AlertDialog(
         scrollable: true,
         backgroundColor: const Color(0xFF1A1A3E).withValues(alpha: 0.95),
         shape: RoundedRectangleBorder(
@@ -959,10 +986,9 @@ class _PuzzleMathGameState extends State<PuzzleMathGame>
   }
 
   void _showGameOverDialog(Object round) {
-    showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (dialogContext) => SpaceDialog(
+    _showResultDialog(
+        round,
+        (dialogContext) => SpaceDialog(
             title: S.of(context)!.timesUp,
             content: S.of(context)!.puzzleMathTryAnother,
             onNext: () => _resetGame(round, dialogContext)));
