@@ -363,11 +363,18 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
         if (kDebugMode) {
           debugPrint("✅ [GEN-RESULT] Puzzle details:");
         }
-        debugPrint("✅ [GEN-RESULT]   - Clues: ${generatedPuzzle.clues.length}");
-        debugPrint(
-            "✅ [GEN-RESULT]   - Empty cells: ${generatedPuzzle.emptyCells.length}");
-        debugPrint(
-            "✅ [GEN-RESULT]   - Equations: ${generatedPuzzle.equations.length}");
+        if (kDebugMode) {
+          debugPrint(
+              "✅ [GEN-RESULT]   - Clues: ${generatedPuzzle.clues.length}");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "✅ [GEN-RESULT]   - Empty cells: ${generatedPuzzle.emptyCells.length}");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "✅ [GEN-RESULT]   - Equations: ${generatedPuzzle.equations.length}");
+        }
 
         // STEP 3: Now update the state with the generated puzzle
         if (mounted && identical(round, _round)) {
@@ -390,12 +397,18 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
               debugPrint(
                   "🎯 [ARITHMANCER CROSSWORDS] Max moves allowed: $_maxMoves for $emptyCount empty cells");
             }
-            debugPrint(
-                "🎯 [ARITHMANCER CROSSWORDS] UI state updated with new puzzle");
-            debugPrint(
-                "🎯 [ARITHMANCER CROSSWORDS] Number pool: ${numberPool.join(', ')}");
-            debugPrint(
-                "✅ [GEN-RESULT] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+            if (kDebugMode) {
+              debugPrint(
+                  "🎯 [ARITHMANCER CROSSWORDS] UI state updated with new puzzle");
+            }
+            if (kDebugMode) {
+              debugPrint(
+                  "🎯 [ARITHMANCER CROSSWORDS] Number pool: ${numberPool.join(', ')}");
+            }
+            if (kDebugMode) {
+              debugPrint(
+                  "✅ [GEN-RESULT] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+            }
           });
         }
       } else {
@@ -405,7 +418,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       if (kDebugMode) {
         debugPrint("❌ [ARITHMANCER CROSSWORDS] Error generating puzzle: $e");
       }
-      debugPrint("❌ [ARITHMANCER CROSSWORDS] StackTrace: $stackTrace");
+      if (kDebugMode) {
+        debugPrint("❌ [ARITHMANCER CROSSWORDS] StackTrace: $stackTrace");
+      }
 
       if (mounted) {
         setState(() => _isGenerating = false);
@@ -473,7 +488,9 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     if (kDebugMode) {
       debugPrint("🎮 [PLACE] User solution after: $userSolution");
     }
-    debugPrint("🎮 [PLACE] Updated pool: $numberPool");
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] Updated pool: $numberPool");
+    }
 
     // Check if out of moves BEFORE checking solution
     if (_movesRemaining <= 0 && !_isSolved()) {
@@ -515,9 +532,13 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
     if (kDebugMode) {
       debugPrint("✅ [ARITHMANCER CROSSWORDS] Checking solution...");
     }
-    debugPrint("✅ [ARITHMANCER CROSSWORDS] User solution: $userSolution");
-    debugPrint(
-        "✅ [ARITHMANCER CROSSWORDS] Required cells: ${puzzle!.emptyCells.length}");
+    if (kDebugMode) {
+      debugPrint("✅ [ARITHMANCER CROSSWORDS] User solution: $userSolution");
+    }
+    if (kDebugMode) {
+      debugPrint(
+          "✅ [ARITHMANCER CROSSWORDS] Required cells: ${puzzle!.emptyCells.length}");
+    }
 
     if (userSolution.length == puzzle!.emptyCells.length) {
       if (kDebugMode) {
@@ -526,8 +547,10 @@ class _ArithmancerCrosswordsGameState extends State<ArithmancerCrosswordsGame>
       }
 
       final isValid = puzzle!.validateSolution(userSolution);
-      debugPrint(
-          "✅ [ARITHMANCER CROSSWORDS] Solution validation result: $isValid");
+      if (kDebugMode) {
+        debugPrint(
+            "✅ [ARITHMANCER CROSSWORDS] Solution validation result: $isValid");
+      }
 
       if (isValid) {
         _handleSuccess(userSolution);

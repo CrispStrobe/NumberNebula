@@ -319,7 +319,9 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
         }
       }
     } catch (e) {
-      debugPrint('[OrbitalTowers] Error generating puzzle: $e');
+      if (kDebugMode) {
+        debugPrint('[OrbitalTowers] Error generating puzzle: $e');
+      }
     }
   }
 

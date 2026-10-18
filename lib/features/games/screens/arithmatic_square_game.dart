@@ -299,8 +299,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       final generatedPuzzle =
           await compute(ArithmeticSquarePuzzle.generate, puzzleArgs);
 
-      debugPrint(
-          "🎯 [ARITHMETIC SQUARE] Puzzle generation completed successfully");
+      if (kDebugMode) {
+        debugPrint(
+            "🎯 [ARITHMETIC SQUARE] Puzzle generation completed successfully");
+      }
 
       if (mounted && identical(round, _round)) {
         setState(() {
@@ -320,21 +322,29 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
                 "🎯 [ARITHMETIC SQUARE] Max moves allowed: $_maxMoves for $emptyCount empty cells");
           }
         });
-        debugPrint("🎯 [ARITHMETIC SQUARE] UI state updated with new puzzle");
-        debugPrint(
-            "🎯 [ARITHMETIC SQUARE] Number pool (sorted): ${numberPool.join(', ')}");
+        if (kDebugMode) {
+          debugPrint("🎯 [ARITHMETIC SQUARE] UI state updated with new puzzle");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "🎯 [ARITHMETIC SQUARE] Number pool (sorted): ${numberPool.join(', ')}");
+        }
         if (kDebugMode) {
           debugPrint(
               "🎯 [ARITHMETIC SQUARE] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
         }
-        debugPrint(
-            "🎯 [ARITHMETIC SQUARE] Player hints: ${generatedPuzzle.playerHints.keys.join(', ')}");
+        if (kDebugMode) {
+          debugPrint(
+              "🎯 [ARITHMETIC SQUARE] Player hints: ${generatedPuzzle.playerHints.keys.join(', ')}");
+        }
       }
     } catch (e, stackTrace) {
       if (kDebugMode) {
         debugPrint("❌ [ARITHMETIC SQUARE] Error generating puzzle: $e");
       }
-      debugPrint("❌ [ARITHMETIC SQUARE] StackTrace: $stackTrace");
+      if (kDebugMode) {
+        debugPrint("❌ [ARITHMETIC SQUARE] StackTrace: $stackTrace");
+      }
     }
   }
 
@@ -373,7 +383,9 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     if (kDebugMode) {
       debugPrint("🎮 [PLACE] User solution after: $userSolution");
     }
-    debugPrint("🎮 [PLACE] Number pool after: $numberPool");
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] Number pool after: $numberPool");
+    }
 
     // Check if out of moves BEFORE checking solution
     if (_movesRemaining <= 0 && !_isSolved()) {
@@ -518,9 +530,13 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
     if (kDebugMode) {
       debugPrint("✅ [ARITHMETIC SQUARE] Checking solution...");
     }
-    debugPrint("✅ [ARITHMETIC SQUARE] User solution: $userSolution");
-    debugPrint(
-        "✅ [ARITHMETIC SQUARE] Required cells: ${puzzle!.emptyCells.length}");
+    if (kDebugMode) {
+      debugPrint("✅ [ARITHMETIC SQUARE] User solution: $userSolution");
+    }
+    if (kDebugMode) {
+      debugPrint(
+          "✅ [ARITHMETIC SQUARE] Required cells: ${puzzle!.emptyCells.length}");
+    }
 
     // Check for completed equations and log them to SRI immediately
     _checkAndLogCompletedEquations();
@@ -532,7 +548,10 @@ class _ArithmeticSquareGameState extends State<ArithmeticSquareGame>
       }
 
       final isValid = puzzle!.validateSolution(userSolution);
-      debugPrint("✅ [ARITHMETIC SQUARE] Solution validation result: $isValid");
+      if (kDebugMode) {
+        debugPrint(
+            "✅ [ARITHMETIC SQUARE] Solution validation result: $isValid");
+      }
 
       if (isValid) {
         _handleSuccess();

@@ -373,15 +373,19 @@ class _NumberWallsGameState extends State<NumberWallsGame>
           debugPrint(
               "🧱 Puzzle generated: ${currentPuzzle!.operation.name} wall, height ${currentPuzzle!.wallHeight}");
         }
-        debugPrint(
-            "🧱 Max moves allowed: $_maxMoves for ${currentPuzzle!.hiddenCells.length} hidden cells");
+        if (kDebugMode) {
+          debugPrint(
+              "🧱 Max moves allowed: $_maxMoves for ${currentPuzzle!.hiddenCells.length} hidden cells");
+        }
         _startFadeTimer(); // Restart the timer for new puzzle
       }
     } catch (e, stackTrace) {
       if (kDebugMode) {
         debugPrint("❌ Error in _generatePuzzle: $e");
       }
-      debugPrint("❌ StackTrace: $stackTrace");
+      if (kDebugMode) {
+        debugPrint("❌ StackTrace: $stackTrace");
+      }
     }
   }
 

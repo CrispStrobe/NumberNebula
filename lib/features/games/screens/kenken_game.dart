@@ -254,7 +254,9 @@ class _KenkenGameState extends State<KenkenGame>
       }
       final generatedPuzzle = await compute(KenkenPuzzle.generate, puzzleArgs);
 
-      debugPrint("🎯 [KENKEN] Puzzle generation completed successfully");
+      if (kDebugMode) {
+        debugPrint("🎯 [KENKEN] Puzzle generation completed successfully");
+      }
 
       if (mounted && identical(round, _round)) {
         setState(() {
@@ -272,17 +274,25 @@ class _KenkenGameState extends State<KenkenGame>
         if (kDebugMode) {
           debugPrint("🎯 [KENKEN] UI state updated with new puzzle");
         }
-        debugPrint(
-            "🎯 [KENKEN] Max moves allowed: $_maxMoves for ${generatedPuzzle.emptyCells.length} empty cells");
-        debugPrint("🎯 [KENKEN] Number pool: ${numberPool.join(', ')}");
-        debugPrint(
-            "🎯 [KENKEN] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+        if (kDebugMode) {
+          debugPrint(
+              "🎯 [KENKEN] Max moves allowed: $_maxMoves for ${generatedPuzzle.emptyCells.length} empty cells");
+        }
+        if (kDebugMode) {
+          debugPrint("🎯 [KENKEN] Number pool: ${numberPool.join(', ')}");
+        }
+        if (kDebugMode) {
+          debugPrint(
+              "🎯 [KENKEN] Empty cells: ${generatedPuzzle.emptyCells.join(', ')}");
+        }
       }
     } catch (e, stackTrace) {
       if (kDebugMode) {
         debugPrint("❌ [KENKEN] Error generating puzzle: $e");
       }
-      debugPrint("❌ [KENKEN] StackTrace: $stackTrace");
+      if (kDebugMode) {
+        debugPrint("❌ [KENKEN] StackTrace: $stackTrace");
+      }
     }
   }
 
@@ -308,7 +318,9 @@ class _KenkenGameState extends State<KenkenGame>
       }
     });
 
-    debugPrint("🎮 [PLACE] User solution after: $userSolution");
+    if (kDebugMode) {
+      debugPrint("🎮 [PLACE] User solution after: $userSolution");
+    }
     if (kDebugMode) {
       debugPrint("🎮 [PLACE] Number pool remains: $numberPool");
     }
@@ -345,8 +357,12 @@ class _KenkenGameState extends State<KenkenGame>
     if (kDebugMode) {
       debugPrint("✅ [KENKEN] Checking solution...");
     }
-    debugPrint("✅ [KENKEN] User solution: $userSolution");
-    debugPrint("✅ [KENKEN] Required cells: ${puzzle!.emptyCells.length}");
+    if (kDebugMode) {
+      debugPrint("✅ [KENKEN] User solution: $userSolution");
+    }
+    if (kDebugMode) {
+      debugPrint("✅ [KENKEN] Required cells: ${puzzle!.emptyCells.length}");
+    }
 
     if (userSolution.length == puzzle!.emptyCells.length) {
       if (kDebugMode) {
@@ -354,7 +370,9 @@ class _KenkenGameState extends State<KenkenGame>
       }
 
       final isValid = puzzle!.validateSolution(userSolution);
-      debugPrint("✅ [KENKEN] Solution validation result: $isValid");
+      if (kDebugMode) {
+        debugPrint("✅ [KENKEN] Solution validation result: $isValid");
+      }
 
       if (isValid) {
         // Extract problems ONCE for unified progression

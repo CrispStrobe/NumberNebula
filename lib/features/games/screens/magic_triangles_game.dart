@@ -299,7 +299,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     if (kDebugMode) {
       debugPrint("🚀 [UI] _generatePuzzle() - Starting puzzle generation");
     }
-    debugPrint("🚀 [UI] Current mounted state: $mounted");
+    if (kDebugMode) {
+      debugPrint("🚀 [UI] Current mounted state: $mounted");
+    }
 
     setState(() {
       _isGenerating = true;
@@ -319,9 +321,13 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       if (kDebugMode) {
         debugPrint("🚀 [UI] compute() completed successfully");
       }
-      debugPrint(
-          "🚀 [UI] Puzzle details: hiddenIndices=${puzzle.hiddenIndices}, numberPool=${puzzle.numberPool}");
-      debugPrint("🚀 [UI] mounted state after compute: $mounted");
+      if (kDebugMode) {
+        debugPrint(
+            "🚀 [UI] Puzzle details: hiddenIndices=${puzzle.hiddenIndices}, numberPool=${puzzle.numberPool}");
+      }
+      if (kDebugMode) {
+        debugPrint("🚀 [UI] mounted state after compute: $mounted");
+      }
 
       if (mounted && identical(round, _round)) {
         if (kDebugMode) {
@@ -346,22 +352,34 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
           debugPrint(
               "🚀 [UI] Max moves allowed: $_maxMoves for ${currentPuzzle!.hiddenIndices.length} hidden positions");
         }
-        debugPrint("🚀 [UI] State updated successfully");
-        debugPrint("🚀 [UI] userAnswers length: ${userAnswers.length}");
-        debugPrint("🚀 [UI] numberPool length: ${numberPool.length}");
+        if (kDebugMode) {
+          debugPrint("🚀 [UI] State updated successfully");
+        }
+        if (kDebugMode) {
+          debugPrint("🚀 [UI] userAnswers length: ${userAnswers.length}");
+        }
+        if (kDebugMode) {
+          debugPrint("🚀 [UI] numberPool length: ${numberPool.length}");
+        }
         if (kDebugMode) {
           debugPrint("🚀 [UI] hiddenIndices: ${currentPuzzle!.hiddenIndices}");
         }
-        debugPrint("🚀 [UI] visibleValues: ${currentPuzzle!.visibleValues}");
+        if (kDebugMode) {
+          debugPrint("🚀 [UI] visibleValues: ${currentPuzzle!.visibleValues}");
+        }
       } else {
-        debugPrint(
-            "❌ [UI] Widget not mounted after compute, skipping state update");
+        if (kDebugMode) {
+          debugPrint(
+              "❌ [UI] Widget not mounted after compute, skipping state update");
+        }
       }
     } catch (e, stackTrace) {
       if (kDebugMode) {
         debugPrint("❌ [UI] Error in _generatePuzzle: $e");
       }
-      debugPrint("❌ [UI] StackTrace: $stackTrace");
+      if (kDebugMode) {
+        debugPrint("❌ [UI] StackTrace: $stackTrace");
+      }
     }
 
     if (kDebugMode) {
@@ -393,7 +411,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         debugPrint("🎯 [UI] Moves remaining: $_movesRemaining/$_maxMoves");
       }
     });
-    debugPrint("🎯 [UI] Number placed successfully, checking completion");
+    if (kDebugMode) {
+      debugPrint("🎯 [UI] Number placed successfully, checking completion");
+    }
 
     // Check if out of moves BEFORE checking solution
     if (_movesRemaining <= 0 && !_isSolved()) {
@@ -436,7 +456,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
       debugPrint("✅ [UI] _checkIfComplete() - userAnswers: $userAnswers");
     }
     if (userAnswers.every((answer) => answer != null)) {
-      debugPrint("✅ [UI] All answers filled, checking solution");
+      if (kDebugMode) {
+        debugPrint("✅ [UI] All answers filled, checking solution");
+      }
       final result = currentPuzzle!.checkSolution(userAnswers.cast<int>());
       if (kDebugMode) {
         debugPrint(
@@ -751,8 +773,10 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                           "🏗️ [UI] LayoutBuilder constraints: ${constraints.maxWidth}x${constraints.maxHeight}");
                     }
                     bool isWide = constraints.maxWidth > 650;
-                    debugPrint(
-                        "🏗️ [UI] Using ${isWide ? 'wide' : 'tall'} layout");
+                    if (kDebugMode) {
+                      debugPrint(
+                          "🏗️ [UI] Using ${isWide ? 'wide' : 'tall'} layout");
+                    }
                     return isWide ? _buildWideLayout() : _buildTallLayout();
                   },
                 ),
@@ -1028,8 +1052,10 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     }
     return LayoutBuilder(
       builder: (context, constraints) {
-        debugPrint(
-            "🔺 [UI] Triangle LayoutBuilder constraints: ${constraints.maxWidth}x${constraints.maxHeight}");
+        if (kDebugMode) {
+          debugPrint(
+              "🔺 [UI] Triangle LayoutBuilder constraints: ${constraints.maxWidth}x${constraints.maxHeight}");
+        }
 
         final screenSize = MediaQuery.of(context).size;
         final isSmallScreen = screenSize.width < 800 || screenSize.height < 500;
@@ -1054,7 +1080,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
         }
 
         final nodePoints = currentPuzzle!.getCirclePositions(center, radius);
-        debugPrint("🔺 [UI] Generated ${nodePoints.length} node points");
+        if (kDebugMode) {
+          debugPrint("🔺 [UI] Generated ${nodePoints.length} node points");
+        }
 
         return Center(
           child: DragTarget<MagicTrianglesDrag>(
@@ -1143,7 +1171,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
               if (kDebugMode) {
                 debugPrint("🎯 [UI] Global drop position: ${details.offset}");
               }
-              debugPrint("🎯 [UI] Local drop position: $localDropPosition");
+              if (kDebugMode) {
+                debugPrint("🎯 [UI] Local drop position: $localDropPosition");
+              }
 
               int? closestGlobalIndex =
                   _findClosestEmptyNode(localDropPosition, nodePoints, size);
@@ -1160,7 +1190,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
                 _placeNumber(droppedNumber, answerIndex, closestGlobalIndex,
                     droppedNumber.round);
               } else {
-                debugPrint("🎯 [UI] No valid drop target found");
+                if (kDebugMode) {
+                  debugPrint("🎯 [UI] No valid drop target found");
+                }
               }
             },
           ),
@@ -1174,7 +1206,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     if (kDebugMode) {
       debugPrint("🔍 [UI] _findClosestEmptyNode at $dropPosition");
     }
-    debugPrint("🔍 [UI] Triangle size: $triangleSize");
+    if (kDebugMode) {
+      debugPrint("🔍 [UI] Triangle size: $triangleSize");
+    }
 
     double minDistance = double.infinity;
     int? targetNodeIndex;
@@ -1210,7 +1244,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     }
 
     final dropRadius = (triangleSize * 0.32).clamp(90.0, 180.0);
-    debugPrint("🔍 [UI] Using drop radius: $dropRadius");
+    if (kDebugMode) {
+      debugPrint("🔍 [UI] Using drop radius: $dropRadius");
+    }
 
     if (minDistance < dropRadius) {
       if (kDebugMode) {
@@ -1232,7 +1268,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
           "🔵 [UI] _buildTriangleNodes - size: $size, points: ${points.length}");
     }
     if (currentPuzzle == null) {
-      debugPrint("❌ [UI] currentPuzzle is null!");
+      if (kDebugMode) {
+        debugPrint("❌ [UI] currentPuzzle is null!");
+      }
       return [];
     }
 
@@ -1251,7 +1289,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
     }
 
     for (int i = 0; i < currentPuzzle!.totalCircles; i++) {
-      debugPrint("🔵 [UI] Building node $i at position ${points[i]}");
+      if (kDebugMode) {
+        debugPrint("🔵 [UI] Building node $i at position ${points[i]}");
+      }
       int? value;
       bool isHidden = currentPuzzle!.hiddenIndices.contains(i);
       int currentAnswerIndex = isHidden ? answerIdx++ : -1;
@@ -1267,8 +1307,10 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
             debugPrint("🔵 [UI] Hidden node $i value: $value");
           }
         } else {
-          debugPrint(
-              "❌ [UI] ERROR: currentAnswerIndex $currentAnswerIndex >= userAnswers.length ${userAnswers.length}");
+          if (kDebugMode) {
+            debugPrint(
+                "❌ [UI] ERROR: currentAnswerIndex $currentAnswerIndex >= userAnswers.length ${userAnswers.length}");
+          }
           value = null;
         }
       } else {
@@ -1299,7 +1341,9 @@ class _MagicTrianglesGameState extends State<MagicTrianglesGame>
             "🔵 [UI] Node $i positioned at (${points[i].dx - nodeSize / 2}, ${points[i].dy - nodeSize / 2})");
       }
     }
-    debugPrint("🔵 [UI] Built ${nodes.length} triangle nodes");
+    if (kDebugMode) {
+      debugPrint("🔵 [UI] Built ${nodes.length} triangle nodes");
+    }
     return nodes;
   }
 
