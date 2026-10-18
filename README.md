@@ -2,9 +2,10 @@
 
 ## Project status and next work
 
-The integrated version is **1.5.33+49** ([PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)):
+The implemented version is **1.5.33+49** ([second-pass audit](docs/october-17-regression-audit.md)):
 48 registered games, 31 focused round suites and retained all-game calibration.
-Consult the exact-head PR checks for the current validation/merge state.
+Consult the [build evidence](https://numbernebula.vercel.app/audit-proof.json)
+for its exact validated source; earlier PR checks apply to their named heads.
 Start with [HANDOVER.md](HANDOVER.md) for evidence and boundaries, then
 [REMAINING_WORK.md](REMAINING_WORK.md) for scoped tasks. Automated workload
 estimates remain untrained; physical-device and child playtest evidence is pending.

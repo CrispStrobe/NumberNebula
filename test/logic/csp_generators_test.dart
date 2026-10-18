@@ -1,9 +1,9 @@
 // test/logic/csp_generators_test.dart
 //
 // Smoke tests for CSP-based puzzle generators.
-// Fast generators run in CI; slow ones (crosswords, star_forge) are
-// skipped by default — run manually on VPS via:
-//   flutter test test/logic/csp_generators_test.dart --run-skipped
+// All three smoke cases run in the full suite. The constructive Star Forge
+// path and table-assisted Crossword path no longer justify historical skips.
+// Keep the explicit bounds on generator cases and validate remotely.
 
 import 'package:flutter_test/flutter_test.dart';
 
@@ -45,7 +45,7 @@ void main() {
     });
   });
 
-  group('Slow CSP generators (run with --run-skipped)', () {
+  group('Bounded generator smoke checks', () {
     test('Arithmancer Crosswords generates 2 grade-1 puzzles', () async {
       for (int i = 0; i < 2; i++) {
         final config = CrosswordConfig.createConfig(1, 1);
@@ -54,9 +54,7 @@ void main() {
         expect(puzzle.fullSolution, isNotEmpty);
         expect(puzzle.numberPool, isNotEmpty);
       }
-    },
-        timeout: const Timeout(Duration(minutes: 3)),
-        skip: 'CSP generation too slow for CI — run on VPS');
+    }, timeout: const Timeout(Duration(minutes: 3)));
 
     test('Star Forge generates 5 five-point star puzzles', () async {
       final gen = StarForgeGenerator();
@@ -66,8 +64,6 @@ void main() {
         expect(puzzle.solution.length, equals(10));
         expect(puzzle.clues, isNotEmpty);
       }
-    },
-        timeout: const Timeout(Duration(minutes: 3)),
-        skip: 'CSP generation too slow for CI — run on VPS');
+    }, timeout: const Timeout(Duration(minutes: 3)));
   });
 }

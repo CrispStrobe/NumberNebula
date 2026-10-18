@@ -1,9 +1,10 @@
 # Automated game testing and calibration
 
-Current integration: **1.5.33+49**, [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58).
-It repairs restored rounds and acceptance coverage, retaining all generator and
-rendering A/B paths. See [handover](../HANDOVER.md) and the exact-head PR checks
-for validation/merge state. Dated runs below are historical evidence; they do
+Current implementation: **1.5.33+49**; see the
+[second-pass regression audit](october-17-regression-audit.md) and its exact-source
+build evidence. It extends the restored-round and acceptance repairs from
+[PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58), retaining all generator
+and rendering A/B paths. See [handover](../HANDOVER.md) for publication boundaries. Dated runs below are historical evidence; they do
 not automatically establish a later head as green.
 
 All 48 registered games now also generate puzzle content with the Dart SDK

@@ -1,5 +1,15 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-10-18 — Second-pass regression contracts
+
+The [second-pass audit](docs/october-17-regression-audit.md) maps every modified
+area to tests and documents additional retry, stale-control, motion and rendering
+findings. Version **1.5.33+49** adds real win/loss retry and next-input checks,
+unchanged-snapshot assertions, before-fix negative controls and browser opening
+coverage for all eleven changed screens. The published build report identifies
+the validated source, full-suite/generation results and uncovered changed lines.
+This evidence does not claim that every possible device-specific defect is absent.
+
 ## 2026-10-18 — Integrated round-audit repairs
 
 [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58) integrates the work

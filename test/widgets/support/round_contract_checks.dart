@@ -103,6 +103,8 @@ void registerGridRoundChecks({
         t.getCenter(target) -
             (boardDrop ? t.getTopLeft(source) : t.getCenter(source)));
     await t.pump();
+    lastDragDescription +=
+        ' after:${jsonEncode(state(t).capturePuzzleSession())}';
   }
 
   testWidgets('adversarial: last legal real drop wins with exact accounting',
@@ -198,7 +200,7 @@ void registerGridRoundChecks({
         expect(fresh[movesKey], fresh[maxMovesKey]);
         expect(
             find.descendant(
-                of: find.byWidget(state(t).widget as Widget),
+                of: find.byWidgetPredicate((w) => w is DragTarget),
                 matching: find.byType(ScaleTransition)),
             findsNothing,
             reason: 'A new board cannot retain the previous drop marker');

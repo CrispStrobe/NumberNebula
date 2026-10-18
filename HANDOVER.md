@@ -5,17 +5,19 @@ Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
 ## October 18 integration
 
-Current implemented version: **1.5.33+49**. [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)
+Current implemented version: **1.5.33+49**; see the second-pass audit below.
+The earlier [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)
 repairs the October 17 audits and integrates the work originally proposed in
-#55, #56 and #57. Use that PR's exact-head checks and merge state to verify
-publication; historical green runs below do not stand in for its validation.
+#55, #56 and #57. Its checks verify that earlier integration; use the second-pass
+build evidence for the current source. Historical green runs do not validate a
+later head.
 
 There are focused round suites for **31 registered games**, with **17** remaining
 to audit. All 22 newly skipped acceptance cases from the October 17 changes have
 been re-enabled, the Arithmetic Square placeholder has been replaced by actual
 input/save/inventory/terminal tests, and a coverage contract rejects skipped
-acceptance cases in these eleven added suites. The two unrelated slow-generator
-skips are outside this repair.
+acceptance cases in these eleven added suites. The two historical generator smoke
+skips are also re-enabled in the second-pass suite with their existing bounds.
 
 The integration keeps correct but unsubmitted manual answers playable, resets
 round identity and terminal effects on restoration, conserves duplicate tray

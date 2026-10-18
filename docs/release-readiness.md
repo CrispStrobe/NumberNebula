@@ -1,14 +1,19 @@
 # Store release readiness
 
-Prepared 2026-10-16. Documentation only — no version bump, no upload, no submission.
+Historical draft prepared 2026-10-16; scope clarified 2026-10-18. No store upload or submission is claimed.
 
-This is the lane R readiness artifact for the current codebase at **1.5.22+38** (`8eaf252bc86dfc7e44bb219613e60f2bd3450e7c`, see [HANDOVER.md](../HANDOVER.md)). It records what the release automation *does*, how `pubspec.yaml` version/build maps to Apple builds, what notes would ship with this code, and what must be rechecked in the authorized App Store Connect account before any action. It explicitly does **not** claim the historical **1.4.10** “Waiting for Review” (iOS) / “Pending Developer Release” (macOS) labels are current. Web deployment is already green at the baseline (see HANDOVER.md).
+This lane R draft was prepared against the historical baseline **1.5.22+38** (`8eaf252bc86dfc7e44bb219613e60f2bd3450e7c`, see [HANDOVER.md](../HANDOVER.md)). It records what the release automation *does*, how `pubspec.yaml` version/build maps to Apple builds, what notes would ship with this code, and what must be rechecked in the authorized App Store Connect account before any action. It explicitly does **not** claim the historical **1.4.10** “Waiting for Review” (iOS) / “Pending Developer Release” (macOS) labels are current. Web deployment is already green at the baseline (see HANDOVER.md).
 
 No account identifiers, API keys, certificates, or machine-local instructions are included. Verify the live store state in the authorized App Store Connect portal before deciding what can be released.
 
-## 1. Version and build mapping (single source of truth)
+The current source version is in `pubspec.yaml` and [HANDOVER.md](../HANDOVER.md).
+The old baseline's release notes and green runs do not establish readiness for a
+later version. Recheck the tested source, native build mapping and live review
+state before using this draft for a release.
 
-`pubspec.yaml:4`:
+## 1. Version and build mapping
+
+Historical `pubspec.yaml` example (read the current file for release values):
 
 ```yaml
 version: 1.5.22+38

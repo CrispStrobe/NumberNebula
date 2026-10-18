@@ -242,7 +242,13 @@ void main() {
     session.applyPuzzleSession(before);
     session.rebuildForTesting();
     await t.pump();
+    final context = t.element(_screen);
+    final route = ModalRoute.of(context)!;
+    expect(Navigator.of(context).canPop(), isTrue);
+    expect(route.isCurrent, isTrue);
     old();
+    expect(route.isCurrent, isTrue,
+        reason: 'A replaced-round callback must not pop the live game route');
     await t.pump();
     await t.pump(const Duration(milliseconds: 400));
     expect(_screen, findsOneWidget);

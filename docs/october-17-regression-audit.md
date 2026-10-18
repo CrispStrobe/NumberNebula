@@ -62,6 +62,11 @@ Restore the repaired screens and require the same tests to pass. The browser
 suite includes `tool/web_live_test/tests/audited-games.spec.mjs` and opens each
 changed screen in Chromium/WASM and Firefox/JavaScript.
 
+The two historical skips in `test/logic/csp_generators_test.dart` are removed:
+Star Forge now uses a constructive solution and Crossword has its table-assisted
+path. Their existing three-minute per-case bounds remain; both checks must run
+in the full suite rather than being treated as passing while skipped.
+
 ## Limits
 
 All 48 games have generation/session coverage; 17 still lack a dedicated focused
