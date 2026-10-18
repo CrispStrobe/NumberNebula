@@ -7,7 +7,7 @@ const games = [
   { title: 'Wormhole Activator', role: 'button', ready: /^Resonator \d+, drag to a triangle node/ },
   { title: 'Quantum Pyramid Builder', role: 'button', ready: /^Number brick \d+, drag to a slot/ },
   { title: 'Arithmetic Square', role: 'button', ready: /^Number \d+, drag to a cell/ },
-  { title: 'Arithmancer Crosswords', role: 'button', ready: /^Number \d+, drag to a cell/ },
+  { title: 'Arithmancer Crosswords', role: 'button', ready: /^Number \d+, drag to a slot/ },
   { title: 'KenKen', role: 'button', ready: /^Number \d+, drag to a cell/ },
   { title: 'Alien Tribunal', role: 'button', ready: /^Submit Verdict$/ },
   { title: 'Star Forge', role: 'button', ready: /^Arm total:/ },

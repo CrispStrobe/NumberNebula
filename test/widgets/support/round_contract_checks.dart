@@ -26,6 +26,8 @@ void registerGridRoundChecks({
   bool reusable = false,
   bool boardDrop = false,
 }) {
+  var lastDragDescription = '';
+
   Future<void> restore(WidgetTester t, Map<String, dynamic> board) async {
     final dynamic s = state(t);
     s.beginPuzzleSession();
@@ -92,6 +94,10 @@ void registerGridRoundChecks({
     await t.ensureVisible(source);
     await t.ensureVisible(target);
     await t.pump();
+    lastDragDescription = 'cell:$cell tile:$value source:${t.getRect(source)} '
+        'target:${t.getRect(target)} before:${jsonEncode(state(t).capturePuzzleSession())}';
+    expect(source.hitTestable(), findsOneWidget, reason: lastDragDescription);
+    expect(target.hitTestable(), findsOneWidget, reason: lastDragDescription);
     await t.drag(
         source,
         t.getCenter(target) -
@@ -108,7 +114,11 @@ void registerGridRoundChecks({
     await restore(t, prepared(t, 1, 1));
     await dragLast(t, last.key, last.value);
     await t.pump(const Duration(milliseconds: 1700));
-    expect(app.gp.outcomeCount, 1);
+    // Warp completion may enqueue the dialog after this frame. Build it, then
+    // let its separate entrance animation finish before real retry input.
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 700));
+    expect(app.gp.outcomeCount, 1, reason: lastDragDescription);
     expect(app.gp.lastOutcome!.wasSuccessful, isTrue);
     expect(app.gp.lastOutcome!.movesUsed, all.length);
     expect(app.gp.lastOutcome!.optimalMoves, all.length);
@@ -130,12 +140,16 @@ void registerGridRoundChecks({
         (n) => n != last.value && !valid(state(t), {...all, last.key: n}));
     await dragLast(t, last.key, wrong);
     await t.pump(const Duration(milliseconds: 1700));
-    expect(app.gp.outcomeCount, 1);
+    // Warp completion may enqueue the dialog after this frame. Build it, then
+    // let its separate entrance animation finish before real retry input.
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 700));
+    expect(app.gp.outcomeCount, 1, reason: lastDragDescription);
     expect(app.gp.lastOutcome!.wasSuccessful, isFalse);
     expect(state(t).capturePuzzleSession(), isNull);
     expect(roundDialogs, findsOneWidget);
     await t.pump(const Duration(seconds: 3));
-    expect(app.gp.outcomeCount, 1);
+    expect(app.gp.outcomeCount, 1, reason: lastDragDescription);
     expect(roundDialogs, findsOneWidget);
     expect(t.takeException(), isNull);
   });
@@ -157,7 +171,11 @@ void registerGridRoundChecks({
                 n != last.value && !valid(state(t), {...all, last.key: n}));
         await dragLast(t, last.key, value);
         await t.pump(const Duration(milliseconds: 1700));
-        expect(app.gp.outcomeCount, 1);
+        // Warp completion may enqueue the dialog after this frame. Build it, then
+        // let its separate entrance animation finish before real retry input.
+        await t.pump();
+        await t.pump(const Duration(milliseconds: 700));
+        expect(app.gp.outcomeCount, 1, reason: lastDragDescription);
         expect(app.gp.lastOutcome!.wasSuccessful, win);
         final retry = find
             .descendant(of: roundDialogs, matching: find.byType(ElevatedButton))
@@ -178,7 +196,11 @@ void registerGridRoundChecks({
         expect(state(t).capturePuzzleSession(), isNotNull);
         final fresh = snapshot(t);
         expect(fresh[movesKey], fresh[maxMovesKey]);
-        expect(find.byType(ScaleTransition), findsNothing,
+        expect(
+            find.descendant(
+                of: find.byWidget(state(t).widget as Widget),
+                matching: find.byType(ScaleTransition)),
+            findsNothing,
             reason: 'A new board cannot retain the previous drop marker');
         final first = solution(state(t)).keys.first;
         final nextValue = (fresh[poolKey] as List).first as int;
@@ -186,7 +208,7 @@ void registerGridRoundChecks({
         expect(snapshot(t)[movesKey], (fresh[movesKey] as int) - 1,
             reason:
                 'Real pointer input must reach new cell $first with tile $nextValue');
-        expect(app.gp.outcomeCount, 1);
+        expect(app.gp.outcomeCount, 1, reason: lastDragDescription);
         expect(t.takeException(), isNull);
       });
     }
@@ -265,6 +287,10 @@ void registerGridRoundChecks({
     final board = prepared(t, 1, 0);
     await restore(t, board);
     await t.pump(const Duration(milliseconds: 1700));
+    // Warp completion may enqueue the dialog after this frame. Build it, then
+    // let its separate entrance animation finish before real retry input.
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 700));
     expect(state(t).capturePuzzleSession(), isNull);
     expect(roundDialogs, findsOneWidget);
     expect(app.gp.outcomeCount, 0);
