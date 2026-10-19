@@ -191,7 +191,9 @@ Future<_App> _mount(WidgetTester t,
     await t.pump();
     await t
         .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 10)));
-    if (_state(t).capturePuzzleSession() != null) break;
+    if (_state(t).capturePuzzleSession() != null) {
+      break;
+    }
   }
   expect(_state(t).capturePuzzleSession(), isNotNull);
   await _restore(t, _board());
@@ -855,7 +857,9 @@ void main() {
       await t.pump();
       if (_screen.evaluate().length == 1 &&
           !identical(_state(t), original) &&
-          _state(t).capturePuzzleSession() != null) break;
+          _state(t).capturePuzzleSession() != null) {
+        break;
+      }
     }
     expect(identical(_state(t), original), isFalse);
     expect(roundDialogs, findsNothing);

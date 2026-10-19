@@ -142,7 +142,9 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     final board = puzzle;
     if (board == null ||
         board.pieces.isEmpty ||
-        _placedPieces.length != board.pieces.length) return false;
+        _placedPieces.length != board.pieces.length) {
+      return false;
+    }
     final ids = board.pieces.map((p) => p.id).toSet();
     final placedIds = _placedPieces.map((p) => p.pieceId).toSet();
     return ids.length == board.pieces.length &&
@@ -426,7 +428,9 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     if (!mounted ||
         !identical(round, _round) ||
         !_terminal ||
-        (_resultRoute?.isActive ?? false)) return;
+        (_resultRoute?.isActive ?? false)) {
+      return;
+    }
     final navigator = Navigator.of(context, rootNavigator: true);
     final route = DialogRoute<void>(
       context: context,
@@ -619,14 +623,6 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   Widget _buildBoardArea(BoxConstraints outerConstraints) {
     return Center(
       child: AnimatedBuilder(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final maxCellW = (constraints.maxWidth - 32) / puzzle!.cols;
-            final maxCellH = (constraints.maxHeight - 32) / puzzle!.rows;
-            final cellSize = math.min(maxCellW, maxCellH).clamp(1.0, 80.0);
-            return _buildBoard(cellSize);
-          },
-        ),
         animation: glowAnimation,
         builder: (context, child) {
           return Container(
@@ -649,6 +645,14 @@ class _HullPlatingGameState extends State<HullPlatingGame>
             child: child,
           );
         },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final maxCellW = (constraints.maxWidth - 32) / puzzle!.cols;
+            final maxCellH = (constraints.maxHeight - 32) / puzzle!.rows;
+            final cellSize = math.min(maxCellW, maxCellH).clamp(1.0, 80.0);
+            return _buildBoard(cellSize);
+          },
+        ),
       ),
     );
   }
@@ -779,7 +783,9 @@ class _HullPlatingGameState extends State<HullPlatingGame>
         if (!_canInteract(round) ||
             data != _hoveringDrag ||
             _hoverRow != row ||
-            _hoverCol != col) return;
+            _hoverCol != col) {
+          return;
+        }
         setVisualState(() {
           _hoveringDrag = null;
           _hoverRow = null;
