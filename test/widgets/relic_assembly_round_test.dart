@@ -1050,6 +1050,53 @@ void main() {
     },
   );
   testWidgets(
+    'seam: held error retry cannot transfer to a coalesced replacement failure',
+    (t) async {
+      final app = await _mount(t);
+      final first = Completer<RelicAssemblyPuzzle>();
+      final firstWork =
+          _state(t).generateForTesting(first.future) as Future<void>;
+      first.completeError(StateError('first controlled failure'));
+      await firstWork;
+      await t.pump();
+      final retry = find.widgetWithText(
+        ElevatedButton,
+        S.of(t.element(_screen))!.tryAgain,
+      );
+      expect(retry.hitTestable(), findsOneWidget);
+      final oldRetry = t.widget<ElevatedButton>(retry).onPressed!;
+      final press = await t.startGesture(t.getCenter(retry));
+      await t.pump(const Duration(milliseconds: 50));
+      final second = Completer<RelicAssemblyPuzzle>();
+      final secondWork =
+          _state(t).generateForTesting(second.future) as Future<void>;
+      second.completeError(StateError('replacement controlled failure'));
+      await secondWork;
+      // Both generating and failure states coalesce before this frame.
+      await t.pump();
+      oldRetry();
+      await press.up();
+      await t.pump();
+      expect(_state(t).capturePuzzleSession(), isNull);
+      expect(retry.hitTestable(), findsOneWidget);
+      expect(_sources, findsNothing);
+      expect(t.takeException(), isNull);
+      expect(app.gp.outcomeCount, 0);
+      await t.tap(retry);
+      for (var i = 0; i < 30; i++) {
+        await t.pump();
+        await t.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 10)),
+        );
+        if (_state(t).capturePuzzleSession() != null) break;
+      }
+      expect(_state(t).capturePuzzleSession(), isNotNull);
+      await _generatedInput(t);
+      expect(_snapshot(t)['_placements'], 1);
+      expect(app.gp.outcomeCount, 0);
+    },
+  );
+  testWidgets(
     'seam: current generation success replaces the board and saves valid input',
     (t) async {
       final app = await _mount(t);

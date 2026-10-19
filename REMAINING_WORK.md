@@ -101,10 +101,10 @@ Retain Hull's physical inventory, frozen drag orientation, placement-instance
 removal guards, owned routes and motion checks. Relic adds both real drag and
 select/tap placement, physical-index bijection, editable incorrect saves,
 round/placement ownership, silent terminal restores, owned dialogs, phone controls
-and seven controlled async-generation cases through the production await path.
-Its 31 original-API cases and seven seam cases are separate evidence scopes:
+and eight controlled async-generation cases through the production await path.
+Its 31 original-API cases and eight seam cases are separate evidence scopes:
 old-source comparisons exclude `seam:` names because the baseline lacks that seam.
-Run all 38 on the repair, preserve the two existing meaningful layout tests,
+Run all 39 on the repair, preserve the two existing meaningful layout tests,
 and verify full native/generation/both-engine/deployment checks on the exact
 pushed source and merged main. Keep generators, free rotations and scoring.
 Next audit Molecule Builder in D, with one game per PR.

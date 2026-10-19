@@ -481,6 +481,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
               children: [
                 if (_generationFailed)
                   ElevatedButton(
+                    key: ValueKey(('relic-generation-retry', round)),
                     onPressed: () {
                       if (mounted &&
                           identical(round, _round) &&

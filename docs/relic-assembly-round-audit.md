@@ -3,7 +3,7 @@
 Implemented version **1.5.38+54**. The preceding Hull follow-up is
 [1.5.37+53 / PR #63](https://github.com/CrispStrobe/NumberNebula/pull/63).
 Use this repair's exact-source analysis, native, generation and both-engine
-browser/deployment evidence before treating it as verified. The 38 test
+browser/deployment evidence before treating it as verified. The 39 test
 definitions alone do not establish a passing build.
 
 ## Initial reproductions
@@ -20,13 +20,17 @@ The original screen at the probe's source is byte-identical to
 Broader original-screen comparisons must complete against the repair's final
 original-API tests; source identity and scope belong in its repair PR.
 
-The [configured remote diagnostic](https://numbernebula-32om9jr0k-crispstrobes-projects.vercel.app/diagnostic-proof.json)
-passed strict analysis, all **38** focused cases and both retained layout cases,
-with zero skips. Its raw event inventory was independently checked. This was an
-uncommitted source/test overlay on the preceding main, explicitly identified as
-such; it is not final pushed-head or full-suite evidence. Report deployment
-protection applies. The first diagnostic stopped on a test style lint before
-runtime tests; that lint was corrected before the complete successful rerun.
+An early configured diagnostic passed strict analysis, the first 38 cases and
+both retained layout cases. Further inspection found a held generation-error
+retry press transferring to a replacement failure when state changes coalesced.
+The [follow-up diagnostic](https://numbernebula-k5oz2hz2y-crispstrobes-projects.vercel.app/retry-proof.json)
+reproduced that state failure against
+[`48500de`](https://github.com/CrispStrobe/NumberNebula/commit/48500deca4a1bf201eb5171b2976f81635100002),
+then passed strict analysis, all **39** cases and both retained layout cases with
+a round-specific retry key, zero skips. Raw event inventories and the before/fixed
+source hashes were independently checked. This was an explicitly uncommitted
+overlay, not final pushed-head validation; report deployment protection applies.
+The original diagnostic's test style lint was corrected before its successful run.
 
 ## Rules and repairs
 
@@ -51,7 +55,9 @@ check their relevant round and route ownership.
 
 Generation checks ownership after its production await, for both success and
 failure. Obsolete completions cannot replace a restored or newer round. Current
-failure offers a reachable real retry. The testing seam supplies a controlled
+failure offers a reachable real retry whose gesture identity belongs to that
+round. A held press cannot activate a replacement error round, and the fresh
+retry still generates a playable board. The testing seam supplies a controlled
 future to that same await path; it does not replace the production generator.
 
 The score remains `100 * grade + 25 * level`; placement par remains `rows * cols`
@@ -62,10 +68,10 @@ No child-facing threshold or generator algorithm is retuned.
 ## Test inventory and remaining validation
 
 `test/widgets/relic_assembly_round_test.dart` defines **31 original-API cases**
-with `contract:` names and **seven controlled async cases** with `seam:` names.
+with `contract:` names and **eight controlled async cases** with `seam:` names.
 Original-screen comparisons use only `contract:` cases because the baseline has
 no injection method. Missing APIs, compile errors and timeouts are not negative
-behavioral evidence. The repair must pass all 38, not only the original-API subset.
+behavioral evidence. The repair must pass all 39, not only the original-API subset.
 
 The 2×2 fixture has solution indices `[1, 2, 0, 3]` and player rotations
 `[0, 0, 0, 3]`, with independently checked internal joins, score 125 and par 4.
@@ -77,7 +83,8 @@ suggested generated challenge followed by actual new input.
 
 The async cases cover obsolete success/failure after restore, success/failure
 after disposal, out-of-order generations, current failure and real retry, and a
-successful replacement captured and saved after real input. They are additional
+successful replacement captured and saved after real input, plus actual held
+retry input across coalesced failures. They are additional
 repair-side evidence, not original-screen behavioral failures.
 
 English/German 390×500 and 390×844 layouts at text scale 2 include a 3×3 board.

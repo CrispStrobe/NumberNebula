@@ -9,9 +9,11 @@ Full incorrect boards remain editable and saved, rotations remain free, and
 placement scoring retains the existing formula. Restoration and owned result
 routes isolate outcomes and navigation; generation owns its async completion.
 Phone content scrolls and mid-animation reduced motion completes owned effects.
+A held generation-error retry press cannot transfer to a replacement failure;
+its real-pointer regression failed before the placement of a round-specific key.
 An initial bounded probe reproduced four baseline state/outcome failures and
 passed those cases with the proposal, alongside a normal-drag positive control.
-A configured remote diagnostic passed strict analysis, all 38 focused cases and
+A configured remote diagnostic passed strict analysis, all 39 focused cases and
 both retained layout cases without skips. This uncommitted overlay result is
 separate from required final exact-source validation and does not establish a
 verified shipping baseline.

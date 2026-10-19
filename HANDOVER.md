@@ -32,7 +32,9 @@ Relic's implementation below still needs its own exact-head validation.
 
 ## October 18 integration
 
-Current implemented version: **1.5.38+54**; see the [Relic Assembly audit](docs/relic-assembly-round-audit.md).
+Current implemented version: **1.5.38+54**, [PR #64](https://github.com/CrispStrobe/NumberNebula/pull/64); see the [Relic Assembly audit](docs/relic-assembly-round-audit.md).
+Its 39 focused cases include held-pointer isolation for generation-error retry.
+The final repair still requires exact-head checks; earlier 38-case results do not validate that follow-up.
 The preceding Hull follow-up is **1.5.37+53**, [PR #63](https://github.com/CrispStrobe/NumberNebula/pull/63);
 use its exact-source native, browser and deployment evidence rather than assuming a queued check passed.
 The initial Hull repair is [PR #62](https://github.com/CrispStrobe/NumberNebula/pull/62), version **1.5.36+52**.
