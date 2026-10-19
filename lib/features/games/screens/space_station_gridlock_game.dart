@@ -2017,7 +2017,7 @@ class PuzzleGenerator {
         },
         {
           'row': 2,
-          'col': 3,
+          'col': 4,
           'length': 2,
           'isHorizontal': false,
           'isPlayer': false,

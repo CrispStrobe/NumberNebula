@@ -18,11 +18,13 @@ import 'package:space_math_academy/generated/l10n.dart';
 import 'package:space_math_academy/features/games/widgets/round_summary.dart';
 
 class GridlockTestApp {
+  final bool launchFromBridge;
   final Locale locale;
   final double scale;
   final ValueNotifier<bool> motion;
   Widget game = const SpaceStationGridlockGame(grade: 1, level: 1);
   GridlockTestApp({
+    this.launchFromBridge = false,
     this.locale = const Locale('en'),
     this.scale = 1,
     bool reduced = false,
@@ -56,7 +58,20 @@ class GridlockTestApp {
           child: child!,
         ),
       ),
-      home: game,
+      home: launchFromBridge
+          ? Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: TextButton(
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).push(MaterialPageRoute<void>(builder: (_) => game)),
+                    child: const Text('Enter Gridlock'),
+                  ),
+                ),
+              ),
+            )
+          : game,
     ),
   );
 }
@@ -89,18 +104,63 @@ Future<(GridlockTestApp, Map<String, dynamic>)> _mount(
   double scale = 1,
   Size size = const Size(1600, 1100),
   bool reduced = false,
+  bool launchFromBridge = false,
+  Map<String, dynamic>? saved,
+  String decision = 'resume',
 }) async {
   t.view.physicalSize = size;
   t.view.devicePixelRatio = 1;
   addTearDown(t.view.reset);
   await t.runAsync(GridlockPuzzleDatabase.load);
-  final app = GridlockTestApp(locale: locale, scale: scale, reduced: reduced);
+  final app = GridlockTestApp(
+    locale: locale,
+    scale: scale,
+    reduced: reduced,
+    launchFromBridge: launchFromBridge,
+  );
   addTearDown(() async {
     await t.pumpWidget(const SizedBox.shrink());
     await t.pump();
     app.motion.dispose();
   });
+  if (saved != null) {
+    final saving = PuzzleSessionStore.instance.save(
+      'space_station_gridlock',
+      1,
+      1,
+      saved,
+    );
+    await PuzzleSessionStore.instance.flush();
+    await saving;
+  }
   await t.pumpWidget(app.build());
+  if (saved != null) {
+    final s = S.of(t.element(_screen))!;
+    for (
+      var i = 0;
+      i < 20 && find.text(s.resumePuzzleTitle).evaluate().isEmpty;
+      i++
+    ) {
+      await t.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      );
+      await t.pump();
+    }
+    expect(find.text(s.resumePuzzleTitle), findsOneWidget);
+    await t.pump(const Duration(milliseconds: 300));
+    if (decision == 'hold') return (app, _copy(saved));
+    final button = decision == 'resume'
+        ? find.widgetWithText(ElevatedButton, s.resumePuzzle)
+        : find.widgetWithText(TextButton, s.startNewPuzzle);
+    await t.tap(button);
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 300));
+  }
+  if (launchFromBridge) {
+    await t.tap(find.text('Enter Gridlock'));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 400));
+  }
   await _waitPlayable(t);
   return (app, _capture(t));
 }
@@ -707,15 +767,20 @@ void main() {
       expect(app.gp.outcomeCount, 1);
     },
   );
-  for (final locale in ['en', 'de']) {
+  for (final (locale, height) in [
+    ('en', 500.0),
+    ('de', 500.0),
+    ('en', 844.0),
+    ('de', 844.0),
+  ]) {
     testWidgets(
-      'Gridlock: $locale 390x500 text2 keeps actual legal drag and current result Next reachable',
+      'Gridlock: $locale 390x$height text2 keeps actual legal drag and current result Next reachable',
       (t) async {
         final (app, real) = await _mount(
           t,
           locale: Locale(locale),
           scale: 2,
-          size: const Size(390, 500),
+          size: Size(390, height),
           reduced: true,
         );
         await _restore(t, _fixture(real));
@@ -886,6 +951,183 @@ void main() {
       expect(t.takeException(), isNull);
     },
   );
+  testWidgets(
+    'Gridlock: two restores before rendering reject the old recognizer and retain only the final board',
+    (t) async {
+      final (app, real) = await _mount(t);
+      await _restore(t, _fixture(real, fRight: true));
+      final gesture = await _startRight(t, 4);
+      final dynamic state = _state(t);
+      final finalBoard = _fixture(real, fLeft: true);
+      state.beginPuzzleSession();
+      // ignore: invalid_use_of_protected_member
+      state.setState(() => state.applyPuzzleSession(_fixture(real)));
+      state.beginPuzzleSession();
+      // ignore: invalid_use_of_protected_member
+      state.setState(() => state.applyPuzzleSession(finalBoard));
+      await t.pump();
+      await t.pump();
+      await gesture.moveBy(const Offset(35, 0));
+      await gesture.up();
+      await t.pump();
+      expect(_capture(t), finalBoard);
+      await _oneLeftF(t);
+      expect(_capture(t)['moveCount'], 2);
+      expect(app.gp.outcomeCount, 0);
+    },
+  );
+  testWidgets(
+    'Gridlock: covered game rejects a held pan and permits fresh input after uncovering',
+    (t) async {
+      final (app, real) = await _mount(t);
+      await _restore(t, _fixture(real));
+      final gesture = await _startRight(t, 4);
+      final before = _capture(t);
+      await _cover(t);
+      await gesture.moveBy(const Offset(-45, 0));
+      await gesture.up();
+      await t.pump();
+      await _popCover(t);
+      expect(_capture(t), before);
+      await _oneLeftF(t);
+      expect(_capture(t)['moveCount'], 2);
+      expect(app.gp.outcomeCount, 0);
+    },
+  );
+  testWidgets(
+    'Gridlock: restored exited board offers actual Next without replaying outcome',
+    (t) async {
+      final (app, real) = await _mount(t);
+      final exited = _fixture(real, beforeExit: true);
+      _legalStep(exited, 0, 1);
+      await _restore(t, exited);
+      expect(_state(t).gameActive, isFalse);
+      expect(_state(t).capturePuzzleSession(), isNull);
+      await t.ensureVisible(_next(t));
+      await t.tap(_next(t));
+      await t.pump();
+      await _waitPlayable(t);
+      await _actualAuthoredInput(t);
+      expect(app.gp.outcomeCount, 0);
+    },
+  );
+  testWidgets(
+    'Gridlock: fresh Bridge returns to the actual parent route after one win',
+    (t) async {
+      final (app, real) = await _mount(t, launchFromBridge: true);
+      await _win(t, real);
+      await _result(t);
+      await t.ensureVisible(_bridge(t));
+      await t.tap(_bridge(t));
+      await t.pump();
+      await t.pump(const Duration(milliseconds: 500));
+      expect(find.text('Enter Gridlock'), findsOneWidget);
+      expect(_screen, findsNothing);
+      expect(app.gp.outcomeCount, 1);
+      expect(t.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'Gridlock: fresh back returns to parent and cannot later open an obsolete result',
+    (t) async {
+      final (app, real) = await _mount(t, launchFromBridge: true);
+      await _restore(t, _fixture(real));
+      await t.tap(find.byIcon(Icons.arrow_back).first);
+      await t.pump();
+      await t.pump(const Duration(seconds: 2));
+      expect(find.text('Enter Gridlock'), findsOneWidget);
+      expect(_screen, findsNothing);
+      expect(_dialogs(), findsNothing);
+      expect(app.gp.outcomeCount, 0);
+    },
+  );
+  testWidgets(
+    'Gridlock: retained suggested challenge cannot navigate a restored round',
+    (t) async {
+      final (app, real) = await _mount(t);
+      await _win(t, real);
+      await _result(t);
+      final suggestion = find.widgetWithText(
+        TextButton,
+        S.of(t.element(_screen))!.roundSuggestedChallenge,
+      );
+      final retained = t.widget<TextButton>(suggestion).onPressed!;
+      await _restore(t, _fixture(real));
+      await t.pump(const Duration(milliseconds: 400));
+      expect(_dialogs(), findsNothing);
+      final before = _capture(t);
+      retained();
+      await t.pump();
+      expect(_capture(t), before);
+      expect(app.gp.outcomeCount, 1);
+    },
+  );
+  for (final decision in ['resume', 'new']) {
+    testWidgets(
+      'Gridlock: actual current storage $decision decision preserves correct board and learning records',
+      (t) async {
+        final saved = _fixture({}, fLeft: true);
+        final (app, accepted) = await _mount(
+          t,
+          saved: saved,
+          decision: decision,
+        );
+        if (decision == 'resume') {
+          expect(accepted, saved);
+          expect(app.tracker.playedPuzzleIds, isEmpty);
+        } else {
+          expect(accepted['moveCount'], 0);
+          expect(app.tracker.playedPuzzleIds, {accepted['_currentPuzzleId']});
+        }
+        await _actualAuthoredInput(t);
+        expect(app.gp.outcomeCount, 0);
+        expect(_dialogs(), findsNothing);
+      },
+    );
+    testWidgets(
+      'Gridlock: obsolete storage $decision decision cannot replace or clear a restored round',
+      (t) async {
+        final saved = _fixture({});
+        final (app, _) = await _mount(t, saved: saved, decision: 'hold');
+        final s = S.of(t.element(_screen))!;
+        final resume = find.widgetWithText(ElevatedButton, s.resumePuzzle);
+        final startNew = find.widgetWithText(TextButton, s.startNewPuzzle);
+        final old = decision == 'resume'
+            ? t.widget<ElevatedButton>(resume).onPressed!
+            : t.widget<TextButton>(startNew).onPressed!;
+        final replacement = _fixture({}, fLeft: true);
+        await _restore(t, replacement);
+        await t.pump(const Duration(milliseconds: 800));
+        await PuzzleSessionStore.instance.flush();
+        expect(
+          await PuzzleSessionStore.instance.load(
+            'space_station_gridlock',
+            1,
+            1,
+          ),
+          replacement,
+        );
+        old();
+        await t.pump();
+        await t.pump(const Duration(milliseconds: 800));
+        await t.pump();
+        expect(_capture(t), replacement);
+        await PuzzleSessionStore.instance.flush();
+        expect(
+          await PuzzleSessionStore.instance.load(
+            'space_station_gridlock',
+            1,
+            1,
+          ),
+          replacement,
+        );
+        expect(app.tracker.playedPuzzleIds, isEmpty);
+        expect(app.gp.outcomeCount, 0);
+        await _oneLeftF(t);
+        expect(_capture(t)['moveCount'], 2);
+      },
+    );
+  }
 }
 
 // Reuse the actual-control fixture in the separate loader-seam suite. The
@@ -900,3 +1142,5 @@ Future<void> restoreGridlock(WidgetTester t, Map<String, dynamic> board) =>
     _restore(t, board);
 Future<void> moveGridlockLeft(WidgetTester t) => _oneLeftF(t);
 Future<void> waitGridlockPlayable(WidgetTester t) => _waitPlayable(t);
+
+Future<void> actualGridlockInput(WidgetTester t) => _actualAuthoredInput(t);

@@ -4,8 +4,8 @@
 
 Version **1.5.40+56** is a repair candidate, not a verified publication.
 The focused tests are prepared and still require exact-head execution:
-`test/widgets/space_station_gridlock_round_test.dart` contains 25 original-API
-contracts; `test/widgets/space_station_gridlock_loader_test.dart` contains five
+`test/widgets/space_station_gridlock_round_test.dart` contains 37 original-API
+contracts; `test/widgets/space_station_gridlock_loader_test.dart` contains six
 controlled database-loader cases. The latter exercise the production await but
 are not real asset-I/O measurements or old-source counterfactuals.
 
@@ -39,7 +39,8 @@ controls. Scoring remains `250 * grade + efficiencyBonus + ships.length * 20`,
 with bonuses 300/150/50 at the existing reference thresholds and unchanged
 `Perf.fromMoves`. All 1,313 authored boards, ordering, complexity buckets,
 tracker/cache behavior, generator choices, A/B paths and fallback implementations
-are retained.
+are retained. The fallback keeps its implementation but moves the second vertical
+ship one column right to remove a reproduced overlap at row two, column three.
 
 The test's legal GRID_1 winning witness uses 22 counted cells and yields score
 560 at grade one while retaining reference eight. Its independent occupancy
@@ -73,13 +74,15 @@ shortest-path or felt-difficulty claim.
    Exclude the separate loader-seam file. Preserve legal-input positive controls,
    classify first failures, and retain raw results/test hashes. Run the repaired
    files in shuffled orders after meaningful changes.
-3. Extend input/restore coverage where still missing: coalesced restore before a
-   frame, pending initial storage/resume decisions, current load failure and a
-   usable fallback/retry, fresh Bridge/back and suggested-challenge navigation,
-   and English/German 390×844 as well as the existing 390×500 at text scale two.
-4. Independently test fallback occupancy before changing its configuration.
-   Source inspection suggests two vertical ships share a cell; that is not yet a
-   validated generator finding. Preserve working algorithms and selectable paths.
+3. Verify the newly prepared coalesced-restore, actual storage resume/decline,
+   stale saved-session decisions, current database-failure fallback, fresh
+   Bridge/back, retained suggested-challenge and English/German 390×844/390×500
+   text-scale-two cases. A prepared test is not evidence it passed.
+4. Run the new actual-module fallback occupancy/exit-witness unit test. A bounded
+   pure-Dart extraction of the two unedited production generator/configuration
+   classes reproduced the overlap in one actual call before the correction. That
+   narrow probe does not replace Flutter integration or all-game generation checks.
+   Preserve the fallback algorithm, reference ten and selectable paths.
 5. Run full native CI, all-game generation/capture/replay, shipping WASM/JS build
    and the full artifact browser matrix on the exact pushed commit. The browser
    inventory adds Gridlock, making 17 audited screens in both engines; derive

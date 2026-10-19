@@ -90,35 +90,81 @@ void main() {
   });
 
   group('PuzzleGenerator fallback', () {
-    test('generates a configuration with exactly one in-bounds player ship',
-        () async {
-      final config = await PuzzleGenerator.generate(1, 1);
-      expect(config, isA<PuzzleConfiguration>());
-      expect(config.minMoves, greaterThan(0));
-      expect(config.ships, isNotEmpty);
+    test(
+      'fallback ships do not overlap and admit a legal exit witness',
+      () async {
+        final config = await PuzzleGenerator.generate(1, 1);
+        final ships = config.ships
+            .map((s) => Map<String, dynamic>.from(s))
+            .toList();
+        expect(config.minMoves, 10); // Retain the authored quality reference.
+        void validate() {
+          final occupied = <(int, int)>{};
+          for (final ship in ships) {
+            for (var k = 0; k < (ship['length'] as int); k++) {
+              final row =
+                  (ship['row'] as int) + (ship['isHorizontal'] == true ? 0 : k);
+              final col =
+                  (ship['col'] as int) + (ship['isHorizontal'] == true ? k : 0);
+              expect(row, inInclusiveRange(0, 5));
+              expect(col, inInclusiveRange(0, 5));
+              expect(
+                occupied.add((row, col)),
+                isTrue,
+                reason: 'Fallback overlap at ($row, $col)',
+              );
+            }
+          }
+        }
 
-      final players =
-          config.ships.where((s) => s['isPlayer'] == true).toList();
-      expect(players.length, 1, reason: 'fallback must have one player ship');
+        validate();
+        // A witness, not a shortest path: clear both vertical ships from row two,
+        // then move the player to the right edge. Check every committed cell.
+        for (final (index, count) in [(1, 3), (2, 2), (0, 3)]) {
+          for (var step = 0; step < count; step++) {
+            final ship = ships[index];
+            final axis = ship['isHorizontal'] == true ? 'col' : 'row';
+            ship[axis] = (ship[axis] as int) + 1;
+            validate();
+          }
+        }
+        expect(ships[0]['col'] + ships[0]['length'], 6);
+      },
+    );
+    test(
+      'generates a configuration with exactly one in-bounds player ship',
+      () async {
+        final config = await PuzzleGenerator.generate(1, 1);
+        expect(config, isA<PuzzleConfiguration>());
+        expect(config.minMoves, greaterThan(0));
+        expect(config.ships, isNotEmpty);
 
-      for (final s in config.ships) {
-        _expectShipInBounds(
-          s['row'] as int,
-          s['col'] as int,
-          s['length'] as int,
-          s['isHorizontal'] as bool,
-        );
-      }
-    });
+        final players = config.ships
+            .where((s) => s['isPlayer'] == true)
+            .toList();
+        expect(players.length, 1, reason: 'fallback must have one player ship');
+
+        for (final s in config.ships) {
+          _expectShipInBounds(
+            s['row'] as int,
+            s['col'] as int,
+            s['length'] as int,
+            s['isHorizontal'] as bool,
+          );
+        }
+      },
+    );
   });
 
   group('GridlockPuzzleDatabase invariants', () {
     const buckets = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0];
     final db = GridlockPuzzleDatabase.fromJson(
-        File(gridlockPuzzlesAsset).readAsStringSync());
-    List<GridlockPuzzleData> getPuzzlesByComplexity(double c,
-            {double tolerance = 0.0}) =>
-        db.byComplexity(c, tolerance: tolerance);
+      File(gridlockPuzzlesAsset).readAsStringSync(),
+    );
+    List<GridlockPuzzleData> getPuzzlesByComplexity(
+      double c, {
+      double tolerance = 0.0,
+    }) => db.byComplexity(c, tolerance: tolerance);
 
     test('holds the whole bundled database with unique ids', () {
       expect(db.puzzles.length, 1313);
@@ -146,10 +192,14 @@ void main() {
           expect(puzzle.minMoves, greaterThan(0), reason: reason);
           expect(puzzle.ships, isNotEmpty, reason: reason);
 
-          final players =
-              puzzle.ships.where((s) => s['isPlayer'] == true).toList();
-          expect(players.length, 1,
-              reason: '$reason must have exactly one player ship');
+          final players = puzzle.ships
+              .where((s) => s['isPlayer'] == true)
+              .toList();
+          expect(
+            players.length,
+            1,
+            reason: '$reason must have exactly one player ship',
+          );
 
           // The player ship must be horizontal: the screen wins by sliding it
           // off the right edge (_checkWinCondition only fires for horizontal).
@@ -182,8 +232,11 @@ void main() {
           for (int k = 0; k < (s['length'] as int); k++) {
             final r = (s['row'] as int) + (s['isHorizontal'] == true ? 0 : k);
             final c = (s['col'] as int) + (s['isHorizontal'] == true ? k : 0);
-            expect(occupied.add(r * gridSize + c), isTrue,
-                reason: '${puzzle.id} overlaps at ($r, $c)');
+            expect(
+              occupied.add(r * gridSize + c),
+              isTrue,
+              reason: '${puzzle.id} overlaps at ($r, $c)',
+            );
           }
         }
         final player = puzzle.ships.firstWhere((s) => s['isPlayer'] == true);
@@ -196,8 +249,11 @@ void main() {
       TestWidgetsFlutterBinding.ensureInitialized();
       final loaded = await GridlockPuzzleDatabase.load();
       expect(loaded.puzzles.length, db.puzzles.length);
-      expect(identical(await GridlockPuzzleDatabase.load(), loaded), isTrue,
-          reason: 'the database is parsed once and cached');
+      expect(
+        identical(await GridlockPuzzleDatabase.load(), loaded),
+        isTrue,
+        reason: 'the database is parsed once and cached',
+      );
     });
   });
 
@@ -205,16 +261,21 @@ void main() {
     // GRID_1's ship list exactly as the old generated Dart database stored
     // it, so the derived order (which picks each ship's colour) is pinned.
     test('matches the ship list GRID_1 was generated with', () {
-      Map<String, dynamic> s(int row, int col, int length, bool h,
-              [bool player = false, bool blocking = false]) =>
-          {
-            'row': row,
-            'col': col,
-            'length': length,
-            'isHorizontal': h,
-            'isPlayer': player,
-            'isBlocking': blocking,
-          };
+      Map<String, dynamic> s(
+        int row,
+        int col,
+        int length,
+        bool h, [
+        bool player = false,
+        bool blocking = false,
+      ]) => {
+        'row': row,
+        'col': col,
+        'length': length,
+        'isHorizontal': h,
+        'isPlayer': player,
+        'isBlocking': blocking,
+      };
       expect(shipsFromBoard('IBBKooIoJKCCAAJoLMoxEELMoooFFooGGHHo'), [
         s(2, 0, 2, true, true),
         s(0, 1, 2, true),

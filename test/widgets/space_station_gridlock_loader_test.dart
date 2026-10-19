@@ -28,6 +28,29 @@ void main() {
     ProfilePreferences.activeId = 'gridlock_loader_${id++}';
     PuzzleSessionStore.resetForTesting();
   });
+  testWidgets(
+    'seam: current database failure retains a usable nonoverlapping fallback',
+    (t) async {
+      final (app, _) = await fixtures.mountGridlock(t);
+      final played = app.tracker.playedPuzzleIds;
+      await _startLoad(
+        t,
+        app,
+        () => Future<GridlockPuzzleDatabase>.error(
+          StateError('controlled current database failure'),
+        ),
+      );
+      await fixtures.waitGridlockPlayable(t);
+      final board = fixtures.captureGridlock(t);
+      expect(board['_currentPuzzleId'], isNull);
+      expect(board['minMoves'], 10);
+      expect((board['ships'] as List).length, 3);
+      await fixtures.actualGridlockInput(t);
+      expect(app.tracker.playedPuzzleIds, played);
+      expect(app.gp.outcomeCount, 0);
+      expect(t.takeException(), isNull);
+    },
+  );
   for (final fail in [false, true]) {
     testWidgets(
       'seam: stale database ${fail ? 'failure' : 'success'} cannot overwrite restored board or consume a puzzle',

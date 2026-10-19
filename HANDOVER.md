@@ -16,7 +16,8 @@ and 60,400 generation cases across 48 games with zero failures. The main
 passed build, 864 capture/replays and the full artifact browser matrix: 47 passed,
 one existing Chromium loader skip, zero flaky results or observed retries.
 Actual raw reports and literal main source identity were independently verified.
-Its deployment is still pending; do not claim that aggregate/main publication green.
+Its deployment failed on the hosting service; do not claim the aggregate or
+main publication green. Native/generation/artifact-browser evidence remains valid.
 
 The previously tested PR artifact was already published to the
 [live app](https://numbernebula.vercel.app) without rebuilding, with runtime marker
@@ -24,11 +25,11 @@ The previously tested PR artifact was already published to the
 [canonical proof](https://numbernebula-abk9nhtgk-crispstrobes-projects.vercel.app/hosted-proof.json)
 passed both actual Molecule engine checks, zero skips/retries/errors and stable
 five-file hashes. This is a two-case deployed report; the main full deployed
-matrix remains pending. PR #65 records detailed source and report provenance.
+matrix remains unverified following that deployment failure. PR #65 records detailed source and report provenance.
 
 The next Gridlock candidate is **1.5.40+56**, with
 [implementation and executable validation steps](docs/gridlock-round-audit.md).
-Its 25 original-API and five controlled loader tests are prepared, not yet passing
+Its 37 original-API and six controlled loader tests are prepared, not yet passing
 evidence. There are still 36 validated/implemented prior focused audits and twelve
 remaining until this candidate is verified. Preserve all game rules and generators.
 
@@ -68,7 +69,7 @@ checks in [PR #63](https://github.com/CrispStrobe/NumberNebula/pull/63) also suc
 ## October 18 integration
 
 Current candidate: **1.5.40+56**, under validation; see the [Gridlock audit](docs/gridlock-round-audit.md).
-The preceding implemented version is **1.5.39+55**, [PR #65](https://github.com/CrispStrobe/NumberNebula/pull/65); its merged-main publication gate remains pending above.
+The preceding implemented version is **1.5.39+55**, [PR #65](https://github.com/CrispStrobe/NumberNebula/pull/65); its merged-main deployment failed and needs a verified retry as described above.
 The preceding implemented version is **1.5.38+54**, [PR #64](https://github.com/CrispStrobe/NumberNebula/pull/64); see the [Relic Assembly audit](docs/relic-assembly-round-audit.md).
 Its 39 focused cases include held-pointer isolation for generation-error retry.
 Its final 39-case source is verified above; earlier 38-case results do not validate that follow-up.

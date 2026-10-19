@@ -11,7 +11,7 @@ assert not re.search(r"TimeoutException|timed out after|Compilation failed|Faile
 events = [json.loads(line) for line in (report / "baseline.json").read_text().splitlines() if line.strip()]
 starts = {e["test"]["id"]: e["test"]["name"] for e in events if e.get("type") == "testStart" and e["test"]["name"].startswith("Gridlock:")}
 ends = {e["testID"]: e for e in events if e.get("type") == "testDone"}
-assert len(starts) == 25 and all(i in ends and not ends[i].get("skipped") for i in starts)
+assert len(starts) == 37 and all(i in ends and not ends[i].get("skipped") for i in starts)
 positives = {
     "Gridlock: actual authored F drag moves one legal cell and saves coherently",
     "Gridlock: actual current Next loads another usable authored puzzle without replaying the win",
