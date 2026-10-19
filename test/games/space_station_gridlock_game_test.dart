@@ -95,7 +95,7 @@ void main() {
       () async {
         final config = await PuzzleGenerator.generate(1, 1);
         final ships = config.ships
-            .map((s) => Map<String, dynamic>.from(s))
+            .map(Map<String, dynamic>.from)
             .toList();
         expect(config.minMoves, 10); // Retain the authored quality reference.
         void validate() {
