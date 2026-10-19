@@ -112,7 +112,7 @@ Next audit Molecule Builder in D, with one game per PR.
 ## D — Planning and bundled-level rounds
 
 **Status:** Molecule is [implemented under validation](docs/molecule-builder-round-audit.md).
-Retain its 48 original-API contracts and five loader seam cases; verify the exact
+Retain its 51 original-API contracts and five loader seam cases; verify the exact
 repair head, shared session mixin, native/all-game/browser/deployment checks
 before treating it as green. Preserve completed Undo +2, coherent interrupted
 snapshots, authored levels/progression/fallback and existing score/quality reference.
@@ -120,17 +120,29 @@ snapshots, authored levels/progression/fallback and existing score/quality refer
 **Remaining games/screens:** `space_station_gridlock_game.dart`,
 `star_loader_game.dart`, `robot_path_game.dart`, `solarpanel_game.dart`.
 
-Start with Gridlock. Trace held vehicle selection/drag, interrupted movement,
-restore/reset, move counts, exhausted/solved snapshots, retry and owned outcomes.
-Prove pending animation/search work cannot change a replacement board. Exercise
-actual controls after mistakes and after restoration, including physical vehicle
-identity when IDs repeat. Check initial/mid-animation reduced motion and reachable
-English/German short-phone controls at text scale 2. Verify bundled-level identity
-and solution references survive snapshots; retain the authored order and fallback.
-Use the shared A–F acceptance and one game per PR. For Robot distinguish the
-proven candidate command BFS from the legacy estimate. **Done:** shared acceptance
-plus bundled solution replay; approximate references stay unchanged without
-separate evidence from G.
+Start with Gridlock, using `shipsFromBoard` and a legal authored board such as
+`GRID_1`. Independently check occupancy after every fixture step. Ships have no
+IDs: restore fresh physical instances under the same puzzle ID, list order and
+selected index, then continue a held pointer and verify only fresh input works.
+Normal pan updates commit one cell immediately; blocked or cross-axis input must
+not count. There is no move allowance: `minMoves` is the retained quality reference,
+not an exhaustion rule or a proved optimum for per-cell counting.
+
+Exercise real exit input, one-time outcomes, terminal capture and silent solved
+restoration. Replace the round during async loading, exit motion and the delayed
+result; obsolete completions, tracker writes and retained result actions must not
+affect the new board or covering route. Test current Next and retry, disposal,
+initial/mid-animation reduced motion, effect lifetime and English/German short
+phones at text scale 2. Independently assert fallback nonoverlap as well as bounds;
+existing fallback tests check bounds/player count only. Reproduce any failure
+before changing that path. Preserve all bundled boards/order, tracker semantics,
+scoring and existing fallback algorithms.
+
+Verify bundled-level identity and solution references survive snapshots. Use the
+shared A–F acceptance and one game per PR. For Robot distinguish the proven
+candidate command BFS from the legacy estimate. **Done:** shared acceptance plus
+bundled solution replay; approximate references stay unchanged without separate
+evidence from G.
 
 ## E — Moving, timed and falling-piece rounds
 

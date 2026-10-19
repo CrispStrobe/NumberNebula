@@ -1501,4 +1501,124 @@ void main() {
       },
     );
   }
+
+  testWidgets(
+    'contract: Help blocks actual arrow keys until its overlay closes',
+    (t) async {
+      final (app, real) = await _mount(t, reduced: true);
+      final board = _fixture(real);
+      await _restore(t, board);
+      await _selectH(t);
+      final before = _capture(t);
+      final strings = S.of(t.element(_screen))!;
+      final help = find.byTooltip(strings.moleculeBuilderHelp);
+      await t.ensureVisible(help);
+      await t.pump();
+      expect(help.hitTestable(), findsOneWidget);
+      await t.tap(help);
+      await t.pump();
+      expect(find.text(strings.moleculeBuilderInfoTitle), findsOneWidget);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await _settleSlide(t);
+      expect(
+        _capture(t),
+        before,
+        reason: 'Reading Help must not charge an unseen move to selected H.',
+      );
+      expect(app.gp.outcomeCount, 0);
+      final close = find.widgetWithIcon(IconButton, Icons.close);
+      await t.ensureVisible(close);
+      await t.pump();
+      expect(close.hitTestable(), findsOneWidget);
+      await t.tap(close);
+      await t.pump();
+      expect(find.text(strings.moleculeBuilderInfoTitle), findsNothing);
+      await _selectH(t);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await _settleSlide(t);
+      expect((
+        _model(_capture(t), 'H').row,
+        _model(_capture(t), 'H').col,
+      ), _endpoint(board, 'H', 0, 1));
+      expect(_capture(t)['movesMade'], 1);
+      expect(app.gp.outcomeCount, 0);
+      expect(t.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'contract: molecule-info blocks actual arrow keys until its overlay closes',
+    (t) async {
+      final (app, real) = await _mount(t, reduced: true);
+      final board = _fixture(real);
+      await _restore(t, board);
+      await _selectH(t);
+      final before = _capture(t);
+      final strings = S.of(t.element(_screen))!;
+      final target = find.text(board['levelDisplayName'] as String);
+      expect(target, findsOneWidget);
+      await t.ensureVisible(target);
+      await t.pump();
+      expect(target.hitTestable(), findsOneWidget);
+      await t.tap(target);
+      await t.pump();
+      expect(find.text(strings.moleculeBuilderMoleculeInfo), findsOneWidget);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await _settleSlide(t);
+      expect(
+        _capture(t),
+        before,
+        reason: 'Reading molecule information must not move selected H.',
+      );
+      expect(app.gp.outcomeCount, 0);
+      final close = find.widgetWithIcon(IconButton, Icons.close);
+      await t.ensureVisible(close);
+      await t.pump();
+      expect(close.hitTestable(), findsOneWidget);
+      await t.tap(close);
+      await t.pump();
+      expect(find.text(strings.moleculeBuilderMoleculeInfo), findsNothing);
+      await _selectH(t);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await _settleSlide(t);
+      expect((
+        _model(_capture(t), 'H').row,
+        _model(_capture(t), 'H').col,
+      ), _endpoint(board, 'H', 0, 1));
+      expect(_capture(t)['movesMade'], 1);
+      expect(app.gp.outcomeCount, 0);
+      expect(t.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'contract: German restored Hydrogen keeps its localized selected label',
+    (t) async {
+      final (app, real) = await _mount(
+        t,
+        locale: const Locale('de'),
+        reduced: true,
+      );
+      final board = _fixture(real);
+      await _restore(t, board);
+      await _selectH(t);
+      final strings = S.of(t.element(_screen))!;
+      expect(
+        find.text(
+          '${strings.moleculeBuilderSelected}: ${strings.atomNameHydrogen}',
+        ),
+        findsOneWidget,
+        reason: 'A deserialized known atom must retain its German name.',
+      );
+      expect(_capture(t), board);
+      expect(app.gp.outcomeCount, 0);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await _settleSlide(t);
+      expect((
+        _model(_capture(t), 'H').row,
+        _model(_capture(t), 'H').col,
+      ), _endpoint(board, 'H', 0, 1));
+      expect(_capture(t)['movesMade'], 1);
+      expect(app.gp.outcomeCount, 0);
+      expect(t.takeException(), isNull);
+    },
+  );
 }

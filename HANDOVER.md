@@ -14,24 +14,27 @@ version **1.5.38+54**. Strict analysis and 1,823 native cases passed, including 
 browser report has 45 passed and one existing Chromium loader skip, zero observed
 retries. Actual raw reports and source/test identities were independently checked.
 
-The exact tested GitHub artifact was published to
-[numbernebula.vercel.app](https://numbernebula.vercel.app). Its synthetic checkout
-marker `656db57` belongs to a complete source tree identical to the merged head;
-it must not be described as a literal `dd6e5d2` runtime build. The
+The tested GitHub artifact was first published with synthetic checkout marker
+`656db57`; its complete source tree equals the merged head. Its historical
 [canonical proof](https://numbernebula-8bz2qrmmg-crispstrobes-projects.vercel.app/hosted-proof.json)
-records two passing Relic checks, Chromium/WASM and Firefox/JavaScript, no skips
-or retries, stable compiled hashes and verified isolation headers. Report
-protection applies. The shipping wrapper was separately compiled on the exact
-source; its different build was not substituted for the tested GitHub artifact.
+records two passing Relic checks across Chromium/WASM and Firefox/JavaScript,
+zero skips/retries and stable compiled hashes. Report protection applies. The
+shipping wrapper was compiled separately; its different build was not substituted
+for that browser-tested GitHub artifact.
 
-Merged-main [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/39235051563)
-and [calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/39235051487)
-passed. Its [web/deployment run](https://github.com/CrispStrobe/NumberNebula/actions/runs/39235051481)
-was queued when this handover was prepared; check its actual outcome before
-claiming the aggregate green. The obsolete queued PR-preview deployment was
-canceled after verified canonical publication; that PR workflow aggregate is
-canceled, not green. The preceding Hull merged-main checks in
-[PR #63](https://github.com/CrispStrobe/NumberNebula/pull/63) all succeeded.
+Merged-main [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/39235051563),
+[calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/39235051487)
+and [web/deployment](https://github.com/CrispStrobe/NumberNebula/actions/runs/39235051481)
+**all succeeded**. Both actual main browser reports were independently verified:
+each has **45 passed, one existing Chromium loader skip and zero observed retries**.
+The main capture report passed 864 cases across 48 games. That workflow published
+its own tested main artifact, runtime marker **`dd6e5d2`**, to
+[numbernebula.vercel.app](https://numbernebula.vercel.app). Its five compiled-file
+hashes, version and isolation headers matched the canonical site after completion.
+The older `656db57` report remains historical evidence for its own artifact.
+The obsolete queued PR-preview deployment was canceled after the earlier verified
+publication; that aggregate is canceled, not green. The preceding Hull main
+checks in [PR #63](https://github.com/CrispStrobe/NumberNebula/pull/63) also succeeded.
 
 ## October 18 integration
 

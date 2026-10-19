@@ -246,6 +246,8 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       mounted &&
       _sessionReady &&
       gameActive &&
+      !_showInstructions &&
+      !_showMoleculeInfo &&
       ModalRoute.of(context)?.isCurrent == true;
   bool _ownsAtom(Atom atom) => atoms.any((current) => identical(current, atom));
 
@@ -3184,12 +3186,12 @@ enum Direction { up, down, left, right }
 String getLocalizedAtomName(AtomType type, BuildContext context) {
   final s = S.of(context)!; // Get localization delegate
 
-  if (type == AtomType.hydrogen) return s.atomNameHydrogen;
-  if (type == AtomType.oxygen) return s.atomNameOxygen;
-  if (type == AtomType.carbon) return s.atomNameCarbon;
-  if (type == AtomType.nitrogen) return s.atomNameNitrogen;
-  if (type == AtomType.sulfur) return s.atomNameSulfur;
-  if (type == AtomType.fluorine) return s.atomNameFluorine;
+  if (type.symbol == AtomType.hydrogen.symbol) return s.atomNameHydrogen;
+  if (type.symbol == AtomType.oxygen.symbol) return s.atomNameOxygen;
+  if (type.symbol == AtomType.carbon.symbol) return s.atomNameCarbon;
+  if (type.symbol == AtomType.nitrogen.symbol) return s.atomNameNitrogen;
+  if (type.symbol == AtomType.sulfur.symbol) return s.atomNameSulfur;
+  if (type.symbol == AtomType.fluorine.symbol) return s.atomNameFluorine;
   // Handle all special types generically
   if (type.symbol.length == 1 && !'HOCNSF'.contains(type.symbol)) {
     return s.atomNameSpecial;

@@ -27,7 +27,7 @@ framework frames before pressing newly enabled controls; they keep the actual
 position, count and outcome assertions. Validation scope and final source hashes
 belong in the repair PR.
 
-A [final uncommitted diagnostic](https://numbernebula-wu2fzijd6-crispstrobes-projects.vercel.app/diagnostic-proof.json)
+An [earlier 53-case uncommitted diagnostic](https://numbernebula-wu2fzijd6-crispstrobes-projects.vercel.app/diagnostic-proof.json)
 passed strict analysis and all **53 cases**, including three randomized orders
 (71, 211, 1009), zero skips. Raw event counts and source/mixin/test hashes were
 independently verified. Its 48 original-API cases against the preceding screen
@@ -37,6 +37,22 @@ The five loader seams are separate repair-side evidence. This remains an
 uncommitted diagnostic, not a claim that final pushed-head checks passed;
 report deployment protection applies.
 
+The preceding repair head `ba5a620` has an independently verified
+[exact-commit native report](https://numbernebula-jg2aubev5-crispstrobes-projects.vercel.app/native-proof.json):
+strict analysis, 1,876 native cases across 168 native suite files, all 53 Molecule
+cases in default and three shuffled orders, zero skips, all 48 reduced-motion
+snapshots and the retained legacy rendering paths. That source also fixes an
+unguarded fallback diagnostic caught by the source contract. These results do
+not validate the additional input/localization changes below.
+
+A separate [three-case diagnostic](https://numbernebula-nqe91y4ky-crispstrobes-projects.vercel.app/diagnostic-proof.json)
+reproduced actual hidden keyboard movement behind both Help and molecule-info
+overlays, and an English selected-atom label after German restoration. All three
+failed with actual assertions on `ba5a620`; after the repair, all three and the
+expanded **56-case suite** passed, with strict analysis and no skips. Raw reports
+were independently verified. This is an explicitly uncommitted diagnostic;
+the final committed head requires its own full validation. Report protection applies.
+
 ## State, movement and persistence
 
 Every restore, reset and authored level change replaces the round identity.
@@ -44,6 +60,8 @@ Actual pointer recognizers detach with their round; retained controls and pan
 payloads check current ownership. Selected atoms must be current model instances,
 even when replacement atoms reuse the same IDs. Slide completion belongs to its
 round and exact atom. Direction input still slides until a wall or another atom.
+Help and molecule-info overlays block new gameplay input, including keyboard
+arrows; closing them leaves real keyboard movement usable.
 
 The current model commits endpoint, count and history together. Its 200 ms slide
 is visual interpolation over a static atom child. An interrupted slide has not yet
@@ -74,7 +92,9 @@ physical-device FPS or battery measurements.
 
 The phone header wraps; compact content and wide side controls scroll without
 shrinking board cells or controls. English and German 390×844 and 390×500 at text
-scale 2 exercise actual selection, movement, Undo and result retry.
+scale 2 exercise actual selection, movement, Undo and result retry. Restored
+known atom names localize by their chemical symbols rather than object identity;
+unknown-name fallback remains. A German restored-Hydrogen selection is asserted.
 
 The 30 bundled levels, authored order, progression, loader cache, parse rules,
 fallback and generator algorithms remain. The score stays
@@ -83,7 +103,7 @@ reference, which is **not a proven optimum**. No child-facing pars are retuned.
 
 ## Test inventory and remaining evidence
 
-`test/widgets/quantum_molecule_round_test.dart` defines **48 original-API
+`test/widgets/quantum_molecule_round_test.dart` defines **51 original-API
 contracts** and **five controlled-loader seam cases**. Counterfactual runs select
 `contract:` names; the old screen does not have the optional loader parameter.
 The seam supplies a controlled future to the same initial await used in
