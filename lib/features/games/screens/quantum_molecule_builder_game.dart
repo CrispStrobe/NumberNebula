@@ -1009,7 +1009,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         );
       }
     } catch (e) {
-      debugPrint("❌ Error loading level $_currentLevel: $e");
+      if (kDebugMode) {
+        debugPrint("❌ Error loading level $_currentLevel: $e");
+      }
       _loadFallbackLevel();
     }
   }
