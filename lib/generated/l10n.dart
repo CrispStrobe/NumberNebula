@@ -4159,7 +4159,7 @@ abstract class S {
   /// No description provided for @starLoaderHint.
   ///
   /// In en, this message translates to:
-  /// **'Use arrows or swipe to move. Get all crates to the targets!'**
+  /// **'Use arrows or swipe to walk. Push every crate onto a target. You cannot pull crates: walk around one to push it from another side.'**
   String get starLoaderHint;
 
   /// No description provided for @moves.
@@ -7717,7 +7717,7 @@ abstract class S {
   /// No description provided for @guidedRetry.
   ///
   /// In en, this message translates to:
-  /// **'That does not fit the rule yet. Try another number.'**
+  /// **'That choice does not fit the rule yet. Try another.'**
   String get guidedRetry;
 
   /// No description provided for @guidedReady.

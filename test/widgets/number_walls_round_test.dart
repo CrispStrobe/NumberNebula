@@ -1,3 +1,4 @@
+import 'package:space_math_academy/features/games/widgets/strategy_hint_dialog.dart';
 import 'support/round_contract_checks.dart';
 import 'support/round_dialog_finder.dart';
 import 'dart:convert';
@@ -19,6 +20,7 @@ import 'package:space_math_academy/generated/l10n.dart';
 
 class _App {
   final ValueNotifier<bool> motion;
+  final Locale? locale;
   final sri = SriService();
   final cognitive = CognitiveProfileService();
   final debug = DebugProvider();
@@ -26,7 +28,7 @@ class _App {
       progressService: ProgressService(),
       sriService: sri,
       cognitiveProfileService: cognitive);
-  _App({bool reduced = false}) : motion = ValueNotifier(reduced);
+  _App({bool reduced = false, this.locale}) : motion = ValueNotifier(reduced);
 
   Widget build() => MultiProvider(
         providers: [
@@ -36,6 +38,7 @@ class _App {
           ChangeNotifierProvider<DebugProvider>.value(value: debug),
         ],
         child: MaterialApp(
+          locale: locale,
           theme: ThemeData(platform: TargetPlatform.android),
           localizationsDelegates: S.localizationsDelegates,
           supportedLocales: S.supportedLocales,
@@ -80,8 +83,9 @@ Future<void> _restoreFromSessionPuzzle(WidgetTester tester) async {
   await tester.pump();
 }
 
-Future<_App> _mount(WidgetTester tester, {bool reduced = false}) async {
-  final app = _App(reduced: reduced);
+Future<_App> _mount(WidgetTester tester,
+    {bool reduced = false, Locale? locale}) async {
+  final app = _App(reduced: reduced, locale: locale);
   tester.view.physicalSize = const Size(1400, 1100);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -116,7 +120,102 @@ void _deliver(DragTarget<NumberWallsDrag> t, NumberWallsDrag d) =>
     t.onAcceptWithDetails!(
         DragTargetDetails<NumberWallsDrag>(data: d, offset: Offset.zero));
 
+Future<StrategyHintDialog> _openWorkedHint(WidgetTester tester) async {
+  final strings = S.of(tester.element(_screen))!;
+  await tester.tap(find.byIcon(Icons.lightbulb_outline));
+  for (var attempt = 0; attempt < 150; attempt++) {
+    await tester.pump(const Duration(milliseconds: 20));
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    if (find.byType(StrategyHintDialog).evaluate().isNotEmpty) {
+      break;
+    }
+  }
+  expect(find.byType(StrategyHintDialog), findsOneWidget);
+  await tester.pump(const Duration(milliseconds: 300));
+  final hint =
+      tester.widget<StrategyHintDialog>(find.byType(StrategyHintDialog));
+  expect(find.text(hint.focus), findsOneWidget);
+  await tester.tap(find.text(strings.onboardingNext));
+  await tester.pump();
+  expect(find.text(hint.strategy), findsOneWidget);
+  await tester.tap(find.text(strings.onboardingNext));
+  await tester.pump();
+  expect(find.text(hint.working), findsOneWidget);
+  return hint;
+}
+
 void main() {
+  for (final lang in ['en', 'de']) {
+    testWidgets(
+        'in-screen hint explains current rules and guards restored rounds in $lang',
+        (tester) async {
+      final app = await _mount(tester, reduced: true, locale: Locale(lang));
+      final puzzle = NumberWallPuzzle(
+          wallHeight: 3,
+          operation: WallOperation.addition,
+          hiddenCells: {1, 2},
+          visibleValues: {0: 13, 3: 3, 4: 4, 5: 2},
+          fullSolution: [13, 7, 6, 3, 4, 2],
+          numberPool: [6, 7]);
+      final board = <String, dynamic>{
+        'puzzle': puzzle.toJson(),
+        'answers': [null, null],
+        'moves': 4,
+        'maxMoves': 4,
+        'optimal': 2,
+        'hints': 0,
+        'pool': [6, 7]
+      };
+      final dynamic session = _session(tester);
+      session.beginPuzzleSession();
+      session.applyPuzzleSession(board);
+      session.rebuildForTesting();
+      await tester.pump();
+      await tester.pump();
+      final hint = await _openWorkedHint(tester);
+      expect(
+          hint.strategy,
+          contains(lang == 'de'
+              ? 'seine beiden Nachbarn direkt darunter'
+              : 'its two neighbours directly below'));
+      expect(hint.working, contains('[7] = 3 + 4'));
+      expect(hint.demonstrate, isNotNull);
+      final strings = S.of(tester.element(_screen))!;
+      await tester.tap(find.text(strings.hintPlaceMove));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(StrategyHintDialog), findsNothing);
+      expect(_snapshot(tester)['answers'], [7, null]);
+      expect(
+          puzzle.validateSolution(
+              [(_snapshot(tester)['answers'] as List).first as int, 6]),
+          isTrue);
+      expect(_snapshot(tester)['moves'], 3);
+      expect(_snapshot(tester)['hints'], 1);
+      expect(app.gp.outcomeCount, 0);
+
+      // This callback is the real second dialog's production demonstration.
+      // Close its route normally, restore, then replay the obsolete callback.
+      final oldHint = await _openWorkedHint(tester);
+      final obsoleteMove = oldHint.demonstrate;
+      expect(obsoleteMove, isNotNull);
+      await tester.tap(find.text(strings.hintTryMyself));
+      await tester.pump(const Duration(milliseconds: 300));
+      session.beginPuzzleSession();
+      session.applyPuzzleSession(board);
+      session.rebuildForTesting();
+      await tester.pump();
+      await tester.pump();
+      final before = _snapshot(tester);
+      obsoleteMove!();
+      await tester.pump();
+      expect(_snapshot(tester), before);
+      expect(app.gp.outcomeCount, 0);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   registerGridRoundChecks(
     mount: (t, reduced) async {
       final app = await _mount(t, reduced: reduced);

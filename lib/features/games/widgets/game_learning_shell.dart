@@ -28,8 +28,11 @@ class GamePauseController extends ChangeNotifier {
 
 class GamePauseScope extends InheritedWidget {
   final GamePauseController controller;
-  const GamePauseScope(
-      {super.key, required this.controller, required super.child});
+  const GamePauseScope({
+    super.key,
+    required this.controller,
+    required super.child,
+  });
   static GamePauseController? of(BuildContext context) =>
       context.getInheritedWidgetOfExactType<GamePauseScope>()?.controller;
   static bool isPaused(BuildContext context) => of(context)?.paused ?? false;
@@ -44,8 +47,11 @@ class GamePauseScope extends InheritedWidget {
 class GameLearningShell extends StatefulWidget {
   final String gameKey;
   final WidgetBuilder builder;
-  const GameLearningShell(
-      {super.key, required this.gameKey, required this.builder});
+  const GameLearningShell({
+    super.key,
+    required this.gameKey,
+    required this.builder,
+  });
   @override
   State<GameLearningShell> createState() => _GameLearningShellState();
 }
@@ -63,7 +69,7 @@ class _GameLearningShellState extends State<GameLearningShell>
     WidgetsBinding.instance.addPostFrameCallback((_) => _prepare());
   }
 
-  String get _tutorialKey => '${widget.gameKey}_all_games_guided_v1';
+  String get _tutorialKey => '${widget.gameKey}_all_games_guided_v3_mechanics';
   Future<void> _prepare() async {
     if (!await OnboardingOverlay.hasBeenSeen(_tutorialKey) && mounted) {
       await _tutorial();
@@ -87,12 +93,14 @@ class _GameLearningShellState extends State<GameLearningShell>
     _pause.setPaused(true);
     try {
       await showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (dialogContext) => OnboardingOverlay(
-              title: S.of(context)!.guidedPractice,
-              steps: [lesson.practice(_german)],
-              onDismiss: () => Navigator.pop(dialogContext)));
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => OnboardingOverlay(
+          title: S.of(context)!.guidedPractice,
+          steps: [lesson.practice(_german)],
+          onDismiss: () => Navigator.pop(dialogContext),
+        ),
+      );
       await OnboardingOverlay.markSeen(_tutorialKey);
     } finally {
       _coachOpen = false;
@@ -112,12 +120,19 @@ class _GameLearningShellState extends State<GameLearningShell>
       final hint = board == null
           ? null
           : findBoardHint(widget.gameKey, board, german: _german);
-      await StrategyHintDialog.show(context,
-          focus: hint?.focus ?? (_german ? lesson.focusDe : lesson.focusEn),
-          strategy: hint?.strategy ??
-              (_german ? lesson.strategyDe : lesson.strategyEn),
-          working:
-              hint?.working ?? (_german ? lesson.workingDe : lesson.workingEn));
+      await StrategyHintDialog.show(
+        context,
+        focus: hint?.focus ?? (_german ? lesson.focusDe : lesson.focusEn),
+        strategy: {
+          _german ? lesson.lesson.rulesDe : lesson.lesson.rulesEn,
+          _german ? lesson.strategyDe : lesson.strategyEn,
+          if (hint != null && hint.hasSpecificStrategy) hint.strategy,
+        }.join('\n\n'),
+        working: hint?.working ??
+            (_german
+                ? 'Übungsbeispiel (nicht deine aktuelle Stellung):\n${lesson.lesson.boardDe}\n${lesson.workingDe}'
+                : 'Practice example (not your current position):\n${lesson.lesson.boardEn}\n${lesson.workingEn}'),
+      );
     } finally {
       _coachOpen = false;
       _pause.setPaused(!_foreground);
@@ -147,36 +162,49 @@ class _GameLearningShellState extends State<GameLearningShell>
     return GamePauseScope(
       controller: _pause,
       child: ColoredBox(
-          color: const Color(0xFF090D24),
-          child: SafeArea(
-            child: Column(children: [
+        color: const Color(0xFF090D24),
+        child: SafeArea(
+          child: Column(
+            children: [
               SizedBox(
-                  height: 40,
-                  child:
-                      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                height: 40,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
                     TextButton.icon(
-                        onPressed: _tutorial,
-                        icon: const Icon(Icons.school_outlined, size: 18),
-                        label: Text(s.guidedPractice)),
+                      onPressed: _tutorial,
+                      icon: const Icon(Icons.school_outlined, size: 18),
+                      label: Text(s.guidedPractice),
+                    ),
                     TextButton.icon(
-                        onPressed: _hint,
-                        icon: const Icon(Icons.lightbulb_outline, size: 18),
-                        label: Text(s.hintStrategy)),
-                  ])),
+                      onPressed: _hint,
+                      icon: const Icon(Icons.lightbulb_outline, size: 18),
+                      label: Text(s.hintStrategy),
+                    ),
+                  ],
+                ),
+              ),
               Expanded(
-                  child: LayoutBuilder(
-                      builder: (context, constraints) => MediaQuery(
-                          data: MediaQuery.of(context).copyWith(
-                              size: Size(
-                                  constraints.maxWidth, constraints.maxHeight),
-                              padding: EdgeInsets.zero),
-                          child: ListenableBuilder(
-                              listenable: _pause,
-                              builder: (context, _) => TickerMode(
-                                  enabled: !_pause.paused,
-                                  child: widget.builder(context)))))),
-            ]),
-          )),
+                child: LayoutBuilder(
+                  builder: (context, constraints) => MediaQuery(
+                    data: MediaQuery.of(context).copyWith(
+                      size: Size(constraints.maxWidth, constraints.maxHeight),
+                      padding: EdgeInsets.zero,
+                    ),
+                    child: ListenableBuilder(
+                      listenable: _pause,
+                      builder: (context, _) => TickerMode(
+                        enabled: !_pause.paused,
+                        child: widget.builder(context),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

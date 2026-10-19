@@ -3,7 +3,37 @@
 Updated 2026-10-19. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
-## Latest verified publication
+## Practice-rule correction under validation
+
+The latest candidate is **1.5.43+59**; read
+[Practice rules and cross-game difficulty](docs/practice-rules-and-difficulty.md).
+All 48 Üben lessons have been rewritten as bilingual mechanic exercises, with
+labelled actions and explanations. All 48 hint paths were traced against actual
+controls and win conditions; new visible-board guidance replaces misleading
+observations while preserving verified solvers and algorithms. Read the three
+16-game audit inventories linked in the correction document. Fixed-fixture pure
+checks and all-lesson rendered wrong/correct tests are included; full remote
+native/browser/deployment validation is still required. Introductory Wormhole
+constraints are staged, and arithmetic respects the selected difficulty mode.
+The legacy generator remains selectable. The 12-profile difficulty comparison
+is structural evidence, not child-calibrated difficulty for all games.
+
+The separate [Gridlock PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66)
+is under validation, version **1.5.40+56**. Preserve it while integrating this
+candidate and reconcile version order before merging.
+
+Current main remains Molecule **1.5.39+55**,
+[PR #65](https://github.com/CrispStrobe/NumberNebula/pull/65).
+Its main [native](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851186)
+and [pure](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851385)
+checks passed. The main
+[web run](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851150)
+passed build, 864 capture/replays and 47 artifact-browser cases with one known
+loader skip and no observed retries, then failed at deployment. Its full deployed
+matrix did not run. The previously verified PR artifact remains the publication;
+do not label the failed main aggregate green.
+
+## Preceding verified main publication
 
 [Relic Assembly / PR #64](https://github.com/CrispStrobe/NumberNebula/pull/64)
 merged at exact source
