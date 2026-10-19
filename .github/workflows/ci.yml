@@ -45,6 +45,8 @@ jobs:
       - name: Check repaired round, input, restore and phone contracts
         run: >-
           flutter test
+          test/widgets/space_station_gridlock_round_test.dart
+          test/widgets/space_station_gridlock_loader_test.dart
           test/widgets/quantum_molecule_round_test.dart
           test/widgets/relic_assembly_round_test.dart
           test/widgets/hull_plating_round_test.dart
@@ -62,6 +64,23 @@ jobs:
           test/widgets/hive_station_round_test.dart
           test/widgets/xenobiology_lab_round_test.dart
           --concurrency=2 --reporter expanded
+
+      - name: Compare Gridlock original-API contracts against unchanged baseline
+        run: bash tool/check_gridlock_baseline.sh
+
+      - name: Shuffle Gridlock round and loader contracts
+        run: |
+          for seed in 71 211 1009; do
+            flutter test test/widgets/space_station_gridlock_round_test.dart test/widgets/space_station_gridlock_loader_test.dart --concurrency=1 --reporter expanded --test-randomize-ordering-seed=$seed
+          done
+
+      - name: Upload Gridlock comparison reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gridlock-baseline-report
+          path: build/gridlock-audit/
+          if-no-files-found: warn
 
       - name: Check victory completion and motion settings
         run: flutter test test/widgets/victory_motion_test.dart --concurrency=1 --reporter expanded
