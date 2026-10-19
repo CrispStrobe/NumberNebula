@@ -1,6 +1,7 @@
 # Hull Plating round audit
 
-Implemented version **1.5.36+52**. The preceding verified baseline is
+Implemented version **1.5.37+53**; the initial repair is
+[1.5.36+52 / PR #62](https://github.com/CrispStrobe/NumberNebula/pull/62). The preceding verified baseline is
 [1.5.35+51 / PR #61](https://github.com/CrispStrobe/NumberNebula/pull/61).
 Use the Hull Plating repair PR's exact-source checks and deployed browser results
 before treating this implementation as verified. Test definitions alone do not
@@ -30,6 +31,16 @@ reporting another outcome or showing an earlier round's performance summary;
 terminal boards cannot be captured as playable saves.
 Used inventory is derived from actual restored placements, including legacy
 saves. Removing one legacy duplicate does not return a plate still on the board.
+
+The follow-up covers replacement within the same round: an old removal callback
+previously removed whichever plate occupied its cell. Removal now requires the
+exact placed instance captured by that control. Filled-cell gesture keys also
+include placement identity so a held pointer cannot transfer to a replacement
+after clearing and placing in one frame. Three additional tests cover different
+physical IDs, re-placement of the same physical ID and real pointer-down/up across
+a coalesced replacement. Each checks state, move costs, outcomes and a working
+new removal control. The focused suite contains 45 cases; this count describes
+test definitions until the follow-up remote run passes.
 
 The score remains `100 * grade + 25 * level + 30 * pieceCount` and performance
 remains `Perf.fromMoves(placements, pieceCount)`. Removing or clearing pieces

@@ -5,7 +5,9 @@ Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
 ## October 18 integration
 
-Current implemented version: **1.5.36+52**; see the [Hull Plating audit](docs/hull-plating-round-audit.md).
+Current implemented version: **1.5.37+53**; see the [Hull Plating audit](docs/hull-plating-round-audit.md).
+The initial Hull repair is [PR #62](https://github.com/CrispStrobe/NumberNebula/pull/62), version **1.5.36+52**.
+A follow-up guards same-round plate replacement; its new exact-source checks are required.
 The preceding verified version is **1.5.35+51**, [PR #61](https://github.com/CrispStrobe/NumberNebula/pull/61).
 The preceding verified version is **1.5.34+50**, [PR #60](https://github.com/CrispStrobe/NumberNebula/pull/60).
 The preceding verified baseline is **1.5.33+49**, [PR #59](https://github.com/CrispStrobe/NumberNebula/pull/59).

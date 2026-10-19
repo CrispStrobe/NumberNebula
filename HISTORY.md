@@ -1,5 +1,14 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-10-19 — Hull Plating placement removal identity
+
+Version **1.5.37+53** adds three regressions for stale removal callbacks and a
+held pointer across replacement within the same round. Removal now checks the
+exact placed instance; gesture keys change with that instance, including when
+the same physical plate is removed and placed again. Real replacement controls
+remain usable, and placement costs and outcomes retain their existing rules.
+Remote validation of this follow-up must complete before it is a verified baseline.
+
 ## 2026-10-19 — Hull Plating round contracts
 
 Version **1.5.36+52** implements the [Hull Plating audit](docs/hull-plating-round-audit.md).

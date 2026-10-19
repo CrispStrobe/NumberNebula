@@ -13,7 +13,7 @@ interaction or difficulty question.
 | Solver costs and browser integer representations | App retains pinned v2.2.0, alternatives and fallbacks. Native success alone does not prove dart2js/WASM safety. | I |
 | Rendering/startup claims | Cached paths and remote probes exist; no demonstrated native FPS/battery gain. | J, H |
 | CI duplication and artifact expiry | Full gates pass; calibration artifacts have finite retention. Preserve needed fixtures. | K |
-| Store release readiness | Old 1.4.10 platform labels are historical; the implemented source version is 1.5.36+52. No new store release is claimed. | R |
+| Store release readiness | Old 1.4.10 platform labels are historical; the implemented source version is 1.5.37+53. No new store release is claimed. | R |
 
 ## Reproduction requirements
 

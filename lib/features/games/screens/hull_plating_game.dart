@@ -379,10 +379,11 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     return null;
   }
 
-  void _removePlacedPiece(int row, int col, Object round) {
+  void _removePlacedPiece(
+      int row, int col, Object round, PlacedPiece expected) {
     if (!_canInteract(round)) return;
     final existing = _getPlacedPieceAt(row, col);
-    if (existing == null) return;
+    if (existing == null || !identical(existing, expected)) return;
     AppHaptics.lightImpact();
     setState(() {
       _placedPieces.remove(existing);
@@ -710,8 +711,8 @@ class _HullPlatingGameState extends State<HullPlatingGame>
       }
 
       return GestureDetector(
-        key: ValueKey(('hull-cell', round, row, col)),
-        onTap: () => _removePlacedPiece(row, col, round),
+        key: ValueKey(('hull-cell', round, row, col, ObjectKey(placed))),
+        onTap: () => _removePlacedPiece(row, col, round, placed),
         child: cellWidget,
       );
     }

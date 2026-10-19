@@ -96,7 +96,9 @@ correctness alone is not a terminal marker. Zero-attempt Hive saves offer retry
 without replaying a loss.
 
 Retain Hull Plating's interrupted placement/rotation, restored physical inventory,
-stale drag overlays, owned result routes and controller tests. Next audit Relic
+stale drag overlays, owned result routes and controller tests. Also retain
+placement-instance guards and the three same-round replacement regressions;
+verify the 1.5.37+53 follow-up before claiming that edge case is repaired. Next audit Relic
 Assembly using the applicable checks. **Done:** shared acceptance, rule/placement validation
 and reachable clues/controls on phones. Preserve the rules and existing fallbacks.
 

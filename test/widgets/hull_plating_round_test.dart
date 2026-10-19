@@ -894,4 +894,97 @@ void main() {
     expect(_snapshot(t), before);
     expect(app.gp.outcomeCount, 0);
   });
+  testWidgets(
+      'contract: retained removal cannot remove a different plate placed in the same round',
+      (t) async {
+    final app = await _mount(t);
+    final board = _board();
+    final pieces = (board['puzzle'] as Map<String, dynamic>)['pieces'] as List;
+    // Distinct stored orientations keep both physical IDs available as real
+    // tray sources after clear. Plate20 still fits its fixture solution rotated.
+    (pieces[1] as Map<String, dynamic>)['cells'] = [
+      [0, 0],
+      [1, 0]
+    ];
+    await _restore(t, board);
+    await _drop(t, 10, 0, 0);
+    final oldRemove = t.widget<GestureDetector>(_removal().first).onTap!;
+    expect(_snapshot(t)['_placements'], 1);
+    await t.tap(_clear());
+    await t.pump();
+    expect(_snapshot(t)['_placements'], 1);
+    await _drop(t, 20, 0, 0);
+    final before = _snapshot(t);
+    expect(_placed(before).single.pieceId, 20);
+    expect(_placed(before).single.absoluteCells.toSet(), {(0, 0), (1, 0)});
+    expect(before['_usedPieceIds'], [20]);
+    expect(before['_placements'], 2);
+    oldRemove();
+    await t.pump();
+    expect(_snapshot(t), before);
+    expect(app.gp.outcomeCount, 0);
+    await t.tap(_removal().first);
+    await t.pump();
+    expect(_snapshot(t)['_placedPieces'], isEmpty);
+    expect(_snapshot(t)['_usedPieceIds'], isEmpty);
+    expect(_snapshot(t)['_placements'], 2);
+    expect(app.gp.outcomeCount, 0);
+  });
+  testWidgets(
+      'contract: retained removal cannot remove a new placement of the same physical plate',
+      (t) async {
+    final app = await _mount(t);
+    await _drop(t, 10, 0, 0);
+    final oldRemove = t.widget<GestureDetector>(_removal().first).onTap!;
+    await t.tap(_removal().first);
+    await t.pump();
+    expect(_snapshot(t)['_placements'], 1);
+    await _drop(t, 10, 0, 0);
+    final before = _snapshot(t);
+    expect(_placed(before).single.pieceId, 10);
+    expect(_placed(before).single.absoluteCells, [(0, 0), (0, 1)]);
+    expect(before['_usedPieceIds'], [10]);
+    expect(before['_placements'], 2);
+    // The ID and cells match the old model; the placed-instance identity differs.
+    oldRemove();
+    await t.pump();
+    expect(_snapshot(t), before);
+    expect(app.gp.outcomeCount, 0);
+    await t.tap(_removal().first);
+    await t.pump();
+    expect(_snapshot(t)['_placedPieces'], isEmpty);
+    expect(_snapshot(t)['_usedPieceIds'], isEmpty);
+    expect(_snapshot(t)['_placements'], 2);
+    expect(app.gp.outcomeCount, 0);
+  });
+  testWidgets(
+      'contract: pointer-down removal cannot transfer to a coalesced replacement plate',
+      (t) async {
+    final app = await _mount(t);
+    final dynamic emptyTarget = t.widget(_cell(t, 0, 0));
+    await _drop(t, 10, 0, 0);
+    final dynamic unusedSource = t.widget(_source(t, 20));
+    final clear = t.widget<IconButton>(_clear()).onPressed!;
+    final gesture = await t.startGesture(t.getCenter(_removal().first));
+    // Invoke actual control callbacks in the same frame: rendering an empty
+    // cell between them would dispose the old recognizer and hide this defect.
+    clear();
+    _deliver(emptyTarget, unusedSource.data);
+    await t.pump();
+    final before = _snapshot(t);
+    expect(_placed(before).single.pieceId, 20);
+    expect(_placed(before).single.absoluteCells, [(0, 0), (0, 1)]);
+    expect(before['_usedPieceIds'], [20]);
+    expect(before['_placements'], 2);
+    await gesture.up();
+    await t.pump();
+    expect(_snapshot(t), before);
+    expect(app.gp.outcomeCount, 0);
+    await t.tap(_removal().first);
+    await t.pump();
+    expect(_snapshot(t)['_placedPieces'], isEmpty);
+    expect(_snapshot(t)['_usedPieceIds'], isEmpty);
+    expect(_snapshot(t)['_placements'], 2);
+    expect(app.gp.outcomeCount, 0);
+  });
 }
