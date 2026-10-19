@@ -3,9 +3,38 @@
 Updated 2026-10-19. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
+## Latest verified publication
+
+The Hull follow-up [PR #63](https://github.com/CrispStrobe/NumberNebula/pull/63)
+merged at exact commit
+[`8eacaf5`](https://github.com/CrispStrobe/NumberNebula/commit/8eacaf5d3d757951e524dfa1304ec3a351a65de1),
+version **1.5.37+53**. Its configured remote validation passed 1,784 native
+cases, all 45 Hull cases, 60,400 generation cases and 864 Flutter capture/replays.
+The [GitHub artifact browser run](https://github.com/CrispStrobe/NumberNebula/actions/runs/39216951997)
+passed 43 cases with one existing loader skip and zero observed retries; its
+synthetic merge checkout has the same source tree as the repair head.
+[CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/39216951516) and
+[pure calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/39216951688)
+also passed.
+
+The tested shipping-wrapper artifact was published to
+[numbernebula.vercel.app](https://numbernebula.vercel.app/), with independently
+verified core hashes, runtime source marker, version and isolation headers.
+The [canonical hosted report](https://numbernebula-zdy7l8azl-crispstrobes-projects.vercel.app/hosted-proof.json)
+records two passing Hull checks, Chromium/WASM and Firefox/JavaScript, with no
+skips or retries and stable artifact hashes before and after; report deployment
+protection applies. This supplemental check covers Hull, not every browser case.
+Merged-main [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/39224294323),
+[calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/39224294324)
+and [web/deployment](https://github.com/CrispStrobe/NumberNebula/actions/runs/39224294362)
+were queued at publication; check their current outcomes before claiming them green.
+Relic's implementation below still needs its own exact-head validation.
+
 ## October 18 integration
 
-Current implemented version: **1.5.37+53**; see the [Hull Plating audit](docs/hull-plating-round-audit.md).
+Current implemented version: **1.5.38+54**; see the [Relic Assembly audit](docs/relic-assembly-round-audit.md).
+The preceding Hull follow-up is **1.5.37+53**, [PR #63](https://github.com/CrispStrobe/NumberNebula/pull/63);
+use its exact-source native, browser and deployment evidence rather than assuming a queued check passed.
 The initial Hull repair is [PR #62](https://github.com/CrispStrobe/NumberNebula/pull/62), version **1.5.36+52**.
 A follow-up guards same-round plate replacement; its new exact-source checks are required.
 The preceding verified version is **1.5.35+51**, [PR #61](https://github.com/CrispStrobe/NumberNebula/pull/61).
@@ -17,7 +46,7 @@ repairs the October 17 audits and integrates the work originally proposed in
 build evidence for the current source. Historical green runs do not validate a
 later head.
 
-There are focused round suites for **34 registered games**, with **14** remaining
+There are focused round suites for **35 registered games**, with **13** remaining
 to audit. All 22 newly skipped acceptance cases from the October 17 changes have
 been re-enabled, the Arithmetic Square placeholder has been replaced by actual
 input/save/inventory/terminal tests, and a coverage contract rejects skipped
@@ -38,8 +67,9 @@ sample/proof claims have been withdrawn. This is not human difficulty calibratio
 
 Puzzle Math (B) is implemented in [PR #61](https://github.com/CrispStrobe/NumberNebula/pull/61); see its
 [round audit](docs/puzzle-math-round-audit.md). Hull Plating (C) is implemented in its [round audit](docs/hull-plating-round-audit.md);
-verify its repair PR before treating it as a green baseline. The next screen audit
-is Relic Assembly (C), followed by the unchanged D/E/F lanes. H has a
+verify its repair PR before treating it as a green baseline. Relic Assembly (C)
+has an [implementation under validation](docs/relic-assembly-round-audit.md).
+The next screen audit is Molecule Builder (D), followed by the unchanged D/E/F games. H has a
 [prepared playtest protocol](docs/human-playtest-protocol.md); R has a
 [draft readiness document](docs/release-readiness.md). Neither claims device
 measurements or a new store release.
@@ -116,6 +146,7 @@ fixes just because an older planning document predates them.
 
 | Games | Merged public change |
 | --- | --- |
+| Relic Assembly | [Round audit; exact-source validation required](docs/relic-assembly-round-audit.md) |
 | Hull Plating | [Round audit](docs/hull-plating-round-audit.md) |
 | Puzzle Math | [Round audit](docs/puzzle-math-round-audit.md) |
 | Codebreaker | [Round audit](docs/codebreaker-round-audit.md) |

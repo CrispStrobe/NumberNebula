@@ -7,10 +7,12 @@ Completed work belongs in [HISTORY.md](HISTORY.md).
 1. **A complete in the integrated repair:** retain Star Forge, Chrono Repair and
    Orbital Towers acceptance coverage; consult [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)
    for the exact validated/merged head.
-2. **B–F:** Verify Hull Plating exact-head checks, then audit the remaining 14
-   registered games. Start with Relic Assembly (C), or independently
-   owned D/E/F batches. There are now 34 implemented focused round suites; all 48 already
-   have generation/session baseline coverage.
+2. **B–F:** Verify Hull Plating's follow-up and Relic Assembly's exact-source
+   repair checks, then audit the remaining 13 registered games. Start with
+   Molecule Builder (D), or independently owned D/E/F games, one game per PR.
+   There are 35 implemented focused round suites; all 48 already have
+   generation/session baseline coverage. Implemented tests are not passing evidence.
+
 3. **G and I:** In parallel when resources permit, inspect structural progression
    flags and create a narrow reproducible upstream solver benchmark. Preserve
    all baseline/candidate/fallback paths and avoid automatic par changes.

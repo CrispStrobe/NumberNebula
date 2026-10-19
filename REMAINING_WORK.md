@@ -15,10 +15,10 @@ its exact key and release criteria here. Audit lanes below do not withhold games
 
 ### Fixed and shipping
 
-All 48 registered games are available in the menu and missions. The 34 implemented
+All 48 registered games are available in the menu and missions. The 35 implemented
 focused round audits are mapped in [HANDOVER.md](HANDOVER.md); historical browser
 play-throughs are archived in [game-quality notes](docs/game-quality-history.md).
-The remaining 14 focused audits are additional hardening work, not a broken-game list.
+The remaining 13 focused audits are additional hardening work, not a broken-game list.
 
 ## Shared acceptance for game lanes A–F
 
@@ -88,19 +88,26 @@ before treating the lane as validated. Preserve generator choices.
 
 ## C — Remaining construction rounds
 
-**Status:** Hull Plating implemented; verify the [round audit](docs/hull-plating-round-audit.md)
-and exact-source repair checks. **Remaining game/screen:** `relic_assembly_game.dart`.
+**Status:** Relic Assembly is implemented under validation; verify its
+[round audit](docs/relic-assembly-round-audit.md) before treating lane C as a green
+baseline. Hull Plating's follow-up is [PR #63](https://github.com/CrispStrobe/NumberNebula/pull/63).
+No further construction screen remains once the Relic repair is verified.
 Alien Tribunal, Hive Station and Xenobiology Lab have integrated #58 suites.
 Manual-submit games must retain correct-but-unsubmitted saved answers as playable;
 correctness alone is not a terminal marker. Zero-attempt Hive saves offer retry
 without replaying a loss.
 
-Retain Hull Plating's interrupted placement/rotation, restored physical inventory,
-stale drag overlays, owned result routes and controller tests. Also retain
-placement-instance guards and the three same-round replacement regressions;
-verify the 1.5.37+53 follow-up before claiming that edge case is repaired. Next audit Relic
-Assembly using the applicable checks. **Done:** shared acceptance, rule/placement validation
-and reachable clues/controls on phones. Preserve the rules and existing fallbacks.
+Retain Hull's physical inventory, frozen drag orientation, placement-instance
+removal guards, owned routes and motion checks. Relic adds both real drag and
+select/tap placement, physical-index bijection, editable incorrect saves,
+round/placement ownership, silent terminal restores, owned dialogs, phone controls
+and seven controlled async-generation cases through the production await path.
+Its 31 original-API cases and seven seam cases are separate evidence scopes:
+old-source comparisons exclude `seam:` names because the baseline lacks that seam.
+Run all 38 on the repair, preserve the two existing meaningful layout tests,
+and verify full native/generation/both-engine/deployment checks on the exact
+pushed source and merged main. Keep generators, free rotations and scoring.
+Next audit Molecule Builder in D, with one game per PR.
 
 ## D — Planning and bundled-level rounds
 
@@ -138,7 +145,7 @@ Start with Arithmancer: schedule an AI response, replace/restore the round, and
 prove the response cannot land in the new state. Verify turn ownership, selected
 cards, outcomes once, localized turn labels, pause/retry and disposal. Repeat
 for Asteroid Duel. **Done:** shared acceptance and legal-move/AI regression tests.
-C–F cover the 14 registered games without implemented dedicated round audits.
+D–F cover the 13 registered games without implemented dedicated round audits.
 Legacy screens such as `bubble_math_game.dart` and `creature_forge_game.dart`
 are not extra registered-game lanes; do not delete them as incidental cleanup.
 

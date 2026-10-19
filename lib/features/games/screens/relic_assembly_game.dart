@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../services/generation_configs.dart';
 import 'package:space_math_academy/core/services/app_haptics.dart';
 import '../mixins/puzzle_session_mixin.dart';
@@ -18,46 +20,88 @@ import '../constants/difficulty_manager.dart';
 import '../services/relic_assembly_logic.dart';
 import 'package:flutter/foundation.dart';
 
+typedef _Drag = ({int tileIndex, Object round, int rotation});
+
 class RelicAssemblyGame extends StatefulWidget {
   final int grade;
   final int level;
-  const RelicAssemblyGame({super.key, required this.grade, required this.level});
+  const RelicAssemblyGame({
+    super.key,
+    required this.grade,
+    required this.level,
+  });
 
   @override
   State<RelicAssemblyGame> createState() => _RelicAssemblyGameState();
 }
 
 class _RelicAssemblyGameState extends State<RelicAssemblyGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<RelicAssemblyGame>, PuzzleSessionMixin<RelicAssemblyGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<RelicAssemblyGame>,
+        PuzzleSessionMixin<RelicAssemblyGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'relic_assembly';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  @override
+  String get sessionGameKey => 'relic_assembly';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _terminal || puzzle == null) {
+      return null;
+    }
     return {
       'puzzle': (puzzle?.toJson()),
       'placement': placement.map((v0) => v0).toList(),
       'rotations': rotations.map((v0) => v0).toList(),
       '_placements': _placements,
-      'selectedTileIndex': (selectedTileIndex)
+      'selectedTileIndex': (selectedTileIndex),
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    puzzle = (state["puzzle"] == null ? null : RelicAssemblyPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRound();
+    puzzle = (state["puzzle"] == null
+        ? null
+        : RelicAssemblyPuzzle.fromJson(
+            Map<String, dynamic>.from(state["puzzle"] as Map),
+          ));
     placement = (state["placement"] as List).map((v0) => v0 as int).toList();
     rotations = (state["rotations"] as List).map((v0) => v0 as int).toList();
     _placements = state["_placements"] as int;
-    selectedTileIndex = (state["selectedTileIndex"] == null ? null : state["selectedTileIndex"] as int);
+    selectedTileIndex = (state["selectedTileIndex"] == null
+        ? null
+        : state["selectedTileIndex"] as int);
     _isGenerating = false;
+    _sessionReady = true;
+    _cellTokens = List.generate(placement.length, (_) => Object());
+    if (selectedTileIndex != null && !_unused(selectedTileIndex!)) {
+      selectedTileIndex = null;
+    }
+    if (_isSolved) {
+      _terminal = true;
+      finishPuzzleSession();
+      successController.value = 1;
+      final round = _round;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && identical(round, _round) && _terminal) {
+          _showWinDialog(_winScore, round);
+        }
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
+
   Future<void> _restoreOrGenerate() async {
-    if (!await restorePuzzleSession() && mounted) {
+    final round = _round;
+    if (!await restorePuzzleSession() && mounted && identical(round, _round)) {
       await Future<void>.sync(_generatePuzzle);
     }
     if (mounted) setState(() => _sessionReady = true);
   }
-
 
   RelicAssemblyPuzzle? puzzle;
   bool _isGenerating = true;
@@ -72,6 +116,96 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
   late List<int> rotations;
   // Selected tile for placement (from tray)
   int? selectedTileIndex;
+
+  Object _round = Object();
+  bool _terminal = false;
+  bool _reportedOutcome = false;
+  bool _generationFailed = false;
+  DialogRoute<void>? _resultRoute;
+  List<Object> _cellTokens = [];
+
+  bool _canInteract(Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      !_terminal &&
+      !_isGenerating &&
+      !_generationFailed &&
+      puzzle != null;
+
+  bool _unused(int index) =>
+      puzzle != null &&
+      index >= 0 &&
+      index < puzzle!.playerTiles.length &&
+      !placement.contains(index);
+
+  bool _canUseSource(int index, Object round) =>
+      _canInteract(round) && _unused(index);
+
+  bool _ownsCell(int pos, int index, Object round, Object token) =>
+      _canInteract(round) &&
+      pos >= 0 &&
+      pos < placement.length &&
+      placement[pos] == index &&
+      identical(_cellTokens[pos], token);
+
+  bool _emptyCell(int pos, Object round) =>
+      _canInteract(round) &&
+      pos >= 0 &&
+      pos < placement.length &&
+      placement[pos] == -1;
+
+  bool _accepts(_Drag drag, int pos, Object round) =>
+      _emptyCell(pos, round) &&
+      identical(drag.round, _round) &&
+      _canUseSource(drag.tileIndex, round) &&
+      drag.rotation >= 0 &&
+      drag.rotation < 4;
+
+  bool get _isSolved {
+    final board = puzzle;
+    if (board == null ||
+        placement.length != board.rows * board.cols ||
+        board.playerTiles.length != placement.length ||
+        rotations.length != board.playerTiles.length ||
+        placement.toSet().length != placement.length ||
+        placement.any(
+          (index) => index < 0 || index >= board.playerTiles.length,
+        )) {
+      return false;
+    }
+    return board.validatePlacement(placement, rotations);
+  }
+
+  int get _winScore => 100 * widget.grade + widget.level * 25;
+
+  void _resetRound() {
+    _round = Object();
+    _terminal = false;
+    _reportedOutcome = false;
+    _generationFailed = false;
+    cancelOneShotMotion(successController);
+    successController.reset();
+    final route = _resultRoute;
+    _resultRoute = null;
+    if (route != null && route.isActive) route.navigator?.removeRoute(route);
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(
+      successController,
+      reduced,
+      duration: const Duration(milliseconds: 600),
+    );
+  }
+
+  bool _canUseDialog(Object round, BuildContext dialogContext) =>
+      mounted &&
+      identical(round, _round) &&
+      _terminal &&
+      dialogContext.mounted &&
+      identical(ModalRoute.of(dialogContext), _resultRoute) &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
 
   // Glyph symbols for display
   static const _glyphSymbols = ['1', '2', '3', '4', '5', '6', '7', '8'];
@@ -91,11 +225,14 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
     super.initState();
     initGameAnimations(usePulse: false);
 
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(
+          gp,
+          widget.level,
+          gradeOverride: widget.grade,
+        );
         _restoreOrGenerate();
       }
     });
@@ -104,127 +241,178 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _round = Object();
+    final route = _resultRoute;
+    _resultRoute = null;
+    final navigator = route?.navigator;
+    if (route != null && navigator != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (navigator.mounted && route.isActive) navigator.removeRoute(route);
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
     disposeGameAnimations(usePulse: false);
     super.dispose();
   }
 
-  int _getRows() => RelicAssemblyGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getRows();
+  int _getRows() => RelicAssemblyGenerationConfig(
+        currentDifficulty?.grade ?? widget.grade,
+        currentDifficulty?.level ?? widget.level,
+      ).getRows();
 
-  int _getCols() => RelicAssemblyGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getCols();
+  int _getCols() => RelicAssemblyGenerationConfig(
+        currentDifficulty?.grade ?? widget.grade,
+        currentDifficulty?.level ?? widget.level,
+      ).getCols();
 
-  int _getEdgeValueCount() => RelicAssemblyGenerationConfig(currentDifficulty?.grade ?? widget.grade, currentDifficulty?.level ?? widget.level).getEdgeValueCount();
+  int _getEdgeValueCount() => RelicAssemblyGenerationConfig(
+        currentDifficulty?.grade ?? widget.grade,
+        currentDifficulty?.level ?? widget.level,
+      ).getEdgeValueCount();
 
-  Future<void> _generatePuzzle() async {
+  @visibleForTesting
+  Future<void> generateForTesting(Future<RelicAssemblyPuzzle> pending) =>
+      _generatePuzzle(pending: pending);
+
+  Future<void> _generatePuzzle({Future<RelicAssemblyPuzzle>? pending}) async {
+    if (!mounted) return;
+    _resetRound();
     beginPuzzleSession();
+    final round = _round;
     setState(() {
       _isGenerating = true;
       _placements = 0;
       selectedTileIndex = null;
-      successController.reset();
     });
-
     try {
       final generator = RelicAssemblyGenerator();
-      final p = await generator.generate(
-        rows: _getRows(),
-        cols: _getCols(),
-        edgeValueCount: _getEdgeValueCount(),
-      );
-
-      if (mounted) {
-        setState(() {
-          puzzle = p;
-          placement = List.filled(p.rows * p.cols, -1);
-          rotations = List.generate(p.playerTiles.length, (i) => p.playerTiles[i].rotation);
-          _isGenerating = false;
-        });
-      }
+      final p = await (pending ??
+          generator.generate(
+            rows: _getRows(),
+            cols: _getCols(),
+            edgeValueCount: _getEdgeValueCount(),
+          ));
+      if (!mounted || !identical(round, _round)) return;
+      setState(() {
+        puzzle = p;
+        placement = List.filled(p.rows * p.cols, -1);
+        rotations = List.generate(
+          p.playerTiles.length,
+          (i) => p.playerTiles[i].rotation,
+        );
+        _cellTokens = List.generate(placement.length, (_) => Object());
+        _isGenerating = false;
+      });
     } catch (e) {
+      if (!mounted || !identical(round, _round)) return;
       if (kDebugMode) debugPrint('[RelicAssembly] Error generating puzzle: $e');
+      setState(() {
+        puzzle = null;
+        _isGenerating = false;
+        _generationFailed = true;
+      });
     }
   }
 
-  void _selectTile(int tileIdx) {
-    setState(() {
-      if (selectedTileIndex == tileIdx) {
-        selectedTileIndex = null;
-      } else {
-        selectedTileIndex = tileIdx;
-      }
-    });
+  void _selectTile(int index, Object round) {
+    if (!_canUseSource(index, round)) return;
+    setState(
+      () => selectedTileIndex = selectedTileIndex == index ? null : index,
+    );
   }
 
-  void _rotateTile(int tileIdx) {
-    setState(() {
-      rotations[tileIdx] = (rotations[tileIdx] + 1) % 4;
-    });
+  void _rotateTrayTile(int index, Object round) {
+    if (!_canUseSource(index, round)) return;
+    setState(() => rotations[index] = (rotations[index] + 1) % 4);
     AppHaptics.selectionClick();
   }
 
-  void _placeTileAt(int gridPos) {
-    if (selectedTileIndex == null) return;
+  void _rotateGridTile(int pos, int index, Object round, Object cell) {
+    if (!_ownsCell(pos, index, round, cell)) return;
+    setState(() => rotations[index] = (rotations[index] + 1) % 4);
+    AppHaptics.selectionClick();
+    _checkSolution();
+  }
 
+  void _placeTileAt(int pos, Object round, {_Drag? drag}) {
+    final index = drag?.tileIndex ?? selectedTileIndex;
+    if (index == null || !_emptyCell(pos, round)) return;
+    if (drag != null) {
+      if (!_accepts(drag, pos, round)) return;
+    } else if (!_unused(index)) {
+      return;
+    }
     setState(() {
-      // Remove tile from previous position if any
-      for (int i = 0; i < placement.length; i++) {
-        if (placement[i] == selectedTileIndex) {
-          placement[i] = -1;
-        }
-      }
-      // Place tile at this position
-      placement[gridPos] = selectedTileIndex!;
+      // The visual drag retains its starting orientation even if another
+      // control has since turned this still-unused tile.
+      if (drag != null) rotations[index] = drag.rotation;
+      placement[pos] = index;
+      _cellTokens[pos] = Object();
       selectedTileIndex = null;
       _placements++;
-
-      // If there was a tile here, don't auto-select it
     });
-
     AppHaptics.lightImpact();
     _checkSolution();
   }
 
-  void _removeTileFromGrid(int gridPos) {
+  void _removeTileFromGrid(int pos, int index, Object round, Object cell) {
+    if (!_ownsCell(pos, index, round, cell)) return;
     setState(() {
-      placement[gridPos] = -1;
+      placement[pos] = -1;
+      _cellTokens[pos] = Object();
     });
   }
 
   void _checkSolution() {
-    // Check if all positions are filled
-    if (placement.any((p) => p < 0)) return;
-
-    if (puzzle!.validatePlacement(placement, rotations)) {
-      _handleWin();
-    }
+    if (_canInteract(_round) && _isSolved) _handleWin();
   }
 
   void _handleWin() {
+    if (!_canInteract(_round) || !_isSolved) return;
+    _terminal = true;
+    _reportedOutcome = true;
+    final round = _round;
     AppHaptics.lightImpact();
-    int baseScore = 100 * widget.grade;
-    int levelBonus = widget.level * 25;
-    int totalScore = baseScore + levelBonus;
-
+    final totalScore = _winScore;
     finishPuzzleSession();
+    context.read<GameProvider>().reportOutcome(
+          GameOutcome.win(
+            skillLevel: widget.grade,
+            gameType: 'relic_assembly',
+            difficulty: widget.level,
+            score: totalScore,
+            performance: Perf.fromMoves(_placements, placement.length),
+            movesUsed: _placements,
+            optimalMoves: placement.length,
+          ),
+        );
+    successController.reset();
+    playOneShotMotion(successController, () {});
+    _showWinDialog(totalScore, round);
+  }
 
-    context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'relic_assembly',
-      difficulty: widget.level,
-      score: totalScore,
-      performance: Perf.fromMoves(_placements, placement.length),
-
-      movesUsed: _placements,
-      optimalMoves: placement.length,
-    ));
-
-    successController.forward(from: 0.0);
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _buildWinDialog(totalScore),
-      );
+  void _showWinDialog(int score, Object round) {
+    if (!mounted ||
+        !identical(round, _round) ||
+        !_terminal ||
+        (_resultRoute?.isActive ?? false)) {
+      return;
     }
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final route = DialogRoute<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: DialogTheme.of(context).barrierColor ?? Colors.black54,
+      themes: InheritedTheme.capture(from: context, to: navigator.context),
+      traversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
+      builder: (ctx) => _buildWinDialog(score, round, ctx),
+    );
+    _resultRoute = route;
+    unawaited(
+      navigator.push<void>(route).then((_) {
+        if (identical(_resultRoute, route)) _resultRoute = null;
+      }),
+    );
   }
 
   /// Check if the edge of a placed tile at grid position [pos] matches
@@ -263,8 +451,12 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
     final neighborTileIdx = placement[neighborPos];
     if (neighborTileIdx < 0) return null;
 
-    final tile = puzzle!.playerTiles[tileIdx].copyWith(rotation: rotations[tileIdx]);
-    final neighbor = puzzle!.playerTiles[neighborTileIdx].copyWith(rotation: rotations[neighborTileIdx]);
+    final tile = puzzle!.playerTiles[tileIdx].copyWith(
+      rotation: rotations[tileIdx],
+    );
+    final neighbor = puzzle!.playerTiles[neighborTileIdx].copyWith(
+      rotation: rotations[neighborTileIdx],
+    );
     return tile.getEdge(side) == neighbor.getEdge(neighborSide);
   }
 
@@ -274,8 +466,11 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
+    final round = _round;
 
     if (puzzle == null || _isGenerating) {
       return Scaffold(
@@ -284,9 +479,22 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: 16),
-                Text(s.loadingAdventure, style: SpaceTheme.bodyStyle),
+                if (_generationFailed)
+                  ElevatedButton(
+                    onPressed: () {
+                      if (mounted &&
+                          identical(round, _round) &&
+                          _generationFailed) {
+                        _generatePuzzle();
+                      }
+                    },
+                    child: Text(s.tryAgain),
+                  )
+                else ...[
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(s.loadingAdventure, style: SpaceTheme.bodyStyle),
+                ],
               ],
             ),
           ),
@@ -300,27 +508,56 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
           child: Column(
             children: [
               GameUI(
+                key: ValueKey(('relic-back', round)),
                 title: s.relicAssemblyTitle,
                 level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: () {
+                  if (mounted &&
+                      identical(round, _round) &&
+                      ModalRoute.of(context)?.isCurrent == true) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Text(
-                  s.relicAssemblyInstructions,
-                  style: SpaceTheme.bodyStyle,
-                  textAlign: TextAlign.center,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.sizeOf(context).height * 0.16,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Text(
+                      s.relicAssemblyInstructions,
+                      style: SpaceTheme.bodyStyle,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
               ),
               Expanded(
-                flex: 3,
-                child: _buildGridArea(),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final available = math.max(0.0, constraints.maxHeight - 8);
+                    final gridHeight = math.max(
+                      puzzle!.rows * 52.0 + 28,
+                      available * 0.6,
+                    );
+                    final trayHeight = math.max(100.0, available * 0.4);
+                    return SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          SizedBox(height: gridHeight, child: _buildGridArea()),
+                          SizedBox(height: trayHeight, child: _buildTileTray()),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
-              Expanded(
-                flex: 2,
-                child: _buildTileTray(),
-              ),
-              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -334,31 +571,41 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
     // Fill the space the board is given rather than a fixed 80px: on a tablet
     // the old cap left the pieces thumbnail-sized with most of the screen
     // empty, and the edge glyphs scale with the cell.
-    return LayoutBuilder(builder: (context, constraints) {
-    final cellSize = math.min(
-      (constraints.maxWidth - 60) / cols,
-      (constraints.maxHeight - 40) / rows,
-    ).clamp(48.0, 140.0);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cellSize = math
+            .min(
+              (constraints.maxWidth - 60) / cols,
+              (constraints.maxHeight - 40) / rows,
+            )
+            .clamp(48.0, 140.0);
 
-    return Center(
-      child: AnimatedBuilder(
-        animation: glowAnimation,
-        builder: (context, child) {
-          return Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                colors: [
-                  SpaceTheme.planetOrange.withValues(alpha: 0.1 * glowAnimation.value),
-                  SpaceTheme.deepSpace.withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: SpaceTheme.planetOrange.withValues(alpha: glowAnimation.value),
-                width: 2,
-              ),
-            ),
+        return Center(
+          child: AnimatedBuilder(
+            animation: glowAnimation,
+            builder: (context, child) {
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    colors: [
+                      SpaceTheme.planetOrange.withValues(
+                        alpha: 0.1 * glowAnimation.value,
+                      ),
+                      SpaceTheme.deepSpace.withValues(alpha: 0.05),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: SpaceTheme.planetOrange.withValues(
+                      alpha: glowAnimation.value,
+                    ),
+                    width: 2,
+                  ),
+                ),
+                child: child,
+              );
+            },
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: List.generate(rows, (r) {
@@ -371,43 +618,54 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
                 );
               }),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
-    });
   }
 
   Widget _buildGridSlot(int pos, double cellSize) {
     final tileIdx = placement[pos];
+    final round = _round;
+    final cell = _cellTokens[pos];
+    final reduced = MediaQuery.disableAnimationsOf(context);
 
     if (tileIdx >= 0) {
       final tile = puzzle!.playerTiles[tileIdx];
       return GestureDetector(
+        key: ValueKey(('relic-cell', round, pos, cell)),
         behavior: HitTestBehavior.opaque,
-        onTap: () {
-          // Tap to rotate on the grid
-          _rotateTile(tileIdx);
-          _checkSolution();
-        },
-        onLongPress: () => _removeTileFromGrid(pos),
+        onTap: () => _rotateGridTile(pos, tileIdx, round, cell),
+        onLongPress: () => _removeTileFromGrid(pos, tileIdx, round, cell),
         child: Stack(
           children: [
-            _buildTileWidget(tile, rotations[tileIdx], cellSize, false, gridPos: pos),
+            _buildTileWidget(
+              tile,
+              rotations[tileIdx],
+              cellSize,
+              false,
+              gridPos: pos,
+            ),
             // Rotate indicator
             Positioned(
-              top: 2, right: 2,
-              child: Icon(Icons.rotate_right, size: 14,
-                color: SpaceTheme.starYellow.withValues(alpha: 0.7)),
+              top: 2,
+              right: 2,
+              child: Icon(
+                Icons.rotate_right,
+                size: 14,
+                color: SpaceTheme.starYellow.withValues(alpha: 0.7),
+              ),
             ),
             // Taking a piece back off the grid used to be long-press only,
             // with nothing on screen to suggest it -- so a misplaced piece
             // looked permanent and the puzzle looked unplayable.
             Positioned(
-              bottom: 2, right: 2,
+              bottom: 2,
+              right: 2,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: () => _removeTileFromGrid(pos),
+                key: ValueKey(('relic-remove', round, pos, cell)),
+                onTap: () => _removeTileFromGrid(pos, tileIdx, round, cell),
                 child: Container(
                   padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
@@ -424,14 +682,17 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
     }
 
     // Empty slot -- accepts drag OR tap (if tile selected)
-    return DragTarget<int>(
+    return DragTarget<_Drag>(
+      key: ValueKey(('relic-cell', round, pos, cell)),
       builder: (context, candidates, _) {
         final isHovering = candidates.isNotEmpty;
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () => _placeTileAt(pos),
+          onTap: () => _placeTileAt(pos, round),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            key: ValueKey(reduced),
+            duration:
+                reduced ? Duration.zero : const Duration(milliseconds: 200),
             width: cellSize,
             height: cellSize,
             margin: const EdgeInsets.all(2),
@@ -451,28 +712,39 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
                 width: isHovering ? 3 : (selectedTileIndex != null ? 2 : 1),
               ),
               boxShadow: isHovering
-                  ? [BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.4), blurRadius: 8)]
+                  ? [
+                      BoxShadow(
+                        color: SpaceTheme.starYellow.withValues(alpha: 0.4),
+                        blurRadius: 8,
+                      ),
+                    ]
                   : null,
             ),
             child: Center(
               child: Icon(
                 Icons.add,
-                color: isHovering ? SpaceTheme.starYellow : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
+                color: isHovering
+                    ? SpaceTheme.starYellow
+                    : SpaceTheme.nebulaPurple.withValues(alpha: 0.5),
                 size: cellSize * 0.3,
               ),
             ),
           ),
         );
       },
-      onWillAcceptWithDetails: (_) => true,
-      onAcceptWithDetails: (details) {
-        setState(() => selectedTileIndex = details.data);
-        _placeTileAt(pos);
-      },
+      onWillAcceptWithDetails: (details) => _accepts(details.data, pos, round),
+      onAcceptWithDetails: (details) =>
+          _placeTileAt(pos, round, drag: details.data),
     );
   }
 
-  Widget _buildTileWidget(RelicTile tile, int rotation, double size, bool isSelected, {int? gridPos}) {
+  Widget _buildTileWidget(
+    RelicTile tile,
+    int rotation,
+    double size,
+    bool isSelected, {
+    int? gridPos,
+  }) {
     final effectiveTile = tile.copyWith(rotation: rotation);
     final edgeSize = size * 0.25;
 
@@ -503,28 +775,52 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
             top: 2,
             left: 0,
             right: 0,
-            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(0), edgeSize, matchState: topMatch)),
+            child: Center(
+              child: _buildEdgeLabel(
+                effectiveTile.getEdge(0),
+                edgeSize,
+                matchState: topMatch,
+              ),
+            ),
           ),
           // Right edge
           Positioned(
             right: 2,
             top: 0,
             bottom: 0,
-            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(1), edgeSize, matchState: rightMatch)),
+            child: Center(
+              child: _buildEdgeLabel(
+                effectiveTile.getEdge(1),
+                edgeSize,
+                matchState: rightMatch,
+              ),
+            ),
           ),
           // Bottom edge
           Positioned(
             bottom: 2,
             left: 0,
             right: 0,
-            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(2), edgeSize, matchState: bottomMatch)),
+            child: Center(
+              child: _buildEdgeLabel(
+                effectiveTile.getEdge(2),
+                edgeSize,
+                matchState: bottomMatch,
+              ),
+            ),
           ),
           // Left edge
           Positioned(
             left: 2,
             top: 0,
             bottom: 0,
-            child: Center(child: _buildEdgeLabel(effectiveTile.getEdge(3), edgeSize, matchState: leftMatch)),
+            child: Center(
+              child: _buildEdgeLabel(
+                effectiveTile.getEdge(3),
+                edgeSize,
+                matchState: leftMatch,
+              ),
+            ),
           ),
         ],
       ),
@@ -569,6 +865,7 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
 
   Widget _buildTileTray() {
     final placedIndices = _getPlacedTileIndices();
+    final round = _round;
     final availableTiles = <int>[];
     for (int i = 0; i < puzzle!.playerTiles.length; i++) {
       if (!placedIndices.contains(i)) {
@@ -576,97 +873,143 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
       }
     }
 
-    return LayoutBuilder(builder: (context, constraints) {
-    // As large as the tray allows (up to 110px), so the edge glyphs are
-    // readable and a child's finger can hit a piece.
-    final count = math.max(1, availableTiles.length);
-    final tileSize = math.min(
-      (constraints.maxWidth - 64 - 8 * (count - 1)) / count,
-      constraints.maxHeight - 32,
-    ).clamp(56.0, 110.0);
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(8),
-      decoration: SpaceTheme.cardDecoration.copyWith(
-        border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
-      ),
-      child: availableTiles.isEmpty
-          ? Center(
-              child: Text(
-                S.of(context)!.relicAssemblyInstructions,
-                style: SpaceTheme.bodyStyle.copyWith(color: Colors.white70),
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // As large as the tray allows (up to 110px), so the edge glyphs are
+        // readable and a child's finger can hit a piece.
+        final count = math.max(1, availableTiles.length);
+        final tileSize = math
+            .min(
+              (constraints.maxWidth - 64 - 8 * (count - 1)) / count,
+              constraints.maxHeight - 32,
             )
-          : SingleChildScrollView(
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                alignment: WrapAlignment.center,
-                children: availableTiles.map((idx) {
-                  final isSelected = selectedTileIndex == idx;
-                  return Draggable<int>(
-                    data: idx,
-                    feedback: Material(
-                      color: Colors.transparent,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          boxShadow: [BoxShadow(
-                            color: SpaceTheme.starYellow.withValues(alpha: 0.6),
-                            blurRadius: 15, spreadRadius: 3,
-                          )],
-                        ),
-                        child: _buildTileWidget(
-                          puzzle!.playerTiles[idx], rotations[idx], tileSize, true,
-                        ),
+            .clamp(56.0, 110.0);
+
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.all(8),
+          decoration: SpaceTheme.cardDecoration.copyWith(
+            border: Border.all(color: SpaceTheme.nebulaPurple, width: 2),
+          ),
+          child: availableTiles.isEmpty
+              ? Center(
+                  child: SingleChildScrollView(
+                    child: Text(
+                      S.of(context)!.relicAssemblyInstructions,
+                      style: SpaceTheme.bodyStyle.copyWith(
+                        color: Colors.white70,
                       ),
                     ),
-                    childWhenDragging: Opacity(
-                      opacity: 0.3,
-                      child: _buildTileWidget(
-                        puzzle!.playerTiles[idx], rotations[idx], tileSize, false,
-                      ),
-                    ),
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => _selectTile(idx),
-                      onLongPress: () => _rotateTile(idx),
-                      child: Stack(
-                        children: [
-                          _buildTileWidget(
-                            puzzle!.playerTiles[idx], rotations[idx], tileSize, isSelected,
-                          ),
-                          // Rotate button overlay
-                          Positioned(
-                            top: 0, right: 0,
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () => _rotateTile(idx),
-                              child: Container(
-                                width: 32, height: 32,
-                                decoration: BoxDecoration(
-                                  color: SpaceTheme.nebulaPurple.withValues(alpha: 0.8),
-                                  borderRadius: const BorderRadius.only(
-                                    bottomLeft: Radius.circular(8),
-                                    topRight: Radius.circular(6),
+                  ),
+                )
+              : SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: availableTiles.map((idx) {
+                      final isSelected = selectedTileIndex == idx;
+                      return Draggable<_Drag>(
+                        key: ValueKey((
+                          'relic-source',
+                          round,
+                          idx,
+                          rotations[idx],
+                        )),
+                        maxSimultaneousDrags: _terminal ? 0 : 1,
+                        data: (
+                          tileIndex: idx,
+                          round: round,
+                          rotation: rotations[idx],
+                        ),
+                        feedback: Material(
+                          color: Colors.transparent,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: SpaceTheme.starYellow.withValues(
+                                    alpha: 0.6,
                                   ),
+                                  blurRadius: 15,
+                                  spreadRadius: 3,
                                 ),
-                                child: const Icon(Icons.rotate_right, color: Colors.white70, size: 20),
-                              ),
+                              ],
+                            ),
+                            child: _buildTileWidget(
+                              puzzle!.playerTiles[idx],
+                              rotations[idx],
+                              tileSize,
+                              true,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
+                        ),
+                        childWhenDragging: Opacity(
+                          opacity: 0.3,
+                          child: _buildTileWidget(
+                            puzzle!.playerTiles[idx],
+                            rotations[idx],
+                            tileSize,
+                            false,
+                          ),
+                        ),
+                        child: GestureDetector(
+                          key: ValueKey(('relic-select', round, idx)),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _selectTile(idx, round),
+                          onLongPress: () => _rotateTrayTile(idx, round),
+                          child: Stack(
+                            children: [
+                              _buildTileWidget(
+                                puzzle!.playerTiles[idx],
+                                rotations[idx],
+                                tileSize,
+                                isSelected,
+                              ),
+                              // Rotate button overlay
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: Semantics(
+                                  label: S.of(context)!.hullPlatingRotate,
+                                  button: true,
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    key: ValueKey(('relic-rotate', round, idx)),
+                                    onTap: () => _rotateTrayTile(idx, round),
+                                    child: Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: SpaceTheme.nebulaPurple
+                                            .withValues(alpha: 0.8),
+                                        borderRadius: const BorderRadius.only(
+                                          bottomLeft: Radius.circular(8),
+                                          topRight: Radius.circular(6),
+                                        ),
+                                      ),
+                                      child: const Icon(
+                                        Icons.rotate_right,
+                                        color: Colors.white70,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+        );
+      },
     );
-    });
   }
 
-  Widget _buildWinDialog(int score) {
+  Widget _buildWinDialog(int score, Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -681,24 +1024,50 @@ class _RelicAssemblyGameState extends State<RelicAssemblyGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  RoundSummary(gameKey: 'relic_assembly'),
-                  const Icon(Icons.dashboard_customize_outlined, size: 64, color: SpaceTheme.starYellow),
+                  if (_reportedOutcome)
+                    RoundSummary(
+                      gameKey: 'relic_assembly',
+                      canNavigate: () => _canUseDialog(round, dialogContext),
+                    ),
+                  const Icon(
+                    Icons.dashboard_customize_outlined,
+                    size: 64,
+                    color: SpaceTheme.starYellow,
+                  ),
                   const SizedBox(height: 16),
-                  Text(s.relicAssemblyWinTitle, style: SpaceTheme.headlineStyle, textAlign: TextAlign.center),
+                  Text(
+                    s.relicAssemblyWinTitle,
+                    style: SpaceTheme.headlineStyle,
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 16),
-                  Text(s.relicAssemblyWinDesc(score), style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
+                  Text(
+                    s.relicAssemblyWinDesc(score),
+                    style: SpaceTheme.bodyStyle,
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 12,
+                    runSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
-                        onPressed: () { Navigator.of(context).pop(); _generatePuzzle(); },
+                        onPressed: () {
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
+                          _generatePuzzle();
+                        },
                         style: SpaceTheme.secondaryButtonStyle,
                         child: Text(s.playAgain),
                       ),
                       ElevatedButton(
-                        onPressed: () { Navigator.of(context).pop(); Navigator.of(context).pop(); },
+                        onPressed: () {
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
+                          Navigator.of(context).pop();
+                        },
                         style: SpaceTheme.primaryButtonStyle,
                         child: Text(s.backToMenu),
                       ),

@@ -1,5 +1,21 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-10-19 — Relic Assembly round implementation
+
+Version **1.5.38+54** implements the [Relic audit](docs/relic-assembly-round-audit.md).
+Both input paths enforce current-round physical inventory; filled controls own
+one placement instance. A malformed duplicate-index save cannot earn a win.
+Full incorrect boards remain editable and saved, rotations remain free, and
+placement scoring retains the existing formula. Restoration and owned result
+routes isolate outcomes and navigation; generation owns its async completion.
+Phone content scrolls and mid-animation reduced motion completes owned effects.
+An initial bounded probe reproduced four baseline state/outcome failures and
+passed those cases with the proposal, alongside a normal-drag positive control.
+A configured remote diagnostic passed strict analysis, all 38 focused cases and
+both retained layout cases without skips. This uncommitted overlay result is
+separate from required final exact-source validation and does not establish a
+verified shipping baseline.
+
 ## 2026-10-19 — Hull Plating placement removal identity
 
 Version **1.5.37+53** adds three regressions for stale removal callbacks and a
@@ -7,7 +23,12 @@ held pointer across replacement within the same round. Removal now checks the
 exact placed instance; gesture keys change with that instance, including when
 the same physical plate is removed and placed again. Real replacement controls
 remain usable, and placement costs and outcomes retain their existing rules.
-Remote validation of this follow-up must complete before it is a verified baseline.
+[PR #63](https://github.com/CrispStrobe/NumberNebula/pull/63) merged at the exact
+tested head. Native validation passed 1,784 cases and all 45 Hull contracts;
+60,400 generated cases and 864 Flutter capture/replays passed. Artifact browser
+coverage passed 43 cases with one existing loader skip; canonical Hull checks
+passed in both engines. See [handover](HANDOVER.md) for queued main checks and
+publication evidence.
 
 ## 2026-10-19 — Hull Plating round contracts
 

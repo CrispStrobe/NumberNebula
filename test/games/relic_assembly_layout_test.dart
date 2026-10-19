@@ -43,7 +43,7 @@ Widget _harness() {
 
 /// Sizes of the square tray pieces: Draggable children in the tray.
 List<double> _traySizes(WidgetTester tester) => tester
-    .widgetList<Draggable<int>>(find.byType(Draggable<int>))
+    .widgetList<Draggable>(find.byWidgetPredicate((w) => w is Draggable))
     .map((d) => tester.getSize(find.byWidget(d.child)).width)
     .toList();
 
@@ -67,7 +67,8 @@ void main() {
       await tester.pumpWidget(_harness());
       // Generation is async; pump frames, never settle (the board glows forever).
       for (var i = 0;
-          i < 20 && find.byType(Draggable<int>).evaluate().isEmpty;
+          i < 20 &&
+              find.byWidgetPredicate((w) => w is Draggable).evaluate().isEmpty;
           i++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
