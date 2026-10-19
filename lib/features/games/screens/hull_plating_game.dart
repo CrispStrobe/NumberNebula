@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:space_math_academy/core/services/app_haptics.dart';
 import '../mixins/puzzle_session_mixin.dart';
 import 'dart:math' as math;
@@ -16,6 +18,8 @@ import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../services/hull_plating_logic.dart';
 
+typedef HullPlatingDrag = ({int pieceId, Object round, int rotation});
+
 class HullPlatingGame extends StatefulWidget {
   final int grade;
   final int level;
@@ -26,13 +30,20 @@ class HullPlatingGame extends StatefulWidget {
 }
 
 class _HullPlatingGameState extends State<HullPlatingGame>
-    with TickerProviderStateMixin, GameAnimationsMixin<HullPlatingGame>, PuzzleSessionMixin<HullPlatingGame> {
+    with
+        TickerProviderStateMixin,
+        GameAnimationsMixin<HullPlatingGame>,
+        PuzzleSessionMixin<HullPlatingGame> {
   bool _sessionReady = false;
-  @override String get sessionGameKey => 'hull_plating';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady || _isGenerating) return null;
+  @override
+  String get sessionGameKey => 'hull_plating';
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || _isGenerating || _terminal) return null;
     return {
       'puzzle': (puzzle?.toJson()),
       '_placedPieces': _placedPieces.map((v0) => v0.toJson()).toList(),
@@ -41,16 +52,44 @@ class _HullPlatingGameState extends State<HullPlatingGame>
       '_placements': _placements
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
-    puzzle = (state["puzzle"] == null ? null : HullPlatingPuzzle.fromJson(Map<String, dynamic>.from(state["puzzle"] as Map)));
-    _placedPieces..clear()..addAll((state["_placedPieces"] as List).map((v0) => PlacedPiece.fromJson(Map<String, dynamic>.from(v0 as Map))).toList());
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRound();
+    puzzle = (state["puzzle"] == null
+        ? null
+        : HullPlatingPuzzle.fromJson(
+            Map<String, dynamic>.from(state["puzzle"] as Map)));
+    _placedPieces
+      ..clear()
+      ..addAll((state["_placedPieces"] as List)
+          .map((v0) =>
+              PlacedPiece.fromJson(Map<String, dynamic>.from(v0 as Map)))
+          .toList());
     _selectedRotation = state["_selectedRotation"] as int;
-    _usedPieceIds..clear()..addAll((state["_usedPieceIds"] as List).map((v0) => v0 as int).toSet());
+    _usedPieceIds
+      ..clear()
+      ..addAll(_placedPieces.map((piece) => piece.pieceId));
     _placements = state["_placements"] as int;
     _isGenerating = false;
+    _sessionReady = true;
+    if (_isSolved) {
+      _terminal = true;
+      finishPuzzleSession();
+      successController.value = 1;
+      final round = _round;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && identical(round, _round) && _terminal) {
+          _showWinDialog(_winScore, round);
+        }
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
   }
+
   Future<void> _restoreOrGenerate() async {
-    if (!await restorePuzzleSession() && mounted) {
+    final round = _round;
+    if (!await restorePuzzleSession() && mounted && identical(round, _round)) {
       await Future<void>.sync(_generatePuzzle);
     }
     if (mounted) setState(() => _sessionReady = true);
@@ -72,8 +111,91 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   final Set<int> _usedPieceIds = {};
   String _lastDroppedCell = '';
 
+  Object _round = Object();
+  bool _terminal = false;
+  bool _reportedOutcome = false;
+  DialogRoute<void>? _resultRoute;
+  HullPlatingDrag? _hoveringDrag;
+
+  bool _canInteract(Object round) =>
+      mounted &&
+      identical(round, _round) &&
+      !_terminal &&
+      !_isGenerating &&
+      puzzle != null;
+
+  PlatingPiece? _availablePiece(HullPlatingDrag drag, Object round) {
+    if (!_canInteract(round) ||
+        !identical(drag.round, _round) ||
+        drag.rotation < 0 ||
+        drag.rotation > 3 ||
+        _usedPieceIds.contains(drag.pieceId)) {
+      return null;
+    }
+    for (final piece in puzzle!.pieces) {
+      if (piece.id == drag.pieceId) return _rotatedPiece(piece, drag.rotation);
+    }
+    return null;
+  }
+
+  bool get _isSolved {
+    final board = puzzle;
+    if (board == null ||
+        board.pieces.isEmpty ||
+        _placedPieces.length != board.pieces.length) return false;
+    final ids = board.pieces.map((p) => p.id).toSet();
+    final placedIds = _placedPieces.map((p) => p.pieceId).toSet();
+    return ids.length == board.pieces.length &&
+        placedIds.length == _placedPieces.length &&
+        placedIds.containsAll(ids) &&
+        HullPlatingPuzzle.validatePlacement(
+            _placedPieces, board.board, board.rows, board.cols);
+  }
+
+  int get _winScore =>
+      100 * widget.grade + widget.level * 25 + puzzle!.pieces.length * 30;
+
+  void _resetRound() {
+    _round = Object();
+    _terminal = false;
+    _reportedOutcome = false;
+    _clearVisuals();
+    cancelOneShotMotion(successController);
+    successController.reset();
+    final route = _resultRoute;
+    _resultRoute = null;
+    if (route != null && route.isActive) route.navigator?.removeRoute(route);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.clearSnackBars();
+    messenger?.removeCurrentSnackBar();
+  }
+
+  void _clearVisuals() {
+    _hoveringDrag = null;
+    _hoverRow = null;
+    _hoverCol = null;
+    _lastDroppedCell = '';
+    cancelOneShotMotion(_dropController);
+    _dropController.value = 1;
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    updateOneShotMotion(_dropController, reduced,
+        duration: const Duration(milliseconds: 500));
+    updateOneShotMotion(successController, reduced,
+        duration: const Duration(milliseconds: 600));
+  }
+
+  bool _canUseDialog(Object round, BuildContext dialogContext) =>
+      mounted &&
+      identical(round, _round) &&
+      _terminal &&
+      dialogContext.mounted &&
+      identical(ModalRoute.of(dialogContext), _resultRoute) &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
+
   // Ghost preview state
-  int? _hoveringPieceIndex;
   int? _hoverRow;
   int? _hoverCol;
 
@@ -99,13 +221,14 @@ class _HullPlatingGameState extends State<HullPlatingGame>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _dropAnimation = CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
-
+    _dropAnimation =
+        CurvedAnimation(parent: _dropController, curve: Curves.elasticOut);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final gp = context.read<GameProvider>();
-        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level, gradeOverride: widget.grade);
+        currentDifficulty = DifficultyManager.getDifficulty(gp, widget.level,
+            gradeOverride: widget.grade);
         _restoreOrGenerate();
       }
     });
@@ -114,14 +237,26 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   @override
   void dispose() {
     disposePuzzleSession();
+    _round = Object();
+    final route = _resultRoute;
+    _resultRoute = null;
+    final navigator = route?.navigator;
+    // Disposal can run while the navigator is finalizing another route.
+    // Remove only our result once that navigator unlocks.
+    if (route != null && navigator != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (navigator.mounted && route.isActive) navigator.removeRoute(route);
+      });
+    }
     _dropController.dispose();
     disposeGameAnimations();
     super.dispose();
   }
 
   void _generatePuzzle() {
+    if (!mounted || currentDifficulty == null) return;
+    _resetRound();
     beginPuzzleSession();
-    if (currentDifficulty == null) return;
 
     setState(() {
       _isGenerating = true;
@@ -129,7 +264,7 @@ class _HullPlatingGameState extends State<HullPlatingGame>
       _placedPieces.clear();
       _usedPieceIds.clear();
       _selectedRotation = 0;
-      _hoveringPieceIndex = null;
+      _hoveringDrag = null;
       successController.reset();
     });
 
@@ -147,14 +282,18 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   }
 
   PlatingPiece _getRotatedPiece(int index) {
-    var piece = puzzle!.pieces[index];
-    for (int i = 0; i < _selectedRotation; i++) {
+    return _rotatedPiece(puzzle!.pieces[index], _selectedRotation);
+  }
+
+  PlatingPiece _rotatedPiece(PlatingPiece piece, int rotation) {
+    for (int i = 0; i < rotation; i++) {
       piece = piece.rotated();
     }
     return piece;
   }
 
-  void _rotatePiece() {
+  void _rotatePiece(Object round) {
+    if (!_canInteract(round)) return;
     setState(() {
       _selectedRotation = (_selectedRotation + 1) % 4;
     });
@@ -179,8 +318,10 @@ class _HullPlatingGameState extends State<HullPlatingGame>
         piece.cells.map((c) => (c.$1 + dr, c.$2 + dc)).toList();
 
     for (final cell in absoluteCells) {
-      if (cell.$1 < 0 || cell.$1 >= puzzle!.rows ||
-          cell.$2 < 0 || cell.$2 >= puzzle!.cols) {
+      if (cell.$1 < 0 ||
+          cell.$1 >= puzzle!.rows ||
+          cell.$2 < 0 ||
+          cell.$2 >= puzzle!.cols) {
         return null;
       }
       if (!puzzle!.board[cell.$1][cell.$2]) {
@@ -193,8 +334,9 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     return absoluteCells;
   }
 
-  void _placePieceAt(int pieceIndex, int row, int col) {
-    final piece = _getRotatedPiece(pieceIndex);
+  void _placePieceAt(HullPlatingDrag drag, int row, int col, Object round) {
+    final piece = _availablePiece(drag, round);
+    if (piece == null) return;
     final placement = _computePlacement(piece, row, col);
     if (placement == null) {
       AppHaptics.heavyImpact();
@@ -213,15 +355,16 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     AppHaptics.lightImpact();
     setState(() {
       _placedPieces.add(PlacedPiece(
-        pieceId: puzzle!.pieces[pieceIndex].id,
+        pieceId: piece.id,
         absoluteCells: placement,
       ));
-      _usedPieceIds.add(puzzle!.pieces[pieceIndex].id);
+      _usedPieceIds.add(piece.id);
       _placements++;
       _lastDroppedCell = 'r${row}c$col';
-      _dropController.forward(from: 0.0);
+      _dropController.reset();
+      playOneShotMotion(_dropController, () {});
       _selectedRotation = 0;
-      _hoveringPieceIndex = null;
+      _hoveringDrag = null;
     });
 
     _checkSolution();
@@ -234,67 +377,79 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     return null;
   }
 
-  void _removePlacedPiece(int row, int col) {
+  void _removePlacedPiece(int row, int col, Object round) {
+    if (!_canInteract(round)) return;
     final existing = _getPlacedPieceAt(row, col);
     if (existing == null) return;
     AppHaptics.lightImpact();
     setState(() {
-      _usedPieceIds.remove(existing.pieceId);
       _placedPieces.remove(existing);
+      if (!_placedPieces.any((piece) => piece.pieceId == existing.pieceId)) {
+        _usedPieceIds.remove(existing.pieceId);
+      }
     });
   }
 
   void _checkSolution() {
-    if (puzzle == null) return;
-    if (_placedPieces.length != puzzle!.pieces.length) return;
-
-    final isValid = HullPlatingPuzzle.validatePlacement(
-      _placedPieces, puzzle!.board, puzzle!.rows, puzzle!.cols,
-    );
-
-    if (isValid) _handleWin();
+    if (_canInteract(_round) && _isSolved) _handleWin();
   }
 
   void _handleWin() {
+    if (!_canInteract(_round) || !_isSolved) return;
+    _terminal = true;
+    _reportedOutcome = true;
+    final round = _round;
     AppHaptics.lightImpact();
-
-    int baseScore = 100 * widget.grade;
-    int levelBonus = widget.level * 25;
-    int sizeBonus = puzzle!.pieces.length * 30;
-    int totalScore = baseScore + levelBonus + sizeBonus;
+    final totalScore = _winScore;
 
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'hull_plating',
-      difficulty: widget.level,
-      score: totalScore,
-      // Fitting every plate on the first try is the perfect run; shuffling
-      // pieces around costs quality.
-      performance: Perf.fromMoves(_placements, puzzle!.pieces.length),
+          skillLevel: widget.grade,
+          gameType: 'hull_plating',
+          difficulty: widget.level,
+          score: totalScore,
+          // Fitting every plate on the first try is the perfect run; shuffling
+          // pieces around costs quality.
+          performance: Perf.fromMoves(_placements, puzzle!.pieces.length),
 
-      movesUsed: _placements,
-      optimalMoves: puzzle!.pieces.length,
-    ));
+          movesUsed: _placements,
+          optimalMoves: puzzle!.pieces.length,
+        ));
 
-    successController.forward(from: 0.0);
-
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _buildWinDialog(totalScore),
-      );
-    }
+    successController.reset();
+    playOneShotMotion(successController, () {});
+    _showWinDialog(totalScore, round);
   }
 
-  void _clearBoard() {
+  void _showWinDialog(int score, Object round) {
+    if (!mounted ||
+        !identical(round, _round) ||
+        !_terminal ||
+        (_resultRoute?.isActive ?? false)) return;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final route = DialogRoute<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: DialogTheme.of(context).barrierColor ?? Colors.black54,
+      themes: InheritedTheme.capture(from: context, to: navigator.context),
+      traversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
+      builder: (ctx) => _buildWinDialog(score, round, ctx),
+    );
+    _resultRoute = route;
+    unawaited(navigator.push<void>(route).then((_) {
+      if (identical(_resultRoute, route)) _resultRoute = null;
+    }));
+  }
+
+  void _clearBoard(Object round) {
+    if (!_canInteract(round)) return;
     AppHaptics.lightImpact();
     setState(() {
       _placedPieces.clear();
       _usedPieceIds.clear();
       _selectedRotation = 0;
+      _clearVisuals();
     });
   }
 
@@ -304,16 +459,18 @@ class _HullPlatingGameState extends State<HullPlatingGame>
 
   /// Returns (ghostCells, isValid). Shows ghost even for invalid placements (red).
   (Set<String>, bool) _getGhostInfo() {
-    if (_hoveringPieceIndex == null || _hoverRow == null || _hoverCol == null) {
+    if (_hoveringDrag == null || _hoverRow == null || _hoverCol == null) {
       return (<String>{}, false);
     }
-    final piece = _getRotatedPiece(_hoveringPieceIndex!);
+    final piece = _availablePiece(_hoveringDrag!, _round);
+    if (piece == null) return (<String>{}, false);
 
     // Compute absolute cells with center-anchoring (same as _computePlacement)
     final (centerR, centerC) = _pieceCenterOffset(piece);
     final dr = _hoverRow! - centerR;
     final dc = _hoverCol! - centerC;
-    final absoluteCells = piece.cells.map((c) => (c.$1 + dr, c.$2 + dc)).toList();
+    final absoluteCells =
+        piece.cells.map((c) => (c.$1 + dr, c.$2 + dc)).toList();
 
     // Check validity
     final validPlacement = _computePlacement(piece, _hoverRow!, _hoverCol!);
@@ -322,8 +479,10 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     // Only include cells that are within the grid
     final ghostCells = <String>{};
     for (final cell in absoluteCells) {
-      if (cell.$1 >= 0 && cell.$1 < puzzle!.rows &&
-          cell.$2 >= 0 && cell.$2 < puzzle!.cols) {
+      if (cell.$1 >= 0 &&
+          cell.$1 < puzzle!.rows &&
+          cell.$2 >= 0 &&
+          cell.$2 < puzzle!.cols) {
         ghostCells.add('r${cell.$1}c${cell.$2}');
       }
     }
@@ -333,8 +492,11 @@ class _HullPlatingGameState extends State<HullPlatingGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final s = S.of(context)!;
+    final round = _round;
 
     if (puzzle == null || _isGenerating) {
       return Scaffold(
@@ -359,24 +521,41 @@ class _HullPlatingGameState extends State<HullPlatingGame>
           child: Column(
             children: [
               GameUI(
+                key: ValueKey(('hull-back', round)),
                 title: s.hullPlatingTitle,
                 level: widget.level,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: () {
+                  if (mounted &&
+                      identical(round, _round) &&
+                      ModalRoute.of(context)?.isCurrent == true) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: SpaceTheme.deepSpace.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
+                    border: Border.all(
+                        color: SpaceTheme.nebulaPurple.withValues(alpha: 0.5)),
                   ),
                   child: Row(children: [
-                    const Icon(Icons.info_outline, color: SpaceTheme.starYellow, size: 16),
+                    const Icon(Icons.info_outline,
+                        color: SpaceTheme.starYellow, size: 16),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(s.hullPlatingInstructions,
-                      style: SpaceTheme.bodyStyle.copyWith(fontSize: 14))),
+                    Expanded(
+                        child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                                maxHeight:
+                                    MediaQuery.sizeOf(context).height * 0.16),
+                            child: SingleChildScrollView(
+                                child: Text(s.hullPlatingInstructions,
+                                    style: SpaceTheme.bodyStyle
+                                        .copyWith(fontSize: 14))))),
                   ]),
                 ),
               ),
@@ -440,6 +619,14 @@ class _HullPlatingGameState extends State<HullPlatingGame>
   Widget _buildBoardArea(BoxConstraints outerConstraints) {
     return Center(
       child: AnimatedBuilder(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final maxCellW = (constraints.maxWidth - 32) / puzzle!.cols;
+            final maxCellH = (constraints.maxHeight - 32) / puzzle!.rows;
+            final cellSize = math.min(maxCellW, maxCellH).clamp(1.0, 80.0);
+            return _buildBoard(cellSize);
+          },
+        ),
         animation: glowAnimation,
         builder: (context, child) {
           return Container(
@@ -447,24 +634,19 @@ class _HullPlatingGameState extends State<HullPlatingGame>
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  SpaceTheme.cosmicPink.withValues(alpha: 0.1 * glowAnimation.value),
+                  SpaceTheme.cosmicPink
+                      .withValues(alpha: 0.1 * glowAnimation.value),
                   SpaceTheme.deepSpace.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: SpaceTheme.cosmicPink.withValues(alpha: glowAnimation.value),
+                color: SpaceTheme.cosmicPink
+                    .withValues(alpha: glowAnimation.value),
                 width: 2,
               ),
             ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final maxCellW = (constraints.maxWidth - 32) / puzzle!.cols;
-                final maxCellH = (constraints.maxHeight - 32) / puzzle!.rows;
-                final cellSize = math.min(maxCellW, maxCellH).clamp(30.0, 80.0);
-                return _buildBoard(cellSize);
-              },
-            ),
+            child: child,
           );
         },
       ),
@@ -487,7 +669,10 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     );
   }
 
-  Widget _buildCell(int row, int col, double size, Set<String> ghostCells, bool ghostValid) {
+  Widget _buildCell(
+      int row, int col, double size, Set<String> ghostCells, bool ghostValid) {
+    final round = _round;
+    final reduced = MediaQuery.disableAnimationsOf(context);
     final isActive = puzzle!.board[row][col];
     final placed = _getPlacedPieceAt(row, col);
     final isDark = HullPlatingPuzzle.isDarkCell(row, col);
@@ -521,18 +706,21 @@ class _HullPlatingGameState extends State<HullPlatingGame>
       }
 
       return GestureDetector(
-        onTap: () => _removePlacedPiece(row, col),
+        key: ValueKey(('hull-cell', round, row, col)),
+        onTap: () => _removePlacedPiece(row, col, round),
         child: cellWidget,
       );
     }
 
     // Empty active cell -- this is a DragTarget
-    return DragTarget<int>(
+    return DragTarget<HullPlatingDrag>(
+      key: ValueKey(('hull-cell', round, row, col)),
       builder: (context, candidateData, rejectedData) {
         final isHovering = candidateData.isNotEmpty;
 
         return AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          key: ValueKey(reduced),
+          duration: reduced ? Duration.zero : const Duration(milliseconds: 200),
           width: size,
           height: size,
           decoration: BoxDecoration(
@@ -552,11 +740,13 @@ class _HullPlatingGameState extends State<HullPlatingGame>
               width: isGhost || isHovering ? 2 : 1,
             ),
             boxShadow: isHovering
-                ? [BoxShadow(
-                    color: SpaceTheme.starYellow.withValues(alpha: 0.6),
-                    blurRadius: 8,
-                    spreadRadius: 2,
-                  )]
+                ? [
+                    BoxShadow(
+                      color: SpaceTheme.starYellow.withValues(alpha: 0.6),
+                      blurRadius: 8,
+                      spreadRadius: 2,
+                    )
+                  ]
                 : null,
           ),
           child: AnimatedBuilder(
@@ -577,54 +767,71 @@ class _HullPlatingGameState extends State<HullPlatingGame>
         );
       },
       onWillAcceptWithDetails: (details) {
-        // Update ghost preview
-        setState(() {
-          _hoveringPieceIndex = details.data;
+        if (_availablePiece(details.data, round) == null) return false;
+        setVisualState(() {
+          _hoveringDrag = details.data;
           _hoverRow = row;
           _hoverCol = col;
         });
         return true;
       },
-      onLeave: (_) {
-        setState(() {
-          _hoveringPieceIndex = null;
+      onLeave: (data) {
+        if (!_canInteract(round) ||
+            data != _hoveringDrag ||
+            _hoverRow != row ||
+            _hoverCol != col) return;
+        setVisualState(() {
+          _hoveringDrag = null;
           _hoverRow = null;
           _hoverCol = null;
         });
       },
       onAcceptWithDetails: (details) {
-        _placePieceAt(details.data, row, col);
+        _placePieceAt(details.data, row, col, round);
       },
     );
   }
 
   Widget _buildControlsAndTray(bool isCompact) {
+    final round = _round;
     return Column(
       children: [
         // Controls row
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 4,
             children: [
-              ElevatedButton.icon(
-                icon: const Icon(Icons.rotate_right, size: 24),
-                label: Text(isCompact ? '' : S.of(context)!.hullPlatingRotate),
-                onPressed: _rotatePiece,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: SpaceTheme.starYellow.withValues(alpha: 0.3),
-                  foregroundColor: SpaceTheme.starYellow,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              Tooltip(
+                message: S.of(context)!.hullPlatingRotate,
+                child: ElevatedButton.icon(
+                  key: ValueKey(('hull-rotate', round)),
+                  icon: const Icon(Icons.rotate_right, size: 24),
+                  label:
+                      Text(isCompact ? '' : S.of(context)!.hullPlatingRotate),
+                  onPressed: _terminal ? null : () => _rotatePiece(round),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        SpaceTheme.starYellow.withValues(alpha: 0.3),
+                    foregroundColor: SpaceTheme.starYellow,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
               IconButton(
-                icon: const Icon(Icons.delete_sweep, color: SpaceTheme.rocketRed),
+                key: ValueKey(('hull-clear', round)),
+                icon:
+                    const Icon(Icons.delete_sweep, color: SpaceTheme.rocketRed),
                 iconSize: 28,
-                onPressed: _placedPieces.isNotEmpty ? _clearBoard : null,
+                onPressed: !_terminal && _placedPieces.isNotEmpty
+                    ? () => _clearBoard(round)
+                    : null,
                 tooltip: S.of(context)!.clearButton,
               ),
-              const SizedBox(width: 12),
               Text(
                 '${_placedPieces.length}/${puzzle!.pieces.length}',
                 style: SpaceTheme.headlineStyle.copyWith(fontSize: 18),
@@ -640,14 +847,16 @@ class _HullPlatingGameState extends State<HullPlatingGame>
 
   /// Group pieces by shape signature for cleaner tray display.
   String _shapeKey(PlatingPiece piece) {
-    final sorted = piece.cells.toList()..sort((a, b) {
-      final r = a.$1.compareTo(b.$1);
-      return r != 0 ? r : a.$2.compareTo(b.$2);
-    });
+    final sorted = piece.cells.toList()
+      ..sort((a, b) {
+        final r = a.$1.compareTo(b.$1);
+        return r != 0 ? r : a.$2.compareTo(b.$2);
+      });
     return sorted.map((c) => '${c.$1},${c.$2}').join(';');
   }
 
   Widget _buildPieceTray() {
+    final round = _round;
     // Group unused pieces by shape, show each shape once with count
     final unusedIndices = <int>[];
     for (int i = 0; i < puzzle!.pieces.length; i++) {
@@ -684,44 +893,58 @@ class _HullPlatingGameState extends State<HullPlatingGame>
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          child: Draggable<int>(
-            data: firstIdx,
-            feedback: Material(
-              color: Colors.transparent,
-              child: Container(
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.withValues(alpha: 0.6),
-                      blurRadius: 20,
-                      spreadRadius: 5,
-                    ),
-                  ],
-                ),
-                child: _buildMiniPiece(displayPiece, color, 60.0),
+          child: SingleChildScrollView(
+            child: Draggable<HullPlatingDrag>(
+              key:
+                  ValueKey(('hull-source', round, piece.id, _selectedRotation)),
+              maxSimultaneousDrags: _terminal ? 0 : 1,
+              data: (
+                pieceId: piece.id,
+                round: round,
+                rotation: _selectedRotation
               ),
-            ),
-            childWhenDragging: Opacity(
-              opacity: 0.3,
-              child: _buildPieceTrayCard(displayPiece, color, false),
-            ),
-            child: Stack(
-              children: [
-                _buildPieceTrayCard(displayPiece, color, true),
-                if (count > 1)
-                  Positioned(
-                    top: 2, right: 2,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(8),
+              feedback: Material(
+                color: Colors.transparent,
+                child: Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.6),
+                        blurRadius: 20,
+                        spreadRadius: 5,
                       ),
-                      child: Text('×$count',
-                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                    ),
+                    ],
                   ),
-              ],
+                  child: _buildMiniPiece(displayPiece, color, 60.0),
+                ),
+              ),
+              childWhenDragging: Opacity(
+                opacity: 0.3,
+                child: _buildPieceTrayCard(displayPiece, color, false),
+              ),
+              child: Stack(
+                children: [
+                  _buildPieceTrayCard(displayPiece, color, true),
+                  if (count > 1)
+                    Positioned(
+                      top: 2,
+                      right: 2,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text('×$count',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         );
@@ -731,7 +954,10 @@ class _HullPlatingGameState extends State<HullPlatingGame>
 
   Widget _buildPieceTrayCard(PlatingPiece piece, Color color, bool active) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+      key: ValueKey(MediaQuery.disableAnimationsOf(context)),
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 200),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: active
@@ -760,7 +986,8 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     );
   }
 
-  Widget _buildMiniPiece(PlatingPiece piece, Color color, double targetMinCellSize) {
+  Widget _buildMiniPiece(
+      PlatingPiece piece, Color color, double targetMinCellSize) {
     final h = piece.height;
     final w = piece.width;
     // Ensure mini-cell is at least 14px, but scale up to targetMinCellSize / max(h,w)
@@ -795,7 +1022,8 @@ class _HullPlatingGameState extends State<HullPlatingGame>
     );
   }
 
-  Widget _buildWinDialog(int bonusScore) {
+  Widget _buildWinDialog(
+      int bonusScore, Object round, BuildContext dialogContext) {
     final s = S.of(context)!;
     return AnimatedBuilder(
       animation: successAnimation,
@@ -810,7 +1038,10 @@ class _HullPlatingGameState extends State<HullPlatingGame>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  RoundSummary(gameKey: 'hull_plating'),
+                  if (_reportedOutcome)
+                    RoundSummary(
+                        gameKey: 'hull_plating',
+                        canNavigate: () => _canUseDialog(round, dialogContext)),
                   const Icon(Icons.shield,
                       size: 64, color: SpaceTheme.starYellow),
                   const SizedBox(height: 16),
@@ -819,16 +1050,18 @@ class _HullPlatingGameState extends State<HullPlatingGame>
                       textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   Text(s.hullPlatingWinDesc(bonusScore),
-                      style: SpaceTheme.bodyStyle,
-                      textAlign: TextAlign.center),
+                      style: SpaceTheme.bodyStyle, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 12,
+                    runSpacing: 12,
                     children: [
                       ElevatedButton(
                         autofocus: true,
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
                           _generatePuzzle();
                         },
                         style: SpaceTheme.secondaryButtonStyle,
@@ -836,7 +1069,8 @@ class _HullPlatingGameState extends State<HullPlatingGame>
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          if (!_canUseDialog(round, dialogContext)) return;
+                          Navigator.of(dialogContext).pop();
                           Navigator.of(context).pop();
                         },
                         style: SpaceTheme.primaryButtonStyle,

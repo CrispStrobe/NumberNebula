@@ -1,11 +1,12 @@
 # NumberNebula: current state and agent handover
 
-Updated 2026-10-18. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
+Updated 2026-10-19. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
 ## October 18 integration
 
-Current implemented version: **1.5.35+51**; see the Puzzle Math audit.
+Current implemented version: **1.5.36+52**; see the [Hull Plating audit](docs/hull-plating-round-audit.md).
+The preceding verified version is **1.5.35+51**, [PR #61](https://github.com/CrispStrobe/NumberNebula/pull/61).
 The preceding verified version is **1.5.34+50**, [PR #60](https://github.com/CrispStrobe/NumberNebula/pull/60).
 The preceding verified baseline is **1.5.33+49**, [PR #59](https://github.com/CrispStrobe/NumberNebula/pull/59).
 The earlier [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)
@@ -14,7 +15,7 @@ repairs the October 17 audits and integrates the work originally proposed in
 build evidence for the current source. Historical green runs do not validate a
 later head.
 
-There are focused round suites for **33 registered games**, with **15** remaining
+There are focused round suites for **34 registered games**, with **14** remaining
 to audit. All 22 newly skipped acceptance cases from the October 17 changes have
 been re-enabled, the Arithmetic Square placeholder has been replaced by actual
 input/save/inventory/terminal tests, and a coverage contract rejects skipped
@@ -34,8 +35,9 @@ replays. Its real Flutter wrapper and pure workflow step are present; unsupporte
 sample/proof claims have been withdrawn. This is not human difficulty calibration.
 
 Puzzle Math (B) is implemented in [PR #61](https://github.com/CrispStrobe/NumberNebula/pull/61); see its
-[round audit](docs/puzzle-math-round-audit.md). The next screen audits are Hull
-Plating and Relic Assembly (C), followed by the unchanged D/E/F lanes. H has a
+[round audit](docs/puzzle-math-round-audit.md). Hull Plating (C) is implemented in its [round audit](docs/hull-plating-round-audit.md);
+verify its repair PR before treating it as a green baseline. The next screen audit
+is Relic Assembly (C), followed by the unchanged D/E/F lanes. H has a
 [prepared playtest protocol](docs/human-playtest-protocol.md); R has a
 [draft readiness document](docs/release-readiness.md). Neither claims device
 measurements or a new store release.
@@ -112,6 +114,7 @@ fixes just because an older planning document predates them.
 
 | Games | Merged public change |
 | --- | --- |
+| Hull Plating | [Round audit](docs/hull-plating-round-audit.md) |
 | Puzzle Math | [Round audit](docs/puzzle-math-round-audit.md) |
 | Codebreaker | [Round audit](docs/codebreaker-round-audit.md) |
 | Signal Triangulation | [#29](https://github.com/CrispStrobe/NumberNebula/pull/29) |

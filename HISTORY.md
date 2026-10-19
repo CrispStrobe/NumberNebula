@@ -1,5 +1,17 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-10-19 — Hull Plating round contracts
+
+Version **1.5.36+52** implements the [Hull Plating audit](docs/hull-plating-round-audit.md).
+Physical plate IDs and round/orientation-bearing drags prevent stale or consumed
+input from changing replacement rounds. Terminal saves and owned result routes
+retain one-time outcomes; restored legacy inventory stays consistent on removal.
+Reduced motion resets drop/hover effects; large-text phone trays scroll and
+controls wrap. Generator choices, grouping, center anchors, scoring and placement
+quality costs remain unchanged. Consult the repair PR's exact-source native,
+negative-control, generation and deployed browser results before claiming verified
+shipping behavior.
+
 ## 2026-10-18 — Puzzle Math round contracts
 
 Version **1.5.35+51** implements the [Puzzle Math round audit](docs/puzzle-math-round-audit.md).

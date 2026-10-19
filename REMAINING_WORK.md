@@ -1,6 +1,6 @@
 # Executable next-work lanes
 
-Updated 2026-10-18. Read [HANDOVER.md](HANDOVER.md) first for the green shipping
+Updated 2026-10-19. Read [HANDOVER.md](HANDOVER.md) first for the green shipping
 baseline and completed audits. These are scoped next steps, not claims that the
 named games are broken. Each round-audit batch below is independent; implement
 one game per PR rather than combining an entire batch.
@@ -15,10 +15,10 @@ its exact key and release criteria here. Audit lanes below do not withhold games
 
 ### Fixed and shipping
 
-All 48 registered games are available in the menu and missions. The 33 implemented
+All 48 registered games are available in the menu and missions. The 34 implemented
 focused round audits are mapped in [HANDOVER.md](HANDOVER.md); historical browser
 play-throughs are archived in [game-quality notes](docs/game-quality-history.md).
-The remaining 15 focused audits are additional hardening work, not a broken-game list.
+The remaining 14 focused audits are additional hardening work, not a broken-game list.
 
 ## Shared acceptance for game lanes A–F
 
@@ -88,15 +88,16 @@ before treating the lane as validated. Preserve generator choices.
 
 ## C — Remaining construction rounds
 
-**Status:** Ready. **Games/screens:** `hull_plating_game.dart`, `relic_assembly_game.dart`.
+**Status:** Hull Plating implemented; verify the [round audit](docs/hull-plating-round-audit.md)
+and exact-source repair checks. **Remaining game/screen:** `relic_assembly_game.dart`.
 Alien Tribunal, Hive Station and Xenobiology Lab have integrated #58 suites.
 Manual-submit games must retain correct-but-unsubmitted saved answers as playable;
 correctness alone is not a terminal marker. Zero-attempt Hive saves offer retry
 without replaying a loss.
 
-Start with Hull Plating: exercise interrupted placement/rotation, restored piece
-inventory, stale drag overlays and controller updates. Then repeat applicable
-checks for Relic Assembly. **Done:** shared acceptance, rule/placement validation
+Retain Hull Plating's interrupted placement/rotation, restored physical inventory,
+stale drag overlays, owned result routes and controller tests. Next audit Relic
+Assembly using the applicable checks. **Done:** shared acceptance, rule/placement validation
 and reachable clues/controls on phones. Preserve the rules and existing fallbacks.
 
 ## D — Planning and bundled-level rounds
@@ -135,7 +136,7 @@ Start with Arithmancer: schedule an AI response, replace/restore the round, and
 prove the response cannot land in the new state. Verify turn ownership, selected
 cards, outcomes once, localized turn labels, pause/retry and disposal. Repeat
 for Asteroid Duel. **Done:** shared acceptance and legal-move/AI regression tests.
-C–F cover the 15 registered games without implemented dedicated round audits.
+C–F cover the 14 registered games without implemented dedicated round audits.
 Legacy screens such as `bubble_math_game.dart` and `creature_forge_game.dart`
 are not extra registered-game lanes; do not delete them as incidental cleanup.
 

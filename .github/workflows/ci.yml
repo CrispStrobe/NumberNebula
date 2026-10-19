@@ -45,6 +45,7 @@ jobs:
       - name: Check repaired round, input, restore and phone contracts
         run: >-
           flutter test
+          test/widgets/hull_plating_round_test.dart
           test/widgets/puzzle_math_round_test.dart
           test/widgets/codebreaker_round_test.dart
           test/widgets/star_forge_round_test.dart

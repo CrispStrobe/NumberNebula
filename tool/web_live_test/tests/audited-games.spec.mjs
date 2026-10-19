@@ -4,6 +4,7 @@ import { test, expect, openGameMenu, watch } from './helpers.mjs';
 // engines. Widget tests provide the detailed input/restore/outcome contracts;
 // these cases catch deferred-module, release-build and browser-only failures.
 const games = [
+  { title: 'Hull Plating', role: 'button', ready: /^Rotate/ },
   { title: 'Constellation Puzzles', role: 'button', ready: /^Unplaced puzzle piece/ },
   { title: 'Codebreaker', role: 'button', ready: /^Number \d+, drag to a slot/ },
   { title: 'Wormhole Activator', role: 'button', ready: /^Resonator \d+, drag to a triangle node/ },

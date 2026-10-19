@@ -1,15 +1,15 @@
 # Next-step execution plan
 
-Updated 2026-10-18. The current verified state is in [HANDOVER.md](HANDOVER.md);
+Updated 2026-10-19. The current verified state is in [HANDOVER.md](HANDOVER.md);
 full task specifications and acceptance checks are in [REMAINING_WORK.md](REMAINING_WORK.md).
 Completed work belongs in [HISTORY.md](HISTORY.md).
 
 1. **A complete in the integrated repair:** retain Star Forge, Chrono Repair and
    Orbital Towers acceptance coverage; consult [PR #58](https://github.com/CrispStrobe/NumberNebula/pull/58)
    for the exact validated/merged head.
-2. **B–F:** Retain the Puzzle Math exact-head checks, then audit the remaining 15
-   registered games. Start with Hull Plating and Relic Assembly (C), or independently
-   owned D/E/F batches. There are now 33 implemented focused round suites; all 48 already
+2. **B–F:** Verify Hull Plating exact-head checks, then audit the remaining 14
+   registered games. Start with Relic Assembly (C), or independently
+   owned D/E/F batches. There are now 34 implemented focused round suites; all 48 already
    have generation/session baseline coverage.
 3. **G and I:** In parallel when resources permit, inspect structural progression
    flags and create a narrow reproducible upstream solver benchmark. Preserve
