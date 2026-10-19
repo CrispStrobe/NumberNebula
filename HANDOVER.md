@@ -3,7 +3,36 @@
 Updated 2026-10-19. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
-## Latest verified publication
+## Latest implementation and validation
+
+The merged Molecule repair is **1.5.39+55**, exact source
+[`32383b4`](https://github.com/CrispStrobe/NumberNebula/commit/32383b40e93f9e84dd7f8a69dc59dcb68f8c6203),
+[PR #65](https://github.com/CrispStrobe/NumberNebula/pull/65).
+Merged-main [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851186)
+and [pure calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851385)
+succeeded: strict analysis, 1,879 native cases including all 56 Molecule cases,
+and 60,400 generation cases across 48 games with zero failures. The main
+[web/deployment run](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851150)
+passed build, 864 capture/replays and the full artifact browser matrix: 47 passed,
+one existing Chromium loader skip, zero flaky results or observed retries.
+Actual raw reports and literal main source identity were independently verified.
+Its deployment is still pending; do not claim that aggregate/main publication green.
+
+The previously tested PR artifact was already published to the
+[live app](https://numbernebula.vercel.app) without rebuilding, with runtime marker
+`9320fca` and complete source tree equal to `32383b4`. Its supplemental
+[canonical proof](https://numbernebula-abk9nhtgk-crispstrobes-projects.vercel.app/hosted-proof.json)
+passed both actual Molecule engine checks, zero skips/retries/errors and stable
+five-file hashes. This is a two-case deployed report; the main full deployed
+matrix remains pending. PR #65 records detailed source and report provenance.
+
+The next Gridlock candidate is **1.5.40+56**, with
+[implementation and executable validation steps](docs/gridlock-round-audit.md).
+Its 25 original-API and five controlled loader tests are prepared, not yet passing
+evidence. There are still 36 validated/implemented prior focused audits and twelve
+remaining until this candidate is verified. Preserve all game rules and generators.
+
+## Preceding verified main publication
 
 [Relic Assembly / PR #64](https://github.com/CrispStrobe/NumberNebula/pull/64)
 merged at exact source
@@ -38,7 +67,8 @@ checks in [PR #63](https://github.com/CrispStrobe/NumberNebula/pull/63) also suc
 
 ## October 18 integration
 
-Current implemented version: **1.5.39+55**, under validation; see the [Molecule audit](docs/molecule-builder-round-audit.md).
+Current candidate: **1.5.40+56**, under validation; see the [Gridlock audit](docs/gridlock-round-audit.md).
+The preceding implemented version is **1.5.39+55**, [PR #65](https://github.com/CrispStrobe/NumberNebula/pull/65); its merged-main publication gate remains pending above.
 The preceding implemented version is **1.5.38+54**, [PR #64](https://github.com/CrispStrobe/NumberNebula/pull/64); see the [Relic Assembly audit](docs/relic-assembly-round-audit.md).
 Its 39 focused cases include held-pointer isolation for generation-error retry.
 Its final 39-case source is verified above; earlier 38-case results do not validate that follow-up.
@@ -79,7 +109,7 @@ Puzzle Math (B) is implemented in [PR #61](https://github.com/CrispStrobe/Number
 verify its repair PR before treating it as a green baseline. Relic Assembly (C)
 has an [implementation under validation](docs/relic-assembly-round-audit.md).
 Molecule Builder (D) is [implemented under validation](docs/molecule-builder-round-audit.md).
-The next screen audit is Gridlock (D), followed by the unchanged D/E/F games. H has a
+Gridlock (D) is a candidate under validation, followed by the unchanged D/E/F games. H has a
 [prepared playtest protocol](docs/human-playtest-protocol.md); R has a
 [draft readiness document](docs/release-readiness.md). Neither claims device
 measurements or a new store release.
