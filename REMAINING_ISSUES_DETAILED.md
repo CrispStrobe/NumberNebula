@@ -7,13 +7,13 @@ interaction or difficulty question.
 
 | Risk or evidence gap | Current evidence | Action lane |
 | --- | --- | --- |
-| Remaining round lifecycle/input edge cases | 35 games have implemented focused suites; 13 remain to inspect. Relic's bounded probe reproduced stale input, replacement-control transfer and malformed-save rewards; verify its [repair](docs/relic-assembly-round-audit.md) and the [Hull follow-up](https://github.com/CrispStrobe/NumberNebula/pull/63) on their exact source. Use [#61](https://github.com/CrispStrobe/NumberNebula/pull/61) for Puzzle Math exact-source evidence. No specific new defect is asserted without reproduction. | A–F |
+| Remaining round lifecycle/input edge cases | 36 games have implemented focused suites; 12 remain to inspect. Molecule reproduced stale gestures, slide/Undo inconsistency and terminal captures; its [repair](docs/molecule-builder-round-audit.md) still needs exact-source validation. Relic's bounded probe reproduced stale input, replacement-control transfer and malformed-save rewards; verify its [repair](docs/relic-assembly-round-audit.md) and the [Hull follow-up](https://github.com/CrispStrobe/NumberNebula/pull/63) on their exact source. Use [#61](https://github.com/CrispStrobe/NumberNebula/pull/61) for Puzzle Math exact-source evidence. No specific new defect is asserted without reproduction. | A–F |
 | Structural progression jumps | Recorded 67 flags; zero generation failures. Authored transitions can repeat across grades. | G |
 | Child-facing pars and workload bands | Untrained estimates; no child playtest results. Generator timing is not solving time. | H |
 | Solver costs and browser integer representations | App retains pinned v2.2.0, alternatives and fallbacks. Native success alone does not prove dart2js/WASM safety. | I |
 | Rendering/startup claims | Cached paths and remote probes exist; no demonstrated native FPS/battery gain. | J, H |
 | CI duplication and artifact expiry | Full gates pass; calibration artifacts have finite retention. Preserve needed fixtures. | K |
-| Store release readiness | Old 1.4.10 platform labels are historical; the implemented source version is 1.5.38+54. No new store release is claimed. | R |
+| Store release readiness | Old 1.4.10 platform labels are historical; the implemented source version is 1.5.39+55. No new store release is claimed. | R |
 
 ## Reproduction requirements
 

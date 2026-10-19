@@ -1,5 +1,17 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-10-19 — Molecule Builder round implementation
+
+Version **1.5.39+55** implements the [Molecule audit](docs/molecule-builder-round-audit.md).
+It owns input, model instances, pending slides, saved resume decisions and result
+routes by round. Interrupted slides serialize a coherent pre-move state; completed
+Undo retains +2 and snapshots keep authored-level identity. Terminal restores are
+silent and retryable, motion cleanup handles initial/mid preferences, and phone
+controls wrap/scroll. Existing level, score, quality and fallback rules remain.
+The final uncommitted diagnostic passed strict analysis and all 53 cases in
+three randomized orders, zero skips. That result is separate from the
+required final-source green checks; this entry is not a publication claim.
+
 ## 2026-10-19 — Relic Assembly round implementation
 
 Version **1.5.38+54** implements the [Relic audit](docs/relic-assembly-round-audit.md).

@@ -15,10 +15,10 @@ its exact key and release criteria here. Audit lanes below do not withhold games
 
 ### Fixed and shipping
 
-All 48 registered games are available in the menu and missions. The 35 implemented
+All 48 registered games are available in the menu and missions. The 36 implemented
 focused round audits are mapped in [HANDOVER.md](HANDOVER.md); historical browser
 play-throughs are archived in [game-quality notes](docs/game-quality-history.md).
-The remaining 13 focused audits are additional hardening work, not a broken-game list.
+The remaining 12 focused audits are additional hardening work, not a broken-game list.
 
 ## Shared acceptance for game lanes A–F
 
@@ -111,16 +111,26 @@ Next audit Molecule Builder in D, with one game per PR.
 
 ## D — Planning and bundled-level rounds
 
-**Status:** Ready. **Games/screens:** `quantum_molecule_builder_game.dart`,
-`space_station_gridlock_game.dart`, `star_loader_game.dart`, `robot_path_game.dart`,
-`solarpanel_game.dart`.
+**Status:** Molecule is [implemented under validation](docs/molecule-builder-round-audit.md).
+Retain its 48 original-API contracts and five loader seam cases; verify the exact
+repair head, shared session mixin, native/all-game/browser/deployment checks
+before treating it as green. Preserve completed Undo +2, coherent interrupted
+snapshots, authored levels/progression/fallback and existing score/quality reference.
 
-Start with Molecule: interrupted moves, reset/restore, victory once and resumed
-move counts. Check pending animations or search work cannot mutate a replacement
-board. Verify bundled-level identity and solution references survive snapshots.
-For Robot distinguish the proven candidate command BFS from the legacy estimate.
-**Done:** shared acceptance plus bundled solution replay; authored order and
-approximate references remain unchanged without separate evidence from lane G.
+**Remaining games/screens:** `space_station_gridlock_game.dart`,
+`star_loader_game.dart`, `robot_path_game.dart`, `solarpanel_game.dart`.
+
+Start with Gridlock. Trace held vehicle selection/drag, interrupted movement,
+restore/reset, move counts, exhausted/solved snapshots, retry and owned outcomes.
+Prove pending animation/search work cannot change a replacement board. Exercise
+actual controls after mistakes and after restoration, including physical vehicle
+identity when IDs repeat. Check initial/mid-animation reduced motion and reachable
+English/German short-phone controls at text scale 2. Verify bundled-level identity
+and solution references survive snapshots; retain the authored order and fallback.
+Use the shared A–F acceptance and one game per PR. For Robot distinguish the
+proven candidate command BFS from the legacy estimate. **Done:** shared acceptance
+plus bundled solution replay; approximate references stay unchanged without
+separate evidence from G.
 
 ## E — Moving, timed and falling-piece rounds
 
@@ -145,7 +155,7 @@ Start with Arithmancer: schedule an AI response, replace/restore the round, and
 prove the response cannot land in the new state. Verify turn ownership, selected
 cards, outcomes once, localized turn labels, pause/retry and disposal. Repeat
 for Asteroid Duel. **Done:** shared acceptance and legal-move/AI regression tests.
-D–F cover the 13 registered games without implemented dedicated round audits.
+D–F cover the 12 registered games without implemented dedicated round audits.
 Legacy screens such as `bubble_math_game.dart` and `creature_forge_game.dart`
 are not extra registered-game lanes; do not delete them as incidental cleanup.
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:space_math_academy/core/services/app_haptics.dart';
 import '../mixins/puzzle_session_mixin.dart';
 import 'package:flutter/material.dart';
@@ -25,32 +26,42 @@ import 'package:flutter/foundation.dart';
 AtomType getAtomTypeFromIndex(int index) {
   // Hydrogen (1 Bond)
   if (index >= 0 && index <= 7) return AtomType.hydrogen;
-  
+
   // Oxygen (2 Bonds)
   if ((index >= 8 && index <= 13)) return AtomType.oxygen;
-  
+
   // Carbon (3 or 4 Bonds, or special cases)
   if ((index >= 14 && index <= 28)) return AtomType.carbon;
-  
+
   // Fluorine (1 Bond)
   if (index == 29 || index == 30) return AtomType.fluorine;
-  
+
   // Nitrogen (3 Bonds)
   if (index == 31) return AtomType.nitrogen;
-  
+
   // Bonus Stage "Atoms"
   if (index >= 32 && index <= 43) {
     const specials = [
-      AtomType.special1, AtomType.special2, AtomType.special3, AtomType.special4,
-      AtomType.special5, AtomType.special6, AtomType.special7, AtomType.special8,
-      AtomType.special9, AtomType.special10, AtomType.special11, AtomType.special12,
+      AtomType.special1,
+      AtomType.special2,
+      AtomType.special3,
+      AtomType.special4,
+      AtomType.special5,
+      AtomType.special6,
+      AtomType.special7,
+      AtomType.special8,
+      AtomType.special9,
+      AtomType.special10,
+      AtomType.special11,
+      AtomType.special12,
     ];
     return specials[(index - 32) % specials.length];
   }
 
   // Fallback, though ideally this should not be reached.
-  return AtomType.hydrogen; 
+  return AtomType.hydrogen;
 }
+
 enum BondDirection {
   left,
   right,
@@ -73,7 +84,6 @@ Set<BondDirection> getBondingDirections(int atomIndex) {
     5: {BondDirection.upRight}, // Diagonal in ETHENE, BUTENE
     6: {BondDirection.right},
     7: {BondDirection.downRight}, // Diagonal in ETHENE, BUTENE
-    
   };
 
   // Oxygen (valency 2)
@@ -88,33 +98,63 @@ Set<BondDirection> getBondingDirections(int atomIndex) {
 
   // Carbon (valency 4)
   const carbonBonds = {
-    14: {BondDirection.left, BondDirection.right, BondDirection.up, BondDirection.down},
-    15: {BondDirection.left, BondDirection.upRight, BondDirection.downRight}, // F in ETHENE/BUTENE - diagonal bonds
-    16: {BondDirection.right, BondDirection.upLeft, BondDirection.downLeft}, // G in ETHENE/BUTENE - diagonal bonds
+    14: {
+      BondDirection.left,
+      BondDirection.right,
+      BondDirection.up,
+      BondDirection.down,
+    },
+    15: {
+      BondDirection.left,
+      BondDirection.upRight,
+      BondDirection.downRight,
+    }, // F in ETHENE/BUTENE - diagonal bonds
+    16: {
+      BondDirection.right,
+      BondDirection.upLeft,
+      BondDirection.downLeft,
+    }, // G in ETHENE/BUTENE - diagonal bonds
     17: {BondDirection.left, BondDirection.right, BondDirection.up},
     18: {BondDirection.left, BondDirection.right, BondDirection.up},
     19: {BondDirection.down, BondDirection.left, BondDirection.right},
-    20: {BondDirection.upLeft, BondDirection.upRight, BondDirection.downLeft, BondDirection.downRight}, // K in BUTENE - diagonal bonds
-    21: {BondDirection.upLeft, BondDirection.upRight, BondDirection.down, BondDirection.up}, // L in METHYL compounds - diagonal bonds
+    20: {
+      BondDirection.upLeft,
+      BondDirection.upRight,
+      BondDirection.downLeft,
+      BondDirection.downRight,
+    }, // K in BUTENE - diagonal bonds
+    21: {
+      BondDirection.upLeft,
+      BondDirection.upRight,
+      BondDirection.down,
+      BondDirection.up,
+    }, // L in METHYL compounds - diagonal bonds
     22: {BondDirection.left, BondDirection.up, BondDirection.down},
     23: {BondDirection.right, BondDirection.up, BondDirection.down},
     24: {BondDirection.left, BondDirection.right, BondDirection.down},
     25: {BondDirection.left, BondDirection.right, BondDirection.down},
     26: {BondDirection.right, BondDirection.up, BondDirection.down},
     27: {BondDirection.left, BondDirection.right},
-    28: {BondDirection.left, BondDirection.right, BondDirection.up}, // C in ETHINE
+    28: {
+      BondDirection.left,
+      BondDirection.right,
+      BondDirection.up,
+    }, // C in ETHINE
   };
 
   // Fluorine (valency 1)
   const fluorineBonds = {
-    
     29: {BondDirection.up},
     30: {BondDirection.down},
   };
 
   // Nitrogen (valency 3)
   const nitrogenBonds = {
-    31: {BondDirection.left, BondDirection.upRight, BondDirection.downRight}, // V in Ammonia
+    31: {
+      BondDirection.left,
+      BondDirection.upRight,
+      BondDirection.downRight,
+    }, // V in Ammonia
   };
 
   if (hydrogenBonds.containsKey(atomIndex)) return hydrogenBonds[atomIndex]!;
@@ -152,12 +192,20 @@ class AtomixLevel {
       duration: map['duration'] as int,
       background: map['background'] as int,
       cursorType: map['cursorType'] as int,
-      playfield: (map['playfield'] as List).map((row) => 
-        (row as List).map((cell) => Map<String, dynamic>.from(cell as Map)).toList()
-      ).toList(),
-      solution: (map['solution'] as List).map((row) => 
-        (row as List).map((cell) => Map<String, dynamic>.from(cell as Map)).toList()
-      ).toList(),
+      playfield: (map['playfield'] as List)
+          .map(
+            (row) => (row as List)
+                .map((cell) => Map<String, dynamic>.from(cell as Map))
+                .toList(),
+          )
+          .toList(),
+      solution: (map['solution'] as List)
+          .map(
+            (row) => (row as List)
+                .map((cell) => Map<String, dynamic>.from(cell as Map))
+                .toList(),
+          )
+          .toList(),
     );
   }
 }
@@ -166,55 +214,220 @@ class QuantumMoleculeBuilderGame extends StatefulWidget {
   final int grade;
   final int level;
 
+  /// A controlled future for the same bundled-level await used in production.
+  @visibleForTesting
+  final Future<void> Function()? levelLoader;
+
   const QuantumMoleculeBuilderGame({
     super.key,
     required this.grade,
     required this.level,
+    this.levelLoader,
   });
 
   @override
-  State<QuantumMoleculeBuilderGame> createState() => _QuantumMoleculeBuilderGameState();
+  State<QuantumMoleculeBuilderGame> createState() =>
+      _QuantumMoleculeBuilderGameState();
 }
 
 class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
-    with TickerProviderStateMixin, PuzzleSessionMixin<QuantumMoleculeBuilderGame> {
+    with
+        TickerProviderStateMixin,
+        PuzzleSessionMixin<QuantumMoleculeBuilderGame> {
   bool _sessionReady = false;
-  @override
-  void onPuzzleSessionMotionChanged(bool reduced) {
-    updateDecorativeMotion([_pulseController], reduced);
+  Object _round = Object();
+  Object? _panRound;
+  DialogRoute<void>? _resultRoute;
+  bool _restoredTerminal = false;
+  bool _reducedMotion = false;
+
+  bool _ownsRound(Object round) => mounted && identical(round, _round);
+  bool get _canPlay =>
+      mounted &&
+      _sessionReady &&
+      gameActive &&
+      ModalRoute.of(context)?.isCurrent == true;
+  bool _ownsAtom(Atom atom) => atoms.any((current) => identical(current, atom));
+
+  VoidCallback _roundAction(VoidCallback action, {bool playable = true}) {
+    final round = _round;
+    return () {
+      if (!_ownsRound(round) ||
+          ModalRoute.of(context)?.isCurrent != true ||
+          (playable && !gameActive)) {
+        return;
+      }
+      action();
+    };
   }
 
-  @override String get sessionGameKey => 'quantum_molecule_builder';
-  @override int get sessionGrade => widget.grade;
-  @override int get sessionLevel => widget.level;
-  @override Map<String, dynamic>? capturePuzzleSession() {
-    if (!_sessionReady) return null;
+  void _resetRound() {
+    _round = Object();
+    _panRound = null;
+    selectedAtom = null;
+    _panningAtom = null;
+    _panStartPosition = null;
+    _panCurrentPosition = null;
+    slidingAtom = null;
+    slideStartPos = null;
+    slideEndPos = null;
+    _showInstructions = false;
+    _showMoleculeInfo = false;
+    _restoredTerminal = false;
+    cancelOneShotMotion(_slideController);
+    _slideController.reset();
+    cancelOneShotMotion(_successController);
+    _successController.reset();
+    _particleTicker.stop();
+    particles.clear();
+    final route = _resultRoute;
+    _resultRoute = null;
+    final navigator = route?.navigator;
+    if (route != null && navigator != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (navigator.mounted && route.isActive) navigator.removeRoute(route);
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
+  }
+
+  @override
+  void onPuzzleSessionMotionChanged(bool reduced) {
+    _reducedMotion = reduced;
+    updateDecorativeMotion([_pulseController], reduced);
+    updateOneShotMotion(
+      _slideController,
+      reduced,
+      duration: const Duration(milliseconds: 200),
+    );
+    updateOneShotMotion(
+      _successController,
+      reduced,
+      duration: const Duration(milliseconds: 800),
+    );
+    if (reduced) {
+      _particleTicker.stop();
+      particles.clear();
+    }
+  }
+
+  bool get _isSolved {
+    for (var row = 0; row <= gridSize - targetPattern.size; row++) {
+      for (var col = 0; col <= gridSize - targetPattern.size; col++) {
+        if (_checkPatternAt(row, col)) return true;
+      }
+    }
+    return false;
+  }
+
+  bool _canUseDialog(Object round, BuildContext dialogContext) =>
+      _ownsRound(round) &&
+      !gameActive &&
+      dialogContext.mounted &&
+      identical(ModalRoute.of(dialogContext), _resultRoute) &&
+      ModalRoute.of(dialogContext)?.isCurrent == true;
+
+  void _showResult(Object round, {int? score, int bonus = 0}) {
+    if (!_ownsRound(round) ||
+        gameActive ||
+        _restoredTerminal ||
+        (_resultRoute?.isActive ?? false)) {
+      return;
+    }
+    if (ModalRoute.of(context)?.isCurrent != true) {
+      setState(() => _restoredTerminal = true);
+      return;
+    }
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final route = DialogRoute<void>(
+      context: context,
+      barrierDismissible: false,
+      themes: InheritedTheme.capture(from: context, to: navigator.context),
+      builder: (ctx) => !_ownsRound(round)
+          ? const SizedBox.shrink()
+          : score != null
+          ? _buildSuccessDialog(score, bonus, round, ctx)
+          : _buildFailureDialog(round, ctx),
+    );
+    _resultRoute = route;
+    unawaited(
+      navigator.push<void>(route).then((_) {
+        if (identical(_resultRoute, route)) _resultRoute = null;
+        if (_ownsRound(round) && !gameActive && !_restoredTerminal) {
+          setState(() => _restoredTerminal = true);
+        }
+      }),
+    );
+  }
+
+  @override
+  String get sessionGameKey => 'quantum_molecule_builder';
+  @override
+  Object get puzzleSessionRestoreIdentity => _round;
+  @override
+  int get sessionGrade => widget.grade;
+  @override
+  int get sessionLevel => widget.level;
+  @override
+  Map<String, dynamic>? capturePuzzleSession() {
+    if (!_sessionReady || !gameActive) return null;
+    // An interrupted visual slide is still pending adjudication. Persist its
+    // coherent pre-move board, count and history so restoration can replay the
+    // input without dropping a pending final-move reward or charging twice.
+    final pending = slidingAtom;
+    final serializedAtoms = atoms.map((atom) {
+      final json = atom.toJson();
+      if (identical(atom, pending) && slideStartPos != null) {
+        json['row'] = slideStartPos!.dy.toInt();
+        json['col'] = slideStartPos!.dx.toInt();
+      }
+      return json;
+    }).toList();
+    final savedHistory = pending == null
+        ? _moveHistory
+        : _moveHistory.take(math.max(0, _moveHistory.length - 1));
     return {
       '_currentLevel': _currentLevel,
       'grid': grid.map((v0) => v0.map((v1) => v1.name).toList()).toList(),
-      'atoms': atoms.map((v0) => v0.toJson()).toList(),
+      'atoms': serializedAtoms,
       'targetPattern': targetPattern.toJson(),
       'moveLimit': moveLimit,
-      'movesMade': movesMade,
+      'movesMade': movesMade - (pending == null ? 0 : 1),
       'levelName': levelName,
       'gridOffsetX': gridOffsetX,
       'gridOffsetY': gridOffsetY,
       'visibleWidth': visibleWidth,
       'visibleHeight': visibleHeight,
-      '_moveHistory': _moveHistory.map((v0) => v0.entries.map((v1) => [v1.key, v1.value]).toList()).toList(),
+      '_moveHistory': savedHistory
+          .map((v0) => v0.entries.map((v1) => [v1.key, v1.value]).toList())
+          .toList(),
       '_startingLevel': _startingLevel,
       '_levelsWonThisSession': _levelsWonThisSession.map((v0) => v0).toList(),
       'levelDisplayName': levelDisplayName,
       '_moleculeDescription': _moleculeDescription,
       '_moleculeFacts': _moleculeFacts,
-      '_moleculeSpaceInfo': _moleculeSpaceInfo
+      '_moleculeSpaceInfo': _moleculeSpaceInfo,
     };
   }
-  @override void applyPuzzleSession(Map<String, dynamic> state) {
+
+  @override
+  void applyPuzzleSession(Map<String, dynamic> state) {
+    _resetRound();
+    beginPuzzleSession();
     _currentLevel = state["_currentLevel"] as int;
-    grid = (state["grid"] as List).map((v0) => (v0 as List).map((v1) => CellType.values.byName(v1 as String)).toList()).toList();
-    atoms = (state["atoms"] as List).map((v0) => Atom.fromJson(Map<String, dynamic>.from(v0 as Map))).toList();
-    targetPattern = MoleculePattern.fromJson(Map<String, dynamic>.from(state["targetPattern"] as Map));
+    grid = (state["grid"] as List)
+        .map(
+          (v0) => (v0 as List)
+              .map((v1) => CellType.values.byName(v1 as String))
+              .toList(),
+        )
+        .toList();
+    atoms = (state["atoms"] as List)
+        .map((v0) => Atom.fromJson(Map<String, dynamic>.from(v0 as Map)))
+        .toList();
+    targetPattern = MoleculePattern.fromJson(
+      Map<String, dynamic>.from(state["targetPattern"] as Map),
+    );
     moveLimit = state["moveLimit"] as int;
     movesMade = state["movesMade"] as int;
     levelName = state["levelName"] as String;
@@ -222,25 +435,45 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     gridOffsetY = state["gridOffsetY"] as int;
     visibleWidth = state["visibleWidth"] as int;
     visibleHeight = state["visibleHeight"] as int;
-    _moveHistory..clear()..addAll((state["_moveHistory"] as List).map((v0) => Map<String, dynamic>.fromEntries((v0 as List).map((v1) => MapEntry(v1[0] as String, v1[1])))).toList());
+    _moveHistory
+      ..clear()
+      ..addAll(
+        (state["_moveHistory"] as List)
+            .map(
+              (v0) => Map<String, dynamic>.fromEntries(
+                (v0 as List).map((v1) => MapEntry(v1[0] as String, v1[1])),
+              ),
+            )
+            .toList(),
+      );
     _startingLevel = state["_startingLevel"] as int;
-    _levelsWonThisSession..clear()..addAll((state["_levelsWonThisSession"] as List).map((v0) => v0 as int).toSet());
+    _levelsWonThisSession
+      ..clear()
+      ..addAll(
+        (state["_levelsWonThisSession"] as List).map((v0) => v0 as int).toSet(),
+      );
     levelDisplayName = state["levelDisplayName"] as String;
     _moleculeDescription = state["_moleculeDescription"] as String;
     _moleculeFacts = state["_moleculeFacts"] as String;
     _moleculeSpaceInfo = state["_moleculeSpaceInfo"] as String;
-    gameActive = true; hasWon = false; hasLost = false;
+    _sessionReady = true;
+    hasWon = _isSolved;
+    hasLost = !hasWon && movesMade >= moveLimit;
+    gameActive = !hasWon && !hasLost;
+    _restoredTerminal = !gameActive;
+    if (!gameActive) finishPuzzleSession();
   }
+
   Future<void> _restoreOrGenerate() async {
-    if (!await restorePuzzleSession() && mounted) {
-      await Future<void>.sync(_loadLevel);
+    final round = _round;
+    if (!await restorePuzzleSession() && _ownsRound(round)) {
+      _loadLevel();
     }
     if (mounted) setState(() => _sessionReady = true);
   }
 
-
   int _currentLevel = 1;
-  
+
   late AnimationController _pulseController;
   late AnimationController _slideController;
   late AnimationController _successController;
@@ -249,7 +482,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   Duration _lastParticleTick = Duration.zero;
   Duration _particleBacklog = Duration.zero;
   static const _particleStep = Duration(milliseconds: 16);
-  
+
   late Animation<double> _pulseAnimation;
   late Animation<double> _slideAnimation;
   late Animation<double> _successAnimation;
@@ -260,19 +493,19 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   late List<Atom> atoms;
   late MoleculePattern targetPattern;
   late int moveLimit;
-  
+
   int movesMade = 0;
   Atom? selectedAtom;
   bool gameActive = true;
   bool hasWon = false;
   bool hasLost = false;
   String levelName = '';
-  
+
   int gridOffsetX = 0;
   int gridOffsetY = 0;
   int visibleWidth = gridSize;
   int visibleHeight = gridSize;
-  
+
   Atom? slidingAtom;
   Offset? slideStartPos;
   Offset? slideEndPos;
@@ -281,15 +514,17 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   Offset? _panCurrentPosition;
   Atom? _panningAtom;
 
-  final Set<int> _levelsWonThisSession = {}; // Track which levels won in current session
-  int _startingLevel = 1; // The level we started at (based on persistent progress)
-  
+  final Set<int> _levelsWonThisSession =
+      {}; // Track which levels won in current session
+  int _startingLevel =
+      1; // The level we started at (based on persistent progress)
+
   List<MoleculeParticle> particles = [];
 
   final List<Map<String, dynamic>> _moveHistory = [];
 
   bool _showInstructions = false;
-  
+
   // Keyboard focus node
   final FocusNode _focusNode = FocusNode();
 
@@ -306,64 +541,90 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   @override
   void initState() {
     super.initState();
-    if (kDebugMode) debugPrint("\n${"=" * 60}\n⚛️  QUANTUM MOLECULE BUILDER\n   Grade: ${widget.grade}, Level: ${widget.level}\n${"=" * 60}");
-    
+    if (kDebugMode) {
+      debugPrint(
+        "\n${"=" * 60}\n⚛️  QUANTUM MOLECULE BUILDER\n   Grade: ${widget.grade}, Level: ${widget.level}\n${"=" * 60}",
+      );
+    }
+
     _setupAnimationControllers();
-    
+
     // Initialize with default values first to prevent LateInitializationError
     levelName = '';
     targetPattern = MoleculePattern.water();
     moveLimit = 40;
-    grid = List.generate(gridSize, (i) => List.filled(gridSize, CellType.empty));
+    grid = List.generate(
+      gridSize,
+      (i) => List.filled(gridSize, CellType.empty),
+    );
     atoms = [];
-    
+
     // Initialize starting level: highest level won at least 2 times
+    final initialRound = _round;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-        // Levels come from an asset; the first frame shows the empty grid.
-        await loadMoleculeLevels();
-        if (mounted) {
+      // Levels come from an asset; the first frame shows the empty grid.
+      try {
+        await (widget.levelLoader?.call() ?? loadMoleculeLevels());
+      } catch (_) {
+        if (_ownsRound(initialRound)) setState(_loadLevel);
+        return;
+      }
+      if (mounted && _ownsRound(initialRound)) {
         final gameProvider = context.read<GameProvider>();
-        
+
         // Find the highest level won at least twice by checking GameProvider's progress
         // The gameProgress value represents the current level after achieving 2+ wins
-        final savedProgress = gameProvider.getGameProgress('quantum_molecule_builder');
+        final savedProgress = gameProvider.getGameProgress(
+          'quantum_molecule_builder',
+        );
         _startingLevel = savedProgress > 0 ? savedProgress : 1;
         _currentLevel = _startingLevel;
-        
-        if (kDebugMode) debugPrint("🎮 Starting at level $_startingLevel (last level with 2+ wins)");
-        _restoreOrGenerate();
+
+        if (kDebugMode) {
+          debugPrint(
+            "🎮 Starting at level $_startingLevel (last level with 2+ wins)",
+          );
         }
+        _restoreOrGenerate();
+      }
     });
-    
+
     // Request focus for keyboard input
     WidgetsBinding.instance.addPostFrameCallback((_) {
-        _focusNode.requestFocus();
+      if (_ownsRound(initialRound)) _focusNode.requestFocus();
     });
-    }
+  }
 
   void _setupAnimationControllers() {
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.7, end: 1.0)
-        .animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+    _pulseAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
 
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _slideAnimation = CurvedAnimation(parent: _slideController, curve: Curves.easeInOut);
+    _slideAnimation = CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeInOut,
+    );
 
     _successController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _successAnimation = CurvedAnimation(parent: _successController, curve: Curves.elasticOut);
+    _successAnimation = CurvedAnimation(
+      parent: _successController,
+      curve: Curves.elasticOut,
+    );
   }
 
   void _startParticles() {
-    if (_particleTicker.isActive) return;
+    if (_reducedMotion || particles.isEmpty || _particleTicker.isActive) return;
     _lastParticleTick = Duration.zero;
     _particleBacklog = Duration.zero;
     _particleTicker.start();
@@ -374,7 +635,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     _lastParticleTick = elapsed;
     // Fixed 16 ms steps keep the per-step damping in MoleculeParticle.update
     // the same on 60 Hz and 120 Hz displays.
-    setState(() {
+    setVisualState(() {
       while (_particleBacklog >= _particleStep && particles.isNotEmpty) {
         _particleBacklog -= _particleStep;
         particles.removeWhere((p) => p.update(0.016));
@@ -386,42 +647,49 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   // Keyboard input handler
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent || !gameActive) return KeyEventResult.ignored;
-    
+
     // Handle Tab key for switching atoms
     if (event.logicalKey == LogicalKeyboardKey.tab) {
-        if (atoms.isNotEmpty) {
-        final currentIndex = selectedAtom != null 
-            ? atoms.indexWhere((a) => a.id == selectedAtom!.id) 
+      if (atoms.isNotEmpty) {
+        final currentIndex = selectedAtom != null
+            ? atoms.indexWhere((a) => a.id == selectedAtom!.id)
             : -1;
         final nextIndex = (currentIndex + 1) % atoms.length;
         _selectAtom(atoms[nextIndex]);
         return KeyEventResult.handled;
-        }
+      }
     }
-    
+
     // Handle movement keys only if an atom is selected
     if (selectedAtom == null) return KeyEventResult.ignored;
 
     switch (event.logicalKey) {
-        case LogicalKeyboardKey.arrowUp:
+      case LogicalKeyboardKey.arrowUp:
         _moveAtom(Direction.up);
         return KeyEventResult.handled;
-        case LogicalKeyboardKey.arrowDown:
+      case LogicalKeyboardKey.arrowDown:
         _moveAtom(Direction.down);
         return KeyEventResult.handled;
-        case LogicalKeyboardKey.arrowLeft:
+      case LogicalKeyboardKey.arrowLeft:
         _moveAtom(Direction.left);
         return KeyEventResult.handled;
-        case LogicalKeyboardKey.arrowRight:
+      case LogicalKeyboardKey.arrowRight:
         _moveAtom(Direction.right);
         return KeyEventResult.handled;
-        default:
+      default:
         return KeyEventResult.ignored;
     }
-    }
+  }
 
   void _loadLevel({int? levelToLoad}) {
+    _resetRound();
     beginPuzzleSession();
+    gameActive = true;
+    hasWon = false;
+    hasLost = false;
+    movesMade = 0;
+    _moveHistory.clear();
+    _sessionReady = true;
     if (levelsData.isEmpty) {
       _loadFallbackLevel();
       return;
@@ -445,37 +713,68 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       // Helper to get the level label string
       String getLevelLabel(int levelNum) {
         switch (levelNum) {
-          case 1: return s.level01Label;
-          case 2: return s.level02Label;
-          case 3: return s.level03Label;
-          case 4: return s.level04Label;
-          case 5: return s.level05Label;
-          case 6: return s.level06Label;
-          case 7: return s.level07Label;
-          case 8: return s.level08Label;
-          case 9: return s.level09Label;
-          case 10: return s.level10Label;
-          case 11: return s.level11Label;
-          case 12: return s.level12Label;
-          case 13: return s.level13Label;
-          case 14: return s.level14Label;
-          case 15: return s.level15Label;
-          case 16: return s.level16Label;
-          case 17: return s.level17Label;
-          case 18: return s.level18Label;
-          case 19: return s.level19Label;
-          case 20: return s.level20Label;
-          case 21: return s.level21Label;
-          case 22: return s.level22Label;
-          case 23: return s.level23Label;
-          case 24: return s.level24Label;
-          case 25: return s.level25Label;
-          case 26: return s.level26Label;
-          case 27: return s.level27Label;
-          case 28: return s.level28Label;
-          case 29: return s.level29Label;
-          case 30: return s.level30Label;
-          default: return level.name; // Fallback
+          case 1:
+            return s.level01Label;
+          case 2:
+            return s.level02Label;
+          case 3:
+            return s.level03Label;
+          case 4:
+            return s.level04Label;
+          case 5:
+            return s.level05Label;
+          case 6:
+            return s.level06Label;
+          case 7:
+            return s.level07Label;
+          case 8:
+            return s.level08Label;
+          case 9:
+            return s.level09Label;
+          case 10:
+            return s.level10Label;
+          case 11:
+            return s.level11Label;
+          case 12:
+            return s.level12Label;
+          case 13:
+            return s.level13Label;
+          case 14:
+            return s.level14Label;
+          case 15:
+            return s.level15Label;
+          case 16:
+            return s.level16Label;
+          case 17:
+            return s.level17Label;
+          case 18:
+            return s.level18Label;
+          case 19:
+            return s.level19Label;
+          case 20:
+            return s.level20Label;
+          case 21:
+            return s.level21Label;
+          case 22:
+            return s.level22Label;
+          case 23:
+            return s.level23Label;
+          case 24:
+            return s.level24Label;
+          case 25:
+            return s.level25Label;
+          case 26:
+            return s.level26Label;
+          case 27:
+            return s.level27Label;
+          case 28:
+            return s.level28Label;
+          case 29:
+            return s.level29Label;
+          case 30:
+            return s.level30Label;
+          default:
+            return level.name; // Fallback
         }
       }
 
@@ -493,84 +792,161 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         String getInfoString(String key) {
           // This switch maps the generated key to the actual S class getter
           switch (key) {
-            case 'level01Desc': return s.level01Desc;
-            case 'level01Facts': return s.level01Facts;
-            case 'level01Space': return s.level01Space;
-            case 'level02Desc': return s.level02Desc;
-            case 'level02Facts': return s.level02Facts;
-            case 'level02Space': return s.level02Space;
-            case 'level03Desc': return s.level03Desc;
-            case 'level03Facts': return s.level03Facts;
-            case 'level03Space': return s.level03Space;
-            case 'level04Desc': return s.level04Desc;
-            case 'level04Facts': return s.level04Facts;
-            case 'level04Space': return s.level04Space;
-            case 'level05Desc': return s.level05Desc;
-            case 'level05Facts': return s.level05Facts;
-            case 'level05Space': return s.level05Space;
-            case 'level07Desc': return s.level07Desc;
-            case 'level07Facts': return s.level07Facts;
-            case 'level07Space': return s.level07Space;
-            case 'level08Desc': return s.level08Desc;
-            case 'level08Facts': return s.level08Facts;
-            case 'level08Space': return s.level08Space;
-            case 'level09Desc': return s.level09Desc;
-            case 'level09Facts': return s.level09Facts;
-            case 'level09Space': return s.level09Space;
-            case 'level10Desc': return s.level10Desc;
-            case 'level10Facts': return s.level10Facts;
-            case 'level10Space': return s.level10Space;
-            case 'level11Desc': return s.level11Desc;
-            case 'level11Facts': return s.level11Facts;
-            case 'level11Space': return s.level11Space;
-            case 'level13Desc': return s.level13Desc;
-            case 'level13Facts': return s.level13Facts;
-            case 'level13Space': return s.level13Space;
-            case 'level14Desc': return s.level14Desc;
-            case 'level14Facts': return s.level14Facts;
-            case 'level14Space': return s.level14Space;
-            case 'level15Desc': return s.level15Desc;
-            case 'level15Facts': return s.level15Facts;
-            case 'level15Space': return s.level15Space;
-            case 'level16Desc': return s.level16Desc;
-            case 'level16Facts': return s.level16Facts;
-            case 'level16Space': return s.level16Space;
-            case 'level17Desc': return s.level17Desc;
-            case 'level17Facts': return s.level17Facts;
-            case 'level17Space': return s.level17Space;
-            case 'level19Desc': return s.level19Desc;
-            case 'level19Facts': return s.level19Facts;
-            case 'level19Space': return s.level19Space;
-            case 'level20Desc': return s.level20Desc;
-            case 'level20Facts': return s.level20Facts;
-            case 'level20Space': return s.level20Space;
-            case 'level21Desc': return s.level21Desc;
-            case 'level21Facts': return s.level21Facts;
-            case 'level21Space': return s.level21Space;
-            case 'level22Desc': return s.level22Desc;
-            case 'level22Facts': return s.level22Facts;
-            case 'level22Space': return s.level22Space;
-            case 'level23Desc': return s.level23Desc;
-            case 'level23Facts': return s.level23Facts;
-            case 'level23Space': return s.level23Space;
-            case 'level25Desc': return s.level25Desc;
-            case 'level25Facts': return s.level25Facts;
-            case 'level25Space': return s.level25Space;
-            case 'level26Desc': return s.level26Desc;
-            case 'level26Facts': return s.level26Facts;
-            case 'level26Space': return s.level26Space;
-            case 'level27Desc': return s.level27Desc;
-            case 'level27Facts': return s.level27Facts;
-            case 'level27Space': return s.level27Space;
-            case 'level28Desc': return s.level28Desc;
-            case 'level28Facts': return s.level28Facts;
-            case 'level28Space': return s.level28Space;
-            case 'level29Desc': return s.level29Desc;
-            case 'level29Facts': return s.level29Facts;
-            case 'level29Space': return s.level29Space;
-            default: return ''; // Fallback
+            case 'level01Desc':
+              return s.level01Desc;
+            case 'level01Facts':
+              return s.level01Facts;
+            case 'level01Space':
+              return s.level01Space;
+            case 'level02Desc':
+              return s.level02Desc;
+            case 'level02Facts':
+              return s.level02Facts;
+            case 'level02Space':
+              return s.level02Space;
+            case 'level03Desc':
+              return s.level03Desc;
+            case 'level03Facts':
+              return s.level03Facts;
+            case 'level03Space':
+              return s.level03Space;
+            case 'level04Desc':
+              return s.level04Desc;
+            case 'level04Facts':
+              return s.level04Facts;
+            case 'level04Space':
+              return s.level04Space;
+            case 'level05Desc':
+              return s.level05Desc;
+            case 'level05Facts':
+              return s.level05Facts;
+            case 'level05Space':
+              return s.level05Space;
+            case 'level07Desc':
+              return s.level07Desc;
+            case 'level07Facts':
+              return s.level07Facts;
+            case 'level07Space':
+              return s.level07Space;
+            case 'level08Desc':
+              return s.level08Desc;
+            case 'level08Facts':
+              return s.level08Facts;
+            case 'level08Space':
+              return s.level08Space;
+            case 'level09Desc':
+              return s.level09Desc;
+            case 'level09Facts':
+              return s.level09Facts;
+            case 'level09Space':
+              return s.level09Space;
+            case 'level10Desc':
+              return s.level10Desc;
+            case 'level10Facts':
+              return s.level10Facts;
+            case 'level10Space':
+              return s.level10Space;
+            case 'level11Desc':
+              return s.level11Desc;
+            case 'level11Facts':
+              return s.level11Facts;
+            case 'level11Space':
+              return s.level11Space;
+            case 'level13Desc':
+              return s.level13Desc;
+            case 'level13Facts':
+              return s.level13Facts;
+            case 'level13Space':
+              return s.level13Space;
+            case 'level14Desc':
+              return s.level14Desc;
+            case 'level14Facts':
+              return s.level14Facts;
+            case 'level14Space':
+              return s.level14Space;
+            case 'level15Desc':
+              return s.level15Desc;
+            case 'level15Facts':
+              return s.level15Facts;
+            case 'level15Space':
+              return s.level15Space;
+            case 'level16Desc':
+              return s.level16Desc;
+            case 'level16Facts':
+              return s.level16Facts;
+            case 'level16Space':
+              return s.level16Space;
+            case 'level17Desc':
+              return s.level17Desc;
+            case 'level17Facts':
+              return s.level17Facts;
+            case 'level17Space':
+              return s.level17Space;
+            case 'level19Desc':
+              return s.level19Desc;
+            case 'level19Facts':
+              return s.level19Facts;
+            case 'level19Space':
+              return s.level19Space;
+            case 'level20Desc':
+              return s.level20Desc;
+            case 'level20Facts':
+              return s.level20Facts;
+            case 'level20Space':
+              return s.level20Space;
+            case 'level21Desc':
+              return s.level21Desc;
+            case 'level21Facts':
+              return s.level21Facts;
+            case 'level21Space':
+              return s.level21Space;
+            case 'level22Desc':
+              return s.level22Desc;
+            case 'level22Facts':
+              return s.level22Facts;
+            case 'level22Space':
+              return s.level22Space;
+            case 'level23Desc':
+              return s.level23Desc;
+            case 'level23Facts':
+              return s.level23Facts;
+            case 'level23Space':
+              return s.level23Space;
+            case 'level25Desc':
+              return s.level25Desc;
+            case 'level25Facts':
+              return s.level25Facts;
+            case 'level25Space':
+              return s.level25Space;
+            case 'level26Desc':
+              return s.level26Desc;
+            case 'level26Facts':
+              return s.level26Facts;
+            case 'level26Space':
+              return s.level26Space;
+            case 'level27Desc':
+              return s.level27Desc;
+            case 'level27Facts':
+              return s.level27Facts;
+            case 'level27Space':
+              return s.level27Space;
+            case 'level28Desc':
+              return s.level28Desc;
+            case 'level28Facts':
+              return s.level28Facts;
+            case 'level28Space':
+              return s.level28Space;
+            case 'level29Desc':
+              return s.level29Desc;
+            case 'level29Facts':
+              return s.level29Facts;
+            case 'level29Space':
+              return s.level29Space;
+            default:
+              return ''; // Fallback
           }
         }
+
         _moleculeDescription = getInfoString(descKey);
         _moleculeFacts = getInfoString(factsKey);
         _moleculeSpaceInfo = getInfoString(spaceKey);
@@ -591,24 +967,28 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           if (tile['type'] == 'atom') {
             final atomIndex = tile['index'] as int;
             final atomType = getAtomTypeFromIndex(atomIndex);
-            atoms.add(Atom(
-              type: atomType,
-              row: y,
-              col: x,
-              id: 'atom_${atomIdCounter++}',
-              atomixIndex: atomIndex,
-            ));
+            atoms.add(
+              Atom(
+                type: atomType,
+                row: y,
+                col: x,
+                id: 'atom_${atomIdCounter++}',
+                atomixIndex: atomIndex,
+              ),
+            );
           }
         }
       }
-      if (kDebugMode) debugPrint("  - Found ${atoms.length} atoms on playfield.");
+      if (kDebugMode) {
+        debugPrint("  - Found ${atoms.length} atoms on playfield.");
+      }
 
       _calculateVisibleBounds();
       targetPattern = _buildPatternFromSolution(level);
 
       // --- MODIFIED: Move limit calculation ---
       double baseMoveLimit = ((level.duration / 4.5) + (atoms.length * 1.5));
-      
+
       // Calculate modifier based on grade
       double gradeModifier = 1.0;
       if (widget.grade == 3) {
@@ -623,8 +1003,11 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       moveLimit = (baseMoveLimit * gradeModifier).round().clamp(20, 150);
       // --- End of modification ---
 
-      if (kDebugMode) debugPrint("✅ Level ${level.levelNumber}: ${level.name} loaded (${atoms.length} atoms, $moveLimit moves [Grade: ${widget.grade}])");
-
+      if (kDebugMode) {
+        debugPrint(
+          "✅ Level ${level.levelNumber}: ${level.name} loaded (${atoms.length} atoms, $moveLimit moves [Grade: ${widget.grade}])",
+        );
+      }
     } catch (e) {
       debugPrint("❌ Error loading level $_currentLevel: $e");
       _loadFallbackLevel();
@@ -641,10 +1024,11 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   void _calculateVisibleBounds() {
     int minRow = gridSize, maxRow = -1, minCol = gridSize, maxCol = -1;
-    
+
     for (int y = 0; y < gridSize; y++) {
       for (int x = 0; x < gridSize; x++) {
-        if (grid[y][x] == CellType.wall || atoms.any((a) => a.row == y && a.col == x)) {
+        if (grid[y][x] == CellType.wall ||
+            atoms.any((a) => a.row == y && a.col == x)) {
           minRow = math.min(minRow, y);
           maxRow = math.max(maxRow, y);
           minCol = math.min(minCol, x);
@@ -652,7 +1036,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         }
       }
     }
-    
+
     gridOffsetY = math.max(0, minRow - 1);
     gridOffsetX = math.max(0, minCol - 1);
     visibleHeight = math.min(gridSize, maxRow - gridOffsetY + 2);
@@ -661,7 +1045,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   MoleculePattern _buildPatternFromSolution(AtomixLevel level) {
     int minRow = gridSize, maxRow = -1, minCol = gridSize, maxCol = -1;
-    
+
     for (int y = 0; y < gridSize; y++) {
       for (int x = 0; x < gridSize; x++) {
         final tile = level.solution[y][x];
@@ -673,16 +1057,19 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         }
       }
     }
-    
+
     if (maxRow < 0) return MoleculePattern.water();
-    
+
     final height = maxRow - minRow + 1;
     final width = maxCol - minCol + 1;
     final patternSize = math.max(height, width);
-    
-    final patternGrid = List.generate(patternSize, (_) => List<int?>.filled(patternSize, null));
+
+    final patternGrid = List.generate(
+      patternSize,
+      (_) => List<int?>.filled(patternSize, null),
+    );
     final atomTypesList = <AtomType>[];
-    
+
     for (int y = 0; y < gridSize; y++) {
       for (int x = 0; x < gridSize; x++) {
         final tile = level.solution[y][x];
@@ -691,7 +1078,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           final atomType = getAtomTypeFromIndex(atomIndex);
           final patternY = y - minRow;
           final patternX = x - minCol;
-          
+
           if (patternY < patternSize && patternX < patternSize) {
             patternGrid[patternY][patternX] = atomIndex;
             atomTypesList.add(atomType);
@@ -699,7 +1086,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         }
       }
     }
-    
+
     return MoleculePattern(
       name: level.name,
       size: patternSize,
@@ -710,21 +1097,24 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   void _loadFallbackLevel() {
     levelName = '';
-    grid = List.generate(gridSize, (i) => List.filled(gridSize, CellType.empty));
-    
+    grid = List.generate(
+      gridSize,
+      (i) => List.filled(gridSize, CellType.empty),
+    );
+
     for (int i = 0; i < gridSize; i++) {
       grid[0][i] = CellType.wall;
       grid[gridSize - 1][i] = CellType.wall;
       grid[i][0] = CellType.wall;
       grid[i][gridSize - 1] = CellType.wall;
     }
-    
+
     atoms = [
       Atom(type: AtomType.hydrogen, row: 2, col: 2, id: 'H1', atomixIndex: 6),
       Atom(type: AtomType.oxygen, row: 5, col: 5, id: 'O1', atomixIndex: 8),
       Atom(type: AtomType.hydrogen, row: 10, col: 10, id: 'H2', atomixIndex: 2),
     ];
-    
+
     gridOffsetX = 0;
     gridOffsetY = 0;
     visibleWidth = gridSize;
@@ -734,7 +1124,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   }
 
   void _selectAtom(Atom atom) {
-    if (!gameActive) return;
+    if (!_canPlay || !_ownsAtom(atom) || slidingAtom != null) return;
     setState(() {
       selectedAtom = (selectedAtom?.id == atom.id) ? null : atom;
     });
@@ -742,74 +1132,91 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   }
 
   void _handleAtomPanStart(Atom atom, DragStartDetails details) {
-    if (!gameActive || slidingAtom != null) return;
-    
+    if (!_canPlay || !_ownsAtom(atom) || slidingAtom != null) return;
+    _panRound = _round;
     setState(() {
-        _panStartPosition = details.localPosition;
-        _panCurrentPosition = details.localPosition;
-        _panningAtom = atom;
+      _panStartPosition = details.localPosition;
+      _panCurrentPosition = details.localPosition;
+      _panningAtom = atom;
     });
-    }
+  }
 
   void _handleAtomPanUpdate(DragUpdateDetails details) {
-    if (_panStartPosition == null) return;
-    
-    setState(() {
-        _panCurrentPosition = details.localPosition;
-    });
+    if (!_canPlay ||
+        !identical(_panRound, _round) ||
+        _panningAtom == null ||
+        !_ownsAtom(_panningAtom!) ||
+        _panStartPosition == null) {
+      return;
     }
+
+    setState(() {
+      _panCurrentPosition = details.localPosition;
+    });
+  }
 
   void _handleAtomPanEnd(Atom atom) {
-    if (_panStartPosition == null || _panCurrentPosition == null || _panningAtom == null) {
-        return;
-    }
-    
-    final delta = _panCurrentPosition! - _panStartPosition!;
-    final distance = delta.distance;
-    
-    // Threshold for distinguishing swipe from tap (in logical pixels)
-    const swipeThreshold = 30.0;
-    
-    if (distance > swipeThreshold) {
-        // It's a swipe - determine the primary direction
-        Direction direction;
-        if (delta.dx.abs() > delta.dy.abs()) {
-        // Horizontal swipe
-        direction = delta.dx > 0 ? Direction.right : Direction.left;
-        } else {
-        // Vertical swipe
-        direction = delta.dy > 0 ? Direction.down : Direction.up;
-        }
-        
-        // Ensure the atom is selected before moving
-        if (selectedAtom?.id != _panningAtom!.id) {
-        setState(() {
-            selectedAtom = _panningAtom;
-        });
-        }
-        
-        // Perform the slide movement
-        _moveAtom(direction);
-    } else {
-        // It's a tap - just select the atom
-        _selectAtom(_panningAtom!);
-    }
-    
-    // Reset pan tracking state
-    setState(() {
-        _panStartPosition = null;
-        _panCurrentPosition = null;
-        _panningAtom = null;
-    });
+    if (!_canPlay ||
+        !identical(_panRound, _round) ||
+        !identical(atom, _panningAtom) ||
+        !_ownsAtom(atom) ||
+        _panStartPosition == null ||
+        _panCurrentPosition == null ||
+        _panningAtom == null) {
+      return;
     }
 
+    final delta = _panCurrentPosition! - _panStartPosition!;
+    final distance = delta.distance;
+
+    // Threshold for distinguishing swipe from tap (in logical pixels)
+    const swipeThreshold = 30.0;
+
+    if (distance > swipeThreshold) {
+      // It's a swipe - determine the primary direction
+      Direction direction;
+      if (delta.dx.abs() > delta.dy.abs()) {
+        // Horizontal swipe
+        direction = delta.dx > 0 ? Direction.right : Direction.left;
+      } else {
+        // Vertical swipe
+        direction = delta.dy > 0 ? Direction.down : Direction.up;
+      }
+
+      // Ensure the atom is selected before moving
+      if (selectedAtom?.id != _panningAtom!.id) {
+        setState(() {
+          selectedAtom = _panningAtom;
+        });
+      }
+
+      // Perform the slide movement
+      _moveAtom(direction);
+    } else {
+      // It's a tap - just select the atom
+      _selectAtom(_panningAtom!);
+    }
+
+    // Reset pan tracking state
+    setState(() {
+      _panStartPosition = null;
+      _panCurrentPosition = null;
+      _panningAtom = null;
+    });
+  }
+
   void _moveAtom(Direction direction) {
-    if (selectedAtom == null || !gameActive || slidingAtom != null) return;
-    
+    if (!_canPlay ||
+        selectedAtom == null ||
+        !_ownsAtom(selectedAtom!) ||
+        slidingAtom != null) {
+      return;
+    }
+
     final atom = selectedAtom!;
     int newRow = atom.row;
     int newCol = atom.col;
-    
+
     switch (direction) {
       case Direction.up:
         while (newRow > 0 && _canMoveTo(newRow - 1, newCol, atom)) {
@@ -832,7 +1239,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         }
         break;
     }
-    
+
     if (newRow != atom.row || newCol != atom.col) {
       AppHaptics.lightImpact();
 
@@ -841,26 +1248,33 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         'fromRow': atom.row,
         'fromCol': atom.col,
       });
-      
+
+      final round = _round;
       setState(() {
         slidingAtom = atom;
         slideStartPos = Offset(atom.col.toDouble(), atom.row.toDouble());
         slideEndPos = Offset(newCol.toDouble(), newRow.toDouble());
+        // Commit position, count and history together so a mid-slide snapshot
+        // describes a legal move; interpolation remains purely visual.
+        atom.row = newRow;
+        atom.col = newCol;
         movesMade++;
       });
-      
-      _slideController.forward(from: 0.0).then((_) {
-        if (mounted) {
-          setState(() {
-            atom.row = newRow;
-            atom.col = newCol;
-            slidingAtom = null;
-            slideStartPos = null;
-            slideEndPos = null;
-          });
-          _checkWinCondition();
-          _checkLoseCondition();
+      _slideController.reset();
+      playOneShotMotion(_slideController, () {
+        if (!_ownsRound(round) ||
+            !identical(slidingAtom, atom) ||
+            !_ownsAtom(atom) ||
+            !gameActive) {
+          return;
         }
+        setState(() {
+          slidingAtom = null;
+          slideStartPos = null;
+          slideEndPos = null;
+        });
+        _checkWinCondition();
+        _checkLoseCondition();
       });
     }
   }
@@ -868,12 +1282,22 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   bool _canMoveTo(int row, int col, Atom movingAtom) {
     if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) return false;
     if (grid[row][col] == CellType.wall) return false;
-    return !atoms.any((a) => a.id != movingAtom.id && a.row == row && a.col == col);
+    return !atoms.any(
+      (a) => a.id != movingAtom.id && a.row == row && a.col == col,
+    );
   }
 
   void _checkWinCondition() {
-    for (int startRow = 0; startRow <= gridSize - targetPattern.size; startRow++) {
-      for (int startCol = 0; startCol <= gridSize - targetPattern.size; startCol++) {
+    for (
+      int startRow = 0;
+      startRow <= gridSize - targetPattern.size;
+      startRow++
+    ) {
+      for (
+        int startCol = 0;
+        startCol <= gridSize - targetPattern.size;
+        startCol++
+      ) {
         if (_checkPatternAt(startRow, startCol)) {
           _handleSuccess();
           return;
@@ -886,17 +1310,27 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   /// close the player got, used to report progress on a failed run.
   int _atomsInPlace() {
     int best = 0;
-    for (int startRow = 0; startRow <= gridSize - targetPattern.size; startRow++) {
-      for (int startCol = 0; startCol <= gridSize - targetPattern.size; startCol++) {
+    for (
+      int startRow = 0;
+      startRow <= gridSize - targetPattern.size;
+      startRow++
+    ) {
+      for (
+        int startCol = 0;
+        startCol <= gridSize - targetPattern.size;
+        startCol++
+      ) {
         int matches = 0;
         for (int i = 0; i < targetPattern.size; i++) {
           for (int j = 0; j < targetPattern.size; j++) {
             final expectedIndex = targetPattern.grid[i][j];
             if (expectedIndex == null) continue;
-            final hasAtom = atoms.any((a) =>
-                a.row == startRow + i &&
-                a.col == startCol + j &&
-                a.atomixIndex == expectedIndex);
+            final hasAtom = atoms.any(
+              (a) =>
+                  a.row == startRow + i &&
+                  a.col == startCol + j &&
+                  a.atomixIndex == expectedIndex,
+            );
             if (hasAtom) matches++;
           }
         }
@@ -907,7 +1341,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   }
 
   void _undoLastMove() {
-    if (_moveHistory.isEmpty || !gameActive) return;
+    if (!_canPlay || _moveHistory.isEmpty || slidingAtom != null) return;
 
     AppHaptics.mediumImpact();
 
@@ -915,7 +1349,13 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     final atomToUndo = atoms.firstWhere(
       (a) => a.id == lastMove['atomId'],
       // Provide a fallback, though it should never be needed
-      orElse: () => Atom(type: AtomType.hydrogen, row: -1, col: -1, id: 'null', atomixIndex: -1),
+      orElse: () => Atom(
+        type: AtomType.hydrogen,
+        row: -1,
+        col: -1,
+        id: 'null',
+        atomixIndex: -1,
+      ),
     );
 
     if (atomToUndo.id != 'null') {
@@ -935,15 +1375,23 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         final expectedIndex = targetPattern.grid[i][j];
         final gridRow = startRow + i;
         final gridCol = startCol + j;
-        
+
         if (expectedIndex != null) {
           final atom = atoms.firstWhere(
             (a) => a.row == gridRow && a.col == gridCol,
-            orElse: () => Atom(type: AtomType.hydrogen, row: -1, col: -1, id: 'null', atomixIndex: -1),
+            orElse: () => Atom(
+              type: AtomType.hydrogen,
+              row: -1,
+              col: -1,
+              id: 'null',
+              atomixIndex: -1,
+            ),
           );
           if (atom.atomixIndex != expectedIndex) return false;
         } else {
-          if (atoms.any((a) => a.row == gridRow && a.col == gridCol)) return false;
+          if (atoms.any((a) => a.row == gridRow && a.col == gridCol)) {
+            return false;
+          }
         }
       }
     }
@@ -957,88 +1405,96 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   }
 
   void _handleSuccess() {
+    if (!mounted || !gameActive) return;
+    final round = _round;
     setState(() {
       gameActive = false;
       hasWon = true;
     });
-    
+
     // Mark this level as won in current session
     _levelsWonThisSession.add(_currentLevel);
-    
-    _successController.forward();
+
+    playOneShotMotion(_successController, () {});
     AppHaptics.heavyImpact();
-    
-    for (int i = 0; i < 60; i++) {
-      particles.add(MoleculeParticle.celebration(MediaQuery.of(context).size.center(Offset.zero)));
+
+    if (!_reducedMotion) {
+      for (int i = 0; i < 60; i++) {
+        particles.add(
+          MoleculeParticle.celebration(
+            MediaQuery.of(context).size.center(Offset.zero),
+          ),
+        );
+      }
     }
     _startParticles();
-    
+
     final baseScore = 300 * widget.grade;
     final efficiencyBonus = math.max(0, (moveLimit - movesMade) * 10);
     final totalScore = baseScore + efficiencyBonus;
-    
+
     finishPuzzleSession();
 
-    context.read<GameProvider>().reportOutcome(GameOutcome.win(
-      skillLevel: widget.grade,
-      gameType: 'quantum_molecule_builder',
-      difficulty: widget.grade + (widget.level ~/ 5),
-      score: totalScore,
-      // The move limit is deliberately generous; assembling the molecule
-      // inside half of it is what a clean solution looks like.
-      performance: Perf.fromMoves(movesMade, (moveLimit * 0.5).round()),
+    context.read<GameProvider>().reportOutcome(
+      GameOutcome.win(
+        skillLevel: widget.grade,
+        gameType: 'quantum_molecule_builder',
+        difficulty: widget.grade + (widget.level ~/ 5),
+        score: totalScore,
+        // The move limit is deliberately generous; assembling the molecule
+        // inside half of it is what a clean solution looks like.
+        performance: Perf.fromMoves(movesMade, (moveLimit * 0.5).round()),
 
-      movesUsed: movesMade,
-      optimalMoves: (moveLimit * 0.5).round(),
-    ));
-    
+        movesUsed: movesMade,
+        optimalMoves: (moveLimit * 0.5).round(),
+      ),
+    );
+
     Future.delayed(const Duration(milliseconds: 1200), () {
-      if (mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => _buildSuccessDialog(totalScore, efficiencyBonus),
-        );
-      }
+      _showResult(round, score: totalScore, bonus: efficiencyBonus);
     });
   }
 
   void _handleFailure() {
+    if (!mounted || !gameActive) return;
+    final round = _round;
     setState(() {
       gameActive = false;
       hasLost = true;
     });
-    
+
     AppHaptics.heavyImpact();
-    
+
     finishPuzzleSession();
 
-    context.read<GameProvider>().reportOutcome(GameOutcome.loss(
-      skillLevel: widget.grade,
-      gameType: 'quantum_molecule_builder',
-      difficulty: widget.grade + (widget.level ~/ 5),
-      progress: atoms.isEmpty ? 0.0 : _atomsInPlace() / atoms.length,
-    ));
-    
-    for (int i = 0; i < 40; i++) {
-      particles.add(MoleculeParticle.failure(MediaQuery.of(context).size.center(Offset.zero)));
-    }
-    _startParticles();
-    
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      if (mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => _buildFailureDialog(),
+    context.read<GameProvider>().reportOutcome(
+      GameOutcome.loss(
+        skillLevel: widget.grade,
+        gameType: 'quantum_molecule_builder',
+        difficulty: widget.grade + (widget.level ~/ 5),
+        progress: atoms.isEmpty ? 0.0 : _atomsInPlace() / atoms.length,
+      ),
+    );
+
+    if (!_reducedMotion) {
+      for (int i = 0; i < 40; i++) {
+        particles.add(
+          MoleculeParticle.failure(
+            MediaQuery.of(context).size.center(Offset.zero),
+          ),
         );
       }
+    }
+    _startParticles();
+
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      _showResult(round);
     });
   }
 
   void _navigateToLevel(int newLevel) {
     if (newLevel < 1 || newLevel > levelsData.length) return;
-    
+
     setState(() {
       _currentLevel = newLevel;
       gameActive = true;
@@ -1051,7 +1507,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       slideEndPos = null;
       particles.clear();
     });
-    
+
     _loadLevel(levelToLoad: newLevel);
     _successController.reset();
     _focusNode.requestFocus();
@@ -1078,17 +1534,17 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
     // Access the debug provider so that we can check the flag.
     final debugProvider = context.read<DebugProvider>();
-    
+
     // Check if the debug menu has been enabled for this session.
     if (debugProvider.isDebugMenuEnabled) {
       return true; // If debug menu is on, always allow moving forward.
     }
-    
+
     // Can go forward if:
     // 1. We've won the current level this session, OR
     // 2. The next level is within our already-unlocked levels (at or below starting level)
-    return _levelsWonThisSession.contains(_currentLevel) || 
-           (_currentLevel + 1) <= _startingLevel;
+    return _levelsWonThisSession.contains(_currentLevel) ||
+        (_currentLevel + 1) <= _startingLevel;
   }
 
   bool _canNavigateBackward() {
@@ -1097,13 +1553,16 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   Widget _buildInfoButton() {
     return IconButton(
-      icon: Icon(Icons.info_outline, color: SpaceTheme.alienGreen.withValues(alpha: 0.8)),
-      onPressed: () {
+      icon: Icon(
+        Icons.info_outline,
+        color: SpaceTheme.alienGreen.withValues(alpha: 0.8),
+      ),
+      onPressed: _roundAction(() {
         setState(() {
           _showInstructions = true;
         });
         AppHaptics.selectionClick();
-      },
+      }, playable: false),
       tooltip: S.of(context)!.moleculeBuilderHelp,
     );
   }
@@ -1111,7 +1570,10 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   Widget _buildInstructionsOverlay() {
     return Positioned.fill(
       child: GestureDetector(
-        onTap: () => setState(() => _showInstructions = false), // Tap background to close
+        onTap: _roundAction(
+          () => setState(() => _showInstructions = false),
+          playable: false,
+        ), // Tap background to close
         child: Container(
           color: Colors.black.withValues(alpha: 0.85),
           child: Center(
@@ -1122,7 +1584,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                 gradient: LinearGradient(
                   colors: [
                     SpaceTheme.deepSpace,
-                    SpaceTheme.nebulaPurple.withValues(alpha: 0.4)
+                    SpaceTheme.nebulaPurple.withValues(alpha: 0.4),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -1138,24 +1600,43 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          S.of(context)!.moleculeBuilderInfoTitle,
-                          style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.alienGreen),
+                        Expanded(
+                          child: Text(
+                            S.of(context)!.moleculeBuilderInfoTitle,
+                            style: SpaceTheme.headlineStyle.copyWith(
+                              color: SpaceTheme.alienGreen,
+                            ),
+                          ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.close, color: Colors.white),
-                          onPressed: () => setState(() => _showInstructions = false),
+                          onPressed: _roundAction(
+                            () => setState(() => _showInstructions = false),
+                            playable: false,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Text(S.of(context)!.moleculeBuilderInfoGoal, style: SpaceTheme.bodyStyle),
+                    Text(
+                      S.of(context)!.moleculeBuilderInfoGoal,
+                      style: SpaceTheme.bodyStyle,
+                    ),
                     const SizedBox(height: 12),
-                    Text(S.of(context)!.moleculeBuilderInfoHowTo, style: SpaceTheme.bodyStyle),
+                    Text(
+                      S.of(context)!.moleculeBuilderInfoHowTo,
+                      style: SpaceTheme.bodyStyle,
+                    ),
                     const SizedBox(height: 12),
-                    Text(S.of(context)!.moleculeBuilderInfoMoves, style: SpaceTheme.bodyStyle),
+                    Text(
+                      S.of(context)!.moleculeBuilderInfoMoves,
+                      style: SpaceTheme.bodyStyle,
+                    ),
                     const SizedBox(height: 12),
-                    Text(S.of(context)!.moleculeBuilderInfoUndo, style: SpaceTheme.bodyStyle),
+                    Text(
+                      S.of(context)!.moleculeBuilderInfoUndo,
+                      style: SpaceTheme.bodyStyle,
+                    ),
                   ],
                 ),
               ),
@@ -1172,22 +1653,22 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     required VoidCallback? onPressed,
   }) {
     final isEnabled = onPressed != null;
-    
+
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: onPressed == null
+          ? null
+          : _roundAction(onPressed, playable: false),
       style: ElevatedButton.styleFrom(
-        backgroundColor: isEnabled 
+        backgroundColor: isEnabled
             ? SpaceTheme.nebulaPurple.withValues(alpha: 0.8)
             : SpaceTheme.deepSpace.withValues(alpha: 0.4),
-        foregroundColor: isEnabled 
-            ? SpaceTheme.alienGreen 
-            : Colors.grey,
+        foregroundColor: isEnabled ? SpaceTheme.alienGreen : Colors.grey,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
           side: BorderSide(
-            color: isEnabled 
-                ? SpaceTheme.alienGreen.withValues(alpha: 0.5) 
+            color: isEnabled
+                ? SpaceTheme.alienGreen.withValues(alpha: 0.5)
                 : Colors.grey.withValues(alpha: 0.3),
             width: 2,
           ),
@@ -1209,9 +1690,12 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   @override
   Widget build(BuildContext context) {
-    if (!_sessionReady) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_sessionReady) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final screenSize = MediaQuery.of(context).size;
-    final isWideScreen = screenSize.width > screenSize.height && screenSize.width > 600;
+    final isWideScreen =
+        screenSize.width > screenSize.height && screenSize.width > 600;
 
     return Focus(
       focusNode: _focusNode,
@@ -1219,6 +1703,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       child: GestureDetector(
         onTap: _focusNode.requestFocus,
         child: Scaffold(
+          key: ValueKey(('molecule-round', _round)),
           body: SpaceBackground(
             child: SafeArea(
               child: Stack(
@@ -1243,18 +1728,34 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                   Column(
                     children: [
                       // REPLACED: The old GameUI and Padding rows are gone
-                      _buildTopBar(), 
+                      _buildTopBar(),
 
                       Expanded(
-                        child: isWideScreen ? _buildWideLayout() : _buildCompactLayout(),
+                        child: isWideScreen
+                            ? _buildWideLayout()
+                            : _buildCompactLayout(),
                       ),
                     ],
                   ),
 
+                  if (_restoredTerminal)
+                    Center(
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: ElevatedButton(
+                            onPressed: _roundAction(
+                              _resetGame,
+                              playable: false,
+                            ),
+                            child: Text(S.of(context)!.tryAgain),
+                          ),
+                        ),
+                      ),
+                    ),
                   if (_showInstructions) _buildInstructionsOverlay(),
 
                   if (_showMoleculeInfo) _buildInfoOverlay(),
-
                 ],
               ),
             ),
@@ -1270,7 +1771,10 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.5),
         border: Border(
-          bottom: BorderSide(color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3), width: 1),
+          bottom: BorderSide(
+            color: SpaceTheme.nebulaPurple.withValues(alpha: 0.3),
+            width: 1,
+          ),
         ),
       ),
       // Use LayoutBuilder to get the available width
@@ -1280,12 +1784,23 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           const double titleBreakpoint = 450.0;
           bool showTitle = constraints.maxWidth > titleBreakpoint;
 
-          return Row(
+          return Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 4,
+            runSpacing: 4,
             children: [
               // Back Button (Always shown)
               IconButton(
-                icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(
+                  Icons.arrow_back_ios,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                onPressed: _roundAction(
+                  () => Navigator.of(context).pop(),
+                  playable: false,
+                ),
                 tooltip: MaterialLocalizations.of(context).backButtonTooltip,
               ),
 
@@ -1296,11 +1811,12 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                   padding: const EdgeInsets.only(left: 8.0),
                   child: Text(
                     S.of(context)!.moleculeBuilderTitle,
-                    style: SpaceTheme.headlineStyle.copyWith(fontSize: 18, color: Colors.white),
+                    style: SpaceTheme.headlineStyle.copyWith(
+                      fontSize: 18,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-
-              const Spacer(), // Pushes remaining items to the right
 
               // Previous Level
               _buildNavigationButton(
@@ -1312,7 +1828,10 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
               // Level Counter
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
                   borderRadius: BorderRadius.circular(20),
@@ -1321,7 +1840,11 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.emoji_events, color: SpaceTheme.starYellow, size: 16),
+                    const Icon(
+                      Icons.emoji_events,
+                      color: SpaceTheme.starYellow,
+                      size: 16,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       levelsData.isEmpty
@@ -1370,50 +1893,55 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
     final rightPanelWidth = screenSize.width * 0.78;
 
     // Height calculation adjusted slightly for the top bar
-    final availableHeight = screenSize.height - 60; // Adjusted for top bar height
-    final cellSize = math.min(
-      rightPanelWidth / visibleWidth,
-      availableHeight / visibleHeight,
-    ).clamp(25.0, 55.0);
+    final availableHeight =
+        screenSize.height - 60; // Adjusted for top bar height
+    final cellSize = math
+        .min(rightPanelWidth / visibleWidth, availableHeight / visibleHeight)
+        .clamp(25.0, 55.0);
 
     return Row(
       children: [
         Container(
           width: leftPanelWidth,
-          padding: const EdgeInsets.symmetric(horizontal: 12.0), // Vertical padding removed here
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12.0,
+          ), // Vertical padding removed here
           // --- MODIFIED: Added SingleChildScrollView ---
           child: SingleChildScrollView(
             // Padding moved inside scroll view
             padding: const EdgeInsets.symmetric(vertical: 12.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribute space
+              mainAxisAlignment:
+                  MainAxisAlignment.spaceBetween, // Distribute space
               children: [
                 // Top content group
                 Column(
-                  mainAxisSize: MainAxisSize.min, // Prevent this group from expanding unnecessarily
+                  mainAxisSize: MainAxisSize
+                      .min, // Prevent this group from expanding unnecessarily
                   children: [
-                     GestureDetector(
-                       onTap: () {
-                         setState(() => _showMoleculeInfo = true);
-                         AppHaptics.selectionClick();
-                       },
-                       child: _buildCompactTargetDisplay(),
-                     ),
-                     const SizedBox(height: 16),
-                     _buildStats(),
-                     const SizedBox(height: 16),
-                     if (gameActive && selectedAtom != null) ...[
-                       _buildSelectedInfo(),
-                       const SizedBox(height: 12),
-                       _buildCompactControls(),
-                       const SizedBox(height: 12), // Add some space after controls
-                     ],
-                  ]
+                    GestureDetector(
+                      onTap: _roundAction(() {
+                        setState(() => _showMoleculeInfo = true);
+                        AppHaptics.selectionClick();
+                      }, playable: false),
+                      child: _buildCompactTargetDisplay(),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildStats(),
+                    const SizedBox(height: 16),
+                    if (gameActive && selectedAtom != null) ...[
+                      _buildSelectedInfo(),
+                      const SizedBox(height: 12),
+                      _buildCompactControls(),
+                      const SizedBox(
+                        height: 12,
+                      ), // Add some space after controls
+                    ],
+                  ],
                 ),
 
-
                 // Spacer removed, Column layout handles spacing
-                
+
                 // Bottom content group (Undo/Restart)
                 if (gameActive)
                   Padding(
@@ -1433,20 +1961,16 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           ),
           // --- End of modification ---
         ),
-        Expanded(
-          child: Center(
-            child: _buildGameGrid(cellSize),
-          ),
-        ),
+        Expanded(child: Center(child: _buildGameGrid(cellSize))),
       ],
     );
   }
 
   Widget _buildUndoButton() {
-    bool canUndo = _moveHistory.isNotEmpty;
+    bool canUndo = gameActive && slidingAtom == null && _moveHistory.isNotEmpty;
 
     return ElevatedButton(
-      onPressed: canUndo ? _undoLastMove : null,
+      onPressed: canUndo ? _roundAction(_undoLastMove) : null,
       style: ElevatedButton.styleFrom(
         backgroundColor: canUndo
             ? SpaceTheme.secondaryButtonStyle.backgroundColor?.resolve({})
@@ -1472,101 +1996,66 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   }
 
   Widget _buildCompactLayout() {
-    final screenSize = MediaQuery.of(context).size;
-
-    final availableWidth = screenSize.width - 24;
-    // Adjusted availableHeight to account for the new, slimmer top bar
-    final availableHeight = screenSize.height - 240; 
-
-    final cellSize = math.min(
-      availableWidth / visibleWidth,
-      availableHeight / visibleHeight,
-    ).clamp(20.0, 45.0);
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          child: Row(
+    final width = MediaQuery.sizeOf(context).width - 24;
+    final cellSize = (width / visibleWidth).clamp(20.0, 45.0);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
             children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() => _showMoleculeInfo = true);
-                    AppHaptics.selectionClick();
-                  },
-                  child: _buildCompactTargetDisplay(),
+              GestureDetector(
+                onTap: _roundAction(
+                  () => setState(() => _showMoleculeInfo = true),
+                  playable: false,
                 ),
+                child: _buildCompactTargetDisplay(),
               ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _buildStatChip(Icons.swap_horiz, '$movesMade/$moveLimit', SpaceTheme.alienGreen),
-                  const SizedBox(height: 4),
-                  _buildStatChip(Icons.science, '${atoms.length}', SpaceTheme.cosmicPink),
-                ],
+              _buildStatChip(
+                Icons.swap_horiz,
+                '$movesMade/$moveLimit',
+                SpaceTheme.alienGreen,
+              ),
+              _buildStatChip(
+                Icons.science,
+                '${atoms.length}',
+                SpaceTheme.cosmicPink,
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: Center(
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
             child: _buildGameGrid(cellSize),
           ),
-        ),
-        if (gameActive && selectedAtom != null) ...[
-          const SizedBox(height: 8),
-          _buildSelectedInfo(),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _buildCompactControls(),
-              const SizedBox(width: 12),
-              // CHANGED: Wrapped buttons in Expanded
-              Expanded(child: _buildUndoButton()),
-              const SizedBox(width: 8),
-              Expanded(child: _buildRestartButton()),
-            ],
-          ),
-        ] else if (gameActive) ...[
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // CHANGED: Wrapped buttons in Expanded
-              Expanded(child: _buildUndoButton()),
-              const SizedBox(width: 8),
-              Expanded(child: _buildRestartButton()),
-            ],
-          ),
+          if (gameActive && selectedAtom != null) ...[
+            const SizedBox(height: 12),
+            _buildSelectedInfo(),
+            const SizedBox(height: 8),
+            _buildCompactControls(),
+          ],
+          if (gameActive) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 12,
+              runSpacing: 8,
+              children: [_buildUndoButton(), _buildRestartButton()],
+            ),
+          ],
         ],
-        const SizedBox(height: 12),
-      ],
+      ),
     );
   }
 
   Widget _buildRestartButton() {
     return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          gameActive = true;
-          hasWon = false;
-          hasLost = false;
-          movesMade = 0;
-          selectedAtom = null;
-          slidingAtom = null;
-          slideStartPos = null;
-          slideEndPos = null;
-          particles.clear();
-          _moveHistory.clear(); // Ensure history is cleared on restart
-        });
-        _loadLevel();
-        _successController.reset();
-      },
+      onPressed: _roundAction(_resetGame, playable: false),
       style: ElevatedButton.styleFrom(
         backgroundColor: SpaceTheme.nebulaPurple.withValues(alpha: 0.6),
         foregroundColor: SpaceTheme.starYellow,
@@ -1574,7 +2063,10 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: SpaceTheme.starYellow.withValues(alpha: 0.5), width: 2),
+          side: BorderSide(
+            color: SpaceTheme.starYellow.withValues(alpha: 0.5),
+            width: 2,
+          ),
         ),
       ),
       // MODIFIED: Child is just the Icon
@@ -1594,7 +2086,10 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       decoration: BoxDecoration(
         color: SpaceTheme.deepSpace.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: SpaceTheme.starYellow.withValues(alpha: 0.5), width: 2),
+        border: Border.all(
+          color: SpaceTheme.starYellow.withValues(alpha: 0.5),
+          width: 2,
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1612,9 +2107,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           SizedBox(
             width: containerSize,
             height: containerSize,
-            child: Stack(
-              children: _buildTargetAtomsCompact(atomSize),
-            ),
+            child: Stack(children: _buildTargetAtomsCompact(atomSize)),
           ),
         ],
       ),
@@ -1648,7 +2141,10 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
               ),
               child: Text(
                 content,
-                style: SpaceTheme.bodyStyle.copyWith(height: 1.6, color: Colors.white.withValues(alpha: 0.95)),
+                style: SpaceTheme.bodyStyle.copyWith(
+                  height: 1.6,
+                  color: Colors.white.withValues(alpha: 0.95),
+                ),
               ),
             ),
           ],
@@ -1658,12 +2154,19 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
     final screenSize = MediaQuery.of(context).size;
     final isCompact = screenSize.width < 600;
-    final previewSize = isCompact ? screenSize.width * 0.7 : screenSize.width * 0.35;
-    final atomSize = (targetPattern.size > 0) ? (previewSize / targetPattern.size) : 40.0;
+    final previewSize = isCompact
+        ? screenSize.width * 0.7
+        : screenSize.width * 0.35;
+    final atomSize = (targetPattern.size > 0)
+        ? (previewSize / targetPattern.size)
+        : 40.0;
 
     return Positioned.fill(
       child: GestureDetector(
-        onTap: () => setState(() => _showMoleculeInfo = false),
+        onTap: _roundAction(
+          () => setState(() => _showMoleculeInfo = false),
+          playable: false,
+        ),
         child: Container(
           color: Colors.black.withValues(alpha: 0.92),
           child: Center(
@@ -1672,14 +2175,21 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple.withValues(alpha: 0.4)],
+                  colors: [
+                    SpaceTheme.deepSpace,
+                    SpaceTheme.nebulaPurple.withValues(alpha: 0.4),
+                  ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(color: SpaceTheme.starYellow, width: 2),
                 boxShadow: [
-                  BoxShadow(color: SpaceTheme.starYellow.withValues(alpha: 0.3), blurRadius: 20, spreadRadius: 2),
+                  BoxShadow(
+                    color: SpaceTheme.starYellow.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
                 ],
               ),
               child: SingleChildScrollView(
@@ -1693,21 +2203,33 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                         Expanded(
                           child: Text(
                             S.of(context)!.moleculeBuilderMoleculeInfo,
-                            style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.starYellow),
+                            style: SpaceTheme.headlineStyle.copyWith(
+                              color: SpaceTheme.starYellow,
+                            ),
                           ),
                         ),
                         IconButton(
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          icon: const Icon(Icons.close, color: Colors.white, size: 28),
-                          onPressed: () => setState(() => _showMoleculeInfo = false),
+                          icon: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                          onPressed: _roundAction(
+                            () => setState(() => _showMoleculeInfo = false),
+                            playable: false,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     Text(
                       levelDisplayName,
-                      style: SpaceTheme.headlineStyle.copyWith(fontSize: 26, color: Colors.white),
+                      style: SpaceTheme.headlineStyle.copyWith(
+                        fontSize: 26,
+                        color: Colors.white,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
@@ -1719,9 +2241,18 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                       ),
                     ),
                     const SizedBox(height: 24),
-                    buildInfoSection(S.of(context)!.moleculeInfoNomenclature, _moleculeDescription),
-                    buildInfoSection(S.of(context)!.moleculeInfoKeyFacts, _moleculeFacts),
-                    buildInfoSection(S.of(context)!.moleculeInfoInSpace, _moleculeSpaceInfo),
+                    buildInfoSection(
+                      S.of(context)!.moleculeInfoNomenclature,
+                      _moleculeDescription,
+                    ),
+                    buildInfoSection(
+                      S.of(context)!.moleculeInfoKeyFacts,
+                      _moleculeFacts,
+                    ),
+                    buildInfoSection(
+                      S.of(context)!.moleculeInfoInSpace,
+                      _moleculeSpaceInfo,
+                    ),
                   ],
                 ),
               ),
@@ -1735,12 +2266,19 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   Widget _buildBonusStageInfoOverlay() {
     final screenSize = MediaQuery.of(context).size;
     final isCompact = screenSize.width < 600;
-    final previewSize = isCompact ? screenSize.width * 0.75 : screenSize.width * 0.4;
-    final atomSize = (targetPattern.size > 0) ? (previewSize / targetPattern.size) : 40.0;
+    final previewSize = isCompact
+        ? screenSize.width * 0.75
+        : screenSize.width * 0.4;
+    final atomSize = (targetPattern.size > 0)
+        ? (previewSize / targetPattern.size)
+        : 40.0;
 
     return Positioned.fill(
       child: GestureDetector(
-        onTap: () => setState(() => _showMoleculeInfo = false),
+        onTap: _roundAction(
+          () => setState(() => _showMoleculeInfo = false),
+          playable: false,
+        ),
         child: Container(
           color: Colors.black.withValues(alpha: 0.92),
           child: Center(
@@ -1749,14 +2287,21 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [SpaceTheme.deepSpace, SpaceTheme.nebulaPurple.withValues(alpha: 0.4)],
+                  colors: [
+                    SpaceTheme.deepSpace,
+                    SpaceTheme.nebulaPurple.withValues(alpha: 0.4),
+                  ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(color: SpaceTheme.alienGreen, width: 2),
-                 boxShadow: [
-                  BoxShadow(color: SpaceTheme.alienGreen.withValues(alpha: 0.3), blurRadius: 20, spreadRadius: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: SpaceTheme.alienGreen.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
                 ],
               ),
               child: Column(
@@ -1765,13 +2310,24 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        S.of(context)!.moleculeBuilderBonusTitle,
-                        style: SpaceTheme.headlineStyle.copyWith(color: SpaceTheme.alienGreen),
+                      Expanded(
+                        child: Text(
+                          S.of(context)!.moleculeBuilderBonusTitle,
+                          style: SpaceTheme.headlineStyle.copyWith(
+                            color: SpaceTheme.alienGreen,
+                          ),
+                        ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white, size: 28),
-                        onPressed: () => setState(() => _showMoleculeInfo = false),
+                        icon: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                        onPressed: _roundAction(
+                          () => setState(() => _showMoleculeInfo = false),
+                          playable: false,
+                        ),
                       ),
                     ],
                   ),
@@ -1779,9 +2335,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                   SizedBox(
                     width: previewSize,
                     height: previewSize,
-                    child: Stack(
-                      children: _buildTargetAtomsCompact(atomSize),
-                    ),
+                    child: Stack(children: _buildTargetAtomsCompact(atomSize)),
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -1808,7 +2362,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         if (atomIndex != null) {
           final atomType = getAtomTypeFromIndex(atomIndex);
           final bonds = getBondingDirections(atomIndex);
-          
+
           return Positioned(
             left: j * atomSize,
             top: i * atomSize,
@@ -1823,7 +2377,12 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
   Widget _buildStats() {
     return Column(
       children: [
-        _buildStatRow(Icons.swap_horiz, S.of(context)!.moleculeBuilderMoves, '$movesMade/$moveLimit', SpaceTheme.alienGreen),
+        _buildStatRow(
+          Icons.swap_horiz,
+          S.of(context)!.moleculeBuilderMoves,
+          '$movesMade/$moveLimit',
+          SpaceTheme.alienGreen,
+        ),
         // REMOVED: "Atoms" stat row
       ],
     );
@@ -1867,7 +2426,11 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           const SizedBox(width: 4),
           Text(
             value,
-            style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -1876,8 +2439,8 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   Widget _buildSelectedInfo() {
     // Get the localized name using the helper, pass context
-    final localizedName = selectedAtom != null 
-        ? getLocalizedAtomName(selectedAtom!.type, context) 
+    final localizedName = selectedAtom != null
+        ? getLocalizedAtomName(selectedAtom!.type, context)
         : S.of(context)!.moleculeBuilderNone; // Use ARB string for "None" too
 
     return Container(
@@ -1893,14 +2456,14 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           Flexible(
             child: Text(
               // Use the localized name here
-              '${S.of(context)!.moleculeBuilderSelected}: $localizedName', 
+              '${S.of(context)!.moleculeBuilderSelected}: $localizedName',
               style: const TextStyle(
                 color: SpaceTheme.starYellow,
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
-              softWrap: true, 
+              softWrap: true,
             ),
           ),
         ],
@@ -1910,17 +2473,29 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   Widget _buildCompactControls() {
     // Define the buttons first for clarity
-    Widget upButton = _buildControlButton(Icons.arrow_upward, () => _moveAtom(Direction.up));
-    Widget downButton = _buildControlButton(Icons.arrow_downward, () => _moveAtom(Direction.down));
-    Widget leftButton = _buildControlButton(Icons.arrow_back, () => _moveAtom(Direction.left));
-    Widget rightButton = _buildControlButton(Icons.arrow_forward, () => _moveAtom(Direction.right));
-    
+    Widget upButton = _buildControlButton(
+      Icons.arrow_upward,
+      () => _moveAtom(Direction.up),
+    );
+    Widget downButton = _buildControlButton(
+      Icons.arrow_downward,
+      () => _moveAtom(Direction.down),
+    );
+    Widget leftButton = _buildControlButton(
+      Icons.arrow_back,
+      () => _moveAtom(Direction.left),
+    );
+    Widget rightButton = _buildControlButton(
+      Icons.arrow_forward,
+      () => _moveAtom(Direction.right),
+    );
+
     // Use LayoutBuilder to decide between 1-3 and 2-2 layout
     return LayoutBuilder(
       builder: (context, constraints) {
         // Estimate the width needed for the 1-3 layout (approx 3 buttons + spacing)
         // You might need to adjust this value based on your button size/padding
-        const double wideLayoutThreshold = 150.0; 
+        const double wideLayoutThreshold = 150.0;
 
         if (constraints.maxWidth >= wideLayoutThreshold) {
           // Wider layout: Up on top, Left/Down/Right below
@@ -1929,18 +2504,24 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
             children: [
               Row(
                 mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center, // Center the Up button
+                mainAxisAlignment:
+                    MainAxisAlignment.center, // Center the Up button
                 children: [
                   // Spacer to push the up button to the center visually above the 3 buttons
-                  const SizedBox(width: 44 + 4), // Approx width of button + spacing
+                  const SizedBox(
+                    width: 44 + 4,
+                  ), // Approx width of button + spacing
                   upButton,
-                  const SizedBox(width: 44 + 4), // Approx width of button + spacing
+                  const SizedBox(
+                    width: 44 + 4,
+                  ), // Approx width of button + spacing
                 ],
               ),
               const SizedBox(height: 4), // Spacing between rows
               Row(
                 mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center, // Center the bottom row
+                mainAxisAlignment:
+                    MainAxisAlignment.center, // Center the bottom row
                 children: [
                   leftButton,
                   const SizedBox(width: 4),
@@ -1955,25 +2536,17 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
           // Narrower layout: 2x2 grid
           return Column(
             mainAxisSize: MainAxisSize.min, // Take minimum space
-             children: [
+            children: [
               Row(
                 mainAxisSize: MainAxisSize.min,
-                 mainAxisAlignment: MainAxisAlignment.center,
-                 children: [
-                  upButton,
-                  const SizedBox(width: 4),
-                  downButton,
-                ],
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [upButton, const SizedBox(width: 4), downButton],
               ),
               const SizedBox(height: 4), // Spacing between rows
               Row(
                 mainAxisSize: MainAxisSize.min,
-                 mainAxisAlignment: MainAxisAlignment.center,
-                 children: [
-                  leftButton,
-                  const SizedBox(width: 4),
-                  rightButton,
-                ],
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [leftButton, const SizedBox(width: 4), rightButton],
               ),
             ],
           );
@@ -1984,7 +2557,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   Widget _buildControlButton(IconData icon, VoidCallback onPressed) {
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: _roundAction(onPressed),
       style: ElevatedButton.styleFrom(
         backgroundColor: SpaceTheme.nebulaPurple.withValues(alpha: 0.6),
         foregroundColor: SpaceTheme.alienGreen,
@@ -1992,72 +2565,95 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         minimumSize: const Size(44, 44),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: SpaceTheme.alienGreen.withValues(alpha: 0.5), width: 2),
+          side: BorderSide(
+            color: SpaceTheme.alienGreen.withValues(alpha: 0.5),
+            width: 2,
+          ),
         ),
       ),
       child: Icon(icon, size: 18),
     );
   }
 
-  Widget _buildAtomVisual(AtomType atomType, double size, bool isSelected, Set<BondDirection> bonds) {
-    final isLightAtom = atomType == AtomType.hydrogen || atomType == AtomType.fluorine;
-    
+  Widget _buildAtomVisual(
+    AtomType atomType,
+    double size,
+    bool isSelected,
+    Set<BondDirection> bonds,
+  ) {
+    final isLightAtom =
+        atomType == AtomType.hydrogen || atomType == AtomType.fluorine;
+
     // Define stub properties relative to cell size
     final stubLength = size * 0.28;
     final diagonalStubLength = size * 0.65;
     final stubThickness = size * 0.15;
     final halfStubThickness = stubThickness / 2;
     final stubColor = Colors.white.withValues(alpha: 0.8);
-    
+
     // Base container for the bond stub, before rotation/positioning
     Widget buildStub(double width, double height, BorderRadius radius) {
       return Container(
         width: width,
         height: height,
-        decoration: BoxDecoration(
-          color: stubColor,
-          borderRadius: radius,
+        decoration: BoxDecoration(color: stubColor, borderRadius: radius),
+      );
+    }
+
+    // Helper to build a vertical/horizontal stub
+    Widget buildCardinalStub(BondDirection dir) {
+      switch (dir) {
+        case BondDirection.left:
+        case BondDirection.right:
+          return buildStub(
+            stubLength,
+            stubThickness,
+            dir == BondDirection.left
+                ? BorderRadius.horizontal(
+                    left: Radius.circular(halfStubThickness),
+                  )
+                : BorderRadius.horizontal(
+                    right: Radius.circular(halfStubThickness),
+                  ),
+          );
+        case BondDirection.up:
+        case BondDirection.down:
+          return buildStub(
+            stubThickness,
+            stubLength,
+            dir == BondDirection.up
+                ? BorderRadius.vertical(top: Radius.circular(halfStubThickness))
+                : BorderRadius.vertical(
+                    bottom: Radius.circular(halfStubThickness),
+                  ),
+          );
+        // Should not happen for cardinal stubs
+        default:
+          return const SizedBox.shrink();
+      }
+    }
+
+    // Helper to build a diagonal stub using rotation
+    Widget buildDiagonalStub(
+      double angle,
+      double translateX,
+      double translateY,
+      double length,
+    ) {
+      return Transform.translate(
+        offset: Offset(translateX, translateY),
+        child: Transform.rotate(
+          angle: angle,
+          alignment: Alignment.center,
+          child: buildStub(
+            length,
+            stubThickness, // Uses the passed-in length
+            BorderRadius.horizontal(left: Radius.circular(halfStubThickness)),
+          ),
         ),
       );
     }
-    
-    // Helper to build a vertical/horizontal stub
-    Widget buildCardinalStub(BondDirection dir) {
-        switch (dir) {
-            case BondDirection.left:
-            case BondDirection.right:
-                return buildStub(stubLength, stubThickness, 
-                    dir == BondDirection.left 
-                        ? BorderRadius.horizontal(left: Radius.circular(halfStubThickness))
-                        : BorderRadius.horizontal(right: Radius.circular(halfStubThickness))
-                );
-            case BondDirection.up:
-            case BondDirection.down:
-                return buildStub(stubThickness, stubLength, 
-                    dir == BondDirection.up 
-                        ? BorderRadius.vertical(top: Radius.circular(halfStubThickness))
-                        : BorderRadius.vertical(bottom: Radius.circular(halfStubThickness))
-                );
-            // Should not happen for cardinal stubs
-            default:
-                return const SizedBox.shrink();
-        }
-    }
-    
-    // Helper to build a diagonal stub using rotation
-    Widget buildDiagonalStub(double angle, double translateX, double translateY, double length) {
-        return Transform.translate(
-            offset: Offset(translateX, translateY),
-            child: Transform.rotate(
-                angle: angle,
-                alignment: Alignment.center,
-                child: buildStub(length, stubThickness, // Uses the passed-in length
-                    BorderRadius.horizontal(left: Radius.circular(halfStubThickness))
-                ),
-            ),
-        );
-    }
-    
+
     return SizedBox(
       width: size,
       height: size,
@@ -2072,62 +2668,62 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                   top: (size - stubThickness) / 2,
                   child: buildCardinalStub(dir),
                 );
-              
+
               case BondDirection.right:
                 return Positioned(
                   right: 0,
                   top: (size - stubThickness) / 2,
                   child: buildCardinalStub(dir),
                 );
-              
+
               case BondDirection.up:
                 return Positioned(
                   top: 0,
                   left: (size - stubThickness) / 2,
                   child: buildCardinalStub(dir),
                 );
-              
+
               case BondDirection.down:
                 return Positioned(
                   bottom: 0,
                   left: (size - stubThickness) / 2,
                   child: buildCardinalStub(dir),
                 );
-                
+
               case BondDirection.upLeft:
                 return buildDiagonalStub(
-                    -3 * math.pi / 4,  // Fixed angle
-                    size * 0.25 - diagonalStubLength / 2,  // Original positioning
-                    size * 0.25 - halfStubThickness,       // Original positioning
-                    diagonalStubLength
+                  -3 * math.pi / 4, // Fixed angle
+                  size * 0.25 - diagonalStubLength / 2, // Original positioning
+                  size * 0.25 - halfStubThickness, // Original positioning
+                  diagonalStubLength,
                 );
-                
+
               case BondDirection.upRight:
                 return buildDiagonalStub(
-                    -math.pi / 4,  // Fixed angle
-                    size * 0.75 - diagonalStubLength / 2,
-                    size * 0.25 - halfStubThickness,
-                    diagonalStubLength
+                  -math.pi / 4, // Fixed angle
+                  size * 0.75 - diagonalStubLength / 2,
+                  size * 0.25 - halfStubThickness,
+                  diagonalStubLength,
                 );
-                
+
               case BondDirection.downLeft:
                 return buildDiagonalStub(
-                    3 * math.pi / 4,  // Fixed angle
-                    size * 0.25 - diagonalStubLength / 2,
-                    size * 0.75 - halfStubThickness,
-                    diagonalStubLength
+                  3 * math.pi / 4, // Fixed angle
+                  size * 0.25 - diagonalStubLength / 2,
+                  size * 0.75 - halfStubThickness,
+                  diagonalStubLength,
                 );
-                
+
               case BondDirection.downRight:
                 return buildDiagonalStub(
-                    math.pi / 4,
-                    size * 0.75 - diagonalStubLength / 2,
-                    size * 0.75 - halfStubThickness,
-                    diagonalStubLength
+                  math.pi / 4,
+                  size * 0.75 - diagonalStubLength / 2,
+                  size * 0.75 - halfStubThickness,
+                  diagonalStubLength,
                 );
             }
           }),
-          
+
           // Main atom circle
           Center(
             child: Container(
@@ -2144,11 +2740,11 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                   stops: const [0.0, 0.6, 1.0],
                 ),
                 border: Border.all(
-                  color: isSelected 
-                      ? SpaceTheme.starYellow 
+                  color: isSelected
+                      ? SpaceTheme.starYellow
                       : isLightAtom
-                          ? const Color(0xFFCCCCCC)
-                          : Colors.white.withValues(alpha: 0.9),
+                      ? const Color(0xFFCCCCCC)
+                      : Colors.white.withValues(alpha: 0.9),
                   width: isSelected ? 3 : 2,
                 ),
                 boxShadow: [
@@ -2175,7 +2771,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                       height: size * 0.13,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: isLightAtom ? 0.6 : 0.4),
+                        color: Colors.white.withValues(
+                          alpha: isLightAtom ? 0.6 : 0.4,
+                        ),
                       ),
                     ),
                   ),
@@ -2188,7 +2786,9 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
                         fontWeight: FontWeight.bold,
                         shadows: [
                           Shadow(
-                            color: isLightAtom ? Colors.white60 : Colors.black87,
+                            color: isLightAtom
+                                ? Colors.white60
+                                : Colors.black87,
                             blurRadius: 2,
                             offset: const Offset(1, 1),
                           ),
@@ -2213,11 +2813,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF0A1520),
-            Color(0xFF0F1A25),
-            Color(0xFF0A1520),
-          ],
+          colors: [Color(0xFF0A1520), Color(0xFF0F1A25), Color(0xFF0A1520)],
         ),
         borderRadius: BorderRadius.circular(6),
         border: Border.all(width: 3, color: const Color(0xFF2A4F6F)),
@@ -2237,10 +2833,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(3),
         child: Stack(
-          children: [
-            ..._buildGridCells(cellSize),
-            ..._buildAtoms(cellSize),
-          ],
+          children: [..._buildGridCells(cellSize), ..._buildAtoms(cellSize)],
         ),
       ),
     );
@@ -2248,269 +2841,327 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 
   List<Widget> _buildGridCells(double cellSize) {
     final cells = <Widget>[];
-    
+
     for (int localY = 0; localY < visibleHeight; localY++) {
       for (int localX = 0; localX < visibleWidth; localX++) {
         final gridY = localY + gridOffsetY;
         final gridX = localX + gridOffsetX;
-        
+
         if (gridY >= gridSize || gridX >= gridSize) continue;
-        
+
         final isWall = grid[gridY][gridX] == CellType.wall;
-        
-        cells.add(Positioned(
-          left: localX * cellSize,
-          top: localY * cellSize,
-          child: GestureDetector(
-            onTap: () {
-              final atom = atoms.firstWhere(
-                (a) => a.row == gridY && a.col == gridX,
-                orElse: () => Atom(type: AtomType.hydrogen, row: -1, col: -1, id: 'null', atomixIndex: -1),
-              );
-              if (atom.row != -1) _selectAtom(atom);
-            },
-            child: Container(
-              width: cellSize,
-              height: cellSize,
-              decoration: BoxDecoration(
-                gradient: isWall
-                    ? const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFF3A5F7F),
-                          Color(0xFF2A3F5F),
-                          Color(0xFF1A2F3F),
-                        ],
-                      )
-                    : null,
-                color: !isWall ? const Color(0xFF0A1520) : null,
-                border: Border.all(
-                  color: isWall ? const Color(0xFF1A2F3F) : Colors.white.withValues(alpha: 0.05),
-                  width: isWall ? 1.5 : 0.5,
+
+        cells.add(
+          Positioned(
+            left: localX * cellSize,
+            top: localY * cellSize,
+            child: GestureDetector(
+              onTap: _roundAction(() {
+                final atom = atoms.firstWhere(
+                  (a) => a.row == gridY && a.col == gridX,
+                  orElse: () => Atom(
+                    type: AtomType.hydrogen,
+                    row: -1,
+                    col: -1,
+                    id: 'null',
+                    atomixIndex: -1,
+                  ),
+                );
+                if (atom.row != -1) _selectAtom(atom);
+              }),
+              child: Container(
+                width: cellSize,
+                height: cellSize,
+                decoration: BoxDecoration(
+                  gradient: isWall
+                      ? const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFF3A5F7F),
+                            Color(0xFF2A3F5F),
+                            Color(0xFF1A2F3F),
+                          ],
+                        )
+                      : null,
+                  color: !isWall ? const Color(0xFF0A1520) : null,
+                  border: Border.all(
+                    color: isWall
+                        ? const Color(0xFF1A2F3F)
+                        : Colors.white.withValues(alpha: 0.05),
+                    width: isWall ? 1.5 : 0.5,
+                  ),
+                  boxShadow: isWall
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            offset: const Offset(1.5, 1.5),
+                            blurRadius: 3,
+                          ),
+                        ]
+                      : null,
                 ),
-                boxShadow: isWall
-                    ? [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          offset: const Offset(1.5, 1.5),
-                          blurRadius: 3,
-                        ),
-                      ]
-                    : null,
               ),
             ),
           ),
-        ));
+        );
       }
     }
-    
+
     return cells;
   }
 
   List<Widget> _buildAtoms(double cellSize) {
     return atoms.map((atom) {
-        final isSelected = selectedAtom?.id == atom.id;
-        final isSliding = slidingAtom?.id == atom.id;
-        
-        double localX = (atom.col - gridOffsetX).toDouble();
-        double localY = (atom.row - gridOffsetY).toDouble();
-        
-        if (isSliding && slideStartPos != null && slideEndPos != null) {
-        localX = slideStartPos!.dx - gridOffsetX + 
+      final selected = identical(selectedAtom, atom);
+      final child = Semantics(
+        label: S.of(context)!.a11yAtom(atom.type.name),
+        hint: 'Tap to select, drag to slide',
+        button: true,
+        selected: selected,
+        child: GestureDetector(
+          key: ObjectKey(atom),
+          onTap: _roundAction(() => _selectAtom(atom)),
+          onPanStart: (details) => _handleAtomPanStart(atom, details),
+          onPanUpdate: _handleAtomPanUpdate,
+          onPanEnd: (details) => _handleAtomPanEnd(atom),
+          behavior: HitTestBehavior.opaque,
+          child: _buildAtomVisual(
+            atom.type,
+            cellSize,
+            selected,
+            getBondingDirections(atom.atomixIndex),
+          ),
+        ),
+      );
+      return AnimatedBuilder(
+        animation: _slideController,
+        child: child,
+        builder: (context, child) {
+          var x = (atom.col - gridOffsetX).toDouble();
+          var y = (atom.row - gridOffsetY).toDouble();
+          if (identical(slidingAtom, atom) &&
+              slideStartPos != null &&
+              slideEndPos != null) {
+            x =
+                slideStartPos!.dx -
+                gridOffsetX +
                 (slideEndPos!.dx - slideStartPos!.dx) * _slideAnimation.value;
-        localY = slideStartPos!.dy - gridOffsetY + 
+            y =
+                slideStartPos!.dy -
+                gridOffsetY +
                 (slideEndPos!.dy - slideStartPos!.dy) * _slideAnimation.value;
-        }
-        
-        final bonds = getBondingDirections(atom.atomixIndex);
-        
-        return AnimatedBuilder(
-        animation: _pulseAnimation,
-        builder: (context, child) {
-            return Positioned(
-            left: localX * cellSize,
-            top: localY * cellSize,
-            child: Semantics(
-              label: S.of(context)!.a11yAtom(atom.type.name),
-              hint: 'Tap to select, drag to slide',
-              button: true,
-              selected: isSelected,
-              child: GestureDetector(
-                onTap: () => _selectAtom(atom),
-                // Add pan gesture handlers for touch sliding
-                onPanStart: (details) => _handleAtomPanStart(atom, details),
-                onPanUpdate: _handleAtomPanUpdate,
-                onPanEnd: (details) => _handleAtomPanEnd(atom),
-                behavior: HitTestBehavior.opaque, // Ensure gesture detection works
-                child: _buildAtomVisual(atom.type, cellSize, isSelected, bonds),
-              ),
-            ),
-            );
+          }
+          return Positioned(
+            left: x * cellSize,
+            top: y * cellSize,
+            child: child!,
+          );
         },
-        );
+      );
     }).toList();
-    }
+  }
 
-  Widget _buildSuccessDialog(int totalScore, int efficiencyBonus) {
+  Widget _buildSuccessDialog(
+    int totalScore,
+    int efficiencyBonus,
+    Object round,
+    BuildContext dialogContext,
+  ) {
     return AnimatedBuilder(
-        animation: _successAnimation,
-        builder: (context, child) {
+      animation: _successAnimation,
+      builder: (context, child) {
         return Transform.scale(
-            scale: _successAnimation.value,
-            child: ScrollableRoundDialog(
+          scale: _successAnimation.value,
+          child: ScrollableRoundDialog(
             backgroundColor: Colors.transparent,
             child: Container(
-                padding: const EdgeInsets.all(22),
-                decoration: SpaceTheme.cardDecoration.copyWith(
+              padding: const EdgeInsets.all(22),
+              decoration: SpaceTheme.cardDecoration.copyWith(
                 border: Border.all(color: SpaceTheme.alienGreen, width: 3),
-                ),
-                child: Column(
+              ),
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundSummary(gameKey: 'quantum_molecule_builder'),
-                    const Icon(Icons.science, size: 54, color: SpaceTheme.alienGreen),
-                    const SizedBox(height: 8),
-                    Text(
+                  const Icon(
+                    Icons.science,
+                    size: 54,
+                    color: SpaceTheme.alienGreen,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
                     levelDisplayName,
                     style: const TextStyle(
-                        color: SpaceTheme.alienGreen,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                      color: SpaceTheme.alienGreen,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
                     ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
                     S.of(context)!.moleculeBuilderWinTitle,
                     style: const TextStyle(color: Colors.white, fontSize: 20),
                     textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                    S.of(context)!.moleculeBuilderWinDesc(movesMade, totalScore, efficiencyBonus),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    S
+                        .of(context)!
+                        .moleculeBuilderWinDesc(
+                          movesMade,
+                          totalScore,
+                          efficiencyBonus,
+                        ),
                     style: const TextStyle(color: Colors.white70, fontSize: 13),
                     textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                        Flexible(
+                      Flexible(
                         child: ElevatedButton(
-                            autofocus: true,
-                            onPressed: () {
-                            Navigator.of(context).pop();
+                          autofocus: true,
+                          onPressed: () {
+                            if (!_canUseDialog(round, dialogContext)) return;
+                            Navigator.of(dialogContext).pop();
                             _resetGame(nextLevel: _currentLevel + 1);
-                            },
-                            style: SpaceTheme.secondaryButtonStyle,
-                            child: Text(S.of(context)!.moleculeBuilderNextMolecule, style: const TextStyle(fontSize: 13)),
+                          },
+                          style: SpaceTheme.secondaryButtonStyle,
+                          child: Text(
+                            S.of(context)!.moleculeBuilderNextMolecule,
+                            style: const TextStyle(fontSize: 13),
+                          ),
                         ),
-                        ),
-                        const SizedBox(width: 10),
-                        Flexible(
+                      ),
+                      const SizedBox(width: 10),
+                      Flexible(
                         child: ElevatedButton(
-                            onPressed: () {
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
-                            },
-                            style: SpaceTheme.primaryButtonStyle,
-                            child: Text(S.of(context)!.toTheBridge, style: const TextStyle(fontSize: 13)),
+                          onPressed: () {
+                            if (!_canUseDialog(round, dialogContext)) return;
+                            Navigator.of(dialogContext).pop();
+                            Navigator.of(this.context).pop();
+                          },
+                          style: SpaceTheme.primaryButtonStyle,
+                          child: Text(
+                            S.of(context)!.toTheBridge,
+                            style: const TextStyle(fontSize: 13),
+                          ),
                         ),
-                        ),
+                      ),
                     ],
-                    ),
+                  ),
                 ],
-                ),
+              ),
             ),
-            ),
+          ),
         );
-        },
+      },
     );
   }
 
-  Widget _buildFailureDialog() {
+  Widget _buildFailureDialog(Object round, BuildContext dialogContext) {
     return ScrollableRoundDialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
+      backgroundColor: Colors.transparent,
+      child: Container(
         padding: const EdgeInsets.all(22),
         decoration: SpaceTheme.cardDecoration.copyWith(
-            border: Border.all(color: SpaceTheme.rocketRed, width: 2),
+          border: Border.all(color: SpaceTheme.rocketRed, width: 2),
         ),
         child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-                  RoundSummary(gameKey: 'quantum_molecule_builder'),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RoundSummary(gameKey: 'quantum_molecule_builder'),
             const Icon(Icons.warning, size: 54, color: SpaceTheme.rocketRed),
             const SizedBox(height: 12),
             Text(
-                S.of(context)!.moleculeBuilderLoseTitle,
-                style: const TextStyle(color: Colors.white, fontSize: 20),
-                textAlign: TextAlign.center,
+              S.of(context)!.moleculeBuilderLoseTitle,
+              style: const TextStyle(color: Colors.white, fontSize: 20),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
-                S.of(context)!.moleculeBuilderLoseDesc,
-                style: const TextStyle(color: Colors.white70, fontSize: 13),
-                textAlign: TextAlign.center,
+              S.of(context)!.moleculeBuilderLoseDesc,
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
             Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
                 Flexible(
-                    child: ElevatedButton(
+                  child: ElevatedButton(
                     autofocus: true,
                     onPressed: () {
-                        Navigator.of(context).pop();
-                        _resetGame();
+                      if (!_canUseDialog(round, dialogContext)) return;
+                      Navigator.of(dialogContext).pop();
+                      _resetGame();
                     },
                     style: SpaceTheme.secondaryButtonStyle,
-                    child: Text(S.of(context)!.tryAgain, style: const TextStyle(fontSize: 13)),
+                    child: Text(
+                      S.of(context)!.tryAgain,
+                      style: const TextStyle(fontSize: 13),
                     ),
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Flexible(
-                    child: ElevatedButton(
+                  child: ElevatedButton(
                     onPressed: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pop();
+                      if (!_canUseDialog(round, dialogContext)) return;
+                      Navigator.of(dialogContext).pop();
+                      Navigator.of(context).pop();
                     },
                     style: SpaceTheme.primaryButtonStyle,
-                    child: Text(S.of(context)!.toTheBridge, style: const TextStyle(fontSize: 13)),
+                    child: Text(
+                      S.of(context)!.toTheBridge,
+                      style: const TextStyle(fontSize: 13),
                     ),
+                  ),
                 ),
-                ],
+              ],
             ),
-            ],
+          ],
         ),
-        ),
+      ),
     );
   }
 
   void _resetGame({int? nextLevel}) {
     setState(() {
-        _moveHistory.clear();
-        gameActive = true;
-        hasWon = false;
-        hasLost = false;
-        movesMade = 0;
-        selectedAtom = null;
-        slidingAtom = null;
-        slideStartPos = null;
-        slideEndPos = null;
-        particles.clear();
-        // Reset pan gesture tracking
-        _panStartPosition = null;
-        _panCurrentPosition = null;
-        _panningAtom = null;
+      _moveHistory.clear();
+      gameActive = true;
+      hasWon = false;
+      hasLost = false;
+      movesMade = 0;
+      selectedAtom = null;
+      slidingAtom = null;
+      slideStartPos = null;
+      slideEndPos = null;
+      particles.clear();
+      // Reset pan gesture tracking
+      _panStartPosition = null;
+      _panCurrentPosition = null;
+      _panningAtom = null;
     });
     _loadLevel(levelToLoad: nextLevel);
     _successController.reset();
-    }
+  }
 
   @override
   void dispose() {
     disposePuzzleSession();
+    _round = Object();
+    final route = _resultRoute;
+    _resultRoute = null;
+    final navigator = route?.navigator;
+    if (route != null && navigator != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (navigator.mounted && route.isActive) navigator.removeRoute(route);
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
     _focusNode.dispose();
     _pulseController.dispose();
     _slideController.dispose();
@@ -2525,6 +3176,7 @@ class _QuantumMoleculeBuilderGameState extends State<QuantumMoleculeBuilderGame>
 // ==============================================================================
 
 enum CellType { empty, wall }
+
 enum Direction { up, down, left, right }
 
 String getLocalizedAtomName(AtomType type, BuildContext context) {
@@ -2537,10 +3189,12 @@ String getLocalizedAtomName(AtomType type, BuildContext context) {
   if (type == AtomType.sulfur) return s.atomNameSulfur;
   if (type == AtomType.fluorine) return s.atomNameFluorine;
   // Handle all special types generically
-  if (type.symbol.length == 1 && !'HOCNSF'.contains(type.symbol)) return s.atomNameSpecial; 
-  
+  if (type.symbol.length == 1 && !'HOCNSF'.contains(type.symbol)) {
+    return s.atomNameSpecial;
+  }
+
   // Fallback if type is somehow unknown
-  return type.name; 
+  return type.name;
 }
 
 class AtomType {
@@ -2548,38 +3202,114 @@ class AtomType {
   Map<String, dynamic> toJson() => {
     'symbol': symbol,
     'name': name,
-    'color': color.toARGB32()
+    'color': color.toARGB32(),
   };
   factory AtomType.fromJson(Map<String, dynamic> json) => AtomType(
     symbol: json['symbol'] as String,
     name: json['name'] as String,
-    color: Color(json['color'] as int)
+    color: Color(json['color'] as int),
   );
 
   final String symbol;
   final String name;
   final Color color;
 
-  const AtomType({required this.symbol, required this.name, required this.color});
+  const AtomType({
+    required this.symbol,
+    required this.name,
+    required this.color,
+  });
 
-  static const hydrogen = AtomType(symbol: 'H', name: 'Hydrogen', color: Color(0xFFFFFFFF));
-  static const oxygen = AtomType(symbol: 'O', name: 'Oxygen', color: Color(0xFFFF4444));
-  static const carbon = AtomType(symbol: 'C', name: 'Carbon', color: Color(0xFF909090));
-  static const nitrogen = AtomType(symbol: 'N', name: 'Nitrogen', color: Color(0xFF3050F8));
-  static const sulfur = AtomType(symbol: 'S', name: 'Sulfur', color: Color(0xFFFFFF30));
-  static const fluorine = AtomType(symbol: 'F', name: 'Fluorine', color: Color(0xFF90E050));
-  static const special1 = AtomType(symbol: 'W', name: 'Special', color: Color(0xFFFF00FF));
-  static const special2 = AtomType(symbol: 'X', name: 'Special', color: Color(0xFF00FFFF));
-  static const special3 = AtomType(symbol: 'Y', name: 'Special', color: Color(0xFFFFFF00));
-  static const special4 = AtomType(symbol: 'Z', name: 'Special', color: Color(0xFFFF8800));
-  static const special5 = AtomType(symbol: '!', name: 'Special', color: Color(0xFF8800FF));
-  static const special6 = AtomType(symbol: '?', name: 'Special', color: Color(0xFF00FF88));
-  static const special7 = AtomType(symbol: '#', name: 'Special', color: Color(0xFFFF0088));
-  static const special8 = AtomType(symbol: '@', name: 'Special', color: Color(0xFF0088FF));
-  static const special9 = AtomType(symbol: '%', name: 'Special', color: Color(0xFF88FF00));
-  static const special10 = AtomType(symbol: '&', name: 'Special', color: Color(0xFFFF8888));
-  static const special11 = AtomType(symbol: '<', name: 'Special', color: Color(0xFF88FF88));
-  static const special12 = AtomType(symbol: '>', name: 'Special', color: Color(0xFF8888FF));
+  static const hydrogen = AtomType(
+    symbol: 'H',
+    name: 'Hydrogen',
+    color: Color(0xFFFFFFFF),
+  );
+  static const oxygen = AtomType(
+    symbol: 'O',
+    name: 'Oxygen',
+    color: Color(0xFFFF4444),
+  );
+  static const carbon = AtomType(
+    symbol: 'C',
+    name: 'Carbon',
+    color: Color(0xFF909090),
+  );
+  static const nitrogen = AtomType(
+    symbol: 'N',
+    name: 'Nitrogen',
+    color: Color(0xFF3050F8),
+  );
+  static const sulfur = AtomType(
+    symbol: 'S',
+    name: 'Sulfur',
+    color: Color(0xFFFFFF30),
+  );
+  static const fluorine = AtomType(
+    symbol: 'F',
+    name: 'Fluorine',
+    color: Color(0xFF90E050),
+  );
+  static const special1 = AtomType(
+    symbol: 'W',
+    name: 'Special',
+    color: Color(0xFFFF00FF),
+  );
+  static const special2 = AtomType(
+    symbol: 'X',
+    name: 'Special',
+    color: Color(0xFF00FFFF),
+  );
+  static const special3 = AtomType(
+    symbol: 'Y',
+    name: 'Special',
+    color: Color(0xFFFFFF00),
+  );
+  static const special4 = AtomType(
+    symbol: 'Z',
+    name: 'Special',
+    color: Color(0xFFFF8800),
+  );
+  static const special5 = AtomType(
+    symbol: '!',
+    name: 'Special',
+    color: Color(0xFF8800FF),
+  );
+  static const special6 = AtomType(
+    symbol: '?',
+    name: 'Special',
+    color: Color(0xFF00FF88),
+  );
+  static const special7 = AtomType(
+    symbol: '#',
+    name: 'Special',
+    color: Color(0xFFFF0088),
+  );
+  static const special8 = AtomType(
+    symbol: '@',
+    name: 'Special',
+    color: Color(0xFF0088FF),
+  );
+  static const special9 = AtomType(
+    symbol: '%',
+    name: 'Special',
+    color: Color(0xFF88FF00),
+  );
+  static const special10 = AtomType(
+    symbol: '&',
+    name: 'Special',
+    color: Color(0xFFFF8888),
+  );
+  static const special11 = AtomType(
+    symbol: '<',
+    name: 'Special',
+    color: Color(0xFF88FF88),
+  );
+  static const special12 = AtomType(
+    symbol: '>',
+    name: 'Special',
+    color: Color(0xFF8888FF),
+  );
 }
 
 class Atom {
@@ -2589,14 +3319,14 @@ class Atom {
     'row': row,
     'col': col,
     'id': id,
-    'atomixIndex': atomixIndex
+    'atomixIndex': atomixIndex,
   };
   factory Atom.fromJson(Map<String, dynamic> json) => Atom(
     type: AtomType.fromJson(Map<String, dynamic>.from(json['type'] as Map)),
     row: json['row'] as int,
     col: json['col'] as int,
     id: json['id'] as String,
-    atomixIndex: json['atomixIndex'] as int
+    atomixIndex: json['atomixIndex'] as int,
   );
 
   final AtomType type;
@@ -2605,7 +3335,13 @@ class Atom {
   final String id;
   final int atomixIndex;
 
-  Atom({required this.type, required this.row, required this.col, required this.id, required this.atomixIndex});
+  Atom({
+    required this.type,
+    required this.row,
+    required this.col,
+    required this.id,
+    required this.atomixIndex,
+  });
 }
 
 class MoleculePattern {
@@ -2614,21 +3350,37 @@ class MoleculePattern {
     'name': name,
     'size': size,
     'grid': grid.map((v0) => v0.map((v1) => (v1)).toList()).toList(),
-    'atomTypes': atomTypes.map((v0) => v0.toJson()).toList()
+    'atomTypes': atomTypes.map((v0) => v0.toJson()).toList(),
   };
-  factory MoleculePattern.fromJson(Map<String, dynamic> json) => MoleculePattern(
-    name: json['name'] as String,
-    size: json['size'] as int,
-    grid: (json['grid'] as List).map((v0) => (v0 as List).map((v1) => (v1 == null ? null : v1 as int)).toList()).toList(),
-    atomTypes: (json['atomTypes'] as List).map((v0) => AtomType.fromJson(Map<String, dynamic>.from(v0 as Map))).toList()
-  );
+  factory MoleculePattern.fromJson(Map<String, dynamic> json) =>
+      MoleculePattern(
+        name: json['name'] as String,
+        size: json['size'] as int,
+        grid: (json['grid'] as List)
+            .map(
+              (v0) => (v0 as List)
+                  .map((v1) => (v1 == null ? null : v1 as int))
+                  .toList(),
+            )
+            .toList(),
+        atomTypes: (json['atomTypes'] as List)
+            .map(
+              (v0) => AtomType.fromJson(Map<String, dynamic>.from(v0 as Map)),
+            )
+            .toList(),
+      );
 
   final String name;
   final int size;
   final List<List<int?>> grid;
   final List<AtomType> atomTypes;
 
-  MoleculePattern({required this.name, required this.size, required this.grid, required this.atomTypes});
+  MoleculePattern({
+    required this.name,
+    required this.size,
+    required this.grid,
+    required this.atomTypes,
+  });
 
   factory MoleculePattern.water() {
     return MoleculePattern(
@@ -2666,11 +3418,16 @@ class MoleculeParticle {
     final random = math.Random();
     final angle = random.nextDouble() * 2 * math.pi;
     final speed = 100 + random.nextDouble() * 200;
-    
+
     return MoleculeParticle(
       position: pos,
       velocity: Offset.fromDirection(angle, speed),
-      color: [Colors.cyan, Colors.green, Colors.yellow, Colors.pink][random.nextInt(4)],
+      color: [
+        Colors.cyan,
+        Colors.green,
+        Colors.yellow,
+        Colors.pink,
+      ][random.nextInt(4)],
       size: 4 + random.nextDouble() * 5,
       opacity: 1.0,
       life: 1.0 + random.nextDouble() * 0.6,
@@ -2681,7 +3438,7 @@ class MoleculeParticle {
     final random = math.Random();
     final angle = random.nextDouble() * 2 * math.pi;
     final speed = 60 + random.nextDouble() * 120;
-    
+
     return MoleculeParticle(
       position: pos,
       velocity: Offset.fromDirection(angle, speed),
@@ -2712,7 +3469,10 @@ class MoleculeParticle {
             color: color.withValues(alpha: opacity),
             shape: BoxShape.circle,
             boxShadow: [
-              BoxShadow(color: color.withValues(alpha: opacity * 0.6), blurRadius: size * 2),
+              BoxShadow(
+                color: color.withValues(alpha: opacity * 0.6),
+                blurRadius: size * 2,
+              ),
             ],
           ),
         ),
@@ -2726,27 +3486,48 @@ class MolecularBackgroundPainter extends CustomPainter {
   final bool gameWon;
   final bool gameLost;
 
-  MolecularBackgroundPainter({required this.pulseIntensity, required this.gameWon, required this.gameLost});
+  MolecularBackgroundPainter({
+    required this.pulseIntensity,
+    required this.gameWon,
+    required this.gameLost,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final baseColor = gameLost ? Colors.red : gameWon ? Colors.green : Colors.cyan;
+    final baseColor = gameLost
+        ? Colors.red
+        : gameWon
+        ? Colors.green
+        : Colors.cyan;
     final networkPaint = Paint()
       ..color = baseColor.withValues(alpha: 0.08 * pulseIntensity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
-    
+
     const hexSize = 50.0;
     final hexHeight = hexSize * math.sqrt(3);
-    
-    for (double y = -hexHeight; y < size.height + hexHeight; y += hexHeight * 0.75) {
-      for (double x = -hexSize; x < size.width + hexSize * 2; x += hexSize * 1.5) {
+
+    for (
+      double y = -hexHeight;
+      y < size.height + hexHeight;
+      y += hexHeight * 0.75
+    ) {
+      for (
+        double x = -hexSize;
+        x < size.width + hexSize * 2;
+        x += hexSize * 1.5
+      ) {
         final offset = (y / hexHeight).floor() % 2 == 0 ? 0.0 : hexSize * 0.75;
-        _drawHexagon(canvas, Offset(x + offset, y), hexSize * 0.4, networkPaint);
+        _drawHexagon(
+          canvas,
+          Offset(x + offset, y),
+          hexSize * 0.4,
+          networkPaint,
+        );
       }
     }
   }
-  
+
   void _drawHexagon(Canvas canvas, Offset center, double size, Paint paint) {
     final path = Path();
     for (int i = 0; i < 6; i++) {

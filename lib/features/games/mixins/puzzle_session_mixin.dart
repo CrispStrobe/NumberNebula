@@ -13,6 +13,10 @@ mixin PuzzleSessionMixin<T extends StatefulWidget> on State<T> {
   String get sessionGameKey;
   int get sessionGrade;
   int get sessionLevel;
+
+  /// Opt-in owner for a pending storage read/resume dialog. Existing games
+  /// retain their behavior; round-based games can reject an obsolete restore.
+  Object? get puzzleSessionRestoreIdentity => null;
   Map<String, dynamic>? capturePuzzleSession();
   void applyPuzzleSession(Map<String, dynamic> state);
   bool _finished = false;
@@ -36,7 +40,7 @@ mixin PuzzleSessionMixin<T extends StatefulWidget> on State<T> {
     'cargo_bay_arranger',
     'puzzle_math',
     'asteroid_field_navigator',
-    'star_loader_game'
+    'star_loader_game',
   };
 
   /// Animation-only mutations never schedule board serialization.
@@ -83,8 +87,10 @@ mixin PuzzleSessionMixin<T extends StatefulWidget> on State<T> {
 
   void onPuzzleSessionMotionChanged(bool reduced) {}
   void updateDecorativeMotion(
-      List<AnimationController> controllers, bool reduced,
-      {bool reverse = true}) {
+    List<AnimationController> controllers,
+    bool reduced, {
+    bool reverse = true,
+  }) {
     for (final controller in controllers) {
       if (reduced) {
         if (controller.isAnimating) _decorativeRunning.add(controller);
@@ -96,8 +102,11 @@ mixin PuzzleSessionMixin<T extends StatefulWidget> on State<T> {
   }
 
   /// One-shot completion must remain reachable when decorative motion is disabled.
-  void updateOneShotMotion(AnimationController controller, bool reduced,
-      {required Duration duration}) {
+  void updateOneShotMotion(
+    AnimationController controller,
+    bool reduced, {
+    required Duration duration,
+  }) {
     controller.duration = reduced ? Duration.zero : duration;
     if (reduced && controller.isAnimating) {
       controller.stop();
@@ -117,7 +126,9 @@ mixin PuzzleSessionMixin<T extends StatefulWidget> on State<T> {
 
   /// Completion is deferred past build and invalidated by reset or disposal.
   void playOneShotMotion(
-      AnimationController controller, VoidCallback onCompleted) {
+    AnimationController controller,
+    VoidCallback onCompleted,
+  ) {
     cancelOneShotMotion(controller);
     final epoch = Object();
     _oneShotEpochs[controller] = epoch;
@@ -172,18 +183,24 @@ mixin PuzzleSessionMixin<T extends StatefulWidget> on State<T> {
   void finishPuzzleSession() {
     _finished = true;
     _saveTimer?.cancel();
-    unawaited(PuzzleSessionStore.instance
-        .clear(sessionGameKey)
-        .catchError((Object e) {
-      if (kDebugMode) debugPrint('Could not clear puzzle: $e');
-    }));
+    unawaited(
+      PuzzleSessionStore.instance.clear(sessionGameKey).catchError((Object e) {
+        if (kDebugMode) debugPrint('Could not clear puzzle: $e');
+      }),
+    );
   }
 
   Future<bool> restorePuzzleSession() async {
+    final identity = puzzleSessionRestoreIdentity;
+    bool ownsRestore() =>
+        mounted && identical(identity, puzzleSessionRestoreIdentity);
     try {
-      final state = await PuzzleSessionStore.instance
-          .load(sessionGameKey, sessionGrade, sessionLevel);
-      if (state == null || !mounted) return false;
+      final state = await PuzzleSessionStore.instance.load(
+        sessionGameKey,
+        sessionGrade,
+        sessionLevel,
+      );
+      if (state == null || !mounted || !ownsRestore()) return false;
       final s = S.of(context)!;
       final pause = GamePauseScope.of(context);
       final wasPaused = pause?.paused ?? false;
@@ -191,23 +208,37 @@ mixin PuzzleSessionMixin<T extends StatefulWidget> on State<T> {
       bool? resume;
       try {
         resume = await showDialog<bool>(
-            context: context,
-            barrierDismissible: false,
-            builder: (dialogContext) => AlertDialog(
-                    title: Text(s.resumePuzzleTitle),
-                    content: Text(s.resumePuzzleDescription),
-                    actions: [
-                      TextButton(
-                          onPressed: () => Navigator.pop(dialogContext, false),
-                          child: Text(s.startNewPuzzle)),
-                      ElevatedButton(
-                          onPressed: () => Navigator.pop(dialogContext, true),
-                          child: Text(s.resumePuzzle)),
-                    ]));
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(s.resumePuzzleTitle),
+            content: Text(s.resumePuzzleDescription),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  if (dialogContext.mounted &&
+                      ModalRoute.of(dialogContext)?.isCurrent == true) {
+                    Navigator.pop(dialogContext, false);
+                  }
+                },
+                child: Text(s.startNewPuzzle),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (dialogContext.mounted &&
+                      ModalRoute.of(dialogContext)?.isCurrent == true) {
+                    Navigator.pop(dialogContext, true);
+                  }
+                },
+                child: Text(s.resumePuzzle),
+              ),
+            ],
+          ),
+        );
       } finally {
         pause?.setPaused(wasPaused);
       }
-      if (!mounted) return true;
+      if (!mounted || !ownsRestore()) return true;
       if (resume != true) {
         await PuzzleSessionStore.instance.clear(sessionGameKey);
         return false;
@@ -219,10 +250,12 @@ mixin PuzzleSessionMixin<T extends StatefulWidget> on State<T> {
       setState(() => applyPuzzleSession(state));
       return true;
     } catch (e) {
+      if (!mounted || !ownsRestore()) return true;
       await PuzzleSessionStore.instance.clear(sessionGameKey);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(S.of(context)!.resumePuzzleFailed)));
+          SnackBar(content: Text(S.of(context)!.resumePuzzleFailed)),
+        );
       }
       return false;
     }
@@ -239,12 +272,14 @@ mixin PuzzleSessionMixin<T extends StatefulWidget> on State<T> {
     final encoded = jsonEncode(state);
     if (_lastSaved == encoded) return;
     _lastSaved = encoded;
-    unawaited(PuzzleSessionStore.instance
-        .saveEncoded(sessionGameKey, sessionGrade, sessionLevel, encoded)
-        .catchError((Object e) {
-      _lastSaved = null;
-      if (kDebugMode) debugPrint('Could not save puzzle: $e');
-    }));
+    unawaited(
+      PuzzleSessionStore.instance
+          .saveEncoded(sessionGameKey, sessionGrade, sessionLevel, encoded)
+          .catchError((Object e) {
+            _lastSaved = null;
+            if (kDebugMode) debugPrint('Could not save puzzle: $e');
+          }),
+    );
   }
 
   @override

@@ -93,7 +93,9 @@ jobs:
   live-test:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # The preceding46-case job took19m47s without retries. Keep one worker
+    # and unchanged per-test/performance gates for the expanded48-case suite.
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: tool/web_live_test
@@ -146,7 +148,9 @@ jobs:
         (github.event_name == 'pull_request' &&
          github.event.pull_request.head.repo.full_name == github.repository))
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # Includes prebuilt publication and both engines; cloud build-slot waits
+    # must not consume the entire browser allowance. No new parallel jobs.
+    timeout-minutes: 35
     concurrency:
       group: vercel-deploy-${{ github.ref }}
       cancel-in-progress: false
