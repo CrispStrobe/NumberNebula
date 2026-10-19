@@ -883,8 +883,8 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
       _successController.value = 1;
       _exitController.value = 1;
     } else {
-      _successController.forward();
-      _exitController.forward();
+      playOneShotMotion(_successController, () {});
+      playOneShotMotion(_exitController, () {});
     }
     AppHaptics.heavyImpact();
 
