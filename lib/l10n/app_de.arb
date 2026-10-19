@@ -1081,7 +1081,7 @@
   "starLoaderGameTitle": "Frachtlader",
   "starLoaderTitle": "Frachtlader",
   "starLoaderGameDesc": "Schiebe die Frachtkisten ohne hängen zu bleiben auf die grünen Ziele.",
-  "starLoaderHint": "Bewege dich mit Pfeiltasten oder Wischen. Bringe alle Frachtkisten auf die Ziele!",
+  "starLoaderHint": "Gehe mit Pfeiltasten oder Wischen. Schiebe jede Kiste auf ein Ziel. Ziehen geht nicht: Gehe um eine Kiste herum, um sie von einer anderen Seite zu schieben.",
   "moves": "Züge",
   "optimal": "Optimal",
   "undo": "Zurück",

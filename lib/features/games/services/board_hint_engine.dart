@@ -1121,6 +1121,7 @@ BoardHint _ionHint(Map<String, dynamic> p, Map<String, dynamic> s, bool de) {
 
 BoardHint _mineHint(Map<String, dynamic> s, bool de) {
   final grid = _list(s['grid']).map(_list).toList(), rows = grid.length;
+  BoardHint? fallback;
   for (int r = 0; r < rows; r++) {
     for (int c = 0; c < grid[r].length; c++) {
       final cell = _map(grid[r][c]);
@@ -1140,10 +1141,23 @@ BoardHint _mineHint(Map<String, dynamic> s, bool de) {
           }
         }
       }
-      if (hidden.isEmpty) continue;
       final clue = cell['adjacentMines'] as int;
+      if (flags > clue) {
+        return BoardHint(
+          de
+              ? 'Prüfe die Flaggen bei Zeile ${r + 1}, Spalte ${c + 1}.'
+              : 'Review flags by row ${r + 1}, column ${c + 1}.',
+          de
+              ? 'Eine Zahl zählt alle acht angrenzenden Felder, auch diagonal.'
+              : 'A clue counts all eight touching cells, including diagonals.',
+          de
+              ? '$flags Flaggen bei Hinweis $clue: Mindestens eine dieser Flaggen ist falsch. Prüfe sie, bevor du daraus sichere Felder ableitest.'
+              : '$flags flags beside clue $clue: at least one of those flags is wrong. Review them before using them to infer safe cells.',
+        );
+      }
+      if (hidden.isEmpty) continue;
       final safe = flags == clue, mines = clue - flags == hidden.length;
-      return BoardHint(
+      final hint = BoardHint(
         de
             ? 'Betrachte Zeile ${r + 1}, Spalte ${c + 1}.'
             : 'Focus on row ${r + 1}, column ${c + 1}.',
@@ -1155,15 +1169,18 @@ BoardHint _mineHint(Map<String, dynamic> s, bool de) {
             : 'Clue $clue, flags $flags, hidden ${hidden.length}. ${safe ? 'If your flags are correct, the other neighbours are safe.' : mines ? 'If your flags are correct, all other neighbours contain mines.' : 'You need another clue here.'}',
         target: hidden.first,
       );
+      if (safe || mines) return hint;
+      fallback ??= hint;
     }
   }
-  return BoardHint(
-    de ? 'Öffne ein Startfeld.' : 'Reveal a starting cell.',
-    de
-        ? 'Ein enthüllter Hinweis begrenzt seine Nachbarn.'
-        : 'A revealed clue constrains its neighbours.',
-    de
-        ? 'Vor dem ersten Hinweis lässt sich kein sicherer Nachbar ableiten.'
-        : 'Before the first clue, a safe neighbour cannot be deduced.',
-  );
+  return fallback ??
+      BoardHint(
+        de ? 'Öffne ein Startfeld.' : 'Reveal a starting cell.',
+        de
+            ? 'Ein enthüllter Hinweis begrenzt seine Nachbarn.'
+            : 'A revealed clue constrains its neighbours.',
+        de
+            ? 'Vor dem ersten Hinweis lässt sich kein sicherer Nachbar ableiten.'
+            : 'Before the first clue, a safe neighbour cannot be deduced.',
+      );
 }

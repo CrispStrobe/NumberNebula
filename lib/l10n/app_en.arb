@@ -1182,7 +1182,7 @@
   "starLoaderGameTitle": "Cargo-Loader",
   "starLoaderTitle": "Cargo-Loader",
   "starLoaderGameDesc": "Push the crates onto the indicated targets.",
-  "starLoaderHint": "Use arrows or swipe to move. Get all crates to the targets!",
+  "starLoaderHint": "Use arrows or swipe to walk. Push every crate onto a target. You cannot pull crates: walk around one to push it from another side.",
   "moves": "Moves",
   "optimal": "Optimal",
   "starLoaderWinTitle": "Cargo Loaded!",

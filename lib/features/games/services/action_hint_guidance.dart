@@ -357,10 +357,24 @@ Map<String, String>? actionHintGuidance(
                         'This clue alone cannot choose which neighbours contain the remaining energy; combine it with an overlapping clue.',
                         'Dieser Hinweis allein bestimmt nicht, welche Nachbarn die übrige Energie enthalten; kombiniere ihn mit einem überlappenden Hinweis.',
                       );
+        final rows = _l(p['allCells'])
+            .map(_m)
+            .map((c) => c['r'] as int)
+            .toSet()
+            .toList()
+          ..sort();
+        final rowCells = _l(p['allCells'])
+            .map(_m)
+            .where((c) => c['r'] == r)
+            .map((c) => c['q'] as int)
+            .toList()
+          ..sort();
+        final visualRow = rows.indexOf(r) + 1,
+            visualCol = rowCells.indexOf(q) + 1;
         final candidate = help(
           t(
-            'Use the revealed $clue clue at hex ($q, $r).',
-            'Nutze den sichtbaren Hinweis $clue am Sechseck ($q, $r).',
+            'Use the revealed $clue clue: row $visualRow from the top, hex $visualCol from the left.',
+            'Nutze den sichtbaren Hinweis $clue: Reihe $visualRow von oben, Sechseck $visualCol von links.',
           ),
           t(
             'Among its six possible neighbours: $flags marked, $unknown undecided. $clue − $flags = $need energy cells still needed. $conclusion',

@@ -40,8 +40,9 @@ Cargo distinguishes clearing from bonuses and asks the player to check the
 whole landing shape. Duel energy is checked separately from calculation and
 damage. Misère advice states honestly when no forcing move exists.
 
-The existing Mines clue arithmetic is retained as a conditional observation,
-not a verified move. Existing generators and game algorithms are preserved.
+Mines clue arithmetic remains a conditional observation, never a verified move.
+It prefers an actionable clue to an undecidable one, and flags contradictions
+when the player has marked more neighbors than a visible clue permits. Existing generators and game algorithms are preserved.
 Replacement guidance never inherits a previous hint's solver proof.
 
 ## Executable evidence and limits

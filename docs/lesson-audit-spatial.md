@@ -78,7 +78,7 @@ indices, Molecule target solutions or Cube hidden dice faces.
   helper returns null for this game so the existing solution path runs. Its
   null/empty fallback now distinguishes all-lit from a solver failure; neither
   is evidence of a dark-board goal.
-- The `_mineHint` algorithm is outside this 16-game inventory and is not altered.
+- The Mines hint is covered in the separate action-game inventory.
 
 The hints deliberately preserve authored boards, references, move/score rules,
 A/B generator paths and fallbacks. This audit improves instruction accuracy; it
@@ -86,3 +86,6 @@ does not validate cross-game felt difficulty, device performance or children's
 understanding. Validation should use real current and restored snapshots,
 filled-but-wrong positions, ring-end slots, six-digit clocks, local choices that
 are not global solutions, and large-text English/German layouts.
+
+Star Loader’s short automatic hint now explicitly explains pushing onto targets
+and the absence of pulling. Its existing arrows/swipe controls are retained.

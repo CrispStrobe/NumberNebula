@@ -32,6 +32,11 @@ be actions or explanations instead of unrelated numbers. Existing numeric
 onboarding callers retain their behavior. A new seen key presents the corrected
 lessons to existing players; the practice button always permits replay.
 
+Dedicated Star Forge, Orbital Towers and Number Walls hint buttons use the same
+audited guidance, attached to their existing asynchronous solver moves. Their
+demonstration callbacks retain round guards. Star Loader’s short hint explicitly
+teaches pushing onto targets and the absence of pulling.
+
 Current-board hints use actual visible clues and player placements. They explain
 ordering, calculation, legal manipulation or a useful deduction rather than
 printing internal maps or pretending the stored answer is a deduction. Numeric,
@@ -90,8 +95,8 @@ their captured board and rules instead of being regenerated into the new profile
 
 ## Completed bounded checks
 
-The final fixed-fixture checkers passed **838 assertions**: 295 numeric,
-277 spatial and 266 action/catalog checks. They cover all 48 lesson entries and
+The final fixed-fixture checkers passed **844 assertions**: 295 numeric,
+277 spatial and 272 action/catalog checks. They cover all 48 lesson entries and
 both languages. The 12-profile difficulty smoke comparison also passed. These
 results do not imply that the pending full native/browser checks passed.
 

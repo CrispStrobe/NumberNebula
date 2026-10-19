@@ -59,3 +59,8 @@ For the six retained constraint-solver branches, the wrapper supplies `_hintVeri
 - A bounded solver finding one completion does not prove that every wrong placement is identified or that the suggested value is logically forced. Timeout remains “no compatible completion found within the limit,” not “unsolvable.”
 - Static exercises do not establish calibrated felt difficulty or learning effectiveness. Difficulty requires operation/constraint/sample comparisons and eventually child playtests; no such outcomes are claimed here.
 - No local build, analyzer, full test suite, browser run, or solver stress job was executed for this audit. Root integration must verify every lesson's unique correct option, actual state-schema guidance, and the wrapper's proof metadata on the remote runner.
+
+The dedicated Star Forge, Orbital Towers and Number Walls hint buttons also use
+the audited numeric guidance. Their asynchronous completion searches, round
+identity checks and demonstration callbacks remain intact; explanations are
+attached to the exact move from that search, rather than running another solver.

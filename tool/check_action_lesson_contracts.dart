@@ -302,5 +302,50 @@ void main() {
     check(jsonEncode(before) == jsonEncode(actionHintGuidance(key, changed)),
         '$key: hidden solution independence');
   }
+  final mineGrid = List.generate(
+      3,
+      (_) => List.generate(
+          3,
+          (_) => <String, dynamic>{
+                'isRevealed': false,
+                'isFlagged': false,
+                'isMine': false,
+                'adjacentMines': 0,
+              }));
+  mineGrid[1][1].addAll({'isRevealed': true, 'adjacentMines': 1});
+  mineGrid[0][0]['isFlagged'] = true;
+  final mineState = <String, dynamic>{'grid': mineGrid};
+  final frozenMineState = jsonEncode(mineState);
+  for (final german in [false, true]) {
+    final h =
+        findBoardHint('asteroid_field_navigator', mineState, german: german)!;
+    check(
+        h.working.contains(german
+                ? 'Bei korrekten Flaggen'
+                : 'If your flags are correct') &&
+            h.working.contains(german ? 'sicher' : 'safe') &&
+            !h.verified,
+        'Mines safe inference remains conditional, including diagonals');
+  }
+  check(jsonEncode(mineState) == frozenMineState, 'Mines immutable snapshot');
+  final beforeMinePoison =
+      findBoardHint('asteroid_field_navigator', mineState)!.toJson();
+  mineGrid[2][2]['isMine'] = true;
+  check(
+      jsonEncode(
+              findBoardHint('asteroid_field_navigator', mineState)!.toJson()) ==
+          jsonEncode(beforeMinePoison),
+      'Mines hidden mine must not affect a clue hint');
+  mineGrid[0][1]['isFlagged'] = true;
+  for (final german in [false, true]) {
+    final h =
+        findBoardHint('asteroid_field_navigator', mineState, german: german)!;
+    check(
+        h.working.contains(german ? 'Mindestens eine' : 'at least one') &&
+            !h.verified &&
+            h.target == null,
+        'Mines overflag contradiction must precede any safe-cell recommendation');
+  }
+
   print('PASS: $checks fixed action/catalog checks; no generated samples.');
 }
