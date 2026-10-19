@@ -7,48 +7,70 @@ import 'package:space_math_academy/shared/widgets/onboarding_overlay.dart';
 
 void main() {
   test(
-      'every registered game has a playable lesson and three specific hint stages',
-      () {
-    for (final key in registeredGameKeys) {
-      final lesson = gameCoaching[key];
-      expect(lesson, isNotNull, reason: key);
-      expect(lesson!.choices.toSet().length, lesson.choices.length);
-      expect(lesson.choices, contains(lesson.answer));
-      for (final value in [
-        lesson.questionEn,
-        lesson.questionDe,
-        lesson.focusEn,
-        lesson.focusDe,
-        lesson.strategyEn,
-        lesson.strategyDe,
-        lesson.workingEn,
-        lesson.workingDe
-      ]) {
-        expect(value, isNotEmpty, reason: '$key has incomplete coaching');
+    'every registered game has a playable lesson and three specific hint stages',
+    () {
+      for (final key in registeredGameKeys) {
+        final lesson = gameCoaching[key];
+        expect(lesson, isNotNull, reason: key);
+        for (final german in [false, true]) {
+          final practice = lesson!.practice(german);
+          final rules = german ? lesson.strategyDe : lesson.strategyEn;
+          final question = german ? lesson.questionDe : lesson.questionEn;
+          expect(
+            practice.body.indexOf(rules),
+            0,
+            reason: '$key must teach its rule before asking',
+          );
+          expect(
+            practice.body.indexOf(question),
+            greaterThan(practice.body.indexOf(rules)),
+          );
+        }
+        expect(lesson!.choices.toSet().length, lesson.choices.length);
+        expect(lesson.choices, contains(lesson.answer));
+        for (final value in [
+          lesson.questionEn,
+          lesson.questionDe,
+          lesson.focusEn,
+          lesson.focusDe,
+          lesson.strategyEn,
+          lesson.strategyDe,
+          lesson.workingEn,
+          lesson.workingDe,
+        ]) {
+          expect(value, isNotEmpty, reason: '$key has incomplete coaching');
+        }
       }
-    }
-  });
+    },
+  );
   for (final lang in ['en', 'de']) {
-    testWidgets('all lessons remain playable on a landscape phone ($lang)',
-        (tester) async {
+    testWidgets('all lessons remain playable on a landscape phone ($lang)', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(667, 375);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       for (final key in registeredGameKeys) {
         final lesson = gameCoaching[key]!;
         var done = false;
-        await tester.pumpWidget(MaterialApp(
+        await tester.pumpWidget(
+          MaterialApp(
             locale: Locale(lang),
             localizationsDelegates: S.localizationsDelegates,
             supportedLocales: S.supportedLocales,
             home: OnboardingOverlay(
-                key: ValueKey(key),
-                title: 'Practice',
-                steps: [lesson.practice(lang == 'de')],
-                onDismiss: () => done = true)));
+              key: ValueKey(key),
+              title: 'Practice',
+              steps: [lesson.practice(lang == 'de')],
+              onDismiss: () => done = true,
+            ),
+          ),
+        );
         await tester.pump();
-        final correct =
-            find.widgetWithText(OutlinedButton, lesson.answer.toString());
+        final correct = find.widgetWithText(
+          OutlinedButton,
+          lesson.answer.toString(),
+        );
         await tester.ensureVisible(correct);
         await tester.tap(correct);
         await tester.pump();
@@ -58,5 +80,74 @@ void main() {
         expect(tester.takeException(), isNull, reason: key);
       }
     });
+  }
+  for (final lang in ['en', 'de']) {
+    for (final key in [
+      'asteroid_math',
+      'magic_triangles',
+      'signal_triangulation',
+    ]) {
+      testWidgets(
+        '$key teaches its actual rule before a wrong and correct practice answer ($lang)',
+        (t) async {
+          t.view.physicalSize = const Size(390, 500);
+          t.view.devicePixelRatio = 1;
+          addTearDown(t.view.reset);
+          final lesson = gameCoaching[key]!;
+          var done = false;
+          await t.pumpWidget(
+            MaterialApp(
+              locale: Locale(lang),
+              localizationsDelegates: S.localizationsDelegates,
+              supportedLocales: S.supportedLocales,
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(textScaler: const TextScaler.linear(2)),
+                child: child!,
+              ),
+              home: OnboardingOverlay(
+                title: 'Practice',
+                steps: [lesson.practice(lang == 'de')],
+                onDismiss: () => done = true,
+              ),
+            ),
+          );
+          await t.pump();
+          final body = find.text(lesson.practice(lang == 'de').body);
+          expect(body, findsOneWidget);
+          if (key == 'magic_triangles') {
+            expect(
+              find.bySemanticsLabel(
+                RegExp(lang == 'de' ? 'Dreieck: oben 1' : 'Triangle: top 1'),
+              ),
+              findsOneWidget,
+            );
+          }
+          final wrong = find.widgetWithText(
+            OutlinedButton,
+            lesson.choices.firstWhere((v) => v != lesson.answer).toString(),
+          );
+          await t.ensureVisible(wrong);
+          await t.tap(wrong);
+          await t.pump();
+          expect(done, isFalse);
+          final right = find.widgetWithText(
+            OutlinedButton,
+            lesson.answer.toString(),
+          );
+          await t.ensureVisible(right);
+          await t.tap(right);
+          await t.pump();
+          expect(
+            find.text(lang == 'de' ? lesson.workingDe : lesson.workingEn),
+            findsOneWidget,
+          );
+          await t.tap(find.byType(ElevatedButton));
+          expect(done, isTrue);
+          expect(t.takeException(), isNull);
+        },
+      );
+    }
   }
 }

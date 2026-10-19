@@ -49,6 +49,9 @@ jobs:
       - name: Shared generator regressions
         if: matrix.grade_group == 'all' || matrix.grade_group == '1'
         run: dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/test_pure_generation.dart
+      - name: Practice difficulty progression and paired generation
+        if: matrix.grade_group == 'all' || matrix.grade_group == '1'
+        run: dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/check_practice_difficulty.dart --output practice-difficulty.json
       - name: Candidate and baseline correctness regressions
         if: matrix.grade_group == 'all' || matrix.grade_group == '1'
         run: dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/test_algorithm_paths.dart
@@ -80,6 +83,13 @@ jobs:
           --generate --require-all --grades "$CALIBRATION_GRADES" --levels 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
           --samples "$CALIBRATION_SAMPLES" --seed 20261002 --workers 2
           --output calibration-grade-${{ matrix.grade_group }}.json
+      - name: Upload practice difficulty comparison
+        if: always() && (matrix.grade_group == 'all' || matrix.grade_group == '1')
+        uses: actions/upload-artifact@v4
+        with:
+          name: practice-difficulty-comparison
+          path: practice-difficulty.json
+          if-no-files-found: warn
       - name: List calibration outputs
         if: always()
         run: ls -lh calibration-grade-* || echo "No calibration-grade-* files produced"

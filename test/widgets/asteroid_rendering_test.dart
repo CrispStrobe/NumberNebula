@@ -26,7 +26,7 @@ void main() {
         'asteroid moving hit targets, pause and frame isolation '
         '(reduced motion: $reducedMotion)', (tester) async {
       SharedPreferences.setMockInitialValues({
-        'onboarding_seen_asteroid_math_all_games_guided_v1': true,
+        'onboarding_seen_asteroid_math_all_games_guided_v2_rules': true,
       });
       ProfilePreferences.activeId = 'default';
       PuzzleSessionStore.resetForTesting();

@@ -624,7 +624,7 @@ void main() {
     final app = await _mount(t);
     await _finish(t);
     await t.runAsync(
-        () => OnboardingOverlay.markSeen('puzzle_math_all_games_guided_v1'));
+        () => OnboardingOverlay.markSeen('puzzle_math_all_games_guided_v2_rules'));
     await t.runAsync(() => loadGameLibrary('puzzle_math'));
     final original = _state(t);
     await t.ensureVisible(suggestion());

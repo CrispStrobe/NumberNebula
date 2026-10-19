@@ -9,16 +9,24 @@ class BoardHint {
   final String? target;
   final Object? value;
   final bool verified;
-  const BoardHint(this.focus, this.strategy, this.working,
-      {this.target, this.value, this.verified = false});
+  final bool hasSpecificStrategy;
+  const BoardHint(
+    this.focus,
+    this.strategy,
+    this.working, {
+    this.target,
+    this.value,
+    this.verified = false,
+    this.hasSpecificStrategy = true,
+  });
   Map<String, dynamic> toJson() => {
-        'focus': focus,
-        'strategy': strategy,
-        'working': working,
-        'target': target,
-        'value': value,
-        'verified': verified
-      };
+    'focus': focus,
+    'strategy': strategy,
+    'working': working,
+    'target': target,
+    'value': value,
+    'verified': verified,
+  };
 }
 
 Map<String, dynamic> _map(Object? v) =>
@@ -28,7 +36,7 @@ Map<String, dynamic> _pairs(Object? v) => v is Map
     ? _map(v)
     : {
         for (final e in _list(v))
-          if (e is List && e.length == 2) e[0].toString(): e[1]
+          if (e is List && e.length == 2) e[0].toString(): e[1],
       };
 String _cell(String id, bool de) {
   final match = RegExp(r'^(?:r|C_)(\d+)(?:c|_)(\d+)$').firstMatch(id);
@@ -57,75 +65,104 @@ String _faceLabel(String face, bool de) => de
         _ => 'the requested face',
       };
 
-BoardHint? findBoardHint(String game, Map<String, dynamic> state,
-    {bool german = false}) {
+BoardHint? findBoardHint(
+  String game,
+  Map<String, dynamic> state, {
+  bool german = false,
+}) {
   String t(String en, String de) => german ? de : en;
   final p = _map(state['puzzle'] ?? state['_puzzle'] ?? state['currentPuzzle']);
-  BoardHint observe(String en, String de, String workEn, String workDe,
-          {String? target, Object? value, bool verified = false}) =>
-      BoardHint(
-          t(en, de),
-          t('Use the visible rules and your current placements.',
-              'Nutze die sichtbaren Regeln und deine aktuellen Platzierungen.'),
-          t(workEn, workDe),
-          target: target,
-          value: value,
-          verified: verified);
-  BoardHint? solve(Map<String, dynamic> data, List<String> empty, String ruleEn,
-      String ruleDe) {
+  BoardHint observe(
+    String en,
+    String de,
+    String workEn,
+    String workDe, {
+    String? target,
+    Object? value,
+    bool verified = false,
+  }) => BoardHint(
+    t(en, de),
+    t(
+      'Use the visible rules and your current placements.',
+      'Nutze die sichtbaren Regeln und deine aktuellen Platzierungen.',
+    ),
+    t(workEn, workDe),
+    target: target,
+    value: value,
+    verified: verified,
+    hasSpecificStrategy: false,
+  );
+  BoardHint? solve(
+    Map<String, dynamic> data,
+    List<String> empty,
+    String ruleEn,
+    String ruleDe,
+  ) {
     final values = _map(data['values']);
     final missing = empty.where((c) => !values.containsKey(c)).toList();
     if (missing.isEmpty) {
       return observe(
-          'Your board is filled.',
-          'Dein Feld ist gefüllt.',
-          'Check every constraint before submitting.',
-          'Prüfe vor dem Bestätigen alle Regeln.');
+        'Your board is filled.',
+        'Dein Feld ist gefüllt.',
+        'Check every constraint before submitting.',
+        'Prüfe vor dem Bestätigen alle Regeln.',
+      );
     }
-    final completion =
-        findHintCompletion({...data, 'maxVisits': 12000, 'timeoutMs': 40});
+    final completion = findHintCompletion({
+      ...data,
+      'maxVisits': 12000,
+      'timeoutMs': 40,
+    });
     final target = missing.first;
     if (completion == null) {
       return observe(
-          'Check ${_cell(target, false)}.',
-          'Prüfe ${_cell(target, true)}.',
-          '$ruleEn A compatible completion was not found within the search limit; review the filled clues.',
-          '$ruleDe Innerhalb der Suchgrenze wurde keine passende Ergänzung gefunden; prüfe die ausgefüllten Hinweise.',
-          target: target);
+        'Check ${_cell(target, false)}.',
+        'Prüfe ${_cell(target, true)}.',
+        '$ruleEn A compatible completion was not found within the search limit; review the filled clues.',
+        '$ruleDe Innerhalb der Suchgrenze wurde keine passende Ergänzung gefunden; prüfe die ausgefüllten Hinweise.',
+        target: target,
+      );
     }
     final value = completion[target]!;
     return BoardHint(
-        t('Focus on ${_cell(target, false)}.',
-            'Betrachte ${_cell(target, true)}.'),
-        t(ruleEn, ruleDe),
-        t('One completion respecting your placements puts $value here.',
-            'Eine Ergänzung, die deine Platzierungen berücksichtigt, setzt hier $value ein.'),
-        target: target,
-        value: value,
-        verified: true);
+      t(
+        'Focus on ${_cell(target, false)}.',
+        'Betrachte ${_cell(target, true)}.',
+      ),
+      t(ruleEn, ruleDe),
+      t(
+        'One completion respecting your placements puts $value here.',
+        'Eine Ergänzung, die deine Platzierungen berücksichtigt, setzt hier $value ein.',
+      ),
+      target: target,
+      value: value,
+      verified: true,
+    );
   }
 
   switch (game) {
     case 'star_forge':
       final empty = _list(p['emptyNodes']).map((v) => '$v').toList();
       final clues = _map(p['clues']);
-      return solve({
-        'values': {...clues, ..._map(state['answers'])},
-        'domains': {for (final c in empty) c: p['numberPool']},
-        'groups': [List.generate(p['nodeCount'] as int, (i) => '$i')],
-        'pool': p['numberPool'],
-        'equations': [
-          for (final line in _list(p['lines']))
-            {
-              'cells': _list(line).map((v) => '$v').toList(),
-              'op': 'sum',
-              'target': p['magicConstant']
-            }
-        ]
-      },
-          empty,
-          'Each arm must total ${p['magicConstant']}; nodes cannot repeat.',
-          'Jeder Arm muss ${p['magicConstant']} ergeben; Knoten dürfen sich nicht wiederholen.');
+      return solve(
+        {
+          'values': {...clues, ..._map(state['answers'])},
+          'domains': {for (final c in empty) c: p['numberPool']},
+          'groups': [List.generate(p['nodeCount'] as int, (i) => '$i')],
+          'pool': p['numberPool'],
+          'equations': [
+            for (final line in _list(p['lines']))
+              {
+                'cells': _list(line).map((v) => '$v').toList(),
+                'op': 'sum',
+                'target': p['magicConstant'],
+              },
+          ],
+        },
+        empty,
+        'Each arm must total ${p['magicConstant']}; nodes cannot repeat.',
+        'Jeder Arm muss ${p['magicConstant']} ergeben; Knoten dürfen sich nicht wiederholen.',
+      );
     case 'number_walls':
     case 'solarpanel_game':
       final empty = _list(p['hiddenCells']).map((v) => '$v').toList()
@@ -134,7 +171,7 @@ BoardHint? findBoardHint(String game, Map<String, dynamic> state,
       final values = {
         ..._pairs(p['visibleValues']),
         for (int i = 0; i < empty.length; i++)
-          if (i < answers.length && answers[i] != null) empty[i]: answers[i]
+          if (i < answers.length && answers[i] != null) empty[i]: answers[i],
       };
       final equations = <Map<String, dynamic>>[];
       if (game == 'number_walls') {
@@ -144,7 +181,7 @@ BoardHint? findBoardHint(String game, Map<String, dynamic> state,
                 left = (r + 1) * (r + 2) ~/ 2 + c;
             equations.add({
               'cells': ['$parent', '$left', '${left + 1}'],
-              'op': p['operation']
+              'op': p['operation'],
             });
           }
         }
@@ -152,7 +189,7 @@ BoardHint? findBoardHint(String game, Map<String, dynamic> state,
         for (final cells in [
           ['1', '3', '4'],
           ['2', '4', '5'],
-          ['0', '1', '2']
+          ['0', '1', '2'],
         ]) {
           equations.add({
             'cells': cells,
@@ -160,13 +197,17 @@ BoardHint? findBoardHint(String game, Map<String, dynamic> state,
           });
         }
       }
-      return solve({
-        'values': values,
-        'domains': {for (final c in empty) c: p['numberPool']},
-        'pool': p['numberPool'],
-        'equations': equations
-      }, empty, 'Use the displayed operation on connected cells.',
-          'Nutze die angezeigte Rechenart auf verbundenen Feldern.');
+      return solve(
+        {
+          'values': values,
+          'domains': {for (final c in empty) c: p['numberPool']},
+          'pool': p['numberPool'],
+          'equations': equations,
+        },
+        empty,
+        'Use the displayed operation on connected cells.',
+        'Nutze die angezeigte Rechenart auf verbundenen Feldern.',
+      );
     case 'orbital_towers':
     case 'nebula_matrix':
     case 'kenken':
@@ -174,7 +215,7 @@ BoardHint? findBoardHint(String game, Map<String, dynamic> state,
       final empty = _list(p['emptyCells']).cast<String>();
       final groups = [
         for (int r = 0; r < n; r++) List.generate(n, (c) => 'r${r}c$c'),
-        for (int c = 0; c < n; c++) List.generate(n, (r) => 'r${r}c$c')
+        for (int c = 0; c < n; c++) List.generate(n, (r) => 'r${r}c$c'),
       ];
       if (game == 'nebula_matrix') {
         groups.addAll(_list(p['zones']).map((z) => _list(z).cast<String>()));
@@ -184,77 +225,122 @@ BoardHint? findBoardHint(String game, Map<String, dynamic> state,
         final parts = e.key.split('_'), index = int.parse(parts[1]);
         sightlines.add({
           'cells': List.generate(
-              n,
-              (i) => switch (parts[0]) {
-                    'top' => 'r${i}c$index',
-                    'bottom' => 'r${n - 1 - i}c$index',
-                    'left' => 'r${index}c$i',
-                    _ => 'r${index}c${n - 1 - i}'
-                  }),
-          'target': e.value
+            n,
+            (i) => switch (parts[0]) {
+              'top' => 'r${i}c$index',
+              'bottom' => 'r${n - 1 - i}c$index',
+              'left' => 'r${index}c$i',
+              _ => 'r${index}c${n - 1 - i}',
+            },
+          ),
+          'target': e.value,
         });
       }
       return solve(
-          {
-            'values': {..._map(p['clues']), ..._map(state['answers'])},
-            'domains': {
-              for (final c in empty) c: List.generate(n, (i) => i + 1)
-            },
-            'groups': groups,
-            'sightlines': sightlines,
-            'cages': game == 'kenken' ? p['cages'] : []
-          },
-          empty,
-          game == 'kenken'
-              ? 'Check row, column and cage arithmetic.'
-              : 'Check row, column and visible clues.',
-          game == 'kenken'
-              ? 'Prüfe Zeile, Spalte und Käfigrechnung.'
-              : 'Prüfe Zeile, Spalte und sichtbare Hinweise.');
+        {
+          'values': {..._map(p['clues']), ..._map(state['answers'])},
+          'domains': {for (final c in empty) c: List.generate(n, (i) => i + 1)},
+          'groups': groups,
+          'sightlines': sightlines,
+          'cages': game == 'kenken' ? p['cages'] : [],
+        },
+        empty,
+        game == 'kenken'
+            ? 'Check row, column and cage arithmetic.'
+            : 'Check row, column and visible clues.',
+        game == 'kenken'
+            ? 'Prüfe Zeile, Spalte und Käfigrechnung.'
+            : 'Prüfe Zeile, Spalte und sichtbare Hinweise.',
+      );
     case 'dark_matter_grid':
       final taps = solveLights(
-          _list(state['grid']).map((r) => _list(r).cast<bool>()).toList());
+        _list(state['grid']).map((r) => _list(r).cast<bool>()).toList(),
+      );
       if (taps == null || taps.isEmpty) {
         return observe(
-            'Check the lights.',
-            'Prüfe die Lichter.',
-            'The board is clear or no solution was found.',
-            'Das Feld ist leer oder es wurde keine Lösung gefunden.');
+          'Check the lights.',
+          'Prüfe die Lichter.',
+          'The board is clear or no solution was found.',
+          'Das Feld ist leer oder es wurde keine Lösung gefunden.',
+        );
       }
       final n = _list(state['grid']).length,
           i = taps.first,
           r = i ~/ n,
           c = i % n;
       return observe(
-          'Focus on row ${r + 1}, column ${c + 1}.',
-          'Betrachte Zeile ${r + 1}, Spalte ${c + 1}.',
-          'Tapping here is part of a solution for the current lights.',
-          'Dieses Antippen gehört zu einer Lösung der aktuellen Lichter.',
-          target: 'r${r}c$c',
-          value: true,
-          verified: true);
+        'Focus on row ${r + 1}, column ${c + 1}.',
+        'Betrachte Zeile ${r + 1}, Spalte ${c + 1}.',
+        'Tapping here is part of a solution for the current lights.',
+        'Dieses Antippen gehört zu einer Lösung der aktuellen Lichter.',
+        target: 'r${r}c$c',
+        value: true,
+        verified: true,
+      );
     case 'launch_sequence':
       final seq = _list(state['sequence']), target = _list(p['target']);
       for (int i = 0; i < seq.length - 1; i++) {
         if (target.indexOf(seq[i]) > target.indexOf(seq[i + 1])) {
           return observe(
-              'Compare slots ${i + 1} and ${i + 2}.',
-              'Vergleiche Plätze ${i + 1} und ${i + 2}.',
-              '${seq[i]} precedes ${seq[i + 1]}, but the target order is reversed. Swap these neighbours.',
-              '${seq[i]} steht vor ${seq[i + 1]}, aber das Ziel verlangt die umgekehrte Reihenfolge. Tausche diese Nachbarn.',
-              target: '$i',
-              value: i + 1,
-              verified: true);
+            'Compare slots ${i + 1} and ${i + 2}.',
+            'Vergleiche Plätze ${i + 1} und ${i + 2}.',
+            '${seq[i]} precedes ${seq[i + 1]}, but the target order is reversed. Swap these neighbours.',
+            '${seq[i]} steht vor ${seq[i + 1]}, aber das Ziel verlangt die umgekehrte Reihenfolge. Tausche diese Nachbarn.',
+            target: '$i',
+            value: i + 1,
+            verified: true,
+          );
         }
       }
-      return observe('The sequence is ordered.', 'Die Folge ist geordnet.',
-          'Compare it with the target.', 'Vergleiche sie mit dem Ziel.');
+      return observe(
+        'The sequence is ordered.',
+        'Die Folge ist geordnet.',
+        'Compare it with the target.',
+        'Vergleiche sie mit dem Ziel.',
+      );
     case 'sector_painter':
       return _colorHint(p, state, german);
     case 'ion_chain':
       return _ionHint(p, state, german);
     case 'asteroid_math':
     case 'bubble_math':
+      final sequence = _list(state['targetOrder']);
+      final index = state['currentTargetIndex'] as int? ?? 0;
+      if (index < 0 || index >= sequence.length) return null;
+      final next = sequence[index];
+      final problems = [
+        ..._list(state['levelProblems'] ?? state['_levelProblems']),
+      ];
+      if (problems.isEmpty) {
+        for (final raw in _list(state['bubbles'])) {
+          final bubble = _map(raw);
+          problems.add(bubble['problem'] ?? bubble);
+        }
+      }
+      var expression = '';
+      for (final raw in problems) {
+        final problem = _map(raw);
+        if (problem['answer'] == next) {
+          expression =
+              '${problem['expression'] ?? problem['mathProblem']} = $next. ';
+          break;
+        }
+      }
+      final remaining = sequence.skip(index).join(' → ');
+      return BoardHint(
+        t('The next result is $next.', 'Das nächste Ergebnis ist $next.'),
+        t(
+          'Calculate the results and choose them in ascending order: smallest remaining result first.',
+          'Berechne die Ergebnisse und wähle sie in aufsteigender Reihenfolge: zuerst das kleinste übrige Ergebnis.',
+        ),
+        t(
+          '${expression}Remaining order: $remaining. A larger result is not next even when its calculation is correct.',
+          '${expression}Übrige Reihenfolge: $remaining. Ein größeres Ergebnis ist noch nicht dran, auch wenn seine Rechnung stimmt.',
+        ),
+        target: 'currentTarget',
+        value: next,
+        verified: next is int,
+      );
     case 'planet_hopping':
     case 'hyperdrive_gates':
     case 'pathfinder':
@@ -277,48 +363,53 @@ BoardHint? findBoardHint(String game, Map<String, dynamic> state,
       }
       final answer = problem['answer'] ?? next;
       return observe(
-          'Focus on the current target.',
-          'Betrachte das aktuelle Ziel.',
-          problem.isEmpty
-              ? 'Your next target is $answer. Choose the object with this value.'
-              : '${problem['expression']} = $answer. Choose the matching target or route.',
-          problem.isEmpty
-              ? 'Dein nächstes Ziel ist $answer. Wähle das Objekt mit diesem Wert.'
-              : '${problem['expression']} = $answer. Wähle das passende Ziel oder die passende Route.',
-          target: 'currentTarget',
-          value: answer,
-          verified: answer != null);
+        'Focus on the current target.',
+        'Betrachte das aktuelle Ziel.',
+        problem.isEmpty
+            ? 'Your next target is $answer. Choose the object with this value.'
+            : '${problem['expression']} = $answer. Choose the matching target or route.',
+        problem.isEmpty
+            ? 'Dein nächstes Ziel ist $answer. Wähle das Objekt mit diesem Wert.'
+            : '${problem['expression']} = $answer. Wähle das passende Ziel oder die passende Route.',
+        target: 'currentTarget',
+        value: answer,
+        verified: answer != null,
+      );
     case 'chrono_repair':
       final displayed =
           '${state['_displayedHour']}:${(state['_displayedMinute'] as int).toString().padLeft(2, '0')}';
       return observe(
-          'Check the clock showing $displayed.',
-          'Prüfe die Uhr mit $displayed.',
-          'The malfunction is ${state['_malfunctionHint']}. Correct the minutes before carrying into hours.',
-          'Die Fehlfunktion lautet ${state['_malfunctionHint']}. Korrigiere zuerst die Minuten und dann den Stundenübertrag.');
+        'Check the clock showing $displayed.',
+        'Prüfe die Uhr mit $displayed.',
+        'The malfunction is ${state['_malfunctionHint']}. Correct the minutes before carrying into hours.',
+        'Die Fehlfunktion lautet ${state['_malfunctionHint']}. Korrigiere zuerst die Minuten und dann den Stundenübertrag.',
+      );
     case 'galactic_market':
-      final visible =
-          _list(state['_knownCoins']).fold<num>(0, (s, v) => s + (v as num));
+      final visible = _list(
+        state['_knownCoins'],
+      ).fold<num>(0, (s, v) => s + (v as num));
       final remaining = (state['_changeTotal'] as num) - visible,
           count = state['_unknownCount'] as int;
       return observe(
-          'Separate the $count hidden coins.',
-          'Betrachte die $count verdeckten Münzen.',
-          '${state['_changeTotal']} − $visible = $remaining; $remaining ÷ $count = ${remaining / count}.',
-          '${state['_changeTotal']} − $visible = $remaining; $remaining ÷ $count = ${remaining / count}.',
-          target: 'denomination',
-          value: remaining / count,
-          verified: count > 0);
+        'Separate the $count hidden coins.',
+        'Betrachte die $count verdeckten Münzen.',
+        '${state['_changeTotal']} − $visible = $remaining; $remaining ÷ $count = ${remaining / count}.',
+        '${state['_changeTotal']} − $visible = $remaining; $remaining ÷ $count = ${remaining / count}.',
+        target: 'denomination',
+        value: remaining / count,
+        verified: count > 0,
+      );
     case 'xenobiology_lab':
       return observe(
-          'Compare eyes and legs.',
-          'Vergleiche Augen und Beine.',
-          '${state['_nameA']}: ${state['_eyesA']} eyes/${state['_legsA']} legs; '
-              '${state['_nameB']}: ${state['_eyesB']} eyes/${state['_legsB']} legs. '
-              'The totals are ${state['_totalEyes']} eyes and ${state['_totalLegs']} legs. Test your current counts in both equations.',
-          '${state['_nameA']}: ${state['_eyesA']} Augen/${state['_legsA']} Beine; '
-              '${state['_nameB']}: ${state['_eyesB']} Augen/${state['_legsB']} Beine. '
-              'Die Summen sind ${state['_totalEyes']} Augen und ${state['_totalLegs']} Beine. Prüfe deine Anzahlen in beiden Gleichungen.');
+        'Compare eyes and legs.',
+        'Vergleiche Augen und Beine.',
+        '${state['_nameA']}: ${state['_eyesA']} eyes/${state['_legsA']} legs; '
+            '${state['_nameB']}: ${state['_eyesB']} eyes/${state['_legsB']} legs. '
+            'The totals are ${state['_totalEyes']} eyes and ${state['_totalLegs']} legs. Test your current counts in both equations.',
+        '${state['_nameA']}: ${state['_eyesA']} Augen/${state['_legsA']} Beine; '
+            '${state['_nameB']}: ${state['_eyesB']} Augen/${state['_legsB']} Beine. '
+            'Die Summen sind ${state['_totalEyes']} Augen und ${state['_totalLegs']} Beine. Prüfe deine Anzahlen in beiden Gleichungen.',
+      );
     case 'asteroid_duel':
       final remaining = state['_remaining'] as int,
           max = state['_maxPerTurn'] as int;
@@ -330,158 +421,254 @@ BoardHint? findBoardHint(String game, Map<String, dynamic> state,
         }
       }
       return observe(
-          'There are $remaining asteroids; the limit is $max.',
-          'Es gibt $remaining Asteroiden; das Limit ist $max.',
-          take == null
-              ? 'Taking the last asteroid loses. No forcing move is available; keep watching the opponent.'
-              : 'Take $take and leave ${remaining - take}. This leaves 1 modulo ${max + 1}; taking the last asteroid loses.',
-          take == null
-              ? 'Wer den letzten Asteroiden nimmt, verliert. Es gibt keinen erzwingenden Zug; beobachte den Gegner.'
-              : 'Nimm $take und lasse ${remaining - take} übrig. Das ist 1 modulo ${max + 1}; wer den letzten nimmt, verliert.',
-          target: take == null ? null : 'take',
-          value: take,
-          verified: take != null);
+        'There are $remaining asteroids; the limit is $max.',
+        'Es gibt $remaining Asteroiden; das Limit ist $max.',
+        take == null
+            ? 'Taking the last asteroid loses. No forcing move is available; keep watching the opponent.'
+            : 'Take $take and leave ${remaining - take}. This leaves 1 modulo ${max + 1}; taking the last asteroid loses.',
+        take == null
+            ? 'Wer den letzten Asteroiden nimmt, verliert. Es gibt keinen erzwingenden Zug; beobachte den Gegner.'
+            : 'Nimm $take und lasse ${remaining - take} übrig. Das ist 1 modulo ${max + 1}; wer den letzten nimmt, verliert.',
+        target: take == null ? null : 'take',
+        value: take,
+        verified: take != null,
+      );
     case 'comm_relay':
       final cipher = p['cipherText'] as String;
       final shift = state['_currentShift'];
       return observe(
-          'Decode the start of "$cipher".',
-          'Entschlüssle den Anfang von "$cipher".',
-          'Your shift is $shift. Use the revealed letters ${_pairs(p['hintLetters'])} to check that shift before decoding the whole message.',
-          'Deine Verschiebung ist $shift. Prüfe sie an den enthüllten Buchstaben ${_pairs(p['hintLetters'])}, bevor du die ganze Nachricht entschlüsselst.');
+        'Decode the start of "$cipher".',
+        'Entschlüssle den Anfang von "$cipher".',
+        'Your shift is $shift. Use the revealed letters ${_pairs(p['hintLetters'])} to check that shift before decoding the whole message.',
+        'Deine Verschiebung ist $shift. Prüfe sie an den enthüllten Buchstaben ${_pairs(p['hintLetters'])}, bevor du die ganze Nachricht entschlüsselst.',
+      );
     case 'vault_cracker':
       final clues = _list(p['clues']);
       final clue = clues.isEmpty ? '' : _map(clues.first)[german ? 'de' : 'en'];
       return observe(
-          'Use a visible clue with your current code.',
-          'Nutze einen sichtbaren Hinweis für deinen aktuellen Code.',
-          'Clue: $clue. Your current code is ${state['answer']}; check this condition first.',
-          'Hinweis: $clue. Dein aktueller Code ist ${state['answer']}; prüfe zuerst diese Bedingung.');
+        'Use a visible clue with your current code.',
+        'Nutze einen sichtbaren Hinweis für deinen aktuellen Code.',
+        'Clue: $clue. Your current code is ${state['answer']}; check this condition first.',
+        'Hinweis: $clue. Dein aktueller Code ist ${state['answer']}; prüfe zuerst diese Bedingung.',
+      );
     case 'signal_triangulation':
       final history = _list(state['history']);
       if (history.isEmpty) {
         return observe(
-            'Try a structured first guess.',
-            'Probiere einen geordneten ersten Versuch.',
-            'Use the available glyphs ${state['glyphs']} to compare positions in a ${state['length']}-glyph code.',
-            'Nutze die verfügbaren Glyphen ${state['glyphs']}, um Plätze in einem Code mit ${state['length']} Glyphen zu vergleichen.');
+          'Try a structured first guess.',
+          'Probiere einen geordneten ersten Versuch.',
+          'Use the available glyphs ${state['glyphs']} to compare positions in a ${state['length']}-glyph code.',
+          'Nutze die verfügbaren Glyphen ${state['glyphs']}, um Plätze in einem Code mit ${state['length']} Glyphen zu vergleichen.',
+        );
       }
       final last = _map(history.last);
       return observe(
-          'Compare the last guess with its feedback.',
-          'Vergleiche den letzten Versuch mit seiner Rückmeldung.',
-          '${last['guess']}: ${last['correct']} exact positions, ${last['present']} correct glyphs in other positions. Preserve the known information in your next guess.',
-          '${last['guess']}: ${last['correct']} exakte Plätze, ${last['present']} richtige Glyphen auf anderen Plätzen. Erhalte diese Information im nächsten Versuch.');
+        'Compare the last guess with its feedback.',
+        'Vergleiche den letzten Versuch mit seiner Rückmeldung.',
+        '${last['guess']}: ${last['correct']} exact positions, ${last['present']} correct glyphs in other positions. Preserve the known information in your next guess.',
+        '${last['guess']}: ${last['correct']} exakte Plätze, ${last['present']} richtige Glyphen auf anderen Plätzen. Erhalte diese Information im nächsten Versuch.',
+      );
     case 'codebreaker':
       final equations = _list(p['equations']),
           known = _map(p['knownSymbolValues']);
-      final eq =
-          equations.isEmpty ? <String, dynamic>{} : _map(equations.first);
+      final eq = equations.isEmpty
+          ? <String, dynamic>{}
+          : _map(equations.first);
       return observe(
-          'Use a current equation.',
-          'Nutze eine aktuelle Gleichung.',
-          '${eq['term1']} ${eq['op']} ${eq['term2']} = ${eq['result']}. Known symbols: $known. Substitute these before solving an unknown.',
-          '${eq['term1']} ${eq['op']} ${eq['term2']} = ${eq['result']}. Bekannte Symbole: $known. Setze sie ein, bevor du eine Unbekannte berechnest.');
+        'Use a current equation.',
+        'Nutze eine aktuelle Gleichung.',
+        '${eq['term1']} ${eq['op']} ${eq['term2']} = ${eq['result']}. Known symbols: $known. Substitute these before solving an unknown.',
+        '${eq['term1']} ${eq['op']} ${eq['term2']} = ${eq['result']}. Bekannte Symbole: $known. Setze sie ein, bevor du eine Unbekannte berechnest.',
+      );
     case 'arithmatic_square':
     case 'arithmancer_crosswords':
       final values = {
         ..._pairs(p['playerHints'] ?? p['clues']),
-        ..._pairs(state['userSolution'])
+        ..._pairs(state['userSolution']),
       };
-      final missing = _list(p['emptyCells'])
-          .map((v) => '$v')
-          .where((c) => !values.containsKey(c))
-          .toList();
+      final missing = _list(
+        p['emptyCells'],
+      ).map((v) => '$v').where((c) => !values.containsKey(c)).toList();
       final target = missing.isEmpty ? null : missing.first;
       String known(bool de) => values.entries
           .take(4)
           .map((e) => '${_cell(e.key, de)}: ${e.value}')
           .join('; ');
       return observe(
-          'Focus on ${target == null ? 'the filled board' : _cell(target, false)}.',
-          'Betrachte ${target == null ? 'das ausgefüllte Feld' : _cell(target, true)}.',
-          'Known entries: ${known(false)}. Read the operators in the crossing row and column; use both to narrow the remaining pool ${state['numberPool']}.',
-          'Bekannte Einträge: ${known(true)}. Lies die Rechenzeichen in der kreuzenden Zeile und Spalte; nutze beide für den restlichen Vorrat ${state['numberPool']}.',
-          target: target);
+        'Focus on ${target == null ? 'the filled board' : _cell(target, false)}.',
+        'Betrachte ${target == null ? 'das ausgefüllte Feld' : _cell(target, true)}.',
+        'Known entries: ${known(false)}. Read the operators in the crossing row and column; use both to narrow the remaining pool ${state['numberPool']}.',
+        'Bekannte Einträge: ${known(true)}. Lies die Rechenzeichen in der kreuzenden Zeile und Spalte; nutze beide für den restlichen Vorrat ${state['numberPool']}.',
+        target: target,
+      );
     case 'magic_triangles':
-      final visible = _pairs(p['visibleValues']);
-      final numbers = _list(p['allNumbers']);
       final side = p['circlesPerSide'] as int;
-      final sum = numbers.fold<num>(0, (s, v) => s + (v as num));
-      // The target is generated as warpFrequency; do not substitute total sum.
-      return observe(
-          'Each side must match ${p['warpFrequency']}.',
-          'Jede Seite muss ${p['warpFrequency']} ergeben.',
-          'The visible nodes are $visible, with $side nodes per side. Subtract the known nodes on one side; the $sum total includes corners only once.',
-          'Die sichtbaren Knoten sind $visible, mit $side Knoten pro Seite. Ziehe die bekannten Knoten einer Seite ab; die Gesamtsumme $sum zählt Ecken nur einmal.');
+      final targetSum = p['warpFrequency'] as int;
+      final hidden = _list(p['hiddenIndices']).cast<int>().toList()..sort();
+      final values = _pairs(p['visibleValues']);
+      final answers = _list(state['userAnswers']);
+      for (var i = 0; i < hidden.length && i < answers.length; i++) {
+        if (answers[i] is int) values['${hidden[i]}'] = answers[i];
+      }
+      final sides = [
+        List.generate(side, (i) => '$i'),
+        List.generate(side, (i) => '${side - 1 + i}'),
+        [for (var i = 2 * side - 2; i < 3 * side - 3; i++) '$i', '0'],
+      ];
+      final rule = t(
+        'All three triangle sides must total $targetSum. Count every node along each side, including both corners. Each corner belongs to two sides.',
+        'Alle drei Dreiecksseiten müssen die Summe $targetSum ergeben. Zähle alle Knoten einer Seite einschließlich beider Ecken. Jede Ecke gehört zu zwei Seiten.',
+      );
+      final empty = hidden
+          .map((i) => '$i')
+          .where((i) => !values.containsKey(i))
+          .toList();
+      if (empty.isEmpty) {
+        return BoardHint(
+          t('Check all three side sums.', 'Prüfe alle drei Seitensummen.'),
+          rule,
+          t(
+            'Add each side separately before submitting.',
+            'Addiere vor dem Bestätigen jede Seite einzeln.',
+          ),
+        );
+      }
+      final pool = _list(p['numberPool']);
+      final completion = findHintCompletion({
+        'values': values,
+        'domains': {for (final i in hidden) '$i': pool},
+        'pool': pool,
+        'groups': [List.generate(3 * side - 3, (i) => '$i')],
+        'equations': [
+          for (final line in sides)
+            {'cells': line, 'op': 'sum', 'target': targetSum},
+        ],
+        'maxVisits': 12000,
+        'timeoutMs': 40,
+      });
+      if (completion == null) {
+        return BoardHint(
+          t('Review the placed numbers.', 'Prüfe die eingesetzten Zahlen.'),
+          rule,
+          t(
+            'No completion respecting your placements was found within the search limit. Recheck each side and the available tiles.',
+            'Innerhalb der Suchgrenze wurde keine Ergänzung zu deinen Platzierungen gefunden. Prüfe jede Seite und die verfügbaren Zahlensteine.',
+          ),
+        );
+      }
+      sides.sort(
+        (a, b) => a
+            .where(empty.contains)
+            .length
+            .compareTo(b.where(empty.contains).length),
+      );
+      final line = sides.firstWhere((s) => s.any(empty.contains));
+      final cell = line.firstWhere(empty.contains);
+      final value = completion[cell]!;
+      final known = line
+          .where(values.containsKey)
+          .map((i) => values[i] as int)
+          .toList();
+      final oneBlank = line.where(empty.contains).length == 1;
+      final calculation = oneBlank
+          ? '$targetSum − ${known.join(' − ')} = $value.'
+          : '';
+      return BoardHint(
+        t(
+          'Look at node ${int.parse(cell) + 1}.',
+          'Betrachte Knoten ${int.parse(cell) + 1}.',
+        ),
+        rule,
+        t(
+          oneBlank
+              ? '$calculation Put $value in the gap on this side; it also fits a completion of the other two sides.'
+              : 'One completion respecting all three side sums and your placements puts $value at this node.',
+          oneBlank
+              ? '$calculation Setze $value in die Lücke dieser Seite; die Zahl passt auch zu einer Ergänzung der anderen beiden Seiten.'
+              : 'Eine Ergänzung, die alle drei Seitensummen und deine Platzierungen berücksichtigt, setzt $value auf diesen Knoten.',
+        ),
+        target: cell,
+        value: value,
+        verified: true,
+      );
     case 'cryptex_lock_breaker':
       final eq = _map(_list(p['equations']).first);
       final dials = _list(state['dialValues']);
-      final left = _list(eq['leftOperandIndices'])
-          .map((i) => 'D${(i as int) + 1}')
-          .join(' ${eq['operator']} ');
+      final left = _list(
+        eq['leftOperandIndices'],
+      ).map((i) => 'D${(i as int) + 1}').join(' ${eq['operator']} ');
       final right = eq['resultDialIndex'] == null
           ? '${eq['rightSide']}'
           : 'D${(eq['resultDialIndex'] as int) + 1}';
       return observe(
-          'Check $left = $right.',
-          'Prüfe $left = $right.',
-          'Your dial values are ${dials.join(', ')}. Substitute them in this equation and change only the dial you can deduce.',
-          'Deine Scheibenwerte sind ${dials.join(', ')}. Setze sie in diese Gleichung ein und ändere nur die Scheibe, die du daraus ableiten kannst.');
+        'Check $left = $right.',
+        'Prüfe $left = $right.',
+        'Your dial values are ${dials.join(', ')}. Substitute them in this equation and change only the dial you can deduce.',
+        'Deine Scheibenwerte sind ${dials.join(', ')}. Setze sie in diese Gleichung ein und ändere nur die Scheibe, die du daraus ableiten kannst.',
+      );
     case 'gravity_well':
       final scales = _list(p['scales']);
       final scale = scales.isEmpty ? <String, dynamic>{} : _map(scales.first);
-      String side(Object? raw) => _list(raw).map((v) {
+      String side(Object? raw) => _list(raw)
+          .map((v) {
             final o = _map(v);
             return o['isKnown'] == true ? '${o['weight']}' : '${o['label']}';
-          }).join(' + ');
+          })
+          .join(' + ');
       final equation =
           '${side(scale['leftSide'])} = ${side(scale['rightSide'])}';
       return observe(
-          'Use this visible scale: $equation.',
-          'Nutze diese sichtbare Waage: $equation.',
-          'Cancel matching objects on both sides, then divide any repeated unknowns. Your current entries are ${_pairs(state['_userAnswers'])}.',
-          'Streiche gleiche Objekte auf beiden Seiten und teile dann wiederholte Unbekannte. Deine Einträge sind ${_pairs(state['_userAnswers'])}.');
+        'Use this visible scale: $equation.',
+        'Nutze diese sichtbare Waage: $equation.',
+        'Cancel matching objects on both sides, then divide any repeated unknowns. Your current entries are ${_pairs(state['_userAnswers'])}.',
+        'Streiche gleiche Objekte auf beiden Seiten und teile dann wiederholte Unbekannte. Deine Einträge sind ${_pairs(state['_userAnswers'])}.',
+      );
     case 'cube_scanner':
       final question = _map(p['question']);
-      String faces(bool de) =>
-          _list(p['visibleFaces']).asMap().entries.map((die) {
-            final shown = _map(die.value)
-                .entries
+      String faces(bool de) => _list(p['visibleFaces'])
+          .asMap()
+          .entries
+          .map((die) {
+            final shown = _map(die.value).entries
                 .where((e) => e.value != null)
                 .map((e) => '${_faceLabel(e.key, de)}: ${e.value}')
                 .join(', ');
             return '${de ? 'Würfel' : 'Cube'} ${die.key + 1}: $shown';
-          }).join('; ');
+          })
+          .join('; ');
       final face = question['face'] as String?;
       return observe(
-          face == null
-              ? 'Work out the hidden total.'
-              : 'Find the ${_faceLabel(face, false)} face.',
-          face == null
-              ? 'Ermittle die verdeckte Summe.'
-              : 'Suche die Seite ${_faceLabel(face, true)}.',
-          '${faces(false)}. Follow the displayed rolls one at a time; opposite faces of a die sum to 7.',
-          '${faces(true)}. Verfolge die angezeigten Drehungen einzeln; gegenüberliegende Würfelflächen ergeben zusammen 7.');
+        face == null
+            ? 'Work out the hidden total.'
+            : 'Find the ${_faceLabel(face, false)} face.',
+        face == null
+            ? 'Ermittle die verdeckte Summe.'
+            : 'Suche die Seite ${_faceLabel(face, true)}.',
+        '${faces(false)}. Follow the displayed rolls one at a time; opposite faces of a die sum to 7.',
+        '${faces(true)}. Verfolge die angezeigten Drehungen einzeln; gegenüberliegende Würfelflächen ergeben zusammen 7.',
+      );
     case 'block_counter':
-      final blocks =
-          _list(_map(p['blockStructure'])['blocks']).map(_map).toList();
+      final blocks = _list(
+        _map(p['blockStructure'])['blocks'],
+      ).map(_map).toList();
       final bottom = blocks.map((b) => b['y'] as int).reduce(math.min);
       final layer = blocks.where((b) => b['y'] == bottom).length;
       return observe(
-          'Count the lowest layer first.',
-          'Zähle zuerst die unterste Schicht.',
-          'The lowest layer contains $layer blocks. Count each higher layer separately and add their totals; include hidden blocks supported by the structure.',
-          'Die unterste Schicht enthält $layer Blöcke. Zähle jede höhere Schicht einzeln und addiere ihre Summen; berücksichtige die durch die Struktur erkennbaren verdeckten Blöcke.');
+        'Count the lowest layer first.',
+        'Zähle zuerst die unterste Schicht.',
+        'The lowest layer contains $layer blocks. Count each higher layer separately and add their totals; include hidden blocks supported by the structure.',
+        'Die unterste Schicht enthält $layer Blöcke. Zähle jede höhere Schicht einzeln und addiere ihre Summen; berücksichtige die durch die Struktur erkennbaren verdeckten Blöcke.',
+      );
     case 'perspective_puzzle':
       final views = _list(state['_perspectivesToSolve']),
           turn = state['_currentTurnIndex'] as int;
       final view = turn < views.length ? views[turn] : '?';
       return observe(
-          'Look from $view.',
-          'Blicke von $view.',
-          'There are ${_list(p['structure']).length} cubes. Project them onto this view and keep only the nearest cube at each position; hidden cubes do not add visible squares.',
-          'Es gibt ${_list(p['structure']).length} Würfel. Projiziere sie auf diese Ansicht und behalte pro Platz nur den nächsten Würfel; verdeckte Würfel ergeben keine zusätzlichen sichtbaren Quadrate.');
+        'Look from $view.',
+        'Blicke von $view.',
+        'There are ${_list(p['structure']).length} cubes. Project them onto this view and keep only the nearest cube at each position; hidden cubes do not add visible squares.',
+        'Es gibt ${_list(p['structure']).length} Würfel. Projiziere sie auf diese Ansicht und behalte pro Platz nur den nächsten Würfel; verdeckte Würfel ergeben keine zusätzlichen sichtbaren Quadrate.',
+      );
     case 'warp_fold':
       final folds = _list(p['folds']).map(_map).toList();
       String directions(bool de) => folds.reversed
@@ -489,55 +676,63 @@ BoardHint? findBoardHint(String game, Map<String, dynamic> state,
           .join(', ');
       final cuts = _list(p['cuts']).length;
       return observe(
-          'Undo the current folds in reverse order.',
-          'Öffne die aktuellen Faltungen in umgekehrter Reihenfolge.',
-          'There are $cuts cuts. Unfold in this order: ${directions(false)}. Mirror each visible cut across the fold line before continuing.',
-          'Es gibt $cuts Schnitte. Öffne die Faltungen in dieser Reihenfolge: ${directions(true)}. Spiegle jeden sichtbaren Schnitt an der Faltlinie, bevor du fortfährst.');
+        'Undo the current folds in reverse order.',
+        'Öffne die aktuellen Faltungen in umgekehrter Reihenfolge.',
+        'There are $cuts cuts. Unfold in this order: ${directions(false)}. Mirror each visible cut across the fold line before continuing.',
+        'Es gibt $cuts Schnitte. Öffne die Faltungen in dieser Reihenfolge: ${directions(true)}. Spiegle jeden sichtbaren Schnitt an der Faltlinie, bevor du fortfährst.',
+      );
     case 'circuit_repair':
       final digits = _list(state['_currentDigits']);
       return observe(
-          'Check the digits ${digits.join()}.',
-          'Prüfe die Ziffern ${digits.join()}.',
-          'A clock needs hours 00–23 and minutes 00–59. Find the positions that make the current display invalid, then try a single swap.',
-          'Eine Uhr braucht Stunden von 00–23 und Minuten von 00–59. Suche die Stellen, die die aktuelle Anzeige ungültig machen, und probiere einen einzigen Tausch.');
+        'Check the digits ${digits.join()}.',
+        'Prüfe die Ziffern ${digits.join()}.',
+        'A clock needs hours 00–23 and minutes 00–59. Find the positions that make the current display invalid, then try a single swap.',
+        'Eine Uhr braucht Stunden von 00–23 und Minuten von 00–59. Suche die Stellen, die die aktuelle Anzeige ungültig machen, und probiere einen einzigen Tausch.',
+      );
     case 'crew_manifest':
       final clues = _list(p['structuredClues']);
-      final positive =
-          clues.map(_map).where((c) => c['type'] == 'positive').toList();
+      final positive = clues
+          .map(_map)
+          .where((c) => c['type'] == 'positive')
+          .toList();
       final clue = positive.isEmpty
           ? (clues.isEmpty ? <String, dynamic>{} : _map(clues.first))
           : positive.first;
       return observe(
-          'Use the clue for ${clue['crewName']}.',
-          'Nutze den Hinweis für ${clue['crewName']}.',
-          '${clue['crewName']} ${clue['type'] == 'positive' ? 'has' : 'does not have'} ${clue['itemName']}. Compare this with your current marks ${_pairs(state['_gridState'])}; each crew member has exactly one item.',
-          '${clue['crewName']} ${clue['type'] == 'positive' ? 'hat' : 'hat nicht'} ${clue['itemName']}. Vergleiche dies mit deinen Markierungen ${_pairs(state['_gridState'])}; jedes Crewmitglied hat genau einen Gegenstand.');
+        'Use the clue for ${clue['crewName']}.',
+        'Nutze den Hinweis für ${clue['crewName']}.',
+        '${clue['crewName']} ${clue['type'] == 'positive' ? 'has' : 'does not have'} ${clue['itemName']}. Compare this with your current marks ${_pairs(state['_gridState'])}; each crew member has exactly one item.',
+        '${clue['crewName']} ${clue['type'] == 'positive' ? 'hat' : 'hat nicht'} ${clue['itemName']}. Vergleiche dies mit deinen Markierungen ${_pairs(state['_gridState'])}; jedes Crewmitglied hat genau einen Gegenstand.',
+      );
     case 'alien_tribunal':
       final people = _list(p['people']);
-      final counts =
-          people.map(_map).where((p) => p['kind'] == 'count').toList();
+      final counts = people
+          .map(_map)
+          .where((p) => p['kind'] == 'count')
+          .toList();
       final person = counts.isEmpty ? _map(people.first) : counts.first;
       return observe(
-          'Test the claim from ${person['name']}.',
-          'Prüfe die Behauptung von ${person['name']}.',
-          person['kind'] == 'count'
-              ? 'It claims exactly ${person['countValue']} ${person['countsTruthTellers'] == true ? 'truth-tellers' : 'liars'}. Compare that total with your assignments ${_pairs(state['_userAssignment'])}; the speaker’s role must match the statement’s truth.'
-              : 'The claim concerns delegate ${person['targetIndex']}. Test both possible roles and check whether the speaker’s role matches the statement’s truth.',
-          person['kind'] == 'count'
-              ? 'Sie behauptet genau ${person['countValue']} ${person['countsTruthTellers'] == true ? 'Wahrheitsredner' : 'Lügner'}. Vergleiche die Anzahl mit deiner Zuordnung ${_pairs(state['_userAssignment'])}; die Rolle des Sprechers muss zum Wahrheitswert passen.'
-              : 'Die Behauptung betrifft Delegierten ${person['targetIndex']}. Prüfe beide Rollen; die Rolle des Sprechers muss zum Wahrheitswert passen.');
+        'Test the claim from ${person['name']}.',
+        'Prüfe die Behauptung von ${person['name']}.',
+        person['kind'] == 'count'
+            ? 'It claims exactly ${person['countValue']} ${person['countsTruthTellers'] == true ? 'truth-tellers' : 'liars'}. Compare that total with your assignments ${_pairs(state['_userAssignment'])}; the speaker’s role must match the statement’s truth.'
+            : 'The claim concerns delegate ${person['targetIndex']}. Test both possible roles and check whether the speaker’s role matches the statement’s truth.',
+        person['kind'] == 'count'
+            ? 'Sie behauptet genau ${person['countValue']} ${person['countsTruthTellers'] == true ? 'Wahrheitsredner' : 'Lügner'}. Vergleiche die Anzahl mit deiner Zuordnung ${_pairs(state['_userAssignment'])}; die Rolle des Sprechers muss zum Wahrheitswert passen.'
+            : 'Die Behauptung betrifft Delegierten ${person['targetIndex']}. Prüfe beide Rollen; die Rolle des Sprechers muss zum Wahrheitswert passen.',
+      );
     case 'star_chart_scan':
       final found = _list(state['_foundEquations']);
-      final equations = _list(p['placedEquations'])
-          .map(_map)
-          .where((e) => !found.contains(e['equation']))
-          .toList();
+      final equations = _list(
+        p['placedEquations'],
+      ).map(_map).where((e) => !found.contains(e['equation'])).toList();
       final eq = equations.isEmpty ? <String, dynamic>{} : equations.first;
       return observe(
-          'Find the start of ${eq['equation']}.',
-          'Suche den Anfang von ${eq['equation']}.',
-          'Start at row ${(eq['startRow'] as int? ?? 0) + 1}, column ${(eq['startCol'] as int? ?? 0) + 1}; scan in direction ${_map(eq['direction'])['name']}.',
-          'Beginne in Zeile ${(eq['startRow'] as int? ?? 0) + 1}, Spalte ${(eq['startCol'] as int? ?? 0) + 1}; suche in Richtung ${_map(eq['direction'])['name']}.');
+        'Find the start of ${eq['equation']}.',
+        'Suche den Anfang von ${eq['equation']}.',
+        'Start at row ${(eq['startRow'] as int? ?? 0) + 1}, column ${(eq['startCol'] as int? ?? 0) + 1}; scan in direction ${_map(eq['direction'])['name']}.',
+        'Beginne in Zeile ${(eq['startRow'] as int? ?? 0) + 1}, Spalte ${(eq['startCol'] as int? ?? 0) + 1}; suche in Richtung ${_map(eq['direction'])['name']}.',
+      );
     case 'asteroid_field_navigator':
       return _mineHint(state, german);
     case 'hive_station':
@@ -551,85 +746,94 @@ BoardHint? findBoardHint(String game, Map<String, dynamic> state,
       }).toList();
       final hint = hints.isEmpty ? <dynamic>[] : _list(hints.first);
       return observe(
-          'Use a revealed hexagonal clue.',
-          'Nutze einen enthüllten Sechseckhinweis.',
-          'Clue ${hint.isEmpty ? '' : hint.first}: ${hint.length < 2 ? '' : hint[1]}. Count the six neighbouring cells and compare with your marks ${state['userMarked']}.',
-          'Hinweis ${hint.isEmpty ? '' : hint.first}: ${hint.length < 2 ? '' : hint[1]}. Zähle die sechs Nachbarfelder und vergleiche mit deinen Markierungen ${state['userMarked']}.');
+        'Use a revealed hexagonal clue.',
+        'Nutze einen enthüllten Sechseckhinweis.',
+        'Clue ${hint.isEmpty ? '' : hint.first}: ${hint.length < 2 ? '' : hint[1]}. Count the six neighbouring cells and compare with your marks ${state['userMarked']}.',
+        'Hinweis ${hint.isEmpty ? '' : hint.first}: ${hint.length < 2 ? '' : hint[1]}. Zähle die sechs Nachbarfelder und vergleiche mit deinen Markierungen ${state['userMarked']}.',
+      );
     case 'relic_assembly':
       final placement = _list(state['placement']),
           index = placement.indexOf(-1);
       final cols = p['cols'] as int;
       return observe(
-          'Focus on slot ${index + 1}.',
-          'Betrachte Platz ${index + 1}.',
-          'The board has ${p['rows']} × $cols slots. Match the top/left edges of this empty slot to its placed neighbours; rotate an unused tile before placing it.',
-          'Das Feld hat ${p['rows']} × $cols Plätze. Gleiche die obere/linke Kante dieses leeren Platzes mit seinen platzierten Nachbarn ab; drehe einen unbenutzten Stein vor dem Einsetzen.',
-          target: '$index');
+        'Focus on slot ${index + 1}.',
+        'Betrachte Platz ${index + 1}.',
+        'The board has ${p['rows']} × $cols slots. Match the top/left edges of this empty slot to its placed neighbours; rotate an unused tile before placing it.',
+        'Das Feld hat ${p['rows']} × $cols Plätze. Gleiche die obere/linke Kante dieses leeren Platzes mit seinen platzierten Nachbarn ab; drehe einen unbenutzten Stein vor dem Einsetzen.',
+        target: '$index',
+      );
     case 'hull_plating':
       final used = _list(state['_usedPieceIds']);
-      final pieces = _list(p['pieces'])
-          .map(_map)
-          .where((piece) => !used.contains(piece['id']))
-          .toList();
+      final pieces = _list(
+        p['pieces'],
+      ).map(_map).where((piece) => !used.contains(piece['id'])).toList();
       final piece = pieces.isEmpty ? <String, dynamic>{} : pieces.first;
       return observe(
-          'Consider unused piece ${piece['id']}.',
-          'Betrachte das unbenutzte Teil ${piece['id']}.',
-          'Its shape covers ${_list(piece['cells']).length} cells. Compare it with the remaining board holes; every cell must fit without overlap.',
-          'Seine Form bedeckt ${_list(piece['cells']).length} Felder. Vergleiche sie mit den übrigen Lücken; jedes Feld muss ohne Überlappung passen.');
+        'Consider unused piece ${piece['id']}.',
+        'Betrachte das unbenutzte Teil ${piece['id']}.',
+        'Its shape covers ${_list(piece['cells']).length} cells. Compare it with the remaining board holes; every cell must fit without overlap.',
+        'Seine Form bedeckt ${_list(piece['cells']).length} Felder. Vergleiche sie mit den übrigen Lücken; jedes Feld muss ohne Überlappung passen.',
+      );
     case 'grid_filler_game':
       final pieces = _list(state['availablePieces']).map(_map);
-      final remaining =
-          pieces.where((p) => (p['remainingCount'] as int? ?? 1) > 0).toList();
-      return observe(
-          'Inspect the uncovered grid cells.',
-          'Betrachte die unbedeckten Rasterfelder.',
-          '${_list(state['placedPieces']).length} pieces are placed; ${remaining.length} piece types remain. Start with a corner and check every square of the chosen shape.',
-          '${_list(state['placedPieces']).length} Teile sind platziert; ${remaining.length} Teiletypen bleiben. Beginne mit einer Ecke und prüfe jedes Quadrat der gewählten Form.');
-    case 'puzzle_math':
-      final placed =
-          _list(state['placedPieces']).map((v) => _list(v).first).toSet();
-      final pieces = _list(state['pieces'])
-          .map(_map)
-          .where((v) => !placed.contains(v['id']))
+      final remaining = pieces
+          .where((p) => (p['remainingCount'] as int? ?? 1) > 0)
           .toList();
+      return observe(
+        'Inspect the uncovered grid cells.',
+        'Betrachte die unbedeckten Rasterfelder.',
+        '${_list(state['placedPieces']).length} pieces are placed; ${remaining.length} piece types remain. Start with a corner and check every square of the chosen shape.',
+        '${_list(state['placedPieces']).length} Teile sind platziert; ${remaining.length} Teiletypen bleiben. Beginne mit einer Ecke und prüfe jedes Quadrat der gewählten Form.',
+      );
+    case 'puzzle_math':
+      final placed = _list(
+        state['placedPieces'],
+      ).map((v) => _list(v).first).toSet();
+      final pieces = _list(
+        state['pieces'],
+      ).map(_map).where((v) => !placed.contains(v['id'])).toList();
       final piece = pieces.isEmpty ? <String, dynamic>{} : pieces.first;
       final problem = _map(piece['problem'] ?? piece['mathProblem']);
       return observe(
-          'Solve a remaining piece.',
-          'Berechne ein übriges Teil.',
-          '${problem['expression']} = ${problem['answer']}. Compare that result and the edge shape with the empty slot.',
-          '${problem['expression']} = ${problem['answer']}. Vergleiche das Ergebnis und die Kantenform mit dem leeren Platz.',
-          target: '${piece['id']}',
-          value: problem['answer']);
+        'Solve a remaining piece.',
+        'Berechne ein übriges Teil.',
+        '${problem['expression']} = ${problem['answer']}. Compare that result and the edge shape with the empty slot.',
+        '${problem['expression']} = ${problem['answer']}. Vergleiche das Ergebnis und die Kantenform mit dem leeren Platz.',
+        target: '${piece['id']}',
+        value: problem['answer'],
+      );
     case 'robot_path_game':
       final level = _map(state['currentLevel']);
       return observe(
-          'Plan from (${level['startRow']}, ${level['startCol']}).',
-          'Plane von (${level['startRow']}, ${level['startCol']}).',
-          'The goal is (${level['goalRow']}, ${level['goalCol']}); start direction ${level['startDirection']}. Trace your ${_list(state['commandSequence']).length} commands on the current grid before running them.',
-          'Das Ziel ist (${level['goalRow']}, ${level['goalCol']}); Startrichtung ${level['startDirection']}. Verfolge deine ${_list(state['commandSequence']).length} Befehle im aktuellen Raster, bevor du sie ausführst.');
+        'Plan from (${level['startRow']}, ${level['startCol']}).',
+        'Plane von (${level['startRow']}, ${level['startCol']}).',
+        'The goal is (${level['goalRow']}, ${level['goalCol']}); start direction ${level['startDirection']}. Trace your ${_list(state['commandSequence']).length} commands on the current grid before running them.',
+        'Das Ziel ist (${level['goalRow']}, ${level['goalCol']}); Startrichtung ${level['startDirection']}. Verfolge deine ${_list(state['commandSequence']).length} Befehle im aktuellen Raster, bevor du sie ausführst.',
+      );
     case 'star_loader_game':
       return observe(
-          'Plan the next push from ${state['_playerPos']}.',
-          'Plane den nächsten Schub von ${state['_playerPos']}.',
-          'Boxes: ${state['_boxPositions']}; targets: ${state['_targetPositions']}. Reach the opposite side of a box before pushing; avoid corners without a target.',
-          'Kisten: ${state['_boxPositions']}; Ziele: ${state['_targetPositions']}. Erreiche vor dem Schieben die gegenüberliegende Seite einer Kiste; meide Ecken ohne Ziel.');
+        'Plan the next push from ${state['_playerPos']}.',
+        'Plane den nächsten Schub von ${state['_playerPos']}.',
+        'Boxes: ${state['_boxPositions']}; targets: ${state['_targetPositions']}. Reach the opposite side of a box before pushing; avoid corners without a target.',
+        'Kisten: ${state['_boxPositions']}; Ziele: ${state['_targetPositions']}. Erreiche vor dem Schieben die gegenüberliegende Seite einer Kiste; meide Ecken ohne Ziel.',
+      );
     case 'space_station_gridlock':
       final ships = _list(state['ships']),
           player = state['playerShipIndex'] as int;
-      final ship =
-          player < ships.length ? _map(ships[player]) : <String, dynamic>{};
+      final ship = player < ships.length
+          ? _map(ships[player])
+          : <String, dynamic>{};
       return observe(
-          'Clear the exit in row ${(state['exitRow'] as int) + 1}.',
-          'Mache den Ausgang in Zeile ${(state['exitRow'] as int) + 1} frei.',
-          'Your ship is at ${ship['x'] ?? ship['col']}, ${ship['y'] ?? ship['row']}. Move blockers perpendicular to its route; ships cannot rotate.',
-          'Dein Schiff steht bei ${ship['x'] ?? ship['col']}, ${ship['y'] ?? ship['row']}. Bewege Hindernisse quer zu seiner Route; Schiffe können sich nicht drehen.');
+        'Clear the exit in row ${(state['exitRow'] as int) + 1}.',
+        'Mache den Ausgang in Zeile ${(state['exitRow'] as int) + 1} frei.',
+        'Your ship is at ${ship['x'] ?? ship['col']}, ${ship['y'] ?? ship['row']}. Move blockers perpendicular to its route; ships cannot rotate.',
+        'Dein Schiff steht bei ${ship['x'] ?? ship['col']}, ${ship['y'] ?? ship['row']}. Bewege Hindernisse quer zu seiner Route; Schiffe können sich nicht drehen.',
+      );
     case 'void_crossing':
       final current = _map(state['_gameState']);
       final labels = {
         for (final entity in _list(p['entities']).map(_map))
-          entity['id']: entity['emoji']
+          entity['id']: entity['emoji'],
       };
       String entities(Object? raw, bool de) {
         final items = _list(raw)
@@ -637,24 +841,31 @@ BoardHint? findBoardHint(String game, Map<String, dynamic> state,
             .toList();
         return items.isEmpty ? (de ? 'leer' : 'empty') : items.join(' ');
       }
-      String conflicts(bool de) => _list(p['conflicts']).map(_map).map((rule) {
+      String conflicts(bool de) => _list(p['conflicts'])
+          .map(_map)
+          .map((rule) {
             final pair = entities([rule['entityA'], rule['entityB']], de);
             final guardian = rule['guardian'];
             if (guardian == null) return pair;
-            return '$pair ${de ? 'brauchen' : 'need'} ${entities([
-                  guardian
-                ], de)}';
-          }).join('; ');
+            return '$pair ${de ? 'brauchen' : 'need'} ${entities([guardian], de)}';
+          })
+          .join('; ');
       return observe(
-          'Check the bank the shuttle is leaving.',
-          'Prüfe die Station, die das Shuttle verlässt.',
-          'Left: ${entities(current['leftStation'], false)}; right: ${entities(current['rightStation'], false)}; aboard: ${entities(current['onShuttle'], false)}. Capacity: ${p['boatCapacity']}. Check these pairs before crossing: ${conflicts(false)}.',
-          'Links: ${entities(current['leftStation'], true)}; rechts: ${entities(current['rightStation'], true)}; an Bord: ${entities(current['onShuttle'], true)}. Kapazität: ${p['boatCapacity']}. Prüfe vor der Überfahrt diese Paare: ${conflicts(true)}.');
+        'Check the bank the shuttle is leaving.',
+        'Prüfe die Station, die das Shuttle verlässt.',
+        'Left: ${entities(current['leftStation'], false)}; right: ${entities(current['rightStation'], false)}; aboard: ${entities(current['onShuttle'], false)}. Capacity: ${p['boatCapacity']}. Check these pairs before crossing: ${conflicts(false)}.',
+        'Links: ${entities(current['leftStation'], true)}; rechts: ${entities(current['rightStation'], true)}; an Bord: ${entities(current['onShuttle'], true)}. Kapazität: ${p['boatCapacity']}. Prüfe vor der Überfahrt diese Paare: ${conflicts(true)}.',
+      );
     case 'cargo_bay_arranger':
       final grid = _list(state['grid']);
       final row = grid.isEmpty ? <dynamic>[] : _list(grid.last);
-      final total = row.where((v) => v != null).map(_map).fold<num>(
-          0, (s, v) => s + (v['value'] as num? ?? v['number'] as num? ?? 0));
+      final total = row
+          .where((v) => v != null)
+          .map(_map)
+          .fold<num>(
+            0,
+            (s, v) => s + (v['value'] as num? ?? v['number'] as num? ?? 0),
+          );
       final needed = (state['targetSum'] as num) - total;
       final pieceValues = _list(_map(state['currentPiece'])['cubes'])
           .expand(_list)
@@ -662,32 +873,37 @@ BoardHint? findBoardHint(String game, Map<String, dynamic> state,
           .map((v) => _map(v)['value'])
           .join(', ');
       return observe(
-          'Check the bottom row total.',
-          'Prüfe die Summe der untersten Zeile.',
-          'Filled cells total $total; the target is ${state['targetSum']}, so the row still needs $needed. Compare this with the current piece $pieceValues.',
-          'Belegte Felder ergeben $total; das Ziel ist ${state['targetSum']}, also fehlen $needed. Vergleiche dies mit dem aktuellen Teil $pieceValues.');
+        'Check the bottom row total.',
+        'Prüfe die Summe der untersten Zeile.',
+        'Filled cells total $total; the target is ${state['targetSum']}, so the row still needs $needed. Compare this with the current piece $pieceValues.',
+        'Belegte Felder ergeben $total; das Ziel ist ${state['targetSum']}, also fehlen $needed. Vergleiche dies mit dem aktuellen Teil $pieceValues.',
+      );
     case 'quantum_molecule_builder':
       final pattern = _map(state['targetPattern']);
       return observe(
-          'Compare atoms with the current target.',
-          'Vergleiche die Atome mit dem aktuellen Ziel.',
-          'Target: ${pattern['name'] ?? state['levelName']}; atoms: ${_list(state['atoms']).map(_map).map((a) => a['type']).join(', ')}. Keep the molecule’s relative arrangement; atoms slide until blocked.',
-          'Ziel: ${pattern['name'] ?? state['levelName']}; Atome: ${_list(state['atoms']).map(_map).map((a) => a['type']).join(', ')}. Erhalte die relative Anordnung des Moleküls; Atome gleiten bis zu einem Hindernis.');
+        'Compare atoms with the current target.',
+        'Vergleiche die Atome mit dem aktuellen Ziel.',
+        'Target: ${pattern['name'] ?? state['levelName']}; atoms: ${_list(state['atoms']).map(_map).map((a) => a['type']).join(', ')}. Keep the molecule’s relative arrangement; atoms slide until blocked.',
+        'Ziel: ${pattern['name'] ?? state['levelName']}; Atome: ${_list(state['atoms']).map(_map).map((a) => a['type']).join(', ')}. Erhalte die relative Anordnung des Moleküls; Atome gleiten bis zu einem Hindernis.',
+      );
     case 'arithmancer_duel':
-      final engine = _map(state['engine'] ??
-          _map(_map(state['pvp'])['player1State'])['engine']);
+      final engine = _map(
+        state['engine'] ?? _map(_map(state['pvp'])['player1State'])['engine'],
+      );
       final cards = _list(state['hand']).map(_map).toList();
       return observe(
-          'Build from your current hand.',
-          'Baue mit deiner aktuellen Hand.',
-          'Energy: ${engine['playerEnergy']}; cards: ${cards.map((c) => '${c['name']} (${c['cost']})').join(', ')}. Choose affordable number–operator–number cards before matching the enemy’s shields ${_map(engine['currentEnemy'])['mathematicalShields']}.',
-          'Energie: ${engine['playerEnergy']}; Karten: ${cards.map((c) => '${c['name']} (${c['cost']})').join(', ')}. Wähle bezahlbare Zahl–Rechenzeichen–Zahl-Karten und prüfe die Schilde des Gegners ${_map(engine['currentEnemy'])['mathematicalShields']}.');
+        'Build from your current hand.',
+        'Baue mit deiner aktuellen Hand.',
+        'Energy: ${engine['playerEnergy']}; cards: ${cards.map((c) => '${c['name']} (${c['cost']})').join(', ')}. Choose affordable number–operator–number cards before matching the enemy’s shields ${_map(engine['currentEnemy'])['mathematicalShields']}.',
+        'Energie: ${engine['playerEnergy']}; Karten: ${cards.map((c) => '${c['name']} (${c['cost']})').join(', ')}. Wähle bezahlbare Zahl–Rechenzeichen–Zahl-Karten und prüfe die Schilde des Gegners ${_map(engine['currentEnemy'])['mathematicalShields']}.',
+      );
     case 'creature_forge':
       return observe(
-          'Group creatures by head.',
-          'Gruppiere Wesen nach ihrem Kopf.',
-          '${state['_headCount']} heads × ${state['_bodyCount']} bodies × ${state['_tailCount']} tails, with ${state['_forbiddenCombos']} forbidden combinations. Subtract forbidden combinations once.',
-          '${state['_headCount']} Köpfe × ${state['_bodyCount']} Körper × ${state['_tailCount']} Schwänze, mit ${state['_forbiddenCombos']} verbotenen Kombinationen. Ziehe verbotene Kombinationen genau einmal ab.');
+        'Group creatures by head.',
+        'Gruppiere Wesen nach ihrem Kopf.',
+        '${state['_headCount']} heads × ${state['_bodyCount']} bodies × ${state['_tailCount']} tails, with ${state['_forbiddenCombos']} forbidden combinations. Subtract forbidden combinations once.',
+        '${state['_headCount']} Köpfe × ${state['_bodyCount']} Körper × ${state['_tailCount']} Schwänze, mit ${state['_forbiddenCombos']} verbotenen Kombinationen. Ziehe verbotene Kombinationen genau einmal ab.',
+      );
     default:
       return null;
   }
@@ -699,11 +915,12 @@ List<int>? solveLights(List<List<bool>> grid, {bool targetLit = true}) {
   final n = grid.length, count = n * n;
   if (n == 0 || n > 8 || grid.any((r) => r.length != n)) return null;
   final rows = List.generate(
-      count,
-      (i) => List.generate(count + 1, (j) {
-            if (j == count) return grid[i ~/ n][i % n] == targetLit ? 0 : 1;
-            return (i ~/ n - j ~/ n).abs() + (i % n - j % n).abs() <= 1 ? 1 : 0;
-          }));
+    count,
+    (i) => List.generate(count + 1, (j) {
+      if (j == count) return grid[i ~/ n][i % n] == targetLit ? 0 : 1;
+      return (i ~/ n - j ~/ n).abs() + (i % n - j % n).abs() <= 1 ? 1 : 0;
+    }),
+  );
   var rank = 0;
   final pivots = <int>[];
   for (int c = 0; c < count; c++) {
@@ -730,7 +947,7 @@ List<int>? solveLights(List<List<bool>> grid, {bool targetLit = true}) {
   }
   return [
     for (int r = 0; r < rank; r++)
-      if (rows[r][count] == 1) pivots[r]
+      if (rows[r][count] == 1) pivots[r],
   ];
 }
 
@@ -757,44 +974,46 @@ BoardHint _colorHint(Map<String, dynamic> p, Map<String, dynamic> s, bool de) {
     for (final neighbour in _list(adjacency[r])) {
       if (colors[r] != null && colors[r] == colors['$neighbour']) {
         return BoardHint(
-            de
-                ? 'Prüfe benachbarte Regionen $r und $neighbour.'
-                : 'Check neighbouring regions $r and $neighbour.',
-            de
-                ? 'Nachbarn brauchen unterschiedliche Farben.'
-                : 'Neighbours need different colours.',
-            de
-                ? 'Beide haben Farbe ${_colourLabel(colors[r], true)}; ändere eine davon.'
-                : 'Both have colour ${_colourLabel(colors[r], false)}; change one.');
+          de
+              ? 'Prüfe benachbarte Regionen $r und $neighbour.'
+              : 'Check neighbouring regions $r and $neighbour.',
+          de
+              ? 'Nachbarn brauchen unterschiedliche Farben.'
+              : 'Neighbours need different colours.',
+          de
+              ? 'Beide haben Farbe ${_colourLabel(colors[r], true)}; ändere eine davon.'
+              : 'Both have colour ${_colourLabel(colors[r], false)}; change one.',
+        );
       }
     }
   }
   final target = regions.where((r) => !colors.containsKey(r)).firstOrNull;
   if (target == null) {
     return BoardHint(
-        de ? 'Alle Regionen sind bemalt.' : 'All regions are painted.',
-        de ? 'Prüfe die Farbanzahl.' : 'Check the colour count.',
-        de
-            ? 'Ziel: ${p['chromaticNumber']} Farben.'
-            : 'Target: ${p['chromaticNumber']} colours.');
+      de ? 'Alle Regionen sind bemalt.' : 'All regions are painted.',
+      de ? 'Prüfe die Farbanzahl.' : 'Check the colour count.',
+      de
+          ? 'Ziel: ${p['chromaticNumber']} Farben.'
+          : 'Target: ${p['chromaticNumber']} colours.',
+    );
   }
-  final used = _list(adjacency[target])
-      .map((r) => colors['$r'])
-      .where((v) => v != null)
-      .toSet();
+  final used = _list(
+    adjacency[target],
+  ).map((r) => colors['$r']).where((v) => v != null).toSet();
   final choices = [
     for (int i = 0; i < (p['availableColors'] as int); i++)
-      if (!used.contains(i)) i
+      if (!used.contains(i)) i,
   ];
   return BoardHint(
-      de ? 'Betrachte Region $target.' : 'Focus on region $target.',
-      de
-          ? 'Schließe die Farben ihrer Nachbarn aus.'
-          : 'Exclude the colours of its neighbours.',
-      de
-          ? 'Nachbarfarben: ${used.isEmpty ? 'keine' : used.map((v) => _colourLabel(v, true)).join(', ')}; lokal mögliche Farben: ${choices.map((v) => _colourLabel(v, true)).join(', ')}. Prüfe danach die übrigen Regionen.'
-          : 'Neighbour colours: ${used.isEmpty ? 'none' : used.map((v) => _colourLabel(v, false)).join(', ')}; locally possible colours: ${choices.map((v) => _colourLabel(v, false)).join(', ')}. Then check the remaining regions.',
-      target: target);
+    de ? 'Betrachte Region $target.' : 'Focus on region $target.',
+    de
+        ? 'Schließe die Farben ihrer Nachbarn aus.'
+        : 'Exclude the colours of its neighbours.',
+    de
+        ? 'Nachbarfarben: ${used.isEmpty ? 'keine' : used.map((v) => _colourLabel(v, true)).join(', ')}; lokal mögliche Farben: ${choices.map((v) => _colourLabel(v, true)).join(', ')}. Prüfe danach die übrigen Regionen.'
+        : 'Neighbour colours: ${used.isEmpty ? 'none' : used.map((v) => _colourLabel(v, false)).join(', ')}; locally possible colours: ${choices.map((v) => _colourLabel(v, false)).join(', ')}. Then check the remaining regions.',
+    target: target,
+  );
 }
 
 BoardHint _ionHint(Map<String, dynamic> p, Map<String, dynamic> s, bool de) {
@@ -803,11 +1022,10 @@ BoardHint _ionHint(Map<String, dynamic> p, Map<String, dynamic> s, bool de) {
   final index = chain.indexOf(null);
   if (index < 0) {
     return BoardHint(
-        de ? 'Die Kette ist gefüllt.' : 'The chain is filled.',
-        de ? 'Prüfe alle Regeln.' : 'Check every rule.',
-        de
-            ? 'Vergleiche jedes Nachbarpaar.'
-            : 'Compare every neighbouring pair.');
+      de ? 'Die Kette ist gefüllt.' : 'The chain is filled.',
+      de ? 'Prüfe alle Regeln.' : 'Check every rule.',
+      de ? 'Vergleiche jedes Nachbarpaar.' : 'Compare every neighbouring pair.',
+    );
   }
   bool allowed(Object? a, Object? b) {
     if (a == null || b == null) return true;
@@ -824,16 +1042,17 @@ BoardHint _ionHint(Map<String, dynamic> p, Map<String, dynamic> s, bool de) {
 
   final left = index == 0 ? null : chain[index - 1],
       right = index + 1 == chain.length ? null : chain[index + 1];
-  final choices = _list(p['ionTypes'])
-      .where((v) => allowed(left, v) && allowed(v, right))
-      .toList();
+  final choices = _list(
+    p['ionTypes'],
+  ).where((v) => allowed(left, v) && allowed(v, right)).toList();
   return BoardHint(
-      de ? 'Betrachte Perle ${index + 1}.' : 'Focus on bead ${index + 1}.',
-      de ? 'Prüfe beide Nachbarn.' : 'Check both neighbours.',
-      de
-          ? 'Links: ${_colourLabel(left, true)}; rechts: ${_colourLabel(right, true)}. Lokal mögliche Farben: ${choices.map((v) => _colourLabel(v, true)).join(', ')}. Prüfe danach die ganze Kette.'
-          : 'Left: ${_colourLabel(left, false)}; right: ${_colourLabel(right, false)}. Locally possible colours: ${choices.map((v) => _colourLabel(v, false)).join(', ')}. Then check the whole chain.',
-      target: '$index');
+    de ? 'Betrachte Perle ${index + 1}.' : 'Focus on bead ${index + 1}.',
+    de ? 'Prüfe beide Nachbarn.' : 'Check both neighbours.',
+    de
+        ? 'Links: ${_colourLabel(left, true)}; rechts: ${_colourLabel(right, true)}. Lokal mögliche Farben: ${choices.map((v) => _colourLabel(v, true)).join(', ')}. Prüfe danach die ganze Kette.'
+        : 'Left: ${_colourLabel(left, false)}; right: ${_colourLabel(right, false)}. Locally possible colours: ${choices.map((v) => _colourLabel(v, false)).join(', ')}. Then check the whole chain.',
+    target: '$index',
+  );
 }
 
 BoardHint _mineHint(Map<String, dynamic> s, bool de) {
@@ -861,24 +1080,34 @@ BoardHint _mineHint(Map<String, dynamic> s, bool de) {
       final clue = cell['adjacentMines'] as int;
       final safe = flags == clue, mines = clue - flags == hidden.length;
       return BoardHint(
-          de
-              ? 'Betrachte Zeile ${r + 1}, Spalte ${c + 1}.'
-              : 'Focus on row ${r + 1}, column ${c + 1}.',
-          de
-              ? 'Vergleiche Zahl, Flaggen und verdeckte Nachbarn.'
-              : 'Compare the clue, flags and hidden neighbours.',
-          de
-              ? 'Hinweis $clue, Flaggen $flags, verdeckt ${hidden.length}. ${safe ? 'Bei korrekten Flaggen sind die übrigen Nachbarn sicher.' : mines ? 'Bei korrekten Flaggen enthalten alle übrigen Nachbarn Minen.' : 'Hier fehlt noch eine weitere Information.'}'
-              : 'Clue $clue, flags $flags, hidden ${hidden.length}. ${safe ? 'If your flags are correct, the other neighbours are safe.' : mines ? 'If your flags are correct, all other neighbours contain mines.' : 'You need another clue here.'}',
-          target: hidden.first);
+        de
+            ? 'Betrachte Zeile ${r + 1}, Spalte ${c + 1}.'
+            : 'Focus on row ${r + 1}, column ${c + 1}.',
+        de
+            ? 'Vergleiche Zahl, Flaggen und verdeckte Nachbarn.'
+            : 'Compare the clue, flags and hidden neighbours.',
+        de
+            ? 'Hinweis $clue, Flaggen $flags, verdeckt ${hidden.length}. ${safe
+                  ? 'Bei korrekten Flaggen sind die übrigen Nachbarn sicher.'
+                  : mines
+                  ? 'Bei korrekten Flaggen enthalten alle übrigen Nachbarn Minen.'
+                  : 'Hier fehlt noch eine weitere Information.'}'
+            : 'Clue $clue, flags $flags, hidden ${hidden.length}. ${safe
+                  ? 'If your flags are correct, the other neighbours are safe.'
+                  : mines
+                  ? 'If your flags are correct, all other neighbours contain mines.'
+                  : 'You need another clue here.'}',
+        target: hidden.first,
+      );
     }
   }
   return BoardHint(
-      de ? 'Öffne ein Startfeld.' : 'Reveal a starting cell.',
-      de
-          ? 'Ein enthüllter Hinweis begrenzt seine Nachbarn.'
-          : 'A revealed clue constrains its neighbours.',
-      de
-          ? 'Vor dem ersten Hinweis lässt sich kein sicherer Nachbar ableiten.'
-          : 'Before the first clue, a safe neighbour cannot be deduced.');
+    de ? 'Öffne ein Startfeld.' : 'Reveal a starting cell.',
+    de
+        ? 'Ein enthüllter Hinweis begrenzt seine Nachbarn.'
+        : 'A revealed clue constrains its neighbours.',
+    de
+        ? 'Vor dem ersten Hinweis lässt sich kein sicherer Nachbar ableiten.'
+        : 'Before the first clue, a safe neighbour cannot be deduced.',
+  );
 }

@@ -3,7 +3,34 @@
 Updated 2026-10-19. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
-## Latest verified publication
+## Practice-rule correction under validation
+
+The latest candidate is **1.5.41+57**; read
+[Practice rules and cross-game difficulty](docs/practice-rules-and-difficulty.md).
+The common Üben screen omitted its rule text while suppressing old introductions.
+The candidate teaches ascending asteroid results and all three equal Wormhole
+side sums, corrects additional misleading examples, stages introductory Wormhole
+constraints, and makes arithmetic respect the selected difficulty mode. The
+legacy generator remains selectable. Only the bounded 12-profile pure-Dart
+comparison has passed locally; focused/full native and deployment evidence is
+still required. This does not establish child-calibrated difficulty for all games.
+
+The separate [Gridlock PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66)
+is under validation, version **1.5.40+56**. Preserve it while integrating this
+candidate and reconcile version order before merging.
+
+Current main remains Molecule **1.5.39+55**,
+[PR #65](https://github.com/CrispStrobe/NumberNebula/pull/65).
+Its main [native](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851186)
+and [pure](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851385)
+checks passed. The main
+[web run](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851150)
+passed build, 864 capture/replays and 47 artifact-browser cases with one known
+loader skip and no observed retries, then failed at deployment. Its full deployed
+matrix did not run. The previously verified PR artifact remains the publication;
+do not label the failed main aggregate green.
+
+## Preceding verified main publication
 
 [Relic Assembly / PR #64](https://github.com/CrispStrobe/NumberNebula/pull/64)
 merged at exact source

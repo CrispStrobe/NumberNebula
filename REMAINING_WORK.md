@@ -278,3 +278,20 @@ instructions out of repo docs. Web deployment is already green at the baseline.
   actually changes; re-encoding unchanged source art is not a gameplay fix.
 - Historical design briefs/specs describe original implementation tasks. Verify
   current source before treating their old assignments as open work.
+
+
+## L — Practice rules and comparable difficulty: current priority
+
+See [the correction and executable steps](docs/practice-rules-and-difficulty.md),
+version **1.5.41+57**, under validation. First verify the corrected actual Üben and
+hint flows for Asteroid Hunter and Wormhole, including ordering, all three sums,
+shared corners and current-board examples. The initial paired generation check
+passed 12 profiles; this does not establish equal felt difficulty.
+
+Run the existing pure job's 360-profile comparison and all native/browser checks.
+Then audit each remaining practice example against actual controls/win rules,
+and extend the structural comparison to all 48 games. Keep independent tasks,
+constraint depth, distractions and time pressure separate in the evidence. Make
+one reproducible tuning change at a time, retaining a selectable old path.
+Actual child calibration still requires the lane H playtest protocol.
+Preserve pending Gridlock PR #66 and verify the final version/merge order.

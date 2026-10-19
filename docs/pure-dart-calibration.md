@@ -1,5 +1,14 @@
 # Pure Dart generation and estimated difficulty
 
+The **1.5.41+57** candidate adds a
+[paired practice-difficulty check](practice-rules-and-difficulty.md), with the
+previous Wormhole generator retained as `legacy`. The bounded 12-profile smoke
+check passed; the complete remote comparison and later full calibration remain
+required. This correction is structural scaffolding, not measured child tuning.
+Use `tool/check_practice_difficulty.dart --smoke` for the bounded comparison and
+omit `--smoke` only on an appropriate remote runner for all 360 paired profiles.
+
+
 Current source: **1.5.34+50**, including the [Codebreaker round audit](codebreaker-round-audit.md).
 Its generator algorithms and dependency pins are unchanged. The preceding
 [verified integration](https://github.com/CrispStrobe/NumberNebula/pull/59)
