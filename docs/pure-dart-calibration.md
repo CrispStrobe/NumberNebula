@@ -1,12 +1,20 @@
 # Pure Dart generation and estimated difficulty
 
-The **1.5.41+57** candidate adds a
-[paired practice-difficulty check](practice-rules-and-difficulty.md), with the
-previous Wormhole generator retained as `legacy`. The bounded 12-profile smoke
-check passed; the complete remote comparison and later full calibration remain
-required. This correction is structural scaffolding, not measured child tuning.
-Use `tool/check_practice_difficulty.dart --smoke` for the bounded comparison and
-omit `--smoke` only on an appropriate remote runner for all 360 paired profiles.
+The **1.5.42+58** candidate includes a complete
+[48-game lesson and hint audit](practice-rules-and-difficulty.md), three bounded
+fixed-fixture contract checks and a paired practice-difficulty report. Run:
+
+```sh
+dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/check_numeric_lesson_contracts.dart
+dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/check_spatial_lesson_contracts.dart
+dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/check_action_lesson_contracts.dart
+```
+
+The previous Wormhole generator remains selectable as `legacy`. Use
+`tool/check_practice_difficulty.dart --smoke` for the bounded 12-profile check;
+omit `--smoke` only on a remote runner for 360 paired profiles. Fixed semantic
+fixtures and structural workload estimates do not measure children's felt
+difficulty or prove Flutter input/layout behavior.
 
 
 Current source: **1.5.34+50**, including the [Codebreaker round audit](codebreaker-round-audit.md).

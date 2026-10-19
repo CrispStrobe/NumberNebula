@@ -5,15 +5,18 @@ Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
 ## Practice-rule correction under validation
 
-The latest candidate is **1.5.41+57**; read
+The latest candidate is **1.5.42+58**; read
 [Practice rules and cross-game difficulty](docs/practice-rules-and-difficulty.md).
-The common Üben screen omitted its rule text while suppressing old introductions.
-The candidate teaches ascending asteroid results and all three equal Wormhole
-side sums, corrects additional misleading examples, stages introductory Wormhole
-constraints, and makes arithmetic respect the selected difficulty mode. The
-legacy generator remains selectable. Only the bounded 12-profile pure-Dart
-comparison has passed locally; focused/full native and deployment evidence is
-still required. This does not establish child-calibrated difficulty for all games.
+All 48 Üben lessons have been rewritten as bilingual mechanic exercises, with
+labelled actions and explanations. All 48 hint paths were traced against actual
+controls and win conditions; new visible-board guidance replaces misleading
+observations while preserving verified solvers and algorithms. Read the three
+16-game audit inventories linked in the correction document. Fixed-fixture pure
+checks and all-lesson rendered wrong/correct tests are included; full remote
+native/browser/deployment validation is still required. Introductory Wormhole
+constraints are staged, and arithmetic respects the selected difficulty mode.
+The legacy generator remains selectable. The 12-profile difficulty comparison
+is structural evidence, not child-calibrated difficulty for all games.
 
 The separate [Gridlock PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66)
 is under validation, version **1.5.40+56**. Preserve it while integrating this

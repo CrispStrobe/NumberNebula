@@ -283,15 +283,16 @@ instructions out of repo docs. Web deployment is already green at the baseline.
 ## L — Practice rules and comparable difficulty: current priority
 
 See [the correction and executable steps](docs/practice-rules-and-difficulty.md),
-version **1.5.41+57**, under validation. First verify the corrected actual Üben and
-hint flows for Asteroid Hunter and Wormhole, including ordering, all three sums,
-shared corners and current-board examples. The initial paired generation check
-passed 12 profiles; this does not establish equal felt difficulty.
+version **1.5.42+58**, under validation. The complete 48-game lesson/hint rewrite
+and three audit inventories are implemented. Run all three fixed-fixture contract
+checks and all 48 bilingual rendered wrong/correct lessons. Verify shared live
+hints, restored states, pause and learning records. No text-presence test alone
+counts as mechanic validation.
 
 Run the existing pure job's 360-profile comparison and all native/browser checks.
-Then audit each remaining practice example against actual controls/win rules,
-and extend the structural comparison to all 48 games. Keep independent tasks,
-constraint depth, distractions and time pressure separate in the evidence. Make
-one reproducible tuning change at a time, retaining a selectable old path.
-Actual child calibration still requires the lane H playtest protocol.
+Address the numeric audit's expression-display ambiguities with actual rendered
+regressions. Then extend structural comparison to all 48 games. Keep independent
+tasks, dependency depth, distractions and time pressure separate. Make one
+reproducible tuning change at a time, retaining a selectable old path. Actual
+child calibration still requires lane H's playtest protocol.
 Preserve pending Gridlock PR #66 and verify the final version/merge order.

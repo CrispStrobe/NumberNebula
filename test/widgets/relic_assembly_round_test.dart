@@ -784,7 +784,7 @@ void main() {
       expect(app.gp.outcomeCount, 1);
       await _finish(t);
       await t.runAsync(
-        () => OnboardingOverlay.markSeen('relic_assembly_all_games_guided_v2_rules'),
+        () => OnboardingOverlay.markSeen('relic_assembly_all_games_guided_v3_mechanics'),
       );
       await t.runAsync(() => loadGameLibrary('relic_assembly'));
       final original = _state(t);

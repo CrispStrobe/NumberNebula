@@ -12,17 +12,19 @@ void main() {
           final state = <String, dynamic>{
             'targetOrder': [4, 5, 7],
             'currentTargetIndex': 1,
-            'levelProblems': <dynamic>[],
+            'levelProblems': [
+              {'expression': '3 + 2', 'answer': 5}
+            ],
             'bubbles': [
               {'mathProblem': '3 + 2', 'answer': 5},
             ],
           };
           final before = jsonEncode(state);
           final hint = findBoardHint(game, state, german: german)!;
-          expect(hint.value, 5);
+          expect(hint.value, game == 'bubble_math' ? 5 : isNull);
           expect(
             hint.strategy,
-            contains(german ? 'aufsteigender Reihenfolge' : 'ascending order'),
+            contains(german ? 'kleinste' : 'smallest'),
           );
           expect(hint.working, contains('5 → 7'));
           expect(hint.working, contains('3 + 2 = 5'));
@@ -114,7 +116,8 @@ void main() {
         {'expression': '2 + 2', 'answer': 4},
       ],
     });
-    expect(hint!.value, 4);
+    expect(hint!.verified, isFalse);
+    expect(hint.value, isNull);
     expect(hint.working, contains('2 + 2 = 4'));
   });
   test('matrix hints preserve alternate valid player placements', () {
@@ -181,8 +184,14 @@ void main() {
         '_remaining': remaining,
         '_maxPerTurn': 3,
       })!;
-      if (hint.verified) {
-        final take = hint.value as int;
+      final recommendation =
+          RegExp(r'Take (\d+) and leave').firstMatch(hint.working);
+      if (remaining % 4 == 1) {
+        expect(recommendation, isNull);
+        expect(hint.working, contains('No take can force a win'));
+      } else {
+        expect(recommendation, isNotNull);
+        final take = int.parse(recommendation![1]!);
         expect(take, inInclusiveRange(1, 3));
         expect(take, lessThan(remaining));
         expect((remaining - take - 1) % 4, 0);

@@ -36,7 +36,7 @@ void main() {
         );
         addTearDown(gp.dispose);
         await OnboardingOverlay.markSeen(
-          'magic_triangles_all_games_guided_v2_rules',
+          'magic_triangles_all_games_guided_v3_mechanics',
         );
         final board = <String, dynamic>{
           'currentPuzzle': {
@@ -138,7 +138,7 @@ void main() {
     );
     await pumpUntil(t, find.byType(OnboardingOverlay));
     expect(find.text('Scored round'), findsNothing);
-    expect(find.textContaining('aufsteigender Reihenfolge'), findsOneWidget);
+    expect(find.textContaining('aufsteigend'), findsOneWidget);
     final s = S.of(t.element(find.byType(OnboardingOverlay)))!;
     await t.tap(find.widgetWithText(TextButton, s.skip));
     await t.pump();
@@ -146,7 +146,7 @@ void main() {
     await pumpUntil(t, find.text('Scored round'));
     expect(
       await OnboardingOverlay.hasBeenSeen(
-        'asteroid_math_all_games_guided_v2_rules',
+        'asteroid_math_all_games_guided_v3_mechanics',
       ),
       isTrue,
     );

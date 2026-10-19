@@ -69,7 +69,7 @@ class _GameLearningShellState extends State<GameLearningShell>
     WidgetsBinding.instance.addPostFrameCallback((_) => _prepare());
   }
 
-  String get _tutorialKey => '${widget.gameKey}_all_games_guided_v2_rules';
+  String get _tutorialKey => '${widget.gameKey}_all_games_guided_v3_mechanics';
   Future<void> _prepare() async {
     if (!await OnboardingOverlay.hasBeenSeen(_tutorialKey) && mounted) {
       await _tutorial();
@@ -123,12 +123,15 @@ class _GameLearningShellState extends State<GameLearningShell>
       await StrategyHintDialog.show(
         context,
         focus: hint?.focus ?? (_german ? lesson.focusDe : lesson.focusEn),
-        strategy: [
+        strategy: {
+          _german ? lesson.lesson.rulesDe : lesson.lesson.rulesEn,
           _german ? lesson.strategyDe : lesson.strategyEn,
           if (hint != null && hint.hasSpecificStrategy) hint.strategy,
-        ].toSet().join('\n\n'),
-        working:
-            hint?.working ?? (_german ? lesson.workingDe : lesson.workingEn),
+        }.join('\n\n'),
+        working: hint?.working ??
+            (_german
+                ? 'Übungsbeispiel (nicht deine aktuelle Stellung):\n${lesson.lesson.boardDe}\n${lesson.workingDe}'
+                : 'Practice example (not your current position):\n${lesson.lesson.boardEn}\n${lesson.workingEn}'),
       );
     } finally {
       _coachOpen = false;

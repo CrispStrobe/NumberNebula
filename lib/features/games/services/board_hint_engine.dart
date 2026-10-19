@@ -1,5 +1,9 @@
 import 'dart:math' as math;
 import 'hint_completion_solver.dart';
+import '../models/practice_lesson_catalog.dart';
+import 'numeric_hint_guidance.dart';
+import 'spatial_hint_guidance.dart';
+import 'action_hint_guidance.dart';
 
 /// Pure Dart: hints consume a frozen JSON board, never screen/model objects.
 /// Verified moves come from constraints; observations deliberately make no
@@ -20,13 +24,13 @@ class BoardHint {
     this.hasSpecificStrategy = true,
   });
   Map<String, dynamic> toJson() => {
-    'focus': focus,
-    'strategy': strategy,
-    'working': working,
-    'target': target,
-    'value': value,
-    'verified': verified,
-  };
+        'focus': focus,
+        'strategy': strategy,
+        'working': working,
+        'target': target,
+        'value': value,
+        'verified': verified,
+      };
 }
 
 Map<String, dynamic> _map(Object? v) =>
@@ -65,7 +69,67 @@ String _faceLabel(String face, bool de) => de
         _ => 'the requested face',
       };
 
+/// Keep proved moves intact while replacing generic or incorrect explanations.
 BoardHint? findBoardHint(
+  String game,
+  Map<String, dynamic> state, {
+  bool german = false,
+}) {
+  const retained = {
+    'star_forge',
+    'number_walls',
+    'solarpanel_game',
+    'orbital_towers',
+    'nebula_matrix',
+    'kenken',
+    'magic_triangles',
+    'launch_sequence',
+    'dark_matter_grid',
+    'asteroid_field_navigator',
+    'bubble_math',
+    'creature_forge',
+  };
+  final raw = retained.contains(game)
+      ? _findRawBoardHint(game, state, german: german)
+      : null;
+  final lesson = practiceLessons[game];
+  if (lesson == null) return raw;
+  final observed = <String, dynamic>{
+    ...state,
+    '_hintTarget': raw?.target,
+    '_hintValue': raw?.value,
+    '_hintVerified': raw?.verified ?? false,
+  };
+  final numeric = numericHintGuidance(game, observed, german: german);
+  final spatial = spatialHintGuidance(game, observed, german: german);
+  final action = actionHintGuidance(game, observed, german: german);
+  final guide = numeric ?? spatial ?? action;
+  final strategy = german ? lesson.strategyDe : lesson.strategyEn;
+  if (guide != null) {
+    final keepMove = retained.contains(game) &&
+        spatial == null &&
+        guide['replaceMove'] != 'true';
+    return BoardHint(
+      guide['focus']!,
+      guide['strategy'] ?? strategy,
+      guide['working']!,
+      target: keepMove ? raw?.target : null,
+      value: keepMove ? raw?.value : null,
+      verified: keepMove && (raw?.verified ?? false),
+    );
+  }
+  if (raw == null) return null;
+  return BoardHint(
+    raw.focus,
+    {strategy, if (raw.hasSpecificStrategy) raw.strategy}.join('\n\n'),
+    raw.working,
+    target: raw.target,
+    value: raw.value,
+    verified: raw.verified,
+  );
+}
+
+BoardHint? _findRawBoardHint(
   String game,
   Map<String, dynamic> state, {
   bool german = false,
@@ -80,18 +144,19 @@ BoardHint? findBoardHint(
     String? target,
     Object? value,
     bool verified = false,
-  }) => BoardHint(
-    t(en, de),
-    t(
-      'Use the visible rules and your current placements.',
-      'Nutze die sichtbaren Regeln und deine aktuellen Platzierungen.',
-    ),
-    t(workEn, workDe),
-    target: target,
-    value: value,
-    verified: verified,
-    hasSpecificStrategy: false,
-  );
+  }) =>
+      BoardHint(
+        t(en, de),
+        t(
+          'Use the visible rules and your current placements.',
+          'Nutze die sichtbaren Regeln und deine aktuellen Platzierungen.',
+        ),
+        t(workEn, workDe),
+        target: target,
+        value: value,
+        verified: verified,
+        hasSpecificStrategy: false,
+      );
   BoardHint? solve(
     Map<String, dynamic> data,
     List<String> empty,
@@ -260,8 +325,12 @@ BoardHint? findBoardHint(
         return observe(
           'Check the lights.',
           'Prüfe die Lichter.',
-          'The board is clear or no solution was found.',
-          'Das Feld ist leer oder es wurde keine Lösung gefunden.',
+          taps == null
+              ? 'This search found no solution. The goal is to light every cell; each tap flips its cell and its horizontal and vertical neighbors.'
+              : 'Every cell is lit. No further tap is needed.',
+          taps == null
+              ? 'Diese Suche fand keine Lösung. Alle Felder sollen leuchten; Antippen schaltet das Feld und seine waagerechten und senkrechten Nachbarn um.'
+              : 'Alle Felder leuchten. Weiteres Antippen ist nicht nötig.',
         );
       }
       final n = _list(state['grid']).length,
@@ -335,7 +404,7 @@ BoardHint? findBoardHint(
         ),
         t(
           '${expression}Remaining order: $remaining. A larger result is not next even when its calculation is correct.',
-          '${expression}Übrige Reihenfolge: $remaining. Ein größeres Ergebnis ist noch nicht dran, auch wenn seine Rechnung stimmt.',
+          '$expression\nÜbrige Reihenfolge: $remaining. Ein größeres Ergebnis ist noch nicht dran, auch wenn seine Rechnung stimmt.',
         ),
         target: 'currentTarget',
         value: next,
@@ -471,9 +540,8 @@ BoardHint? findBoardHint(
     case 'codebreaker':
       final equations = _list(p['equations']),
           known = _map(p['knownSymbolValues']);
-      final eq = equations.isEmpty
-          ? <String, dynamic>{}
-          : _map(equations.first);
+      final eq =
+          equations.isEmpty ? <String, dynamic>{} : _map(equations.first);
       return observe(
         'Use a current equation.',
         'Nutze eine aktuelle Gleichung.',
@@ -519,10 +587,8 @@ BoardHint? findBoardHint(
         'All three triangle sides must total $targetSum. Count every node along each side, including both corners. Each corner belongs to two sides.',
         'Alle drei Dreiecksseiten müssen die Summe $targetSum ergeben. Zähle alle Knoten einer Seite einschließlich beider Ecken. Jede Ecke gehört zu zwei Seiten.',
       );
-      final empty = hidden
-          .map((i) => '$i')
-          .where((i) => !values.containsKey(i))
-          .toList();
+      final empty =
+          hidden.map((i) => '$i').where((i) => !values.containsKey(i)).toList();
       if (empty.isEmpty) {
         return BoardHint(
           t('Check all three side sums.', 'Prüfe alle drei Seitensummen.'),
@@ -565,18 +631,30 @@ BoardHint? findBoardHint(
       final line = sides.firstWhere((s) => s.any(empty.contains));
       final cell = line.firstWhere(empty.contains);
       final value = completion[cell]!;
-      final known = line
-          .where(values.containsKey)
-          .map((i) => values[i] as int)
-          .toList();
+      final known =
+          line.where(values.containsKey).map((i) => values[i] as int).toList();
       final oneBlank = line.where(empty.contains).length == 1;
-      final calculation = oneBlank
-          ? '$targetSum − ${known.join(' − ')} = $value.'
-          : '';
+      final node = int.parse(cell);
+      final location = node == 0
+          ? t('the top corner', 'die obere Ecke')
+          : node == side - 1
+              ? t('the bottom-right corner', 'die rechte untere Ecke')
+              : node == 2 * side - 2
+                  ? t('the bottom-left corner', 'die linke untere Ecke')
+                  : node < side - 1
+                      ? t('circle ${node + 1} down the RIGHT side, counting the top corner as 1',
+                          'Kreis ${node + 1} an der RECHTEN Seite von oben, mit der oberen Ecke als 1')
+                      : node < 2 * side - 2
+                          ? t('circle ${node - side + 2} along the BOTTOM from the right corner, counting that corner as 1',
+                              'Kreis ${node - side + 2} UNTEN von rechts, mit der rechten Ecke als 1')
+                          : t('circle ${node - 2 * side + 3} up the LEFT side from the bottom corner, counting that corner as 1',
+                              'Kreis ${node - 2 * side + 3} an der LINKEN Seite von unten, mit der unteren Ecke als 1');
+      final calculation =
+          oneBlank ? '$targetSum − ${known.join(' − ')} = $value.' : '';
       return BoardHint(
         t(
-          'Look at node ${int.parse(cell) + 1}.',
-          'Betrachte Knoten ${int.parse(cell) + 1}.',
+          'Look at $location.',
+          'Betrachte $location.',
         ),
         rule,
         t(
@@ -609,12 +687,10 @@ BoardHint? findBoardHint(
     case 'gravity_well':
       final scales = _list(p['scales']);
       final scale = scales.isEmpty ? <String, dynamic>{} : _map(scales.first);
-      String side(Object? raw) => _list(raw)
-          .map((v) {
+      String side(Object? raw) => _list(raw).map((v) {
             final o = _map(v);
             return o['isKnown'] == true ? '${o['weight']}' : '${o['label']}';
-          })
-          .join(' + ');
+          }).join(' + ');
       final equation =
           '${side(scale['leftSide'])} = ${side(scale['rightSide'])}';
       return observe(
@@ -625,17 +701,15 @@ BoardHint? findBoardHint(
       );
     case 'cube_scanner':
       final question = _map(p['question']);
-      String faces(bool de) => _list(p['visibleFaces'])
-          .asMap()
-          .entries
-          .map((die) {
-            final shown = _map(die.value).entries
+      String faces(bool de) =>
+          _list(p['visibleFaces']).asMap().entries.map((die) {
+            final shown = _map(die.value)
+                .entries
                 .where((e) => e.value != null)
                 .map((e) => '${_faceLabel(e.key, de)}: ${e.value}')
                 .join(', ');
             return '${de ? 'Würfel' : 'Cube'} ${die.key + 1}: $shown';
-          })
-          .join('; ');
+          }).join('; ');
       final face = question['face'] as String?;
       return observe(
         face == null
@@ -691,10 +765,8 @@ BoardHint? findBoardHint(
       );
     case 'crew_manifest':
       final clues = _list(p['structuredClues']);
-      final positive = clues
-          .map(_map)
-          .where((c) => c['type'] == 'positive')
-          .toList();
+      final positive =
+          clues.map(_map).where((c) => c['type'] == 'positive').toList();
       final clue = positive.isEmpty
           ? (clues.isEmpty ? <String, dynamic>{} : _map(clues.first))
           : positive.first;
@@ -706,10 +778,8 @@ BoardHint? findBoardHint(
       );
     case 'alien_tribunal':
       final people = _list(p['people']);
-      final counts = people
-          .map(_map)
-          .where((p) => p['kind'] == 'count')
-          .toList();
+      final counts =
+          people.map(_map).where((p) => p['kind'] == 'count').toList();
       final person = counts.isEmpty ? _map(people.first) : counts.first;
       return observe(
         'Test the claim from ${person['name']}.',
@@ -776,9 +846,8 @@ BoardHint? findBoardHint(
       );
     case 'grid_filler_game':
       final pieces = _list(state['availablePieces']).map(_map);
-      final remaining = pieces
-          .where((p) => (p['remainingCount'] as int? ?? 1) > 0)
-          .toList();
+      final remaining =
+          pieces.where((p) => (p['remainingCount'] as int? ?? 1) > 0).toList();
       return observe(
         'Inspect the uncovered grid cells.',
         'Betrachte die unbedeckten Rasterfelder.',
@@ -820,9 +889,8 @@ BoardHint? findBoardHint(
     case 'space_station_gridlock':
       final ships = _list(state['ships']),
           player = state['playerShipIndex'] as int;
-      final ship = player < ships.length
-          ? _map(ships[player])
-          : <String, dynamic>{};
+      final ship =
+          player < ships.length ? _map(ships[player]) : <String, dynamic>{};
       return observe(
         'Clear the exit in row ${(state['exitRow'] as int) + 1}.',
         'Mache den Ausgang in Zeile ${(state['exitRow'] as int) + 1} frei.',
@@ -841,15 +909,14 @@ BoardHint? findBoardHint(
             .toList();
         return items.isEmpty ? (de ? 'leer' : 'empty') : items.join(' ');
       }
-      String conflicts(bool de) => _list(p['conflicts'])
-          .map(_map)
-          .map((rule) {
+      String conflicts(bool de) => _list(p['conflicts']).map(_map).map((rule) {
             final pair = entities([rule['entityA'], rule['entityB']], de);
             final guardian = rule['guardian'];
             if (guardian == null) return pair;
-            return '$pair ${de ? 'brauchen' : 'need'} ${entities([guardian], de)}';
-          })
-          .join('; ');
+            return '$pair ${de ? 'brauchen' : 'need'} ${entities([
+                  guardian
+                ], de)}';
+          }).join('; ');
       return observe(
         'Check the bank the shuttle is leaving.',
         'Prüfe die Station, die das Shuttle verlässt.',
@@ -859,10 +926,7 @@ BoardHint? findBoardHint(
     case 'cargo_bay_arranger':
       final grid = _list(state['grid']);
       final row = grid.isEmpty ? <dynamic>[] : _list(grid.last);
-      final total = row
-          .where((v) => v != null)
-          .map(_map)
-          .fold<num>(
+      final total = row.where((v) => v != null).map(_map).fold<num>(
             0,
             (s, v) => s + (v['value'] as num? ?? v['number'] as num? ?? 0),
           );
@@ -1087,16 +1151,8 @@ BoardHint _mineHint(Map<String, dynamic> s, bool de) {
             ? 'Vergleiche Zahl, Flaggen und verdeckte Nachbarn.'
             : 'Compare the clue, flags and hidden neighbours.',
         de
-            ? 'Hinweis $clue, Flaggen $flags, verdeckt ${hidden.length}. ${safe
-                  ? 'Bei korrekten Flaggen sind die übrigen Nachbarn sicher.'
-                  : mines
-                  ? 'Bei korrekten Flaggen enthalten alle übrigen Nachbarn Minen.'
-                  : 'Hier fehlt noch eine weitere Information.'}'
-            : 'Clue $clue, flags $flags, hidden ${hidden.length}. ${safe
-                  ? 'If your flags are correct, the other neighbours are safe.'
-                  : mines
-                  ? 'If your flags are correct, all other neighbours contain mines.'
-                  : 'You need another clue here.'}',
+            ? 'Hinweis $clue, Flaggen $flags, verdeckt ${hidden.length}. ${safe ? 'Bei korrekten Flaggen sind die übrigen Nachbarn sicher.' : mines ? 'Bei korrekten Flaggen enthalten alle übrigen Nachbarn Minen.' : 'Hier fehlt noch eine weitere Information.'}'
+            : 'Clue $clue, flags $flags, hidden ${hidden.length}. ${safe ? 'If your flags are correct, the other neighbours are safe.' : mines ? 'If your flags are correct, all other neighbours contain mines.' : 'You need another clue here.'}',
         target: hidden.first,
       );
     }

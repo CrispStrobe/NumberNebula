@@ -2,7 +2,7 @@
 
 ## Current candidate
 
-Version **1.5.41+57** corrects rules shown by the common **Practice / Üben**
+Version **1.5.42+58** corrects rules shown by the common **Practice / Üben**
 screen and the introductory Wormhole progression. This is a candidate under
 validation, not a verified deployment. It is separate from the pending Gridlock
 repair in [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66).
@@ -13,34 +13,45 @@ not include its strategy/rule text. The shared hint dialog could also replace
 that text with the generic “use the visible rules” strategy from an observation.
 Neither case guarantees the player was ever taught the actual objective.
 
-## Corrections
+## Complete lesson and hint audit
 
-- Every registered lesson now presents its rule text before asking the practice
-  question. Existing players get the corrected tutorial once using a new seen
-  key; replay remains available. Capture/render/performance fixtures that bypass
-  onboarding use the new key. A migration test deliberately retains the old key.
-- **Asteroid Hunter / Asteroiden-Jäger** teaches ascending **results**, irrespective
-  of object positions. Its example compares three expressions, chooses the
-  smallest result first, and explains why a correctly calculated larger result
-  is still the wrong next shot. Bubble Math teaches its same ordering rule.
-  Live hints use the remaining target sequence and current index.
-- **Wormhole Activator / Wurmloch-Aktivator** teaches that **all three sides** must
-  equal the displayed frequency, with both corners included in each sum. A
-  six-node triangle diagram and three worked sums demonstrate shared corners.
-  Live hints respect current placements, the finite tray and all three sums;
-  a one-gap side shows the subtraction, rather than dumping internal maps.
-- **Signal Triangulation** now practices exact versus misplaced symbols. Its
-  former sum question described a rule the game does not have. Hive terminology
-  now describes energy cells and six neighbours rather than hazards copied from
-  another game. Jigsaw instructions describe matching results and upright pieces.
-- Several other lesson strategies now explicitly name the objective, including
-  shared star-arm sums, tower visibility, molecule formation, Gridlock's exit,
-  pushing every box onto a goal, robot programming, full coverage, matching tile
-  edges and switching all Dark Matter cells on. These wording changes are not a
-  claim that every remaining miniature example has been independently audited.
-- Shared arithmetic generation uses the **effective** Easy/Normal/Challenge grade,
-  matching the grade passed to game screens, while preserving the official
-  profile grade, explicit overrides, custom settings and spaced review.
+All **48 registered games** now have a bilingual, mechanic-specific exercise,
+three labelled action choices and an explanation of the correct choice and its
+distractors. These replace the old generic arithmetic questions. The pure lesson
+catalog is `lib/features/games/models/practice_lesson_catalog.dart`; its keys must
+exactly match `lib/features/games/game_keys.dart` and the Flutter registry.
+
+The evidence inventory is split into three readable batches:
+
+- [Numeric and constraint games](lesson-audit-numeric.md): 16 games.
+- [Spatial and manipulation games](lesson-audit-spatial.md): 16 games.
+- [Action and deduction games](lesson-audit-action.md): 16 games.
+
+The shared tutorial shows the actual rules before the question. Choices can now
+be actions or explanations instead of unrelated numbers. Existing numeric
+onboarding callers retain their behavior. A new seen key presents the corrected
+lessons to existing players; the practice button always permits replay.
+
+Current-board hints use actual visible clues and player placements. They explain
+ordering, calculation, legal manipulation or a useful deduction rather than
+printing internal maps or pretending the stored answer is a deduction. Numeric,
+spatial and action guidance live in their corresponding `*_hint_guidance.dart`
+services. Existing constraint solvers, verified moves and fallback algorithms
+remain available. Replacement observations do not inherit a solver's verified
+flag or target. A missing live hint is explicitly labelled as a practice example,
+never presented as the current board.
+
+Important corrections include ascending asteroid results, all three equal
+triangle sides, code-position feedback, left-to-right arithmetic, shared-symbol
+assignments, full-row Cargo clearing versus a bonus sum, Ion ring wraparound,
+Molecule stopping rules, Gridlock axes and every applicable cipher type. Hidden
+solution poisoning checks cover games where snapshots contain undisclosed
+answers. These are source and fixed-fixture checks, not child playtest evidence.
+
+Shared arithmetic generation uses the effective Easy/Normal/Challenge grade,
+while preserving the official profile grade, explicit overrides, custom settings
+and spaced review. The guided introductory Wormhole path remains selectable
+alongside the legacy path.
 
 ## Difficulty evidence and policy
 
@@ -77,33 +88,48 @@ selectable with `GAME_ALGORITHM_PATH=legacy`; `candidate` and `auto` use the gui
 profile. The exact equal-side solver and prior fallback remain. Saved rounds keep
 their captured board and rules instead of being regenerated into the new profile.
 
+## Completed bounded checks
+
+The final fixed-fixture checkers passed **838 assertions**: 295 numeric,
+277 spatial and 266 action/catalog checks. They cover all 48 lesson entries and
+both languages. The 12-profile difficulty smoke comparison also passed. These
+results do not imply that the pending full native/browser checks passed.
+
+The preceding narrower candidate's
+[pure run](https://github.com/CrispStrobe/NumberNebula/actions/runs/39262171407)
+passed, but does not validate the expanded rewrite. Its
+[native run](https://github.com/CrispStrobe/NumberNebula/actions/runs/39262171405)
+failed on two analyzer infos before tests; both reported issues were corrected
+in this rewrite. The replacement exact-head checks must be verified separately.
+
 ## Executable validation and next lanes
 
-1. Run strict analysis and the focused Flutter files:
-   `test/widgets/all_games_coaching_test.dart`,
-   `test/widgets/practice_rule_shell_test.dart`,
-   `test/logic/board_hint_engine_test.dart`, and
-   `test/logic/practice_difficulty_test.dart`. Verify actual wrong/correct answers,
-   rules before answering, real shared hint stages, the old-seen-key migration,
-   German/English short phones at doubled text size and pause/outcome records.
-2. In the existing pure CI job, run
-   `dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/check_practice_difficulty.dart --output practice-difficulty.json`.
-   This checks 360 paired grade/level/seed profiles, all three algorithm modes,
-   actual solvability, introductory hint replay and structural progression, then
-   retains the raw comparison artifact. The small `--smoke` mode is the only
-   local generation check completed so far. Run full generation/calibration and
-   capture/replay remotely, not on a busy shared host.
-3. Verify the exact pushed head's complete native/build/browser/deployment checks,
-   then repeat on merged main and verify the published artifact. Reconcile version
-   order with PR #66 before merging; do not call queued checks successful.
-4. Audit the remaining practice examples against each screen's actual input and
-   win predicate. For each game, document objective, legal action, ordering or
-   shared constraints, one valid example, one misleading/wrong example and both
-   translations. Replace generic arithmetic quizzes when they fail to exercise
-   that game's mechanic. Test the real rendered lesson, not just nonempty text.
-5. Extend the paired structural report to all 48 games using the shared pure
-   generators. Compare workload components at the same effective grade/level,
-   including givens, choice counts, dependency depth, operations and time pressure.
-   Reproduce spikes before changing a profile, retain old/new paths, and use
-   actual child playtests to calibrate felt difficulty when those become available.
-   Existing heuristic scores alone do not establish fair cross-game tuning.
+1. Run the three bounded pure checks, using the existing pure package config:
+   `tool/check_numeric_lesson_contracts.dart`,
+   `tool/check_spatial_lesson_contracts.dart`, and
+   `tool/check_action_lesson_contracts.dart`. They use fixed examples, actual pure
+   validators where available, wrong-choice witnesses, current partial states,
+   snapshot immutability and hidden-answer independence. They do not generate
+   large samples or substitute text-presence checks for semantic checks.
+2. Run `test/widgets/all_games_coaching_test.dart` remotely. All 48 lessons must
+   accept real wrong/correct button input in both languages, including short
+   phones at doubled text scale. Run `practice_rule_shell_test.dart` for actual
+   shared hints, pause, old-seen-key migration and learning-record invariants.
+   Retain the focused board-hint and difficulty tests, then run the full required
+   native checks. Pure fixtures cannot prove Flutter layout or gesture behavior.
+3. In the existing pure CI job run the three contract checks and the 360-profile
+   `tool/check_practice_difficulty.dart` comparison. Keep raw comparison artifacts.
+   The completed 12-profile smoke comparison is structural evidence only.
+4. Verify the exact pushed head's native, browser and deployment checks, then
+   repeat on merged main. Keep queued, failed, skipped and passed runs distinct.
+   Preserve [Gridlock PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66)
+   and reconcile versions before merging.
+5. Fix the remaining displayed-expression ambiguities documented in the numeric
+   audit: show grouping for sequential evaluation and make Cryptex's difference
+   and quotient convention explicit. Retain working algorithms; add rendered
+   examples matching the actual evaluator before changing math behavior.
+6. Extend paired workload comparison to all 48 games with the shared pure
+   generators, running remotely. Compare dependency depth, givens, choices,
+   operations and time pressure separately. Reproduce each spike before tuning,
+   preserve old/new paths, and use child playtests to calibrate felt difficulty
+   when available. Heuristic scores alone do not establish equal difficulty.

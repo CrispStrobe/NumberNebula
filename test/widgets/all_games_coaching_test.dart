@@ -14,7 +14,7 @@ void main() {
         expect(lesson, isNotNull, reason: key);
         for (final german in [false, true]) {
           final practice = lesson!.practice(german);
-          final rules = german ? lesson.strategyDe : lesson.strategyEn;
+          final rules = german ? lesson.lesson.rulesDe : lesson.lesson.rulesEn;
           final question = german ? lesson.questionDe : lesson.questionEn;
           expect(
             practice.body.indexOf(rules),
@@ -69,7 +69,7 @@ void main() {
         await tester.pump();
         final correct = find.widgetWithText(
           OutlinedButton,
-          lesson.answer.toString(),
+          lesson.label(lesson.answer, lang == 'de'),
         );
         await tester.ensureVisible(correct);
         await tester.tap(correct);
@@ -82,11 +82,7 @@ void main() {
     });
   }
   for (final lang in ['en', 'de']) {
-    for (final key in [
-      'asteroid_math',
-      'magic_triangles',
-      'signal_triangulation',
-    ]) {
+    for (final key in registeredGameKeys) {
       testWidgets(
         '$key teaches its actual rule before a wrong and correct practice answer ($lang)',
         (t) async {
@@ -116,17 +112,12 @@ void main() {
           await t.pump();
           final body = find.text(lesson.practice(lang == 'de').body);
           expect(body, findsOneWidget);
-          if (key == 'magic_triangles') {
-            expect(
-              find.bySemanticsLabel(
-                RegExp(lang == 'de' ? 'Dreieck: oben 1' : 'Triangle: top 1'),
-              ),
-              findsOneWidget,
-            );
-          }
           final wrong = find.widgetWithText(
             OutlinedButton,
-            lesson.choices.firstWhere((v) => v != lesson.answer).toString(),
+            lesson.label(
+              lesson.choices.firstWhere((v) => v != lesson.answer),
+              lang == 'de',
+            ),
           );
           await t.ensureVisible(wrong);
           await t.tap(wrong);
@@ -134,7 +125,7 @@ void main() {
           expect(done, isFalse);
           final right = find.widgetWithText(
             OutlinedButton,
-            lesson.answer.toString(),
+            lesson.label(lesson.answer, lang == 'de'),
           );
           await t.ensureVisible(right);
           await t.tap(right);

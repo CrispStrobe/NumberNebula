@@ -49,6 +49,12 @@ jobs:
       - name: Shared generator regressions
         if: matrix.grade_group == 'all' || matrix.grade_group == '1'
         run: dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/test_pure_generation.dart
+      - name: All 48 lesson and hint contracts
+        if: matrix.grade_group == 'all' || matrix.grade_group == '1'
+        run: |
+          dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/check_numeric_lesson_contracts.dart
+          dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/check_spatial_lesson_contracts.dart
+          dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/check_action_lesson_contracts.dart
       - name: Practice difficulty progression and paired generation
         if: matrix.grade_group == 'all' || matrix.grade_group == '1'
         run: dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/check_practice_difficulty.dart --output practice-difficulty.json
