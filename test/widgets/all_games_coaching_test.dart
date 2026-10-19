@@ -6,6 +6,8 @@ import 'package:space_math_academy/generated/l10n.dart';
 import 'package:space_math_academy/shared/widgets/onboarding_overlay.dart';
 
 void main() {
+  setUp(() => WidgetController.hitTestWarningShouldBeFatal = true);
+  tearDown(() => WidgetController.hitTestWarningShouldBeFatal = false);
   test(
     'every registered game has a playable lesson and three specific hint stages',
     () {
@@ -75,6 +77,7 @@ void main() {
         await tester.tap(correct);
         await tester.pump();
         final next = find.byType(ElevatedButton);
+        await tester.ensureVisible(next);
         await tester.tap(next);
         expect(done, isTrue, reason: key);
         expect(tester.takeException(), isNull, reason: key);
@@ -134,6 +137,7 @@ void main() {
             find.text(lang == 'de' ? lesson.workingDe : lesson.workingEn),
             findsOneWidget,
           );
+          await t.ensureVisible(find.byType(ElevatedButton));
           await t.tap(find.byType(ElevatedButton));
           expect(done, isTrue);
           expect(t.takeException(), isNull);

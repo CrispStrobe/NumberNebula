@@ -2753,7 +2753,7 @@
   "cubeScannerWhyHiddenFace": "Gegenüberliegende Seiten ergeben zusammen 7: 7 − {visible} = {answer}.",
   "cubeScannerWhyHiddenSum": "Die verdeckten Seiten liegen den sichtbaren gegenüber, und alle Seiten eines Würfels ergeben zusammen 21: 21 − {visible} = {answer}.",
   "guidedTry": "Probiere einen Zug",
-  "guidedRetry": "Das passt noch nicht zur Regel. Probiere eine andere Zahl.",
+  "guidedRetry": "Diese Auswahl passt noch nicht zur Regel. Probiere eine andere.",
   "guidedReady": "Geschafft! Jetzt kommt dein eigenes Rätsel.",
   "guidedWallPrompt": "Fülle den oberen Stein. Die beiden Steine darunter werden addiert.",
   "guidedWallReason": "3 + 4 = 7. Der obere Stein muss 7 sein.",

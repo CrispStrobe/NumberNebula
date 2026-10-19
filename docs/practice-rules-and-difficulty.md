@@ -2,7 +2,7 @@
 
 ## Current candidate
 
-Version **1.5.42+58** corrects rules shown by the common **Practice / Üben**
+Version **1.5.43+59** corrects rules shown by the common **Practice / Üben**
 screen and the introductory Wormhole progression. This is a candidate under
 validation, not a verified deployment. It is separate from the pending Gridlock
 repair in [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66).
@@ -93,12 +93,33 @@ selectable with `GAME_ALGORITHM_PATH=legacy`; `candidate` and `auto` use the gui
 profile. The exact equal-side solver and prior fallback remain. Saved rounds keep
 their captured board and rules instead of being regenerated into the new profile.
 
+## Publication preparation
+
+Version **1.5.43+59** additionally fixes long-choice reachability on short phones
+at doubled text size. The whole lesson scrolls, the header wraps, and tests treat
+missed button taps as failures. Retry feedback now refers to a choice, rather
+than demanding a number for nonnumeric exercises.
+
+Full calibration exposed three CLI/screen snapshot differences: Relic, Molecule
+and Star Loader. Guidance now accepts their actual shared-generator snapshots,
+while prioritizing current placements and progress from restored screen saves.
+New bilingual parity and hidden-answer checks cover these representations.
+
+[GitHub Pages packaging](github-pages.md) reuses the browser-tested build with
+a verified project base path. Publication uses separate Pages hosting checks;
+Vercel's isolation-header assertions remain strict. Real manual store uploads
+also invoke the existing TestFlight-only distribution lane after signing and
+uploading; dry runs remain signing checks. Current upload and publication states
+must be verified from the corresponding run, not inferred from configuration.
+
 ## Completed bounded checks
 
-The final fixed-fixture checkers passed **844 assertions**: 295 numeric,
-277 spatial and 272 action/catalog checks. They cover all 48 lesson entries and
-both languages. The 12-profile difficulty smoke comparison also passed. These
-results do not imply that the pending full native/browser checks passed.
+The final fixed-fixture checkers passed **879 assertions**: 295 numeric,
+312 spatial and 272 action/catalog checks. They cover all 48 lesson entries and
+both languages. The 12-profile difficulty smoke comparison also passed. The focused native checks passed **121 cases**: 115 shared lesson/hint/difficulty
+cases and six dedicated hint-dialog cases, including stale demonstrations after
+restore. These results do not imply that the pending full native/browser checks
+passed.
 
 The preceding narrower candidate's
 [pure run](https://github.com/CrispStrobe/NumberNebula/actions/runs/39262171407)

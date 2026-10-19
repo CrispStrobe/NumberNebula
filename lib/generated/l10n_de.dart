@@ -4563,7 +4563,7 @@ class SDe extends S {
 
   @override
   String get guidedRetry =>
-      'Das passt noch nicht zur Regel. Probiere eine andere Zahl.';
+      'Diese Auswahl passt noch nicht zur Regel. Probiere eine andere.';
 
   @override
   String get guidedReady => 'Geschafft! Jetzt kommt dein eigenes Rätsel.';

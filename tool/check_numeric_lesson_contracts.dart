@@ -116,7 +116,7 @@ void main() {
       'Sightline direction changes height order');
   choices('magic_triangles', (s) {
     final x = int.parse(s);
-    return [1, 6, 2, 4, 3, x].toSet().length == 6 &&
+    return {1, 6, 2, 4, 3, x}.length == 6 &&
         1 + 6 + 2 == 9 &&
         2 + 4 + 3 == 9 &&
         1 + x + 3 == 9;
@@ -159,12 +159,13 @@ void main() {
   choices('cryptex_lock_breaker', (s) {
     final dials = [5, 4, 2];
     final value = numbers(s).single;
-    if (s.startsWith('SetC') || s.startsWith('Set C'))
+    if (s.startsWith('SetC') || s.startsWith('Set C')) {
       dials[2] = value;
-    else if (s.startsWith('SetB') || s.startsWith('Set B'))
+    } else if (s.startsWith('SetB') || s.startsWith('Set B')) {
       dials[1] = value;
-    else
+    } else {
       dials[0] = value;
+    }
     return cryptexSum.isSatisfied(dials) && cryptexProduct.isSatisfied(dials);
   });
   check(
@@ -185,7 +186,7 @@ void main() {
       'Cryptex current quotient truncation must be disclosed, not silently changed');
   choices('kenken', (s) {
     final x = int.parse(s);
-    return [1, 2, x, 4].toSet().length == 4 &&
+    return {1, 2, x, 4}.length == 4 &&
         x >= 1 &&
         x <= 4 &&
         KenkenMultiplication().calculate([2, x]) == 6;
@@ -257,9 +258,10 @@ void main() {
                   .every((k) => result[k]?.trim().isNotEmpty ?? false),
           '$key needs bilingual readable live guidance');
       final text = result!.values.join('\n');
-      for (final snippet in required)
+      for (final snippet in required) {
         check(text.contains(snippet),
             '$key guidance missing actual fixture fact $snippet');
+      }
       check(
           !text.contains('PRIVATE_SOLUTION_SENTINEL') &&
               !text.contains('null') &&
@@ -330,10 +332,11 @@ void main() {
     ],
     'solution': 'PRIVATE_SOLUTION_SENTINEL'
   };
-  for (final key in ['orbital_towers', 'nebula_matrix', 'kenken'])
+  for (final key in ['orbital_towers', 'nebula_matrix', 'kenken']) {
     guidance(
         key, {'puzzle': grid, 'answers': {}, ...metadata('r0c1', 2)}, ['[2]'],
         verified: true);
+  }
   guidance('arithmatic_square', {
     'puzzle': {
       'gridSize': 4,
@@ -538,12 +541,14 @@ void main() {
     'orbital_towers',
     'nebula_matrix',
     'kenken'
-  ])
+  ]) {
     check(numericHintGuidance(key, {'puzzle': {}}) == null,
         '$key cannot invent solver proof without metadata');
-  for (final key in ['magic_triangles', 'launch_sequence'])
+  }
+  for (final key in ['magic_triangles', 'launch_sequence']) {
     check(numericHintGuidance(key, {'puzzle': {}}) == null,
         '$key deliberately retains verified engine guidance');
+  }
   print(
       'PASS: 16 numeric lesson contracts; bilingual fixed-board guidance; $_checks bounded checks. No generation, stress run, rendering, or child-difficulty claims.');
 }

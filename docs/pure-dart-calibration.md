@@ -1,6 +1,6 @@
 # Pure Dart generation and estimated difficulty
 
-The **1.5.42+58** candidate includes a complete
+The **1.5.43+59** candidate includes a complete
 [48-game lesson and hint audit](practice-rules-and-difficulty.md), three bounded
 fixed-fixture contract checks and a paired practice-difficulty report. Run:
 

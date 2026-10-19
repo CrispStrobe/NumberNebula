@@ -4543,7 +4543,7 @@ class SEn extends S {
 
   @override
   String get guidedRetry =>
-      'That does not fit the rule yet. Try another number.';
+      'That choice does not fit the rule yet. Try another.';
 
   @override
   String get guidedReady => 'You did it! Now try your own puzzle.';

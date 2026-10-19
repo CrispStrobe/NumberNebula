@@ -283,7 +283,7 @@ instructions out of repo docs. Web deployment is already green at the baseline.
 ## L — Practice rules and comparable difficulty: current priority
 
 See [the correction and executable steps](docs/practice-rules-and-difficulty.md),
-version **1.5.42+58**, under validation. The complete 48-game lesson/hint rewrite
+version **1.5.43+59**, under validation. The complete 48-game lesson/hint rewrite
 and three audit inventories are implemented. Run all three fixed-fixture contract
 checks and all 48 bilingual rendered wrong/correct lessons. Verify shared live
 hints, restored states, pause and learning records. No text-presence test alone

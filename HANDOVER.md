@@ -5,7 +5,7 @@ Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
 ## Practice-rule correction under validation
 
-The latest candidate is **1.5.42+58**; read
+The latest candidate is **1.5.43+59**; read
 [Practice rules and cross-game difficulty](docs/practice-rules-and-difficulty.md).
 All 48 Üben lessons have been rewritten as bilingual mechanic exercises, with
 labelled actions and explanations. All 48 hint paths were traced against actual

@@ -2863,7 +2863,7 @@
     }
   },
   "guidedTry": "Try one move",
-  "guidedRetry": "That does not fit the rule yet. Try another number.",
+  "guidedRetry": "That choice does not fit the rule yet. Try another.",
   "guidedReady": "You did it! Now try your own puzzle.",
   "guidedWallPrompt": "Fill the top brick. The two bricks below are added together.",
   "guidedWallReason": "3 + 4 = 7. The top brick must be 7.",

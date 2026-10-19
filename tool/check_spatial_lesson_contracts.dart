@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_relative_lib_imports, avoid_print
 // Bounded semantic fixtures only: no generation, searches, network or Flutter.
 // Run: dart tool/check_spatial_lesson_contracts.dart
 import 'dart:convert';
@@ -424,7 +425,7 @@ void main() {
       'Gridlock lesson chooses upward clearance');
   check(spatialLessons['star_loader_game']!.correctIndex == 1,
       'Loader lesson chooses pushing from the adjacent left square');
-  final cut = const math.Point(0.75, 0.25);
+  const cut = math.Point(0.75, 0.25);
   final reflected = math.Point(1 - cut.x, cut.y);
   check(
       reflected.x == 0.25 &&
@@ -598,6 +599,126 @@ void main() {
     fixtures.keys.toSet().containsAll(expectedKeys),
     'frozen screen fixtures cover all sixteen games',
   );
+  // Match the shared CLI generator's initial-board representations, which
+  // deliberately omit screen-only session fields. Keep a paired screen save
+  // as the oracle so normalization cannot replace current progress with assets.
+  final initialRelic = clone(fixtures['relic_assembly']!);
+  initialRelic['placement'] = [-1, -1];
+  initialRelic['rotations'] = [0, 0];
+  final cliRelic = <String, dynamic>{'puzzle': relic.toJson()};
+  final cliLoader = <String, dynamic>{
+    '_currentLevelData': {
+      'roomStructure': [
+        [0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 2, 1, 0],
+        [0, 0, 0, 0, 0, 0]
+      ],
+      'roomState': [
+        [0, 0, 0, 0, 0, 0],
+        [0, 5, 4, 2, 1, 0],
+        [0, 0, 0, 0, 0, 0]
+      ],
+    },
+    '_playerPos': [1, 1],
+    '_boxPositions': [
+      [2, 1]
+    ],
+    '_targetPositions': [
+      [3, 1]
+    ],
+    'generationMode': 'bundled',
+  };
+  final freshLoader = <String, dynamic>{
+    'ascii': ['######', r'#@$. #', '######'].join('\n'),
+    'generationMode': 'fresh',
+  };
+  final layoutLoader = <String, dynamic>{
+    '_currentLevelData': {
+      'layout': ['WWWWWW', 'WPBT W', 'WWWWWW']
+    },
+  };
+  final cliMolecule = <String, dynamic>{
+    'levelData': {
+      'playfield': [
+        [
+          for (var c = 0; c < 6; c++) {'type': 'wall', 'index': 0}
+        ],
+        [
+          {'type': 'wall', 'index': 0},
+          {'type': 'atom', 'index': 0},
+          {'type': 'empty', 'index': 0},
+          {'type': 'empty', 'index': 0},
+          {'type': 'atom', 'index': 8},
+          {'type': 'wall', 'index': 0}
+        ],
+        [
+          for (var c = 0; c < 6; c++) {'type': 'wall', 'index': 0}
+        ],
+      ]
+    },
+    // Actual CLI atoms are flat tile maps without row/column positions.
+    'atoms': [
+      {'type': 'atom', 'index': 0},
+      {'type': 'atom', 'index': 8}
+    ],
+    'moveLimit': 8,
+  };
+  final cliCases = <(String, Map<String, dynamic>)>[
+    ('relic_assembly', cliRelic),
+    ('star_loader_game', cliLoader),
+    ('star_loader_game', freshLoader),
+    ('star_loader_game', layoutLoader),
+    ('quantum_molecule_builder', cliMolecule),
+  ];
+  for (final german in [false, true]) {
+    check(
+        jsonEncode(guide('relic_assembly', cliRelic, german: german)) ==
+            jsonEncode(guide('relic_assembly', initialRelic, german: german)),
+        'CLI Relic initializes absent placement/rotations like the screen ($german)');
+    for (final source in [cliLoader, freshLoader, layoutLoader]) {
+      check(
+          jsonEncode(guide('star_loader_game', source, german: german)) ==
+              jsonEncode(guide(
+                  'star_loader_game', fixtures['star_loader_game']!,
+                  german: german)),
+          'CLI Loader numeric/text board matches live snapshot guidance ($german)');
+    }
+    final original = jsonEncode(cliMolecule);
+    final moleculeHint =
+        guide('quantum_molecule_builder', cliMolecule, german: german);
+    check(
+        moleculeHint['working']!
+                .contains(german ? 'Zeile 2, Spalte 4' : 'row 2, column 4') &&
+            moleculeHint['working']!.contains(german ? '0 von 8' : '0 of 8'),
+        'CLI Molecule reconstructs current visible coordinates and legal endpoint ($german)');
+    check(jsonEncode(cliMolecule) == original,
+        'CLI Molecule normalization preserves input asset ($german)');
+  }
+  final progressedLoader = clone(fixtures['star_loader_game']!)
+    ..['_currentLevelData'] = cliLoader['_currentLevelData'];
+  progressedLoader['_playerPos'] = [2, 1];
+  progressedLoader['_boxPositions'] = [
+    [3, 1]
+  ];
+  check(
+      guide('star_loader_game', progressedLoader)['working']!
+          .startsWith('1 of 1'),
+      'Current Loader grid and progress take precedence over original roomState');
+  final progressedMolecule = clone(fixtures['quantum_molecule_builder']!)
+    ..['levelData'] = cliMolecule['levelData'];
+  progressedMolecule['movesMade'] = 5;
+  check(
+      guide('quantum_molecule_builder', progressedMolecule)['working']!
+          .startsWith('5 of 8'),
+      'Current Molecule grid/progress take precedence over original playfield');
+  final occupiedTargets = <String, dynamic>{
+    'ascii': ['######', '# +* #', '######'].join('\n'),
+  };
+  check(
+      guide('star_loader_game', occupiedTargets)['working']!
+          .startsWith('1 of 2'),
+      'Fresh ASCII player-on-target and box-on-target both retain target squares');
+
   const hidden = {
     'correctAnswer',
     'correctIndex',
@@ -673,6 +794,21 @@ void main() {
         ),
         '${entry.key} no raw missing-object or hidden-answer dump ($german)',
       );
+    }
+  }
+
+  for (final cliCase in cliCases) {
+    for (final german in [false, true]) {
+      final original = jsonEncode(cliCase.$2);
+      final normal = guide(cliCase.$1, cliCase.$2, german: german);
+      final poisoned =
+          Map<String, dynamic>.from(poison(clone(cliCase.$2)) as Map);
+      check(
+          jsonEncode(normal) ==
+              jsonEncode(guide(cliCase.$1, poisoned, german: german)),
+          '${cliCase.$1} CLI hint independent of hidden answers ($german)');
+      check(jsonEncode(cliCase.$2) == original,
+          '${cliCase.$1} CLI normalization is read-only ($german)');
     }
   }
 

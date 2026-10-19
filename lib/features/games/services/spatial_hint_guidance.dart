@@ -5,6 +5,7 @@ Map<String, String>? spatialHintGuidance(
   Map<String, dynamic> state, {
   bool german = false,
 }) {
+  state = _normalizeSpatialSnapshot(game, state);
   final de = german;
   String t(String en, String translated) => de ? translated : en;
   Map<String, String> hint(String focus, String strategy, String working) => {
@@ -877,4 +878,137 @@ Map<String, String>? _ionGuidance(
       'Nachbarn: ${bead(left)} und ${bead(right)}. Aus der übrigen Ablage bestehen diese die direkten Paarregeln: ${candidates.isEmpty ? 'keine' : candidates.map(bead).join(', ')}. Auch alle anderen Lücken müssen füllbar bleiben; diese lokale Prüfung beweist keine vollständige Lösung.',
     ),
   };
+}
+
+/// The shared generator emits initial boards rather than full screen saves.
+/// Normalize only absent screen fields; a restored/current screen board always
+/// takes precedence over its original level asset. Never inspect solutions.
+Map<String, dynamic> _normalizeSpatialSnapshot(
+  String game,
+  Map<String, dynamic> state,
+) {
+  if (game == 'relic_assembly' && !state.containsKey('placement')) {
+    final puzzle = _object(state['puzzle'] ?? state['_puzzle']);
+    final rows = _number(puzzle['rows']), cols = _number(puzzle['cols']);
+    final count = rows * cols;
+    if (rows > 0 && cols > 0 && _array(puzzle['playerTiles']).length == count) {
+      return {
+        ...state,
+        'placement': List<int>.filled(count, -1),
+        'rotations': List<int>.filled(count, 0),
+      };
+    }
+  }
+  if (game == 'quantum_molecule_builder' && !state.containsKey('grid')) {
+    final playfield =
+        _array(_object(state['levelData'])['playfield']).map(_array).toList();
+    if (playfield.isNotEmpty) {
+      final grid = <List<String>>[];
+      final atoms = <Map<String, dynamic>>[];
+      for (var r = 0; r < playfield.length; r++) {
+        final row = <String>[];
+        for (var c = 0; c < playfield[r].length; c++) {
+          final tile = _object(playfield[r][c]);
+          row.add(tile['type'] == 'wall' ? 'wall' : 'empty');
+          if (tile['type'] == 'atom') {
+            atoms.add({'row': r, 'col': c, 'type': <String, dynamic>{}});
+          }
+        }
+        grid.add(row);
+      }
+      return {...state, 'grid': grid, 'atoms': atoms, 'movesMade': 0};
+    }
+  }
+  if (game == 'star_loader_game' && !state.containsKey('_grid')) {
+    final level = _object(state['_currentLevelData']);
+    final structure = _array(level['roomStructure']).map(_array).toList();
+    final room = _array(level['roomState']).map(_array).toList();
+    if (structure.isNotEmpty) {
+      final grid = <List<String>>[];
+      final players = <List<int>>[],
+          boxes = <List<int>>[],
+          targets = <List<int>>[];
+      for (var r = 0; r < structure.length; r++) {
+        final row = <String>[];
+        for (var c = 0; c < structure[r].length; c++) {
+          final tile = _number(structure[r][c]);
+          row.add(tile == 0
+              ? 'wall'
+              : tile == 2
+                  ? 'target'
+                  : 'floor');
+          if (tile == 2) {
+            targets.add([c, r]);
+          }
+          if (r < room.length && c < room[r].length) {
+            final occupant = _number(room[r][c]);
+            if (occupant == 5 || occupant == 6) {
+              players.add([c, r]);
+            }
+            if (occupant == 3 || occupant == 4) {
+              boxes.add([c, r]);
+            }
+          }
+        }
+        grid.add(row);
+      }
+      return {
+        ...state,
+        '_grid': grid,
+        if (!state.containsKey('_playerPos') && players.length == 1)
+          '_playerPos': players.single,
+        if (!state.containsKey('_boxPositions')) '_boxPositions': boxes,
+        if (!state.containsKey('_targetPositions')) '_targetPositions': targets,
+      };
+    }
+    // The optional fresh Sokoban generator emits standard ASCII; bundled
+    // screen LevelData instead stores W/P/Y/B/T/X rows. Both describe only
+    // visible current cells, not solution commands or reference paths.
+    final ascii = state['ascii'];
+    final layout = _array(level['layout']);
+    if (ascii is String || layout.isNotEmpty) {
+      final standard = ascii is String;
+      final lines =
+          standard ? ascii.split('\n') : layout.map((v) => '$v').toList();
+      final grid = <List<String>>[];
+      final players = <List<int>>[],
+          boxes = <List<int>>[],
+          targets = <List<int>>[];
+      for (var r = 0; r < lines.length; r++) {
+        final line = lines[r].replaceAll('\r', '');
+        final row = <String>[];
+        for (var c = 0; c < line.length; c++) {
+          final tile = line[c];
+          final wall = standard ? tile == '#' : tile == 'W';
+          final target = standard ? '.+*'.contains(tile) : 'TYX'.contains(tile);
+          row.add(wall
+              ? 'wall'
+              : target
+                  ? 'target'
+                  : 'floor');
+          if (target) {
+            targets.add([c, r]);
+          }
+          if (standard ? '@+'.contains(tile) : 'PY'.contains(tile)) {
+            players.add([c, r]);
+          }
+          if (standard ? r'$*'.contains(tile) : 'BX'.contains(tile)) {
+            boxes.add([c, r]);
+          }
+        }
+        grid.add(row);
+      }
+      if (players.length == 1) {
+        return {
+          ...state,
+          '_grid': grid,
+          if (!state.containsKey('_playerPos')) '_playerPos': players.single,
+          if (!state.containsKey('_boxPositions')) '_boxPositions': boxes,
+          if (!state.containsKey('_targetPositions'))
+            '_targetPositions': targets,
+        };
+      }
+    }
+  }
+  return state;
 }
