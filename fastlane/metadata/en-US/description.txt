@@ -1,4 +1,4 @@
-Blast off into a galaxy of math! NumberNebula turns arithmetic, logic, and spatial reasoning into 20+ hand-crafted, space-themed mini-games for primary-school explorers and up.
+Blast off into a galaxy of math! NumberNebula turns arithmetic, logic, and spatial reasoning into 20+ hand-crafted, space-themed mini-games for math learners of all ages.
 
 Every mission is a different kind of puzzle, so practice never feels like a worksheet:
 
@@ -11,9 +11,9 @@ Every mission is a different kind of puzzle, so practice never feels like a work
 • 3D Block Counter & Anomaly Scan — rotate, count, and match to train spatial thinking.
 • KenKen, Number Walls, Signal Triangulation, and many more.
 
-Built for young learners:
-• Adaptive difficulty that quietly focuses on the facts your child finds tricky.
-• Grades 1–4 progression across number ranges and operations (+, −, ×, ÷).
+Built for steady learning:
+• Adaptive difficulty that quietly focuses on the facts you find tricky.
+• Four skill levels across number ranges and operations (+, −, ×, ÷).
 • English and German throughout.
 • Fully offline. No ads. No accounts. No data collection. No third-party tracking.
 
