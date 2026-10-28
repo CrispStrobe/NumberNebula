@@ -35,8 +35,9 @@ rights before their required checks finished; the checks above ran afterwards on
 `main`.
 
 Store: iOS 1.4.10 (14) is **Waiting for Review** again (resubmitted 2026-10-27).
-TestFlight has **1.5.44 (60)**, built and uploaded locally from `a6de6a2`: internal
-testers have it, and external testers get it after Beta App Review. macOS 1.4.10
+TestFlight has **1.5.45 (61)**, built and uploaded locally from `68de24c` on
+2026-10-28 (1.5.44 (60) from `a6de6a2` before it). Internal testers have it, and
+external testers get it after Beta App Review. macOS 1.4.10
 is live. The details, and a release path that does not need GitHub's macOS
 runners, are in [docs/release-readiness.md](docs/release-readiness.md).
 

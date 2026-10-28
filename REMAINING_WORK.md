@@ -10,14 +10,15 @@ implement one game per PR rather than combining an entire batch.
 1. **Confirm the web deployment of `b84a927`** (lane R, step 1). Small; blocks
    calling `main` green.
 2. **Watch both reviews** (lane R, step 2): iOS 1.4.10 App Review and Beta App
-   Review for build 60. React only to Apple's messages; do not resubmit
+   Review for build 61 (build 60 was submitted too). React only to Apple's messages; do not resubmit
    proactively.
 3. **Store listing fixes** (lane S): "20+" → 48, screenshots, truncated cards.
    Text changes need no app build.
 4. **Release tooling** (lane T): build numbers, fastlane lanes, local release
    script. This stops the next release from going through what 2026-10-27/28 did.
 5. **Gridlock PR #66** (lane D): fix 2 failing tests, rebase, and bump above
-   main's version (main is 1.5.45+61, so 1.5.46+62 or higher).
+   main's version (main is 1.5.45+61, so 1.5.46+62 or higher; builds up to 61
+   are taken).
 6. Then the remaining round audits (B–F), lane L validation and the product
    ideas in lane U, as capacity allows.
 
@@ -152,7 +153,7 @@ and the same for `de`. To finish it:
 3. Merge `origin/main`. Resolve `HANDOVER.md` by keeping main's "Current state"
    section and adding one Gridlock line, and `pubspec.yaml` by setting a version
    **above main's version** (1.5.45+61 on 2026-10-28, so for example 1.5.46+62).
-   Read `pubspec.yaml` on `main` first. Build numbers up to 60 are taken in App
+   Read `pubspec.yaml` on `main` first. Build numbers up to 61 are taken in App
    Store Connect.
 4. Mark the PR ready only when `analyze-and-test`, `build` and `live-test` pass
    at the exact head; then merge and verify on `main`.
@@ -318,9 +319,9 @@ review; 1.5.44 (60) is in TestFlight; macOS 1.4.10 is live. **Owner files:**
      warning, so any reply or resubmission needs the owner's explicit go-ahead.
      For metadata-only issues, fix `fastlane/metadata`, then run
      `asc.py push-metadata --write` and `asc.py resubmit`.
-3. **Beta App Review for build 60.** When it is approved, external testers are
-   notified automatically, and nothing else is needed. If it is rejected, fix the
-   reason and upload a new build number (61+).
+3. **Beta App Review for builds 60 and 61.** When approved, external testers are
+   notified automatically, and nothing else is needed. If rejected, fix the reason
+   and upload a new build number (62+).
 4. **Next store version (1.5.x).** Once 1.4.10 is resolved, the next App Store
    version should ship the current `main` (at least 1.5.44 (60) or a newer
    build), on both iOS and macOS so that the macOS listing also loses the old

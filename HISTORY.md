@@ -29,6 +29,7 @@
   ("8-12 years" / "6-12 Jahre") is removed. The About text, privacy dialog,
   privacy policy (web and docs) and web descriptions no longer name an age or a
   child/school audience. `test/docs/no_age_targeting_test.dart` guards this.
+  Uploaded to TestFlight as **1.5.45 (61)**; Beta App Review is pending.
 
 ## 2026-10-19 — Molecule Builder round implementation
 
