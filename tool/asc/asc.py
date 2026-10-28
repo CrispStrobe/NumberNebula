@@ -53,23 +53,34 @@ def _token():
     return signing + "." + b64(r.to_bytes(32, "big") + s.to_bytes(32, "big"))
 
 
-TOKEN = None
+TOKEN, TOKEN_AT = None, 0.0
 
 
 def api(method, path, body=None):
-    global TOKEN
-    TOKEN = TOKEN or _token()
+    global TOKEN, TOKEN_AT
+    # Tokens live 1190 s; renew well before that, since `testflight` can wait
+    # up to an hour for processing.
+    if TOKEN is None or time.time() - TOKEN_AT > 900:
+        TOKEN, TOKEN_AT = _token(), time.time()
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(BASE + path, data=data, method=method)
     req.add_header("Authorization", f"Bearer {TOKEN}")
     if data:
         req.add_header("Content-Type", "application/json")
-    try:
-        with urllib.request.urlopen(req) as r:
-            raw = r.read()
-            return r.status, (json.loads(raw) if raw else {})
-    except urllib.error.HTTPError as e:
-        return e.code, json.loads(e.read() or b"{}")
+    for attempt in range(5):
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                raw = r.read()
+                return r.status, (json.loads(raw) if raw else {})
+        except urllib.error.HTTPError as e:
+            return e.code, json.loads(e.read() or b"{}")
+        except (urllib.error.URLError, ConnectionError, TimeoutError) as e:
+            # Dropped connections happen during long polls; retry reads only,
+            # so a write is never sent twice.
+            if method != "GET" or attempt == 4:
+                raise
+            print(f"network error ({e}); retrying", flush=True)
+            time.sleep(10 * (attempt + 1))
 
 
 def errors(r):
