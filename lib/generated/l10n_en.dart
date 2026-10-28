@@ -2328,7 +2328,7 @@ class SEn extends S {
 
   @override
   String get starLoaderHint =>
-      'Use arrows or swipe to move. Get all crates to the targets!';
+      'Use arrows or swipe to walk. Push every crate onto a target. You cannot pull crates: walk around one to push it from another side.';
 
   @override
   String get moves => 'Moves';
@@ -4543,7 +4543,7 @@ class SEn extends S {
 
   @override
   String get guidedRetry =>
-      'That does not fit the rule yet. Try another number.';
+      'That choice does not fit the rule yet. Try another.';
 
   @override
   String get guidedReady => 'You did it! Now try your own puzzle.';

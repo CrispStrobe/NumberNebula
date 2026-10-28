@@ -278,3 +278,21 @@ instructions out of repo docs. Web deployment is already green at the baseline.
   actually changes; re-encoding unchanged source art is not a gameplay fix.
 - Historical design briefs/specs describe original implementation tasks. Verify
   current source before treating their old assignments as open work.
+
+
+## L — Practice rules and comparable difficulty: current priority
+
+See [the correction and executable steps](docs/practice-rules-and-difficulty.md),
+version **1.5.43+59**, under validation. The complete 48-game lesson/hint rewrite
+and three audit inventories are implemented. Run all three fixed-fixture contract
+checks and all 48 bilingual rendered wrong/correct lessons. Verify shared live
+hints, restored states, pause and learning records. No text-presence test alone
+counts as mechanic validation.
+
+Run the existing pure job's 360-profile comparison and all native/browser checks.
+Address the numeric audit's expression-display ambiguities with actual rendered
+regressions. Then extend structural comparison to all 48 games. Keep independent
+tasks, dependency depth, distractions and time pressure separate. Make one
+reproducible tuning change at a time, retaining a selectable old path. Actual
+child calibration still requires lane H's playtest protocol.
+Preserve pending Gridlock PR #66 and verify the final version/merge order.

@@ -2342,7 +2342,7 @@ class SDe extends S {
 
   @override
   String get starLoaderHint =>
-      'Bewege dich mit Pfeiltasten oder Wischen. Bringe alle Frachtkisten auf die Ziele!';
+      'Gehe mit Pfeiltasten oder Wischen. Schiebe jede Kiste auf ein Ziel. Ziehen geht nicht: Gehe um eine Kiste herum, um sie von einer anderen Seite zu schieben.';
 
   @override
   String get moves => 'Züge';
@@ -4563,7 +4563,7 @@ class SDe extends S {
 
   @override
   String get guidedRetry =>
-      'Das passt noch nicht zur Regel. Probiere eine andere Zahl.';
+      'Diese Auswahl passt noch nicht zur Regel. Probiere eine andere.';
 
   @override
   String get guidedReady => 'Geschafft! Jetzt kommt dein eigenes Rätsel.';

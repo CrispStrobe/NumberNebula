@@ -173,7 +173,9 @@ class GameProvider extends ChangeNotifier implements DifficultySource {
   int get score => _score;
   int get level => _level;
   @override
-  int get grade => _grade; // Internally, we'll still call this 'grade'
+  int get grade => _grade;
+  @override
+  int get generationGrade => effectiveGrade;
   DifficultyMode get difficultyMode => _difficultyMode;
 
   /// Grade with the current [difficultyMode] shift applied, clamped to 1-6.
