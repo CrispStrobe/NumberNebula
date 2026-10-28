@@ -62,8 +62,8 @@ class PrivacyPolicyDialog extends StatelessWidget {
                       _PolicySection(
                         title: 'Short version',
                         body:
-                            'This app stores your child\'s game progress on '
-                            'their device. Nothing is uploaded to any server. '
+                            'This app stores your game progress on your '
+                            'device. Nothing is uploaded to any server. '
                             'Nothing is shared with any third party. We have '
                             'no analytics, no advertising, no tracking, no '
                             'account system, no personally identifying '
@@ -121,10 +121,10 @@ class PrivacyPolicyDialog extends StatelessWidget {
                             '(e.g. into an email or bug report).',
                       ),
                       _PolicySection(
-                        title: 'Children (COPPA, GDPR-K)',
+                        title: 'Children\'s privacy (COPPA, GDPR-K)',
                         body:
-                            'This app is designed for primary-school '
-                            'learners. We have intentionally designed it '
+                            'NumberNebula is made for math learners of all '
+                            'ages. We have intentionally designed it '
                             'with COPPA (US) and GDPR-K (EU, including '
                             'Article 8 in Germany) in mind: no personal '
                             'data of any kind is collected, processed, or '

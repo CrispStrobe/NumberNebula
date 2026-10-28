@@ -16,8 +16,8 @@ implement one game per PR rather than combining an entire batch.
    Text changes need no app build.
 4. **Release tooling** (lane T): build numbers, fastlane lanes, local release
    script. This stops the next release from going through what 2026-10-27/28 did.
-5. **Gridlock PR #66** (lane D): fix 2 failing tests, rebase, bump to 1.5.45+61
-   or higher.
+5. **Gridlock PR #66** (lane D): fix 2 failing tests, rebase, and bump above
+   main's version (main is 1.5.45+61, so 1.5.46+62 or higher).
 6. Then the remaining round audits (B–F), lane L validation and the product
    ideas in lane U, as capacity allows.
 
@@ -151,8 +151,9 @@ and the same for `de`. To finish it:
    1.3) if the cause is similar.
 3. Merge `origin/main`. Resolve `HANDOVER.md` by keeping main's "Current state"
    section and adding one Gridlock line, and `pubspec.yaml` by setting a version
-   **above 1.5.44+60** (for example 1.5.45+61). Build numbers 59 and 60 are taken
-   in App Store Connect.
+   **above main's version** (1.5.45+61 on 2026-10-28, so for example 1.5.46+62).
+   Read `pubspec.yaml` on `main` first. Build numbers up to 60 are taken in App
+   Store Connect.
 4. Mark the PR ready only when `analyze-and-test`, `build` and `live-test` pass
    at the exact head; then merge and verify on `main`.
 The scope below is what PR #66 was written against; use it to review the PR.
@@ -413,18 +414,23 @@ now says "for math learners of all ages", while the app's progression and copy
 still center on grades 1–4 (for example "Grades 1–4 progression" was removed from
 the store text, but in-app labels still say grade/Klasse in places).
 
-1. **Labels (do this first, small):** Settings shows a "Target age" row
-   (`lib/features/settings/screens/settings_screen.dart:1014`, string
-   `targetAgeRange`). It reads "8-12 years (Grades 3-6)" in `app_en.arb` but "6-12
-   Jahre (Klassen 1-6)" in `app_de.arb`. The two disagree, and both state a child
-   audience, which contradicts the store positioning that resolved the 2.3.8
-   rejection. Ask the owner whether to remove the row or rephrase it (for example
-   "All ages; skill levels 1–4"). Then audit the remaining "grade/Klasse" strings
-   (about 14 in en, 12 in de; `"grade": "Grade"/"Klasse"`, used for example by
-   `lib/features/home/widgets/grade_selector.dart`). Use "skill level" wording
-   without renaming the underlying `grade` parameters, saved keys or data.
-   Regenerate `lib/generated/l10n*.dart` with the project's l10n tool, and bump
-   the version.
+1. **No age targeting (owner ruling 2026-10-28; done in 1.5.45+61).** The owner
+   decided the app must state **no age ranges and no child/school audience
+   anywhere**: "a 30-year-old may still want to play such games". The following
+   were removed or rephrased:
+   - the Settings "Target age" row and its strings;
+   - the "About" text;
+   - the "designed for primary-school learners/children" and "your child" wording
+     in the in-app privacy dialog, `web/privacy.html` and `docs/privacy-policy.md`;
+   - the web `index.html`/`manifest.json` descriptions.
+   `test/docs/no_age_targeting_test.dart` now fails if age ranges ("8-12 years"),
+   "for kids/children", "primary school", "young learners" or "your child" reappear
+   in the translations, the privacy dialog, the web files or `fastlane/metadata`.
+   Saying the app is *safe* for children (COPPA/GDPR-K) is allowed and kept.
+   Remaining, optional: user-visible labels already say "Skill Level"/"Stufe". The
+   internal `grade` parameter, saved keys and data must **not** be renamed (that
+   would lose progress). Extend the guard test's file list if new user-facing
+   text sources are added.
 2. **Higher levels:** most generators accept grades up to 6 (calibration covers
    six grades). Evaluate exposing a fifth/sixth skill level for teens and adults,
    using lane G's structural evidence. One game per PR, legacy path preserved.

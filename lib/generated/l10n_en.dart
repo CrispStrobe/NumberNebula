@@ -240,14 +240,8 @@ class SEn extends S {
   String get developerName => 'CrispStrobe';
 
   @override
-  String get targetAge => 'Target Age';
-
-  @override
-  String get targetAgeRange => '8-12 years (Grades 3-6)';
-
-  @override
   String get aboutApp =>
-      'NumberNebula helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.';
+      'NumberNebula turns mathematics into engaging space-themed puzzle games for math learners of all ages.';
 
   @override
   String get languageRestartPrompt =>
@@ -2216,7 +2210,7 @@ class SEn extends S {
   String get efficiencyBonus => 'Efficiency Bonus';
 
   @override
-  String get grade => 'Grade';
+  String get grade => 'Skill level';
 
   @override
   String get emptyProgram => 'Drag commands here';

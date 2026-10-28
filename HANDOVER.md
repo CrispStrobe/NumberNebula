@@ -5,9 +5,12 @@ Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
 ## Current state (2026-10-28)
 
-`main` is at [`b84a927`](https://github.com/CrispStrobe/NumberNebula/commit/b84a927),
-version **1.5.44+60**. Since the Molecule baseline (1.5.39+55, described below),
-three changes have landed:
+`main` is at version **1.5.45+61**: the app code evaluated below
+([`b84a927`](https://github.com/CrispStrobe/NumberNebula/commit/b84a927), 1.5.44+60)
+plus the removal of all age and child-audience statements. The owner ruled on
+2026-10-28 that the app is for math learners of all ages; see lane U item 1 in
+REMAINING_WORK.md and `test/docs/no_age_targeting_test.dart`. Since the Molecule
+baseline (1.5.39+55, described below), these changes have landed:
 
 - [PR #68](https://github.com/CrispStrobe/NumberNebula/pull/68) (`1672c66`): store
   text only. The App Store rejected 1.4.10 under guideline 2.3.8 because the
@@ -40,7 +43,7 @@ runners, are in [docs/release-readiness.md](docs/release-readiness.md).
 The only open PR is the Gridlock repair, [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66).
 It is a draft at `8ea0975`, version 1.5.40+56. It fails 2 native tests, conflicts
 with `main` in `HANDOVER.md` and `pubspec.yaml`, and needs a version above
-1.5.44+60. Its exact next steps are in lane D of [REMAINING_WORK.md](REMAINING_WORK.md).
+1.5.45+61. Its exact next steps are in lane D of [REMAINING_WORK.md](REMAINING_WORK.md).
 
 ## Preceding verified main publication
 

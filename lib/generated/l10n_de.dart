@@ -241,14 +241,8 @@ class SDe extends S {
   String get developerName => 'CrispStrobe';
 
   @override
-  String get targetAge => 'Zielalter';
-
-  @override
-  String get targetAgeRange => '6-12 Jahre (Klassen 1-6)';
-
-  @override
   String get aboutApp =>
-      'Die App hilft hoffentlich Kindern, Mathematik durch fesselnde Weltraum-Spiele zu lernen. Optimiert für Tablets.';
+      'NumberNebula verwandelt Mathematik in fesselnde Weltraum-Rätselspiele für Mathe-Lernende jeden Alters.';
 
   @override
   String get languageRestartPrompt =>
@@ -2227,7 +2221,7 @@ class SDe extends S {
   String get efficiencyBonus => 'Effizienzbonus';
 
   @override
-  String get grade => 'Klasse';
+  String get grade => 'Stufe';
 
   @override
   String get emptyProgram => 'Befehle hierher ziehen';

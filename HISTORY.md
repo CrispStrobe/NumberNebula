@@ -25,6 +25,10 @@
   [docs/release-readiness.md](docs/release-readiness.md) records the current store
   state and the local release path. REMAINING_WORK gained lanes S (store listing),
   T (release tooling) and U (all-ages product ideas).
+- **No age targeting** (1.5.45+61, owner ruling): the Settings "Target age" row
+  ("8-12 years" / "6-12 Jahre") is removed. The About text, privacy dialog,
+  privacy policy (web and docs) and web descriptions no longer name an age or a
+  child/school audience. `test/docs/no_age_targeting_test.dart` guards this.
 
 ## 2026-10-19 — Molecule Builder round implementation
 

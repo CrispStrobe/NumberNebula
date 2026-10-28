@@ -541,22 +541,10 @@ abstract class S {
   /// **'CrispStrobe'**
   String get developerName;
 
-  /// No description provided for @targetAge.
-  ///
-  /// In en, this message translates to:
-  /// **'Target Age'**
-  String get targetAge;
-
-  /// No description provided for @targetAgeRange.
-  ///
-  /// In en, this message translates to:
-  /// **'8-12 years (Grades 3-6)'**
-  String get targetAgeRange;
-
   /// No description provided for @aboutApp.
   ///
   /// In en, this message translates to:
-  /// **'NumberNebula helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.'**
+  /// **'NumberNebula turns mathematics into engaging space-themed puzzle games for math learners of all ages.'**
   String get aboutApp;
 
   /// No description provided for @languageRestartPrompt.
@@ -3943,7 +3931,7 @@ abstract class S {
   /// No description provided for @grade.
   ///
   /// In en, this message translates to:
-  /// **'Grade'**
+  /// **'Skill level'**
   String get grade;
 
   /// No description provided for @emptyProgram.

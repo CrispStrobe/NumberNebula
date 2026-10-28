@@ -20,8 +20,9 @@ into the Kids category, which brings its own rules.
 
 Facts that are easy to get wrong:
 
-- `pubspec.yaml` on `main` is **1.5.44+60**. The next upload needs build **61 or
-  higher**, because App Store Connect already has 59 (from a branch) and 60.
+- `pubspec.yaml` on `main` is **1.5.45+61** (age statements removed; not yet
+  uploaded). App Store Connect already has builds 59 (from a branch) and 60, so
+  61 is the next free build number.
 - `submit.yml` and the Fastfile take `APP_VERSION`/`BUILD_NUMBER` from
   `pubspec.yaml` of the checked-out ref. Running `appstore_submit` from `main` would
   try to submit 1.5.44, not the 1.4.10 version that is under review.
