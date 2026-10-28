@@ -48,9 +48,11 @@ test('published practice lesson accepts an actual wrong and correct choice', asy
   await page.getByText(/Wormhole Activator/).first().click();
   await expect(page.getByRole('button', { name: /^Skip$/ })).toBeVisible();
   await page.getByRole('button', { name: '4', exact: true }).click();
-  await expect(page.getByText('That choice does not fit the rule yet. Try another.')).toBeAttached();
+  // Feedback is a live region: Flutter web exposes the text and its
+  // announcement, so match the first of the two.
+  await expect(page.getByText('That choice does not fit the rule yet. Try another.').first()).toBeAttached();
   await page.getByRole('button', { name: '5', exact: true }).click();
-  await expect(page.getByText(/The right side includes its corners/)).toBeAttached();
+  await expect(page.getByText(/The right side includes its corners/).first()).toBeAttached();
   await page.getByRole('button', { name: /^Got it$/ }).click();
   await expect(page.getByRole('button', { name: /^Got it$/ })).toHaveCount(0);
   expect(log.errors).toEqual([]);
