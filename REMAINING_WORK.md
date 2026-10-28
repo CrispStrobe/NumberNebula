@@ -302,7 +302,8 @@ review; 1.5.44 (60) is in TestFlight; macOS 1.4.10 is live. **Owner files:**
 1. **Web deployment of `b84a927`.** Open the
    [web run](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700724838).
    `build` and `live-test` already passed; `deploy` and `pages` were still
-   running at hand-over. If they passed, check that the live site serves that commit
+   running at hand-over. If they passed, check that the live site serves that commit, or a later docs-only head with the same app
+   code (`git diff --stat b84a927 <head> -- lib web assets pubspec.yaml` is empty)
    (the app's runtime marker / `hosted-proof.json`, as earlier entries in
    HANDOVER.md did), then record the run link in HANDOVER.md "Current state". If
    it failed, read `--log-failed`, reproduce, fix, and push a test-only or

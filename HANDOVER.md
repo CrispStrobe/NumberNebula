@@ -24,7 +24,9 @@ and [pure calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/
 passed. The [web build, live tests and deploy](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700724838)
 passed build and live tests, including the fixed practice-lesson test. Its
 `deploy` and `pages` jobs were still running when this was written: open the run,
-confirm both succeeded and that the live site serves `b84a927`, and record that
+confirm both succeeded and that the live site serves `b84a927` or a later
+docs-only head with the same app code (`git diff --stat b84a927 <head> -- lib
+web assets pubspec.yaml` is empty), and record that
 here before calling the web deployment current. PRs #67 and #68 were merged with admin
 rights before their required checks finished; the checks above ran afterwards on
 `main`.
