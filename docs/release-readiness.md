@@ -1,5 +1,72 @@
 # Store release readiness
 
+## Current state (checked 2026-10-28 via the App Store Connect API)
+
+| Platform | App Store version | Review | Newest TestFlight build |
+| --- | --- | --- | --- |
+| iOS | 1.4.10 (build 14) | **Waiting for Review**, resubmitted 2026-10-27 after a guideline **2.3.8** rejection | **1.5.44 (60)** from `main` `a6de6a2`: internal testers have it; external group added, Beta App Review waiting |
+| macOS | 1.4.10 (build 14) | **Ready for Sale** (live) | 1.5.43 (59), uploaded from the PR #67 branch |
+
+Review history: a **4.3(a)** rejection on 2026-09-12 led to a resubmission of
+1.4.10 (14) on 2026-09-24. Review on 2026-10-27 raised only **2.3.8 Accurate
+Metadata**: the subtitle "Cosmic math games for kids" implied a Kids-category app.
+The fix (PR #68, `1672c66`) changes only store text in `fastlane/metadata`. The
+subtitle is now "Cosmic math puzzle games", the audience is "math learners of all
+ages", `kids`/`kinder` are gone from the keywords, and the review notes explain the
+change. The binary was not changed. To resubmit, a new required age-rating
+question, **`socialMedia`**, had to be answered (`false`: the app has no social
+features). Do not mark the app "Made for Kids" unless the owner decides to move it
+into the Kids category, which brings its own rules.
+
+Facts that are easy to get wrong:
+
+- `pubspec.yaml` on `main` is **1.5.44+60**. The next upload needs build **61 or
+  higher**, because App Store Connect already has 59 (from a branch) and 60.
+- `submit.yml` and the Fastfile take `APP_VERSION`/`BUILD_NUMBER` from
+  `pubspec.yaml` of the checked-out ref. Running `appstore_submit` from `main` would
+  try to submit 1.5.44, not the 1.4.10 version that is under review.
+- The live macOS 1.4.10 listing still carries the old description and keywords
+  (version-level text such as "primary-school explorers" and `kids`). They can
+  only change with a new macOS App Store version.
+- The promotional text and descriptions still say "20+ mini-games"; there are 48.
+
+## Local release path (when the GitHub macOS queue stalls)
+
+The repository is on GitHub's free tier, and macOS runner jobs (`release.yml`,
+`submit.yml`) have stayed queued for over an hour without starting. Everything
+those workflows do can also run on the maintainer's Mac:
+
+1. **App Store Connect actions** use `tool/asc/asc.py` (read its docstring). It
+   needs `ASC_KEY_ID`, `ASC_ISSUER_ID` and `ASC_KEY_PATH` in the environment, and
+   these are never committed. Commands: `status` (read-only), `push-metadata`
+   (dry run unless `--write`), `resubmit` (marks the open "unresolved issues"
+   submission's item resolved, then submits it again), and
+   `testflight BUILD NOTES_FILE`.
+   - When the API answers 409 "Version is not ready to be submitted yet", read
+     `meta.associatedErrors` (the script prints them). The real cause on
+     2026-10-27 was an unanswered age-rating attribute.
+   - To add a fresh build to a beta group, use
+     `POST /v1/builds/{id}/relationships/betaGroups`; the group-side endpoint
+     returned 404.
+2. **A signed iOS build** follows the steps of `release.yml` job `build-upload`:
+   `flutter build ios --release --config-only --no-codesign`, `pod install`, an
+   unsigned `xcodebuild archive`, then `xcodebuild -exportArchive` with manual
+   signing. The ExportOptions must name the **"NumberNebula AppStore CI"**
+   profile (download it through the API's `/v1/profiles`). The Xcode-managed
+   "iOS Team Store" profile does not contain the distribution certificate, and
+   export fails with that profile.
+   - `codesign` failing with `errSecInternalComponent` means the keychain that
+     holds the Apple Distribution identity is locked in this session. Only the
+     owner can unlock it; do not search for its password.
+   - Verify the result with `codesign --verify --deep --strict`, and check
+     `CFBundleShortVersionString`/`CFBundleVersion` in the IPA.
+3. **Upload** with `xcrun altool --upload-package … --api-key … --api-issuer …`.
+   Then run `tool/asc/asc.py testflight <build> <notes file>`.
+4. `git commit -a` after a local `pod install` also picks up `ios/Podfile.lock`
+   changes. Do not commit them unless the dependency change is intended.
+
+## Historical draft (2026-10-16)
+
 Historical draft prepared 2026-10-16; scope clarified 2026-10-18. No store upload or submission is claimed.
 
 This lane R draft was prepared against the historical baseline **1.5.22+38** (`8eaf252bc86dfc7e44bb219613e60f2bd3450e7c`, see [HANDOVER.md](../HANDOVER.md)). It records what the release automation *does*, how `pubspec.yaml` version/build maps to Apple builds, what notes would ship with this code, and what must be rechecked in the authorized App Store Connect account before any action. It explicitly does **not** claim the historical **1.4.10** “Waiting for Review” (iOS) / “Pending Developer Release” (macOS) labels are current. Web deployment is already green at the baseline (see HANDOVER.md).

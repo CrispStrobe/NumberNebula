@@ -1,5 +1,31 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-10-27/28 — App Store 2.3.8 fix, practice rewrite merged, TestFlight 1.5.44 (60)
+
+- **App Review 2.3.8 (Accurate Metadata).** 1.4.10 (14) was rejected on
+  2026-10-27 because the subtitle "Cosmic math games for kids" implied a
+  Kids-category app. PR #68 changed only `fastlane/metadata`: subtitle "Cosmic math
+  puzzle games", audience "math learners of all ages", `kids`/`kinder` removed from
+  the keywords, and review notes updated. The text was pushed through the App
+  Store Connect API. The submission's newly required `socialMedia` age-rating
+  answer was set to `false`, and the same binary was resubmitted. State: Waiting
+  for Review.
+- **PR #67 merged** (`a6de6a2`, 1.5.44+60): the 48-game practice/Üben rewrite.
+  Before the merge, 5 failing native tests were fixed. The onboarding overlay
+  keeps Next on screen on landscape phones and scrolls the whole card only at
+  large text scales. The Wormhole size test was aligned with the staged guided
+  profile. Native CI and pure calibration passed on `main` afterwards.
+- **Web live test** for the published practice lesson had failed since PR #67's
+  first head (live-region text exposed twice); fixed in `8b39a33`.
+- **TestFlight 1.5.44 (60)** was built, signed and uploaded from the maintainer's
+  Mac while GitHub's free-tier macOS runners stayed queued. Internal testers have
+  it; the External Testers group was added and Beta App Review is pending.
+- **`tool/asc/asc.py`** added: App Store Connect status, metadata push, resubmission
+  and TestFlight distribution without fastlane or CI.
+  [docs/release-readiness.md](docs/release-readiness.md) records the current store
+  state and the local release path. REMAINING_WORK gained lanes S (store listing),
+  T (release tooling) and U (all-ages product ideas).
+
 ## 2026-10-19 — Molecule Builder round implementation
 
 Version **1.5.39+55** implements the [Molecule audit](docs/molecule-builder-round-audit.md).

@@ -1,37 +1,44 @@
 # NumberNebula: current state and agent handover
 
-Updated 2026-10-19. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
+Updated 2026-10-28. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
-## Practice-rule correction under validation
+## Current state (2026-10-28)
 
-The latest candidate is **1.5.43+59**; read
-[Practice rules and cross-game difficulty](docs/practice-rules-and-difficulty.md).
-All 48 Üben lessons have been rewritten as bilingual mechanic exercises, with
-labelled actions and explanations. All 48 hint paths were traced against actual
-controls and win conditions; new visible-board guidance replaces misleading
-observations while preserving verified solvers and algorithms. Read the three
-16-game audit inventories linked in the correction document. Fixed-fixture pure
-checks and all-lesson rendered wrong/correct tests are included; full remote
-native/browser/deployment validation is still required. Introductory Wormhole
-constraints are staged, and arithmetic respects the selected difficulty mode.
-The legacy generator remains selectable. The 12-profile difficulty comparison
-is structural evidence, not child-calibrated difficulty for all games.
+`main` is at [`b84a927`](https://github.com/CrispStrobe/NumberNebula/commit/b84a927),
+version **1.5.44+60**. Since the Molecule baseline (1.5.39+55, described below),
+three changes have landed:
 
-The separate [Gridlock PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66)
-is under validation, version **1.5.40+56**. Preserve it while integrating this
-candidate and reconcile version order before merging.
+- [PR #68](https://github.com/CrispStrobe/NumberNebula/pull/68) (`1672c66`): store
+  text only. The App Store rejected 1.4.10 under guideline 2.3.8 because the
+  subtitle said "for kids". See [release readiness](docs/release-readiness.md).
+- [PR #67](https://github.com/CrispStrobe/NumberNebula/pull/67) (`a6de6a2`): the
+  48-game practice/Üben rewrite, with 5 failing native tests fixed before merging.
+  See [practice rules](docs/practice-rules-and-difficulty.md#status-2026-10-28).
+- `8b39a33`: fixes the web live test that had failed since PR #67's first head
+  (live-region text matched twice). `b84a927` reverts a `Podfile.lock` change
+  swept into that commit.
 
-Current main remains Molecule **1.5.39+55**,
-[PR #65](https://github.com/CrispStrobe/NumberNebula/pull/65).
-Its main [native](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851186)
-and [pure](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851385)
-checks passed. The main
-[web run](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851150)
-passed build, 864 capture/replays and 47 artifact-browser cases with one known
-loader skip and no observed retries, then failed at deployment. Its full deployed
-matrix did not run. The previously verified PR artifact remains the publication;
-do not label the failed main aggregate green.
+Evidence at `b84a927`: [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700725093)
+and [pure calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700724702)
+passed. The [web build, live tests and deploy](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700724838)
+passed build and live tests, including the fixed practice-lesson test. Its
+`deploy` and `pages` jobs were still running when this was written: open the run,
+confirm both succeeded and that the live site serves `b84a927`, and record that
+here before calling the web deployment current. PRs #67 and #68 were merged with admin
+rights before their required checks finished; the checks above ran afterwards on
+`main`.
+
+Store: iOS 1.4.10 (14) is **Waiting for Review** again (resubmitted 2026-10-27).
+TestFlight has **1.5.44 (60)**, built and uploaded locally from `a6de6a2`: internal
+testers have it, and external testers get it after Beta App Review. macOS 1.4.10
+is live. The details, and a release path that does not need GitHub's macOS
+runners, are in [docs/release-readiness.md](docs/release-readiness.md).
+
+The only open PR is the Gridlock repair, [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66).
+It is a draft at `8ea0975`, version 1.5.40+56. It fails 2 native tests, conflicts
+with `main` in `HANDOVER.md` and `pubspec.yaml`, and needs a version above
+1.5.44+60. Its exact next steps are in lane D of [REMAINING_WORK.md](REMAINING_WORK.md).
 
 ## Preceding verified main publication
 
@@ -68,7 +75,7 @@ checks in [PR #63](https://github.com/CrispStrobe/NumberNebula/pull/63) also suc
 
 ## October 18 integration
 
-Current implemented version: **1.5.39+55**, under validation; see the [Molecule audit](docs/molecule-builder-round-audit.md).
+Implemented on October 19: **1.5.39+55** (since superseded; see Current state); see the [Molecule audit](docs/molecule-builder-round-audit.md).
 The preceding implemented version is **1.5.38+54**, [PR #64](https://github.com/CrispStrobe/NumberNebula/pull/64); see the [Relic Assembly audit](docs/relic-assembly-round-audit.md).
 Its 39 focused cases include held-pointer isolation for generation-error retry.
 Its final 39-case source is verified above; earlier 38-case results do not validate that follow-up.
@@ -248,12 +255,11 @@ cost; do not automatically retune child-facing pars.
 
 ## Release boundary
 
-Web deployment is verified above. No new App Store upload or release is claimed.
-The previously reported 1.4.10 iOS “Waiting for Review” and macOS “Pending
-Developer Release” are historical, unverified now. Recheck both platforms in
-App Store Connect before deciding what can be released. Current source version
-and current store build are separate facts. Release preparation is lane R in
-[REMAINING_WORK.md](REMAINING_WORK.md).
+The current store state is in [docs/release-readiness.md](docs/release-readiness.md)
+(checked 2026-10-28). Recheck it with `tool/asc/asc.py status`, or the `status`
+lane of `submit.yml`, before any store action: review states change without a
+commit. Uploads and review submissions remain deliberate manual actions (lane R).
+Current source version and current store build are separate facts.
 
 ## Evidence and document ownership
 

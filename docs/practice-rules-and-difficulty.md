@@ -1,11 +1,37 @@
 # Practice rules and cross-game difficulty
 
-## Current candidate
+## Status (2026-10-28)
+
+Merged to `main` as [PR #67](https://github.com/CrispStrobe/NumberNebula/pull/67)
+([`a6de6a2`](https://github.com/CrispStrobe/NumberNebula/commit/a6de6a2)), shipping
+version **1.5.44+60** (TestFlight build 60). It was first prepared as **1.5.43+59**,
+which was uploaded to TestFlight from the branch on 2026-10-19 before merging.
+Before the merge, 5 failing native tests on the branch were fixed:
+
+- The shared onboarding overlay scrolled the whole card, so the Next button sat at
+  y=613 on 375–390 px landscape phones (`onboarding_overlay_fit_test`, and
+  `playable_tutorial_test` en/de, whose tap missed). Now the lesson scrolls between a
+  pinned header and footer at normal text sizes, and the whole card scrolls only
+  when the text scale is above 1.3, so a tall labelled choice is never covered by
+  the footer (`all_games_coaching_test`).
+- `magic_triangle_solver_test` expected 7 nodes per side at grade 6, level 10 on
+  every path. The guided path stages size by design, so the test now expects 7
+  for legacy and `MagicTriangleGenerationConfig` for guided.
+
+Merged-main [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700725093)
+and [pure calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700724702)
+passed at `b84a927`. Before that, the web live test
+`deployment.spec.mjs › published practice lesson…` had failed since the PR's first
+head: the feedback text sits in a live region, so Flutter web exposes it twice and
+the strict `getByText` matched two elements. That was fixed in `8b39a33`
+(`.first()`); the web live tests then passed at `b84a927`.
+The open work for this lane is lane L in [REMAINING_WORK.md](../REMAINING_WORK.md).
+
+## Original candidate description
 
 Version **1.5.43+59** corrects rules shown by the common **Practice / Üben**
-screen and the introductory Wormhole progression. This is a candidate under
-validation, not a verified deployment. It is separate from the pending Gridlock
-repair in [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66).
+screen and the introductory Wormhole progression. It is separate from the pending
+Gridlock repair in [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66).
 
 The shared tutorial marked each game's old instruction overlay as seen, while
 showing only one miniature arithmetic question. `GameCoaching.practice()` did
@@ -96,8 +122,9 @@ their captured board and rules instead of being regenerated into the new profile
 ## Publication preparation
 
 Version **1.5.43+59** additionally fixes long-choice reachability on short phones
-at doubled text size. The whole lesson scrolls, the header wraps, and tests treat
-missed button taps as failures. Retry feedback now refers to a choice, rather
+at doubled text size. The header wraps, and tests treat missed button taps as
+failures. (The original "whole lesson scrolls" layout was later limited to large
+text scales; see Status above.) Retry feedback now refers to a choice, rather
 than demanding a number for nonnumeric exercises.
 
 Full calibration exposed three CLI/screen snapshot differences: Relic, Molecule
