@@ -17,8 +17,10 @@ Commands (run from the repository root):
                                  App Store version; --write applies it
   resubmit                       resolve the rejected item of the open review
                                  submission and submit it again
-  testflight BUILD NOTES_FILE    wait for processing, set What to Test, add the
+  testflight BUILD NOTES_FILE [--macos]
+                                 wait for processing, set What to Test, add the
                                  build to every group, submit for Beta App Review
+                                 (iOS unless --macos)
 """
 import base64
 import json
@@ -208,15 +210,15 @@ def resubmit():
     print("resubmit:", s, errors(r) if s >= 300 else r["data"]["attributes"])
 
 
-def testflight(build, notes_file):
+def testflight(build, notes_file, platform="IOS"):
     app = app_id()
     notes = open(notes_file, encoding="utf-8").read().strip()
     deadline = time.time() + 3600
     while True:
         _, b = api("GET", f"/v1/builds?filter[app]={app}&filter[version]={build}"
-                          "&filter[preReleaseVersion.platform]=IOS")
+                          f"&filter[preReleaseVersion.platform]={platform}")
         state = b["data"][0]["attributes"]["processingState"] if b["data"] else "NOT_VISIBLE"
-        print(time.strftime("%H:%M:%S"), "build", build, state, flush=True)
+        print(time.strftime("%H:%M:%S"), platform, "build", build, state, flush=True)
         if state == "VALID":
             break
         if state in ("FAILED", "INVALID") or time.time() > deadline:
@@ -263,7 +265,8 @@ if __name__ == "__main__":
         push_metadata("--write" in sys.argv)
     elif cmd == "resubmit":
         resubmit()
-    elif cmd == "testflight" and len(sys.argv) == 4:
-        testflight(sys.argv[2], sys.argv[3])
+    elif cmd == "testflight" and len(sys.argv) in (4, 5):
+        testflight(sys.argv[2], sys.argv[3],
+                   "MAC_OS" if "--macos" in sys.argv[4:] else "IOS")
     else:
         sys.exit(__doc__)

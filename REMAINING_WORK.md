@@ -404,7 +404,8 @@ path" in [docs/release-readiness.md](docs/release-readiness.md) first.
    another project, which was locked during the release. That is the owner's
    decision.
 5. **`asc.py` follow-ups.** `testflight` sets only en-US "What to Test"; add de-DE.
-   Add a `macos` option to `status`/`push-metadata`.
+   `testflight` already takes `--macos`; add the same to `push-metadata`, which
+   today edits the iOS App Store version only.
 **Done:** a release can be checked, uploaded and distributed without the macOS
 runner, and the CI path fails early with actionable messages.
 

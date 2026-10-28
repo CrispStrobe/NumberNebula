@@ -5,7 +5,7 @@
 | Platform | App Store version | Review | Newest TestFlight build |
 | --- | --- | --- | --- |
 | iOS | 1.4.10 (build 14) | **Waiting for Review**, resubmitted 2026-10-27 after a guideline **2.3.8** rejection | **1.5.45 (61)** from `main` `68de24c` (age statements removed), uploaded 2026-10-28: internal testers have it; external group added, Beta App Review waiting. 1.5.44 (60) before it. |
-| macOS | 1.4.10 (build 14) | **Ready for Sale** (live) | 1.5.43 (59), uploaded from the PR #67 branch |
+| macOS | 1.4.10 (build 14) | **Ready for Sale** (live; still shows the old "Target age" row and "kids" listing text) | **1.5.45 (61)** from `8c68fa4` (same app code as `68de24c`), uploaded 2026-10-28: internal testers have it; external group added, Beta App Review waiting |
 
 Review history: a **4.3(a)** rejection on 2026-09-12 led to a resubmission of
 1.4.10 (14) on 2026-09-24. Review on 2026-10-27 raised only **2.3.8 Accurate
@@ -62,6 +62,19 @@ those workflows do can also run on the maintainer's Mac:
      `CFBundleShortVersionString`/`CFBundleVersion` in the IPA.
 3. **Upload** with `xcrun altool --upload-package … --api-key … --api-issuer …`.
    Then run `tool/asc/asc.py testflight <build> <notes file>`.
+   - Copy the IPA/pkg to the internal disk before uploading. On 2026-10-28 an
+     external drive dropped mid-upload, and `altool` hung for 30 minutes without
+     error and without delivering anything.
+   - **macOS** follows `release.yml` job `build-upload-macos`:
+     `flutter build macos --release --config-only`, `pod install
+     --project-directory=macos`, then `xcodebuild archive` **signed at archive
+     time** (`CODE_SIGN_STYLE=Manual`, identity "Apple Distribution", profile
+     **"NumberNebula MacAppStore CI"**; unsigned archives lose the sandbox
+     entitlement). Export with `installerSigningCertificate` "3rd Party Mac
+     Developer Installer", run `altool --validate-app --type macos` before
+     `--upload-package --type macos`, and finish with
+     `asc.py testflight <build> <notes> --macos`. `pkgutil --check-signature`
+     reporting "(Development)" for the installer certificate is normal here.
 4. `git commit -a` after a local `pod install` also picks up `ios/Podfile.lock`
    changes. Do not commit them unless the dependency change is intended.
 
