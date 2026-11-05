@@ -10,7 +10,8 @@ implement one game per PR rather than combining an entire batch.
 1. **Watch App Review** (lane R, step 2): 1.5.45 (61) for iOS and macOS,
    submitted 2026-11-05, release type Manual. React only to Apple's messages; do
    not resubmit proactively, and do not release without the owner.
-2. **Gridlock PR #66** (lane D): see its status there.
+2. **TestFlight 1.5.46 (62)** (Gridlock fix, merged): build and upload on
+   both platforms when the Mac has ≥15 GB free; see release readiness.
 3. **Store listing fixes** (lane S): screenshots, truncated cards. The game
    count is fixed. Text changes need no app build.
 4. **Release tooling** (lane T): build numbers, fastlane lanes, local release
@@ -124,12 +125,8 @@ Next audit Molecule Builder in D, with one game per PR.
 
 ## D — Planning and bundled-level rounds
 
-**Status:** Gridlock is a [candidate under validation](docs/gridlock-round-audit.md),
-version **1.5.46+62**, with 37 prepared original-API tests and six database seams.
-Run those remotely, compare final original-API bytes against baseline, complete
-missing resume/navigation/fallback/phone cases, and verify exact-head/full-main
-publication before closing the audit. Its initial 13-case baseline has two positive
-controls and eleven overlapping assertion failures, not eleven independent bugs.
+**Status:** Gridlock is [implemented](docs/gridlock-round-audit.md) in 1.5.46+62
+(PR #66); its round, loader and game tests pass on `main`.
 Molecule is [implemented](docs/molecule-builder-round-audit.md); its merged-main
 native/generation/artifact-browser checks passed, with deployment unsuccessful and the full deployed matrix unverified.
 Retain its 51 original-API contracts and five loader seam cases; verify the exact
@@ -137,31 +134,20 @@ repair head, shared session mixin, native/all-game/browser/deployment checks
 before treating it as green. Preserve completed Undo +2, coherent interrupted
 snapshots, authored levels/progression/fallback and existing score/quality reference.
 
-**Remaining games/screens:** `space_station_gridlock_game.dart`,
+**Remaining games/screens:**
 `star_loader_game.dart`, `robot_path_game.dart`, `solarpanel_game.dart`.
 
-**Gridlock already has a draft: [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66)**
-(branch `fix/gridlock-round-isolation`, version **1.5.46+62**). Status on
-2026-11-05:
-- The 2 failing cases in `test/widgets/space_station_gridlock_round_test.dart`
-  (`Gridlock: en/de 390x500.0 text2 keeps actual legal drag and current result
-  Next reachable`) were a real input bug. Below 650 px height, or at large text,
-  the board sits in a vertical `SingleChildScrollView`. A free pan must travel
-  36 px (twice the touch slop) before it beats vertical scrolling, and the move
-  threshold was then measured from that point, so a short horizontal drag never
-  moved a ship. `_buildShip` now uses axis-locked horizontal/vertical drag
-  callbacks with `DragStartBehavior.down`; the 20 px step threshold is unchanged.
-  The same tests then caught the loading overlay overflowing by 2 px at
-  390×500 with text scale 2; it now scrolls, so Cancel stays reachable.
-- `origin/main` is merged in; `pubspec.yaml` is 1.5.46+62.
-To finish it:
-1. Read the PR's checks at its head. If `analyze-and-test` still fails, read
-   `gh run view <id> --log-failed` and fix the cause, not the test.
-2. Mark the PR ready only when `analyze-and-test`, `build` and `live-test` pass
-   at the exact head; then merge and verify on `main`.
-3. Ship it like 1.5.45: build 62 to TestFlight (lane T / release readiness), and
-   submit it for App Store review only after 1.5.45 is released and with the
-   owner's go-ahead.
+**Gridlock: merged** as [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66)
+(`a17b1bd`, version **1.5.46+62**, 2026-11-05); all checks passed on the PR head
+and on merged `main`, and the web deploy is live. The 2 small-screen failures
+were a real input bug: below 650 px height or at large text the board sits in a
+vertical `SingleChildScrollView`, where a free pan needed 36 px before it beat
+scrolling, so short drags never moved a ship. `_buildShip` now uses axis-locked
+drag callbacks with `DragStartBehavior.down` (the 20 px step threshold is
+unchanged), and the loading overlay scrolls instead of overflowing. Remaining:
+ship build 62 to TestFlight like 1.5.45 (see release readiness), and submit
+1.5.46 for App Store review only after 1.5.45 is released and with the owner's
+go-ahead.
 The scope below is what PR #66 was written against; use it to review the PR.
 
 Start with Gridlock, using `shipsFromBoard` and a legal authored board such as

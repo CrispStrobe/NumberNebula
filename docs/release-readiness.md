@@ -39,7 +39,7 @@ into the Kids category, which brings its own rules.
 
 Facts that are easy to get wrong:
 
-- Build 61 is uploaded on both platforms. The next upload needs build **62 or
+- Build 61 is uploaded on both platforms; `main` is 1.5.46+62 (not uploaded yet). The next upload needs build **62 or
   higher** (PR #66 uses 1.5.46+62).
 - `submit.yml` and the Fastfile take `APP_VERSION`/`BUILD_NUMBER` from
   `pubspec.yaml` of the checked-out ref. Make sure that matches the App Store

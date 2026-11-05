@@ -39,12 +39,18 @@ external testers on both platforms. macOS 1.4.10 stays live until 1.5.45 is
 released. The details, and a release path that does not need GitHub's macOS
 runners, are in [docs/release-readiness.md](docs/release-readiness.md).
 
-The only open PR is the Gridlock repair, [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66),
-now version **1.5.46+62** and merged with `main`. Its 2 failing small-screen tests
-were a real input bug: inside the scroll view used below 650 px height or at
-large text, a free pan needed 36 px before it beat vertical scrolling, so short
-ship drags did nothing. Ship drags are now locked to the ship's axis and measured
-from touch-down. Its remaining steps are in lane D of [REMAINING_WORK.md](REMAINING_WORK.md).
+**Gridlock repair merged:** [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66)
+is on `main` as [`a17b1bd`](https://github.com/CrispStrobe/NumberNebula/commit/a17b1bd),
+version **1.5.46+62**. Its 2 failing small-screen tests were a real input bug:
+inside the scroll view used below 650 px height or at large text, a free pan
+needed 36 px before it beat vertical scrolling, so short ship drags did nothing.
+Ship drags are now locked to the ship's axis and measured from touch-down, and
+the loading overlay scrolls instead of overflowing. All PR checks passed at
+`8f665ab`. On merged `main`, [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/42004943218),
+[calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/42004943204) and
+[web build, live tests, deploy and pages](https://github.com/CrispStrobe/NumberNebula/actions/runs/42004943384)
+passed, and the live site's `version.json` reported 1.5.46 (62) on 2026-11-05.
+There are no open PRs. Build 62 is not yet uploaded to TestFlight.
 
 ## Preceding verified main publication
 

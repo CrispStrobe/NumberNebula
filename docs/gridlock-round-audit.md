@@ -2,7 +2,7 @@
 
 ## Status and evidence
 
-Version **1.5.46+62** (first drafted as 1.5.40+56) is a repair candidate, not a verified publication.
+Version **1.5.46+62** (first drafted as 1.5.40+56), merged as PR #66 on 2026-11-05 with all checks green on the PR head and on `main`.
 The focused tests are prepared and still require exact-head execution:
 `test/widgets/space_station_gridlock_round_test.dart` contains 37 original-API
 contracts; `test/widgets/space_station_gridlock_loader_test.dart` contains six

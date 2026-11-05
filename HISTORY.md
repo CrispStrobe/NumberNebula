@@ -13,6 +13,10 @@
 - `tool/asc/asc.py`: `push-metadata --macos`, release notes ("What's New",
   skipped on a platform's first release), and `submit [--macos]`.
 - Web deployment of 1.5.45 (61) confirmed live.
+- **PR #66 merged** (`a17b1bd`, 1.5.46+62): Gridlock round ownership, plus axis-locked
+  ship drags (short drags inside the small-screen scroll view did nothing) and a
+  scrolling loading overlay. All checks green on the PR head and merged `main`;
+  1.5.46 (62) is live on the web.
 
 ## 2026-10-27/28 — App Store 2.3.8 fix, practice rewrite merged, TestFlight 1.5.44 (60)
 
