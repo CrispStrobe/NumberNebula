@@ -151,6 +151,8 @@ snapshots, authored levels/progression/fallback and existing score/quality refer
   threshold was then measured from that point, so a short horizontal drag never
   moved a ship. `_buildShip` now uses axis-locked horizontal/vertical drag
   callbacks with `DragStartBehavior.down`; the 20 px step threshold is unchanged.
+  The same tests then caught the loading overlay overflowing by 2 px at
+  390×500 with text scale 2; it now scrolls, so Cancel stays reachable.
 - `origin/main` is merged in; `pubspec.yaml` is 1.5.46+62.
 To finish it:
 1. Read the PR's checks at its head. If `analyze-and-test` still fails, read

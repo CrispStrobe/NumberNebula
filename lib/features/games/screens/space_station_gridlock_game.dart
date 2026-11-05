@@ -529,8 +529,8 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
           color: isPlayer
               ? SpaceTheme.alienGreen
               : isBlocking
-              ? Colors.grey.shade800
-              : _getShipColor(i),
+                  ? Colors.grey.shade800
+                  : _getShipColor(i),
         );
 
         ships.add(ship);
@@ -539,8 +539,8 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
           'type': isPlayer
               ? 'PLAYER'
               : isBlocking
-              ? 'BLOCKING'
-              : 'ship',
+                  ? 'BLOCKING'
+                  : 'ship',
           'position': '(${ship.row}, ${ship.col})',
           'size': ship.length,
           'orientation': ship.isHorizontal ? 'H' : 'V',
@@ -865,8 +865,8 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     final efficiency = moveCount <= minMoves
         ? 'PERFECT'
         : moveCount <= minMoves + 3
-        ? 'GREAT'
-        : 'GOOD';
+            ? 'GREAT'
+            : 'GOOD';
 
     _log('🎉 PUZZLE SOLVED!', {
       'moves_used': moveCount,
@@ -893,8 +893,8 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     final efficiencyBonus = moveCount <= minMoves
         ? 300
         : moveCount <= minMoves + 3
-        ? 150
-        : 50;
+            ? 150
+            : 50;
     final difficultyBonus = ships.length * 20;
     final totalScore = baseScore + efficiencyBonus + difficultyBonus;
 
@@ -908,17 +908,16 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     finishPuzzleSession();
 
     context.read<GameProvider>().reportOutcome(
-      GameOutcome.win(
-        skillLevel: widget.grade,
-        gameType: 'space_station_gridlock',
-        difficulty: widget.grade + (widget.level ~/ 5),
-        score: totalScore,
-        performance: Perf.fromMoves(moveCount, minMoves),
-
-        movesUsed: moveCount,
-        optimalMoves: minMoves,
-      ),
-    );
+          GameOutcome.win(
+            skillLevel: widget.grade,
+            gameType: 'space_station_gridlock',
+            difficulty: widget.grade + (widget.level ~/ 5),
+            score: totalScore,
+            performance: Perf.fromMoves(moveCount, minMoves),
+            movesUsed: moveCount,
+            optimalMoves: minMoves,
+          ),
+        );
 
     for (int i = 0; i < (_reducedMotion ? 0 : 60); i++) {
       particles.add(
@@ -962,9 +961,7 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                   },
                 ),
               ),
-
               ...particles.map((p) => p.build()),
-
               if (_restoredTerminal || _loadFailed)
                 Center(
                   child: SingleChildScrollView(
@@ -995,7 +992,6 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
               if (!_isLoading && !_restoredTerminal && !_loadFailed) ...[
                 _buildResponsiveGameUI(),
               ],
-
               if (_isLoading) ...[_buildLoadingOverlay()],
             ],
           ),
@@ -1449,14 +1445,14 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     final shipWidth = ship.length == 1
         ? cellSize - (padding * 2)
         : ship.isHorizontal
-        ? (cellSize * ship.length) - (padding * 2)
-        : cellSize - (padding * 2);
+            ? (cellSize * ship.length) - (padding * 2)
+            : cellSize - (padding * 2);
 
     final shipHeight = ship.length == 1
         ? cellSize - (padding * 2)
         : ship.isHorizontal
-        ? cellSize - (padding * 2)
-        : (cellSize * ship.length) - (padding * 2);
+            ? cellSize - (padding * 2)
+            : (cellSize * ship.length) - (padding * 2);
 
     return Positioned(
       left: ship.col * cellSize + padding,
@@ -1465,8 +1461,8 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
         label: ship.isPlayer
             ? S.of(context)!.gridlockPlayerShip
             : (ship.isBlocking
-                  ? S.of(context)!.gridlockBlockingShip
-                  : S.of(context)!.gridlockShip),
+                ? S.of(context)!.gridlockBlockingShip
+                : S.of(context)!.gridlockShip),
         hint: ship.isHorizontal
             ? S.of(context)!.gridlockDragHorizontally
             : S.of(context)!.gridlockDragVertically,
@@ -1483,24 +1479,20 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
           onHorizontalDragUpdate: ship.isHorizontal
               ? (details) => _onPanUpdate(details, index, ship, round)
               : null,
-          onHorizontalDragEnd: ship.isHorizontal
-              ? (_) => _onPanEnd(round, ship)
-              : null,
-          onHorizontalDragCancel: ship.isHorizontal
-              ? () => _onPanEnd(round, ship)
-              : null,
+          onHorizontalDragEnd:
+              ship.isHorizontal ? (_) => _onPanEnd(round, ship) : null,
+          onHorizontalDragCancel:
+              ship.isHorizontal ? () => _onPanEnd(round, ship) : null,
           onVerticalDragStart: ship.isHorizontal
               ? null
               : (details) => _onPanStart(details, index, ship, round),
           onVerticalDragUpdate: ship.isHorizontal
               ? null
               : (details) => _onPanUpdate(details, index, ship, round),
-          onVerticalDragEnd: ship.isHorizontal
-              ? null
-              : (_) => _onPanEnd(round, ship),
-          onVerticalDragCancel: ship.isHorizontal
-              ? null
-              : () => _onPanEnd(round, ship),
+          onVerticalDragEnd:
+              ship.isHorizontal ? null : (_) => _onPanEnd(round, ship),
+          onVerticalDragCancel:
+              ship.isHorizontal ? null : () => _onPanEnd(round, ship),
           child: AnimatedBuilder(
             animation: ship.isPlayer ? _exitAnimation : _slideAnimation,
             builder: (context, child) {
@@ -1524,13 +1516,13 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                       color: ship.isPlayer
                           ? SpaceTheme.alienGreen
                           : ship.isBlocking
-                          ? Colors.grey.shade600
-                          : Colors.white.withValues(alpha: 0.6),
+                              ? Colors.grey.shade600
+                              : Colors.white.withValues(alpha: 0.6),
                       width: ship.isPlayer
                           ? 2.0
                           : ship.isBlocking
-                          ? 1.5
-                          : 1.0,
+                              ? 1.5
+                              : 1.0,
                     ),
                     boxShadow: [
                       BoxShadow(
@@ -1551,8 +1543,8 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
                             ship.isPlayer
                                 ? Icons.rocket_launch
                                 : ship.isBlocking
-                                ? Icons.block
-                                : Icons.local_shipping,
+                                    ? Icons.block
+                                    : Icons.local_shipping,
                             color: ship.isBlocking
                                 ? Colors.grey.shade500
                                 : Colors.white,
@@ -1572,43 +1564,48 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     return Container(
       color: Colors.black.withValues(alpha: 0.85),
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(SpaceTheme.alienGreen),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              _loadingStatus,
-              style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              '${S.of(context)!.grade} ${widget.grade} • ${S.of(context)!.level} ${widget.level}',
-              style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              S
-                  .of(context)!
-                  .gridlockComplexity(_currentComplexity.toStringAsFixed(1)),
-              style: SpaceTheme.bodyStyle.copyWith(
-                fontSize: 12,
-                color: SpaceTheme.starYellow,
+        // Scrolls at large text on short screens so Cancel stays reachable.
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(SpaceTheme.alienGreen),
               ),
-            ),
-            const SizedBox(height: 32),
-            TextButton(
-              autofocus: true,
-              onPressed: _roundAction(() => Navigator.of(context).pop()),
-              child: Text(
-                S.of(context)!.cancel,
-                style: const TextStyle(color: SpaceTheme.cosmicPink),
+              const SizedBox(height: 24),
+              Text(
+                _loadingStatus,
+                style: SpaceTheme.headlineStyle.copyWith(fontSize: 20),
+                textAlign: TextAlign.center,
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              Text(
+                '${S.of(context)!.grade} ${widget.grade} • ${S.of(context)!.level} ${widget.level}',
+                style: SpaceTheme.bodyStyle.copyWith(fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                S
+                    .of(context)!
+                    .gridlockComplexity(_currentComplexity.toStringAsFixed(1)),
+                style: SpaceTheme.bodyStyle.copyWith(
+                  fontSize: 12,
+                  color: SpaceTheme.starYellow,
+                ),
+              ),
+              const SizedBox(height: 32),
+              TextButton(
+                autofocus: true,
+                onPressed: _roundAction(() => Navigator.of(context).pop()),
+                child: Text(
+                  S.of(context)!.cancel,
+                  style: const TextStyle(color: SpaceTheme.cosmicPink),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1624,8 +1621,8 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
     final performance = moveCount <= minMoves
         ? s.spaceGridlockPerfect
         : moveCount <= minMoves + 3
-        ? s.spaceGridlockGreat
-        : s.spaceGridlockGood;
+            ? s.spaceGridlockGreat
+            : s.spaceGridlockGood;
     return AnimatedBuilder(
       animation: _successAnimation,
       builder: (context, child) => Transform.scale(
@@ -1801,23 +1798,23 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
 class SpaceShip {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-    'row': row,
-    'col': col,
-    'length': length,
-    'isHorizontal': isHorizontal,
-    'isPlayer': isPlayer,
-    'isBlocking': isBlocking,
-    'color': color.toARGB32(),
-  };
+        'row': row,
+        'col': col,
+        'length': length,
+        'isHorizontal': isHorizontal,
+        'isPlayer': isPlayer,
+        'isBlocking': isBlocking,
+        'color': color.toARGB32(),
+      };
   factory SpaceShip.fromJson(Map<String, dynamic> json) => SpaceShip(
-    row: json['row'] as int,
-    col: json['col'] as int,
-    length: json['length'] as int,
-    isHorizontal: json['isHorizontal'] as bool,
-    isPlayer: json['isPlayer'] as bool,
-    isBlocking: json['isBlocking'] as bool,
-    color: Color(json['color'] as int),
-  );
+        row: json['row'] as int,
+        col: json['col'] as int,
+        length: json['length'] as int,
+        isHorizontal: json['isHorizontal'] as bool,
+        isPlayer: json['isPlayer'] as bool,
+        isBlocking: json['isBlocking'] as bool,
+        color: Color(json['color'] as int),
+      );
 
   int row;
   int col;
