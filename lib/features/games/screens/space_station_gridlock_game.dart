@@ -298,15 +298,13 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
 
   void _log(String message, [Map<String, dynamic>? data]) {
     if (!kDebugMode) return;
-    const prefix = '[SpaceGridlock]';
-    if (data != null && data.isNotEmpty) {
-      debugPrint(
-        '$prefix $message: ${data.entries.map((e) => '${e.key}=${e.value}').join(', ')}',
-      );
-    } else {
-      debugPrint('$prefix $message');
-    }
+    debugPrint('[SpaceGridlock] $message${_logDetails(data)}');
   }
+
+  static String _logDetails(Map<String, dynamic>? data) =>
+      data == null || data.isEmpty
+          ? ''
+          : ': ${data.entries.map((e) => '${e.key}=${e.value}').join(', ')}';
 
   void _debugPrintOriginalBoard(String? originalBoard) {
     if (!kDebugMode || originalBoard == null) return;
