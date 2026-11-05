@@ -1,37 +1,50 @@
 # NumberNebula: current state and agent handover
 
-Updated 2026-10-19. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
+Updated 2026-11-05. Public repository: [CrispStrobe/NumberNebula](https://github.com/CrispStrobe/NumberNebula).
 Live app: [numbernebula.vercel.app](https://numbernebula.vercel.app).
 
-## Latest implementation and validation
+## Current state (2026-10-28)
 
-The merged Molecule repair is **1.5.39+55**, exact source
-[`32383b4`](https://github.com/CrispStrobe/NumberNebula/commit/32383b40e93f9e84dd7f8a69dc59dcb68f8c6203),
-[PR #65](https://github.com/CrispStrobe/NumberNebula/pull/65).
-Merged-main [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851186)
-and [pure calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851385)
-succeeded: strict analysis, 1,879 native cases including all 56 Molecule cases,
-and 60,400 generation cases across 48 games with zero failures. The main
-[web/deployment run](https://github.com/CrispStrobe/NumberNebula/actions/runs/39249851150)
-passed build, 864 capture/replays and the full artifact browser matrix: 47 passed,
-one existing Chromium loader skip, zero flaky results or observed retries.
-Actual raw reports and literal main source identity were independently verified.
-Its deployment failed on the hosting service; do not claim the aggregate or
-main publication green. Native/generation/artifact-browser evidence remains valid.
+`main` is at version **1.5.45+61**: the app code evaluated below
+([`b84a927`](https://github.com/CrispStrobe/NumberNebula/commit/b84a927), 1.5.44+60)
+plus the removal of all age and child-audience statements. The owner ruled on
+2026-10-28 that the app is for math learners of all ages; see lane U item 1 in
+REMAINING_WORK.md and `test/docs/no_age_targeting_test.dart`. Since the Molecule
+baseline (1.5.39+55, described below), these changes have landed:
 
-The previously tested PR artifact was already published to the
-[live app](https://numbernebula.vercel.app) without rebuilding, with runtime marker
-`9320fca` and complete source tree equal to `32383b4`. Its supplemental
-[canonical proof](https://numbernebula-abk9nhtgk-crispstrobes-projects.vercel.app/hosted-proof.json)
-passed both actual Molecule engine checks, zero skips/retries/errors and stable
-five-file hashes. This is a two-case deployed report; the main full deployed
-matrix remains unverified following that deployment failure. PR #65 records detailed source and report provenance.
+- [PR #68](https://github.com/CrispStrobe/NumberNebula/pull/68) (`1672c66`): store
+  text only. The App Store rejected 1.4.10 under guideline 2.3.8 because the
+  subtitle said "for kids". See [release readiness](docs/release-readiness.md).
+- [PR #67](https://github.com/CrispStrobe/NumberNebula/pull/67) (`a6de6a2`): the
+  48-game practice/Üben rewrite, with 5 failing native tests fixed before merging.
+  See [practice rules](docs/practice-rules-and-difficulty.md#status-2026-10-28).
+- `8b39a33`: fixes the web live test that had failed since PR #67's first head
+  (live-region text matched twice). `b84a927` reverts a `Podfile.lock` change
+  swept into that commit.
 
-The next Gridlock candidate is **1.5.40+56**, with
-[implementation and executable validation steps](docs/gridlock-round-audit.md).
-Its 37 original-API and six controlled loader tests are prepared, not yet passing
-evidence. There are still 36 validated/implemented prior focused audits and twelve
-remaining until this candidate is verified. Preserve all game rules and generators.
+Evidence: at `b84a927`, [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700725093)
+and [pure calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/40700724702)
+passed. At `ddc72f3` (same app code as 1.5.45+61), [CI](https://github.com/CrispStrobe/NumberNebula/actions/runs/40738365561),
+[calibration](https://github.com/CrispStrobe/NumberNebula/actions/runs/40738365624) and the
+[web build, live tests, deploy and pages](https://github.com/CrispStrobe/NumberNebula/actions/runs/40738365648)
+all passed; on 2026-11-05 the live site's `version.json` reported 1.5.45 (61).
+PRs #67 and #68 were merged with admin rights before their required checks
+finished; the checks above ran afterwards on `main`.
+
+Store (2026-11-05): after nine days in Waiting for Review, iOS 1.4.10 was withdrawn
+and **1.5.45 (61) was submitted for App Store review on both iOS and macOS**, with
+the all-ages store text and release type Manual (the owner releases after
+approval). 1.5.45 (61) passed Beta App Review and is in TestFlight for internal and
+external testers on both platforms. macOS 1.4.10 stays live until 1.5.45 is
+released. The details, and a release path that does not need GitHub's macOS
+runners, are in [docs/release-readiness.md](docs/release-readiness.md).
+
+The only open PR is the Gridlock repair, [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66),
+now version **1.5.46+62** and merged with `main`. Its 2 failing small-screen tests
+were a real input bug: inside the scroll view used below 650 px height or at
+large text, a free pan needed 36 px before it beat vertical scrolling, so short
+ship drags did nothing. Ship drags are now locked to the ship's axis and measured
+from touch-down. Its remaining steps are in lane D of [REMAINING_WORK.md](REMAINING_WORK.md).
 
 ## Preceding verified main publication
 
@@ -68,8 +81,7 @@ checks in [PR #63](https://github.com/CrispStrobe/NumberNebula/pull/63) also suc
 
 ## October 18 integration
 
-Current candidate: **1.5.40+56**, under validation; see the [Gridlock audit](docs/gridlock-round-audit.md).
-The preceding implemented version is **1.5.39+55**, [PR #65](https://github.com/CrispStrobe/NumberNebula/pull/65); its merged-main deployment failed and needs a verified retry as described above.
+Implemented on October 19: **1.5.39+55** (since superseded; see Current state); see the [Molecule audit](docs/molecule-builder-round-audit.md).
 The preceding implemented version is **1.5.38+54**, [PR #64](https://github.com/CrispStrobe/NumberNebula/pull/64); see the [Relic Assembly audit](docs/relic-assembly-round-audit.md).
 Its 39 focused cases include held-pointer isolation for generation-error retry.
 Its final 39-case source is verified above; earlier 38-case results do not validate that follow-up.
@@ -110,7 +122,7 @@ Puzzle Math (B) is implemented in [PR #61](https://github.com/CrispStrobe/Number
 verify its repair PR before treating it as a green baseline. Relic Assembly (C)
 has an [implementation under validation](docs/relic-assembly-round-audit.md).
 Molecule Builder (D) is [implemented under validation](docs/molecule-builder-round-audit.md).
-Gridlock (D) is a candidate under validation, followed by the unchanged D/E/F games. H has a
+The next screen audit is Gridlock (D), followed by the unchanged D/E/F games. H has a
 [prepared playtest protocol](docs/human-playtest-protocol.md); R has a
 [draft readiness document](docs/release-readiness.md). Neither claims device
 measurements or a new store release.
@@ -249,12 +261,11 @@ cost; do not automatically retune child-facing pars.
 
 ## Release boundary
 
-Web deployment is verified above. No new App Store upload or release is claimed.
-The previously reported 1.4.10 iOS “Waiting for Review” and macOS “Pending
-Developer Release” are historical, unverified now. Recheck both platforms in
-App Store Connect before deciding what can be released. Current source version
-and current store build are separate facts. Release preparation is lane R in
-[REMAINING_WORK.md](REMAINING_WORK.md).
+The current store state is in [docs/release-readiness.md](docs/release-readiness.md)
+(checked 2026-10-28). Recheck it with `tool/asc/asc.py status`, or the `status`
+lane of `submit.yml`, before any store action: review states change without a
+commit. Uploads and review submissions remain deliberate manual actions (lane R).
+Current source version and current store build are separate facts.
 
 ## Evidence and document ownership
 

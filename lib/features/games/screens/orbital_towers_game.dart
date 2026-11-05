@@ -15,6 +15,8 @@ import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/strategy_hint_dialog.dart';
 import '../services/hint_completion_solver.dart';
+import '../services/numeric_hint_guidance.dart';
+import '../models/practice_lesson_catalog.dart';
 import '../widgets/game_ui.dart';
 import '../widgets/orbital_towers_diagram.dart';
 import '../../../shared/widgets/onboarding_overlay.dart';
@@ -404,12 +406,29 @@ class _OrbitalTowersGameState extends State<OrbitalTowersGame>
     final line = List.generate(p.size, (c) => completion?['r${row}c$c'] ?? 0);
     final visible =
         OrbitalTowersPuzzle.visibilityAlongLine(line).where((v) => v).length;
+    final german = Localizations.localeOf(context).languageCode == 'de';
+    final lesson = practiceLessons['orbital_towers']!;
+    final guidance = numericHintGuidance(
+        'orbital_towers',
+        {
+          'puzzle': p.toJson(),
+          'answers': initial,
+          '_hintVerified': compatible,
+          '_hintTarget': cell,
+          '_hintValue': value,
+        },
+        german: german);
     StrategyHintDialog.show(context,
-        focus: s.hintTowerFocus(row + 1, column + 1),
-        strategy: s.hintTowerStrategy,
-        working: compatible
-            ? '${line.join(' → ')} · 📷 $visible\n${s.hintPossibleMove(value!)}'
-            : s.hintCheckPlacements,
+        focus: guidance?['focus'] ?? s.hintTowerFocus(row + 1, column + 1),
+        strategy: {
+          german ? lesson.rulesDe : lesson.rulesEn,
+          guidance?['strategy'] ??
+              (german ? lesson.strategyDe : lesson.strategyEn),
+        }.join('\n\n'),
+        working: guidance?['working'] ??
+            (compatible
+                ? '${line.join(' → ')} · 📷 $visible\n${s.hintPossibleMove(value!)}'
+                : s.hintCheckPlacements),
         demonstrate: compatible
             ? () {
                 if (mounted) {

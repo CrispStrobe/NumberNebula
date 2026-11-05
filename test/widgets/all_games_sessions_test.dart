@@ -47,7 +47,7 @@ void main() {
               '$key g$grade l$level sample$sample restores its complete gameplay snapshot',
               (tester) async {
             SharedPreferences.setMockInitialValues({
-              'onboarding_seen_${key}_all_games_guided_v1': true,
+              'onboarding_seen_${key}_all_games_guided_v3_mechanics': true,
             });
             ProfilePreferences.activeId = 'default';
             PuzzleSessionStore.resetForTesting();

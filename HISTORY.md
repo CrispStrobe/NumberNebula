@@ -1,5 +1,52 @@
 # Completed work — space_math_academy & voc (WortUniversum)
 
+## 2026-11-05 — 1.5.45 (61) submitted to the App Store on iOS and macOS
+
+- iOS 1.4.10 (14) had been Waiting for Review for nine days. Its submission was
+  cancelled, the version record renamed to 1.5.45 with build 61, and a macOS
+  1.5.45 version created with build 61. Both were submitted on 2026-11-05
+  (release type Manual). Build 61 had already passed Beta App Review on both
+  platforms.
+- Store text: 48 mini-games instead of "20+" in `fastlane/metadata`; the
+  promotional text is live on both platforms, and the descriptions follow with the
+  next version.
+- `tool/asc/asc.py`: `push-metadata --macos`, release notes ("What's New",
+  skipped on a platform's first release), and `submit [--macos]`.
+- Web deployment of 1.5.45 (61) confirmed live.
+
+## 2026-10-27/28 — App Store 2.3.8 fix, practice rewrite merged, TestFlight 1.5.44 (60)
+
+- **App Review 2.3.8 (Accurate Metadata).** 1.4.10 (14) was rejected on
+  2026-10-27 because the subtitle "Cosmic math games for kids" implied a
+  Kids-category app. PR #68 changed only `fastlane/metadata`: subtitle "Cosmic math
+  puzzle games", audience "math learners of all ages", `kids`/`kinder` removed from
+  the keywords, and review notes updated. The text was pushed through the App
+  Store Connect API. The submission's newly required `socialMedia` age-rating
+  answer was set to `false`, and the same binary was resubmitted. State: Waiting
+  for Review.
+- **PR #67 merged** (`a6de6a2`, 1.5.44+60): the 48-game practice/Üben rewrite.
+  Before the merge, 5 failing native tests were fixed. The onboarding overlay
+  keeps Next on screen on landscape phones and scrolls the whole card only at
+  large text scales. The Wormhole size test was aligned with the staged guided
+  profile. Native CI and pure calibration passed on `main` afterwards.
+- **Web live test** for the published practice lesson had failed since PR #67's
+  first head (live-region text exposed twice); fixed in `8b39a33`.
+- **TestFlight 1.5.44 (60)** was built, signed and uploaded from the maintainer's
+  Mac while GitHub's free-tier macOS runners stayed queued. Internal testers have
+  it; the External Testers group was added and Beta App Review is pending.
+- **`tool/asc/asc.py`** added: App Store Connect status, metadata push, resubmission
+  and TestFlight distribution without fastlane or CI.
+  [docs/release-readiness.md](docs/release-readiness.md) records the current store
+  state and the local release path. REMAINING_WORK gained lanes S (store listing),
+  T (release tooling) and U (all-ages product ideas).
+- **No age targeting** (1.5.45+61, owner ruling): the Settings "Target age" row
+  ("8-12 years" / "6-12 Jahre") is removed. The About text, privacy dialog,
+  privacy policy (web and docs) and web descriptions no longer name an age or a
+  child/school audience. `test/docs/no_age_targeting_test.dart` guards this.
+  Uploaded to TestFlight as **1.5.45 (61) for iOS and macOS** (macOS built locally
+  following `release.yml`, validated by `altool` before upload); Beta App Review
+  is pending for both.
+
 ## 2026-10-19 — Molecule Builder round implementation
 
 Version **1.5.39+55** implements the [Molecule audit](docs/molecule-builder-round-audit.md).

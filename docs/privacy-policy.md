@@ -1,8 +1,8 @@
 # Privacy Policy — NumberNebula
 
-_Last updated: 2 October 2026_
+_Last updated: 28 October 2026_
 
-NumberNebula is designed for children and built to be private by default.
+NumberNebula is built to be private by default.
 
 ## Data we collect
 

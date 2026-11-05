@@ -1011,7 +1011,6 @@ class _SettingsScreenState extends State<SettingsScreen>
             },
           ),
           _buildInfoRow(s.developer, s.developerName), // Using ARB string
-          _buildInfoRow(s.targetAge, s.targetAgeRange), // Using ARB string
           
           const SizedBox(height: 8),
 

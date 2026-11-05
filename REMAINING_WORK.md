@@ -1,9 +1,22 @@
 # Executable next-work lanes
 
-Updated 2026-10-19. Read [HANDOVER.md](HANDOVER.md) first for the green shipping
-baseline and completed audits. These are scoped next steps, not claims that the
-named games are broken. Each round-audit batch below is independent; implement
-one game per PR rather than combining an entire batch.
+Updated 2026-11-05. Read [HANDOVER.md](HANDOVER.md) first for the current state,
+the shipping baseline and completed audits. These are scoped next steps, not claims
+that the named games are broken. Each round-audit batch below is independent;
+implement one game per PR rather than combining an entire batch.
+
+## Next up (in this order)
+
+1. **Watch App Review** (lane R, step 2): 1.5.45 (61) for iOS and macOS,
+   submitted 2026-11-05, release type Manual. React only to Apple's messages; do
+   not resubmit proactively, and do not release without the owner.
+2. **Gridlock PR #66** (lane D): see its status there.
+3. **Store listing fixes** (lane S): screenshots, truncated cards. The game
+   count is fixed. Text changes need no app build.
+4. **Release tooling** (lane T): build numbers, fastlane lanes, local release
+   script. This stops the next release from going through what 2026-10-27/28 did.
+5. Then the remaining round audits (B–F), lane L validation and the product
+   ideas in lane U, as capacity allows.
 
 ## Player availability
 
@@ -112,7 +125,7 @@ Next audit Molecule Builder in D, with one game per PR.
 ## D — Planning and bundled-level rounds
 
 **Status:** Gridlock is a [candidate under validation](docs/gridlock-round-audit.md),
-version **1.5.40+56**, with 37 prepared original-API tests and six database seams.
+version **1.5.46+62**, with 37 prepared original-API tests and six database seams.
 Run those remotely, compare final original-API bytes against baseline, complete
 missing resume/navigation/fallback/phone cases, and verify exact-head/full-main
 publication before closing the audit. Its initial 13-case baseline has two positive
@@ -126,6 +139,28 @@ snapshots, authored levels/progression/fallback and existing score/quality refer
 
 **Remaining games/screens:** `space_station_gridlock_game.dart`,
 `star_loader_game.dart`, `robot_path_game.dart`, `solarpanel_game.dart`.
+
+**Gridlock already has a draft: [PR #66](https://github.com/CrispStrobe/NumberNebula/pull/66)**
+(branch `fix/gridlock-round-isolation`, version **1.5.46+62**). Status on
+2026-11-05:
+- The 2 failing cases in `test/widgets/space_station_gridlock_round_test.dart`
+  (`Gridlock: en/de 390x500.0 text2 keeps actual legal drag and current result
+  Next reachable`) were a real input bug. Below 650 px height, or at large text,
+  the board sits in a vertical `SingleChildScrollView`. A free pan must travel
+  36 px (twice the touch slop) before it beats vertical scrolling, and the move
+  threshold was then measured from that point, so a short horizontal drag never
+  moved a ship. `_buildShip` now uses axis-locked horizontal/vertical drag
+  callbacks with `DragStartBehavior.down`; the 20 px step threshold is unchanged.
+- `origin/main` is merged in; `pubspec.yaml` is 1.5.46+62.
+To finish it:
+1. Read the PR's checks at its head. If `analyze-and-test` still fails, read
+   `gh run view <id> --log-failed` and fix the cause, not the test.
+2. Mark the PR ready only when `analyze-and-test`, `build` and `live-test` pass
+   at the exact head; then merge and verify on `main`.
+3. Ship it like 1.5.45: build 62 to TestFlight (lane T / release readiness), and
+   submit it for App Store review only after 1.5.45 is released and with the
+   owner's go-ahead.
+The scope below is what PR #66 was written against; use it to review the PR.
 
 Start with Gridlock, using `shipsFromBoard` and a legal authored board such as
 `GRID_1`. Independently check occupancy after every fixture step. Ships have no
@@ -263,18 +298,148 @@ run in parallel; do not let separate agents race on them.
 
 ## R — Store release readiness
 
-**Status:** [Draft preparation available](docs/release-readiness.md); current store state requires authorized
-App Store Connect access. **Owner files:** `.github/workflows/release.yml`,
-`.github/workflows/submit.yml`, `pubspec.yaml`, public release notes.
+**Status (2026-10-28):** see the "Current state" table in
+[docs/release-readiness.md](docs/release-readiness.md). iOS 1.4.10 (14) is in
+review; 1.5.44 (60) is in TestFlight; macOS 1.4.10 is live. **Owner files:**
+`.github/workflows/release.yml`, `submit.yml`, `fastlane/`, `tool/asc/asc.py`,
+`pubspec.yaml`.
 
-Read the two workflows and check platform/version/build mapping. Prepare release
-notes for the current code and identify which tested commit would be uploaded.
-Recheck current iOS/macOS review states and build numbers; the old 1.4.10 states
-are not current evidence. Distinguish upload, review submission and developer
-release, and use the authorized release policy before executing store actions.
-**Done:** a verified platform-by-platform readiness table and, if authorized,
-release outcome with public-safe notes. Keep account IDs, keys and machine
-instructions out of repo docs. Web deployment is already green at the baseline.
+1. **Web deployment: done.** The [web run](https://github.com/CrispStrobe/NumberNebula/actions/runs/40738365648)
+   for `ddc72f3` passed build, live-test, deploy and pages, and on 2026-11-05 the
+   live site's `version.json` reported 1.5.45 (61) with the all-ages description.
+   For later heads, repeat the same check.
+2. **App Review for 1.5.45 (61), iOS and macOS** (submitted 2026-11-05). Check
+   with `tool/asc/asc.py status`.
+   - If approved: release type is Manual. Ask the owner before releasing; they
+     may release in App Store Connect themselves. Releasing macOS 1.5.45 replaces
+     the live 1.4.10 listing's old "kids" text.
+   - If rejected: read the message in App Store Connect. Apple's review history
+     for this app includes 4.3(a) (spam/template) and an Extended Review
+     warning, so any reply or resubmission needs the owner's explicit go-ahead.
+     For metadata-only issues, fix `fastlane/metadata`, then run
+     `asc.py push-metadata --write [--macos]` and `asc.py resubmit`.
+   - If it sits in Waiting for Review for more than a week again, tell the
+     owner; an expedited-review request is only possible on the web.
+3. **Next store version.** After 1.5.45 is released, the next version (for
+   example 1.5.46 with PR #66) follows the same path: upload the build (62+),
+   create the App Store version, attach the build, update
+   `fastlane/metadata/*/release_notes.txt`, `push-metadata --write`, `submit`.
+   That version also carries the "48 mini-games" descriptions.
+**Done:** each platform's state is recorded with date and evidence in
+`docs/release-readiness.md`. Keep account IDs, keys and machine instructions out
+of repo docs.
+
+## S — Store listing and screenshots
+
+**Status:** Ready. Mostly no app build needed. **Owner files:** `fastlane/metadata/`,
+`fastlane/screenshots/`, and the game cards in the menu screen (see
+`lib/features/games/game_registry.dart` for the card text sources).
+
+1. **Game count: done 2026-11-05.** `fastlane/metadata` says 48 everywhere; the
+   promotional text is live on both platforms, and the descriptions ship with the
+   version after 1.5.45 (they were locked in review). Keep the audience wording as "math
+   learners of all ages" / "Mathe-Lernende jeden Alters". **Never** reintroduce
+   "kids"/"Kinder" or school grades as the target audience in the name, subtitle,
+   keywords, screenshots or icon: that was the 2.3.8 rejection. Promotional text
+   can be changed at any time; the description changes with the next version.
+   Apply with `tool/asc/asc.py push-metadata --write` only while a version is
+   editable, and only with the owner's go-ahead while a review is pending.
+2. **Check two possible layout defects** seen in `fastlane/screenshots/en-US/iphone-*.png`
+   (2868×1320 landscape):
+   - a black rounded pill along the left edge of both shots;
+   - on the home screen, a red-outlined counter pill showing only "1", with an
+     empty area where an icon or label should be.
+   Reproduce on an iPhone simulator in landscape. Decide whether each is a
+   capture artifact or a real safe-area/layout bug, and fix real bugs with a
+   widget test at 2868×1320 and 844×390.
+3. **Retake screenshots that show gameplay.** All 6 current shots show home or
+   menu screens. Capture 3–4 distinctive games mid-round (for example the Comm
+   Relay cipher wheel, Cargo Loader, 3D Block Counter, Magic Triangles), English
+   and German, on the device sizes App Store Connect requires. Avoid any text
+   implying a child audience. Uploading screenshots is a store action: `appstore_submit`
+   skips screenshots on purpose, so upload them deliberately (`deliver` with
+   screenshots, or the console).
+4. **Truncated card descriptions.** Menu cards cut descriptions mid-word on phones
+   (for example "Each side of the triangle must sum to th…"). Either add short
+   one-line taglines per game (en/de l10n) or show the full text on long-press.
+   Test at 390×844, at 844×390 and at text scale 2. This is a shipping-code
+   change and needs a version bump.
+**Done:** metadata says 48 games everywhere; screenshot defects are explained or
+fixed; new screenshots are uploaded with owner approval.
+
+## T — Release tooling
+
+**Status:** Ready. **Owner files:** `tool/asc/asc.py`, `fastlane/Fastfile`,
+`.github/workflows/release.yml`, `submit.yml`, `tool/bump_version.dart`.
+Background: the 2026-10-27/28 release had to bypass CI. Read the "Local release
+path" in [docs/release-readiness.md](docs/release-readiness.md) first.
+
+1. **Build numbers from App Store Connect.** Builds were uploaded from a branch
+   (59) while `main` still said 55, so `pubspec.yaml` drifted behind the store. Add
+   a check, in `release.yml` before the build or in `asc.py`, that fails when the
+   `pubspec.yaml` build number is ≤ the highest build in App Store Connect, and
+   prints the next free number. Do not auto-commit version bumps from CI.
+2. **Fastfile `status` lane.** It crashes listing submission items: `undefined
+   method review_submission_items` (Spaceship). Use the
+   `/v1/reviewSubmissions/{id}?include=items` API, or drop the item listing. It
+   also prints no builds, because it filters by the pubspec version only; list
+   the latest builds instead.
+3. **Fastfile `appstore_submit` lane.** It cannot resubmit an existing
+   `UNRESOLVED_ISSUES` submission, and it fails opaquely on new required
+   age-rating attributes. Either port `asc.py resubmit` (resolve item → submit)
+   into the lane, or document `asc.py` as the supported path and make the lane
+   refuse with a clear message. It also takes the version from `pubspec.yaml`, so
+   add an optional `app_version`/`build_number` input to `submit.yml` instead of
+   requiring a temporary branch with an edited pubspec.
+4. **Local signing.** Document in `docs/release-readiness.md` (public-safe, no
+   key or keychain names) how to check signing readiness before a local build
+   (`security find-identity -v -p codesigning`, a `codesign` test on a scratch
+   file). Ask the owner whether the distribution identity should move into a
+   NumberNebula-specific keychain; today it lives in a keychain shared with
+   another project, which was locked during the release. That is the owner's
+   decision.
+5. **`asc.py` follow-ups.** `testflight` sets only en-US "What to Test"; add de-DE.
+   `testflight` already takes `--macos`; add the same to `push-metadata`, which
+   today edits the iOS App Store version only.
+**Done:** a release can be checked, uploaded and distributed without the macOS
+runner, and the CI path fails early with actionable messages.
+
+## U — Product ideas for the "all ages" positioning
+
+**Status:** Ideas; each needs an owner decision before implementation. The store
+now says "for math learners of all ages", while the app's progression and copy
+still center on grades 1–4 (for example "Grades 1–4 progression" was removed from
+the store text, but in-app labels still say grade/Klasse in places).
+
+1. **No age targeting (owner ruling 2026-10-28; done in 1.5.45+61).** The owner
+   decided the app must state **no age ranges and no child/school audience
+   anywhere**: "a 30-year-old may still want to play such games". The following
+   were removed or rephrased:
+   - the Settings "Target age" row and its strings;
+   - the "About" text;
+   - the "designed for primary-school learners/children" and "your child" wording
+     in the in-app privacy dialog, `web/privacy.html` and `docs/privacy-policy.md`;
+   - the web `index.html`/`manifest.json` descriptions.
+   `test/docs/no_age_targeting_test.dart` now fails if age ranges ("8-12 years"),
+   "for kids/children", "primary school", "young learners" or "your child" reappear
+   in the translations, the privacy dialog, the web files or `fastlane/metadata`.
+   Saying the app is *safe* for children (COPPA/GDPR-K) is allowed and kept.
+   Remaining, optional: user-visible labels already say "Skill Level"/"Stufe". The
+   internal `grade` parameter, saved keys and data must **not** be renamed (that
+   would lose progress). Extend the guard test's file list if new user-facing
+   text sources are added.
+2. **Higher levels:** most generators accept grades up to 6 (calibration covers
+   six grades). Evaluate exposing a fifth/sixth skill level for teens and adults,
+   using lane G's structural evidence. One game per PR, legacy path preserved.
+3. **Daily puzzle + streak:** one seeded puzzle per day across the 48 games, with
+   the existing streak service (`lib/core/services/streak_service.dart`). Must stay
+   offline and keep no accounts or analytics (the store says no data collection).
+4. **More languages:** only en/de exist. French and Spanish would widen reach.
+   This needs full `.arb` translations, store metadata folders and a localized
+   rendering pass at text scale 2.
+5. **Playtest signal:** with external TestFlight live, an opt-in, on-device-only
+   "how hard was this?" prompt after a round could feed lane H. Do not collect or
+   transmit data without an explicit privacy decision by the owner.
 
 ## Optional housekeeping
 
@@ -285,3 +450,32 @@ instructions out of repo docs. Web deployment is already green at the baseline.
   actually changes; re-encoding unchanged source art is not a gameplay fix.
 - Historical design briefs/specs describe original implementation tasks. Verify
   current source before treating their old assignments as open work.
+
+
+## L — Practice rules and comparable difficulty
+
+**Status (2026-10-28):** the 48-game lesson/hint rewrite is **merged** (PR #67,
+`a6de6a2`, shipping in 1.5.44+60) and in TestFlight. Native CI and pure
+calibration passed on `main`. See [the correction document](docs/practice-rules-and-difficulty.md),
+especially "Status (2026-10-28)" for the overlay layout and test changes made at
+merge time.
+
+Remaining validation, in order:
+1. Done: the web live test `deployment.spec.mjs › published practice lesson
+   accepts an actual wrong and correct choice` passed on `main` at `b84a927`.
+2. Run all three fixed-fixture contract checks and the 48 bilingual rendered
+   wrong/correct lessons (`test/widgets/all_games_coaching_test.dart`). Verify
+   shared live hints, restored states, pause and learning records. No text-presence
+   test alone counts as mechanic validation.
+3. Run the pure job's 360-profile comparison. Address the numeric audit's
+   expression-display ambiguities with rendered regressions.
+4. Extend the structural comparison to all 48 games. Keep independent tasks,
+   dependency depth, distractions and time pressure separate. Make one
+   reproducible tuning change at a time, keeping a selectable old path.
+5. Wormhole: `MagicTriangleGenerationConfig` (in
+   `lib/features/games/services/generation_configs.dart`) now caps guided boards
+   at 6 per side for grade 6, level 10 (legacy reaches 7). If larger guided boards
+   are wanted at the top levels, change the formula there. Keep
+   `test/logic/practice_difficulty_test.dart` monotonic, and update the size
+   expectation in `test/logic/magic_triangle_solver_test.dart`.
+Actual child calibration still requires lane H's playtest protocol.

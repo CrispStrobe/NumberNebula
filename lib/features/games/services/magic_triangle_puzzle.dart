@@ -1,4 +1,6 @@
 import 'generator_random.dart';
+import 'algorithm_path.dart';
+import 'generation_configs.dart';
 import 'magic_triangle_solver.dart';
 import 'dart:math' as math;
 
@@ -7,27 +9,31 @@ import 'generator_diagnostics.dart';
 class MagicTrianglePuzzle {
   /// Exact local-session snapshot, including mutable model state.
   Map<String, dynamic> toJson() => {
-        'circlesPerSide': circlesPerSide,
-        'warpFrequency': warpFrequency,
-        'hiddenIndices': hiddenIndices.map((v0) => v0).toList(),
-        'visibleValues':
-            visibleValues.entries.map((v0) => [v0.key, v0.value]).toList(),
-        'allNumbers': allNumbers.map((v0) => v0).toList(),
-        'numberPool': numberPool.map((v0) => v0).toList()
-      };
-  factory MagicTrianglePuzzle.fromJson(Map<String, dynamic> json) =>
-      MagicTrianglePuzzle(
-          circlesPerSide: json['circlesPerSide'] as int,
-          warpFrequency: json['warpFrequency'] as int,
-          hiddenIndices:
-              (json['hiddenIndices'] as List).map((v0) => v0 as int).toSet(),
-          visibleValues: Map<int, int>.fromEntries(
-              (json['visibleValues'] as List)
-                  .map((v0) => MapEntry(v0[0] as int, v0[1] as int))),
-          allNumbers:
-              (json['allNumbers'] as List).map((v0) => v0 as int).toList(),
-          numberPool:
-              (json['numberPool'] as List).map((v0) => v0 as int).toList());
+    'circlesPerSide': circlesPerSide,
+    'warpFrequency': warpFrequency,
+    'hiddenIndices': hiddenIndices.map((v0) => v0).toList(),
+    'visibleValues': visibleValues.entries
+        .map((v0) => [v0.key, v0.value])
+        .toList(),
+    'allNumbers': allNumbers.map((v0) => v0).toList(),
+    'numberPool': numberPool.map((v0) => v0).toList(),
+  };
+  factory MagicTrianglePuzzle.fromJson(
+    Map<String, dynamic> json,
+  ) => MagicTrianglePuzzle(
+    circlesPerSide: json['circlesPerSide'] as int,
+    warpFrequency: json['warpFrequency'] as int,
+    hiddenIndices: (json['hiddenIndices'] as List)
+        .map((v0) => v0 as int)
+        .toSet(),
+    visibleValues: Map<int, int>.fromEntries(
+      (json['visibleValues'] as List).map(
+        (v0) => MapEntry(v0[0] as int, v0[1] as int),
+      ),
+    ),
+    allNumbers: (json['allNumbers'] as List).map((v0) => v0 as int).toList(),
+    numberPool: (json['numberPool'] as List).map((v0) => v0 as int).toList(),
+  );
 
   final int circlesPerSide;
   final int totalCircles;
@@ -54,7 +60,8 @@ class MagicTrianglePuzzle {
         if (i == globalIndex) {
           if (kDebugMode) {
             traceGenerator(
-                "🔍 [Puzzle] Found globalIndex $globalIndex at answerIndex $answerIndex");
+              "🔍 [Puzzle] Found globalIndex $globalIndex at answerIndex $answerIndex",
+            );
           }
           return answerIndex;
         }
@@ -63,22 +70,39 @@ class MagicTrianglePuzzle {
     }
     if (kDebugMode) {
       traceGenerator(
-          "❌ [Puzzle] globalIndex $globalIndex not found in hiddenIndices");
+        "❌ [Puzzle] globalIndex $globalIndex not found in hiddenIndices",
+      );
     }
     return -1;
   }
 
   static MagicTrianglePuzzle generate(Map<String, int> args) {
+    if (algorithmPath == AlgorithmPath.legacy) {
+      recordAlgorithm('magic_triangles', 'legacy');
+      return _generate(args, guided: false);
+    }
+    recordAlgorithm('magic_triangles', 'guided');
+    return _generate(args, guided: true);
+  }
+
+  static MagicTrianglePuzzle _generate(
+    Map<String, int> args, {
+    required bool guided,
+  }) {
     final grade = args['grade']!;
     final level = args['level']!;
 
     if (kDebugMode) {
       traceGenerator("\n--- Generating Enhanced Triangle Puzzle ---");
     }
-    int circlesPerSide = _determineCirclesPerSide(grade, level);
+    final profile = MagicTriangleGenerationConfig(grade, level);
+    final circlesPerSide = guided
+        ? profile.circlesPerSide
+        : _determineCirclesPerSide(grade, level);
     final totalCircles = (circlesPerSide * 3) - 3;
     traceGenerator(
-        "[Wormhole] Parameters: Grade=$grade, Level=$level -> circlesPerSide=$circlesPerSide");
+      "[Wormhole] Parameters: Grade=$grade, Level=$level -> circlesPerSide=$circlesPerSide",
+    );
 
     final stopwatch = Stopwatch()..start();
     List<int>? solution;
@@ -88,7 +112,8 @@ class MagicTrianglePuzzle {
     while (solution == null && attempts < 15) {
       if (attempts > 0) {
         traceGenerator(
-            "... Retrying puzzle generation (attempt ${attempts + 1}) ...");
+          "... Retrying puzzle generation (attempt ${attempts + 1}) ...",
+        );
       }
 
       allNumbers = _generateNumberSet(grade, level, totalCircles, attempts);
@@ -105,27 +130,54 @@ class MagicTrianglePuzzle {
     if (solution == null) {
       if (kDebugMode) {
         traceGenerator(
-            "❌ [Wormhole] FATAL: Solver failed after multiple attempts. Defaulting to an easier puzzle.");
+          "❌ [Wormhole] FATAL: Solver failed after multiple attempts. Defaulting to an easier puzzle.",
+        );
       }
-      return generate({'grade': 1, 'level': 1});
+      recordAlgorithm('magic_triangles', 'legacy-fallback');
+      return _generate({'grade': 1, 'level': 1}, guided: false);
     }
 
     if (kDebugMode) {
       traceGenerator(
-          "✅ [Wormhole] Stable Alignment FOUND in ${stopwatch.elapsedMilliseconds}ms: $solution");
+        "✅ [Wormhole] Stable Alignment FOUND in ${stopwatch.elapsedMilliseconds}ms: $solution",
+      );
     }
     final warpFrequency = _calculateSideSums(solution, circlesPerSide)[0];
     traceGenerator("✨ [Wormhole] Required Warp Frequency: $warpFrequency");
 
-    int visibleCount = _determineVisibleCount(grade, level, totalCircles);
+    final visibleCount = guided
+        ? totalCircles - profile.hiddenCount
+        : _determineVisibleCount(grade, level, totalCircles);
     if (kDebugMode) {
       traceGenerator(
-          "[Wormhole] Total circles: $totalCircles, Visible: $visibleCount, Hidden: ${totalCircles - visibleCount}");
+        "[Wormhole] Total circles: $totalCircles, Visible: $visibleCount, Hidden: ${totalCircles - visibleCount}",
+      );
     }
     final allIndices = List.generate(totalCircles, (i) => i)
       ..shuffle(generatorRandom());
-    final hiddenIndices =
-        allIndices.sublist(0, totalCircles - visibleCount).toSet();
+    var hiddenIndices = allIndices
+        .sublist(0, totalCircles - visibleCount)
+        .toSet();
+    if (guided && profile.requireDeductionChain) {
+      // Keep the first levels solvable by repeated one-blank side subtraction.
+      // Do not introduce a hidden system of simultaneous equations here.
+      for (
+        var attempt = 0;
+        attempt < 32 && !_hasDeductionChain(hiddenIndices, circlesPerSide);
+        attempt++
+      ) {
+        allIndices.shuffle(generatorRandom());
+        hiddenIndices = allIndices.take(profile.hiddenCount).toSet();
+      }
+      if (!_hasDeductionChain(hiddenIndices, circlesPerSide)) {
+        // One non-corner node per side always provides an introductory chain.
+        hiddenIndices = {
+          1,
+          circlesPerSide,
+          2 * circlesPerSide - 1,
+        }.take(profile.hiddenCount).toSet();
+      }
+    }
     traceGenerator("[Wormhole] Hidden indices: $hiddenIndices");
 
     final visibleValues = <int, int>{};
@@ -136,18 +188,27 @@ class MagicTrianglePuzzle {
     }
     if (kDebugMode) traceGenerator("[Wormhole] Visible values: $visibleValues");
 
-    final hiddenNumbers =
-        allNumbers.where((n) => !visibleValues.values.contains(n)).toList();
+    final hiddenNumbers = allNumbers
+        .where((n) => !visibleValues.values.contains(n))
+        .toList();
     traceGenerator("[Wormhole] Hidden numbers: $hiddenNumbers");
 
-    final decoyCount = _calculateDecoyCount(grade, level, hiddenNumbers.length);
+    final decoyCount = guided
+        ? profile.decoyCount
+        : _calculateDecoyCount(grade, level, hiddenNumbers.length);
     final decoyNumbers = _generateEnhancedDecoys(
-        grade, level, decoyCount, allNumbers, hiddenNumbers);
+      grade,
+      level,
+      decoyCount,
+      allNumbers,
+      hiddenNumbers,
+    );
     final numberPool = (hiddenNumbers + decoyNumbers)
       ..shuffle(generatorRandom());
     if (kDebugMode) {
       traceGenerator(
-          "[Wormhole] Added $decoyCount enhanced decoy resonators: $decoyNumbers");
+        "[Wormhole] Added $decoyCount enhanced decoy resonators: $decoyNumbers",
+      );
     }
     traceGenerator("[Wormhole] Final number pool for user: $numberPool");
 
@@ -162,9 +223,29 @@ class MagicTrianglePuzzle {
 
     if (kDebugMode) {
       traceGenerator(
-          "[Wormhole] ✅ Enhanced puzzle generation complete - returning puzzle");
+        "[Wormhole] ✅ Enhanced puzzle generation complete - returning puzzle",
+      );
     }
     return puzzle;
+  }
+
+  static bool _hasDeductionChain(Set<int> hidden, int sideSize) {
+    final remaining = Set<int>.of(hidden);
+    while (remaining.isNotEmpty) {
+      var progress = false;
+      for (var side = 0; side < 3; side++) {
+        final blanks = _getSideIndices(
+          side,
+          sideSize,
+        ).where(remaining.contains).toList();
+        if (blanks.length == 1) {
+          remaining.remove(blanks.single);
+          progress = true;
+        }
+      }
+      if (!progress) return false;
+    }
+    return true;
   }
 
   static int _determineCirclesPerSide(int grade, int level) {
@@ -172,7 +253,8 @@ class MagicTrianglePuzzle {
 
     if (kDebugMode) {
       traceGenerator(
-          "[Difficulty] Grade=$grade, Level=$level, TotalDifficulty=$totalDifficulty");
+        "[Difficulty] Grade=$grade, Level=$level, TotalDifficulty=$totalDifficulty",
+      );
     }
 
     if (totalDifficulty <= 2.0) return 3;
@@ -198,18 +280,25 @@ class MagicTrianglePuzzle {
 
     if (kDebugMode) {
       traceGenerator(
-          "[Enhanced Difficulty] Grade $grade, Level $level, Total Circles $totalCircles");
+        "[Enhanced Difficulty] Grade $grade, Level $level, Total Circles $totalCircles",
+      );
     }
     traceGenerator(
-        "[Enhanced Difficulty] Visibility Ratio: ${visibilityRatio.toStringAsFixed(2)} -> Calculated: $calculatedVisible nodes");
+      "[Enhanced Difficulty] Visibility Ratio: ${visibilityRatio.toStringAsFixed(2)} -> Calculated: $calculatedVisible nodes",
+    );
     traceGenerator(
-        "[Enhanced Difficulty] Clamping between Min: $minVisible and Max: $maxVisible");
+      "[Enhanced Difficulty] Clamping between Min: $minVisible and Max: $maxVisible",
+    );
 
     return calculatedVisible.clamp(minVisible, maxVisible);
   }
 
   static List<int> _generateNumberSet(
-      int grade, int level, int totalCircles, int attempt) {
+    int grade,
+    int level,
+    int totalCircles,
+    int attempt,
+  ) {
     final random = generatorRandom();
     final difficulty = grade + (level / 5.0);
 
@@ -271,8 +360,13 @@ class MagicTrianglePuzzle {
     return totalDecoys.clamp(minDecoys, maxDecoys);
   }
 
-  static List<int> _generateEnhancedDecoys(int grade, int level, int count,
-      List<int> correctNumbers, List<int> hiddenNumbers) {
+  static List<int> _generateEnhancedDecoys(
+    int grade,
+    int level,
+    int count,
+    List<int> correctNumbers,
+    List<int> hiddenNumbers,
+  ) {
     if (kDebugMode) {
       traceGenerator("[Enhanced Decoys] Generating $count decoy numbers");
     }
@@ -281,10 +375,12 @@ class MagicTrianglePuzzle {
     final random = generatorRandom();
     final difficulty = grade + (level / 5.0);
 
-    final minCorrect =
-        correctNumbers.isNotEmpty ? correctNumbers.reduce(math.min) : 1;
-    final maxCorrect =
-        correctNumbers.isNotEmpty ? correctNumbers.reduce(math.max) : 10;
+    final minCorrect = correctNumbers.isNotEmpty
+        ? correctNumbers.reduce(math.min)
+        : 1;
+    final maxCorrect = correctNumbers.isNotEmpty
+        ? correctNumbers.reduce(math.max)
+        : 10;
     final range = maxCorrect - minCorrect;
 
     int attempts = 0;
@@ -366,11 +462,13 @@ class MagicTrianglePuzzle {
     }
 
     final usedHidden = Set.from(userAnswers);
-    final correctHidden =
-        allNumbers.where((n) => !visibleValues.values.contains(n));
+    final correctHidden = allNumbers.where(
+      (n) => !visibleValues.values.contains(n),
+    );
     if (kDebugMode) {
       traceGenerator(
-          "✅ [Puzzle] Used hidden: $usedHidden, Correct hidden: $correctHidden");
+        "✅ [Puzzle] Used hidden: $usedHidden, Correct hidden: $correctHidden",
+      );
     }
     if (usedHidden.length != correctHidden.length ||
         !usedHidden.containsAll(correctHidden)) {
@@ -402,7 +500,9 @@ class MagicTrianglePuzzle {
   }
 
   static List<int> _calculateSideSums(
-      List<int> arrangement, int circlesPerSide) {
+    List<int> arrangement,
+    int circlesPerSide,
+  ) {
     final sums = <int>[];
     for (int side = 0; side < 3; side++) {
       final indices = _getSideIndices(side, circlesPerSide);

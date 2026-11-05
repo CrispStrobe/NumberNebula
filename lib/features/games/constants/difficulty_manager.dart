@@ -10,6 +10,7 @@ export 'difficulty_config.dart';
 
 abstract interface class DifficultySource {
   int get grade;
+  int get generationGrade;
   bool get useCustomProblemSettings;
   Set<String> get customOperations;
   int get customRangeMin;
@@ -20,26 +21,33 @@ class GenerationSettings implements DifficultySource {
   @override
   final int grade;
   @override
+  int get generationGrade => grade;
+  @override
   final bool useCustomProblemSettings;
   @override
   final Set<String> customOperations;
   @override
   final int customRangeMin, customRangeMax;
-  const GenerationSettings(
-      {required this.grade,
-      this.useCustomProblemSettings = false,
-      this.customOperations = const {},
-      this.customRangeMin = 1,
-      this.customRangeMax = 20});
+  const GenerationSettings({
+    required this.grade,
+    this.useCustomProblemSettings = false,
+    this.customOperations = const {},
+    this.customRangeMin = 1,
+    this.customRangeMax = 20,
+  });
 }
 
 class DifficultyManager {
   static DifficultyConfig getDifficulty(
-      DifficultySource gameProvider, int level,
-      {int? gradeOverride}) {
-    final grade = gradeOverride ?? gameProvider.grade;
-    final baseLevel =
-        grade.clamp(1, algorithmPath == AlgorithmPath.legacy ? 4 : 6);
+    DifficultySource gameProvider,
+    int level, {
+    int? gradeOverride,
+  }) {
+    final grade = gradeOverride ?? gameProvider.generationGrade;
+    final baseLevel = grade.clamp(
+      1,
+      algorithmPath == AlgorithmPath.legacy ? 4 : 6,
+    );
     final effectiveGameLevel = level.clamp(1, 20);
 
     // --- NEW: Check for and apply custom settings ---
@@ -47,11 +55,13 @@ class DifficultyManager {
         gameProvider.customOperations.isNotEmpty) {
       if (kDebugMode) {
         traceGenerator(
-            "[DifficultyManager] 🔧 Using custom problem settings override.");
+          "[DifficultyManager] 🔧 Using custom problem settings override.",
+        );
       }
       final customOps = gameProvider.customOperations.map((opString) {
-        return MathOperation.values
-            .firstWhere((e) => e.toString() == 'MathOperation.$opString');
+        return MathOperation.values.firstWhere(
+          (e) => e.toString() == 'MathOperation.$opString',
+        );
       }).toList();
 
       return DifficultyConfig(
@@ -85,8 +95,10 @@ class DifficultyManager {
       difficultyMultiplier: totalDifficulty,
       numberRange: _calculateNumberRange(baseLevel, effectiveGameLevel),
       operationTypes: _getOperationTypes(baseLevel, effectiveGameLevel),
-      equationProbability:
-          _calculateEquationProbability(baseLevel, effectiveGameLevel),
+      equationProbability: _calculateEquationProbability(
+        baseLevel,
+        effectiveGameLevel,
+      ),
       objectCount: _calculateObjectCount(baseLevel, effectiveGameLevel),
       timeLimit: _calculateTimeLimit(baseLevel.clamp(1, 4), effectiveGameLevel),
       gameSpeed: _calculateGameSpeed(baseLevel.clamp(1, 4), effectiveGameLevel),
@@ -100,10 +112,7 @@ class DifficultyManager {
     final baseMax = [0, 15, 25, 40, 80, 120, 180][skillLevel]; // Index 1-4
     final levelBonus = (level - 1) * 3;
     final maxNumber = baseMax + levelBonus;
-    return {
-      'min': level <= 5 ? 1 : 2,
-      'max': maxNumber,
-    };
+    return {'min': level <= 5 ? 1 : 2, 'max': maxNumber};
   }
 
   static List<MathOperation> _getOperationTypes(int skillLevel, int level) {

@@ -49,8 +49,9 @@ class NebulaMatrixGenerationConfig {
     // More clues at low levels, fewer at high levels
     final base = (totalCells * 0.6).round();
     final reduction = (level / 4).floor();
-    final advanced =
-        algorithmPath == AlgorithmPath.legacy ? 0 : (grade - 4).clamp(0, 2);
+    final advanced = algorithmPath == AlgorithmPath.legacy
+        ? 0
+        : (grade - 4).clamp(0, 2);
     return (base - reduction - advanced).clamp(size, totalCells - 1);
   }
 }
@@ -71,8 +72,9 @@ class OrbitalTowersGenerationConfig {
     final maxClues = size * 4;
     final base = (maxClues * 0.75).round();
     final reduction = (level / 4).floor();
-    final advanced =
-        algorithmPath == AlgorithmPath.legacy ? 0 : (grade - 4).clamp(0, 2);
+    final advanced = algorithmPath == AlgorithmPath.legacy
+        ? 0
+        : (grade - 4).clamp(0, 2);
     return (base - reduction - advanced).clamp(size, maxClues);
   }
 
@@ -148,4 +150,18 @@ class RelicAssemblyGenerationConfig {
     final bonus = (level / 5).floor();
     return (base + bonus).clamp(3, 7);
   }
+}
+
+/// Teaching progression: reduce simultaneous unknowns before adding decoys.
+/// This bounds structure; it is not a measured child-difficulty scale.
+class MagicTriangleGenerationConfig {
+  final int grade, level;
+  const MagicTriangleGenerationConfig(this.grade, this.level);
+  int get circlesPerSide =>
+      (3 + (grade - 1) ~/ 2 + (level - 1) ~/ 6).clamp(3, 7);
+  int get totalCircles => circlesPerSide * 3 - 3;
+  int get hiddenCount =>
+      (2 + (level - 1) ~/ 4 + (grade - 1) ~/ 3).clamp(2, totalCircles - 3);
+  int get decoyCount => ((level - 1) ~/ 4).clamp(0, 4);
+  bool get requireDeductionChain => level <= 4;
 }

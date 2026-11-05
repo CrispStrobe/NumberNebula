@@ -42,6 +42,9 @@ jobs:
       - name: Static analysis
         run: flutter analyze --fatal-infos
 
+      - name: Check actual practice rules, hints and difficulty selection
+        run: flutter test test/widgets/all_games_coaching_test.dart test/widgets/practice_rule_shell_test.dart test/logic/board_hint_engine_test.dart test/logic/practice_difficulty_test.dart --concurrency=1 --reporter expanded
+
       - name: Check repaired round, input, restore and phone contracts
         run: >-
           flutter test

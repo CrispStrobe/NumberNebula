@@ -1,3 +1,4 @@
+import 'package:space_math_academy/features/games/widgets/strategy_hint_dialog.dart';
 import 'package:space_math_academy/features/games/widgets/game_ui.dart';
 import 'support/round_dialog_finder.dart';
 // ignore_for_file: curly_braces_in_flow_control_structures
@@ -220,7 +221,90 @@ Future<Map<String, dynamic>?> _stored(WidgetTester tester) async {
   return saved;
 }
 
+Future<StrategyHintDialog> _openWorkedHint(WidgetTester tester) async {
+  final strings = S.of(tester.element(_screen))!;
+  await tester.tap(find.byIcon(Icons.lightbulb_outline));
+  for (var attempt = 0; attempt < 150; attempt++) {
+    await tester.pump(const Duration(milliseconds: 20));
+    await tester
+        .runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    if (find.byType(StrategyHintDialog).evaluate().isNotEmpty) {
+      break;
+    }
+  }
+  expect(find.byType(StrategyHintDialog), findsOneWidget);
+  await tester.pump(const Duration(milliseconds: 300));
+  final hint =
+      tester.widget<StrategyHintDialog>(find.byType(StrategyHintDialog));
+  expect(find.text(hint.focus), findsOneWidget);
+  await tester.tap(find.text(strings.onboardingNext));
+  await tester.pump();
+  expect(find.text(hint.strategy), findsOneWidget);
+  await tester.tap(find.text(strings.onboardingNext));
+  await tester.pump();
+  expect(find.text(hint.working), findsOneWidget);
+  return hint;
+}
+
 void main() {
+  for (final lang in ['en', 'de']) {
+    testWidgets(
+        'in-screen hint explains current rules and guards restored rounds in $lang',
+        (tester) async {
+      final board = _board();
+      (board['puzzle'] as Map<String, dynamic>)['edgeClues'] = {
+        'left_0': 4,
+        'top_0': 4
+      };
+      final app = await _mount(tester,
+          reduced: true, locale: Locale(lang), board: board);
+      final hint = await _openWorkedHint(tester);
+      expect(
+          hint.strategy,
+          contains(lang == 'de'
+              ? 'Ein höherer Turm verdeckt'
+              : 'a taller tower hides'));
+      expect(hint.working, contains('[1] · □ · 3 · 4'));
+      expect(
+          hint.working,
+          contains(lang == 'de'
+              ? 'Blick von links: genau 4 sichtbare Türme'
+              : 'View from left: exactly 4 visible towers'));
+      expect(hint.demonstrate, isNotNull);
+      final strings = S.of(tester.element(_screen))!;
+      await tester.tap(find.text(strings.hintPlaceMove));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(StrategyHintDialog), findsNothing);
+      expect(_snapshot(tester)['answers'], {'r0c0': 1});
+      expect(
+          OrbitalTowersPuzzle.fromJson(board['puzzle'] as Map<String, dynamic>)
+              .validateSolution({
+            ...Map<String, int>.from(_snapshot(tester)['answers'] as Map),
+            'r0c1': 2
+          }),
+          isTrue);
+      expect(_snapshot(tester)['moves'], 3);
+      expect(_snapshot(tester)['hints'], 1);
+      expect(app.gp.outcomeCount, 0);
+
+      // This callback is the real second dialog's production demonstration.
+      // Close its route normally, restore, then replay the obsolete callback.
+      final oldHint = await _openWorkedHint(tester);
+      final obsoleteMove = oldHint.demonstrate;
+      expect(obsoleteMove, isNotNull);
+      await tester.tap(find.text(strings.hintTryMyself));
+      await tester.pump(const Duration(milliseconds: 300));
+      await _restore(tester, app, board);
+      final before = _snapshot(tester);
+      obsoleteMove!();
+      await tester.pump();
+      expect(_snapshot(tester), before);
+      expect(app.gp.outcomeCount, 0);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('adversarial: retained back callback rejects restored round',
       (t) async {
     await _mount(t, reduced: true, pushed: true);

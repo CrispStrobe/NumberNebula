@@ -14,6 +14,14 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      publish_sites:
+        description: Publish this tested build to Vercel and GitHub Pages
+        type: boolean
+        default: false
+      production:
+        description: Publish to the canonical Vercel domain (manual release only)
+        type: boolean
+        default: false
       calibration:
         description: Also capture all games for calibration
         type: boolean
@@ -146,7 +154,8 @@ jobs:
       vars.VERCEL_PREBUILT == 'true' && (
         (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
         (github.event_name == 'pull_request' &&
-         github.event.pull_request.head.repo.full_name == github.repository))
+         github.event.pull_request.head.repo.full_name == github.repository) ||
+        (github.event_name == 'workflow_dispatch' && inputs.publish_sites))
     runs-on: ubuntu-latest
     # Includes prebuilt publication and both engines; cloud build-slot waits
     # must not consume the entire browser allowance. No new parallel jobs.
@@ -159,6 +168,12 @@ jobs:
       VERCEL_ORG_ID: ${{ vars.VERCEL_TEAM_ID }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Read expected published version
+        run: |
+          release_version=$(sed -n 's/^version: *//p' pubspec.yaml)
+          echo "EXPECTED_VERSION=${release_version%%+*}" >> "$GITHUB_ENV"
+          echo "EXPECTED_BUILD=${release_version#*+}" >> "$GITHUB_ENV"
 
       - uses: actions/download-artifact@v4
         with:
@@ -178,7 +193,7 @@ jobs:
         id: deploy
         run: |
           prod=''
-          [ "$GITHUB_REF" = refs/heads/main ] && prod='--prod'
+          if [ "$GITHUB_REF" = refs/heads/main ] || [ '${{ inputs.production }}' = true ]; then prod='--prod'; fi
           for project in ${{ vars.VERCEL_PROJECT_IDS }}; do
             url=$(VERCEL_PROJECT_ID="$project" npx --yes vercel@latest deploy --prebuilt $prod \
               --token "$VERCEL_TOKEN" --yes)
@@ -198,7 +213,7 @@ jobs:
           CI: 'true'
           # Production is checked at its public domain; the per-deployment
           # URL sits behind Deployment Protection.
-          BASE_URL: ${{ github.ref == 'refs/heads/main' && (vars.PRODUCTION_URL || 'https://numbernebula.vercel.app') || steps.deploy.outputs.url }}
+          BASE_URL: ${{ (github.ref == 'refs/heads/main' || inputs.production) && (vars.PRODUCTION_URL || 'https://numbernebula.vercel.app') || steps.deploy.outputs.url }}
           VERCEL_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           VERCEL_PREVIEW: ${{ github.event_name == 'pull_request' }}
         run: npx playwright test
@@ -236,4 +251,88 @@ jobs:
         with:
           name: calibration-summary
           path: calibration-*.json*
+          retention-days: 14
+
+  pages:
+    env:
+      PAGES_HOSTING: 'true'
+    needs: [build, live-test]
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && inputs.publish_sites)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.publish.outputs.page_url }}
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read expected published version
+        run: |
+          release_version=$(sed -n 's/^version: *//p' pubspec.yaml)
+          echo "EXPECTED_VERSION=${release_version%%+*}" >> "$GITHUB_ENV"
+          echo "EXPECTED_BUILD=${release_version#*+}" >> "$GITHUB_ENV"
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: .
+      - name: Prepare the tested package for its Pages base path
+        run: |
+          python3 -m unittest tool.test_prepare_pages -v
+          python3 tool/prepare_pages.py build/web build/pages --base-href /NumberNebula/
+          mkdir pages-root
+          cp -a build/pages pages-root/NumberNebula
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tool/web_live_test/package-lock.json
+      - name: Install the browser checks
+        working-directory: tool/web_live_test
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium firefox
+      - name: Check the package under the project path without Vercel headers
+        env:
+          CI: 'true'
+          BASE_URL: http://127.0.0.1:4173/NumberNebula/
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory pages-root > pages-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent "$BASE_URL" > /dev/null; then break; fi
+            sleep 1
+          done
+          cd tool/web_live_test
+          npx playwright test tests/deployment.spec.mjs --retries=0
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/pages
+      - name: Publish GitHub Pages
+        id: publish
+        uses: actions/deploy-pages@v4
+      - name: Check the published project path in both engines
+        working-directory: tool/web_live_test
+        env:
+          CI: 'true'
+          BASE_URL: ${{ steps.publish.outputs.page_url }}
+        run: npx playwright test tests/deployment.spec.mjs --retries=0
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pages-live-report
+          path: |
+            tool/web_live_test/playwright-report
+            tool/web_live_test/test-results
+            build/pages/pages-provenance.json
           retention-days: 14

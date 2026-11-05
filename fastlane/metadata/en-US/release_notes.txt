@@ -1,10 +1,6 @@
-Six more mini-games, and every one of them played through to a win.
+Clearer practice and helpful hints across all 48 mini-games.
 
-- Void Crossing, Galactic Market, Relic Assembly, Star Forge, Ion Ring and Cube Scanner are back in the menu — all 48 games are playable now
-- Ion Ring: every rule now matters; a rule could name a shape that was not on the ring, so any placement won
-- Star Forge: the walkthrough explains correctly what an "arm" is, and the moves counter says "moves left" instead of turning red on every correct move
-- Cube Scanner: a wrong answer shows the working ("Opposite faces add up to 7: 7 − 5 = 2"), and the button says "Check answer" instead of announcing a win in advance
-- Relic Assembly: bigger pieces and edge numbers on tablets, and a larger rotate button
-- Galactic Market's confirm button, the flashcard boxes, Hull Plating's rotate button and the crash-report count were still in English
-- Walkthrough cards fit a phone held sideways, and greyed-out buttons are visible on the dark background
-- Cargo-Loader could, rarely, deal a newly generated level that could not be won; fixed
+- New exercises explain each game’s actual rules, with worked examples and meaningful choices.
+- Hints use the current board and explain the next step.
+- Wormhole puzzles introduce shared side sums more gradually.
+- Improved saved-round handling and support for larger text on small screens.

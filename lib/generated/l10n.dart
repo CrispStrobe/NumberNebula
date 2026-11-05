@@ -541,22 +541,10 @@ abstract class S {
   /// **'CrispStrobe'**
   String get developerName;
 
-  /// No description provided for @targetAge.
-  ///
-  /// In en, this message translates to:
-  /// **'Target Age'**
-  String get targetAge;
-
-  /// No description provided for @targetAgeRange.
-  ///
-  /// In en, this message translates to:
-  /// **'8-12 years (Grades 3-6)'**
-  String get targetAgeRange;
-
   /// No description provided for @aboutApp.
   ///
   /// In en, this message translates to:
-  /// **'NumberNebula helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.'**
+  /// **'NumberNebula turns mathematics into engaging space-themed puzzle games for math learners of all ages.'**
   String get aboutApp;
 
   /// No description provided for @languageRestartPrompt.
@@ -3943,7 +3931,7 @@ abstract class S {
   /// No description provided for @grade.
   ///
   /// In en, this message translates to:
-  /// **'Grade'**
+  /// **'Skill level'**
   String get grade;
 
   /// No description provided for @emptyProgram.
@@ -4159,7 +4147,7 @@ abstract class S {
   /// No description provided for @starLoaderHint.
   ///
   /// In en, this message translates to:
-  /// **'Use arrows or swipe to move. Get all crates to the targets!'**
+  /// **'Use arrows or swipe to walk. Push every crate onto a target. You cannot pull crates: walk around one to push it from another side.'**
   String get starLoaderHint;
 
   /// No description provided for @moves.
@@ -7717,7 +7705,7 @@ abstract class S {
   /// No description provided for @guidedRetry.
   ///
   /// In en, this message translates to:
-  /// **'That does not fit the rule yet. Try another number.'**
+  /// **'That choice does not fit the rule yet. Try another.'**
   String get guidedRetry;
 
   /// No description provided for @guidedReady.

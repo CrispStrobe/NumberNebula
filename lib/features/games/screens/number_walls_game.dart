@@ -19,6 +19,8 @@ import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/strategy_hint_dialog.dart';
 import '../services/hint_completion_solver.dart';
+import '../services/numeric_hint_guidance.dart';
+import '../models/practice_lesson_catalog.dart';
 import '../../../shared/widgets/onboarding_overlay.dart';
 
 typedef NumberWallsDrag = ({int number, Object round});
@@ -482,12 +484,29 @@ class _NumberWallsGameState extends State<NumberWallsGame>
         break;
       }
     }
+    final german = Localizations.localeOf(context).languageCode == 'de';
+    final lesson = practiceLessons['number_walls']!;
+    final guidance = numericHintGuidance(
+        'number_walls',
+        {
+          'puzzle': p.toJson(),
+          'userAnswers': initial,
+          '_hintVerified': compatible,
+          '_hintTarget': cell.toString(),
+          '_hintValue': value,
+        },
+        german: german);
     StrategyHintDialog.show(context,
-        focus: s.hintWallFocus,
-        strategy: s.hintWallStrategy,
-        working: compatible
-            ? '$equation\n${s.hintPossibleMove(value!)}'
-            : s.hintCheckPlacements,
+        focus: guidance?['focus'] ?? s.hintWallFocus,
+        strategy: {
+          german ? lesson.rulesDe : lesson.rulesEn,
+          guidance?['strategy'] ??
+              (german ? lesson.strategyDe : lesson.strategyEn),
+        }.join('\n\n'),
+        working: guidance?['working'] ??
+            (compatible
+                ? '$equation\n${s.hintPossibleMove(value!)}'
+                : s.hintCheckPlacements),
         demonstrate: compatible
             ? () {
                 if (mounted) {

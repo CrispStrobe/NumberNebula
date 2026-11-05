@@ -241,14 +241,8 @@ class SDe extends S {
   String get developerName => 'CrispStrobe';
 
   @override
-  String get targetAge => 'Zielalter';
-
-  @override
-  String get targetAgeRange => '6-12 Jahre (Klassen 1-6)';
-
-  @override
   String get aboutApp =>
-      'Die App hilft hoffentlich Kindern, Mathematik durch fesselnde Weltraum-Spiele zu lernen. Optimiert für Tablets.';
+      'NumberNebula verwandelt Mathematik in fesselnde Weltraum-Rätselspiele für Mathe-Lernende jeden Alters.';
 
   @override
   String get languageRestartPrompt =>
@@ -2227,7 +2221,7 @@ class SDe extends S {
   String get efficiencyBonus => 'Effizienzbonus';
 
   @override
-  String get grade => 'Klasse';
+  String get grade => 'Stufe';
 
   @override
   String get emptyProgram => 'Befehle hierher ziehen';
@@ -2342,7 +2336,7 @@ class SDe extends S {
 
   @override
   String get starLoaderHint =>
-      'Bewege dich mit Pfeiltasten oder Wischen. Bringe alle Frachtkisten auf die Ziele!';
+      'Gehe mit Pfeiltasten oder Wischen. Schiebe jede Kiste auf ein Ziel. Ziehen geht nicht: Gehe um eine Kiste herum, um sie von einer anderen Seite zu schieben.';
 
   @override
   String get moves => 'Züge';
@@ -4563,7 +4557,7 @@ class SDe extends S {
 
   @override
   String get guidedRetry =>
-      'Das passt noch nicht zur Regel. Probiere eine andere Zahl.';
+      'Diese Auswahl passt noch nicht zur Regel. Probiere eine andere.';
 
   @override
   String get guidedReady => 'Geschafft! Jetzt kommt dein eigenes Rätsel.';

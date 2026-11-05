@@ -68,7 +68,7 @@ test('startup, idle rendering and autosave overhead', async ({ page, browserName
     requestAnimationFrame(frame);
     // Keep the measurement about gameplay rather than first-run practice.
     for (const key of ['magic_triangles', 'asteroid_math']) {
-      localStorage.setItem(`flutter.onboarding_seen_${key}_all_games_guided_v1`, 'true');
+      localStorage.setItem(`flutter.onboarding_seen_${key}_all_games_guided_v3_mechanics`, 'true');
       localStorage.setItem(`flutter.onboarding_seen_${key}`, 'true');
     }
     localStorage.setItem('flutter.reduce_motion', JSON.stringify(reduceMotion));

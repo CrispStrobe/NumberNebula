@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:space_math_academy/features/games/services/magic_triangle_puzzle.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:space_math_academy/features/games/services/algorithm_path.dart';
+import 'package:space_math_academy/features/games/services/generation_configs.dart';
 import 'package:space_math_academy/features/games/services/magic_triangle_solver.dart';
 
 List<int> sideTotals(List<int> a, int n) => [
@@ -12,25 +14,34 @@ List<int> sideTotals(List<int> a, int n) => [
 void main() {
   test('higher-level generation keeps its size and a playable equal-sum board',
       () {
-    for (final grade in [1, 3, 6]) {
-      for (int sample = 0; sample < 5; sample++) {
-        final puzzle =
-            MagicTrianglePuzzle.generate({'grade': grade, 'level': 10});
-        final solution =
-            solveMagicTriangle(puzzle.circlesPerSide, puzzle.allNumbers)!;
-        final indices = puzzle.hiddenIndices.toList()..sort();
-        expect(
-            puzzle
-                .checkSolution(indices.map((i) => solution[i]).toList())
-                .isPerfect,
-            isTrue);
-        if (grade == 6) {
-          expect(puzzle.circlesPerSide, 7);
-          expect(puzzle.warpFrequency, greaterThan(300));
+    // Legacy sizes by grade + level / 5; the guided path follows its staged
+    // profile. Neither may fall back to a smaller board.
+    for (final path in [AlgorithmPath.legacy, AlgorithmPath.auto]) {
+      for (final grade in [1, 3, 6]) {
+        for (int sample = 0; sample < 5; sample++) {
+          final puzzle = withAlgorithmPath(path,
+              () => MagicTrianglePuzzle.generate({'grade': grade, 'level': 10}));
+          if (path == AlgorithmPath.auto) {
+            expect(puzzle.circlesPerSide,
+                MagicTriangleGenerationConfig(grade, 10).circlesPerSide);
+          } else if (grade == 6) {
+            expect(puzzle.circlesPerSide, 7);
+          }
+          final solution =
+              solveMagicTriangle(puzzle.circlesPerSide, puzzle.allNumbers)!;
+          final indices = puzzle.hiddenIndices.toList()..sort();
+          expect(
+              puzzle
+                  .checkSolution(indices.map((i) => solution[i]).toList())
+                  .isPerfect,
+              isTrue);
+          if (grade == 6) {
+            expect(puzzle.warpFrequency, greaterThan(300));
+          }
+          final hidden = indices.map((i) => solution[i]).toSet();
+          expect(puzzle.numberPool.toSet().containsAll(hidden), isTrue);
+          expect(puzzle.numberPool.every((v) => v > 0), isTrue);
         }
-        final hidden = indices.map((i) => solution[i]).toSet();
-        expect(puzzle.numberPool.toSet().containsAll(hidden), isTrue);
-        expect(puzzle.numberPool.every((v) => v > 0), isTrue);
       }
     }
   });

@@ -16,6 +16,8 @@ import '../providers/game_provider.dart';
 import '../widgets/space_background.dart';
 import '../widgets/strategy_hint_dialog.dart';
 import '../services/hint_completion_solver.dart';
+import '../services/numeric_hint_guidance.dart';
+import '../models/practice_lesson_catalog.dart';
 import '../widgets/game_ui.dart';
 import '../constants/difficulty_manager.dart';
 import '../services/star_forge_logic.dart';
@@ -419,12 +421,31 @@ class _StarForgeGameState extends State<StarForgeGame>
     final line = p.lines[arm];
     final equation =
         '${line.map((i) => completion?[i.toString()]).join(' + ')} = ${p.magicConstant}';
+    final german = Localizations.localeOf(context).languageCode == 'de';
+    final lesson = practiceLessons['star_forge']!;
+    final guidance = numericHintGuidance(
+        'star_forge',
+        {
+          'puzzle': p.toJson(),
+          'answers': {
+            for (final e in initial.entries) e.key.toString(): e.value
+          },
+          '_hintVerified': compatible,
+          '_hintTarget': node.toString(),
+          '_hintValue': value,
+        },
+        german: german);
     StrategyHintDialog.show(context,
-        focus: s.hintStarFocus,
-        strategy: s.hintStarStrategy,
-        working: compatible
-            ? '$equation\n${s.hintPossibleMove(value!)}'
-            : s.hintCheckPlacements,
+        focus: guidance?['focus'] ?? s.hintStarFocus,
+        strategy: {
+          german ? lesson.rulesDe : lesson.rulesEn,
+          guidance?['strategy'] ??
+              (german ? lesson.strategyDe : lesson.strategyEn),
+        }.join('\n\n'),
+        working: guidance?['working'] ??
+            (compatible
+                ? '$equation\n${s.hintPossibleMove(value!)}'
+                : s.hintCheckPlacements),
         demonstrate: compatible
             ? () {
                 if (mounted) {

@@ -1,5 +1,22 @@
 # Pure Dart generation and estimated difficulty
 
+The **1.5.43+59** candidate includes a complete
+[48-game lesson and hint audit](practice-rules-and-difficulty.md), three bounded
+fixed-fixture contract checks and a paired practice-difficulty report. Run:
+
+```sh
+dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/check_numeric_lesson_contracts.dart
+dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/check_spatial_lesson_contracts.dart
+dart --packages=tool/pure_dart/.dart_tool/package_config.json tool/check_action_lesson_contracts.dart
+```
+
+The previous Wormhole generator remains selectable as `legacy`. Use
+`tool/check_practice_difficulty.dart --smoke` for the bounded 12-profile check;
+omit `--smoke` only on a remote runner for 360 paired profiles. Fixed semantic
+fixtures and structural workload estimates do not measure children's felt
+difficulty or prove Flutter input/layout behavior.
+
+
 Current source: **1.5.34+50**, including the [Codebreaker round audit](codebreaker-round-audit.md).
 Its generator algorithms and dependency pins are unchanged. The preceding
 [verified integration](https://github.com/CrispStrobe/NumberNebula/pull/59)

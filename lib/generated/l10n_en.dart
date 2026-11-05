@@ -240,14 +240,8 @@ class SEn extends S {
   String get developerName => 'CrispStrobe';
 
   @override
-  String get targetAge => 'Target Age';
-
-  @override
-  String get targetAgeRange => '8-12 years (Grades 3-6)';
-
-  @override
   String get aboutApp =>
-      'NumberNebula helps primary school students learn mathematics through engaging space-themed games. Perfect for iPads and designed with young learners in mind.';
+      'NumberNebula turns mathematics into engaging space-themed puzzle games for math learners of all ages.';
 
   @override
   String get languageRestartPrompt =>
@@ -2216,7 +2210,7 @@ class SEn extends S {
   String get efficiencyBonus => 'Efficiency Bonus';
 
   @override
-  String get grade => 'Grade';
+  String get grade => 'Skill level';
 
   @override
   String get emptyProgram => 'Drag commands here';
@@ -2328,7 +2322,7 @@ class SEn extends S {
 
   @override
   String get starLoaderHint =>
-      'Use arrows or swipe to move. Get all crates to the targets!';
+      'Use arrows or swipe to walk. Push every crate onto a target. You cannot pull crates: walk around one to push it from another side.';
 
   @override
   String get moves => 'Moves';
@@ -4543,7 +4537,7 @@ class SEn extends S {
 
   @override
   String get guidedRetry =>
-      'That does not fit the rule yet. Try another number.';
+      'That choice does not fit the rule yet. Try another.';
 
   @override
   String get guidedReady => 'You did it! Now try your own puzzle.';
