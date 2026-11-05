@@ -1470,11 +1470,36 @@ class _SpaceStationGridlockGameState extends State<SpaceStationGridlockGame>
             ? S.of(context)!.gridlockDragHorizontally
             : S.of(context)!.gridlockDragVertically,
         button: true,
+        // Axis-locked drags: inside the small-screen scroll view a pan needs
+        // twice the touch slop before it beats vertical scrolling, so a short
+        // horizontal drag never moved a ship. Measuring from touch-down keeps
+        // the 20 px step threshold the same with or without a scroll view.
         child: GestureDetector(
-          onPanStart: (details) => _onPanStart(details, index, ship, round),
-          onPanUpdate: (details) => _onPanUpdate(details, index, ship, round),
-          onPanEnd: (_) => _onPanEnd(round, ship),
-          onPanCancel: () => _onPanEnd(round, ship),
+          dragStartBehavior: DragStartBehavior.down,
+          onHorizontalDragStart: ship.isHorizontal
+              ? (details) => _onPanStart(details, index, ship, round)
+              : null,
+          onHorizontalDragUpdate: ship.isHorizontal
+              ? (details) => _onPanUpdate(details, index, ship, round)
+              : null,
+          onHorizontalDragEnd: ship.isHorizontal
+              ? (_) => _onPanEnd(round, ship)
+              : null,
+          onHorizontalDragCancel: ship.isHorizontal
+              ? () => _onPanEnd(round, ship)
+              : null,
+          onVerticalDragStart: ship.isHorizontal
+              ? null
+              : (details) => _onPanStart(details, index, ship, round),
+          onVerticalDragUpdate: ship.isHorizontal
+              ? null
+              : (details) => _onPanUpdate(details, index, ship, round),
+          onVerticalDragEnd: ship.isHorizontal
+              ? null
+              : (_) => _onPanEnd(round, ship),
+          onVerticalDragCancel: ship.isHorizontal
+              ? null
+              : () => _onPanEnd(round, ship),
           child: AnimatedBuilder(
             animation: ship.isPlayer ? _exitAnimation : _slideAnimation,
             builder: (context, child) {
